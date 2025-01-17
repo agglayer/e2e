@@ -1,0 +1,61 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Install Kurtosis CLI
+      - name: Install Kurtosis CLI
+        run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis version
+
+      # Step 4: Spin up Kurtosis Devnet
+      - name: Deploy Kurtosis Devnet
+        run: |
+          kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
+            --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
+
+      # Step 5: Extract RPC URL from Kurtosis Service
+      - name: Get Kurtosis RPC URL
+        id: grab-url
+        run: |
+          # Query Kurtosis for service details
+          SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
+
+          # Extract only the HTTP RPC URL
+          RPC_URL=$(echo "$SERVICE_INFO" | grep 'rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
+
+          # Inject the RPC URL into the .env file
+          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$RPC_URL|" .env
+
+
+      # Debug: Output the updated .env file
+      - name: Output .env for Debugging
+        run: cat .env
+        
+      # Step 6: Install Bats for Testing
+      - name: Install Bats
+        run: |
+          if ! command -v bats &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y bats
+          else
+            echo "Bats is already installed."
+          fi
+
+      # Step 7: Run Makefile commands for tests
+      - name: Run Tests
+        run: make test-bats
