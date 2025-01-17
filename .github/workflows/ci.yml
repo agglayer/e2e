@@ -23,33 +23,32 @@ jobs:
           kurtosis version
 
       # Step 4: Spin up Kurtosis Devnet
-      # - name: Deploy Kurtosis Devnet
-      #   run: |
-      #     kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
-      #       --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
+      - name: Deploy Kurtosis Devnet
+        run: |
+          kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
+            --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
 
       # Step 5: Extract RPC URL from Kurtosis Service
       - name: Get Kurtosis RPC URL
         id: grab-url
         run: |
-          # # Query Kurtosis for service details
-          # SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
-          # 
-          # # Extract only the HTTP RPC URL (ignore ws-rpc lines)
-          # RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
-          # 
-          # # Debug: Print the extracted RPC_URL for troubleshooting
-          # echo "Extracted RPC_URL: $RPC_URL"
-          # 
-          # # Escape special characters in RPC_URL (e.g., `/`, `&`)
-          # ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
-          # 
-          # # Inject the RPC URL into the .env file
-          # sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
+          # Query Kurtosis for service details
+          SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
+          
+          # Extract only the HTTP RPC URL (ignore ws-rpc lines)
+          RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
+          
+          # Debug: Print the extracted RPC_URL for troubleshooting
+          echo "Extracted RPC_URL: $RPC_URL"
+          
+          # Escape special characters in RPC_URL (e.g., `/`, `&`)
+          ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
+          
+          # Inject the RPC URL into the .env file
+          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
       
           # Update BATS_LIB_PATH dynamically in the .env file
           sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env
-
 
       # Debug: Output the updated .env file
       - name: Output .env for Debugging
