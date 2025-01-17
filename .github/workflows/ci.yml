@@ -35,6 +35,9 @@ jobs:
           echo "Current working directory:"
           pwd
           
+          echo "Files in the current directory:"
+          ls -la
+          
           # # Query Kurtosis for service details
           # SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
           # 
