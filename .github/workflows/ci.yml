@@ -35,17 +35,17 @@ jobs:
           echo "Current working directory:"
           pwd
           
-          # Query Kurtosis for service details
-          SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
-
-          # Extract only the HTTP RPC URL (ignore ws-rpc lines)
-          RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
-
-          # Debug: Print the extracted RPC_URL for troubleshooting
-          echo "Extracted RPC_URL: $RPC_URL"
+          # # Query Kurtosis for service details
+          # SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
+          # 
+          # # Extract only the HTTP RPC URL (ignore ws-rpc lines)
+          # RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
+          # 
+          # # Debug: Print the extracted RPC_URL for troubleshooting
+          # echo "Extracted RPC_URL: $RPC_URL"
 
           # Escape special characters in RPC_URL (e.g., `/`, `&`)
-          ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
+          ESCAPED_RPC_URL=hello.com
 
           # Inject the RPC URL into the .env file
           sed -i "" "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
