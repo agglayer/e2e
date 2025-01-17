@@ -1,5 +1,6 @@
 .PHONY: test-bats
 test-bats:
+	set -a; source .env; set +a; \
 	cd scripts/bats-scripts; bats e2e.bats
 
 .PHONY: test-go
