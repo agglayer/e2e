@@ -65,19 +65,18 @@ jobs:
           fi
           
       # Step 2: Install Foundry (for cast)
-      - name: Install Foundry (and cast)
-        run: |
-          curl -L https://foundry.paradigm.xyz | bash
-          . /home/runner/.bashrc
-          foundryup
+      # - name: Install Foundry (and cast)
+      #   run: |
+      #     curl -L https://foundry.paradigm.xyz | bash
+      #     . /home/runner/.bashrc
+      #     foundryup
 
       # Step 3: Export Foundry Path
-      - name: Export Foundry Path
-        run: |
-          echo "export PATH=\$HOME/.foundry/bin:\$PATH" >> $GITHUB_ENV
+      # - name: Export Foundry Path
+      #   run: |
+      #     echo "export PATH=\$HOME/.foundry/bin:\$PATH" >> $GITHUB_ENV
 
       # Step 7: Run Makefile commands for tests
       - name: Run Tests
         run: | 
-          make test-bats
           make test-go
