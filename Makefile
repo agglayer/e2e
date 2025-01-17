@@ -7,8 +7,8 @@ test-bats:
 test-go:
 	cd scripts/go-scripts; godotenv -f ../../.env go test -v ./...
 	
-.PHONY: install-go-dot-env
-install-go-dot-env:
+.PHONY: install-go-deps
+install-go-deps:
 	go install github.com/joho/godotenv/cmd/godotenv@latest
 	
 .PHONY: install-bats-deps

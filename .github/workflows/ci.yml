@@ -76,7 +76,12 @@ jobs:
       #   run: |
       #     echo "export PATH=\$HOME/.foundry/bin:\$PATH" >> $GITHUB_ENV
 
-      # Step 7: Run Makefile commands for tests
+      # Step 7: Install Test dependencies
+      - name: Install Test dependencies
+        run: |
+          make install-go-deps
+
+      # Step 8: Run Makefile commands for tests
       - name: Run Tests
-        run: | 
+        run: |
           make test-go
