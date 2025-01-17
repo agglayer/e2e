@@ -28,7 +28,7 @@ jobs:
       #     kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
       #       --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
 
-      Step 5: Extract RPC URL from Kurtosis Service
+      # Step 5: Extract RPC URL from Kurtosis Service
       - name: Get Kurtosis RPC URL
         id: grab-url
         run: |
