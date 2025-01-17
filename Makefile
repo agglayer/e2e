@@ -1,8 +1,10 @@
 .PHONY: test-bats
 test-bats:
-	set -a; . .env; set +a; \
+	pwd
+	ls -la
 	echo "Environment variables loaded:"; \
 	env; \
+	set -a; . $(PWD)/.env; set +a; \
 	cd scripts/bats-scripts; bats e2e.bats
 
 .PHONY: test-go
