@@ -68,7 +68,7 @@ jobs:
       - name: Install Foundry (and cast)
         run: |
           curl -L https://foundry.paradigm.xyz | bash
-          source ~/.bashrc
+          source /home/runner/.bashrc
           foundryup
 
       # Step 3: Export Foundry Path
