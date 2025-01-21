@@ -64,13 +64,13 @@ jobs:
       #       echo "Bats is already installed."
       #     fi
           
-      # Step 2: Install Foundry (for cast)
-      - name: Install Foundry (and cast)
-        run: |
-          curl -L https://foundry.paradigm.xyz | bash
-          . /home/runner/.bashrc
-          foundryup
-          echo "export PATH=\$HOME/.foundry/bin:\$PATH" >> $GITHUB_ENV
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+          
+      - name: Confirm installed
+        run: cast -h
 
       # Step 7: Run Makefile commands for tests
       - name: Run Tests
