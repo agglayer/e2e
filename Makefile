@@ -9,8 +9,8 @@ test-bats:
 	fi; \
 	echo "Sourcing .env and running bats tests"; \
 	set -a; . $(PWD)/.env; set +a; \
-	cd scripts/bats-scripts; bats -p batch-verifier.bats; \
-	bats -p eoa-tx.bats
+	cd scripts/bats-scripts; bats batch-verifier.bats; \
+	bats eoa-tx.bats
 
 .PHONY: test-go
 test-go:
