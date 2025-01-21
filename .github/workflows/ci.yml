@@ -11,67 +11,72 @@ jobs:
 
     steps:
       # Step 1: Checkout the repository
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       # Step 2: Install Kurtosis CLI
-      # - name: Install Kurtosis CLI
-      #   run: |
-      #     echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-      #     sudo apt update
-      #     sudo apt install kurtosis-cli
-      #     kurtosis version
-      # 
-      # # Step 4: Spin up Kurtosis Devnet
-      # - name: Deploy Kurtosis Devnet
-      #   run: |
-      #     kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
-      #       --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
-      # 
-      # # Step 5: Extract RPC URL from Kurtosis Service
-      # - name: Get Kurtosis RPC URL
-      #   id: grab-url
-      #   run: |
-      #     # Query Kurtosis for service details
-      #     SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
-      # 
-      #     # Extract only the HTTP RPC URL (ignore ws-rpc lines)
-      #     RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
-      # 
-      #     # Debug: Print the extracted RPC_URL for troubleshooting
-      #     echo "Extracted RPC_URL: $RPC_URL"
-      # 
-      #     # Escape special characters in RPC_URL (e.g., `/`, `&`)
-      #     ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
-      # 
-      #     # Inject the RPC URL into the .env file
-      #     sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
-      # 
-      #     # Update BATS_LIB_PATH dynamically in the .env file
-      #     sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env
-      # 
-      # # Debug: Output the updated .env file
-      # - name: Output .env for Debugging
-      #   run: cat .env
-      # 
-      # # Step 6: Install Bats for Testing
-      # - name: Install Bats
-      #   run: |
-      #     if ! command -v bats &> /dev/null; then
-      #       sudo apt-get update
-      #       sudo apt-get install -y bats
-      #     else
-      #       echo "Bats is already installed."
-      #     fi
+      - name: Install Kurtosis CLI
+        run: |
+          echo "Adding Kurtosis CLI to APT sources"
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          echo "Kurtosis CLI version:"
+          kurtosis version
+
+      # Step 3: Spin up the Kurtosis Devnet
+      - name: Deploy Kurtosis Devnet
+        run: |
+          echo "Starting Kurtosis Devnet with CDK configuration"
+          kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
+            --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
+
+      # Step 4: Extract RPC URL from Kurtosis Service
+      - name: Extract RPC URL from Kurtosis
+        id: grab-url
+        run: |
+          echo "Querying Kurtosis for service details"
+          SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
+      
+          echo "Extracting RPC URL (ignoring ws-rpc lines)"
+          RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
+      
+          echo "Extracted RPC_URL: $RPC_URL"
+      
+          echo "Escaping special characters in RPC_URL"
+          ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
+      
+          echo "Injecting RPC_URL into .env file"
+          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
+      
+          echo "Dynamically updating BATS_LIB_PATH in .env"
+          sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env
+
+      # Step 5: Debugging - Output the updated .env file
+      - name: Debug .env File
+        run: |
+          echo "Updated .env file contents:"
+          cat .env
+
+      # Step 6: Install Bats Testing Framework
+      - name: Install Bats
+        run: |
+          echo "Installing Bats if not already installed"
+          if ! command -v bats &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y bats
+          else
+            echo "Bats is already installed."
+          fi
           
+      # Step 7: Install Foundry Toolchain
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
-          
-      - name: Confirm installed
-        run: cast -h
 
-      # Step 7: Run Makefile commands for tests
-      - name: Run Tests
-        run: make test-bats
+      # Step 8: Run Tests via Makefile
+      - name: Run Bats Tests
+        run: |
+          echo "Running Bats tests using Makefile"
+          make test-bats
