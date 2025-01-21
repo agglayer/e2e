@@ -1,12 +1,5 @@
 .PHONY: test-bats
 test-bats:
-	@if [ "$$(uname)" = "Darwin" ]; then \
-	    echo "Detected macOS, using macOS sed syntax"; \
-	    sed -i "" "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(PWD)/scripts/bats-scripts/lib\"|" .env; \
-	else \
-	    echo "Detected Linux, using Linux sed syntax"; \
-	    sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env; \
-	fi; \
 	echo "Sourcing .env and running bats tests"; \
 	set -a; . $(PWD)/.env; set +a; \
 	cd scripts/bats-scripts; bats batch-verifier.bats; \
