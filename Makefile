@@ -5,11 +5,12 @@ test-bats:
 	    sed -i "" "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(PWD)/scripts/bats-scripts/lib\"|" .env; \
 	else \
 	    echo "Detected Linux, using Linux sed syntax"; \
-	    sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(PWD)/scripts/bats-scripts/lib\"|" .env; \
+	    sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env; \
 	fi; \
 	echo "Sourcing .env and running bats tests"; \
 	set -a; . $(PWD)/.env; set +a; \
-	cd scripts/bats-scripts; bats -p e2e.bats
+	cd scripts/bats-scripts; bats -p batch-verifier.bats; \
+	bats -p eoa-tx.bats
 
 .PHONY: test-go
 test-go:

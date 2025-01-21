@@ -4,39 +4,7 @@ setup() {
     _common_setup
 
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
-}
-
-@test "Send EOA transaction" {
-    local sender_addr=$(cast wallet address --private-key "$sender_private_key")
-    local initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$l2_rpc_url") || {
-        echo "Failed to retrieve nonce for sender: $sender_addr using RPC URL: $l2_rpc_url"
-        return 1
-    }
-    local value="10ether"
-
-    # case 1: Transaction successful sender has sufficient balance
-    run send_tx "$l2_rpc_url" "$sender_private_key" "$receiver" "$value"
-    assert_success
-    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
-
-    # case 2: Transaction rejected as sender attempts to transfer more than it has in its wallet.
-    # Transaction will fail pre-validation check on the node and will be dropped subsequently from the pool
-    # without recording it on the chain and hence nonce will not change
-    local sender_balance=$(cast balance "$sender_addr" --ether --rpc-url "$l2_rpc_url") || {
-        echo "Failed to retrieve balance for sender: $sender_addr using RPC URL: $l2_rpc_url"
-        return 1
-    }
-    local excessive_value=$(echo "$sender_balance + 1" | bc)"ether"
-    run send_tx "$l2_rpc_url" "$sender_private_key" "$receiver" "$excessive_value"
-    assert_failure
-
-    # Check whether the sender's nonce was updated correctly
-    local final_nonce=$(cast nonce "$sender_addr" --rpc-url "$l2_rpc_url") || {
-        echo "Failed to retrieve nonce for sender: $sender_addr using RPC URL: $l2_rpc_url"
-        return 1
-    }
-    assert_equal "$final_nonce" "$(echo "$initial_nonce + 1" | bc)"
+    receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }
 
 @test "Test ERC20Mock contract" {
@@ -49,11 +17,18 @@ setup() {
     # Deploy ERC20Mock
     run deploy_contract "$l2_rpc_url" "$sender_private_key" "$contract_artifact"
     assert_success
-    contract_addr=$(echo "$output" | tail -n 1)
 
-    # Mint ERC20 tokens
+    # Extract contract address directly from deploy_contract output
+    local contract_addr
+    contract_addr=$(echo "$output" | xargs)
+    echo "Deployed contract address: $contract_addr"
+
+    if [[ ! "$contract_addr" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+        fail "Invalid contract address extracted: $contract_addr"
+    fi
+
+    # Continue with minting and remaining cases
     local amount="5"
-
     run send_tx "$l2_rpc_url" "$sender_private_key" "$contract_addr" "$mint_fn_sig" "$address_A" "$amount"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
@@ -143,7 +118,7 @@ setup() {
     # Generate new key pair
     wallet_A_output=$(cast wallet new)
     address_A=$(echo "$wallet_A_output" | grep "Address" | awk '{print $2}')
-    address_A_private_key=$(echo "$wallet_A_output" | grep "Private key" | awk '{print $3}')
+    address_A_private_key=$(echo "$wallet_A_output" | grep "Private key" | awk '{print $3}' | sed 's/^0x//')
 
     # Transfer funds for gas
     local value_ether="50ether"
