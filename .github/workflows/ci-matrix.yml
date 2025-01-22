@@ -65,7 +65,7 @@ jobs:
 
       # Step 6: Install Bats Testing Framework
       - name: Install Bats
-        if: contains(fromJson(matrix.config.test_types), 'bats')
+        if: contains(matrix.config.test_types, 'bats')
         run: |
           echo "Installing Bats if not already installed"
           if ! command -v bats &> /dev/null; then
@@ -77,19 +77,20 @@ jobs:
           
       # Step 7: Install Foundry Toolchain
       - name: Install Foundry
+        if: contains(matrix.config.test_types, 'go')
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
 
       # Step 8: Run Tests Based on Matrix Configuration
       - name: Run Bats Tests
-        if: contains(fromJson(matrix.config.test_types), 'bats')
+        if: contains(matrix.config.test_types, 'bats')
         run: |
           echo "Running Bats tests using Makefile"
           make test-bats
 
       - name: Run Go Tests
-        if: contains(fromJson(matrix.config.test_types), 'go')
+        if: contains(matrix.config.test_types, 'go')
         run: |
           echo "Running Go tests using Makefile"
           make test-go
