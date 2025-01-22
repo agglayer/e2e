@@ -17,16 +17,16 @@ timeout="$2"
 start_time=$(date +%s)
 end_time=$((start_time + timeout))
 
-rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+# rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
 
 while true; do
-  verified_batches="$(cast to-dec "$(cast rpc --rpc-url "$rpc_url" zkevm_verifiedBatchNumber | sed 's/"//g')")"
+  verified_batches="$(cast to-dec "$(cast rpc --rpc-url "$l2_rpc_url" zkevm_verifiedBatchNumber | sed 's/"//g')")"
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Verified Batches: $verified_batches"
 
   # The aim is to take up some space in the batch, so that the number of batches actually increases during the test.
   cast send \
     --legacy \
-    --rpc-url "$rpc_url" \
+    --rpc-url "$l2_rpc_url" \
     --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" \
     --gas-limit 100_000 \
     --create 0x600160015B810190630000000456 \

@@ -5,77 +5,87 @@ function deploy_contract() {
     local private_key="$2"
     local contract_artifact="$3"
 
-    # Check if rpc_url is available
-    if [[ -z "$rpc_url" ]]; then
-        echo "Error: rpc_url parameter is not set."
+    # Validate inputs
+    if [[ -z "$rpc_url" || -z "$private_key" || -z "$contract_artifact" ]]; then
+        echo "Error: Missing required parameters." >&2
         return 1
     fi
 
     if [[ ! -f "$contract_artifact" ]]; then
-        echo "Error: Contract artifact '$contract_artifact' does not exist."
+        echo "Error: Contract artifact '$contract_artifact' does not exist." >&2
         return 1
     fi
 
-    # Get the sender address
-    local sender=$(cast wallet address "$private_key")
+    # Retrieve sender address
+    local sender
+    sender=$(cast wallet address --private-key "$private_key")
     if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to retrieve sender address."
+        echo "Error: Failed to retrieve sender address." >&2
         return 1
     fi
 
-    echo "Attempting to deploy contract artifact '$contract_artifact' to $rpc_url (sender: $sender)" >&3
+    echo "Deploying contract artifact '$contract_artifact' to $rpc_url (sender: $sender)"
 
-    # Get bytecode from the contract artifact
-    local bytecode=$(jq -r .bytecode "$contract_artifact")
+    # Extract bytecode
+    local bytecode
+    bytecode=$(jq -r '.bytecode' "$contract_artifact")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        echo "Error: Failed to read bytecode from $contract_artifact"
+        echo "Error: Failed to extract bytecode from $contract_artifact." >&2
         return 1
     fi
 
-    # Send the transaction and capture the output
+    # Calculate gas price
+    local gas_price
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 1.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
-        echo "Failed to calculate gas price" >&3
-        exit 1
+        echo "Error: Failed to retrieve gas price." >&2
+        return 1
     fi
-    local cast_output=$(cast send --rpc-url "$rpc_url" \
+    local comp_gas_price
+    comp_gas_price=$(bc <<< "$gas_price * 1.5 / 1" | awk '{printf "%.0f", $1}')
+    if [[ $? -ne 0 || -z "$comp_gas_price" ]]; then
+        echo "Error: Failed to calculate adjusted gas price." >&2
+        return 1
+    fi
+
+    # Deploy contract
+    local cast_output
+    cast_output=$(cast send --rpc-url "$rpc_url" \
         --private-key "$private_key" \
-        --gas-price $comp_gas_price \
+        --gas-price "$comp_gas_price" \
         --legacy \
-        --create "$bytecode" \
-        2>&1)
+        --create "$bytecode" 2>&1)
 
-    # Check if cast send was successful
     if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to send transaction."
-        echo "$cast_output"
+        echo "Error: Contract deployment failed." >&2
+        echo "$cast_output" >&2
         return 1
     fi
 
-    echo "Deploy contract output:" >&3
-    echo "$cast_output" >&3
+    echo "Deployment output:"
+    echo "$cast_output"
 
-    # Extract the contract address from the output
-    local deployed_contract_address=$(echo "$cast_output" | grep 'contractAddress' | sed 's/contractAddress\s\+//')
-    echo "Deployed contract address: $deployed_contract_address" >&3
-
+    # Extract contract address
+    local deployed_contract_address
+    deployed_contract_address=$(echo "$cast_output" | awk '/contractAddress/{print $NF}')
     if [[ -z "$deployed_contract_address" ]]; then
-        echo "Error: Failed to extract deployed contract address"
-        echo "$cast_output"
+        echo "Error: Failed to extract deployed contract address from output." >&2
         return 1
     fi
 
+    # Validate contract address format
     if [[ ! "$deployed_contract_address" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
-        echo "Error: Invalid contract address $deployed_contract_address"
+        echo "Error: Invalid contract address $deployed_contract_address." >&2
         return 1
     fi
 
-    # Print contract address for return
-    echo "$deployed_contract_address"
+    echo "Deployed contract address: $deployed_contract_address"
 
+    # Return contract address
+    echo "$deployed_contract_address"
     return 0
 }
+
 
 function send_tx() {
     # Check if at least 4 arguments are provided
@@ -100,24 +110,52 @@ function send_tx() {
 
     # Get sender address from private key
     local sender
-    sender=$(cast wallet address "$private_key") || {
+    sender=$(cast wallet address --private-key "$private_key") || {
         echo "Error: Failed to extract the sender address."
         return 1
     }
 
-    # Check if the value_or_function_sig is a numeric value (Ether to be transferred)
+    # Case 1: Ether transfer (EOA transaction)
     if [[ "$value_or_function_sig" =~ ^[0-9]+(\.[0-9]+)?(ether)?$ ]]; then
-        # Case: Ether transfer (EOA transaction)
-        # Get initial ether balances of sender and receiver
-        local sender_addr=$(cast wallet address --private-key "$private_key")
-        local sender_initial_balance receiver_initial_balance
-        sender_initial_balance=$(cast balance "$sender_addr" --ether --rpc-url "$rpc_url") || return 1
-        receiver_initial_balance=$(cast balance "$receiver_addr" --ether --rpc-url "$rpc_url") || return 1
-        
-        send_eoa_transaction "$private_key" "$receiver_addr" "$value_or_function_sig" "$sender_addr" "$sender_initial_balance" "$receiver_initial_balance"
+        # Send EOA transaction
+        local tx_output
+        tx_output=$(cast send --gas-price 1500000000 --rpc-url "$rpc_url" --private-key "$private_key" "$receiver_addr" --value "$value_or_function_sig" --legacy 2>&1) || {
+            echo "Error: Transaction failed. Output: $tx_output"
+            return 1
+        }
+
+        # Extract transaction hash
+        local tx_hash
+        tx_hash=$(echo "$tx_output" | grep -Eo "transactionHash\s+0x[a-fA-F0-9]{64}" | awk '{print $2}')
+
+        if [[ -z "$tx_hash" ]]; then
+            echo "Error: Transaction hash not found in output."
+            echo "$tx_output"
+            return 1
+        fi
+
+        echo "Transaction successful (transaction hash: $tx_hash)"
+        return 0
     else
-        # Case: Smart contract interaction (contract interaction with function signature and parameters)
-        send_smart_contract_transaction "$private_key" "$receiver_addr" "$value_or_function_sig" "${params[@]}"
+        # Case 2: Smart contract interaction
+        local tx_output
+        tx_output=$(cast send --rpc-url "$rpc_url" --private-key "$private_key" "$receiver_addr" "$value_or_function_sig" "${params[@]}" 2>&1) || {
+            echo "Error: Contract interaction failed. Output: $tx_output"
+            return 1
+        }
+
+        # Extract transaction hash
+        local tx_hash
+        tx_hash=$(echo "$tx_output" | grep -Eo "transactionHash\s+0x[a-fA-F0-9]{64}" | awk '{print $2}')
+
+        if [[ -z "$tx_hash" ]]; then
+            echo "Error: Transaction hash not found in output."
+            echo "$tx_output"
+            return 1
+        fi
+
+        echo "Transaction successful (transaction hash: $tx_hash)"
+        return 0
     fi
 }
 

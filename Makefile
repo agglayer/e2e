@@ -1,13 +1,15 @@
 .PHONY: test-bats
 test-bats:
-	cd scripts/bats-scripts; bats e2e.bats
+	echo "Sourcing .env and running bats tests"; \
+	set -a; . $(PWD)/.env; set +a; \
+	cd scripts/bats-scripts; bats batch-verifier.bats;
 
 .PHONY: test-go
 test-go:
 	cd scripts/go-scripts; godotenv -f ../../.env go test -v ./...
 	
-.PHONY: install-go-dot-env
-install-go-dot-env:
+.PHONY: install-go-deps
+install-go-deps:
 	go install github.com/joho/godotenv/cmd/godotenv@latest
 	
 .PHONY: install-bats-deps
