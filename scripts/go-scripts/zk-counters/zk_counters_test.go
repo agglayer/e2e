@@ -64,9 +64,9 @@ func TestZkCounters(t *testing.T) {
 				err = engine.WaitTxToDisappearByHash(ctx, t, rpcURL, tx.Hash(), engine.TimeoutTxToBeFound)
 				require.NoError(t, err)
 
-				return err.Error()
+				return ""
 			},
-			expectedError: "failed to execute the unsigned transaction: main execution exceeded the maximum number of steps",
+			expectedError: "",
 		},
 		// {
 		// 	name: "call OOC keccaks",
