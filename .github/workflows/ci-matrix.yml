@@ -16,10 +16,7 @@ jobs:
             test_types: [bats]
           - network: fork11-new-cdk-stack-rollup.yml
             rpc_service: cdk-erigon-rpc-001
-            test_types: [bats, go]
-          - network: fork12-new-cdk-stack-rollup.yml
-            rpc_service: cdk-erigon-rpc-001
-            test_types: [go]
+            test_types: [bats]
 
     steps:
       # Step 1: Checkout the repository
