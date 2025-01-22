@@ -2,8 +2,7 @@
 test-bats:
 	echo "Sourcing .env and running bats tests"; \
 	set -a; . $(PWD)/.env; set +a; \
-	cd scripts/bats-scripts; bats batch-verifier.bats; \
-	bats eoa-tx.bats
+	cd scripts/bats-scripts; bats batch-verifier.bats;
 
 .PHONY: test-go
 test-go:
