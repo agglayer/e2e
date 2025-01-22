@@ -1,18 +1,18 @@
 .PHONY: test-bats
-test-bats:
+test-bats: ## Run bats scrips
 	set -a; . $(PWD)/.env; set +a; \
 	cd scripts/bats-scripts; bats e2e.bats
 
 .PHONY: test-go
-test-go:
+test-go: ## Run go scripts
 	cd scripts/go-scripts; godotenv -f ../../.env go test -v ./...
 	
 .PHONY: install-go-deps
-install-go-deps:
+install-go-deps: ## Install all the dependencies needed by the go scripts
 	go install github.com/joho/godotenv/cmd/godotenv@latest
 	
 .PHONY: install-bats-deps
-install-bats-deps:
+install-bats-deps: ## Install all the dependencies needed by the bats scripts
 	# Install bats-core
 	@if ! command -v bats &> /dev/null; then \
 		git clone https://github.com/bats-core/bats-core.git /tmp/bats-core && \

@@ -5,11 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/0xPolygon/evm-regression-tests/scripts/go-scripts/tools/log"
 	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/types"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func RPCCall(t *testing.T, url string, request types.Request) (types.Response, error) {
@@ -79,4 +84,41 @@ func NewRequest(method string, parameters []any) types.Request {
 		Method:  method,
 		Params:  params,
 	}
+}
+
+// GetClient returns an ethereum client to the provided URL
+func GetClient(URL string) (*ethclient.Client, error) {
+	client, err := ethclient.Dial(URL)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+// MustGetClient GetClient but panic if err
+func MustGetClient(URL string) *ethclient.Client {
+	client, err := GetClient(URL)
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
+// GetAuth configures and returns an auth object.
+func GetAuth(privateKeyStr string, chainID uint64) (*bind.TransactOpts, error) {
+	privateKey, err := crypto.HexToECDSA(strings.TrimPrefix(privateKeyStr, "0x"))
+	if err != nil {
+		return nil, err
+	}
+
+	return bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(0).SetUint64(chainID))
+}
+
+// MustGetAuth GetAuth but panics if err
+func MustGetAuth(privateKeyStr string, chainID uint64) *bind.TransactOpts {
+	auth, err := GetAuth(privateKeyStr, chainID)
+	if err != nil {
+		panic(err)
+	}
+	return auth
 }

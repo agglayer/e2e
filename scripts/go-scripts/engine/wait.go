@@ -140,6 +140,65 @@ func WaitTxToBeFoundByHash(ctx context.Context, t *testing.T, url string, txHash
 	}
 }
 
+func WaitTxToDisappearByHash(ctx context.Context, t *testing.T, url string, txHash common.Hash, timeout time.Duration) error {
+	log.Msgf(t, "waiting tx %v to disappear", txHash.String())
+
+	innerCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	queryTicker := time.NewTicker(time.Second)
+	defer queryTicker.Stop()
+
+	for {
+		params := []interface{}{txHash.String()}
+		bParams, err := json.Marshal(params)
+		if err != nil {
+			return err
+		}
+		req := types.Request{
+			JSONRPC: jsonRPC_Version,
+			ID:      jsonRPC_ID,
+			Method:  "eth_getTransactionByHash",
+			Params:  bParams,
+		}
+		res, err := RPCCall(t, url, req)
+		if err != nil {
+			return err
+		}
+
+		if res.Error != nil {
+			return res.Error.RPCError()
+		}
+
+		b, err := json.Marshal(res.Result)
+		if err != nil {
+			return err
+		}
+		result := string(b)
+
+		if result == "null" {
+			log.Msg(t, "transaction disappeared: ", txHash)
+			return nil
+		} else {
+			log.Msgf(t, "tx %v still exists", txHash.String())
+		}
+
+		select {
+		case <-innerCtx.Done():
+			err := innerCtx.Err()
+			if errors.Is(err, context.DeadlineExceeded) {
+				return err
+			} else if err != nil {
+				log.Msgf(t, "error waiting tx %v to disappear: %v", txHash, err)
+				return err
+			}
+			log.Msgf(t, "stopped waiting tx %v to disappear, the context is done without errors", txHash)
+			return err
+		case <-queryTicker.C:
+		}
+	}
+}
+
 func WaitForBlockToBeFoundByNumber(ctx context.Context, t *testing.T, url string, blockNumber uint64, timeout time.Duration) error {
 	log.Msgf(t, "waiting block %v to be found", blockNumber)
 
