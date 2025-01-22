@@ -81,6 +81,22 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
+          
+      
+      # Step 3: Install Go
+      - name: Install Go
+        if: contains(matrix.config.test_types, 'go')
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.21.3
+        env:
+          GOARCH: "amd64"
+          
+      # Step 7: Install Test dependencies
+      - name: Install Test dependencies
+        if: contains(matrix.config.test_types, 'go')
+        run: |
+          make install-go-deps
 
       # Step 8: Run Tests Based on Matrix Configuration
       - name: Run Bats Tests
