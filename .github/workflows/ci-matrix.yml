@@ -1,4 +1,4 @@
-name: CI Workflow
+name: EVM Regression Tests
 
 on:
   push:
@@ -6,16 +6,19 @@ on:
       - '**'
 
 jobs:
-  matrix-build-and-test:
+  e2e:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         config:
           - network: fork9-legacy-zkevm-stack-rollup.yml
+            rpc_service: zkevm-node-rpc-001
             test_types: [bats]
           - network: fork11-new-cdk-stack-rollup.yml
+            rpc_service: cdk-erigon-rpc-001
             test_types: [bats, go]
           - network: fork12-new-cdk-stack-rollup.yml
+            rpc_service: cdk-erigon-rpc-001
             test_types: [go]
 
     steps:
@@ -44,20 +47,13 @@ jobs:
       - name: Extract RPC URL from Kurtosis
         id: grab-url
         run: |
-          echo "Querying Kurtosis for service details"
-          SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
-      
-          echo "Extracting RPC URL (ignoring ws-rpc lines)"
-          RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
-      
+          echo "Extracting RPC URL using kurtosis port print"
+          RPC_URL=$(kurtosis port print cdk ${{ matrix.config.rpc_service }} rpc)
           echo "Extracted RPC_URL: $RPC_URL"
-      
-          echo "Escaping special characters in RPC_URL"
-          ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
-      
+
           echo "Injecting RPC_URL into .env file"
-          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
-      
+          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$RPC_URL|" .env
+
           echo "Dynamically updating BATS_LIB_PATH in .env"
           sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env
 
@@ -81,7 +77,6 @@ jobs:
           
       # Step 7: Install Foundry Toolchain
       - name: Install Foundry
-        if: contains(fromJson(matrix.config.test_types), 'bats')
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
