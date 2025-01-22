@@ -1,4 +1,4 @@
-name: CI Workflow
+name: EVM Regression Tests
 
 on:
   push:
@@ -6,8 +6,17 @@ on:
       - '**'
 
 jobs:
-  build-and-test:
+  e2e:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - network: fork9-legacy-zkevm-stack-rollup.yml
+            rpc_service: zkevm-node-rpc-001
+            test_types: [bats]
+          - network: fork11-new-cdk-stack-rollup.yml
+            rpc_service: cdk-erigon-rpc-001
+            test_types: [bats]
 
     steps:
       # Step 1: Checkout the repository
@@ -23,40 +32,25 @@ jobs:
           sudo apt install kurtosis-cli
           echo "Kurtosis CLI version:"
           kurtosis version
-      
-      # Step 3: Install Go
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.21.3
-        env:
-          GOARCH: "amd64"
 
       # Step 3: Spin up the Kurtosis Devnet
       - name: Deploy Kurtosis Devnet
         run: |
-          echo "Starting Kurtosis Devnet with CDK configuration"
+          echo "Starting Kurtosis Devnet with CDK configuration: ${{ matrix.config.network }}"
           kurtosis run --enclave cdk github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
-            --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/fork11-new-cdk-stack-rollup.yml
+            --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/combinations/${{ matrix.config.network }}
 
       # Step 4: Extract RPC URL from Kurtosis Service
       - name: Extract RPC URL from Kurtosis
         id: grab-url
         run: |
-          echo "Querying Kurtosis for service details"
-          SERVICE_INFO=$(kurtosis service inspect cdk cdk-erigon-rpc-001)
-      
-          echo "Extracting RPC URL (ignoring ws-rpc lines)"
-          RPC_URL=$(echo "$SERVICE_INFO" | grep -E '^ *rpc:' | awk -F'-> ' '{print $2}' | awk '{print $1}')
-      
+          echo "Extracting RPC URL using kurtosis port print"
+          RPC_URL=$(kurtosis port print cdk ${{ matrix.config.rpc_service }} rpc)
           echo "Extracted RPC_URL: $RPC_URL"
-      
-          echo "Escaping special characters in RPC_URL"
-          ESCAPED_RPC_URL=$(echo "$RPC_URL" | sed 's/[&/]/\\&/g')
-      
+
           echo "Injecting RPC_URL into .env file"
-          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$ESCAPED_RPC_URL|" .env
-      
+          sed -i "s|l2_rpc_url=http://127.0.0.1:.*|l2_rpc_url=$RPC_URL|" .env
+
           echo "Dynamically updating BATS_LIB_PATH in .env"
           sed -i "s|BATS_LIB_PATH=.*|BATS_LIB_PATH=\"$(pwd)/scripts/bats-scripts/lib\"|" .env
 
@@ -68,6 +62,7 @@ jobs:
 
       # Step 6: Install Bats Testing Framework
       - name: Install Bats
+        if: contains(matrix.config.test_types, 'bats')
         run: |
           echo "Installing Bats if not already installed"
           if ! command -v bats &> /dev/null; then
@@ -79,23 +74,36 @@ jobs:
           
       # Step 7: Install Foundry Toolchain
       - name: Install Foundry
+        if: contains(matrix.config.test_types, 'bats')
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
-
-      # Step 8: Install Test dependencies
+          
+      
+      # Step 3: Install Go
+      - name: Install Go
+        if: contains(matrix.config.test_types, 'go')
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.21.3
+        env:
+          GOARCH: "amd64"
+          
+      # Step 7: Install Test dependencies
       - name: Install Test dependencies
+        if: contains(matrix.config.test_types, 'go')
         run: |
           make install-go-deps
 
-      # Step 9: Run Bats Tests via Makefile
+      # Step 8: Run Tests Based on Matrix Configuration
       - name: Run Bats Tests
+        if: contains(matrix.config.test_types, 'bats')
         run: |
           echo "Running Bats tests using Makefile"
           make test-bats
-      
-      # Step 10: Run Go Tests via Makefile
+
       - name: Run Go Tests
+        if: contains(matrix.config.test_types, 'go')
         run: |
           echo "Running Go tests using Makefile"
           make test-go

@@ -1,7 +1,9 @@
 .PHONY: test-bats
+
 test-bats: ## Run bats scrips
+	echo "Sourcing .env and running bats tests"; \
 	set -a; . $(PWD)/.env; set +a; \
-	cd scripts/bats-scripts; bats e2e.bats
+	cd scripts/bats-scripts; bats batch-verifier.bats;
 
 .PHONY: test-go
 test-go: ## Run go scripts
