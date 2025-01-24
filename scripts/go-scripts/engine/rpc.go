@@ -11,8 +11,12 @@ import (
 	"testing"
 
 	"github.com/0xPolygon/evm-regression-tests/scripts/go-scripts/tools/log"
+	"github.com/0xPolygonHermez/zkevm-node/hex"
 	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/types"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -76,7 +80,7 @@ const (
 	requestId      = float64(1)
 )
 
-func NewRequest(method string, parameters []any) types.Request {
+func NewRequest(method string, parameters ...any) types.Request {
 	params, _ := json.Marshal(parameters)
 	return types.Request{
 		JSONRPC: requestVersion,
@@ -121,4 +125,47 @@ func MustGetAuth(privateKeyStr string, chainID uint64) *bind.TransactOpts {
 		panic(err)
 	}
 	return auth
+}
+
+// GetSender gets the sender from the transaction's signature
+func GetSender(tx ethTypes.Transaction) (common.Address, error) {
+	signer := ethTypes.NewEIP155Signer(tx.ChainId())
+	sender, err := signer.Sender(&tx)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return sender, nil
+}
+
+// TxToMsg converts a transaction to a call message
+func TxToMsg(tx ethTypes.Transaction) ethereum.CallMsg {
+	sender, err := GetSender(tx)
+	if err != nil {
+		sender = common.Address{}
+	}
+
+	return ethereum.CallMsg{
+		From:     sender,
+		To:       tx.To(),
+		Gas:      tx.Gas(),
+		GasPrice: tx.GasPrice(),
+		Value:    tx.Value(),
+		Data:     tx.Data(),
+	}
+}
+
+func TxToTxArgs(tx ethTypes.Transaction) map[string]any {
+	sender, err := GetSender(tx)
+	if err != nil {
+		sender = common.Address{}
+	}
+
+	return map[string]any{
+		"From":     sender.String(),
+		"To":       tx.To().String(),
+		"Gas":      hex.EncodeUint64(tx.Gas()),
+		"GasPrice": hex.EncodeBig(tx.GasPrice()),
+		"Value":    hex.EncodeBig(tx.Value()),
+		"Input":    hex.EncodeToHex(tx.Data()),
+	}
 }
