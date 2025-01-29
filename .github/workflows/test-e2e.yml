@@ -15,17 +15,21 @@ jobs:
         include:
           - network: "fork9-cdk-validium"
             bats_tests: "batch-verification.bats,access-list-e2e.bats"
+            deploy_infra: true
             gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
 
           - network: "fork11-rollup"
             bats_tests: "batch-verification.bats,eoa-transaction.bats"
+            deploy_infra: true
             l2_rpc_url: "http://127.0.0.1:62452"
 
           - network: "fork12-cdk-validium"
             bats_tests: "batch-verification.bats,erc20-tests.bats"
+            deploy_infra: true
 
           - network: "fork12-rollup"
             bats_tests: "all"
+            deploy_infra: true
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -77,8 +81,9 @@ jobs:
       env:
         NETWORK: ${{ matrix.network }}
         BATS_TESTS: ${{ matrix.bats_tests }}
+        DEPLOY_INFRA: ${{ matrix.deploy_infra }}
         GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
-        L2_ETH_RPC_URL: ${{ matrix.l2_rpc_url }}
+        L2_RPC_URL: ${{ matrix.l2_rpc_url }}
         KURTOSIS_FOLDER: ${{ github.workspace }}/kurtosis-cdk
         BATS_LIB_PATH: /usr/lib/
     
