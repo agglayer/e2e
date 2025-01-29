@@ -6,9 +6,12 @@ source $(dirname $0)/scripts/env.sh  # Load shared env vars
 # Allow users to specify variables dynamically
 export NETWORK="${NETWORK:-fork12-rollup}"
 export BATS_TESTS="${BATS_TESTS:-all}"
+export DEPLOY_INFRA="${DEPLOY_INFRA:-true}"  # New flag
 
 # Allow env var inputs (including L2_ETH_RPC_URL)
 export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
+export L2_RPC_URL="${L2_RPC_URL:-http://127.0.0.1:59761}"
+export BATS_LIB_PATH="${BATS_LIB_PATH:-/usr/lib}"
 
 # Define the base folder
 BASE_FOLDER=$(dirname $0)
@@ -24,13 +27,24 @@ fi
 echo "Running tests for network: $NETWORK"
 echo "Using GAS_TOKEN_ADDR: $GAS_TOKEN_ADDR"
 
-# Start Kurtosis with the selected network
-kurtosis clean --all
+if [[ "$DEPLOY_INFRA" == "true" ]]; then
+    echo "Deploying infrastructure using Kurtosis..."
 
-echo "Overriding cdk config file..."
-cp "$BASE_FOLDER/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
+    # Validate the Kurtosis CLI is installed
+    if ! command -v kurtosis &> /dev/null; then
+        echo "Error: Kurtosis CLI not found. Please install it before running this script."
+        exit 1
+    fi
 
-kurtosis run --enclave cdk --args-file "combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
+    kurtosis clean --all
+
+    echo "Overriding cdk config file..."
+    cp "$BASE_FOLDER/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
+
+    kurtosis run --enclave cdk --args-file "combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
+else
+    echo "Skipping infrastructure deployment. Ensure the required services are already running!"
+fi
 
 # Run selected tests with exported environment variables
 if [[ "$BATS_TESTS" == "all" ]]; then

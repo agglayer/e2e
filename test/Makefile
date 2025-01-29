@@ -1,3 +1,11 @@
+.PHONY: test-e2e
+test-e2e:
+	NETWORK=$(NETWORK) BATS_TESTS=$(BATS_TESTS) DEPLOY_INFRA=$(DEPLOY_INFRA) ./run-e2e.sh
+
+.PHONY: stop
+stop:
+	kurtosis clean --all
+
 .PHONY: generate-mocks
 generate-mocks:	generate-mocks-bridgesync generate-mocks-reorgdetector \
 	generate-mocks-sequencesender generate-mocks-da \
@@ -70,41 +78,6 @@ generate-mocks-aggsender: ## Generates mocks for aggsender, using mockery tool
 .PHONY: generate-mocks-agglayer
 generate-mocks-agglayer: ## Generates mocks for agglayer, using mockery tool
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=AgglayerClientInterface --dir=../agglayer --output=../agglayer --outpkg=agglayer --inpackage --structname=AgglayerClientMock --filename=mock_agglayer_client.go ${COMMON_MOCKERY_PARAMS}	
-
-.PHONY: test-e2e-fork9-validium
-test-e2e-fork9-validium: stop
-	./run-e2e.sh fork9 cdk-validium
-	bats .
-
-.PHONY: test-e2e-fork11-rollup
-test-e2e-fork11-rollup: stop
-	./run-e2e.sh fork11 rollup
-	bats .
-
-.PHONY: test-e2e-fork12-validium
-test-e2e-fork12-validium: stop
-	./run-e2e.sh fork12 cdk-validium
-	bats .
-
-.PHONY: test-e2e-fork12-rollup
-test-e2e-fork12-rollup: stop
-	./run-e2e.sh fork12 rollup
-	bats .
-
-.PHONY: test-e2e-fork12-pessimistic
-test-e2e-fork12-pessimistic: stop
-	./run-e2e.sh fork12 pessimistic
-	bats bats/pp/bridge-e2e.bats bats/pp/e2e-pp.bats
-	
-.PHONY: test-e2e
-test-e2e:
-	NETWORK=$(NETWORK) BATS_TESTS=$(BATS_TESTS) ./run-e2e.sh
-
-
-.PHONY: stop
-stop:
-	kurtosis clean --all
-
 
 ## Help display.
 ## Pulls comments from beside commands and prints a nicely formatted
