@@ -15,10 +15,11 @@ jobs:
         include:
           - network: "fork9-cdk-validium"
             bats_tests: "batch-verification.bats,access-list-e2e.bats"
-            gas_token_address: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
+            gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
 
           - network: "fork11-rollup"
             bats_tests: "batch-verification.bats,eoa-transaction.bats"
+            l2_rpc_url: "http://127.0.0.1:62452"
 
           - network: "fork12-cdk-validium"
             bats_tests: "batch-verification.bats,erc20-tests.bats"
@@ -77,7 +78,7 @@ jobs:
         NETWORK: ${{ matrix.network }}
         BATS_TESTS: ${{ matrix.bats_tests }}
         GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
-        L2_ETH_RPC_URL: ${{ matrix.l2_eth_rpc_url }}
+        L2_ETH_RPC_URL: ${{ matrix.l2_rpc_url }}
         KURTOSIS_FOLDER: ${{ github.workspace }}/kurtosis-cdk
         BATS_LIB_PATH: /usr/lib/
     
