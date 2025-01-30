@@ -58,3 +58,6 @@ else
     # Execute tests with `env`
     env bats $BATS_TESTS_LIST
 fi
+
+# Run Tests with Go
+go test -v $TEST_DIR/...

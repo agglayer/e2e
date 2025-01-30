@@ -8,9 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/0xPolygon/evm-regression-tests/scripts/go-scripts/tools/log"
-	"github.com/0xPolygonHermez/zkevm-node/hex"
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/types"
+	"github.com/agglayer/e2e/test/tools/hex"
+	"github.com/agglayer/e2e/test/tools/log"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -41,7 +40,7 @@ func WaitTxToBeMined(t *testing.T, ctx context.Context, url string, txHash commo
 		if err != nil {
 			return err
 		}
-		req := types.Request{
+		req := Request{
 			JSONRPC: jsonRPC_Version,
 			ID:      jsonRPC_ID,
 			Method:  "eth_getTransactionByHash",
@@ -111,7 +110,7 @@ func WaitTxToBeFoundByHash(t *testing.T, ctx context.Context, url string, txHash
 		if err != nil {
 			return err
 		}
-		req := types.Request{
+		req := Request{
 			JSONRPC: jsonRPC_Version,
 			ID:      jsonRPC_ID,
 			Method:  "eth_getTransactionByHash",
@@ -173,7 +172,7 @@ func WaitTxToDisappearByHash(t *testing.T, ctx context.Context, url string, txHa
 		if err != nil {
 			return err
 		}
-		req := types.Request{
+		req := Request{
 			JSONRPC: jsonRPC_Version,
 			ID:      jsonRPC_ID,
 			Method:  "eth_getTransactionByHash",
@@ -245,7 +244,7 @@ func WaitForBlockToBeFoundByNumber(t *testing.T, ctx context.Context, url string
 		if err != nil {
 			return err
 		}
-		req := types.Request{
+		req := Request{
 			JSONRPC: jsonRPC_Version,
 			ID:      jsonRPC_ID,
 			Method:  "eth_getBlockByNumber",
@@ -304,7 +303,7 @@ func WaitForBatchToBeFoundByNumber(t *testing.T, ctx context.Context, url string
 		if err != nil {
 			return err
 		}
-		req := types.Request{
+		req := Request{
 			JSONRPC: jsonRPC_Version,
 			ID:      jsonRPC_ID,
 			Method:  "zkevm_getBatchByNumber",
