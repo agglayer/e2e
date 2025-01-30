@@ -22,7 +22,7 @@ const addr = ""
 
 func TestZkCounters(t *testing.T) {
 	rpcURL := os.Getenv("L2_RPC_URL")
-	privateKeyHex := "0x" + os.Getenv("SENDER_PRIVATE_KEY")
+	privateKeyHex := os.Getenv("L2_SENDER_PRIVATE_KEY")
 
 	ctx := context.Background()
 	client := engine.MustGetClient(rpcURL)

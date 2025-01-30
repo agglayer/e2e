@@ -10,7 +10,8 @@ export DEPLOY_INFRA="${DEPLOY_INFRA:-true}"  # New flag
 
 # Allow env var inputs (including L2_ETH_RPC_URL)
 export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
-export L2_RPC_URL="${L2_RPC_URL:-http://127.0.0.1:59761}"
+l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
 export BATS_LIB_PATH="${BATS_LIB_PATH:-/usr/lib}"
 
 # Define the base folder
