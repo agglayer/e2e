@@ -1,0 +1,106 @@
+name: Test e2e
+on: 
+  push:
+    branches:
+      - '**'
+  schedule:
+    - cron: "0 2 * * *"  # Run nightly at 2 AM UTC
+  workflow_dispatch: {}
+
+jobs:
+  test-e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - network: "fork9-cdk-validium"
+            bats_tests: "batch-verification.bats,access-list-e2e.bats"
+            deploy_infra: true
+            gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
+
+          - network: "fork11-rollup"
+            bats_tests: "batch-verification.bats,eoa-transaction.bats"
+            deploy_infra: true
+            l2_rpc_url: "http://127.0.0.1:62452"
+
+          - network: "fork12-cdk-validium"
+            bats_tests: "batch-verification.bats,erc20-tests.bats"
+            deploy_infra: true
+
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            deploy_infra: true
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Kurtosis
+      run: |
+        echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+        sudo apt update
+        sudo apt install kurtosis-cli=1.4.1
+        kurtosis version
+
+    - name: Disable kurtosis analytics
+      run: kurtosis analytics disable
+
+    - name: Install yq
+      run: |
+        pip3 install yq
+        yq --version
+
+    - name: Install polycli
+      run: |
+        POLYCLI_VERSION=$(curl -s https://api.github.com/repos/0xPolygon/polygon-cli/releases/latest | jq -r '.tag_name')
+        tmp_dir=$(mktemp -d) 
+        curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir" 
+        mv "$tmp_dir"/* /usr/local/bin/polycli 
+        rm -rf "$tmp_dir"
+        sudo chmod +x /usr/local/bin/polycli
+        /usr/local/bin/polycli version
+
+    - name: Install foundry
+      uses: foundry-rs/foundry-toolchain@v1
+
+    - name: Checkout Kurtosis CDK
+      uses: actions/checkout@v4
+      with:
+        repository: 0xPolygon/kurtosis-cdk
+        path: "kurtosis-cdk"
+        ref: "v0.2.25"
+
+    - name: Setup Bats and bats libs
+      uses: bats-core/bats-action@2.0.0
+
+    - name: Run E2E Tests
+      run: make test-e2e
+      working-directory: test
+      env:
+        NETWORK: ${{ matrix.network }}
+        BATS_TESTS: ${{ matrix.bats_tests }}
+        DEPLOY_INFRA: ${{ matrix.deploy_infra }}
+        GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
+        L2_RPC_URL: ${{ matrix.l2_rpc_url }}
+        KURTOSIS_FOLDER: ${{ github.workspace }}/kurtosis-cdk
+        BATS_LIB_PATH: /usr/lib/
+    
+    - name: Dump enclave logs
+      if: failure()
+      run: kurtosis dump ./dump
+
+    - name: Generate archive name
+      if: failure()
+      run: |
+        archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}"
+        echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
+        kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
+
+    - name: Upload logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARCHIVE_NAME }}
+        path: ./dump
