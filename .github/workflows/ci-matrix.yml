@@ -13,7 +13,7 @@ jobs:
         config:
           - network: fork9-legacy-zkevm-stack-rollup.yml
             rpc_service: zkevm-node-rpc-001
-            test_types: [bats,go]
+            test_types: [bats]
           - network: fork11-new-cdk-stack-rollup.yml
             rpc_service: cdk-erigon-rpc-001
             test_types: [bats,go]

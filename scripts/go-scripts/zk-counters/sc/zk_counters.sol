@@ -4,77 +4,25 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract ZkCounters {
     uint256 public count;
-    // // loop while gasleft is bigger than 65
-    // function outOfCountersSteps() public {
-    //     count = 0;
-    //     while (gasleft() > 65) {
-    //         assembly {
-    //             mstore(0x0, 1234)
-    //         }
-    //     }
-    // }
 
-    // // look while gasleft is bigger than 500
-    // function outOfCountersPoseidon() public returns (bytes32 res) {
-    //     count = 0;
-    //     assembly {
-    //         res := sload(0x00)
-    //     }
-    //     uint256 x = gasleft();
-    //     while (x > 500) {
-    //         assembly {
-    //             sstore(0x00, x)
-    //             sstore(0x00, x)
-    //             sstore(0x00, x)
-    //         }
-    //         x = gasleft();
-    //     }
-    //     return res;
-    // }
-
-    // // loop until it runs out of gas
-    // function outOfGas() public {
-    //     count = 0;
-    //     while (gasleft() > 0) {
-    //         assembly {
-    //             log4(0, 0, 0, 0, 0 ,0)
-    //         }
-    //     }
-    // }
-
-    // // bytesKeccak = gasleft() / 30
-    // function outOfCountersKeccaks() public returns (bytes32 test) {
-    //     count = 0;
-    //     uint256 _bytes = gasleft() / 30;
-    //     assembly {
-    //         test := keccak256(0, _bytes)
-    //         test := keccak256(0, _bytes)
-    //         test := keccak256(0, _bytes)
-    //     }
-    //     return test;
-    // }
-
-    // maxGasUsed - NOTE: I CAN'T GO BEYOND 30M GAS
-    // cast send --gas-price 1gwei --gas-limit 29999999 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000001
-    function maxGasUsed() public {
+    function overflowGas() public {
         count = 0;
         assembly {
-            // The goal here is to see how much GAS we can consume. LOG4 seems to be expensive for GAS but cheap for counters?
-            for {} gt(gas(), 15156) {} {
-                log4(0, 0, 0, 0, 0 ,0)
-                log4(0, 0, 0, 0, 0 ,0)
-                log4(0, 0, 0, 0, 0 ,0)
-                log4(0, 0, 0, 0, 0 ,0)
-                log4(0, 0, 0, 0, 0 ,0)
-                log4(0, 0, 0, 0, 0 ,0)
-                log4(0, 0, 0, 0, 0 ,0)
+            for {} gt(gas(), 200) {} {
                 log4(0, 0, 0, 0, 0 ,0)
             }
         }
     }
 
-    // maxKeccakHashes
-    // cast send --gas-price 2gwei --gas-limit 494719 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000002
+    function useMaxGasPossible() public {
+        count = 0;
+        assembly {
+            for {} gt(gas(), 1900) {} {
+                log4(0, 0, 0, 0, 0 ,0)
+            }
+        }
+    }
+
     function maxKeccakHashes() public {
         count = 0;
         assembly {
@@ -92,26 +40,15 @@ contract ZkCounters {
         }
     }
 
-    // maxPoseidonHashes
-    // cast send --gas-price 2gwei --gas-limit 1488485 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000003
     function maxPoseidonHashes() public {
         count = 0;
         assembly {
-            for {} gt(gas(), 2468) {} {
-                sstore(0, extcodehash(sload(0)))
-                sstore(0, extcodehash(sload(0)))
-                sstore(0, extcodehash(sload(0)))
-                sstore(0, extcodehash(sload(0)))
-                sstore(0, extcodehash(sload(0)))
-                sstore(0, extcodehash(sload(0)))
-                sstore(0, extcodehash(sload(0)))
+            for {} gt(gas(), 10000) {} {
                 sstore(0, extcodehash(sload(0)))
             }
         }
     }
 
-    // maxPoseidonPaddings - NOTE: I CAN'T HIT THIS LIMIT.... yet
-    // cast send --gas-price 2gwei --gas-limit 29999999 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000004
     function maxPoseidonPaddings() public {
         count = 0;
         assembly {
@@ -129,11 +66,9 @@ contract ZkCounters {
         }
     }
 
-    // maxMemAligns
-    // cast send --gas-price 2gwei --gas-limit 115644 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000005
     function maxMemAligns() public {
         count = 0;
-            assembly {
+        assembly {
             // put a 1 way out in memory
             mstore(0x7000,1)
             let bigContract := create(0, 0x1000, 0x6000)
@@ -150,8 +85,6 @@ contract ZkCounters {
         }
     }
 
-    // maxArithmetics
-    // cast send --gas-price 2gwei --gas-limit 3386851 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000006
     function maxArithmetics() public {
         count = 0;
         assembly {
@@ -166,8 +99,6 @@ contract ZkCounters {
         }
     }
 
-    // maxBinaries
-    // cast send --gas-price 2gwei --gas-limit 1643884 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000007
     function maxBinaries() public {
         count = 0;
         assembly {
@@ -177,20 +108,15 @@ contract ZkCounters {
         }
     }
 
-    // maxSteps
-    // cast send --gas-price 2gwei --gas-limit 5345981 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000008
     function maxSteps() public {
         count = 0;
         assembly {
-            let i := 0
-            for {} gt(gas(),5) {} {
-                i := add(i,1)
+            for {} gt(gas(), 10000) {} {
+                mstore(0x0, 1234)
             }
         }
     }
 
-    // maxSHA256Hashes
-    // cast send --gas-price 2gwei --gas-limit 498636 --legacy --private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 --rpc-url http://127.0.0.1:33882 $(jq -r '.contractAddress' zkevm-counters.json) 0000000000000000000000000000000000000000000000000000000000000009
     function maxSHA256Hashes() public {
         count = 0;
         assembly {

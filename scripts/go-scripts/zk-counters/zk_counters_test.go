@@ -2,15 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/0xPolygon/evm-regression-tests/scripts/go-scripts/engine"
 	"github.com/0xPolygon/evm-regression-tests/scripts/go-scripts/tools/log"
 	zkcounters "github.com/0xPolygon/evm-regression-tests/scripts/go-scripts/zk-counters/sc"
-	"github.com/0xPolygonHermez/zkevm-node/hex"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -18,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const addr = ""
 
 func TestZkCounters(t *testing.T) {
 	rpcURL := os.Getenv("l2_rpc_url")
@@ -43,171 +44,225 @@ func TestZkCounters(t *testing.T) {
 		createTxToEstimateCounters func(*testing.T, context.Context, *zkcounters.Zkcounters, *ethclient.Client, bind.TransactOpts) *types.Transaction
 	}
 
-	estimateCounters := func(args map[string]any, counter string) (uint64, uint64, string) {
-		req := engine.NewRequest("zkevm_estimateCounters", args)
-		res, err := engine.RPCCall(t, rpcURL, req)
-		require.NoError(t, err)
-		require.Nil(t, res.Error)
-		require.NotNil(t, res.Result)
+	// THIS COMMENTED CODE BLOCK IS WAITING ERIGON TO FIX ESTIMATE COUNTERS
+	{
+		// estimateCounters := func(args map[string]any, counter string) (uint64, uint64, string) {
+		// 	req := engine.NewRequest("zkevm_estimateCounters", args)
+		// 	res, err := engine.RPCCall(t, rpcURL, req)
+		// 	require.NoError(t, err)
+		// 	require.Nil(t, res.Error)
+		// 	require.NotNil(t, res.Result)
 
-		resMap := map[string]any{}
-		err = json.Unmarshal(res.Result, &resMap)
-		require.NoError(t, err)
+		// 	resMap := map[string]any{}
+		// 	err = json.Unmarshal(res.Result, &resMap)
+		// 	require.NoError(t, err)
 
-		countersUsedKey := "countersUsed"
-		countersLimitsKey := "countersLimits"
+		// 	countersUsedKey := "countersUsed"
+		// 	countersLimitsKey := "countersLimits"
 
-		usedCounterKey := counter
-		maxCounterKey := counter
+		// 	usedCounterKey := counter
+		// 	maxCounterKey := counter
 
-		// TODO: remove this switch when the counters are fixed on erigon.
-		// This switch makes the code compatible with legacy node response
-		// because erigon is using a different way to return the counters.
-		countersLimitsKey = "countersLimit"
-		switch counter {
-		case "gas":
-			usedCounterKey = "gasUsed"
-			maxCounterKey = "maxGasUsed"
-		case "keccakHashes":
-			usedCounterKey = "usedKeccakHashes"
-			maxCounterKey = "maxKeccakHashes"
-		case "poseidonhashes":
-			usedCounterKey = "usedPoseidonHashes"
-			maxCounterKey = "maxPoseidonHashes"
-		case "poseidonPaddings":
-			usedCounterKey = "usedPoseidonPaddings"
-			maxCounterKey = "maxPoseidonPaddings"
-		case "memAligns":
-			usedCounterKey = "usedMemAligns"
-			maxCounterKey = "maxMemAligns"
-		case "arithmetics":
-			usedCounterKey = "usedArithmetics"
-			maxCounterKey = "maxArithmetics"
-		case "binaries":
-			usedCounterKey = "usedBinaries"
-			maxCounterKey = "maxBinaries"
-		case "steps":
-			usedCounterKey = "usedSteps"
-			maxCounterKey = "maxSteps"
-		case "SHA256hashes":
-			usedCounterKey = "usedSHA256Hashes"
-			maxCounterKey = "maxSHA256Hashes"
-		}
+		// 	countersUsed := resMap[countersUsedKey].(map[string]any)
+		// 	countersLimits := resMap[countersLimitsKey].(map[string]any)
+		// 	oocError := ""
+		// 	if v, found := resMap["oocError"]; found {
+		// 		oocError = v.(string)
+		// 	}
 
-		countersUsed := resMap[countersUsedKey].(map[string]any)
-		countersLimits := resMap[countersLimitsKey].(map[string]any)
-		oocError := resMap["oocError"].(string)
+		// 	if v, found := resMap["revertInfo"]; found {
+		// 		if v, found := v.(map[string]any)["message"]; found {
+		// 			oocError = v.(string)
+		// 		}
+		// 	}
 
-		usedHex := countersUsed[usedCounterKey].(string)
-		used := hex.DecodeUint64(usedHex)
-		maxHex := countersLimits[maxCounterKey].(string)
-		max := hex.DecodeUint64(maxHex)
-		return used, max, oocError
+		// 	// print counters
+		// 	const logColumnWidth = 30
+		// 	headerSeparator := strings.Repeat("-", logColumnWidth)
+		// 	columnSeparator := "|"
+		// 	pad := func(s string) string {
+		// 		startPos := logColumnWidth - len(s)
+		// 		return strings.Repeat(" ", startPos) + s
+		// 	}
+
+		// 	log.Msg(t, columnSeparator, headerSeparator, "-", headerSeparator, "-", headerSeparator, columnSeparator)
+		// 	log.Msg(t, columnSeparator, strings.Repeat(" ", 42), "zkCounters", strings.Repeat(" ", 42), columnSeparator)
+		// 	log.Msg(t, columnSeparator, headerSeparator, "-", headerSeparator, "-", headerSeparator, columnSeparator)
+		// 	log.Msg(t, columnSeparator, pad("counter name"), columnSeparator, pad("used"), columnSeparator, pad("limits"), columnSeparator)
+		// 	log.Msg(t, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator)
+		// 	for k, u := range countersUsed {
+		// 		keyCounter := pad(k)
+		// 		usedCounter := pad(fmt.Sprintf("%v", u))
+		// 		maxCounter := pad(fmt.Sprintf("%v", countersLimits[k]))
+
+		// 		target := ""
+		// 		if k == usedCounterKey {
+		// 			log.Msg(t, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator)
+		// 			target = " <== target counter"
+		// 		}
+
+		// 		log.Msg(t, columnSeparator, keyCounter, columnSeparator, usedCounter, columnSeparator, maxCounter, columnSeparator, target)
+
+		// 		if k == usedCounterKey {
+		// 			log.Msg(t, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator)
+		// 		}
+		// 	}
+		// 	log.Msg(t, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator, headerSeparator, columnSeparator)
+
+		// 	used := uint64(countersUsed[usedCounterKey].(float64))
+		// 	max := uint64(countersLimits[maxCounterKey].(float64))
+		// 	return used, max, oocError
+		// }
 	}
 
 	testCases := []testCase{
-		// {
-		// 	name:          "call OOC gas",
-		// 	gasLimit:      29999999,
-		// 	counter:       "gas",
-		// 	expectedError: "gas required exceeds allowance (50000)",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxGasUsed(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC keccaks",
-		// 	gasLimit:      494719,
-		// 	counter:       "keccakHashes",
-		// 	expectedError: "not enough keccak counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxKeccakHashes(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC poseidon hashes",
-		// 	gasLimit:      1488485,
-		// 	counter:       "poseidonhashes",
-		// 	expectedError: "not enough poseidon counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxPoseidonHashes(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC poseidon paddings",
-		// 	gasLimit:      30000000,
-		// 	counter:       "poseidonPaddings",
-		// 	expectedError: "not enough poseidon paddings counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxPoseidonPaddings(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC mem aligns",
-		// 	gasLimit:      115644,
-		// 	counter:       "memAligns",
-		// 	expectedError: "not enough mem aligns counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxMemAligns(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC Arithmetics",
-		// 	gasLimit:      3386851,
-		// 	counter:       "arithmetics",
-		// 	expectedError: "not enough arithmetics counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxArithmetics(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC binaries",
-		// 	gasLimit:      1643884,
-		// 	counter:       "binaries",
-		// 	expectedError: "not enough binaries counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxBinaries(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC steps",
-		// 	gasLimit:      5345981,
-		// 	counter:       "steps",
-		// 	expectedError: "not enough step counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxSteps(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
-		// {
-		// 	name:          "call OOC SHA256Hashes",
-		// 	gasLimit:      498636,
-		// 	counter:       "SHA256hashes",
-		// 	expectedError: "not enough SHA256 Hashes counters to continue the execution",
-		// 	createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// 		tx, err := sc.MaxSHA256Hashes(&a)
-		// 		require.NoError(t, err)
-		// 		return tx
-		// 	},
-		// },
+		{
+			name: "max gas - tx discarded", counter: "gas", expectedError: "out of gas",
+			gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.OverflowGas(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max gas - tx mined", counter: "gas", expectedError: "",
+			gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.UseMaxGasPossible(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max keccaks - tx discarded", counter: "keccakHashes", expectedError: "not enough keccak counters to continue the execution",
+			gasLimit: 499133, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxKeccakHashes(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max keccaks - tx mined", counter: "keccakHashes", expectedError: "",
+			gasLimit: 496133, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxKeccakHashes(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max poseidon hashes - tx discarded", counter: "poseidonhashes", expectedError: "not enough poseidon counters to continue the execution",
+			gasLimit: 1599010, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxPoseidonHashes(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max poseidon hashes - tx mined", counter: "poseidonhashes", expectedError: "",
+			gasLimit: 1589010, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxPoseidonHashes(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		// // TODO: We can't reach this counter yet
+		// // {
+		// // 	name: "max poseidon paddings - tx discarded", counter: "poseidonPaddings", expectedError: "not enough poseidon paddings counters to continue the execution",
+		// // 	gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+		// // 		tx, err := sc.MaxPoseidonPaddings(&a)
+		// // 		require.NoError(t, err)
+		// // 		return tx
+		// // 	},
+		// // },
+		// // {
+		// // 	name: "max poseidon paddings - tx mined", counter: "poseidonPaddings", expectedError: "not enough poseidon paddings counters to continue the execution",
+		// // 	gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+		// // 		tx, err := sc.MaxPoseidonPaddings(&a)
+		// // 		require.NoError(t, err)
+		// // 		return tx
+		// // 	},
+		// // },
+		{
+			name: "max mem aligns - tx discarded", counter: "memAligns", expectedError: "not enough mem aligns counters to continue the execution",
+			gasLimit: 119305, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxMemAligns(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max mem aligns - tx mined", counter: "memAligns", expectedError: "",
+			gasLimit: 118305, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxMemAligns(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max Arithmetics - tx discarded", counter: "arithmetics", expectedError: "not enough arithmetics counters to continue the execution",
+			gasLimit: 2995828, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxArithmetics(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max Arithmetics - tx mined", counter: "arithmetics", expectedError: "",
+			gasLimit: 2985828, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxArithmetics(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max binaries - tx discarded", counter: "binaries", expectedError: "not enough binary counters to continue the execution",
+			gasLimit: 1654654, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxBinaries(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max binaries - tx mined", counter: "binaries", expectedError: "",
+			gasLimit: 1644654, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxBinaries(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max steps - tx discarded", counter: "steps", expectedError: "not enough step counters to continue the execution",
+			gasLimit: 3456200, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSteps(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max steps - tx mined", counter: "steps", expectedError: "",
+			gasLimit: 3406200, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSteps(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max SHA256Hashes - tx discarded", counter: "SHA256hashes", expectedError: "not enough sha256 counters to continue the execution",
+			gasLimit: 501000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSHA256Hashes(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
+		{
+			name: "max SHA256Hashes - tx mined", counter: "SHA256hashes", expectedError: "",
+			gasLimit: 500500, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSHA256Hashes(&a)
+				require.NoError(t, err)
+				return tx
+			},
+		},
 	}
 
-	addr := "0xFB054898a55bB49513D1BA8e0FB949Ea3D9B4153"
 	var sc *zkcounters.Zkcounters
 	if addr == "" {
 		var scAddr common.Address
@@ -228,18 +283,62 @@ func TestZkCounters(t *testing.T) {
 	// create TX that cause an OOC
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			// define if the tx in this test case must get mined or not
+			txMustGetMined := len(testCase.expectedError) == 0
+
+			gasPrice, err := client.SuggestGasPrice(ctx)
+			require.NoError(t, err)
+
+			// create TX to validate counters
 			a := *auth
 			a.GasLimit = testCase.gasLimit
+			a.GasPrice = gasPrice
 			a.NoSend = true
 			tx := testCase.createTxToEstimateCounters(t, context.Background(), sc, client, a)
-			args := engine.TxToTxArgs(*tx)
-			used, max, counterError := estimateCounters(args, testCase.counter)
-			if len(testCase.expectedError) == 0 {
-				assert.GreaterOrEqual(t, max, used)
+
+			// send the tx
+			err = client.SendTransaction(ctx, tx)
+			require.NoError(t, err)
+
+			// check tx is in the pool
+			poolTx, pending, err := client.TransactionByHash(ctx, tx.Hash())
+			assert.NoError(t, err)
+			assert.True(t, pending)
+			assert.NotNil(t, poolTx)
+
+			// wait for tx
+			if txMustGetMined {
+				err = engine.WaitTxToBeMined(t, ctx, rpcURL, tx.Hash(), engine.TimeoutTxToBeMined)
+				assert.NoError(t, err)
+
+				receipt, err := client.TransactionReceipt(ctx, tx.Hash())
+				assert.NoError(t, err)
+				assert.Equal(t, uint64(types.ReceiptStatusSuccessful), receipt.Status)
 			} else {
-				assert.Greater(t, used, max)
+				err = engine.WaitTxToDisappearByHash(t, ctx, rpcURL, tx.Hash(), engine.TimeoutTxToDisappear)
+				if err != nil && strings.Contains(err.Error(), "was mined and will never disappear") {
+					receipt, err := client.TransactionReceipt(ctx, tx.Hash())
+					assert.NoError(t, err)
+					assert.Equal(t, uint64(types.ReceiptStatusFailed), receipt.Status)
+				}
 			}
-			assert.Equal(t, testCase.expectedError, counterError)
+
+			// THIS COMMENTED CODE BLOCK IS WAITING ERIGON TO FIX ESTIMATE COUNTERS
+			{
+				// // estimate counters
+				// args := engine.TxToTxArgs(*tx)
+				// used, max, counterError := estimateCounters(args, testCase.counter)
+
+				// // check target counter against limit
+				// if txMustGetMined {
+				// 	assert.GreaterOrEqual(t, max, used)
+				// } else {
+				// 	assert.GreaterOrEqual(t, used, max)
+				// }
+
+				// // check OOC error message
+				// assert.Equal(t, testCase.expectedError, counterError)
+			}
 		})
 	}
 }

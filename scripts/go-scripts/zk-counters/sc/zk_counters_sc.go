@@ -31,8 +31,8 @@ var (
 
 // ZkcountersMetaData contains all meta data concerning the Zkcounters contract.
 var ZkcountersMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"name\":\"count\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxArithmetics\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxBinaries\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxGasUsed\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxKeccakHashes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxMemAligns\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxPoseidonHashes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxPoseidonPaddings\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxSHA256Hashes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxSteps\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561000f575f80fd5b5061048b8061001d5f395ff3fe608060405234801561000f575f80fd5b506004361061009c575f3560e01c80639c94a61e116100645780639c94a61e146100e6578063a7c19bb8146100f0578063d076c389146100fa578063d153826714610104578063e050f2bd1461010e5761009c565b806306661abd146100a0578063138070c4146100be5780632f3bd8bf146100c85780633aa0596b146100d25780639a077793146100dc575b5f80fd5b6100a8610118565b6040516100b5919061043c565b60405180910390f35b6100c661011d565b005b6100d061018c565b005b6100da6101d9565b005b6100e4610229565b005b6100ee610269565b005b6100f8610296565b005b610102610370565b005b61010c61038f565b005b6101166103dc565b005b5f5481565b5f80819055506001617000526160006110005ff05b614e205a11156101895761600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c610132565b50565b5f80819055506120205f525b614ba45a11156101d75760025f80f05060025f80f05060025f80f05060025f80f05060025f80f05060025f80f05060025f80f05060025f80f050610198565b565b5f80819055505b613b345a1115610227575f805f805f80a45f805f805f80a45f805f805f80a45f805f805f80a45f805f805f80a45f805f805f80a45f805f805f80a45f805f805f80a46101e0565b565b5f80819055505b6109a45a1115610267575f543f5f555f543f5f555f543f5f555f543f5f555f543f5f555f543f5f555f543f5f555f543f5f55610230565b565b5f80819055505f80526001610100525b60af5a11156102945760205f6101205f60025afa5f52610279565b565b5f80819055507f2850da2e46aa5dd9f61ffcd946950739259152db7c0da19f5dca5bc9ef9aab8d5f527f2f1aa883281df6c54504da443fed2bfd3d40d52403dfd8ca2ee32396bc2283086020527f19d1c096fea0c11845a724cfc1b8c136c9b02c5c5a15e5d47226e1ab7e0c7a116040527f172ace8be0f28d72e4fd5a6acc400c1986815b492c611e850a922155431ba7496060527f1521ead02326d5115ff3fd009ddae7895d9cc538579dd89d334f446265c74a236080525b61d6d85a111561036e57602060a0805f600861c350fa60a052610350565b565b5f80819055505f5b60055a111561038c57600181019050610378565b50565b5f80819055505b60915a11156103da575a60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d5f52610396565b565b5f80819055505b6101945a11156104225760205f205f5260205f205f5260205f205f5260205f205f5260205f205f5260205f205f5260205f205f5260205f205f526103e3565b565b5f819050919050565b61043681610424565b82525050565b5f60208201905061044f5f83018461042d565b9291505056fea2646970667358221220a66b0e418834a29119bb9027361e42858249537fa1623ecdedb5830cef1f6a6864736f6c63430008140033",
+	ABI: "[{\"inputs\":[],\"name\":\"count\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxArithmetics\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxBinaries\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxKeccakHashes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxMemAligns\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxPoseidonHashes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxPoseidonPaddings\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxSHA256Hashes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxSteps\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"overflowGas\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"useMaxGasPossible\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561000f575f80fd5b506104688061001d5f395ff3fe608060405234801561000f575f80fd5b50600436106100a7575f3560e01c8063a7c19bb81161006f578063a7c19bb8146100f1578063a8a61c71146100fb578063d076c38914610105578063d15382671461010f578063e050f2bd14610119578063e7ff720214610123576100a7565b806306661abd146100ab578063138070c4146100c95780632f3bd8bf146100d35780639a077793146100dd5780639c94a61e146100e7575b5f80fd5b6100b361012d565b6040516100c09190610419565b60405180910390f35b6100d1610132565b005b6100db6101a1565b005b6100e56101ee565b005b6100ef61020b565b005b6100f9610238565b005b610103610312565b005b61010d610331565b005b61011761034e565b005b61012161039b565b005b61012b6103e3565b005b5f5481565b5f80819055506001617000526160006110005ff05b614e205a111561019e5761600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c61600061100080833c610147565b50565b5f80819055506120205f525b614ba45a11156101ec5760025f80f05060025f80f05060025f80f05060025f80f05060025f80f05060025f80f05060025f80f05060025f80f0506101ad565b565b5f80819055505b6127105a1115610209575f543f5f556101f5565b565b5f80819055505f80526001610100525b60af5a11156102365760205f6101205f60025afa5f5261021b565b565b5f80819055507f2850da2e46aa5dd9f61ffcd946950739259152db7c0da19f5dca5bc9ef9aab8d5f527f2f1aa883281df6c54504da443fed2bfd3d40d52403dfd8ca2ee32396bc2283086020527f19d1c096fea0c11845a724cfc1b8c136c9b02c5c5a15e5d47226e1ab7e0c7a116040527f172ace8be0f28d72e4fd5a6acc400c1986815b492c611e850a922155431ba7496060527f1521ead02326d5115ff3fd009ddae7895d9cc538579dd89d334f446265c74a236080525b61d6d85a111561031057602060a0805f600861c350fa60a0526102f2565b565b5f80819055505b61076c5a111561032f575f805f805f80a4610319565b565b5f80819055505b6127105a111561034c576104d25f52610338565b565b5f80819055505b60915a1115610399575a60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d60011d5f52610355565b565b5f80819055505b6101945a11156103e15760205f205f5260205f205f5260205f205f5260205f205f5260205f205f5260205f205f5260205f205f5260205f205f526103a2565b565b5f80819055505b60c85a11156103ff575f805f805f80a46103ea565b565b5f819050919050565b61041381610401565b82525050565b5f60208201905061042c5f83018461040a565b9291505056fea26469706673582212205515c8621501e7448e7814910864face53e1b9169c1da9176fd4ab70777b966064736f6c63430008140033",
 }
 
 // ZkcountersABI is the input ABI used to generate the binding from.
@@ -275,27 +275,6 @@ func (_Zkcounters *ZkcountersTransactorSession) MaxBinaries() (*types.Transactio
 	return _Zkcounters.Contract.MaxBinaries(&_Zkcounters.TransactOpts)
 }
 
-// MaxGasUsed is a paid mutator transaction binding the contract method 0x3aa0596b.
-//
-// Solidity: function maxGasUsed() returns()
-func (_Zkcounters *ZkcountersTransactor) MaxGasUsed(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Zkcounters.contract.Transact(opts, "maxGasUsed")
-}
-
-// MaxGasUsed is a paid mutator transaction binding the contract method 0x3aa0596b.
-//
-// Solidity: function maxGasUsed() returns()
-func (_Zkcounters *ZkcountersSession) MaxGasUsed() (*types.Transaction, error) {
-	return _Zkcounters.Contract.MaxGasUsed(&_Zkcounters.TransactOpts)
-}
-
-// MaxGasUsed is a paid mutator transaction binding the contract method 0x3aa0596b.
-//
-// Solidity: function maxGasUsed() returns()
-func (_Zkcounters *ZkcountersTransactorSession) MaxGasUsed() (*types.Transaction, error) {
-	return _Zkcounters.Contract.MaxGasUsed(&_Zkcounters.TransactOpts)
-}
-
 // MaxKeccakHashes is a paid mutator transaction binding the contract method 0xe050f2bd.
 //
 // Solidity: function maxKeccakHashes() returns()
@@ -420,4 +399,46 @@ func (_Zkcounters *ZkcountersSession) MaxSteps() (*types.Transaction, error) {
 // Solidity: function maxSteps() returns()
 func (_Zkcounters *ZkcountersTransactorSession) MaxSteps() (*types.Transaction, error) {
 	return _Zkcounters.Contract.MaxSteps(&_Zkcounters.TransactOpts)
+}
+
+// OverflowGas is a paid mutator transaction binding the contract method 0xe7ff7202.
+//
+// Solidity: function overflowGas() returns()
+func (_Zkcounters *ZkcountersTransactor) OverflowGas(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Zkcounters.contract.Transact(opts, "overflowGas")
+}
+
+// OverflowGas is a paid mutator transaction binding the contract method 0xe7ff7202.
+//
+// Solidity: function overflowGas() returns()
+func (_Zkcounters *ZkcountersSession) OverflowGas() (*types.Transaction, error) {
+	return _Zkcounters.Contract.OverflowGas(&_Zkcounters.TransactOpts)
+}
+
+// OverflowGas is a paid mutator transaction binding the contract method 0xe7ff7202.
+//
+// Solidity: function overflowGas() returns()
+func (_Zkcounters *ZkcountersTransactorSession) OverflowGas() (*types.Transaction, error) {
+	return _Zkcounters.Contract.OverflowGas(&_Zkcounters.TransactOpts)
+}
+
+// UseMaxGasPossible is a paid mutator transaction binding the contract method 0xa8a61c71.
+//
+// Solidity: function useMaxGasPossible() returns()
+func (_Zkcounters *ZkcountersTransactor) UseMaxGasPossible(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Zkcounters.contract.Transact(opts, "useMaxGasPossible")
+}
+
+// UseMaxGasPossible is a paid mutator transaction binding the contract method 0xa8a61c71.
+//
+// Solidity: function useMaxGasPossible() returns()
+func (_Zkcounters *ZkcountersSession) UseMaxGasPossible() (*types.Transaction, error) {
+	return _Zkcounters.Contract.UseMaxGasPossible(&_Zkcounters.TransactOpts)
+}
+
+// UseMaxGasPossible is a paid mutator transaction binding the contract method 0xa8a61c71.
+//
+// Solidity: function useMaxGasPossible() returns()
+func (_Zkcounters *ZkcountersTransactorSession) UseMaxGasPossible() (*types.Transaction, error) {
+	return _Zkcounters.Contract.UseMaxGasPossible(&_Zkcounters.TransactOpts)
 }
