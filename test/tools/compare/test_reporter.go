@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/agglayer/e2e/scripts/go-scripts/tools/log"
+	"github.com/agglayer/e2e/test/tools/log"
 )
 
 type TestReporter struct {
