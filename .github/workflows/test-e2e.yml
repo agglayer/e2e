@@ -19,13 +19,11 @@ jobs:
             gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
 
           - network: "fork11-rollup"
-            bats_tests: "batch-verification.bats,eoa-transaction.bats"
-            go_tests: ""
+            bats_tests: "batch-verification.bats,eoa-transaction.bats,zk-counters-tests.bats"
             deploy_infra: true
 
           - network: "fork12-cdk-validium"
-            bats_tests: "batch-verification.bats,erc20-tests.bats"
-            go_tests: ""
+            bats_tests: "batch-verification.bats,erc20-tests.bats,zk-counters-tests.bats"
             deploy_infra: true
 
           - network: "fork12-rollup"
