@@ -26,6 +26,7 @@ fi
 echo "Running tests for network: $NETWORK"
 echo "Using GAS_TOKEN_ADDR: $GAS_TOKEN_ADDR"
 
+l2_rpc_url="http://127.0.0.1:59761"
 if [[ "$DEPLOY_INFRA" == "true" ]]; then
     echo "Deploying infrastructure using Kurtosis..."
 
@@ -41,11 +42,11 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
     cp "$BASE_FOLDER/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 
     kurtosis run --enclave cdk --args-file "combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
+    l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
 else
     echo "Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
 
-l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
 export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
 
 # Run selected tests with exported environment variables
