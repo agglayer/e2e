@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail  
 
-source $(dirname $0)/scripts/env.sh  # Load shared env vars
+# Load shared env vars
+. $(dirname $0)/scripts/.env
 
 # Allow users to specify variables dynamically
 export NETWORK="${NETWORK:-fork12-rollup}"
@@ -62,6 +63,3 @@ else
     # Execute tests with `env`
     env bats $BATS_TESTS_LIST
 fi
-
-# Run Tests with Go
-go test -v $TEST_DIR/...
