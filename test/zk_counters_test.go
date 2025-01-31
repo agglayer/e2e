@@ -312,17 +312,17 @@ func TestZkCounters(t *testing.T) {
 			// wait for tx
 			if txMustGetMined {
 				err = engine.WaitTxToBeMined(t, ctx, rpcURL, tx.Hash(), engine.TimeoutTxToBeMined)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				receipt, err := client.TransactionReceipt(ctx, tx.Hash())
-				assert.NoError(t, err)
-				assert.Equal(t, uint64(types.ReceiptStatusSuccessful), receipt.Status)
+				require.NoError(t, err)
+				require.Equal(t, uint64(types.ReceiptStatusSuccessful), receipt.Status)
 			} else {
 				err = engine.WaitTxToDisappearByHash(t, ctx, rpcURL, tx.Hash(), engine.TimeoutTxToDisappear)
 				if err != nil && strings.Contains(err.Error(), "was mined and will never disappear") {
 					receipt, err := client.TransactionReceipt(ctx, tx.Hash())
-					assert.NoError(t, err)
-					assert.Equal(t, uint64(types.ReceiptStatusFailed), receipt.Status)
+					require.NoError(t, err)
+					require.Equal(t, uint64(types.ReceiptStatusFailed), receipt.Status)
 				}
 			}
 
