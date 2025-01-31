@@ -24,6 +24,9 @@ func TestZkCounters(t *testing.T) {
 	rpcURL := os.Getenv("L2_RPC_URL")
 	privateKeyHex := os.Getenv("L2_SENDER_PRIVATE_KEY")
 
+	fmt.Println("rpcURL", rpcURL)
+	fmt.Println("privateKeyHex", privateKeyHex)
+
 	ctx := context.Background()
 	client := engine.MustGetClient(rpcURL)
 
