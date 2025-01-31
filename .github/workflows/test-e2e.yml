@@ -22,7 +22,6 @@ jobs:
             bats_tests: "batch-verification.bats,eoa-transaction.bats"
             go_tests: ""
             deploy_infra: true
-            l2_rpc_url: "http://127.0.0.1:62452"
 
           - network: "fork12-cdk-validium"
             bats_tests: "batch-verification.bats,erc20-tests.bats"

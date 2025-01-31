@@ -7,6 +7,7 @@ source $(dirname $0)/scripts/env.sh  # Load shared env vars
 export NETWORK="${NETWORK:-fork12-rollup}"
 export BATS_TESTS="${BATS_TESTS:-all}"
 export DEPLOY_INFRA="${DEPLOY_INFRA:-true}"  # New flag
+export L2_SENDER_PRIVATE_KEY="$L2_SENDER_PRIVATE_KEY"
 
 # Allow env var inputs (including L2_ETH_RPC_URL)
 export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
