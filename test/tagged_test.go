@@ -12,6 +12,7 @@ func TestUnchecked(t *testing.T) {
 }
 
 func TestUntagged(t *testing.T) {
+	engine.ShouldRun(t)
 	assert.True(t, true)
 }
 
