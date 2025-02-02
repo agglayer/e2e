@@ -62,5 +62,5 @@ else
     echo "Running BATS tests: $BATS_TESTS_LIST"
     
     # Execute tests with `env`
-    env bats $BATS_TESTS_LIST
+    env bats --verbose-run $BATS_TESTS_LIST
 fi
