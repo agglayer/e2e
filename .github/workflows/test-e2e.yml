@@ -129,18 +129,18 @@ jobs:
         BATS_LIB_PATH: /usr/lib/
   
     - name: Dump enclave logs
-      if: failure()
+      if: failure() && matrix.deploy_infra
       run: kurtosis dump ./dump
 
     - name: Generate archive name
-      if: failure()
+      if: failure() && matrix.deploy_infra
       run: |
         archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}"
         echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
         kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
 
     - name: Upload logs
-      if: failure()
+      if: failure() && matrix.deploy_infra
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.ARCHIVE_NAME }}
