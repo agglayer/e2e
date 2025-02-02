@@ -7,6 +7,7 @@ set -euo pipefail
 # Allow users to specify variables dynamically
 export NETWORK="${NETWORK:-fork12-rollup}"
 export BATS_TESTS="${BATS_TESTS:-all}"
+export TAGS="${TAGS:-light}"
 export DEPLOY_INFRA="${DEPLOY_INFRA:-true}"  # New flag
 export L2_SENDER_PRIVATE_KEY="$L2_SENDER_PRIVATE_KEY"
 
