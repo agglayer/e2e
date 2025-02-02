@@ -7,6 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestFail(t *testing.T) {
+	assert.True(t, false)
+}
+
 func TestUnchecked(t *testing.T) {
 	assert.True(t, true)
 }
