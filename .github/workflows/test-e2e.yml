@@ -31,32 +31,32 @@ jobs:
             deploy_infra: true
 
           - network: "fork12-rollup"
-            bats_tests: "tagged_test.bats"
+            bats_tests: "tagged-test.bats"
             tags: "light"
             deploy_infra: false
           
           - network: "fork12-rollup"
-            bats_tests: "tagged_test.bats"
+            bats_tests: "tagged-test.bats"
             tags: "heavy"
             deploy_infra: false
 
           - network: "fork12-rollup"
-            bats_tests: "tagged_test.bats"
+            bats_tests: "tagged-test.bats"
             tags: "danger"
             deploy_infra: false
           
           - network: "fork12-rollup"
-            bats_tests: "tagged_test.bats"
+            bats_tests: "tagged-test.bats"
             tags: "light,danger"
             deploy_infra: false
 
           - network: "fork12-rollup"
-            bats_tests: "tagged_test.bats"
+            bats_tests: "tagged-test.bats"
             tags: "heavy,danger"
             deploy_infra: false
           
           - network: "fork12-rollup"
-            bats_tests: "tagged_test.bats"
+            bats_tests: "tagged-test.bats"
             tags: "light,heavy"
             deploy_infra: false
 
