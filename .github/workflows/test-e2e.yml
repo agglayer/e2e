@@ -33,32 +33,32 @@ jobs:
           - network: "fork12-rollup"
             bats_tests: "tagged_test.bats"
             tags: "light"
-            deploy_infra: true
+            deploy_infra: false
           
           - network: "fork12-rollup"
             bats_tests: "tagged_test.bats"
             tags: "heavy"
-            deploy_infra: true
+            deploy_infra: false
 
           - network: "fork12-rollup"
             bats_tests: "tagged_test.bats"
             tags: "danger"
-            deploy_infra: true
+            deploy_infra: false
           
           - network: "fork12-rollup"
             bats_tests: "tagged_test.bats"
             tags: "light,danger"
-            deploy_infra: true
+            deploy_infra: false
 
           - network: "fork12-rollup"
             bats_tests: "tagged_test.bats"
             tags: "heavy,danger"
-            deploy_infra: true
+            deploy_infra: false
           
           - network: "fork12-rollup"
             bats_tests: "tagged_test.bats"
             tags: "light,heavy"
-            deploy_infra: true
+            deploy_infra: false
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
