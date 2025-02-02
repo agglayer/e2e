@@ -30,6 +30,36 @@ jobs:
             bats_tests: "all"
             deploy_infra: true
 
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            tags: "light"
+            deploy_infra: true
+          
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            tags: "heavy"
+            deploy_infra: true
+
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            tags: "danger"
+            deploy_infra: true
+          
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            tags: "light,danger"
+            deploy_infra: true
+
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            tags: "heavy,danger"
+            deploy_infra: true
+          
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            tags: "light,heavy"
+            deploy_infra: true
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -91,6 +121,7 @@ jobs:
       env:
         NETWORK: ${{ matrix.network }}
         BATS_TESTS: ${{ matrix.bats_tests }}
+        TAGS: ${{ matrix.tags }}
         DEPLOY_INFRA: ${{ matrix.deploy_infra }}
         GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
         L2_RPC_URL: ${{ matrix.l2_rpc_url }}
