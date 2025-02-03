@@ -1,6 +1,6 @@
 setup() {
-    load 'helpers/common-setup'
-    load 'helpers/common'
+    load "$PROJECT_ROOT/core/helpers/common-setup"
+    load "$PROJECT_ROOT/core/helpers/common"
     _common_setup
 
     readonly erigon_sequencer_node=${KURTOSIS_ERIGON_SEQUENCER:-cdk-erigon-sequencer-001}

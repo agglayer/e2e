@@ -1,117 +1,135 @@
-# End-to-End Testing Guide
+# 🚀 Polygon E2E Test Runner
 
-## Overview
-This repository includes a **matrix-based CI testing framework** that allows you to:
-- Run **E2E tests** across multiple **networks and forks**.
-- Specify **custom environment variables** per test.
-- Select **specific BATS test files** to run for each network.
-- Easily **extend** the test suite with new test cases.
+A lightweight, **tag-based test runner** for executing end-to-end tests against **remote blockchain networks**.
 
-## How the Testing Framework Works
-- **Tests are written in [BATS](https://github.com/bats-core/bats-core)**.
-- **Each test case lives in `test/`** and follows the `.bats` extension.
-- **GitHub Actions CI** automatically picks up new tests and runs them on a schedule or on push.
-- **`run-e2e.sh`** is the main script that:
-  - Reads environment variables.
-  - Launches the appropriate network setup via **Kurtosis**.
-  - Executes **BATS tests** based on user input.
+## ✨ Features
+- ✅ Run tests **against any remote network** by specifying environment variables.
+- ✅ **Tag-based execution** (e.g., `light`, `heavy`, `danger`) for flexibility.
+- ✅ **Simple CLI usage** via `polygon-test-runner`.
+- ✅ **Easily extendable** with new `.bats` test cases.
+- ✅ **CI-compatible** – works seamlessly with GitHub Actions.
 
-## How to Add a New Test
-1. **Create a New `.bats` Test File**
-   - Place your test inside the `test/` folder.
-   - Name it something relevant, e.g., `my-feature-test.bats`.
+---
 
-   Example:
-   ```bash
-   # test/my-feature-test.bats
-   
-   @test "My new feature works" {
-       run some-command --option
-       assert_success
-       assert_output --regexp "Expected Output"
-   }
-   ```
+## 📦 Installation
+Install the test runner **locally**:
+```sh
+make install
+```
+This will:
+- Install `polygon-test-runner` in `~/.local/bin`
+- Ensure all dependencies (BATS, Foundry, Go, `jq`, `polycli`) are installed.
 
-2. **Ensure Your Test Uses Common Setup**
-   - Load environment variables in the **setup block**:
-   
-   ```bash
-   setup() {
-       load 'helpers/common-setup'
-       _common_setup  # Load shared env vars
-   }
-   ```
-
-3. **Register the Test in CI**
-   - Modify `.github/workflows/test-e2e.yml`.
-   - Add a new **network+test combination** inside the `matrix.include` array:
-   
-   ```yaml
-   - network: "fork12-rollup"
-     bats_tests: "my-feature-test.bats"
-   ```
-
-   **OR** to include multiple tests:
-   ```yaml
-   - network: "fork12-rollup"
-     bats_tests: "batch-verification.bats,my-feature-test.bats"
-   ```
-
-4. **Trigger a Run**
-   - Push your changes, or manually trigger a **workflow_dispatch** in GitHub Actions.
-   - Monitor the test results under the **Actions** tab.
-
-## Running Tests Locally
-You can run tests **locally** before pushing to CI:
-
-```bash
-make test-e2e NETWORK=fork12-rollup DEPLOY_INFRA=false BATS_TESTS=my-feature-test.bats
+💡 **Ensure `~/.local/bin` is in your `PATH`** (handled automatically during install). If not:
+```sh
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-or:
-
-```bash
-make test-e2e NETWORK=fork12-rollup DEPLOY_INFRA=false L2_RPC_URL=http://127.0.0.1:50504 BATS_LIB_PATH=/Users/dmoore/e2e/test/lib BATS_TESTS=batch-verification.bats
+To **uninstall**:
+```sh
+make uninstall
 ```
 
-or run all tests:
+---
 
-```bash
-make test-e2e NETWORK=fork12-rollup DEPLOY_INFRA=true BATS_TESTS=all
+## 🚀 Running Tests
+Run **tagged tests** against any remote blockchain:
+```sh
+polygon-test-runner --tags "light" --env-vars "L2_RPC_URL=http://127.0.0.1:60784,L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
 ```
 
-## Understanding CI Execution
-- **GitHub Actions Workflow (`.github/workflows/test-e2e.yml`)**
-  - Runs **all defined test cases in parallel** using a matrix strategy.
-  - Executes `make test-e2e` with **network, test list, and env vars**.
-  - Uploads logs for debugging in case of failures.
+### 🔹 Examples
+Run all **light** tests:
+```sh
+polygon-test-runner --tags "light"
+```
 
-- **Makefile (`test-e2e` target)**
-  - Calls `run-e2e.sh` with environment variables passed.
-  - Ensures correct execution of BATS tests.
+Run a **specific test**:
+```sh
+polygon-test-runner --tags "tests/light/batch-verification.bats"
+```
 
-- **`run-e2e.sh` Script**
-  - Initializes the **Kurtosis testing environment**.
-  - Runs the selected tests with `env bats`.
-  - Supports running **specific tests or all tests** dynamically.
+Run **heavy + danger** tests together:
+```sh
+polygon-test-runner --tags "heavy,danger"
+```
 
-## Debugging Test Failures
-1. **Check GitHub Actions Logs**
-   - Open the failing job in **GitHub Actions**.
-   - Look at the error messages and logs.
-   
-2. **Manually Inspect Logs**
-   - Failed tests automatically **upload logs** to CI.
-   - Download and inspect the logs for detailed errors.
-   
-3. **Run Locally**
-   - If a test fails in CI, try running it locally with the same env vars.
+Run **with environment variables**:
+```sh
+polygon-test-runner --tags "light" --env-vars "L2_RPC_URL=http://127.0.0.1:60784"
+```
 
-## Conclusion
-This framework allows for **easily scalable** and **configurable E2E testing**. By following this guide, you can:
-- Add new tests quickly.
-- Extend the CI matrix with new configurations.
-- Debug failures effectively.
+---
 
-🚀 **Happy Testing!**
+## 🛠️ Adding New Tests
+### 1️⃣ Create a new test
+Place it inside the relevant tag directory (`tests/light`, `tests/heavy`, etc.).
+```sh
+mkdir -p tests/light
+touch tests/light/my-new-test.bats
+```
 
+Example `.bats` file:
+```bash
+setup() {
+    load "$PROJECT_ROOT/core/helpers/common-setup"
+    _common_setup
+}
+
+@test "Ensure contract deployment works" {
+    run cast send --rpc-url "$L2_RPC_URL" --private-key "$L2_SENDER_PRIVATE_KEY" --create 0x600160015B810190630000000456
+    assert_success
+}
+```
+
+### 2️⃣ Run the new test
+```sh
+polygon-test-runner --tags "tests/light/my-new-test.bats"
+```
+
+### 3️⃣ Add to CI (Optional)
+Modify `.github/workflows/test-e2e.yml`:
+```yaml
+- network: "fork12-rollup"
+  bats_tests: "my-new-test.bats"
+```
+
+---
+
+## 🔍 Debugging Test Failures
+1. **Check logs** in GitHub Actions.
+2. **Run locally** using the same environment variables.
+3. Ensure `polygon-test-runner --help` outputs correct usage.
+
+---
+
+## 📝 CLI Help
+```sh
+polygon-test-runner --help
+```
+```
+🛠️ polygon-test-runner CLI
+
+Usage: polygon-test-runner --tags <tags> --env-vars <key=value,key=value>
+
+Options:
+  --tags       Run test categories (light, heavy, danger) OR specific .bats files.
+  --env-vars   Pass environment variables needed for the tests.
+  --help       Show this help message.
+
+Examples:
+  polygon-test-runner --tags "light"
+  polygon-test-runner --tags "tests/light/batch-verification.bats"
+  polygon-test-runner --tags "heavy,danger"
+  polygon-test-runner --tags "light" --env-vars "L2_RPC_URL=http://127.0.0.1:60784"
+```
+
+---
+
+## 🎯 Conclusion
+✅ **Simple setup**  
+✅ **Tag-based test execution**  
+✅ **Easily extendable**  
+✅ **Designed for CI/CD**
+
+🚀 **Start testing with `polygon-test-runner` today!**
