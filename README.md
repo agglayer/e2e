@@ -1,78 +1,117 @@
-# EVM Regression Test Library
+# End-to-End Testing Guide
 
-This repository provides a **reusable, lightweight test library** for all internal EVM-compatible chains. It enables developers to run existing tests against any devnet, testnet, or mainnet chain simply by specifying environment variables (e.g., `L2_RPC_URL`) in the `.env` file.
+## Overview
+This repository includes a **matrix-based CI testing framework** that allows you to:
+- Run **E2E tests** across multiple **networks and forks**.
+- Specify **custom environment variables** per test.
+- Select **specific BATS test files** to run for each network.
+- Easily **extend** the test suite with new test cases.
 
-## Features
-- **Reusable Testing Framework**: Run tests on any EVM network by updating the `.env` file with the appropriate values.
-- **Lightweight and Portable**: No infrastructure dependencies—just update `.env` and run the tests out of the box.
-- **Integrated Dependencies**: All required tools (e.g., `bats`, `cast`) are automatically bundled into the run process if they aren't already installed.
-- **Flexible Test Formats**:
-  - Supports `.bats` and `.go` tests.
-  - Shared `Makefile` ensures a common syntax for running all test commands.
-  - Designed to support additional languages (e.g., Rust) in the future.
-- **Seamless CI Integration**: Add your own tests and have them run automatically in nightly CI jobs.
+## How the Testing Framework Works
+- **Tests are written in [BATS](https://github.com/bats-core/bats-core)**.
+- **Each test case lives in `test/`** and follows the `.bats` extension.
+- **GitHub Actions CI** automatically picks up new tests and runs them on a schedule or on push.
+- **`run-e2e.sh`** is the main script that:
+  - Reads environment variables.
+  - Launches the appropriate network setup via **Kurtosis**.
+  - Executes **BATS tests** based on user input.
 
-## Getting Started
+## How to Add a New Test
+1. **Create a New `.bats` Test File**
+   - Place your test inside the `test/` folder.
+   - Name it something relevant, e.g., `my-feature-test.bats`.
 
-### Prerequisites
-- Ensure you have the following installed:
-  - [Make](https://www.gnu.org/software/make/)
-
-### Setup
-1. Clone the repository:
+   Example:
    ```bash
-   git clone <repo-url>
-   cd evm-regression-tests
+   # test/my-feature-test.bats
+   
+   @test "My new feature works" {
+       run some-command --option
+       assert_success
+       assert_output --regexp "Expected Output"
+   }
    ```
 
-2. Configure the `.env` file with your network's details:
-   ```plaintext
-   l2_rpc_url=http://<your-rpc-url>
-   SENDER_PRIVATE_KEY=<your-private-key>
-   RECEIVER=<receiver-address>
-   BATS_LIB_PATH="<path-to-bats-lib>"
-   ```
-
-3. Run the tests:
+2. **Ensure Your Test Uses Common Setup**
+   - Load environment variables in the **setup block**:
+   
    ```bash
-   bats bats/e2e.bats
+   setup() {
+       load 'helpers/common-setup'
+       _common_setup  # Load shared env vars
+   }
    ```
 
-### Adding New Tests
-- Add `.bats` tests under the `scripts/bats-scripts/` directory or `.go` tests under the `scripts/go-scripts/` directory.
-- Update the `Makefile` to include any new test types or commands.
-- Submit your test changes, and they will automatically run in the nightly CI pipeline.
+3. **Register the Test in CI**
+   - Modify `.github/workflows/test-e2e.yml`.
+   - Add a new **network+test combination** inside the `matrix.include` array:
+   
+   ```yaml
+   - network: "fork12-rollup"
+     bats_tests: "my-feature-test.bats"
+   ```
 
+   **OR** to include multiple tests:
+   ```yaml
+   - network: "fork12-rollup"
+     bats_tests: "batch-verification.bats,my-feature-test.bats"
+   ```
 
-### Load env variables
+4. **Trigger a Run**
+   - Push your changes, or manually trigger a **workflow_dispatch** in GitHub Actions.
+   - Monitor the test results under the **Actions** tab.
+
+## Running Tests Locally
+You can run tests **locally** before pushing to CI:
+
 ```bash
-if [ -f .env ]; then
-    source .env
-else
-    echo ".env file not found. Please create one."
-    exit 1
-fi
+make test-e2e NETWORK=fork12-rollup DEPLOY_INFRA=false BATS_TESTS=my-feature-test.bats
 ```
 
-### Running All Tests
-Use the `Makefile` to run all tests:
+or:
+
 ```bash
-make test
+make test-e2e NETWORK=fork12-rollup DEPLOY_INFRA=false L2_RPC_URL=http://127.0.0.1:50504 BATS_LIB_PATH=/Users/dmoore/e2e/test/lib BATS_TESTS=batch-verification.bats
 ```
 
-## Roadmap
-- **Additional Language Support**: Extend support for Rust, Python, and more.
-- **Enhanced Orchestration**: Simplify multi-environment testing with advanced orchestration.
-- **CI Enhancements**: Add detailed reports and test coverage tracking.
+or run all tests:
 
-## Contributing
-We welcome contributions! To add your tests or suggest improvements:
-1. Fork the repository.
-2. Create a new branch for your changes.
-3. Submit a pull request.
+```bash
+make test-e2e NETWORK=fork12-rollup DEPLOY_INFRA=true BATS_TESTS=all
+```
 
-## License
-This repository is for internal use only.
+## Understanding CI Execution
+- **GitHub Actions Workflow (`.github/workflows/test-e2e.yml`)**
+  - Runs **all defined test cases in parallel** using a matrix strategy.
+  - Executes `make test-e2e` with **network, test list, and env vars**.
+  - Uploads logs for debugging in case of failures.
 
-## Contact
-For support or questions, reach out to the DevTools team on Slack
+- **Makefile (`test-e2e` target)**
+  - Calls `run-e2e.sh` with environment variables passed.
+  - Ensures correct execution of BATS tests.
+
+- **`run-e2e.sh` Script**
+  - Initializes the **Kurtosis testing environment**.
+  - Runs the selected tests with `env bats`.
+  - Supports running **specific tests or all tests** dynamically.
+
+## Debugging Test Failures
+1. **Check GitHub Actions Logs**
+   - Open the failing job in **GitHub Actions**.
+   - Look at the error messages and logs.
+   
+2. **Manually Inspect Logs**
+   - Failed tests automatically **upload logs** to CI.
+   - Download and inspect the logs for detailed errors.
+   
+3. **Run Locally**
+   - If a test fails in CI, try running it locally with the same env vars.
+
+## Conclusion
+This framework allows for **easily scalable** and **configurable E2E testing**. By following this guide, you can:
+- Add new tests quickly.
+- Extend the CI matrix with new configurations.
+- Debug failures effectively.
+
+🚀 **Happy Testing!**
+
