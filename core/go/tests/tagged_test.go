@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"github.com/agglayer/e2e/test/tools/engine"
+	"github.com/agglayer/e2e/core/go/tools/engine"
 	"github.com/stretchr/testify/assert"
 )
 

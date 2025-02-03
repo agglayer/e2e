@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/agglayer/e2e/test/tools/hex"
-	"github.com/agglayer/e2e/test/tools/log"
+	"github.com/agglayer/e2e/core/go/tools/hex"
+	"github.com/agglayer/e2e/core/go/tools/log"
 	"github.com/ethereum/go-ethereum/common"
 )
 

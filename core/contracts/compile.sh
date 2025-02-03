@@ -1,3 +1,8 @@
+# script to compile the contracts into ABI and BIN formats
+#
+# if you are looking for the generated code for an specific language, 
+# check the folder /core/<language>/contracts
+
 docker run --rm --platform=linux/amd64 -v $(pwd):/contracts ethereum/solc:0.8.18-alpine - /contracts/verifybatchesmock/VerifyBatchesMock.sol -o /contracts --abi --bin --overwrite --optimize
 mv -f VerifyBatchesMock.abi abi/verifybatchesmock.abi
 mv -f VerifyBatchesMock.bin bin/verifybatchesmock.bin

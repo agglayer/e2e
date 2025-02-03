@@ -13,6 +13,7 @@ setup() {
     fi
     
     echo "Running go test to check zkCounters...."
-    run go test $PROJECT_ROOT/core/GO/zk_counters_test.go -run TestZkCounters -v
+    cd $PROJECT_ROOT/core/go
+    run go test ./tests/zk_counters_test.go -run TestZkCounters -v
     assert_success
 }
