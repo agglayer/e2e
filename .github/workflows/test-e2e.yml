@@ -119,7 +119,7 @@ jobs:
       uses: bats-core/bats-action@2.0.0
 
     - name: Install runner
-      run: make install
+      run: make install-runner
 
     - name: Run E2E Tests
       run: |
