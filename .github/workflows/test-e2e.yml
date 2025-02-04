@@ -14,16 +14,16 @@ jobs:
       matrix:
         include:
           - network: "fork9-cdk-validium"
-            bats_tests: "batch-verification.bats,access-list-e2e.bats"
+            bats_tests: "light/batch-verification.bats,light/access-list-e2e.bats"
             deploy_infra: true
             gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
 
           - network: "fork11-rollup"
-            bats_tests: "batch-verification.bats,eoa-transaction.bats,zk-counters-tests.bats"
+            bats_tests: "light/batch-verification.bats,light/eoa-transaction.bats,heavy/zk-counters-tests.bats"
             deploy_infra: true
 
           - network: "fork12-cdk-validium"
-            bats_tests: "batch-verification.bats,erc20-tests.bats,zk-counters-tests.bats"
+            bats_tests: "light/batch-verification.bats,light/erc20-tests.bats,heavy/zk-counters-tests.bats"
             deploy_infra: true
 
           - network: "fork12-rollup"
