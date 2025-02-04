@@ -1,15 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-# Load shared env vars
-. $PROJECT_ROOT/tests/.env
-
 # Default Values
 FILTER_TAGS=""
 
 # Detect Project Root
 PROJECT_ROOT="$(pwd)"
 export PROJECT_ROOT
+
+# Load shared env vars
+. "$PROJECT_ROOT/tests/.env"
 
 # Set BATS Library Path
 export BATS_LIB_PATH="$PROJECT_ROOT/core/helpers/lib"
