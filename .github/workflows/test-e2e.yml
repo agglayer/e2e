@@ -32,6 +32,10 @@ jobs:
 
           - network: "fork12-rollup"
             bats_tests: "examples/tagged-test.bats"
+            deploy_infra: false
+
+          - network: "fork12-rollup"
+            bats_tests: "examples/tagged-test.bats"
             filter_tags: "light"
             deploy_infra: false
           
