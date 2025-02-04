@@ -60,12 +60,6 @@ install-dependencies:
 		export PATH=$$PATH:/usr/local/go/bin; \
 	fi
 
-	# Install godotenv
-	if ! command -v godotenv &> /dev/null; then \
-		echo "📦 Installing godotenv..."; \
-		go install github.com/joho/godotenv/cmd/godotenv@latest; \
-	fi
-
 	@echo "✅ All dependencies installed!"
 
 uninstall:
