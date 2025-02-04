@@ -47,7 +47,7 @@ jobs:
           
           - network: "fork12-rollup"
             bats_tests: "examples/tagged-test.bats"
-            filter_tags: "light,danger"
+            filter_tags: "tagged"
             deploy_infra: false
 
           - network: "fork12-rollup"
@@ -57,7 +57,7 @@ jobs:
           
           - network: "fork12-rollup"
             bats_tests: "examples/tagged-test.bats"
-            filter_tags: "light,heavy"
+            filter_tags: "light,danger"
             deploy_infra: false
 
     runs-on: ubuntu-latest

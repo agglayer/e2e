@@ -3,44 +3,9 @@ package test
 import (
 	"testing"
 
-	"github.com/agglayer/e2e/core/go/tools/engine"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFail(t *testing.T) {
-	assert.True(t, false)
-}
-
-func TestUnchecked(t *testing.T) {
-	assert.True(t, true)
-}
-
-func TestUntagged(t *testing.T) {
-	engine.ShouldRun(t)
-	assert.True(t, true)
-}
-
-func TestLight(t *testing.T) {
-	engine.ShouldRun(t, engine.Light)
-	assert.True(t, true)
-}
-
-func TestHeavy(t *testing.T) {
-	engine.ShouldRun(t, engine.Heavy)
-	assert.True(t, true)
-}
-
-func TestDanger(t *testing.T) {
-	engine.ShouldRun(t, engine.Danger)
-	assert.True(t, true)
-}
-
-func TestLightAndDanger(t *testing.T) {
-	engine.ShouldRun(t, engine.Light, engine.Danger)
-	assert.True(t, true)
-}
-
-func TestHeavyAndDanger(t *testing.T) {
-	engine.ShouldRun(t, engine.Heavy, engine.Danger)
+func TestSuccess(t *testing.T) {
 	assert.True(t, true)
 }

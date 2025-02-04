@@ -38,12 +38,6 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-# Validate Required Arguments
-if [[ -z "$FILTER_TAGS" ]]; then
-    echo "❌ Error: --filter-tags is required. Use --help for usage."
-    exit 1
-fi
-
 echo "🚀 Running tests with tags: $FILTER_TAGS"
 
 # 🔍 Set BATS test files
@@ -56,4 +50,8 @@ fi
 
 # ✅ Run BATS tests with --filter-tags support
 echo -e "🧪 Running tests: \n$BATS_TESTS_LIST"
-env bats --filter-tags "$FILTER_TAGS" $BATS_TESTS_LIST
+filter_tags_flag="--filter-tags "$FILTER_TAGS""
+if [[ -z "$FILTER_TAGS" ]]; then
+    filter_tags_flag=""
+fi
+env bats $filter_tags_flag $BATS_TESTS_LIST
