@@ -9,6 +9,7 @@ setup() {
     readonly contract_artifact="./contracts/erc20mock/ERC20Mock.json"
 }
 
+# bats test_tags=light,erc20
 @test "Test ERC20Mock contract" {
     wallet_A_output=$(cast wallet new)
     address_A=$(echo "$wallet_A_output" | grep "Address" | awk '{print $2}')

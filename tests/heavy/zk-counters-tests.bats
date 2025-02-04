@@ -3,6 +3,7 @@ setup() {
     _common_setup
 }
 
+# bats test_tags=heavy,zk-counters
 @test "Test zkCounters" {
     # Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then

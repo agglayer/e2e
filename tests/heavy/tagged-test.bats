@@ -3,7 +3,7 @@ setup() {
     _common_setup
 }
 
-# bats test_tags=tag:heavy
+# bats test_tags=heavy,tagged-test
 @test "Test TAGS" {
     # Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then

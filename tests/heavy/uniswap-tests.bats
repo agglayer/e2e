@@ -8,6 +8,7 @@ setup() {
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
 }
 
+# bats test_tags=heavy,uniswap
 @test "Deploy and test UniswapV3 contract" {
     wallet_A_output=$(cast wallet new)
     address_A=$(echo "$wallet_A_output" | grep "Address" | awk '{print $2}')
