@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Load shared env vars
+. $PROJECT_ROOT/tests/.env
+
 # Default Values
 FILTER_TAGS=""
 
