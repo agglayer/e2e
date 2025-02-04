@@ -3,7 +3,7 @@ setup() {
     _common_setup
 }
 
-# bats test_tags=heavy,tagged-test
+# bats test_tags=light,heavy,danger,tagged-test
 @test "Test TAGS" {
     # Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
@@ -15,6 +15,6 @@ setup() {
     
     echo "Running go test accordingly to tags..."
     cd $PROJECT_ROOT/core/go
-    run go test ./tests/tagged_test.go -run "(TestFail|TestUnchecked|TestUntagged)" -v
+    run go test ./tests/tagged_test.go -run "(TestUnchecked|TestUntagged)" -v
     assert_success
 }

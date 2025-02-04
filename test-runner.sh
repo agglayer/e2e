@@ -51,10 +51,9 @@ if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then
     BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
 else
     # Ensure proper space separation & trimming
-    BATS_TESTS_LIST=$(echo "$BATS_TESTS" | tr ',' '\n' | xargs -I {} echo "$TEST_DIR/{}" | tr '\n' ' ')
-
+    BATS_TESTS_LIST=$(echo "$BATS_TESTS" | tr ',' '\n' | xargs -I {} echo "./tests/{}" | tr '\n' ' ')
 fi
 
 # ✅ Run BATS tests with --filter-tags support
-echo "🧪 Running tests: $BATS_TESTS_LIST"
+echo -e "🧪 Running tests: \n$BATS_TESTS_LIST"
 env bats --filter-tags "$FILTER_TAGS" $BATS_TESTS_LIST
