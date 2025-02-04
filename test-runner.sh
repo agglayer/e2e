@@ -46,8 +46,10 @@ fi
 
 echo "🚀 Running tests with tags: $FILTER_TAGS"
 
-# 🔍 Find all BATS test files
-BATS_TESTS=$(find tests -type f -name "*.bats")
+# 🔍 Set BATS test files
+if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then 
+    BATS_TESTS=$(find tests -type f -name "*.bats")
+fi
 
 # ✅ Run BATS tests with --filter-tags support
 echo "🧪 Running tests: $BATS_TESTS"
