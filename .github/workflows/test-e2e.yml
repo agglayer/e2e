@@ -32,32 +32,32 @@ jobs:
 
           - network: "fork12-rollup"
             bats_tests: "tagged-test.bats"
-            tags: "light"
+            filter_tags: "light"
             deploy_infra: false
           
           - network: "fork12-rollup"
             bats_tests: "tagged-test.bats"
-            tags: "heavy"
+            filter_tags: "heavy"
             deploy_infra: false
 
           - network: "fork12-rollup"
             bats_tests: "tagged-test.bats"
-            tags: "danger"
+            filter_tags: "danger"
             deploy_infra: false
           
           - network: "fork12-rollup"
             bats_tests: "tagged-test.bats"
-            tags: "light,danger"
+            filter_tags: "light,danger"
             deploy_infra: false
 
           - network: "fork12-rollup"
             bats_tests: "tagged-test.bats"
-            tags: "heavy,danger"
+            filter_tags: "heavy,danger"
             deploy_infra: false
           
           - network: "fork12-rollup"
             bats_tests: "tagged-test.bats"
-            tags: "light,heavy"
+            filter_tags: "light,heavy"
             deploy_infra: false
 
     runs-on: ubuntu-latest
@@ -118,13 +118,15 @@ jobs:
     - name: Setup Bats and bats libs
       uses: bats-core/bats-action@2.0.0
 
+    - name: Install runner
+      run: make install
+
     - name: Run E2E Tests
-      run: make test-e2e
-      working-directory: test
+      run: |
+        polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
       env:
         NETWORK: ${{ matrix.network }}
         BATS_TESTS: ${{ matrix.bats_tests }}
-        TAGS: ${{ matrix.tags }}
         DEPLOY_INFRA: ${{ matrix.deploy_infra }}
         GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
         L2_RPC_URL: ${{ matrix.l2_rpc_url }}
