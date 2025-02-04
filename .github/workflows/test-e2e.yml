@@ -127,13 +127,7 @@ jobs:
 
     - name: Run E2E Tests
       run: |
-        polygon-test-runner \ 
-          --network "${{ matrix.network }}" \
-          --bats-tests "${{ matrix.bats_tests }}" \
-          --filter-tags "${{ matrix.filter_tags }}" \
-          --deploy_infra "${{ matrix.deploy_infra }}" \
-          --gas_token_addr "${{ matrix.gas_token_addr }}" \
-          --kurtosis_folder "${{ github.workspace }}/kurtosis-cdk"
+        polygon-test-runner --network "${{ matrix.network }}" --bats-tests "${{ matrix.bats_tests }}" --filter-tags "${{ matrix.filter_tags }}" --deploy_infra "${{ matrix.deploy_infra }}" --kurtosis_folder "${{ github.workspace }}/kurtosis-cdk"
       env:
         GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
         L2_RPC_URL: ${{ matrix.l2_rpc_url }}
