@@ -52,7 +52,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # 🔍 Set infra
-l2_rpc_url="http://127.0.0.1:59761"
 if [[ "$DEPLOY_INFRA" == "true" ]]; then
     echo "⏳ Deploying infrastructure using Kurtosis..."
 
