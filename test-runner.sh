@@ -81,7 +81,6 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
-
 export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
 
 # Check if L2_RPC_URL is empty or not set

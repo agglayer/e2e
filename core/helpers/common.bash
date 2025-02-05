@@ -39,15 +39,12 @@ function deploy_contract() {
         echo "Failed to calculate gas price" >&3
         exit 1
     fi
-    echo "Running cast send with command:"
-    echo "cast send --rpc-url $rpc_url --private-key $private_key --gas-price $comp_gas_price --legacy --create $bytecode"
     local cast_output=$(cast send --rpc-url "$rpc_url" \
         --private-key "$private_key" \
         --gas-price $comp_gas_price \
         --legacy \
         --create "$bytecode" \
         2>&1)
-
 
     # Check if cast send was successful
     if [[ $? -ne 0 ]]; then
@@ -331,7 +328,6 @@ function check_balances() {
         return 1
     fi
 }
-
 
 function verify_balance() {
     local rpc_url="$1"             # RPC URL

@@ -120,9 +120,6 @@ jobs:
 
     - name: Install runner
       run: make install-runner
-      
-    - name: Cast Version (debug)
-      run: cast --version
 
     - name: Run E2E Tests
       run: |
