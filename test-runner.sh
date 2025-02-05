@@ -81,10 +81,14 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
-if [[ "$L2_RPC_URL" == "" ]]; then
-  kurtosis_l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+
+export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
+
+# Check if L2_RPC_URL is empty or not set
+if [[ -z "$L2_RPC_URL" ]]; then
+    echo "Error: L2_RPC_URL is a required environment variable. Please update the .env file."
+    exit 1  # Exit the script with an error code
 fi
-export L2_RPC_URL="${L2_RPC_URL:-$kurtosis_l2_rpc_url}"
 
 # 🔍 Set BATS test files
 echo "🚀 Running tests with tags: $FILTER_TAGS"
