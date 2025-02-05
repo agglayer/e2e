@@ -1,6 +1,6 @@
 .PHONY: install uninstall install-dependencies
 
-install:
+install-runner:
 	mkdir -p ~/.local/bin
 	cp test-runner.sh ~/.local/bin/polygon-test-runner
 	chmod +x ~/.local/bin/polygon-test-runner
@@ -14,6 +14,10 @@ install:
 	export PATH="$$HOME/.local/bin:$$PATH"
 	echo "🔄 Reloading PATH for this session..."
 	exec $$SHELL
+
+install:
+	# Install runner
+	$(MAKE) install-runner
 
 	# Install core dependencies
 	$(MAKE) install-dependencies
@@ -54,12 +58,6 @@ install-dependencies:
 		sudo tar -C /usr/local -xzf go1.22.11.linux-amd64.tar.gz; \
 		rm go1.22.11.linux-amd64.tar.gz; \
 		export PATH=$$PATH:/usr/local/go/bin; \
-	fi
-
-	# Install godotenv
-	if ! command -v godotenv &> /dev/null; then \
-		echo "📦 Installing godotenv..."; \
-		go install github.com/joho/godotenv/cmd/godotenv@latest; \
 	fi
 
 	@echo "✅ All dependencies installed!"

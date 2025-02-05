@@ -42,7 +42,7 @@ set_acl_mode() {
 
 # bats test_tags=light,access-list
 @test "Test Block List - Sending contracts deploy transaction when address not in block list" {
-    local contract_artifact="./contracts/erc20mock/ERC20Mock.json"
+    local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
     run set_acl_mode "blocklist"
     run deploy_contract $l2_rpc_url $key $contract_artifact
 
@@ -67,7 +67,7 @@ set_acl_mode() {
 
 # bats test_tags=light,access-list
 @test "Test Block List - Sending contracts deploy transaction when address is in block list" {
-    local contract_artifact="./contracts/erc20mock/ERC20Mock.json"
+    local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 
     run set_acl_mode "blocklist"
     run add_to_access_list "blocklist" "deploy"
@@ -90,7 +90,7 @@ set_acl_mode() {
 
 # bats test_tags=light,access-list
 @test "Test Allow List - Sending contracts deploy transaction when address not in allow list" {
-    local contract_artifact="./contracts/erc20mock/ERC20Mock.json"
+    local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 
     run set_acl_mode "allowlist"
     run deploy_contract $l2_rpc_url $key $contract_artifact
@@ -113,7 +113,7 @@ set_acl_mode() {
 
 # bats test_tags=light,access-list
 @test "Test Allow List - Sending contracts deploy transaction when address is in allow list" {
-    local contract_artifact="./contracts/erc20mock/ERC20Mock.json"
+    local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 
     run set_acl_mode "allowlist"
     run add_to_access_list "allowlist" "deploy"
