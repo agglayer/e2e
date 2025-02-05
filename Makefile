@@ -1,4 +1,4 @@
-.PHONY: install uninstall install-dependencies
+.PHONY: install uninstall install-dependencies compile-contracts
 
 install-runner:
 	mkdir -p ~/.local/bin
@@ -65,3 +65,7 @@ install-dependencies:
 uninstall:
 	rm -f ~/.local/bin/polygon-test-runner
 	echo "❌ Uninstalled polygon-test-runner."
+
+compile-contracts:
+	forge build
+	./scripts/postprocess-contracts.sh
