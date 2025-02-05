@@ -81,7 +81,10 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
-export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
+if [[ "$L2_RPC_URL" == "" ]]; then
+  kurtosis_l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+fi
+export L2_RPC_URL="${L2_RPC_URL:-$kurtosis_l2_rpc_url}"
 
 # 🔍 Set BATS test files
 echo "🚀 Running tests with tags: $FILTER_TAGS"
