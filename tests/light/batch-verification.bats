@@ -3,6 +3,7 @@ setup() {
     _common_setup
 }
 
+# bats test_tags=light,batch-verification
 @test "Verify batches" {
     # ✅ Validate required ENV vars
     if [[ -z "${L2_RPC_URL:-}" || -z "${L2_SENDER_PRIVATE_KEY:-}" ]]; then

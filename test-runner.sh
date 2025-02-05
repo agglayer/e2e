@@ -2,13 +2,17 @@
 set -euo pipefail
 
 # Default Values
+FILTER_TAGS=""
 BATS_TESTS=""
-ENV_VARS=""
-TAGS=""
+DEPLOY_INFRA="false"
 
 # Detect Project Root
 PROJECT_ROOT="$(pwd)"
 export PROJECT_ROOT
+
+# Load shared env vars
+export $(cat $PROJECT_ROOT/tests/.env | grep = | xargs) 
+echo -e "✅ Loaded $PROJECT_ROOT/tests/.env"
 
 # Set BATS Library Path
 export BATS_LIB_PATH="$PROJECT_ROOT/core/helpers/lib"
@@ -19,65 +23,81 @@ echo "📦 BATS_LIB_PATH set to: $BATS_LIB_PATH"
 if [[ "${1:-}" == "--help" ]]; then
     echo "🛠️ polygon-test-runner CLI"
     echo ""
-    echo "Usage: polygon-test-runner --tags <tags> --env-vars <key=value,key=value>"
+    echo "Usage: polygon-test-runner --filter-tags <tags>"
     echo ""
     echo "Options:"
-    echo "  --tags       Specify test categories (light, heavy, danger) OR specific .bats files."
-    echo "  --env-vars   Pass environment variables needed for the tests (e.g. L2_RPC_URL, L2_SENDER_PRIVATE_KEY)."
-    echo "  --help       Show this help message."
+    echo "  --filter-tags  Run tests with specific BATS tags (e.g., light, heavy, danger)."
+    echo "  --help         Show this help message."
     echo ""
     echo "Examples:"
-    echo "  polygon-test-runner --tags 'light' --env-vars 'L2_RPC_URL=http://127.0.0.1:50504,L2_SENDER_PRIVATE_KEY=xyz'"
+    echo "  polygon-test-runner --filter-tags 'light'"
+    echo "  polygon-test-runner --filter-tags 'batch-verification,heavy'"
     exit 0
 fi
+
+#DEFAULT ARGUMENTS
+
 
 # Parse Arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --tags) TAGS="$2"; shift;;
-        --env-vars) ENV_VARS="$2"; shift;;
+        --filter-tags) FILTER_TAGS="$2"; shift;;
+        --deploy-infra) DEPLOY_INFRA="$2"; shift;;
+        --network) NETWORK="$2"; shift;;
+        --bats-tests) BATS_TESTS="$2"; shift;;
+        --kurtosis-folder) KURTOSIS_FOLDER="$2"; shift;;
         *) echo "❌ Unknown parameter: $1"; exit 1;;
     esac
     shift
 done
 
-# Validate Required Arguments
-if [[ -z "$TAGS" ]]; then
-    echo "❌ Error: --tags is required. Use --help for usage."
-    exit 1
-fi
+# 🔍 Set infra
+l2_rpc_url="http://127.0.0.1:59761"
+if [[ "$DEPLOY_INFRA" == "true" ]]; then
+    echo "⏳ Deploying infrastructure using Kurtosis..."
 
-echo "🚀 Running tests with: $TAGS"
-echo "📦 Extra ENV Vars: $ENV_VARS"
-
-# ✅ **Explicitly Export ENV Vars for BATS**
-if [[ -n "$ENV_VARS" ]]; then
-    IFS=',' read -ra KV_PAIRS <<< "$ENV_VARS"
-    for pair in "${KV_PAIRS[@]}"; do
-        export "$pair"
-        echo "🔑 Exported: $pair"
-    done
-fi
-
-# Convert Tags to Test Selection
-BATS_TESTS=""
-IFS=',' read -ra TAG_ARRAY <<< "$TAGS"
-for tag in "${TAG_ARRAY[@]}"; do
-    if [[ -f "$tag" ]]; then
-        BATS_TESTS+=" $tag "
-    elif [[ -d "tests/$tag" ]]; then
-        BATS_TESTS+=" tests/$tag/* "
-    else
-        echo "❌ Warning: '$tag' is neither a test file nor a valid tag. Skipping."
+    if [[ -z "${NETWORK:-}" ]]; then
+        echo "❌ Error: --network is required when --deploy-infra is set to true. Please set it before running this script."
+        exit 1
     fi
-done
 
-# Ensure Tests Exist
-if [[ -z "$(ls -A $BATS_TESTS 2>/dev/null)" ]]; then
-    echo "❌ No valid tests found for: $TAGS"
-    exit 1
+    if [[ -z "${KURTOSIS_FOLDER:-}" ]]; then
+        echo "❌ Error: --kurtosis-folder is required when --deploy-infra is set to true. Please set it before running this script."
+        exit 1
+    fi
+
+    # Validate the Kurtosis CLI is installed
+    if ! command -v kurtosis &> /dev/null; then
+        echo "❌ Error: Kurtosis CLI not found. Please install it before running this script."
+        exit 1
+    fi
+
+    kurtosis clean --all
+
+    echo "🧪 Overriding cdk config file..."
+    cp "$PROJECT_ROOT/core/helpers/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
+
+    kurtosis run --enclave cdk --args-file "$PROJECT_ROOT/core/helpers/combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
+    l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+else
+    echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
+fi
+export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
+
+# 🔍 Set BATS test files
+echo "🚀 Running tests with tags: $FILTER_TAGS"
+if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then 
+    BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
+else
+    # Ensure proper space separation & trimming
+    BATS_TESTS_LIST=$(echo "$BATS_TESTS" | tr ',' '\n' | xargs -I {} echo "./tests/{}" | tr '\n' ' ')
 fi
 
-# Run BATS Tests with Exported ENV Vars
-echo "🧪 Running tests: $BATS_TESTS"
-env bats $BATS_TESTS
+# ✅ Run BATS tests with --filter-tags support
+echo -e "🧪 Running tests: \n$BATS_TESTS_LIST"
+filter_tags_flag="--filter-tags "$FILTER_TAGS""
+if [[ -z "$FILTER_TAGS" ]]; then
+    filter_tags_flag=""
+fi
+
+env bats $filter_tags_flag $BATS_TESTS_LIST

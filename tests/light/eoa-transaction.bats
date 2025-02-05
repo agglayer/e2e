@@ -9,6 +9,7 @@ setup() {
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }
 
+# bats test_tags=light,eoa
 @test "Send EOA transaction" {
     local sender_addr=$(cast wallet address --private-key "$sender_private_key")
     local initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$l2_rpc_url") || {

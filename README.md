@@ -3,7 +3,7 @@
 A lightweight, **tag-based test runner** for executing end-to-end tests against **remote blockchain networks**.
 
 ## ✨ Features
-- ✅ Run tests **against any remote network** by specifying environment variables.
+- ✅ Run tests **against any remote network** by specifying environment variables before execution.
 - ✅ **Tag-based execution** (e.g., `light`, `heavy`, `danger`) for flexibility.
 - ✅ **Simple CLI usage** via `polygon-test-runner`.
 - ✅ **Easily extendable** with new `.bats` test cases.
@@ -35,47 +35,39 @@ make uninstall
 ## 🚀 Running Tests
 Run **tagged tests** against any remote blockchain:
 ```sh
-polygon-test-runner --tags "light" --env-vars "L2_RPC_URL=http://127.0.0.1:60784,L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+L2_RPC_URL=http://127.0.0.1:60784 \
+L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 \
+polygon-test-runner --filter-tags "light"
 ```
 
 ### 🔹 Examples
 Run all **light** tests:
 ```sh
-polygon-test-runner --tags "light"
+polygon-test-runner --filter-tags "light"
 ```
 
 Run a **specific test**:
 ```sh
-polygon-test-runner --tags "tests/light/batch-verification.bats"
+polygon-test-runner --filter-tags "batch-verification"
 ```
 
 Run **heavy + danger** tests together:
 ```sh
-polygon-test-runner --tags "heavy,danger"
-```
-
-Run **with environment variables**:
-```sh
-polygon-test-runner --tags "light" --env-vars "L2_RPC_URL=http://127.0.0.1:60784"
+polygon-test-runner --filter-tags "heavy,danger"
 ```
 
 ---
 
 ## 🛠️ Adding New Tests
 ### 1️⃣ Create a new test
-Place it inside the relevant tag directory (`tests/light`, `tests/heavy`, etc.).
+Place it inside the **tests/** directory.
 ```sh
-mkdir -p tests/light
-touch tests/light/my-new-test.bats
+touch tests/my-new-test.bats
 ```
 
-Example `.bats` file:
+**Example `.bats` file with tagging:**
 ```bash
-setup() {
-    load "$PROJECT_ROOT/core/helpers/common-setup"
-    _common_setup
-}
-
+# bats test_tags=light,zk
 @test "Ensure contract deployment works" {
     run cast send --rpc-url "$L2_RPC_URL" --private-key "$L2_SENDER_PRIVATE_KEY" --create 0x600160015B810190630000000456
     assert_success
@@ -84,14 +76,14 @@ setup() {
 
 ### 2️⃣ Run the new test
 ```sh
-polygon-test-runner --tags "tests/light/my-new-test.bats"
+polygon-test-runner --filter-tags "zk"
 ```
 
 ### 3️⃣ Add to CI (Optional)
 Modify `.github/workflows/test-e2e.yml`:
 ```yaml
 - network: "fork12-rollup"
-  bats_tests: "my-new-test.bats"
+  bats_tests: "tag:zk"
 ```
 
 ---
@@ -110,18 +102,16 @@ polygon-test-runner --help
 ```
 🛠️ polygon-test-runner CLI
 
-Usage: polygon-test-runner --tags <tags> --env-vars <key=value,key=value>
+Usage: polygon-test-runner --filter-tags <tags>
 
 Options:
-  --tags       Run test categories (light, heavy, danger) OR specific .bats files.
-  --env-vars   Pass environment variables needed for the tests.
-  --help       Show this help message.
+  --filter-tags  Run test categories using BATS-native tags (e.g., light, heavy, danger).
+  --help         Show this help message.
 
 Examples:
-  polygon-test-runner --tags "light"
-  polygon-test-runner --tags "tests/light/batch-verification.bats"
-  polygon-test-runner --tags "heavy,danger"
-  polygon-test-runner --tags "light" --env-vars "L2_RPC_URL=http://127.0.0.1:60784"
+  polygon-test-runner --filter-tags "light"
+  polygon-test-runner --filter-tags "zk"
+  polygon-test-runner --filter-tags "heavy,danger"
 ```
 
 ---
@@ -133,3 +123,4 @@ Examples:
 ✅ **Designed for CI/CD**
 
 🚀 **Start testing with `polygon-test-runner` today!**
+

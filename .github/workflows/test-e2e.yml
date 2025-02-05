@@ -14,16 +14,16 @@ jobs:
       matrix:
         include:
           - network: "fork9-cdk-validium"
-            bats_tests: "batch-verification.bats,access-list-e2e.bats"
+            bats_tests: "light/batch-verification.bats,light/access-list-e2e.bats"
             deploy_infra: true
             gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
 
           - network: "fork11-rollup"
-            bats_tests: "batch-verification.bats,eoa-transaction.bats,zk-counters-tests.bats"
+            bats_tests: "light/batch-verification.bats,light/eoa-transaction.bats,heavy/zk-counters-tests.bats"
             deploy_infra: true
 
           - network: "fork12-cdk-validium"
-            bats_tests: "batch-verification.bats,erc20-tests.bats,zk-counters-tests.bats"
+            bats_tests: "light/batch-verification.bats,light/erc20-tests.bats,heavy/zk-counters-tests.bats"
             deploy_infra: true
 
           - network: "fork12-rollup"
@@ -31,33 +31,37 @@ jobs:
             deploy_infra: true
 
           - network: "fork12-rollup"
-            bats_tests: "tagged-test.bats"
-            tags: "light"
-            deploy_infra: false
-          
-          - network: "fork12-rollup"
-            bats_tests: "tagged-test.bats"
-            tags: "heavy"
+            bats_tests: "examples/tagged-test.bats"
             deploy_infra: false
 
           - network: "fork12-rollup"
-            bats_tests: "tagged-test.bats"
-            tags: "danger"
+            bats_tests: "examples/tagged-test.bats"
+            filter_tags: "light"
             deploy_infra: false
           
           - network: "fork12-rollup"
-            bats_tests: "tagged-test.bats"
-            tags: "light,danger"
+            bats_tests: "examples/tagged-test.bats"
+            filter_tags: "heavy"
             deploy_infra: false
 
           - network: "fork12-rollup"
-            bats_tests: "tagged-test.bats"
-            tags: "heavy,danger"
+            bats_tests: "examples/tagged-test.bats"
+            filter_tags: "danger"
             deploy_infra: false
           
           - network: "fork12-rollup"
-            bats_tests: "tagged-test.bats"
-            tags: "light,heavy"
+            bats_tests: "examples/tagged-test.bats"
+            filter_tags: "tagged"
+            deploy_infra: false
+
+          - network: "fork12-rollup"
+            bats_tests: "examples/tagged-test.bats"
+            filter_tags: "heavy,danger"
+            deploy_infra: false
+          
+          - network: "fork12-rollup"
+            bats_tests: "examples/tagged-test.bats"
+            filter_tags: "light,danger"
             deploy_infra: false
 
     runs-on: ubuntu-latest
@@ -102,10 +106,6 @@ jobs:
         go-version: 1.22.11
       env:
         GOARCH: "amd64"
-        
-    - name: Install godotenv
-      run: |
-        go install github.com/joho/godotenv/cmd/godotenv@latest
 
     - name: Checkout Kurtosis CDK
       if: matrix.deploy_infra
@@ -118,18 +118,15 @@ jobs:
     - name: Setup Bats and bats libs
       uses: bats-core/bats-action@2.0.0
 
+    - name: Install runner
+      run: make install-runner
+
     - name: Run E2E Tests
-      run: make test-e2e
-      working-directory: test
+      run: |
+        polygon-test-runner --network "${{ matrix.network }}" --bats-tests "${{ matrix.bats_tests }}" --filter-tags "${{ matrix.filter_tags }}" --deploy-infra "${{ matrix.deploy_infra }}" --kurtosis-folder "${{ github.workspace }}/kurtosis-cdk"
       env:
-        NETWORK: ${{ matrix.network }}
-        BATS_TESTS: ${{ matrix.bats_tests }}
-        TAGS: ${{ matrix.tags }}
-        DEPLOY_INFRA: ${{ matrix.deploy_infra }}
         GAS_TOKEN_ADDR: ${{ matrix.gas_token_addr }}
         L2_RPC_URL: ${{ matrix.l2_rpc_url }}
-        KURTOSIS_FOLDER: ${{ github.workspace }}/kurtosis-cdk
-        BATS_LIB_PATH: /usr/lib/
   
     - name: Dump enclave logs
       if: failure() && matrix.deploy_infra
