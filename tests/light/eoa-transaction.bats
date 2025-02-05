@@ -6,11 +6,12 @@ setup() {
     _common_setup
 
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+
 }
 
 # bats test_tags=light,eoa
 @test "Send EOA transaction" {
+    local receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
     local sender_addr=$(cast wallet address --private-key "$sender_private_key")
     local initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$l2_rpc_url") || {
         echo "Failed to retrieve nonce for sender: $sender_addr using RPC URL: $l2_rpc_url"

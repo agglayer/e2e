@@ -52,7 +52,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # 🔍 Set infra
-l2_rpc_url="http://127.0.0.1:59761"
 if [[ "$DEPLOY_INFRA" == "true" ]]; then
     echo "⏳ Deploying infrastructure using Kurtosis..."
 
@@ -78,11 +77,16 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
     cp "$PROJECT_ROOT/core/helpers/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 
     kurtosis run --enclave cdk --args-file "$PROJECT_ROOT/core/helpers/combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
-    l2_rpc_url="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+    L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
-export L2_RPC_URL="${L2_RPC_URL:-$l2_rpc_url}"
+
+# Check if L2_RPC_URL is empty or not set
+if [[ -z "$L2_RPC_URL" ]]; then
+    echo "Error: L2_RPC_URL is a required environment variable. Please update the .env file."
+    exit 1  # Exit the script with an error code
+fi
 
 # 🔍 Set BATS test files
 echo "🚀 Running tests with tags: $FILTER_TAGS"

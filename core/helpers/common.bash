@@ -3,7 +3,7 @@
 function deploy_contract() {
     local rpc_url="$1"
     local private_key="$2"
-    local contract_artifact="$3"
+    contract_artifact="$3"
 
     # Check if rpc_url is available
     if [[ -z "$rpc_url" ]]; then
@@ -56,8 +56,9 @@ function deploy_contract() {
     echo "Deploy contract output:" >&3
     echo "$cast_output" >&3
 
-    # Extract the contract address from the output
-    local deployed_contract_address=$(echo "$cast_output" | grep 'contractAddress' | sed 's/contractAddress\s\+//')
+    # Extract the contract address from the output using updated regex
+    local deployed_contract_address=$(echo "$cast_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | sed 's/contractAddress\s\+//')
+    local deployed_contract_address=$(echo "$deployed_contract_address" | sed -E 's/^contractAddress[[:space:]]+//')
     echo "Deployed contract address: $deployed_contract_address" >&3
 
     if [[ -z "$deployed_contract_address" ]]; then
@@ -259,27 +260,60 @@ function check_balances() {
 
     # Transaction hash regex: 0x followed by 64 hexadecimal characters
     if [[ ! "$tx_hash" =~ ^0x[a-fA-F0-9]{64}$ ]]; then
-        echo "Error: Invalid transaction hash: $tx_hash".
+        echo "Error: Invalid transaction hash: $tx_hash"
         return 1
     fi
 
-    local sender_final_balance=$(cast balance "$sender" --ether --rpc-url "$rpc_url") || return 1
-    local tx_output=$(cast tx "$tx_hash" --rpc-url "$rpc_url")
-    local gas_used=$(tx_output | grep '^gas ' | awk '{print $2}')
-    local gas_price=$(tx_output | grep '^gasPrice' | awk '{print $2}')
-    local gas_fee=$(echo "$gas_used * $gas_price" | bc)
-    local gas_fee_in_ether=$(cast to-unit "$gas_fee" ether)
+    local sender_final_balance=$(cast balance "$sender" --ether --rpc-url "$l2_rpc_url") || return 1
+    echo "Sender final balance: '$sender_final_balance' wei"
+    echo "RPC url: '$l2_rpc_url'"
 
-    local sender_balance_change=$(echo "$sender_initial_balance - $sender_final_balance" | bc)
+    # Capture transaction output
+    local tx_output
+    tx_output=$(cast tx "$tx_hash" --rpc-url "$l2_rpc_url")
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Failed to fetch transaction details"
+        echo "$tx_output"
+        return 1
+    fi
+
+    # Debugging tx_output
+    echo "Transaction output: $tx_output"
+
+    # Parse gas used and gas price from tx_output using updated regex
+    local gas_used
+    gas_used=$(echo "$tx_output" | grep -Eo "gas\s+[0-9]+" | awk '{print $2}')
+    local gas_price
+    gas_price=$(echo "$tx_output" | grep -Eo "gasPrice\s+[0-9]+" | awk '{print $2}')
+
+    # Check if gas_used and gas_price are found
+    if [[ -z "$gas_used" || -z "$gas_price" ]]; then
+        echo "Error: Gas used or gas price not found in transaction output."
+        return 1
+    fi
+
+    echo "Gas used: $gas_used"
+    echo "Gas price: $gas_price"
+
+    local gas_fee
+    gas_fee=$(echo "$gas_used * $gas_price" | bc)
+    local gas_fee_in_ether
+    gas_fee_in_ether=$(cast to-unit "$gas_fee" ether)
+
+    local sender_balance_change
+    sender_balance_change=$(echo "$sender_initial_balance - $sender_final_balance" | bc)
     echo "Sender balance changed by: '$sender_balance_change' wei"
     echo "Gas fee paid: '$gas_fee_in_ether' ether"
 
-    local receiver_final_balance=$(cast balance "$receiver" --ether --rpc-url "$rpc_url") || return 1
-    local receiver_balance_change=$(echo "$receiver_final_balance - $receiver_initial_balance" | bc)
+    local receiver_final_balance
+    receiver_final_balance=$(cast balance "$receiver" --ether --rpc-url "$l2_rpc_url") || return 1
+    local receiver_balance_change
+    receiver_balance_change=$(echo "$receiver_final_balance - $receiver_initial_balance" | bc)
     echo "Receiver balance changed by: '$receiver_balance_change' wei"
 
     # Trim 'ether' suffix from amount to get the numeric part
-    local value_in_ether=$(echo "$amount" | sed 's/ether$//')
+    local value_in_ether
+    value_in_ether=$(echo "$amount" | sed 's/ether$//')
 
     if ! echo "$receiver_balance_change == $value_in_ether" | bc -l; then
         echo "Error: receiver balance updated incorrectly. Expected: $value_in_ether, Actual: $receiver_balance_change"
@@ -287,7 +321,8 @@ function check_balances() {
     fi
 
     # Calculate expected sender balance change
-    local expected_sender_change=$(echo "$value_in_ether + $gas_fee_in_ether" | bc)
+    local expected_sender_change
+    expected_sender_change=$(echo "$value_in_ether + $gas_fee_in_ether" | bc)
     if ! echo "$sender_balance_change == $expected_sender_change" | bc -l; then
         echo "Error: sender balance updated incorrectly. Expected: $expected_sender_change, Actual: $sender_balance_change"
         return 1
