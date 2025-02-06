@@ -83,12 +83,6 @@ else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
 
-# Check if L2_RPC_URL is empty or not set
-if [[ -z "$L2_RPC_URL" ]]; then
-    echo "Error: L2_RPC_URL is a required environment variable. Please update the .env file."
-    exit 1  # Exit the script with an error code
-fi
-
 # 🔍 Set BATS test files
 echo "🚀 Running tests with tags: $FILTER_TAGS"
 if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then 
