@@ -23,6 +23,7 @@ _common_setup() {
     readonly contracts_container=${KURTOSIS_CONTRACTS:-contracts-001}
     readonly contracts_service_wrapper=${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $enclave $contracts_container"}
     readonly erigon_rpc_node=${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}
+    readonly erigon_sequencer_rpc_node=${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}
 
     # ✅ Standardized L2 RPC URL Handling
     if [[ -n "${L2_RPC_URL:-}" ]]; then
@@ -35,6 +36,18 @@ _common_setup() {
     fi
 
     echo "🔧 Using L2 RPC URL: $l2_rpc_url"
+
+    # ✅ Standardized L2 SEQUENCER RPC URL Handling
+    if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
+        readonly l2_sequencer_rpc_url="$L2_SEQUENCER_RPC_URL"
+    elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
+        readonly l2_sequencer_rpc_url="$(kurtosis port print "$enclave" "$erigon_rpc_node" rpc)"
+    else
+        echo "❌ ERROR: No valid RPC URL found! Set L2_SEQUENCER_RPC_URL, or, ensure Kurtosis is running and specify KURTOSIS_ENCLAVE name as env var." >&2
+        exit 1
+    fi
+
+    echo "🔧 Using L2 SEQUENCER RPC URL: $l2_sequencer_rpc_url"
 
     # ✅ Standardized Private Key Handling
     private_key="${L2_SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}"
