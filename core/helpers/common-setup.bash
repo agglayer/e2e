@@ -10,6 +10,13 @@ _common_setup() {
         echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
     fi
     PATH="$PROJECT_ROOT/src:$PATH"
+    
+    GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
+
+    # ERC20 contracts function signatures
+    readonly mint_fn_sig="function mint(address,uint256)"
+    readonly balance_of_fn_sig="function balanceOf(address) (uint256)"
+    readonly approve_fn_sig="function approve(address,uint256)"
 
     # Kurtosis enclave and service identifiers
     readonly enclave=${KURTOSIS_ENCLAVE:-cdk}
