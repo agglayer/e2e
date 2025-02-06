@@ -1,4 +1,4 @@
-.PHONY: install uninstall install-dependencies
+.PHONY: install uninstall check-dependencies compile-contracts
 
 install-runner:
 	mkdir -p ~/.local/bin
@@ -19,49 +19,46 @@ install:
 	# Install runner
 	$(MAKE) install-runner
 
-	# Install core dependencies
-	$(MAKE) install-dependencies
+	# Check core dependencies
+	$(MAKE) check-dependencies
 
-install-dependencies:
-	@echo "🔧 Installing required dependencies..."
+check-dependencies:
+	@echo "🔍 Checking required dependencies..."
 
-	# Install yq
+	# Check for yq
 	if ! command -v yq &> /dev/null; then \
-		echo "📦 Installing yq..."; \
-		pip3 install yq; \
+		echo "⚠️  WARNING: 'yq' not found. Install with: pip3 install yq"; \
+	else \
+		echo "✅ yq is installed."; \
 	fi
 
-	# Install polycli
+	# Check for polycli
 	if ! command -v polycli &> /dev/null; then \
-		echo "📦 Installing polycli..."; \
-		POLYCLI_VERSION=$$(curl -s https://api.github.com/repos/0xPolygon/polygon-cli/releases/latest | jq -r '.tag_name'); \
-		tmp_dir=$$(mktemp -d); \
-		curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/$${POLYCLI_VERSION}/polycli_$${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$$tmp_dir"; \
-		mv "$$tmp_dir"/* /usr/local/bin/polycli; \
-		rm -rf "$$tmp_dir"; \
-		sudo chmod +x /usr/local/bin/polycli; \
-		polycli version; \
+		echo "⚠️  WARNING: 'polycli' not found. Install manually from: https://github.com/0xPolygon/polygon-cli"; \
+	else \
+		echo "✅ polycli is installed."; \
 	fi
 
-	# Install Foundry
+	# Check for Foundry
 	if ! command -v foundryup &> /dev/null; then \
-		echo "📦 Installing Foundry..."; \
-		curl -L https://foundry.paradigm.xyz | bash; \
-		source $$HOME/.bashrc || source $$HOME/.zshrc; \
-		foundryup; \
+		echo "⚠️  WARNING: 'Foundry' not found. Install with: curl -L https://foundry.paradigm.xyz | bash"; \
+	else \
+		echo "✅ Foundry is installed."; \
 	fi
 
-	# Install Go
+	# Check for Go
 	if ! command -v go &> /dev/null; then \
-		echo "📦 Installing Go..."; \
-		wget https://golang.org/dl/go1.22.11.linux-amd64.tar.gz; \
-		sudo tar -C /usr/local -xzf go1.22.11.linux-amd64.tar.gz; \
-		rm go1.22.11.linux-amd64.tar.gz; \
-		export PATH=$$PATH:/usr/local/go/bin; \
+		echo "⚠️  WARNING: 'Go' not found. Install from: https://golang.org/dl/"; \
+	else \
+		echo "✅ Go is installed."; \
 	fi
 
-	@echo "✅ All dependencies installed!"
+	@echo "🔍 Dependency check complete."
 
 uninstall:
 	rm -f ~/.local/bin/polygon-test-runner
 	echo "❌ Uninstalled polygon-test-runner."
+
+compile-contracts:
+	forge build
+	./scripts/postprocess-contracts.sh

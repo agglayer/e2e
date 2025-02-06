@@ -14,7 +14,7 @@ jobs:
       matrix:
         include:
           - network: "fork9-cdk-validium"
-            bats_tests: "light/batch-verification.bats,light/access-list-e2e.bats"
+            bats_tests: "light/batch-verification.bats,danger/access-list-e2e.bats"
             deploy_infra: true
             gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
 
