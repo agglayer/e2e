@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 .PHONY: install uninstall check-dependencies compile-contracts
+=======
+.PHONY: install uninstall install-runner install-dependencies
+>>>>>>> Stashed changes
 
 install-runner:
 	mkdir -p ~/.local/bin

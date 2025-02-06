@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/agglayer/e2e/core/go/tools/hex"
-	"github.com/agglayer/e2e/core/go/tools/log"
+	"github.com/agglayer/e2e/core/golang/tools/hex"
+	"github.com/agglayer/e2e/core/golang/tools/log"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 const (
-	TimeoutTxToBeMined    = 1 * time.Minute
+	TimeoutTxToBeMined    = 30 * time.Second
 	TimeoutTxToBeFound    = 1 * time.Minute
 	TimeoutBlockToBeFound = 1 * time.Minute
 	TimeoutBatchToBeFound = 1 * time.Minute

@@ -11,7 +11,7 @@ PROJECT_ROOT="$(pwd)"
 export PROJECT_ROOT
 
 # Load shared env vars
-export $(cat $PROJECT_ROOT/tests/.env | grep = | xargs) 
+export $(cat $PROJECT_ROOT/tests/.env | grep -v "#" | grep = | xargs) 
 echo -e "✅ Loaded $PROJECT_ROOT/tests/.env"
 
 # Set BATS Library Path
@@ -78,6 +78,7 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
 
     kurtosis run --enclave cdk --args-file "$PROJECT_ROOT/core/helpers/combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
     L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+    L2_SEQUENCER_RPC_URL="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
