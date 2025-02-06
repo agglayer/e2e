@@ -16,7 +16,7 @@ setup() {
     fi
 
     echo "Running go test accordingly to tags..."
-    cd $PROJECT_ROOT/core/go
+    cd $PROJECT_ROOT/core/golang
     run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
@@ -32,7 +32,7 @@ setup() {
     fi
 
     echo "Running go test accordingly to tags..."
-    cd $PROJECT_ROOT/core/go
+    cd $PROJECT_ROOT/core/golang
     run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
@@ -48,7 +48,7 @@ setup() {
     fi
 
     echo "Running go test accordingly to tags..."
-    cd $PROJECT_ROOT/core/go
+    cd $PROJECT_ROOT/core/golang
     run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
