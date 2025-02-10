@@ -41,7 +41,7 @@ _common_setup() {
     if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
         readonly l2_sequencer_rpc_url="$L2_SEQUENCER_RPC_URL"
     elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        readonly l2_sequencer_rpc_url="$(kurtosis port print "$enclave" "$erigon_rpc_node" rpc)"
+        readonly l2_sequencer_rpc_url="$(kurtosis port print "$enclave" "$erigon_sequencer_rpc_node" rpc)"
     else
         echo "❌ ERROR: No valid RPC URL found! Set L2_SEQUENCER_RPC_URL, or, ensure Kurtosis is running and specify KURTOSIS_ENCLAVE name as env var." >&2
         exit 1

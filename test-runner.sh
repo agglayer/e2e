@@ -77,8 +77,18 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
     cp "$PROJECT_ROOT/core/helpers/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 
     kurtosis run --enclave cdk --args-file "$PROJECT_ROOT/core/helpers/combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
-    L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
-    L2_SEQUENCER_RPC_URL="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
+    # if L2_RPC_URL is not specified, get it from Kurtosis
+    if [[ -z "${L2_RPC_URL:-}" ]]; then
+        L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+        export L2_RPC_URL
+        echo "L2_RPC_URL" $L2_RPC_URL
+    fi
+    # if L2_SEQUENCER_RPC_URL is not specified, get it from Kurtosis
+    if [[ -z "${L2_SEQUENCER_RPC_URL:-}" ]]; then
+        L2_SEQUENCER_RPC_URL="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
+        export L2_SEQUENCER_RPC_URL
+        echo "L2_SEQUENCER_RPC_URL" $L2_SEQUENCER_RPC_URL
+    fi
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
