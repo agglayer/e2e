@@ -19,7 +19,6 @@ setup() {
     echo "🔢 Latest nonce for $public_address: $latest_nonce"
 
     polycli loadtest \
-            --send-only \
             --rpc-url "$l2_rpc_url" \
             --private-key "$private_key" \
             --requests 5 \
