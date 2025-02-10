@@ -104,4 +104,4 @@ if [[ -z "$FILTER_TAGS" ]]; then
     filter_tags_flag=""
 fi
 
-env bats $filter_tags_flag $BATS_TESTS_LIST
+env bats --show-output-of-passing-tests $filter_tags_flag $BATS_TESTS_LIST
