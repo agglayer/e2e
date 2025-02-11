@@ -4,7 +4,6 @@ set -euo pipefail
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 
 BASE_FOLDER="$(dirname "$(dirname "$0")")"
-KURTOSIS_FOLDER="${GITHUB_WORKSPACE}/kurtosis-cdk"
 NETWORK="${1:-fork12-rollup}"
 
 echo "🔥 Deploying Kurtosis environment for network: $NETWORK"
