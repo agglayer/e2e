@@ -31,6 +31,18 @@ func TestZkCounters(t *testing.T) {
 	ctx := context.Background()
 	client := engine.MustGetClient(rpcURL)
 
+	forkIdResponse, err := engine.RPCCall(t, rpcURL, engine.NewRequest("zkevm_getForkId"))
+	require.NoError(t, err)
+	require.Nil(t, forkIdResponse.Error)
+	require.NotNil(t, forkIdResponse.Result)
+
+	var forkIdHex string
+	err = json.Unmarshal(forkIdResponse.Result, &forkIdHex)
+	require.NoError(t, err)
+	require.NotEmpty(t, forkIdHex)
+
+	forkId := hex.DecodeUint64(forkIdHex)
+
 	blockNumber, err := client.BlockNumber(ctx)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, blockNumber)
@@ -42,7 +54,7 @@ func TestZkCounters(t *testing.T) {
 
 	type testCase struct {
 		name                       string
-		gasLimit                   uint64
+		gasLimitByForkID           map[uint64]uint64
 		counter                    string
 		expectedError              string
 		createTxToEstimateCounters func(*testing.T, context.Context, *zkcounters.Zkcounters, *ethclient.Client, bind.TransactOpts) *types.Transaction
@@ -122,145 +134,146 @@ func TestZkCounters(t *testing.T) {
 	testCases := []testCase{
 		{
 			name: "max gas - tx discarded", counter: "gas", expectedError: "out of gas",
-			gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.OverflowGas(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 30000000, 11: 30000000, 12: 30000000}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.OverflowGas(&a, big.NewInt(200))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max gas - tx mined", counter: "gas", expectedError: "",
-			gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.UseMaxGasPossible(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 18000000, 11: 30000000, 12: 30000000}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.UseMaxGasPossible(&a, big.NewInt(1900))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max keccaks - tx discarded", counter: "keccakHashes", expectedError: "not enough keccak counters to continue the execution",
-			gasLimit: 499133, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxKeccakHashes(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 138000, 11: 499133, 12: 499133}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxKeccakHashes(&a, big.NewInt(404))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max keccaks - tx mined", counter: "keccakHashes", expectedError: "",
-			gasLimit: 476133, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxKeccakHashes(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 137333, 11: 476133, 12: 476133}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxKeccakHashes(&a, big.NewInt(404))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max poseidon hashes - tx discarded", counter: "poseidonhashes", expectedError: "not enough poseidon counters to continue the execution",
-			gasLimit: 1599010, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxPoseidonHashes(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 450000, 11: 1699010, 12: 1599010},
+			createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxPoseidonHashes(&a, big.NewInt(10000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max poseidon hashes - tx mined", counter: "poseidonhashes", expectedError: "",
-			gasLimit: 1549010, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxPoseidonHashes(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 400000, 11: 1599010, 12: 1549010}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxPoseidonHashes(&a, big.NewInt(10000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
-		// // TODO: We can't reach this counter yet
-		// // {
-		// // 	name: "max poseidon paddings - tx discarded", counter: "poseidonPaddings", expectedError: "not enough poseidon paddings counters to continue the execution",
-		// // 	gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// // 		tx, err := sc.MaxPoseidonPaddings(&a)
-		// // 		require.NoError(t, err)
-		// // 		return tx
-		// // 	},
-		// // },
-		// // {
-		// // 	name: "max poseidon paddings - tx mined", counter: "poseidonPaddings", expectedError: "not enough poseidon paddings counters to continue the execution",
-		// // 	gasLimit: 30000000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-		// // 		tx, err := sc.MaxPoseidonPaddings(&a)
-		// // 		require.NoError(t, err)
-		// // 		return tx
-		// // 	},
-		// // },
+		// TODO: We can't reach this counter yet
+		// {
+		// 	name: "max poseidon paddings - tx discarded", counter: "poseidonPaddings", expectedError: "not enough poseidon paddings counters to continue the execution",
+		// map[uint64uint64]	gasLimitByForkID: {9:0,11: 30000000,12:30000000}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+		// 		tx, err := sc.MaxPoseidonPaddings(&a, big.NewInt(19364))
+		// 		require.NoError(t, err)
+		// 		return tx
+		// 	},
+		// },
+		// {
+		// 	name: "max poseidon paddings - tx mined", counter: "poseidonPaddings", expectedError: "not enough poseidon paddings counters to continue the execution",
+		// map[uint64uint64]	gasLimitByForkID: {9:0,11: 30000000,12:30000000}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+		// 		tx, err := sc.MaxPoseidonPaddings(&a, big.NewInt(19364))
+		// 		require.NoError(t, err)
+		// 		return tx
+		// 	},
+		// },
 		{
 			name: "max mem aligns - tx discarded", counter: "memAligns", expectedError: "not enough mem aligns counters to continue the execution",
-			gasLimit: 119305, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxMemAligns(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 81000, 11: 119305, 12: 119305}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxMemAligns(&a, big.NewInt(20000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max mem aligns - tx mined", counter: "memAligns", expectedError: "",
-			gasLimit: 118305, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxMemAligns(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 80000, 11: 118305, 12: 118305}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxMemAligns(&a, big.NewInt(20000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max Arithmetics - tx discarded", counter: "arithmetics", expectedError: "not enough arithmetics counters to continue the execution",
-			gasLimit: 2995828, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxArithmetics(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 790000, 11: 2995828, 12: 2995828}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxArithmetics(&a, big.NewInt(55000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max Arithmetics - tx mined", counter: "arithmetics", expectedError: "",
-			gasLimit: 2795828, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxArithmetics(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 780000, 11: 2795828, 12: 2795828}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxArithmetics(&a, big.NewInt(55000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max binaries - tx discarded", counter: "binaries", expectedError: "not enough binary counters to continue the execution",
-			gasLimit: 1654654, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxBinaries(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 415000, 11: 1654654, 12: 1654654}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxBinaries(&a, big.NewInt(145))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max binaries - tx mined", counter: "binaries", expectedError: "",
-			gasLimit: 1544654, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxBinaries(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 410000, 11: 1544654, 12: 1544654}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxBinaries(&a, big.NewInt(145))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max steps - tx discarded", counter: "steps", expectedError: "not enough step counters to continue the execution",
-			gasLimit: 3456200, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxSteps(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 870000, 11: 3556200, 12: 3456200}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSteps(&a, big.NewInt(10000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max steps - tx mined", counter: "steps", expectedError: "",
-			gasLimit: 3206200, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxSteps(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 860000, 11: 3206200, 12: 3206200}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSteps(&a, big.NewInt(10000))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max SHA256Hashes - tx discarded", counter: "SHA256hashes", expectedError: "not enough sha256 counters to continue the execution",
-			gasLimit: 501000, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxSHA256Hashes(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 100000, 11: 100000, 12: 100000}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSHA256Hashes(&a, big.NewInt(175))
 				require.NoError(t, err)
 				return tx
 			},
 		},
 		{
 			name: "max SHA256Hashes - tx mined", counter: "SHA256hashes", expectedError: "",
-			gasLimit: 320500, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
-				tx, err := sc.MaxSHA256Hashes(&a)
+			gasLimitByForkID: map[uint64]uint64{9: 90000, 11: 90000, 12: 90000}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+				tx, err := sc.MaxSHA256Hashes(&a, big.NewInt(175))
 				require.NoError(t, err)
 				return tx
 			},
@@ -274,11 +287,10 @@ func TestZkCounters(t *testing.T) {
 		scAddr, scTx, sc, err = zkcounters.DeployZkcounters(auth, client)
 		require.NoError(t, err)
 
-		fmt.Println(scAddr)
-
 		log.Tx(t, scTx)
 		err = engine.WaitTxToBeMined(t, ctx, rpcURL, scTx.Hash(), engine.TimeoutTxToBeMined)
 		require.NoError(t, err)
+		fmt.Println(scAddr)
 	} else {
 		sc, err = zkcounters.NewZkcounters(common.HexToAddress(addr), client)
 		require.NoError(t, err)
@@ -293,12 +305,18 @@ func TestZkCounters(t *testing.T) {
 			gasPrice, err := client.SuggestGasPrice(ctx)
 			require.NoError(t, err)
 
+			gasLimit, found := testCase.gasLimitByForkID[forkId]
+			if !found {
+				t.Fatalf("gas limit not found for fork id %d", forkId)
+			}
+
 			// create TX to validate counters
 			a := *auth
-			a.GasLimit = testCase.gasLimit
+			a.GasLimit = gasLimit
 			a.GasPrice = gasPrice
 			a.NoSend = true
 			tx := testCase.createTxToEstimateCounters(t, context.Background(), sc, client, a)
+			log.Tx(t, tx)
 
 			// send the tx
 			err = client.SendTransaction(ctx, tx)
