@@ -55,7 +55,7 @@ jobs:
 
     - name: Deploy Kurtosis Devnet
       if: matrix.deploy_infra
-      run: ./core/helpers/scripts/setup-kurtosis.sh "${{ matrix.network }}"
+      run: ./core/helpers/setup-kurtosis.sh "${{ matrix.network }}"
 
     - name: Install runner
       run: make install-runner
