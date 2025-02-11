@@ -30,10 +30,6 @@ jobs:
             filter_tags: "light,batch-verification,eoa-transaction,heavy,zk-counters-tests"
             deploy_infra: true
 
-          - network: "fork12-rollup"
-            filter_tags: "tagged"
-            deploy_infra: false
-
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
