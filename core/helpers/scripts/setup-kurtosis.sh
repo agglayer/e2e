@@ -4,6 +4,7 @@ set -euo pipefail
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 
 BASE_FOLDER="$(dirname "$(dirname "$0")")"
+KURTOSIS_FOLDER="${GITHUB_WORKSPACE}/kurtosis-cdk"
 NETWORK="${1:-fork12-rollup}"
 
 echo "🔥 Deploying Kurtosis environment for network: $NETWORK"
@@ -17,6 +18,7 @@ fi
 kurtosis clean --all
 
 cp "$BASE_FOLDER/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
+cat "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 kurtosis run --enclave cdk --args-file "combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
 
 # Get RPC URL
