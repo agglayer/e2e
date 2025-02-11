@@ -2,13 +2,16 @@ package test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"math/big"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/agglayer/e2e/core/golang/contracts/zkcounters"
 	"github.com/agglayer/e2e/core/golang/tools/engine"
+	"github.com/agglayer/e2e/core/golang/tools/hex"
 	"github.com/agglayer/e2e/core/golang/tools/log"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
