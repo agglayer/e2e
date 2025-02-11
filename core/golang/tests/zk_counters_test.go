@@ -13,9 +13,11 @@ import (
 	"github.com/agglayer/e2e/core/golang/tools/engine"
 	"github.com/agglayer/e2e/core/golang/tools/hex"
 	"github.com/agglayer/e2e/core/golang/tools/log"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -302,11 +304,47 @@ func TestZkCounters(t *testing.T) {
 	// create TX that cause an OOC
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			// define if the tx in this test case must get mined or not
-			txMustGetMined := len(testCase.expectedError) == 0
+			// fund a random account to avoid nonce issues
+			privateKey, err := crypto.GenerateKey()
+			require.NoError(t, err)
+			tcAuth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+			require.NoError(t, err)
+
+			nonce, err := client.PendingNonceAt(ctx, auth.From)
+			require.NoError(t, err)
 
 			gasPrice, err := client.SuggestGasPrice(ctx)
 			require.NoError(t, err)
+
+			value, _ := big.NewInt(0).SetString("1000000000000000000", 10) // 1 ETH
+
+			gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
+				From:     auth.From,
+				To:       &tcAuth.From,
+				GasPrice: gasPrice,
+				Value:    value,
+			})
+			require.NoError(t, err)
+
+			tx := types.NewTx(&types.LegacyTx{
+				To:       &tcAuth.From,
+				Nonce:    nonce,
+				GasPrice: gasPrice,
+				Value:    value,
+				Gas:      gas,
+			})
+
+			signedTx, err := auth.Signer(auth.From, tx)
+			require.NoError(t, err)
+
+			err = client.SendTransaction(ctx, signedTx)
+			require.NoError(t, err)
+
+			err = engine.WaitTxToBeMined(t, ctx, rpcURL, signedTx.Hash(), engine.TimeoutTxToBeMined)
+			require.NoError(t, err)
+
+			// define if the tx in this test case must get mined or not
+			txMustGetMined := len(testCase.expectedError) == 0
 
 			gasLimit, found := testCase.gasLimitByForkID[forkId]
 			if !found {
@@ -314,11 +352,11 @@ func TestZkCounters(t *testing.T) {
 			}
 
 			// create TX to validate counters
-			a := *auth
+			a := *tcAuth
 			a.GasLimit = gasLimit
 			a.GasPrice = gasPrice
 			a.NoSend = true
-			tx := testCase.createTxToEstimateCounters(t, context.Background(), sc, client, a)
+			tx = testCase.createTxToEstimateCounters(t, context.Background(), sc, client, a)
 			log.Tx(t, tx)
 
 			// send the tx

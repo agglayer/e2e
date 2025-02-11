@@ -95,7 +95,7 @@ fi
 
 # 🔍 Set BATS test files
 echo "🚀 Running tests with tags: $FILTER_TAGS"
-if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then 
+if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then
     BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
 else
     # Ensure proper space separation & trimming
