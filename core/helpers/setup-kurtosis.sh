@@ -3,7 +3,7 @@ set -euo pipefail
 
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 
-BASE_FOLDER="$(dirname "$(dirname "$0")")"
+BASE_FOLDER="$(dirname "$0")"
 KURTOSIS_FOLDER="${GITHUB_WORKSPACE}/kurtosis-cdk"
 NETWORK="${1:-fork12-rollup}"
 
