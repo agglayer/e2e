@@ -20,7 +20,7 @@ kurtosis clean --all
 mkdir -p "$KURTOSIS_FOLDER/templates/trusted-node"
 cp "$BASE_FOLDER/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 cat "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
-kurtosis run --enclave cdk --args-file "combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
+kurtosis run --enclave cdk --args-file "$BASE_FOLDER/combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
 
 # Get RPC URL
 export L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
