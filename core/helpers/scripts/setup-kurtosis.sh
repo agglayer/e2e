@@ -17,6 +17,7 @@ fi
 # Clean up old environments
 kurtosis clean --all
 
+mkdir -p "$KURTOSIS_FOLDER/templates/trusted-node"
 cp "$BASE_FOLDER/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 cat "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 kurtosis run --enclave cdk --args-file "combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
