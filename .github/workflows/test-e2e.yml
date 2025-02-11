@@ -44,7 +44,18 @@ jobs:
       run: |
         pip3 install yq
         yq --version
-        sudo apt update && sudo apt install kurtosis-cli=1.4.1
+
+    - name: Install Kurtosis
+      if: matrix.deploy_infra
+      run: |
+        echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+        sudo apt update
+        sudo apt install kurtosis-cli=1.4.1
+        kurtosis version
+
+    - name: Disable kurtosis analytics
+      if: matrix.deploy_infra
+      run: kurtosis analytics disable
 
     - name: Deploy Kurtosis Devnet
       if: matrix.deploy_infra

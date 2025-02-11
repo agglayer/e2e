@@ -10,9 +10,7 @@ echo "🔥 Deploying Kurtosis environment for network: $NETWORK"
 
 # Install Kurtosis if not available
 if ! command -v kurtosis &> /dev/null; then
-    echo "⚠️ Kurtosis CLI not found. Installing..."
-    sudo apt update
-    sudo apt install kurtosis-cli=1.4.1
+    echo "⚠️ Kurtosis CLI not found. "
 fi
 
 # Clean up old environments
