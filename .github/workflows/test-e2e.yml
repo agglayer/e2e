@@ -56,19 +56,10 @@ jobs:
     - name: Disable kurtosis analytics
       if: matrix.deploy_infra
       run: kurtosis analytics disable
-      
-    - name: Debug CI Runner Directory & Files
-      run: |
-        echo "📂 Current Working Directory:"
-        pwd
-        echo "📄 Listing all files in the repository:"
-        ls -la
-        echo "📄 Listing core/scripts/:"
-        ls -la core/scripts/
 
     - name: Deploy Kurtosis Devnet
       if: matrix.deploy_infra
-      run: ./core/scripts/setup-kurtosis.sh "${{ matrix.network }}"
+      run: ./core/helpers/scripts/setup-kurtosis.sh "${{ matrix.network }}"
 
     - name: Install runner
       run: make install-runner
