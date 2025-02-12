@@ -110,20 +110,23 @@ jobs:
         pwd
         ./core/helpers/setup-kurtosis.sh "${{ matrix.network }}"
         
-    - name: Export L2_RPC_URL for CI
+    - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
       run: |
         pwd
         echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
+        echo "✅ Using Kurtosis SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
         
         # Ensure the .env file exists
         touch tests/.env
         
         # Remove any existing L2_RPC_URL entry (if it exists)
         sed -i '/^L2_RPC_URL=/d' tests/.env
+        sed -i '/^L2_SEQUENCER_RPC_URL=/d' tests/.env
         
-        # Append the new L2_RPC_URL to .env with a newline
+        # Append the new L2_RPC_URL and L2_SEQUENCER_RPC_URL to .env with a newline
         echo "" >> tests/.env
         echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
+        echo "L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL" >> tests/.env
 
         # Print the updated .env for debugging
         cat tests/.env
