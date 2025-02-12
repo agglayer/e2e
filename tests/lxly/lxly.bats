@@ -18,7 +18,8 @@ setup() {
     erc20_token_symbol="E2E"
 }
 
-# bats file_tags=lxly,simple
+# bats file_tags=lxly
+# bats test_tags=light
 @test "bridge native eth from l1 to l2" {
     echo $l2_rpc_url
     cast balance --rpc-url $l2_rpc_url $l2_eth_address
@@ -53,7 +54,7 @@ setup() {
     done
 }
 
-# bats file_tags=lxly,heavy
+# bats test_tags=heavy,bridge
 @test "bridge l2 originated token from L2 to L1 and back to L2" {
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr=0x4e59b44847b379578588920ca78fbf26c0b4956c
