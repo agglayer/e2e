@@ -80,8 +80,17 @@ jobs:
         
     - name: Export L2_RPC_URL for CI
       run: |
+        pwd
         echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
-        echo "L2_RPC_URL=$L2_RPC_URL" >> "$GITHUB_ENV"
+        
+        # Remove any existing L2_RPC_URL entry
+        sed -i '/^L2_RPC_URL=/d' tests/.env
+        
+        # Append the new L2_RPC_URL to .env
+        echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
+
+        # Print the updated .env for debugging
+        cat tests/.env
 
     - name: Build polygon-test-runner
       run: |
