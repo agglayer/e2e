@@ -24,6 +24,7 @@ _common_setup() {
     export contracts_container=${KURTOSIS_CONTRACTS:-contracts-001}
     export contracts_service_wrapper=${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $enclave $contracts_container"}
     export erigon_rpc_node=${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}
+    export erigon_sequencer_rpc_node=${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}
   
     # ✅ Standardized L2 RPC URL Handling
     if [[ -n "${L2_RPC_URL:-}" ]]; then
@@ -36,6 +37,18 @@ _common_setup() {
     fi
 
     echo "🔧 Using L2 RPC URL: $l2_rpc_url"
+
+    # ✅ Standardized L2 SEQUENCER RPC URL Handling
+    if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
+        export l2_sequencer_rpc_url="$L2_SEQUENCER_RPC_URL"
+    elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
+        export l2_sequencer_rpc_url="$(kurtosis port print "$enclave" "$erigon_sequencer_rpc_node" rpc)"
+    else
+        echo "❌ ERROR: No valid SEQUENCER RPC URL found!"
+        exit 1
+    fi
+
+    echo "🔧 Using L2 SEQUENCER RPC URL: $l2_sequencer_rpc_url"
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)

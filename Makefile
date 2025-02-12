@@ -1,4 +1,4 @@
-.PHONY: install uninstall check-dependencies compile-contracts
+.PHONY: install uninstall install-runner check-dependencies compile-contracts
 
 install-runner:
 	mkdir -p ~/.local/bin
@@ -60,5 +60,5 @@ uninstall:
 	echo "❌ Uninstalled polygon-test-runner."
 
 compile-contracts:
-	forge build
+	find core/contracts/ -type f | grep -P '(yul|sol)' | while read contract; do forge build -C $$contract ; done
 	./scripts/postprocess-contracts.sh

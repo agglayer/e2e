@@ -10,23 +10,23 @@ setup() {
 # bats test_tags=light,example
 @test "Test light" {
     echo "🚀 Running Go test (Light)..."
-    cd "$PROJECT_ROOT/core/go"
-    run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
 
 # bats test_tags=heavy,example
 @test "Test heavy" {
     echo "🚀 Running Go test (Heavy)..."
-    cd "$PROJECT_ROOT/core/go"
-    run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
 
 # bats test_tags=danger,example
 @test "Test danger" {
     echo "🚀 Running Go test (Danger)..."
-    cd "$PROJECT_ROOT/core/go"
-    run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }

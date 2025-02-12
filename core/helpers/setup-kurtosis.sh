@@ -26,6 +26,9 @@ kurtosis run --enclave cdk \
 # ✅ Fetch and export RPC URL
 export L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
 echo "✅ Exported L2_RPC_URL=$L2_RPC_URL"
+export L2_SEQUENCER_RPC_URL="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
+echo "✅ Exported L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL"
 
 # ✅ Output for CI consumption
 echo "L2_RPC_URL=$L2_RPC_URL" >> "$GITHUB_ENV"
+echo "L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL" >> "$GITHUB_ENV"

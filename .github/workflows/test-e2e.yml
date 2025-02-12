@@ -14,11 +14,52 @@ jobs:
       matrix:
         include:
           - network: "fork9-cdk-erigon-validium"
+            bats_tests: "light/batch-verification.bats,danger/access-list-e2e.bats"
+            deploy_infra: true
+            gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
+
+          - network: "fork9-cdk-validium"
+            bats_tests: "heavy/zk-counters-tests.bats"
+            deploy_infra: true
+
+          - network: "fork11-rollup"
+            bats_tests: "all"
+            deploy_infra: true
+
+          - network: "fork11-rollup"
+            bats_tests: "light/batch-verification.bats,light/eoa-transaction.bats"
+            deploy_infra: true
+
+          - network: "fork11-rollup"
+            bats_tests: "heavy/zk-counters-tests.bats"
+            deploy_infra: true
+
+          - network: "fork12-rollup"
+            bats_tests: "all"
+            deploy_infra: true
+
+          - network: "fork12-cdk-validium"
+            bats_tests: "light/batch-verification.bats,light/erc20-tests.bats,heavy/zk-counters-tests.bats"
+            deploy_infra: true
+
+          - network: "fork12-cdk-validium"
+            bats_tests: "heavy/zk-counters-tests.bats"
+            deploy_infra: true
+
+          - network: "fork12-rollup"
+            bats_tests: "examples/tagged-test.bats"
+            deploy_infra: false
+
+          - network: "fork12-rollup"
+            bats_tests: "examples/tagged-test.bats"
             filter_tags: "light"
+
           - network: "fork11-cdk-erigon-rollup"
             filter_tags: "batch-verification,eoa,erc20,access-list"
+
           - network: "fork12-cdk-erigon-validium"
             filter_tags: "heavy,uniswap,zk-counters"
+            
           - network: "fork12-cdk-erigon-rollup"
             filter_tags: "" # run all tests
 

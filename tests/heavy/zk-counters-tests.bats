@@ -10,7 +10,7 @@ setup() {
     echo "🚀 Running Go test for zkCounters..."
 
     # ✅ Run the Go test
-    cd "$PROJECT_ROOT/core/go"
-    run go test ./tests/zk_counters_test.go -run TestZkCounters -v
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/zk_counters_test.go -run TestZkCounters 
     assert_success
 }
