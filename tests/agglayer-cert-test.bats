@@ -8,20 +8,46 @@ setup() {
     [ "${KURTOSIS_ENCLAVE}" == "cdk" ]
     local network_id="2"
     local height="1000"
-    run sendRandomCert $network_id $height
+    local valid_private_key="0x45f3ccdaff88ab1b3bb41472f09d5cde7cb20a6cbbc9197fddf64e2f3d67aaf2"
+    local invalid_private_key="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
+    # Random Cert using invalid private key
+    run sendRandomCert $network_id $height $invalid_private_key
+    assert_failure
+    assert_output --regexp "-10002 Rollup signature verification failed"
+
+    status=0
+    output=""
+    # Random Cert using valid private key but wrong global index
+    run sendRandomCert $network_id $height $valid_private_key "--random-global-index"
+    assert_failure
+    assert_output --regexp "-10002 Rollup signature verification failed" # TODO: This should return "invalid global index" or something like that. Not implemented yet in AggLayer
+
+    status=0
+    output=""
+    # Random Cert using valid private key but invalid height. Cert should never be settled
+    run sendRandomCert $network_id $height $valid_private_key
     # echo "Captured Exit Code: $status"
     # echo "Captured Exit Message: $output"
     assert_failure
     assert_output --regexp "Error: Timed out waiting for certificate with hash 0x[a-fA-F0-9]{64}"
 
-    run sendRandomCert $network_id $height
+    status=0
+    output=""
+    # Random Cert using valid private key but there is already a cert with the same height.
+    # Cert should be rejected.
+    run sendRandomCert $network_id $height $valid_private_key
     # echo "2 Captured Exit Code: $status"
     # echo "2 Captured Exit Message: $output"
     assert_failure
     assert_output --regexp "-32602 Invalid argument: Unable to replace a pending certificate that is not in error"
 
+    status=0
+    output=""
+    # Random Cert using valid private key that tries to fill the gap in cert height.
+    # This should be possible to recover from previous situation
     new_height=$((height - 100))
-    run sendRandomCert $network_id $new_height
+    run sendRandomCert $network_id $new_height $valid_private_key
     # echo "3 Captured Exit Code: $status"
     # echo "3 Captured Exit Message: $output"
     assert_failure
@@ -31,11 +57,14 @@ setup() {
 function sendRandomCert() {
     local netID="$1"
     local height="$2"
-    spammer_output=$(agglayer-certificate-spammer random-certs --url $(kurtosis port print cdk agglayer agglayer) --private-key 0x45f3ccdaff88ab1b3bb41472f09d5cde7cb20a6cbbc9197fddf64e2f3d67aaf2 --valid-signature --network-id $netID --height "$height"  2>&1)
+    local private_key="$3"
+    local extra_params=$4
+    spammer_output=$(agglayer-certificate-spammer random-certs --url $(kurtosis port print cdk agglayer agglayer) --private-key $private_key --valid-signature --network-id $netID --height "$height" $extra_params 2>&1)
     if [[ $status -ne 0 ]]; then
         echo "Error: Failed to send Certificate. Output: $spammer_output"
         return 1
     fi
+    echo "Spammer Output: $spammer_output"
     cert_hash=$(extract_certificate_hash "$spammer_output")
     if [[ -z "$cert_hash" ]] ; then
        echo "Error: Failed to extract the certificate hash."
