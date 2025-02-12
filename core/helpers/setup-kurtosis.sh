@@ -1,29 +1,31 @@
 #!/bin/bash
-set -euo pipefail  
+set -euo pipefail
 
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 
-BASE_FOLDER="$(dirname "$0")"
 NETWORK="${1:-fork12-rollup}"
+COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/combinations/${NETWORK}.yml"
 
 echo "🔥 Deploying Kurtosis environment for network: $NETWORK"
+echo "📄 Using combinations file: $COMBINATIONS_FILE"
 
-# Install Kurtosis if not available
+# ✅ Ensure Kurtosis is installed
 if ! command -v kurtosis &> /dev/null; then
-    echo "⚠️ Kurtosis CLI not found. "
+    echo "⚠️ Kurtosis CLI not found. Installing..."
+    curl -fsSL https://get.kurtosis.com | bash
 fi
 
-# Clean up old environments
+# ✅ Clean up old environments
 kurtosis clean --all
 
-# ✅ Deploy Kurtosis from GitHub (Same as local)
+# ✅ Run Kurtosis from GitHub (just like local)
 kurtosis run --enclave cdk \
             github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
-            --args-file="$BASE_FOLDER/combinations/${NETWORK}.yml"
+            --args-file="$COMBINATIONS_FILE"
 
-# Get RPC URL
+# ✅ Fetch and export RPC URL
 export L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
 echo "✅ Exported L2_RPC_URL=$L2_RPC_URL"
 
-# Output for CI consumption
+# ✅ Output for CI consumption
 echo "L2_RPC_URL=$L2_RPC_URL" >> "$GITHUB_ENV"
