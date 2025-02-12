@@ -70,6 +70,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Kurtosis
+      if: matrix.deploy_infra
       run: |
         echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
         sudo apt update
@@ -77,6 +78,7 @@ jobs:
         kurtosis version
 
     - name: Disable kurtosis analytics
+      if: matrix.deploy_infra
       run: kurtosis analytics disable
 
     - name: Install yq
@@ -105,6 +107,7 @@ jobs:
         GOARCH: "amd64"
 
     - name: Checkout Kurtosis CDK
+      if: matrix.deploy_infra
       uses: actions/checkout@v4
       with:
         repository: 0xPolygon/kurtosis-cdk
@@ -115,11 +118,13 @@ jobs:
       uses: bats-core/bats-action@2.0.0
 
     - name: Setup Devnet w/ Kurtosis
+      if: matrix.deploy_infra
       run: |
         pwd
         ./core/helpers/setup-kurtosis.sh "${{ matrix.network }}"
         
     - name: Export L2_RPC_URL for CI
+      if: matrix.deploy_infra
       run: |
         pwd
         echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
@@ -147,18 +152,18 @@ jobs:
         polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
   
     - name: Dump enclave logs
-      if: failure()
+      if: failure() && matrix.deploy_infra
       run: kurtosis dump ./dump
 
     - name: Generate archive name
-      if: failure()
+      if: failure() && matrix.deploy_infra
       run: |
         archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}"
         echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
         kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
 
     - name: Upload logs
-      if: failure()
+      if: failure() && matrix.deploy_infra
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.ARCHIVE_NAME }}
