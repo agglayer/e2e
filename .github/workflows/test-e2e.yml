@@ -83,10 +83,14 @@ jobs:
         pwd
         echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
         
-        # Remove any existing L2_RPC_URL entry
+        # Ensure the .env file exists
+        touch tests/.env
+        
+        # Remove any existing L2_RPC_URL entry (if it exists)
         sed -i '/^L2_RPC_URL=/d' tests/.env
         
-        # Append the new L2_RPC_URL to .env
+        # Append the new L2_RPC_URL to .env with a newline
+        echo "" >> tests/.env
         echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
 
         # Print the updated .env for debugging
