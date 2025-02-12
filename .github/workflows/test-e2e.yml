@@ -13,44 +13,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Fork 9 - Validium
           - network: "fork9-cdk-erigon-validium"
-            bats_tests: "light/batch-verification.bats,danger/access-list-e2e.bats"
-            gas_token_addr: "0x72ae2643518179cF01bcA3278a37ceAD408DE8b2"
-
-          - network: "fork9-cdk-validium"
-            bats_tests: "heavy/zk-counters-tests.bats"
-
-          - network: "fork11-rollup"
-            bats_tests: "all"
-
-          - network: "fork11-rollup"
-            bats_tests: "light/batch-verification.bats,light/eoa-transaction.bats"
-
-          - network: "fork11-rollup"
-            bats_tests: "heavy/zk-counters-tests.bats"
-
-          - network: "fork12-rollup"
-            bats_tests: "all"
-
-          - network: "fork12-cdk-validium"
-            bats_tests: "light/batch-verification.bats,light/erc20-tests.bats,heavy/zk-counters-tests.bats"
-
-          - network: "fork12-cdk-validium"
-            bats_tests: "heavy/zk-counters-tests.bats"
-
-          - network: "fork12-rollup"
-            bats_tests: "examples/tagged-test.bats"
-
-          - network: "fork12-rollup"
-            bats_tests: "examples/tagged-test.bats"
             filter_tags: "light"
 
+          - network: "fork9-cdk-erigon-validium"
+            filter_tags: "zk-counters"
+
+          # Fork 9 - Rollup
+          - network: "fork9-cdk-erigon-rollup"
+            filter_tags: "zk-counters"
+
+          # Fork 11 - Validium
+          - network: "fork11-cdk-erigon-validium"
+            filter_tags: "zk-counters"
+
+          # Fork 11 - Rollup
           - network: "fork11-cdk-erigon-rollup"
             filter_tags: "batch-verification,eoa,erc20,access-list"
 
+          - network: "fork11-cdk-erigon-rollup"
+            filter_tags: "zk-counters"
+
+          # Fork 12 - Validium
           - network: "fork12-cdk-erigon-validium"
-            filter_tags: "heavy,uniswap,zk-counters"
-            
+            filter_tags: "heavy,uniswap"
+
+          - network: "fork12-cdk-erigon-validium"
+            filter_tags: "zk-counters"
+
+          # Fork 12 - Rollup
+          - network: "fork12-cdk-erigon-rollup"
+            filter_tags: "zk-counters"
+
           - network: "fork12-cdk-erigon-rollup"
             filter_tags: "" # run all tests
 
@@ -147,7 +142,7 @@ jobs:
     - name: Generate archive name
       if: failure()
       run: |
-        archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}_${{ github.job }}"
+        archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}_${{ job.container.id }}"
         echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
         kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
 
