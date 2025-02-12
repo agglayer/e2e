@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/agglayer/e2e/core/golang/tools/hex"
 	"github.com/ethereum/go-ethereum/core/types"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -28,6 +29,9 @@ func Tx(t *testing.T, tx *ethTypes.Transaction) {
 	t.Logf("Gas: %v", tx.Gas())
 	t.Logf("GasPrice: %v", tx.GasPrice())
 	t.Logf("Cost: %v", tx.Cost())
+	if len(tx.Data()) > 0 {
+		t.Logf("Data: %v", hex.EncodeToHex(tx.Data()))
+	}
 
 	// b, _ := tx.MarshalBinary()
 	//t.Logf("RLP: ", hex.EncodeToHex(b))

@@ -11,7 +11,7 @@ PROJECT_ROOT="$(pwd)"
 export PROJECT_ROOT
 
 # Load shared env vars
-export $(cat $PROJECT_ROOT/tests/.env | grep = | xargs) 
+export $(cat $PROJECT_ROOT/tests/.env | grep -v "#" | grep = | xargs) 
 echo -e "✅ Loaded $PROJECT_ROOT/tests/.env"
 
 # Set BATS Library Path
@@ -77,20 +77,25 @@ if [[ "$DEPLOY_INFRA" == "true" ]]; then
     cp "$PROJECT_ROOT/core/helpers/config/kurtosis-cdk-node-config.toml.template" "$KURTOSIS_FOLDER/templates/trusted-node/cdk-node-config.toml"
 
     kurtosis run --enclave cdk --args-file "$PROJECT_ROOT/core/helpers/combinations/${NETWORK}.yml" --image-download always "$KURTOSIS_FOLDER"
-    L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+    # if L2_RPC_URL is not specified, get it from Kurtosis
+    if [[ -z "${L2_RPC_URL:-}" ]]; then
+        L2_RPC_URL="$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"
+        export L2_RPC_URL
+        echo "L2_RPC_URL" $L2_RPC_URL
+    fi
+    # if L2_SEQUENCER_RPC_URL is not specified, get it from Kurtosis
+    if [[ -z "${L2_SEQUENCER_RPC_URL:-}" ]]; then
+        L2_SEQUENCER_RPC_URL="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
+        export L2_SEQUENCER_RPC_URL
+        echo "L2_SEQUENCER_RPC_URL" $L2_SEQUENCER_RPC_URL
+    fi
 else
     echo "⏩ Skipping infrastructure deployment. Ensure the required services are already running!"
 fi
 
-# Check if L2_RPC_URL is empty or not set
-if [[ -z "$L2_RPC_URL" ]]; then
-    echo "Error: L2_RPC_URL is a required environment variable. Please update the .env file."
-    exit 1  # Exit the script with an error code
-fi
-
 # 🔍 Set BATS test files
 echo "🚀 Running tests with tags: $FILTER_TAGS"
-if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then 
+if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then
     BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
 else
     # Ensure proper space separation & trimming
