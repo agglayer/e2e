@@ -6,7 +6,7 @@ setup() {
 }
 
 # bats file_tags=stress,prover-stress
-@test "rpc and sequencer handles two large transactions" {
+@test "large evm stress transactions" {
     load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
 
     cast wallet address --private-key $private_key
