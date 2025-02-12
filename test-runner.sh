@@ -63,8 +63,17 @@ else
     echo "🚀 Running all tests (no filter applied)"
 fi
 
-# Select BATS test files
-BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
+# 🔍 Set BATS test files
+echo "🚀 Running tests with tags: $FILTER_TAGS"
+if [[ "${BATS_TESTS:-}" == "all" ]] || [[ -z "${BATS_TESTS:-}" ]]; then
+    BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
+else
+    # Ensure proper space separation & trimming
+    BATS_TESTS_LIST=$(echo "$BATS_TESTS" | tr ',' '\n' | xargs -I {} echo "./tests/{}" | tr '\n' ' ')
+fi
+
+# ✅ Run BATS tests with --filter-tags support
+echo -e "🧪 Running tests: \n$BATS_TESTS_LIST"
 
 # ✅ Run BATS tests with **correct** `--filter-tags` format
 if [[ ${#FILTER_ARGS[@]} -gt 0 ]]; then
