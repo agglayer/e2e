@@ -31,7 +31,7 @@ set_acl_mode() {
     run $kurtosis_sequencer_wrapper "acl mode --datadir $data_dir --mode $mode"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Block List - Sending regular transaction when address not in block list" {
     local value="10ether"
     run set_acl_mode "blocklist"
@@ -41,7 +41,7 @@ set_acl_mode() {
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Block List - Sending contract deploy transaction when address not in block list" {
     local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
     run set_acl_mode "blocklist"
@@ -52,7 +52,7 @@ set_acl_mode() {
     assert_output --regexp "0x[a-fA-F0-9]{40}"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Block List - Sending regular transaction when address is in block list" {
     local value="10ether"
 
@@ -64,7 +64,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to send tx by ACL policy"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Block List - Sending contract deploy transaction when address is in block list" {
     local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 
@@ -76,7 +76,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to deploy contract by ACL policy"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Allow List - Sending regular transaction when address not in allow list" {
     local value="10ether"
 
@@ -87,7 +87,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to send tx by ACL policy"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Allow List - Sending contract deploy transaction when address not in allow list" {
     local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 
@@ -98,7 +98,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to deploy contract by ACL policy"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Allow List - Sending regular transaction when address is in allow list" {
     local value="10ether"
 
@@ -110,7 +110,7 @@ set_acl_mode() {
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 }
 
-# bats test_tags=light,access-list
+# bats test_tags=danger,access-list
 @test "Test Allow List - Sending contract deploy transaction when address is in allow list" {
     local contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 

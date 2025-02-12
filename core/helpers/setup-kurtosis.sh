@@ -3,7 +3,7 @@ set -euo pipefail
 
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 
-NETWORK="${1:-fork12-rollup}"
+NETWORK="${1:-fork12-cdk-erigon-validium}"
 COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/combinations/${NETWORK}.yml"
 
 echo "🔥 Deploying Kurtosis environment for network: $NETWORK"

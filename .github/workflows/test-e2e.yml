@@ -20,7 +20,7 @@ jobs:
           - network: "fork12-cdk-erigon-validium"
             filter_tags: "heavy,uniswap,zk-counters"
           - network: "fork12-cdk-erigon-rollup"
-            filter_tags: "all"
+            filter_tags: "" # run all tests
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
