@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 
+# bats file_tags=el:cdk-erigon
 setup() {
     load "$PROJECT_ROOT/core/helpers/common-setup.bash"
     load "$PROJECT_ROOT/core/helpers/common.bash"

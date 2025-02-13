@@ -5,8 +5,8 @@ setup() {
     _common_setup  # Standard setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=regression,gas-limit-overflow
-@test "rpc and sequencer handles two large transactions" {    
+# bats file_tags=regression,gas-limit-overflow,el:cdk-erigon
+@test "rpc and sequencer handles two large transactions" {
     load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
     load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
 
