@@ -13,9 +13,23 @@ setup() {
 
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
 
     erc20_token_name="e2e test"
     erc20_token_symbol="E2E"
+
+    fund_claim_tx_manager
+}
+
+function fund_claim_tx_manager() {
+    local balance=$(cast balance --rpc-url "$l2_rpc_url" "$claimtxmanager_addr")
+    if [[ $balance != "0" ]]; then
+        return
+    fi
+    cast send --legacy --value 1ether \
+         --rpc-url "$l2_rpc_url" \
+         --private-key "$l2_private_key" \
+         "$claimtxmanager_addr"
 }
 
 # bats file_tags=lxly,bridge
@@ -107,7 +121,7 @@ setup() {
             break
         fi
         attempts=$((attempts+1))
-        sleep 10
+        sleep 30
     done
 
     polycli ulxly claim asset \
@@ -147,7 +161,7 @@ setup() {
             break
         fi
         attempts=$((attempts+1))
-        sleep 10
+        sleep 30
     done
 
     # repeat the first step again to trigger another exit of l2 but with the added claim
@@ -177,7 +191,7 @@ setup() {
             break
         fi
         attempts=$((attempts+1))
-        sleep 10
+        sleep 30
     done
 
 }

@@ -47,11 +47,11 @@ jobs:
             filter_tags: "zk-counters"
 
           - network: "fork12-cdk-erigon-rollup"
-            filter_tags: "el:cdk-erigon,el:any" # run all tests
+            filter_tags: "el:cdk-erigon,el:any,lxly" # run all tests
 
           # Fork 12 - Soverign
           - network: "fork12-cdk-erigon-sovereign"
-            filter_tags: "el:cdk-erigon,el:any,lxly,zk-counters,heavy,light"
+            filter_tags: "el:cdk-erigon,el:any,zk-counters,heavy,light,prover-stress"
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
