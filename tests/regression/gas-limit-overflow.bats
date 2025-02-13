@@ -23,7 +23,7 @@ setup() {
             --requests 5 \
             --mode contract-call \
             --contract-address "$counters_addr" \
-            --gas-limit 30000000 \
+            --gas-limit 20000000 \
             --legacy \
             --calldata "$(cast abi-encode 'f(uint256)' 2)" \
             --nonce "$latest_nonce"

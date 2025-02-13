@@ -7,7 +7,7 @@ setup() {
 
 # bats file_tags=tagged
 
-# bats test_tags=light,example
+# bats test_tags=light,examples
 @test "Test light" {
     echo "🚀 Running Go test (Light)..."
     cd "$PROJECT_ROOT/core/golang"
@@ -15,7 +15,7 @@ setup() {
     assert_success
 }
 
-# bats test_tags=heavy,example
+# bats test_tags=heavy,examples
 @test "Test heavy" {
     echo "🚀 Running Go test (Heavy)..."
     cd "$PROJECT_ROOT/core/golang"
@@ -23,7 +23,7 @@ setup() {
     assert_success
 }
 
-# bats test_tags=danger,example
+# bats test_tags=danger,examples
 @test "Test danger" {
     echo "🚀 Running Go test (Danger)..."
     cd "$PROJECT_ROOT/core/golang"
