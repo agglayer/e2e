@@ -1,4 +1,4 @@
-module github.com/agglayer/e2e/core/go
+module github.com/agglayer/e2e/core/golang
 
 go 1.22.4
 

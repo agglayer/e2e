@@ -1,54 +1,32 @@
+#!/usr/bin/env bats
+
 setup() {
-    load "$PROJECT_ROOT/core/helpers/common-setup"
-    _common_setup
+    load "$PROJECT_ROOT/core/helpers/common-setup.bash"
+    _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
 # bats file_tags=tagged
 
-# bats test_tags=light
+# bats test_tags=light,examples
 @test "Test light" {
-    # Ensure PROJECT_ROOT is correct
-    if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
-        echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
-        PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
-        export PROJECT_ROOT
-        echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
-    fi
-
-    echo "Running go test accordingly to tags..."
-    cd $PROJECT_ROOT/core/go
-    run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
+    echo "🚀 Running Go test (Light)..."
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
 
-# bats test_tags=heavy
+# bats test_tags=heavy,examples
 @test "Test heavy" {
-    # Ensure PROJECT_ROOT is correct
-    if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
-        echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
-        PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
-        export PROJECT_ROOT
-        echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
-    fi
-
-    echo "Running go test accordingly to tags..."
-    cd $PROJECT_ROOT/core/go
-    run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
+    echo "🚀 Running Go test (Heavy)..."
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
 
-# bats test_tags=danger
+# bats test_tags=danger,examples
 @test "Test danger" {
-    # Ensure PROJECT_ROOT is correct
-    if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
-        echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
-        PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
-        export PROJECT_ROOT
-        echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
-    fi
-
-    echo "Running go test accordingly to tags..."
-    cd $PROJECT_ROOT/core/go
-    run go test ./tests/tagged_test.go -run "(TestSuccess)" -v
+    echo "🚀 Running Go test (Danger)..."
+    cd "$PROJECT_ROOT/core/golang"
+    run go test -v -count=1 -race -p 1 ./tests/tagged_test.go -run "(TestSuccess)" -v
     assert_success
 }
