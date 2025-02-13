@@ -34,7 +34,7 @@ function deploy_contract() {
 
     # Send the transaction and capture the output
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 1.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<< "$gas_price * 2.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -135,7 +135,7 @@ function send_eoa_transaction() {
     # Send transaction via cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 1.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<< "$gas_price * 3.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -175,7 +175,7 @@ function send_smart_contract_transaction() {
     # Send the smart contract interaction using cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 1.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<< "$gas_price * 2.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
