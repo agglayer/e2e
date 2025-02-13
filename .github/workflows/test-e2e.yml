@@ -142,7 +142,7 @@ jobs:
     - name: Generate archive name
       if: failure()
       run: |
-        archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}_${{ job.container.id }}"
+        archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}_${{ github.run_number }}_${{ github.run_attempt }}"
         echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
         kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
 
