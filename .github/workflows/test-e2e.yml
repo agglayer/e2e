@@ -47,7 +47,7 @@ jobs:
             filter_tags: "zk-counters"
 
           - network: "fork12-cdk-erigon-rollup"
-            filter_tags: "el:cdk-erigon" # run all tests
+            filter_tags: "el:cdk-erigon,el:any" # run all tests
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
