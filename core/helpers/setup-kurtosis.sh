@@ -20,7 +20,7 @@ kurtosis clean --all
 
 # ✅ Run Kurtosis from GitHub (just like local)
 kurtosis run --enclave cdk \
-            github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
+            github.com/0xPolygon/kurtosis-cdk@v0.2.30 \
             --args-file="$COMBINATIONS_FILE"
 
 # ✅ Fetch and export RPC URL
