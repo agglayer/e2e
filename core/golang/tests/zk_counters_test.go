@@ -171,7 +171,7 @@ func TestZkCounters(t *testing.T) {
 		},
 		{
 			name: "max poseidon hashes - tx discarded", counter: "poseidonhashes", expectedError: "not enough poseidon counters to continue the execution",
-			gasLimitByForkID: map[uint64]uint64{9: 450000, 11: 1699010, 12: 1599010},
+			gasLimitByForkID: map[uint64]uint64{9: 450000, 11: 1599010, 12: 1599010},
 			createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
 				tx, err := sc.MaxPoseidonHashes(&a, big.NewInt(10000))
 				require.NoError(t, err)
@@ -180,7 +180,7 @@ func TestZkCounters(t *testing.T) {
 		},
 		{
 			name: "max poseidon hashes - tx mined", counter: "poseidonhashes", expectedError: "",
-			gasLimitByForkID: map[uint64]uint64{9: 400000, 11: 1599010, 12: 1549010}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
+			gasLimitByForkID: map[uint64]uint64{9: 400000, 11: 1549010, 12: 1549010}, createTxToEstimateCounters: func(t *testing.T, ctx context.Context, sc *zkcounters.Zkcounters, c *ethclient.Client, a bind.TransactOpts) *types.Transaction {
 				tx, err := sc.MaxPoseidonHashes(&a, big.NewInt(10000))
 				require.NoError(t, err)
 				return tx
