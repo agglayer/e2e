@@ -43,6 +43,8 @@ setup() {
 
 # bats test_tags=agglayer-cert-test
 @test "Agglayer valid cert test" {
+    # Make sure the folder is removed from previous executions
+    rm -rf cdk-databases
     # Create db folder and set ENV
     mkdir -p "cdk-databases"
 
@@ -67,11 +69,13 @@ setup() {
     # echo "Captured Exit Code: $status"
     # echo "Captured Exit Message: $output"
     assert_success
-    rm -r cdk-databases
+    rm -rf cdk-databases
 }
 
 # bats test_tags=agglayer-cert-fake-deposit-test
 @test "Agglayer valid cert fake deposit test" {
+    # Make sure the folder is removed from previous executions
+    rm -rf cdk-databases
     # Create db folder and set ENV
     mkdir -p "cdk-databases"
 
@@ -96,7 +100,7 @@ setup() {
     # echo "Captured Exit Code: $status"
     # echo "Captured Exit Message: $output"
     assert_success
-    rm -r cdk-databases
+    rm -rf cdk-databases
 }
 
 # bats test_tags=agglayer-random-cert-test
@@ -219,7 +223,7 @@ function wait_for_cert() {
 
 function validCert() {
     local extra_param=$1
-    spammer_output=$(agglayer-certificate-spammer valid-certs --store-certificate --single-cert $extra_param)
+    spammer_output=$(agglayer-certificate-spammer valid-certs --store-certificate --single-cert $extra_param 2>&1)
     if [[ $status -ne 0 ]]; then
         echo "Error: Failed to send Certificate. Output: $spammer_output"
         return 1
