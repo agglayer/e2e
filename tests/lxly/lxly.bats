@@ -34,9 +34,10 @@ function fund_claim_tx_manager() {
 
 # bats file_tags=lxly,bridge
 @test "bridge native eth from l1 to l2" {
-    echo $l2_rpc_url
     cast balance --rpc-url $l2_rpc_url $l2_eth_address
     cast balance --rpc-url $l1_rpc_url $l1_eth_address
+
+    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
     bridge_amount=$(date +%s)
     polycli ulxly bridge asset \
@@ -47,24 +48,17 @@ function fund_claim_tx_manager() {
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount"
 
-    deposit_file=$(mktemp)
-    attempts=0
-    while true; do
-        if [[ $attempts -gt 20 ]]; then
-            echo "The bridge deposit wasn't claimed automatically after 20 checks"
-            exit 1
-        fi
-        curl -s $bridge_service_url/bridges/$l2_eth_address | jq '.deposits[0]' > $deposit_file
-
-        deposit_amt=$(jq -r '.amount' $deposit_file)
-        deposit_ready=$(jq -r '.ready_for_claim' $deposit_file)
-        deposit_claim_tx_hash=$(jq -r '.claim_tx_hash' $deposit_file)
-        if [[ $deposit_amt -eq $bridge_amount && $deposit_ready == "true" && $deposit_claim_tx_hash != "" ]]; then
-            break
-        fi
-        attempts=$((attempts + 1))
-        sleep 5
-    done
+    # It's possible this command will fail due to the auto claimer
+    set +e
+    polycli ulxly claim asset \
+            --bridge-address "$l2_bridge_addr" \
+            --private-key "$l2_private_key" \
+            --rpc-url "$l2_rpc_url" \
+            --deposit-count "$initial_deposit_count" \
+            --deposit-network "0" \
+            --bridge-service-url "$bridge_service_url" \
+            --wait 10m
+    set -e
 }
 
 @test "bridge l2 originated token from L2 to L1 and back to L2" {
@@ -105,32 +99,14 @@ function fund_claim_tx_manager() {
         exit 1
     fi
 
-    # Wait for that exit to settle on L1
-    deposit_file=$(mktemp)
-    attempts=0
-    while true; do
-        if [[ $attempts -gt 20 ]]; then
-            echo "the deposit seems to be stuck after 20 attempts"
-            exit 1
-        fi
-        curl -s "$bridge_service_url/bridge?net_id=$network_id&deposit_cnt=$initial_deposit_count" | jq '.' | tee $deposit_file
-
-        deposit_amt=$(jq -r '.deposit.amount' $deposit_file)
-        deposit_ready=$(jq -r '.deposit.ready_for_claim' $deposit_file)
-        if [[ $deposit_amt -eq $bridge_amount && $deposit_ready == "true" ]]; then
-            break
-        fi
-        attempts=$((attempts+1))
-        sleep 30
-    done
-
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
-            --bridge-service-url "$bridge_service_url"
+            --bridge-service-url "$bridge_service_url" \
+            --wait 10m
 
     token_hash=$(cast keccak $(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr"))
     wrapped_token_addr=$(cast call --rpc-url $l1_rpc_url "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
@@ -145,24 +121,17 @@ function fund_claim_tx_manager() {
         --rpc-url "$l1_rpc_url" \
         --private-key "$l1_private_key"
 
-    deposit_file=$(mktemp)
-    attempts=0
-    while true; do
-        if [[ $attempts -gt 20 ]]; then
-            echo "the deposit seems to be stuck after 20 attempts"
-            exit 1
-        fi
-        curl -s "$bridge_service_url/bridge?net_id=0&deposit_cnt=$initial_deposit_count" | jq '.' | tee $deposit_file
-
-        deposit_amt=$(jq -r '.deposit.amount' $deposit_file)
-        deposit_ready=$(jq -r '.deposit.ready_for_claim' $deposit_file)
-        deposit_claim_tx_hash=$(jq -r '.deposit.claim_tx_hash' $deposit_file)
-        if [[ $deposit_amt -eq $bridge_amount && $deposit_ready == "true" && $deposit_claim_tx_hash != "" ]]; then
-            break
-        fi
-        attempts=$((attempts+1))
-        sleep 30
-    done
+    # It's possible this command will fail due to the auto claimer
+    set +e
+    polycli ulxly claim asset \
+            --bridge-address "$l2_bridge_addr" \
+            --private-key "$l2_private_key" \
+            --rpc-url "$l2_rpc_url" \
+            --deposit-count "$initial_deposit_count" \
+            --deposit-network "0" \
+            --bridge-service-url "$bridge_service_url" \
+            --wait 10m
+    set -e
 
     # repeat the first step again to trigger another exit of l2 but with the added claim
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
@@ -176,23 +145,14 @@ function fund_claim_tx_manager() {
             --private-key "$l2_private_key"
 
     # Wait for that exit to settle on L1
-    deposit_file=$(mktemp)
-    attempts=0
-    while true; do
-        if [[ $attempts -gt 20 ]]; then
-            echo "the deposit seems to be stuck after 20 attempts"
-            exit 1
-        fi
-        curl -s "$bridge_service_url/bridge?net_id=$network_id&deposit_cnt=$initial_deposit_count" | jq '.' | tee $deposit_file
-
-        deposit_amt=$(jq -r '.deposit.amount' $deposit_file)
-        deposit_ready=$(jq -r '.deposit.ready_for_claim' $deposit_file)
-        if [[ $deposit_amt -eq $bridge_amount && $deposit_ready == "true" ]]; then
-            break
-        fi
-        attempts=$((attempts+1))
-        sleep 30
-    done
+    polycli ulxly claim asset \
+            --bridge-address "$l1_bridge_addr" \
+            --private-key "$l1_private_key" \
+            --rpc-url "$l1_rpc_url" \
+            --deposit-count "$initial_deposit_count" \
+            --deposit-network "$network_id" \
+            --bridge-service-url "$bridge_service_url" \
+            --wait 10m
 
 }
 
