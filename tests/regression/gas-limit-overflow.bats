@@ -2,7 +2,7 @@
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/common-setup.bash"
-    _common_setup  # Standard setup (wallet, funding, RPC, etc.)
+    _common_setup  # ✅ Standard setup (wallet, funding, RPC, etc.)
 }
 
 # bats file_tags=regression,gas-limit-overflow
@@ -10,16 +10,16 @@ setup() {
     load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
     load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
 
-    # ✅ Deploy necessary contracts with new private key
-    deploy_test_contracts "$l2_rpc_url" "$private_key"
+    # ✅ Deploy necessary contracts with standardized env variables
+    deploy_test_contracts "$L2_RPC_URL" "$PRIVATE_KEY"
 
-    latest_nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$public_address")
-    echo "🔢 Latest nonce for $public_address: $latest_nonce"
+    latest_nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$PUBLIC_ADDRESS")
+    echo "🔢 Latest nonce for $PUBLIC_ADDRESS: $latest_nonce"
 
     polycli loadtest \
             --send-only \
-            --rpc-url "$l2_rpc_url" \
-            --private-key "$private_key" \
+            --rpc-url "$L2_RPC_URL" \
+            --private-key "$PRIVATE_KEY" \
             --requests 5 \
             --mode contract-call \
             --contract-address "$counters_addr" \
@@ -29,5 +29,5 @@ setup() {
             --nonce "$latest_nonce"
 
     # ✅ Assert block production (ensure chain is alive)
-    assert_block_production "$l2_rpc_url" 12
+    assert_block_production "$L2_RPC_URL" 12
 }

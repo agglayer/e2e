@@ -54,6 +54,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Run ShellCheck (Linting)
+      run: |
+        sudo apt-get update && sudo apt-get install -y shellcheck
+        shellcheck core/helpers/common-setup.bash test-runner.sh $(find tests -type f -name "*.bats")
 
     - name: Install Kurtosis
       run: |

@@ -6,8 +6,11 @@ A lightweight, **tag-based test runner** for executing end-to-end tests against 
 
 - ✅ Run tests **against any remote network** by specifying environment variables before execution.
 - ✅ **Tag-based execution** (e.g., `light`, `heavy`, `regression`, `danger`) for flexibility.
-- ✅ **Simple CLI usage** via `polygon-test-runner` or direct script execution.
-- ✅ **Easily extendable** with new `.bats` test cases.
+- ✅ **Configurable Wallet Funding** (`DISABLE_FUNDING`, `FUNDING_AMOUNT_ETH`).
+- ✅ **Better Logging Control** (`SHOW_OUTPUT` to enable/disable verbosity).
+- ✅ **Allow Partial Failures** (`ALLOW_PARTIAL_FAILURES` prevents full test suite failures).
+- ✅ **Shellcheck Support** for Bash linting in CI/CD.
+- ✅ **Granular test filtering** with `--filter-tags`.
 - ✅ **CI-compatible** – works seamlessly with GitHub Actions.
 
 ---
@@ -27,7 +30,7 @@ This will:
 - Install `polygon-test-runner` in `~/.local/bin`
 - Ensure all dependencies (BATS, Foundry, Go, `jq`, `polycli`) are installed.
 
-💡 \*\*Ensure ****`~/.local/bin`**** is in your \*\***`PATH`** (handled automatically during install). If not:
+💡 **Ensure `~/.local/bin` is in your `PATH`** (handled automatically during install). If not:
 
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
@@ -71,31 +74,52 @@ Run **heavy + danger** tests together:
 polygon-test-runner --filter-tags "heavy,danger"
 ```
 
-### Alternative Way to Run Tests
-
-If you prefer **not to install the CLI wrapper**, you can directly execute `test-runner.sh`:
+Run **with logging enabled**:
 
 ```sh
-L2_RPC_URL=http://127.0.0.1:60784 \
-L2_SENDER_PRIVATE_KEY=xyz \
-./test-runner.sh --filter-tags "zk-counters"
+SHOW_OUTPUT=true polygon-test-runner --filter-tags "light"
 ```
 
-Both methods work the same way!
+Run **without failing on errors**:
+
+```sh
+ALLOW_PARTIAL_FAILURES=true polygon-test-runner --filter-tags "zk-counters"
+```
 
 ---
 
-## 🛠️ Adding New Tests
+## 🔧 Configurable Wallet Funding
 
-###
+Funding test wallets can now be **enabled/disabled** and dynamically configured:
 
-note: categories currently include: light / heavy / regression / danger (tests that can break networks). 
-users can add their own, new categories as desired
+| **Variable**            | **Description**                            | **Default** |
+|-------------------------|--------------------------------|------------|
+| `DISABLE_FUNDING`       | Disable wallet funding (set to `true`)  | `false`    |
+| `FUNDING_AMOUNT_ETH`    | Amount of ETH to fund test wallets     | `50`       |
+
+### 🔹 Example Usage
+
+Disable wallet funding:
+```sh
+DISABLE_FUNDING=true polygon-test-runner --filter-tags "light"
+```
+
+Fund wallets with **10 ETH instead of 50**:
+```sh
+FUNDING_AMOUNT_ETH=10 polygon-test-runner --filter-tags "light"
+```
+
+---
+
+## 📝 Adding New Tests
+
+### 1️⃣ Create a new test file
+
 ```sh
 touch tests/<category>/my-new-test.bats
 ```
 
-**Example ********`.bats`******** file with tagging and standardized naming:**
+**Example `.bats` test file:**
 
 ```bash
 # bats test_tags=light,zk
@@ -105,30 +129,13 @@ touch tests/<category>/my-new-test.bats
 }
 ```
 
-### Naming Standards for Tests
-
-To improve clarity, test names should follow this standard:
-
-| **Category**     | **Example Test Name**                                          |
-| ---------------- | -------------------------------------------------------------- |
-| **RPC Behavior** | `@test "RPC handles multiple transactions sequentially"`       |
-| **Sequencer**    | `@test "Sequencer processes two large transactions correctly"` |
-| **Gas Limits**   | `@test "Gas limit is respected for high-volume TXs"`           |
-| **Contracts**    | `@test "Deployed contract executes expected behavior"`         |
-
-**Format:**
-
-- **Component/Behavior** (e.g., RPC, Sequencer, Gas Limits)
-- **What it does** (e.g., handles multiple TXs, respects limits, executes as expected)
-- **(Optional) Edge Cases** (e.g., "under high network load", "with malformed input")
-
-### 2⃣ Run the new test
+### 2️⃣ Run the new test
 
 ```sh
 polygon-test-runner --filter-tags "zk"
 ```
 
-### 3⃣ Add to CI (Optional)
+### 3️⃣ Add to CI (Optional)
 
 Modify `.github/workflows/test-e2e.yml`:
 
@@ -139,7 +146,7 @@ Modify `.github/workflows/test-e2e.yml`:
 
 ---
 
-## 🔍 Debugging Test Failures
+## 🛡️ Debugging Test Failures
 
 1. **Check logs** in GitHub Actions.
 2. **Run locally** using the same environment variables.
@@ -147,7 +154,7 @@ Modify `.github/workflows/test-e2e.yml`:
 
 ---
 
-## 📝 CLI Help
+## 📃 CLI Help
 
 ```sh
 polygon-test-runner --help
@@ -160,6 +167,8 @@ Usage: polygon-test-runner --filter-tags <tags>
 
 Options:
   --filter-tags  Run test categories using BATS-native tags (e.g., light, heavy, danger).
+  --allow-failures  Allow partial test failures without stopping the suite.
+  --verbose      Show output of passing tests (default is off for readability).
   --help         Show this help message.
 
 Examples:
@@ -170,7 +179,25 @@ Examples:
 
 ---
 
-## 💪 Compiling Contracts Before Running Tests
+## 💪 ShellCheck for CI/CD
+
+To **ensure clean Bash scripts**, we've integrated `shellcheck`.
+
+Run locally before committing:
+
+```sh
+make lint
+```
+
+To **fix errors automatically**:
+
+```sh
+make fix-lint
+```
+
+---
+
+## 🛠️ Compiling Contracts Before Running Tests
 
 To ensure your contracts are compiled before testing, run:
 
@@ -180,19 +207,20 @@ make compile-contracts
 
 This will:
 
-1. \*\*Run \*\***`forge build`** to compile the contracts.
-2. \*\*Execute \*\***`./scripts/postprocess-contracts.sh`** to apply necessary processing.
+1. **Run `forge build`** to compile the contracts.
+2. **Execute `./scripts/postprocess-contracts.sh`** to apply necessary processing.
 
 💡 **You should run this before executing any tests that interact with deployed contracts.**
 
 ---
 
-## 🎯 Conclusion
+## 🌟 Conclusion
 
-✅ **Simple setup**\
-✅ **Tag-based test execution**\
-✅ **Easily extendable**\
-✅ **Designed for CI/CD**
+👉 **Simple setup**  
+👉 **Tag-based test execution**  
+👉 **Configurable wallet funding**  
+👉 **Easily extendable**  
+👉 **Designed for CI/CD**  
 
-🚀 **Start testing with ********`polygon-test-runner`******** today!**
+🚀 **Start testing with `polygon-test-runner` today!**
 

@@ -8,41 +8,49 @@ setup() {
 
 # bats file_tags=light,eoa
 @test "Send EOA transaction" {
-    local receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
-    local sender_addr=$(cast wallet address --private-key "$private_key")
+    export RECEIVER="${RECEIVER:-0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6}"
+    export SENDER_ADDR=$(cast wallet address --private-key "$PRIVATE_KEY")
+
+    echo "👤 Sender Address: $SENDER_ADDR"
+    echo "🎯 Receiver Address: $RECEIVER"
+    echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
 
     # ✅ Retrieve initial nonce
-    local initial_nonce
-    initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$l2_rpc_url") || {
-        echo "❌ Failed to retrieve nonce for sender: $sender_addr using RPC URL: $l2_rpc_url"
+    local INITIAL_NONCE
+    INITIAL_NONCE=$(cast nonce "$SENDER_ADDR" --rpc-url "$L2_RPC_URL") || {
+        echo "❌ Failed to retrieve nonce for sender: $SENDER_ADDR using RPC URL: $L2_RPC_URL"
         return 1
     }
+    echo "📜 Initial Nonce: $INITIAL_NONCE"
 
-    local value="10ether"
+    local VALUE="10ether"
 
     # ✅ Successful transaction
-    run send_tx "$l2_rpc_url" "$private_key" "$receiver" "$value"
+    echo "🚀 Sending $VALUE from $SENDER_ADDR to $RECEIVER..."
+    run send_tx "$L2_RPC_URL" "$PRIVATE_KEY" "$RECEIVER" "$VALUE"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     # ✅ Excessive transaction (should fail)
-    local sender_balance
-    sender_balance=$(cast balance "$sender_addr" --ether --rpc-url "$l2_rpc_url") || {
-        echo "❌ Failed to retrieve balance for sender: $sender_addr using RPC URL: $l2_rpc_url"
+    local SENDER_BALANCE
+    SENDER_BALANCE=$(cast balance "$SENDER_ADDR" --ether --rpc-url "$L2_RPC_URL") || {
+        echo "❌ Failed to retrieve balance for sender: $SENDER_ADDR using RPC URL: $L2_RPC_URL"
         return 1
     }
 
-    local excessive_value
-    excessive_value=$(echo "$sender_balance + 1" | bc)"ether"
-    run send_tx "$l2_rpc_url" "$private_key" "$receiver" "$excessive_value"
+    local EXCESSIVE_VALUE
+    EXCESSIVE_VALUE=$(echo "$SENDER_BALANCE + 1" | bc)"ether"
+    echo "⚠️ Attempting to send excessive funds: $EXCESSIVE_VALUE (should fail)..."
+    run send_tx "$L2_RPC_URL" "$PRIVATE_KEY" "$RECEIVER" "$EXCESSIVE_VALUE"
     assert_failure  # ✅ Transaction should fail
 
     # ✅ Verify nonce was updated correctly
-    local final_nonce
-    final_nonce=$(cast nonce "$sender_addr" --rpc-url "$l2_rpc_url") || {
-        echo "❌ Failed to retrieve nonce for sender: $sender_addr using RPC URL: $l2_rpc_url"
+    local FINAL_NONCE
+    FINAL_NONCE=$(cast nonce "$SENDER_ADDR" --rpc-url "$L2_RPC_URL") || {
+        echo "❌ Failed to retrieve nonce for sender: $SENDER_ADDR using RPC URL: $L2_RPC_URL"
         return 1
     }
+    echo "📜 Final Nonce: $FINAL_NONCE"
 
-    assert_equal "$final_nonce" "$(echo "$initial_nonce + 1" | bc)"
+    assert_equal "$FINAL_NONCE" "$(echo "$INITIAL_NONCE + 1" | bc)"
 }
