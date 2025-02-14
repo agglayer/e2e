@@ -6,6 +6,7 @@ setup() {
 }
 
 # bats file_tags=regression,gas-limit-overflow,el:cdk-erigon
+# https://github.com/0xPolygonHermez/cdk-erigon/issues/953
 @test "rpc and sequencer handles two large transactions" {
     load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
     load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
