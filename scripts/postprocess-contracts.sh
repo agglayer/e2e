@@ -5,7 +5,7 @@ if [[ ! -d compiled-contracts ]]; then
     exit 1
 fi
 
-find compiled-contracts -mindepth 1 -type d -name '*.sol' | while read contract; do
+find compiled-contracts -mindepth 1 -type d -name '*.sol' ! -name 'draft-*' | while read contract; do
     echo $contract
     contract_name=$(echo $contract | sed 's/compiled-contracts\/\(.*\).sol/\1/')
     echo $contract_name

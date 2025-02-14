@@ -4,7 +4,7 @@ set -euo pipefail
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 
 NETWORK="${1:-fork12-cdk-erigon-validium}"
-COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/combinations/${NETWORK}.yml"
+COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/v0.2.30/.github/tests/combinations/${NETWORK}.yml"
 
 echo "🔥 Deploying Kurtosis environment for network: $NETWORK"
 echo "📄 Using combinations file: $COMBINATIONS_FILE"
@@ -20,7 +20,7 @@ kurtosis clean --all
 
 # ✅ Run Kurtosis from GitHub (just like local)
 kurtosis run --enclave cdk \
-            github.com/0xPolygon/kurtosis-cdk@v0.2.27 \
+            github.com/0xPolygon/kurtosis-cdk@v0.2.30 \
             --args-file="$COMBINATIONS_FILE"
 
 # ✅ Fetch and export RPC URL

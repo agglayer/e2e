@@ -5,7 +5,7 @@ setup() {
     _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=heavy,uniswap
+# bats file_tags=heavy,uniswap,el:any
 @test "Deploy and test UniswapV3 contract" {
     # ✅ Generate a fresh wallet
     wallet_A_json=$(cast wallet new --json)
