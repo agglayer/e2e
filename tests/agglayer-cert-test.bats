@@ -1,6 +1,8 @@
 setup() {
     load "$PROJECT_ROOT/core/helpers/common-setup"
     _common_setup
+
+    # Load ENV
     export CDK_NETWORKCONFIG_L1_L1CHAINID="$(cast chain-id --rpc-url $(kurtosis port print cdk el-1-geth-lighthouse rpc))"
     export CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polygonZkEVMGlobalExitRootAddress" | awk -F'"' '{print $4}')"
     export CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polygonRollupManagerAddress" | awk -F'"' '{print $4}')"
@@ -32,11 +34,13 @@ setup() {
 
     export CDK_AGGSENDER_STORAGEPATH="./cdk-databases/aggsender.sqlite"
     export CDK_AGGSENDER_AGGLAYERURL="$(kurtosis port print cdk agglayer agglayer)"
-    export CDK_AGGSENDER_AGGSENDERPRIVATEKEY_PATH="./test.keystore.sequencer"
+    export CDK_AGGSENDER_AGGSENDERPRIVATEKEY_PATH="./cdk-databases/sequencer.test.keystore"
     export CDK_AGGSENDER_AGGSENDERPRIVATEKEY_PASSWORD="testonly"
     export CDK_AGGSENDER_URLRPCL2="$(kurtosis port print cdk op-el-1-op-geth-op-node-op-kurtosis rpc)"
 
     export L1_Bridge_ADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polygonZkEVMBridgeAddress" | awk -F'"' '{print $4}')
+
+    export sequencer_private_key=0x45f3ccdaff88ab1b3bb41472f09d5cde7cb20a6cbbc9197fddf64e2f3d67aaf2
 
     echo "ENV set sucessfully"
 }
@@ -47,6 +51,7 @@ setup() {
     rm -rf cdk-databases
     # Create db folder and set ENV
     mkdir -p "cdk-databases"
+    cast wallet import --keystore-dir ./cdk-databases sequencer.test.keystore --private-key $sequencer_private_key --unsafe-password "testonly"
 
     ## Send L1 Bridge
     local amount_l1="1000000000000000000"
@@ -78,6 +83,7 @@ setup() {
     rm -rf cdk-databases
     # Create db folder and set ENV
     mkdir -p "cdk-databases"
+    cast wallet import --keystore-dir ./cdk-databases sequencer.test.keystore --private-key $sequencer_private_key --unsafe-password "testonly"
 
     ## Send L1 Bridge
     local amount_l1="1000000000000000000"
@@ -228,6 +234,7 @@ function validCert() {
         echo "Error: Failed to send Certificate. Output: $spammer_output"
         return 1
     fi
+    echo "$spammer_output"
     cert_hash=$(extract_certificate_hash "$spammer_output")
     if [[ -z "$cert_hash" ]] ; then
        echo "Error: Failed to extract the certificate hash. $cert_hash"
