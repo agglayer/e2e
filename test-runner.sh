@@ -68,7 +68,7 @@ BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
 
 # ✅ Run BATS tests with **correct** `--filter-tags` format
 if [[ ${#FILTER_ARGS[@]} -gt 0 ]]; then
-    env bats --show-output-of-passing-tests "${FILTER_ARGS[@]}" $BATS_TESTS_LIST
+    env bats --verbose-run --print-output-on-failure --show-output-of-passing-tests "${FILTER_ARGS[@]}" $BATS_TESTS_LIST
 else
-    env bats --show-output-of-passing-tests $BATS_TESTS_LIST
+    env bats --verbose-run --print-output-on-failure --show-output-of-passing-tests $BATS_TESTS_LIST
 fi
