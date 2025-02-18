@@ -5,7 +5,7 @@ setup() {
     _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=heavy,zk-counters
+# bats file_tags=heavy,zk-counters,el:cdk-erigon
 @test "Test zkCounters" {
     echo "🚀 Running Go test for zkCounters..."
 

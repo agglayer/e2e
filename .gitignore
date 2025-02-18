@@ -2,3 +2,4 @@
 cache
 compiled-contracts
 test-txs.ndjson
+cdk-databases/

@@ -8,7 +8,7 @@ setup() {
     contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 }
 
-# bats file_tags=light,erc20
+# bats file_tags=light,erc20,el:any
 @test "Test ERC20Mock contract" {
   
     export PRIVATE_KEY="$PRIVATE_KEY"

@@ -5,7 +5,7 @@ setup() {
     _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=light,batch-verification
+# bats file_tags=light,batch-verification,el:cdk-erigon
 @test "Verify batches" {
     # ✅ Ensure Foundry's `cast` is available
     if ! command -v cast &> /dev/null; then

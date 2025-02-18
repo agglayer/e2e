@@ -28,7 +28,7 @@ make install
 This will:
 
 - Install `polygon-test-runner` in `~/.local/bin`
-- Ensure all dependencies (BATS, Foundry, Go, `jq`, `polycli`) are installed.
+- Ensure all dependencies (BATS (v1.11.1 or higher), Foundry, Go, `jq`, `polycli`) are installed.
 
 💡 **Ensure `~/.local/bin` is in your `PATH`** (handled automatically during install). If not:
 
@@ -71,6 +71,7 @@ Run **heavy + danger** tests together:
 ```sh
 polygon-test-runner --filter-tags "heavy,danger"
 ```
+**Note:** This commands must be run from the root of the project.
 
 Run **with logging enabled**:
 

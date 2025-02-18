@@ -1,5 +1,5 @@
 name: Test e2e
-on: 
+on:
   push:
     branches:
       - '**'
@@ -54,9 +54,9 @@ jobs:
     - name: Install polycli
       run: |
         POLYCLI_VERSION=$(curl -s https://api.github.com/repos/0xPolygon/polygon-cli/releases/latest | jq -r '.tag_name')
-        tmp_dir=$(mktemp -d) 
-        curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir" 
-        mv "$tmp_dir"/* /usr/local/bin/polycli 
+        tmp_dir=$(mktemp -d)
+        curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
+        mv "$tmp_dir"/* /usr/local/bin/polycli
         rm -rf "$tmp_dir"
         sudo chmod +x /usr/local/bin/polycli
         /usr/local/bin/polycli version
@@ -76,7 +76,7 @@ jobs:
       with:
         repository: 0xPolygon/kurtosis-cdk
         path: "kurtosis-cdk"
-        ref: "v0.2.27"
+        ref: "v0.2.30"
 
     - name: Setup Bats and bats libs
       uses: bats-core/bats-action@2.0.0
@@ -84,19 +84,19 @@ jobs:
     - name: Setup Devnet w/ Kurtosis
       run: |
         ./core/helpers/setup-kurtosis.sh "${{ matrix.network }}"
-        
+
     - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
       run: |
         echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
         echo "✅ Using Kurtosis SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
-        
+
         # Ensure the .env file exists
         touch tests/.env
-        
+
         # Remove any existing L2_RPC_URL entry (if it exists)
         sed -i '/^L2_RPC_URL=/d' tests/.env
         sed -i '/^L2_SEQUENCER_RPC_URL=/d' tests/.env
-        
+
         # Append the new L2_RPC_URL and L2_SEQUENCER_RPC_URL to .env with a newline
         echo "" >> tests/.env
         echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
@@ -112,7 +112,7 @@ jobs:
     - name: Run E2E Tests
       run: |
         polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
-  
+
     - name: Dump enclave logs
       if: failure()
       run: kurtosis dump ./dump

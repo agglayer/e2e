@@ -6,7 +6,7 @@ setup() {
     _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=light,eoa
+# bats file_tags=light,eoa,el:any
 @test "Send EOA transaction" {
     export RECEIVER="${RECEIVER:-0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6}"
 
