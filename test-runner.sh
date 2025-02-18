@@ -8,16 +8,22 @@ else
 fi
 
 # ✅ Default Variables
-SHOW_OUTPUT="false"  # Controls verbosity
+SHOW_OUTPUT="false"
 FILTER_TAGS=()  # Initialize empty array
 
 # ✅ Detect Project Root
 PROJECT_ROOT="$(pwd)"
 export PROJECT_ROOT
 
-# ✅ Load shared env vars safely
+# ✅ Load shared env vars (Cross-Platform Fix)
 if [[ -f "$PROJECT_ROOT/tests/.env" ]]; then
-    export $(grep -v '^#' "$PROJECT_ROOT/tests/.env" | xargs)
+    set -a  # Enable export of all variables
+    while IFS='=' read -r key value || [[ -n "$key" ]]; do
+        if [[ -n "$key" && -n "$value" ]]; then
+            eval "export $key=\"$value\""
+        fi
+    done < <(grep -v '^#' "$PROJECT_ROOT/tests/.env")
+    set +a  # Disable auto-export
     echo -e "✅ Loaded $PROJECT_ROOT/tests/.env"
 else
     echo "⚠️ WARNING: No .env file found at $PROJECT_ROOT/tests/.env"
@@ -78,13 +84,22 @@ else
     echo "🚀 Running all tests (no filter applied)"
 fi
 
-# ✅ Select BATS test files
-BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
+# ✅ Select BATS test files (Fixed Bash Compatibility)
+BATS_TESTS_LIST=()
+while IFS= read -r file; do
+    BATS_TESTS_LIST+=("$file")
+done < <(find tests -type f -name "*.bats" 2>/dev/null)
+
+# ✅ Check if any tests were found
+if [[ ${#BATS_TESTS_LIST[@]} -eq 0 ]]; then
+    echo "❌ ERROR: No test files found!"
+    exit 1
+fi
 
 # ✅ Run BATS Tests (Minimal Output by Default)
 if [[ "$SHOW_OUTPUT" == "true" ]]; then
     echo "📢 Verbose Mode Enabled: Showing output of passing tests"
-    env bats --show-output-of-passing-tests "${FILTER_ARGS[@]}" $BATS_TESTS_LIST
+    env bats --show-output-of-passing-tests "${FILTER_ARGS[@]}" "${BATS_TESTS_LIST[@]}"
 else
-    env bats "${FILTER_ARGS[@]}" $BATS_TESTS_LIST
+    env bats "${FILTER_ARGS[@]}" "${BATS_TESTS_LIST[@]}"
 fi

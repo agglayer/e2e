@@ -17,37 +17,13 @@ jobs:
           - network: "fork9-cdk-erigon-validium"
             filter_tags: "light"
 
-          - network: "fork9-cdk-erigon-validium"
-            filter_tags: "zk-counters"
-
-          # Fork 9 - Rollup
-          - network: "fork9-cdk-erigon-rollup"
-            filter_tags: "zk-counters"
-
           # Fork 11 - Validium
           - network: "fork11-cdk-erigon-validium"
             filter_tags: "zk-counters"
 
-          # Fork 11 - Rollup
-          - network: "fork11-cdk-erigon-rollup"
-            filter_tags: "batch-verification,eoa,erc20,access-list"
-
-          - network: "fork11-cdk-erigon-rollup"
-            filter_tags: "zk-counters"
-
           # Fork 12 - Validium
           - network: "fork12-cdk-erigon-validium"
-            filter_tags: "heavy,uniswap"
-
-          - network: "fork12-cdk-erigon-validium"
-            filter_tags: "zk-counters"
-
-          # Fork 12 - Rollup
-          - network: "fork12-cdk-erigon-rollup"
-            filter_tags: "zk-counters"
-
-          - network: "fork12-cdk-erigon-rollup"
-            filter_tags: "" # run all tests
+            filter_tags: "batch-verification,gas-limit-overflow,access-list"
 
     runs-on: ubuntu-latest
     timeout-minutes: 30

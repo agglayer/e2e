@@ -9,13 +9,17 @@ setup() {
 @test "Verify batches" {
     # ✅ Ensure Foundry's `cast` is available
     if ! command -v cast &> /dev/null; then
-        echo "❌ ERROR: Foundry `cast` not installed. Install with: curl -L https://foundry.paradigm.xyz | bash"
+        echo "❌ ERROR: Foundry $(cast) not installed. Install with: curl -L https://foundry.paradigm.xyz | bash"
         exit 1
     fi
 
     # ✅ Test Parameters
-    VERIFIED_BATCHES_TARGET=0
-    TIMEOUT=600  # 10 minutes
+    local VERIFIED_BATCHES_TARGET=0
+    local TIMEOUT=600  # 10 minutes
+    local START_TIME
+    local END_TIME
+    local CURRENT_TIME
+
     START_TIME=$(date +%s)
     END_TIME=$((START_TIME + TIMEOUT))
 
@@ -24,6 +28,7 @@ setup() {
 
     while true; do
         # ✅ Get the verified batch count
+        local VERIFIED_BATCHES
         VERIFIED_BATCHES=$(cast rpc --rpc-url "$L2_RPC_URL" zkevm_verifiedBatchNumber | tr -d '"')
 
         # ✅ Check for errors

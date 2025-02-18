@@ -9,8 +9,13 @@ setup() {
 @test "Deploy and test UniswapV3 contract" {
     # ✅ Generate a fresh wallet
     wallet_A_json=$(cast wallet new --json)
-    export ADDRESS_A=$(echo "$wallet_A_json" | jq -r '.[0].address')
-    export PRIVATE_KEY_A=$(echo "$wallet_A_json" | jq -r '.[0].private_key')
+
+    ADDRESS_A_VALUE=$(echo "$wallet_A_json" | jq -r '.[0].address')
+    PRIVATE_KEY_A_VALUE=$(echo "$wallet_A_json" | jq -r '.[0].private_key')
+
+    export ADDRESS_A="$ADDRESS_A_VALUE"
+    export PRIVATE_KEY_A="$PRIVATE_KEY_A_VALUE"
+    export PRIVATE_KEY="$PRIVATE_KEY"
 
     echo "👤 Wallet A: $ADDRESS_A"
     echo "🔑 Wallet A Private Key: (hidden)"

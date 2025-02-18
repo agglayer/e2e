@@ -13,7 +13,6 @@ _common_setup() {
 
     # ✅ Standard contract addresses
     export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
-    
     export DEPLOY_SALT="${DEPLOY_SALT:-0x0000000000000000000000000000000000000000000000000000000000000000}"
 
     # ✅ Standard function signatures
@@ -22,17 +21,18 @@ _common_setup() {
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
     # ✅ Kurtosis service setup
-    export ENCLAVE=${KURTOSIS_ENCLAVE:-cdk}
-    export CONTRACTS_CONTAINER=${KURTOSIS_CONTRACTS:-contracts-001}
-    export CONTRACTS_SERVICE_WRAPPER=${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}
-    export ERIGON_RPC_NODE=${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}
-    export ERIGON_SEQUENCER_RPC_NODE=${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}
+    export ENCLAVE="${KURTOSIS_ENCLAVE:-cdk}"
+    export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
+    export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
+    export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
+    export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
     # ✅ Standardized L2 RPC URL Handling
     if [[ -n "${L2_RPC_URL:-}" ]]; then
         export L2_RPC_URL="$L2_RPC_URL"
     elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        export L2_RPC_URL="$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)"
+        L2_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
+        export L2_RPC_URL="$L2_RPC_URL_CMD"
     else
         echo "❌ ERROR: No valid L2 RPC URL found!"
         exit 1
@@ -43,7 +43,8 @@ _common_setup() {
     if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
         export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
     elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        export L2_SEQUENCER_RPC_URL="$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)"
+        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
+        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
     else
         echo "❌ ERROR: No valid SEQUENCER RPC URL found!"
         exit 1
@@ -52,8 +53,12 @@ _common_setup() {
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
-    export PRIVATE_KEY=$(echo "$wallet_json" | jq -r '.[0].private_key')
-    export PUBLIC_ADDRESS=$(echo "$wallet_json" | jq -r '.[0].address')
+
+    PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '.[0].private_key')
+    PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '.[0].address')
+
+    export PRIVATE_KEY="$PRIVATE_KEY_VALUE"
+    export PUBLIC_ADDRESS="$PUBLIC_ADDRESS_VALUE"
 
     if [[ -z "$PRIVATE_KEY" || -z "$PUBLIC_ADDRESS" ]]; then
         echo "❌ ERROR: Failed to generate wallet."
@@ -73,7 +78,9 @@ _common_setup() {
 
     # ✅ Check Admin Wallet Balance Before Sending Funds
     export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    admin_balance=$(cast balance "$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")" --ether --rpc-url "$L2_RPC_URL")
+
+    ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
+    admin_balance=$(cast balance "$ADMIN_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
 
     if (( $(echo "$admin_balance < 1" | bc -l) )); then
         echo "❌ ERROR: Admin wallet is out of funds! Current balance: $admin_balance ETH"

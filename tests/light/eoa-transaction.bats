@@ -9,7 +9,14 @@ setup() {
 # bats file_tags=light,eoa
 @test "Send EOA transaction" {
     export RECEIVER="${RECEIVER:-0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6}"
-    export SENDER_ADDR=$(cast wallet address --private-key "$PRIVATE_KEY")
+
+    # ✅ Fix SC2155: Assign before exporting
+    local sender_temp
+    sender_temp=$(cast wallet address --private-key "$PRIVATE_KEY") || {
+        echo "❌ Failed to retrieve sender address from private key."
+        return 1
+    }
+    export SENDER_ADDR="$sender_temp"
 
     echo "👤 Sender Address: $SENDER_ADDR"
     echo "🎯 Receiver Address: $RECEIVER"

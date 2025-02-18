@@ -49,9 +49,7 @@ make uninstall
 Run **tagged tests** against any remote blockchain:
 
 ```sh
-L2_RPC_URL=http://127.0.0.1:60784 \
-L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 \
-polygon-test-runner --filter-tags "light"
+L2_RPC_URL=http://127.0.0.1:60784 polygon-test-runner --filter-tags "light"
 ```
 
 ### 🔹 Examples
@@ -223,4 +221,3 @@ This will:
 👉 **Designed for CI/CD**  
 
 🚀 **Start testing with `polygon-test-runner` today!**
-
