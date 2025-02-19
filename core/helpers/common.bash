@@ -247,7 +247,6 @@ function check_balances() {
     local sender_initial_balance="$5"
     local receiver_initial_balance="$6"
 
-    # Ethereum address regex: 0x followed by 40 hexadecimal characters
     if [[ ! "$sender" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
         echo "Error: Invalid sender address '$sender'."
         return 1
@@ -258,35 +257,30 @@ function check_balances() {
         return 1
     fi
 
-    # Transaction hash regex: 0x followed by 64 hexadecimal characters
     if [[ ! "$tx_hash" =~ ^0x[a-fA-F0-9]{64}$ ]]; then
         echo "Error: Invalid transaction hash: $tx_hash"
         return 1
     fi
 
-    local sender_final_balance=$(cast balance "$sender" --ether --rpc-url "$l2_rpc_url") || return 1
+    local sender_final_balance=$(cast balance "$sender" --ether --rpc-url "$L2_RPC_URL") || return 1
     echo "Sender final balance: '$sender_final_balance' wei"
-    echo "RPC url: '$l2_rpc_url'"
+    echo "RPC url: '$L2_RPC_URL'"
 
-    # Capture transaction output
     local tx_output
-    tx_output=$(cast tx "$tx_hash" --rpc-url "$l2_rpc_url")
+    tx_output=$(cast tx "$tx_hash" --rpc-url "$L2_RPC_URL")
     if [[ $? -ne 0 ]]; then
         echo "Error: Failed to fetch transaction details"
         echo "$tx_output"
         return 1
     fi
 
-    # Debugging tx_output
     echo "Transaction output: $tx_output"
 
-    # Parse gas used and gas price from tx_output using updated regex
     local gas_used
     gas_used=$(echo "$tx_output" | grep -Eo "gas\s+[0-9]+" | awk '{print $2}')
     local gas_price
     gas_price=$(echo "$tx_output" | grep -Eo "gasPrice\s+[0-9]+" | awk '{print $2}')
 
-    # Check if gas_used and gas_price are found
     if [[ -z "$gas_used" || -z "$gas_price" ]]; then
         echo "Error: Gas used or gas price not found in transaction output."
         return 1
@@ -306,12 +300,11 @@ function check_balances() {
     echo "Gas fee paid: '$gas_fee_in_ether' ether"
 
     local receiver_final_balance
-    receiver_final_balance=$(cast balance "$receiver" --ether --rpc-url "$l2_rpc_url") || return 1
+    receiver_final_balance=$(cast balance "$receiver" --ether --rpc-url "$L2_RPC_URL") || return 1
     local receiver_balance_change
     receiver_balance_change=$(echo "$receiver_final_balance - $receiver_initial_balance" | bc)
     echo "Receiver balance changed by: '$receiver_balance_change' wei"
 
-    # Trim 'ether' suffix from amount to get the numeric part
     local value_in_ether
     value_in_ether=$(echo "$amount" | sed 's/ether$//')
 
@@ -320,7 +313,6 @@ function check_balances() {
         return 1
     fi
 
-    # Calculate expected sender balance change
     local expected_sender_change
     expected_sender_change=$(echo "$value_in_ether + $gas_fee_in_ether" | bc)
     if ! echo "$sender_balance_change == $expected_sender_change" | bc -l; then
@@ -328,6 +320,7 @@ function check_balances() {
         return 1
     fi
 }
+
 
 function verify_balance() {
     local rpc_url="$1"             # RPC URL

@@ -7,48 +7,61 @@ setup() {
 
 # bats file_tags=light,batch-verification,el:cdk-erigon
 @test "Verify batches" {
-    # ✅ Validate required dependencies
+    # ✅ Ensure Foundry's `cast` is available
     if ! command -v cast &> /dev/null; then
-        echo "❌ ERROR: Foundry `cast` not installed. Install with: curl -L https://foundry.paradigm.xyz | bash"
+        echo "❌ ERROR: Foundry $(cast) not installed. Install with: curl -L https://foundry.paradigm.xyz | bash"
         exit 1
     fi
 
-    # ✅ Set test parameters
-    verified_batches_target=0
-    timeout=600  # 10 minutes
-    start_time=$(date +%s)
-    end_time=$((start_time + timeout))
+    # ✅ Test Parameters
+    local VERIFIED_BATCHES_TARGET=0
+    local TIMEOUT=600  # 10 minutes
+    local START_TIME
+    local END_TIME
+    local CURRENT_TIME
 
-    echo "📡 Using L2_RPC_URL: $l2_rpc_url"
+    START_TIME=$(date +%s)
+    END_TIME=$((START_TIME + TIMEOUT))
+
+    echo "📡 Using L2_RPC_URL: $L2_RPC_URL"
     echo "🔑 Using Private Key: (hidden for security)"
 
     while true; do
         # ✅ Get the verified batch count
-        verified_batches="$(cast to-dec "$(cast rpc --rpc-url "$l2_rpc_url" zkevm_verifiedBatchNumber | sed 's/"//g')")"
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Verified Batches: $verified_batches"
+        local VERIFIED_BATCHES
+        VERIFIED_BATCHES=$(cast rpc --rpc-url "$L2_RPC_URL" zkevm_verifiedBatchNumber | tr -d '"')
 
-        # ✅ Trigger a transaction to push the network forward
+        # ✅ Check for errors
+        if [[ -z "$VERIFIED_BATCHES" || "$VERIFIED_BATCHES" == "null" ]]; then
+            echo "❌ ERROR: Failed to fetch batch number from RPC."
+            return 1
+        fi
+
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔢 Verified Batches: $VERIFIED_BATCHES"
+
+        # ✅ Send a dummy transaction to advance the network
+        echo "🚀 Sending dummy transaction to push batch verification forward..."
         run cast send \
             --legacy \
-            --rpc-url "$l2_rpc_url" \
-            --private-key "$private_key" \
-            --gas-limit 100_000 \
+            --rpc-url "$L2_RPC_URL" \
+            --private-key "$PRIVATE_KEY" \
+            --gas-limit 100000 \
             --create 0x600160015B810190630000000456
 
         assert_success  # ✅ Ensure transaction was sent successfully
 
-        # ✅ Check timeouts and batch verification progress
-        current_time=$(date +%s)
-        if ((current_time > end_time)); then
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Exiting... Timeout reached!"
-            return 1  # ✅ Test fails on timeout
+        # ✅ Timeout & Progress Check
+        CURRENT_TIME=$(date +%s)
+        if ((CURRENT_TIME > END_TIME)); then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⏳ ❌ Timeout reached! Exiting..."
+            return 1  # ✅ Fail test if timeout occurs
         fi
 
-        if ((verified_batches > verified_batches_target)); then
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Exiting... $verified_batches batches were verified!"
+        if ((VERIFIED_BATCHES > VERIFIED_BATCHES_TARGET)); then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Success! $VERIFIED_BATCHES batches verified."
             return 0  # ✅ Test succeeds
         fi
 
-        sleep 10
+        sleep 10  # 🕒 Wait before retrying
     done
 }

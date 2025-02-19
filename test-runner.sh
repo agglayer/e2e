@@ -1,35 +1,53 @@
 #!/bin/bash
-set -euo pipefail
 
-# Default Values
-FILTER_TAGS=()  # Initialize as an empty array
+# ✅ Configurable Bash Error Handling
+if [[ "${ALLOW_PARTIAL_FAILURES:-false}" == "true" ]]; then
+    set -uo pipefail
+else
+    set -euo pipefail
+fi
 
-# Detect Project Root
+# ✅ Default Variables
+SHOW_OUTPUT="false"
+FILTER_TAGS=()  # Initialize empty array
+
+# ✅ Detect Project Root
 PROJECT_ROOT="$(pwd)"
 export PROJECT_ROOT
 
-# Load shared env vars safely
+# ✅ Load shared env vars (Cross-Platform Fix)
 if [[ -f "$PROJECT_ROOT/tests/.env" ]]; then
-    export $(grep -v '^#' "$PROJECT_ROOT/tests/.env" | xargs)
+    set -a  # Enable export of all variables
+    while IFS='=' read -r key value || [[ -n "$key" ]]; do
+        if [[ -n "$key" && -n "$value" ]]; then
+            eval "export $key=\"$value\""
+        fi
+    done < <(grep -v '^#' "$PROJECT_ROOT/tests/.env")
+    set +a  # Disable auto-export
     echo -e "✅ Loaded $PROJECT_ROOT/tests/.env"
 else
     echo "⚠️ WARNING: No .env file found at $PROJECT_ROOT/tests/.env"
 fi
 
-# Set BATS Library Path (Absolute Path)
+# ✅ Set BATS Library Path
 export BATS_LIB_PATH="$PROJECT_ROOT/core/helpers/lib"
 echo "📂 Resolved PROJECT_ROOT: $PROJECT_ROOT"
 echo "📦 BATS_LIB_PATH set to: $BATS_LIB_PATH"
 
-# Help Message
+# ✅ Help Message
 if [[ "${1:-}" == "--help" ]]; then
     echo "🛠️ polygon-test-runner CLI"
     echo ""
-    echo "Usage: polygon-test-runner [--filter-tags <tag1,tag2,...>] | [--all]"
+    echo "Usage: polygon-test-runner [--filter-tags <tag1,tag2,...>] | [--all] [--allow-failures] [--verbose]"
+    echo ""
+    echo "  --filter-tags   Run specific tests by comma-separated tags (e.g. light,uniswap)"
+    echo "  --all           Run all tests (default if no filter is provided)"
+    echo "  --allow-failures Allow partial test failures without stopping execution"
+    echo "  --verbose       Show output of passing tests (default is off for readability)"
     exit 0
 fi
 
-# 🔍 Parse CLI Arguments
+# ✅ Parse CLI Arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --filter-tags)
@@ -39,10 +57,13 @@ while [[ "$#" -gt 0 ]]; do
             fi
             ;;
         --all)
-            FILTER_TAGS=()  # Explicitly clear tags to run all tests
+            FILTER_TAGS=()  # Run all tests
             ;;
-        "")
-            echo "⚠️ Ignoring empty argument"
+        --allow-failures)
+            export ALLOW_PARTIAL_FAILURES="true"
+            ;;
+        --verbose)
+            SHOW_OUTPUT="true"
             ;;
         *)
             echo "❌ Unknown parameter: $1"
@@ -52,7 +73,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-# Build multiple --filter-tags arguments (only if tags exist)
+# ✅ Build `--filter-tags` Arguments
 FILTER_ARGS=()
 if [[ ${#FILTER_TAGS[@]} -gt 0 ]]; then
     for tag in "${FILTER_TAGS[@]}"; do
@@ -63,12 +84,22 @@ else
     echo "🚀 Running all tests (no filter applied)"
 fi
 
-# Select BATS test files
-BATS_TESTS_LIST=$(find tests -type f -name "*.bats")
+# ✅ Select BATS test files (Fixed Bash Compatibility)
+BATS_TESTS_LIST=()
+while IFS= read -r file; do
+    BATS_TESTS_LIST+=("$file")
+done < <(find tests -type f -name "*.bats" 2>/dev/null)
 
-# ✅ Run BATS tests with **correct** `--filter-tags` format
-if [[ ${#FILTER_ARGS[@]} -gt 0 ]]; then
-    env bats --show-output-of-passing-tests "${FILTER_ARGS[@]}" $BATS_TESTS_LIST
+# ✅ Check if any tests were found
+if [[ ${#BATS_TESTS_LIST[@]} -eq 0 ]]; then
+    echo "❌ ERROR: No test files found!"
+    exit 1
+fi
+
+# ✅ Run BATS Tests (Minimal Output by Default)
+if [[ "$SHOW_OUTPUT" == "true" ]]; then
+    echo "📢 Verbose Mode Enabled: Showing output of passing tests"
+    env bats --show-output-of-passing-tests "${FILTER_ARGS[@]}" "${BATS_TESTS_LIST[@]}"
 else
-    env bats --show-output-of-passing-tests $BATS_TESTS_LIST
+    env bats "${FILTER_ARGS[@]}" "${BATS_TESTS_LIST[@]}"
 fi

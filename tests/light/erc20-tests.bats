@@ -10,25 +10,49 @@ setup() {
 
 # bats file_tags=light,erc20,el:any
 @test "Test ERC20Mock contract" {
+  
+    export PRIVATE_KEY="$PRIVATE_KEY"
+    
     # ✅ Generate fresh wallets
-    wallet_A_json=$(cast wallet new --json)
-    address_A=$(echo "$wallet_A_json" | jq -r '.[0].address')
-    address_A_private_key=$(echo "$wallet_A_json" | jq -r '.[0].private_key')
-    address_B=$(cast wallet new --json | jq -r '.[0].address')
+    local wallet_A_json
+    wallet_A_json=$(cast wallet new --json) || {
+        echo "❌ ERROR: Failed to generate Wallet A"
+        return 1
+    }
 
-    echo "👤 Wallet A: $address_A"
+    local address_a private_key_a
+    address_a=$(echo "$wallet_A_json" | jq -r '.[0].address')
+    private_key_a=$(echo "$wallet_A_json" | jq -r '.[0].private_key')
+
+    local address_b
+    address_b=$(cast wallet new --json | jq -r '.[0].address') || {
+        echo "❌ ERROR: Failed to generate Wallet B"
+        return 1
+    }
+
+    # ✅ Export variables after assignment
+    export ADDRESS_A="$address_a"
+    export PRIVATE_KEY_A="$private_key_a"
+    export ADDRESS_B="$address_b"
+
+    echo "👤 Wallet A: $ADDRESS_A"
     echo "🔑 Wallet A Private Key: (hidden)"
-    echo "👤 Wallet B: $address_B"
+    echo "👤 Wallet B: $ADDRESS_B"
 
     # ✅ Deploy ERC20Mock Contract
-    run deploy_contract "$l2_rpc_url" "$private_key" "$contract_artifact"
+    run deploy_contract "$L2_RPC_URL" "$PRIVATE_KEY" "$contract_artifact"
     assert_success
-    contract_addr=$(echo "$output" | tail -n 1)
-    echo "🏗️ Deployed ERC20Mock at: $contract_addr"
+
+    # ✅ Fix SC2155: Assign before exporting
+    local contract_temp
+    contract_temp=$(echo "$output" | tail -n 1)
+    export CONTRACT_ADDR="$contract_temp"
+
+    echo "🏗️ Deployed ERC20Mock at: $CONTRACT_ADDR"
 
     # ✅ Mint ERC20 Tokens
     local amount="5"
-    run send_tx "$l2_rpc_url" "$private_key" "$contract_addr" "$mint_fn_sig" "$address_A" "$amount"
+    run send_tx "$L2_RPC_URL" "$PRIVATE_KEY" "$CONTRACT_ADDR" "$MINT_FN_SIG" "$ADDRESS_A" "$amount"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
@@ -41,22 +65,18 @@ setup() {
         return 1
     fi
 
-    local gas_units
-    gas_units=$(cast estimate --rpc-url "$l2_rpc_url" --create "$bytecode")
+    local gas_units gas_price value value_ether
+    gas_units=$(cast estimate --rpc-url "$L2_RPC_URL" --create "$bytecode") || return 1
     gas_units=$(echo "scale=0; $gas_units / 2" | bc)
-
-    local gas_price
-    gas_price=$(cast gas-price --rpc-url "$l2_rpc_url")
-
-    local value
+    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL") || return 1
     value=$(echo "$gas_units * $gas_price" | bc)
-    local value_ether
     value_ether=$(cast to-unit "$value" ether)"ether"
 
     echo "🚨 Deploying with insufficient gas: $value_ether"
 
-    cast send --rpc-url "$l2_rpc_url" --private-key "$private_key" "$address_A" --value "$value_ether" --legacy
+    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" "$ADDRESS_A" --value "$value_ether" --legacy
 
-    run deploy_contract "$l2_rpc_url" "$address_A_private_key" "$contract_artifact"
+    # ✅ Explicitly Capture Deploy Contract Failure
+    run deploy_contract "$L2_RPC_URL" "$PRIVATE_KEY_A" "$contract_artifact"
     assert_failure  # ✅ Should fail due to low gas
 }

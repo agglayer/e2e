@@ -1,8 +1,8 @@
 _common_setup() {
     bats_load_library 'bats-support'
     bats_load_library 'bats-assert'
-    
-    # Ensure PROJECT_ROOT is correct
+
+    # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
         PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
@@ -10,61 +10,77 @@ _common_setup() {
         echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
     fi
     PATH="$PROJECT_ROOT/src:$PATH"
-    
-    # Standard contract addresses
+
+    # ✅ Standard contract addresses
     export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
+    export DEPLOY_SALT="${DEPLOY_SALT:-0x0000000000000000000000000000000000000000000000000000000000000000}"
 
-    # Standard function signatures
-    export mint_fn_sig="function mint(address,uint256)"
-    export balance_of_fn_sig="function balanceOf(address) (uint256)"
-    export approve_fn_sig="function approve(address,uint256)"
+    # ✅ Standard function signatures
+    export MINT_FN_SIG="function mint(address,uint256)"
+    export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
+    export APPROVE_FN_SIG="function approve(address,uint256)"
 
-    # Kurtosis service setup
-    export enclave=${KURTOSIS_ENCLAVE:-cdk}
-    export contracts_container=${KURTOSIS_CONTRACTS:-contracts-001}
-    export contracts_service_wrapper=${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $enclave $contracts_container"}
-    export erigon_rpc_node=${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}
-    export erigon_sequencer_rpc_node=${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}
-  
+    # ✅ Kurtosis service setup
+    export ENCLAVE="${KURTOSIS_ENCLAVE:-cdk}"
+    export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
+    export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
+    export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
+    export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
+
     # ✅ Standardized L2 RPC URL Handling
     if [[ -n "${L2_RPC_URL:-}" ]]; then
-        export l2_rpc_url="$L2_RPC_URL"
+        export L2_RPC_URL="$L2_RPC_URL"
     elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        export l2_rpc_url="$(kurtosis port print "$enclave" "$erigon_rpc_node" rpc)"
+        L2_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
+        export L2_RPC_URL="$L2_RPC_URL_CMD"
     else
-        echo "❌ ERROR: No valid RPC URL found!"
+        echo "❌ ERROR: No valid L2 RPC URL found!"
         exit 1
     fi
-
-    echo "🔧 Using L2 RPC URL: $l2_rpc_url"
+    echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
 
     # ✅ Standardized L2 SEQUENCER RPC URL Handling
     if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
-        export l2_sequencer_rpc_url="$L2_SEQUENCER_RPC_URL"
+        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
     elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        export l2_sequencer_rpc_url="$(kurtosis port print "$enclave" "$erigon_sequencer_rpc_node" rpc)"
+        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
+        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
     else
         echo "❌ ERROR: No valid SEQUENCER RPC URL found!"
         exit 1
     fi
-
-    echo "🔧 Using L2 SEQUENCER RPC URL: $l2_sequencer_rpc_url"
+    echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
-    export private_key=$(echo "$wallet_json" | jq -r '.[0].private_key')
-    export public_address=$(echo "$wallet_json" | jq -r '.[0].address')
 
-    if [[ -z "$private_key" || -z "$public_address" ]]; then
-        echo "❌ Failed to generate wallet."
+    PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '.[0].private_key')
+    PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '.[0].address')
+
+    export PRIVATE_KEY="$PRIVATE_KEY_VALUE"
+    export PUBLIC_ADDRESS="$PUBLIC_ADDRESS_VALUE"
+
+    if [[ -z "$PRIVATE_KEY" || -z "$PUBLIC_ADDRESS" ]]; then
+        echo "❌ ERROR: Failed to generate wallet."
         exit 1
     fi
+    echo "🆕 Generated wallet: $PUBLIC_ADDRESS"
 
-    echo "🆕 Generated wallet: $public_address"
+    # ✅ Wallet Funding Configuration
+    if [[ "${DISABLE_FUNDING:-false}" == "true" ]]; then
+        echo "⚠️ Wallet funding is disabled. Skipping..."
+        return 0
+    fi
+
+    # ✅ Set funding amount dynamically
+    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-50}"  # Default to 50 ETH if not provided
+    FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
 
     # ✅ Check Admin Wallet Balance Before Sending Funds
-    export admin_private_key="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    admin_balance=$(cast balance "$(cast wallet address --private-key "$admin_private_key")" --ether --rpc-url "$l2_rpc_url")
+    export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+
+    ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
+    admin_balance=$(cast balance "$ADMIN_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
 
     if (( $(echo "$admin_balance < 1" | bc -l) )); then
         echo "❌ ERROR: Admin wallet is out of funds! Current balance: $admin_balance ETH"
@@ -74,7 +90,7 @@ _common_setup() {
     # ✅ Prefund Test Wallet (Retry if Needed)
     retries=3
     while [[ "$retries" -gt 0 ]]; do
-        funding_tx_hash=$(cast send --legacy --rpc-url "$l2_rpc_url" --private-key "$admin_private_key" --value 50000000000000000000 "$public_address") && break
+        funding_tx_hash=$(cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$ADMIN_PRIVATE_KEY" --value "$FUNDING_AMOUNT_WEI" "$PUBLIC_ADDRESS") && break
         echo "⚠️ Prefunding failed, retrying..."
         sleep 5
         ((retries--))
@@ -85,11 +101,11 @@ _common_setup() {
         exit 1
     fi
 
-    echo "💰 Sent 50 ETH to $public_address. TX: $funding_tx_hash"
+    echo "💰 Sent $FUNDING_AMOUNT_ETH ETH to $PUBLIC_ADDRESS. TX: $funding_tx_hash"
 
     # ✅ Wait for funds to be available
     sleep 10
-    sender_balance=$(cast balance "$public_address" --ether --rpc-url "$l2_rpc_url")
+    sender_balance=$(cast balance "$PUBLIC_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
 
     if (( $(echo "$sender_balance < 1" | bc -l) )); then
         echo "❌ ERROR: Wallet did not receive test funds!"
