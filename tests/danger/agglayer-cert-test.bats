@@ -7,16 +7,16 @@ setup() {
     CDK_NETWORKCONFIG_L1_L1CHAINID=$(cast chain-id --rpc-url "$(kurtosis port print cdk el-1-geth-lighthouse rpc)")
 
     export CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR
-    CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq -r '.polygonZkEVMGlobalExitRootAddress')
-
+    CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polygonZkEVMGlobalExitRootAddress" | awk -F'"' '{print $4}')"
+    
     export CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR
-    CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq -r '.polygonRollupManagerAddress')
+    CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polygonRollupManagerAddress" | awk -F'"' '{print $4}')"
 
     export CDK_NETWORKCONFIG_L1_POLADDR
-    CDK_NETWORKCONFIG_L1_POLADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq -r '.polTokenAddress')
+    CDK_NETWORKCONFIG_L1_POLADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polTokenAddress" | awk -F'"' '{print $4}')"
 
     export CDK_NETWORKCONFIG_L1_ZKEVMADDR
-    CDK_NETWORKCONFIG_L1_ZKEVMADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm-contracts/sovereign-rollup-out.json' | jq -r '.sovereignRollupContract')
+    CDK_NETWORKCONFIG_L1_ZKEVMADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm-contracts/sovereign-rollup-out.json' | tail -n +2 | jq | grep "sovereignRollupContract" | awk -F'"' '{print $4}')"
 
     export CDK_ETHERMAN_URL
     CDK_ETHERMAN_URL="http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)"
@@ -35,7 +35,7 @@ setup() {
     export CDK_BRIDGEL2SYNC_DBPATH="./cdk-databases/bridgel2sync.sqlite"
 
     export CDK_BRIDGEL2SYNC_BRIDGEADDR
-    CDK_BRIDGEL2SYNC_BRIDGEADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm-contracts/sovereign-rollup-out.json' | jq -r '.bridge_proxy_addr')
+    CDK_BRIDGEL2SYNC_BRIDGEADDR="$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm-contracts/sovereign-rollup-out.json' | tail -n +2 | jq | grep "bridge_proxy_addr" | awk -F'"' '{print $4}')"
 
     export CDK_L1INFOTREESYNC_DBPATH="./cdk-databases/L1InfoTreeSync.sqlite"
     export CDK_L1INFOTREESYNC_GLOBALEXITROOTADDR="$CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR"
@@ -54,10 +54,9 @@ setup() {
     CDK_AGGSENDER_URLRPCL2=$(kurtosis port print cdk op-el-1-op-geth-op-node-op-kurtosis rpc)
 
     export L1_Bridge_ADDR
-    L1_Bridge_ADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq -r '.polygonZkEVMBridgeAddress')
+    L1_Bridge_ADDR=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | tail -n +2 | jq | grep "polygonZkEVMBridgeAddress" | awk -F'"' '{print $4}')
 
     export SEQUENCER_PRIVATE_KEY="0x45f3ccdaff88ab1b3bb41472f09d5cde7cb20a6cbbc9197fddf64e2f3d67aaf2"
-
     echo "✅ ENV set successfully"
 }
 
