@@ -42,20 +42,36 @@ _common_setup() {
     # ✅ Standardized L2 SEQUENCER RPC URL Handling
     if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
         export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
+
     elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
-        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
+        if [[ "$KURTOSIS_ENCLAVE" == "op" ]]; then
+            # 🚀 Special case for OP Stack
+            echo "🔥 Detected OP Stack, using op-batcher-op-kurtosis"
+            L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$KURTOSIS_ENCLAVE" op-batcher-op-kurtosis http)
+            export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
+        else
+            # ✅ Standard Erigon-based sequencer lookup
+            L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$KURTOSIS_ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
+            export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
+        fi
     else
         echo "❌ ERROR: No valid SEQUENCER RPC URL found!"
         exit 1
     fi
+
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
 
+    echo "🛠 Raw wallet JSON output:"
+    echo "$wallet_json"
+
     PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '.[0].private_key')
     PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '.[0].address')
+
+    echo "🛠 Extracted PRIVATE_KEY: $PRIVATE_KEY_VALUE"
+    echo "🛠 Extracted PUBLIC_ADDRESS: $PUBLIC_ADDRESS_VALUE"
 
     export PRIVATE_KEY="$PRIVATE_KEY_VALUE"
     export PUBLIC_ADDRESS="$PUBLIC_ADDRESS_VALUE"
@@ -66,6 +82,7 @@ _common_setup() {
     fi
     echo "🆕 Generated wallet: $PUBLIC_ADDRESS"
 
+
     # ✅ Wallet Funding Configuration
     if [[ "${DISABLE_FUNDING:-false}" == "true" ]]; then
         echo "⚠️ Wallet funding is disabled. Skipping..."
@@ -75,11 +92,15 @@ _common_setup() {
     # ✅ Set funding amount dynamically
     FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-50}"  # Default to 50 ETH if not provided
     FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
+    
+    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
+    echo "🛠 Length: ${#L2_SENDER_PRIVATE_KEY} characters"
 
     # ✅ Check Admin Wallet Balance Before Sending Funds
     export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-
     ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
+
+    echo "🛠 ADMIN_ADDRESS: $ADMIN_ADDRESS"
     admin_balance=$(cast balance "$ADMIN_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
 
     if (( $(echo "$admin_balance < 1" | bc -l) )); then

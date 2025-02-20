@@ -24,6 +24,10 @@ jobs:
           # Fork 12 - Validium
           - network: "fork12-cdk-erigon-validium"
             filter_tags: "batch-verification,gas-limit-overflow,access-list"
+            
+          # OP Stack Test Network
+          - network: "op-stack"
+            filter_tags: "pessimistic"
 
     runs-on: ubuntu-latest
     timeout-minutes: 30

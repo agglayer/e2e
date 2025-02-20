@@ -61,7 +61,7 @@ setup() {
     echo "✅ ENV set successfully"
 }
 
-# bats test_tags=danger,agglayer-cert-test
+# bats test_tags=danger,agglayer-cert-test,cdk
 @test "Agglayer valid cert test" {
     echo "🔧 Cleaning up previous databases..."
     rm -rf cdk-databases
@@ -104,7 +104,7 @@ setup() {
     assert_success
 }
 
-# bats test_tags=agglayer-cert-fake-deposit-test
+# bats test_tags=danger,agglayer-cert-fake-deposit-test,cdk
 @test "Agglayer valid cert fake deposit test" {
     echo "🧹 Cleaning up previous databases..."
     rm -rf cdk-databases
@@ -147,7 +147,7 @@ setup() {
     rm -rf cdk-databases
 }
 
-# bats test_tags=agglayer-random-cert-test
+# bats test_tags=danger,agglayer-random-cert-test,cdk
 @test "Agglayer random cert test" {
     local network_id="2"
     local height="1004"
