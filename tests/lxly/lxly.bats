@@ -14,6 +14,7 @@ setup() {
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
+    claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
     erc20_token_name="e2e test"
     erc20_token_symbol="E2E"
@@ -57,7 +58,7 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
-            --wait 10m
+            --wait "$claim_wait_duration"
     set -e
 }
 
@@ -106,7 +107,7 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait 10m
+            --wait "$claim_wait_duration"
 
     token_hash=$(cast keccak $(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr"))
     wrapped_token_addr=$(cast call --rpc-url $l1_rpc_url "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
@@ -130,7 +131,7 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
-            --wait 10m
+            --wait "$claim_wait_duration"
     set -e
 
     # repeat the first step again to trigger another exit of l2 but with the added claim
@@ -152,7 +153,6 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait 10m
-
+            --wait "$claim_wait_duration"
 }
 
