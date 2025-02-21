@@ -5,7 +5,7 @@ setup() {
     _common_setup
 }
 
-# bats file_tags=heavy,prover-stress
+# bats file_tags=pessimistic,prover-stress
 @test "prover stress test" {
     load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
 

@@ -1,4 +1,5 @@
 name: Test e2e
+
 on:
   push:
     branches:
@@ -13,28 +14,46 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Fork 9 - Validium
+          # Fork 9 - Validium (defaults used)
           - network: "fork9-cdk-erigon-validium"
             filter_tags: "light"
 
-          # Fork 11 - Validium
+          # Fork 11 - Validium (defaults used)
           - network: "fork11-cdk-erigon-validium"
             filter_tags: "zk-counters"
 
-          # Fork 12 - Validium
+          # Fork 12 - Validium (defaults used)
           - network: "fork12-cdk-erigon-validium"
             filter_tags: "batch-verification,gas-limit-overflow,access-list"
 
+          # 🚀 OP Stack (custom env vars)
+          - network: "op-stack"
+            filter_tags: "pessimistic"
+            env:
+              KURTOSIS_ENCLAVE: "op"
+              L2_SENDER_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env: 
+      KURTOSIS_ENCLAVE: ${{ matrix.env.KURTOSIS_ENCLAVE || 'cdk' }}
+      L2_SENDER_PRIVATE_KEY: ${{ matrix.env.L2_SENDER_PRIVATE_KEY || '0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625' }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Run ShellCheck (Linting)
+
+    - name: Echo Debug Info
       run: |
-        sudo apt-get update && sudo apt-get install -y shellcheck
-        shellcheck core/helpers/common-setup.bash test-runner.sh $(find tests -type f -name "*.bats")
+        echo "🔍 Running tests for network: ${{ matrix.network }}"
+        echo "🔍 Using KURTOSIS_ENCLAVE: $KURTOSIS_ENCLAVE"
+        echo "🔍 Using L2_SENDER_PRIVATE_KEY: $L2_SENDER_PRIVATE_KEY"
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck jq
+        shellcheck --version
 
     - name: Install Kurtosis
       run: |
@@ -43,7 +62,7 @@ jobs:
         sudo apt install kurtosis-cli=1.4.1
         kurtosis version
 
-    - name: Disable kurtosis analytics
+    - name: Disable Kurtosis analytics
       run: kurtosis analytics disable
 
     - name: Install yq
@@ -61,7 +80,7 @@ jobs:
         sudo chmod +x /usr/local/bin/polycli
         /usr/local/bin/polycli version
 
-    - name: Install foundry
+    - name: Install Foundry
       uses: foundry-rs/foundry-toolchain@v1
 
     - name: Install Go
@@ -93,24 +112,28 @@ jobs:
         # Ensure the .env file exists
         touch tests/.env
 
-        # Remove any existing L2_RPC_URL entry (if it exists)
+        # Remove existing L2_RPC_URL entries
         sed -i '/^L2_RPC_URL=/d' tests/.env
         sed -i '/^L2_SEQUENCER_RPC_URL=/d' tests/.env
 
-        # Append the new L2_RPC_URL and L2_SEQUENCER_RPC_URL to .env with a newline
+        # Append new values
         echo "" >> tests/.env
         echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
         echo "L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL" >> tests/.env
 
-        # Print the updated .env for debugging
+        # Debugging Output
         cat tests/.env
 
     - name: Build polygon-test-runner
       run: |
         make install
 
-    - name: Run E2E Tests
+    - name: Run E2E Tests with Custom Env Vars
       run: |
+        L2_RPC_URL="$L2_RPC_URL" \
+        L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL" \
+        KURTOSIS_ENCLAVE="$KURTOSIS_ENCLAVE" \
+        L2_SENDER_PRIVATE_KEY="$L2_SENDER_PRIVATE_KEY" \
         polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
 
     - name: Dump enclave logs
