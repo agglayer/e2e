@@ -3,7 +3,7 @@ set -euo pipefail
 
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
 NETWORK="${1:-fork12-cdk-erigon-validium}"
-CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}"  # Allow custom image override
+CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}"  # Allow optional override
 
 # ✅ OP Stack Devnet Handling (No AggLayer Modifications Here)
 if [[ "$NETWORK" == "op-stack" ]]; then
@@ -33,17 +33,17 @@ else
     CONFIG_FILE=$(mktemp)
     curl -sSL "$COMBINATIONS_FILE" -o "$CONFIG_FILE"
 
-    # ✅ Modify AggLayer Image if Needed
+    # ✅ Modify AggLayer Image if Provided
     if [[ -n "$CUSTOM_AGGLAYER_IMAGE" ]]; then
         echo "🛠 Overriding AggLayer image with: $CUSTOM_AGGLAYER_IMAGE"
-        
-        # Check if `agglayer_image` exists in the file
+
+        # Check if `agglayer_image` already exists
         if yq eval '.args.agglayer_image' "$CONFIG_FILE" &>/dev/null; then
             echo "🔄 Updating existing agglayer_image entry..."
-            yq -i ".args.agglayer_image = \"$CUSTOM_AGGLAYER_IMAGE\"" "$CONFIG_FILE"
+            yq -i -y ".args.agglayer_image = \"$CUSTOM_AGGLAYER_IMAGE\"" "$CONFIG_FILE"
         else
             echo "➕ Adding missing agglayer_image entry..."
-            yq -i '.args.agglayer_image = "'"$CUSTOM_AGGLAYER_IMAGE"'"' "$CONFIG_FILE"
+            yq -i -y '.args.agglayer_image = "'"$CUSTOM_AGGLAYER_IMAGE"'"' "$CONFIG_FILE"
         fi
     fi
 
