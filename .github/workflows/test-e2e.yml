@@ -33,6 +33,10 @@ jobs:
               KURTOSIS_ENCLAVE: "op"
               L2_SENDER_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
+          # 🟣 Polygon PoS
+          - network: polygon-pos
+            filter_tags: pos
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
