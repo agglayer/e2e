@@ -5,11 +5,15 @@ setup() {
 
     # RPC Urls
     export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print pos el-1-geth-lighthouse rpc)"}
+    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE}" l2-cl-1-heimdall-bor-validator http)}
+    export L2_CL_NODE_TYPE=${L2_CL_NODE_TYPE:-"heimdall"}
+    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)}
 
     # Contract addresses
     matic_contract_addresses=$(kurtosis files inspect pos matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo $matic_contract_addresses | jq --raw-output '.root.DepositManagerProxy')}
     export ERC20_TOKEN_ADDRESS=${ERC20_TOKEN_ADDRESS:-$(echo $matic_contract_addresses | jq --raw-output '.root.tokens.MaticToken')}
+    export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect pos l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
 }
 
 # bats file_tags=pos:any
