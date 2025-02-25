@@ -30,7 +30,7 @@ elif [[ "${NETWORK}" == "polygon-pos" ]]; then
 
     # ✅ Run Kurtosis for Polygon PoS
     ENCLAVE="pos"
-    VERSION="v1.0.0"
+    VERSION="v1.0.1"
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/.github/tests/combinations/heimdall-bor-multi-validators.yml"
     kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" \
         "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
