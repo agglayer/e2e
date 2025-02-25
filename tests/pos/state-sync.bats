@@ -1,15 +1,18 @@
 #!/usr/bin/env bats
 
 setup() {
+    # Common setup.
+    load "$PROJECT_ROOT/core/helpers/common-setup.bash"
+    _common_setup # ✅ Standardized setup (wallet, funding, RPC, etc.)
+
+    # Define environment variables.
     export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
 
-    # RPC Urls
     export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print pos el-1-geth-lighthouse rpc)"}
+    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)}
     export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE}" l2-cl-1-heimdall-bor-validator http)}
     export L2_CL_NODE_TYPE=${L2_CL_NODE_TYPE:-"heimdall"}
-    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)}
 
-    # Contract addresses
     matic_contract_addresses=$(kurtosis files inspect pos matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo $matic_contract_addresses | jq --raw-output '.root.DepositManagerProxy')}
     export ERC20_TOKEN_ADDRESS=${ERC20_TOKEN_ADDRESS:-$(echo $matic_contract_addresses | jq --raw-output '.root.tokens.MaticToken')}
