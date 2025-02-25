@@ -16,7 +16,7 @@ setup() {
     export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect pos l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
 }
 
-# bats file_tags=pos:any
+# bats file_tags=pos,state-sync
 @test "Trigger State Sync" {
     # Bridge some ERC20 tokens to trigger a state sync.
     amount_to_bridge=10
