@@ -26,14 +26,14 @@ jobs:
           - network: "fork12-cdk-erigon-validium"
             filter_tags: "batch-verification,gas-limit-overflow,access-list"
 
-          # 🚀 OP Stack (custom env vars)
+          # OP Stack (with custom env vars), example
           - network: "op-stack"
             filter_tags: "pessimistic"
             env:
               KURTOSIS_ENCLAVE: "op"
               L2_SENDER_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
               
-          # ✅ Custom AggLayer Image, example
+          # Custom AggLayer Image, example
           - network: "fork12-cdk-erigon-validium"
             filter_tags: "batch-verification,gas-limit-overflow,access-list"
             custom_agglayer_image: "ghcr.io/agglayer/agglayer:0.3.0-rc.2"
