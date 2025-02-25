@@ -19,9 +19,11 @@ export PROJECT_ROOT
 if [[ -f "$PROJECT_ROOT/tests/.env" ]]; then
     set -a  # Enable export of all variables
     while IFS='=' read -r key value || [[ -n "$key" ]]; do
-        if [[ -n "$key" && -n "$value" ]]; then
-            eval "export $key=\"$value\""
-        fi
+      if [[ -n "$key" && -n "$value" ]]; then
+          if [[ -z "$(printenv "$key")" ]]; then
+              eval "export $key=\"$value\""
+          fi
+      fi
     done < <(grep -v '^#' "$PROJECT_ROOT/tests/.env")
     set +a  # Disable auto-export
     echo -e "✅ Loaded $PROJECT_ROOT/tests/.env"
