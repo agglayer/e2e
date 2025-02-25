@@ -46,7 +46,7 @@ elif [[ "${NETWORK}" == "polygon-pos" ]]; then
     export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"
     export_env_var "L2_RPC_URL" $(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)
     export_env_var "L2_CL_API_URL" $(kurtosis port print "${ENCLAVE}" l2-cl-1-heimdall-bor-validator http)
-    export_env_var "L2_CL_NODE_TYPE" $(yq --raw-output '.polygon_pos_package.participants[0].cl_type' ${ARGS_FILE})
+    export_env_var "L2_CL_NODE_TYPE" "heimdall"
 
     # ✅ Fetch and export contract addresses
     matic_contract_addresses=$(kurtosis files inspect ${ENCLAVE} matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
