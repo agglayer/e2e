@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 
 setup() {
+    # Load libraries.
+    bats_load_library 'bats-support'
+    bats_load_library 'bats-assert'
     load "$PROJECT_ROOT/core/helpers/common.bash"
 
     # Define environment variables.
