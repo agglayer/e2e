@@ -14,16 +14,17 @@ setup() {
 
 # bats file_tags=pos:any
 @test "Trigger State Sync" {
-    echo "✅ Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
     amount_to_bridge=10
+
+    echo "✅ Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
     run send_tx "$L1_RPC_URL" "$PRIVATE_KEY" "$ERC20_TOKEN_ADDRESS" \
-        "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" 10
+        "approve(address,uint)" "$L1_DEPOSIT_MANAGER_PROXY_ADDRESS" "$amount_to_bridge"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     echo "🚀 Depositing ERC20 to trigger a state sync..."
     run send_tx "$L1_RPC_URL" "$PRIVATE_KEY" "$DEPOSIT_MANAGER_PROXY_ADDRESS" \
-        "depositERC20(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" 10
+        "depositERC20(address,uint)" "$L1_DEPOSIT_MANAGER_PROXY_ADDRESS" "$amount_to_bridge"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
