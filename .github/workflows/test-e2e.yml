@@ -149,7 +149,6 @@ jobs:
         run: |
           archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}_${{ strategy.job-index }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
-          kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
 
       - name: Upload logs
         if: failure()
