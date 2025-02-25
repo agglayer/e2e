@@ -1,9 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-    # Common setup.
-    load "$PROJECT_ROOT/core/helpers/common-setup.bash"
-    _common_setup # ✅ Standardized setup (wallet, funding, RPC, etc.)
+    load "$PROJECT_ROOT/core/helpers/common.bash"
 
     # Define environment variables.
     export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
