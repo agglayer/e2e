@@ -14,6 +14,7 @@ setup() {
 
 # bats file_tags=pos:any
 @test "Trigger State Sync" {
+    # Bridge some ERC20 tokens to trigger a state sync.
     amount_to_bridge=10
 
     echo "✅ Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
@@ -28,5 +29,41 @@ setup() {
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
-    # TODO
+    # Monitor state syncs on the L2 consensus layer.
+    echo "👀 Monitoring state syncs on Heimdall..."
+    while true; do
+        if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+            state_sync_count=$(curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq '.result | length')
+        elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+            state_sync_count=$(curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq '.event_records | length')
+        else
+            echo '❌ Wrong L2 CL node type given: "${L2_CL_NODE_TYPE}". Expected "heimdall" or "heimdall-v2".'
+            exit 1
+        fi
+
+        if [[ "$state_sync_count" =~ ^[0-9]+$ ]] && [[ "$state_sync_count" -gt "0" ]]; then
+            echo "✅ A state sync occured! State sync count: ${state_sync_count}."
+            break
+        else
+            echo "No state sync occured yet... State sync count: ${state_sync_count}."
+        fi
+
+        echo "Waiting 5 seconds before next request..."
+        sleep 5
+    done
+
+    # Monitor state syncs on the L2 execution layer.
+    echo "👀 Monitoring state syncs on Bor..."
+    while true; do
+        latest_state_id=$(cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)")
+        if [[ "$latest_state_id" =~ ^[0-9]+$ ]] && [[ "$latest_state_id" -gt "0" ]]; then
+            echo "✅ A state sync was received! Latest state id: ${latest_state_id}."
+            break
+        else
+            echo "No state sync received yet... Latest state id: ${latest_state_id}."
+        fi
+
+        echo "Waiting 5 seconds before next request..."
+        sleep 5
+    done
 }
