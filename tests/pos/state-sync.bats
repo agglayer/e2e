@@ -18,9 +18,6 @@ setup() {
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo $matic_contract_addresses | jq --raw-output '.root.DepositManagerProxy')}
     export ERC20_TOKEN_ADDRESS=${ERC20_TOKEN_ADDRESS:-$(echo $matic_contract_addresses | jq --raw-output '.root.tokens.MaticToken')}
     export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect pos l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
-
-    # For this specific test, show the output since we're monitoring state syncs using infinite loops.
-    export SHOW_OUTPUT=true
 }
 
 # bats file_tags=pos,state-sync
@@ -54,6 +51,7 @@ setup() {
 
         if [[ "$state_sync_count" =~ ^[0-9]+$ ]] && [[ "$state_sync_count" -gt "0" ]]; then
             echo "✅ A state sync occured! State sync count: ${state_sync_count}."
+            assert_equal "$state_sync_count" 1
             break
         else
             echo "No state sync occured yet... State sync count: ${state_sync_count}."
@@ -66,9 +64,12 @@ setup() {
     # Monitor state syncs on the L2 execution layer.
     echo "👀 Monitoring state syncs on Bor..."
     while true; do
-        latest_state_id=$(cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)")
+        run query_contract "$L2_RPC_URL" "$L2_STATE_RECEIVER_ADDRESS" "lastStateId()(uint)"
+        assert_success
+        latest_state_id=$(echo "$output" | tail -n 1)
         if [[ "$latest_state_id" =~ ^[0-9]+$ ]] && [[ "$latest_state_id" -gt "0" ]]; then
             echo "✅ A state sync was received! Latest state id: ${latest_state_id}."
+            assert_equal "$latest_state_id" 1
             break
         else
             echo "No state sync received yet... Latest state id: ${latest_state_id}."
@@ -77,4 +78,5 @@ setup() {
         echo "Waiting 5 seconds before next request..."
         sleep 5
     done
+
 }
