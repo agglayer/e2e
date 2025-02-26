@@ -1,0 +1,51 @@
+https://devhints.io/bash
+https://google.github.io/styleguide/shellguide.html
+https://bats-core.readthedocs.io/en/stable/
+
+
+#+begin_src bash
+set +a
+source tests/.env
+set -a
+
+bats tests/agglayer/bridges.bats --filter-tags agglayer,rpc
+#+end_src
+
+* Naming
+
+Consistent and clear test naming is critical for maintaining
+readability, ensuring searchability, and improving test result
+clarity. We will enforce these naming standards during code review to
+maintain consistency across our test suite.  Naming Standard
+
+Each test should follow this pattern:
+
+#+begin_src bats
+@test "<action> <test scope> <conditions or properties> [expected outcome]"
+#+end_src
+
+Where:
+
+- ~<action>~ – What the test is *doing* (e.g., bridge, send, claim, create).
+- ~<test scope>~ – The subject of the test (e.g., native ETH, ERC20, contract, RPC call).
+- ~<conditions or properties>~ (optional) – Any constraints or test conditions (e.g., with low gas, after).
+- ~[expected outcome]~ (only if needed) – If success/failure isn’t obvious (e.g., fails if contract is paused).
+
+Examples:
+- ~@test "bridge native ETH from L2 to L1"~
+- ~@test "bridge native ETH from L2 to L1 without initial deposit fails"~
+- ~@test "withdraw ERC20 and finalize after challenge period"~
+- ~@test "deposit ETH on L2 with custom gas limit"~
+- ~@test "replay transaction on L1 with same nonce reverts"~
+- ~@test "bridge fails when contract is paused"~
+
+Best Practices:
+- Start with a clear action (e.g., bridge, deposit, send).
+- Be specific but concise—avoid vague test names.
+- Do not include "test" in the name (it’s redundant).
+- Use present tense ("bridge native ETH" not "bridging native ETH").
+- Failure states should be explicit (e.g., "deposit fails when network ID is the current network").
+
+Test names should be reviewed for clarity and adherence to this
+standard before merging. Future linting may enforce a predefined set
+of allowed actions to further standardize test naming.
