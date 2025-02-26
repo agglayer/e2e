@@ -34,7 +34,7 @@ function deploy_contract() {
 
     # Send the transaction and capture the output
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 2.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<<"$gas_price * 2.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -114,7 +114,7 @@ function send_tx() {
         local sender_initial_balance receiver_initial_balance
         sender_initial_balance=$(cast balance "$sender_addr" --ether --rpc-url "$rpc_url") || return 1
         receiver_initial_balance=$(cast balance "$receiver_addr" --ether --rpc-url "$rpc_url") || return 1
-        
+
         send_eoa_transaction "$private_key" "$receiver_addr" "$value_or_function_sig" "$sender_addr" "$sender_initial_balance" "$receiver_initial_balance"
     else
         # Case: Smart contract interaction (contract interaction with function signature and parameters)
@@ -135,7 +135,7 @@ function send_eoa_transaction() {
     # Send transaction via cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 3.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<<"$gas_price * 3.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -175,7 +175,7 @@ function send_smart_contract_transaction() {
     # Send the smart contract interaction using cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 2.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<<"$gas_price * 2.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -208,7 +208,7 @@ function query_contract() {
     shift 3                  # Shift past the first 3 arguments
     local params=("$@")      # Collect remaining arguments as parameters array
 
-    echo "Querying state of $addr account (RPC URL: $rpc_url) with function signature: '$funcSignature' and params: ${params[*]}" >&3
+    echo "Querying state of $addr account (RPC URL: $rpc_url) with function signature: '$funcSignature' and params: '${params[*]}'" >&3
 
     # Check if rpc url is available
     if [[ -z "$rpc_url" ]]; then
@@ -321,7 +321,6 @@ function check_balances() {
     fi
 }
 
-
 function verify_balance() {
     local rpc_url="$1"             # RPC URL
     local token_addr="$2"          # gas token contract address
@@ -332,7 +331,7 @@ function verify_balance() {
     # Trim 'ether' from ether_amount if it exists
     ether_amount=$(echo "$ether_amount" | sed 's/ether//')
     local amount_wei=$(cast --to-wei "$ether_amount")
-    
+
     # Get final balance in wei (after the operation)
     local final_balance_wei
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
