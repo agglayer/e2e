@@ -7,9 +7,36 @@ setup() {
     eth_address=$(cast wallet address --private-key "$private_key")
     export ETH_RPC_URL="$rpc_url"
 }
+# bats test_tags=smoke
+@test "send zero priced transactions and confirm rejection" {
+    if cast send --legacy --gas-price 0 --value "1" --private-key "$private_key" 0x0000000000000000000000000000000000000000 ; then
+        echo "A zero priced legacy transaction was mined"
+        exit 1
+    fi
+    if cast send --gas-price 0 --value "1" --private-key "$private_key" 0x0000000000000000000000000000000000000000 ; then
+        echo "A zero priced eip-1559 transaction was mined"
+        exit 1
+    fi
+
+    hex_nonce=$(printf "0x%x" "$(cast nonce --rpc-url "$rpc_url" "$eth_address")")
+    tx_fields='["'"$hex_nonce"'","0x","0x5208","0x0000000000000000000000000000000000000000","0x","0x"]'
+    rlp_data=$(cast to-rlp "$tx_fields")
+    signing_data=$(cast keccak "$rlp_data")
+    signature=$(cast wallet sign --no-hash --private-key "$private_key" "$signing_data")
+    signature_r=$(echo "$signature" | cut -c 3-66)
+    signature_s=$(echo "$signature" | cut -c 67-130)
+    signature_v=$(echo "$signature" | cut -c 131-132)
+    signed_tx_fields='["'"$hex_nonce"'","0x","0x5208","0x0000000000000000000000000000000000000000","0x","0x","'"$signature_v"'","'"$signature_r"'","'"$signature_s"'"]'
+    signed_data=$(cast to-rlp "$signed_tx_fields")
+
+    if cast publish "$signed_data" ; then
+        echo "A zero priced pre eip-155 transaction was mined"
+        exit 1
+    fi
+}
 
 # bats test_tags=smoke
-@test "send transaction and confirm pending nonce" {
+@test "send ETH and verify pending nonce updates" {
     # shellcheck disable=SC2034
     for i in {1..20}; do
         nonce=$(cast nonce --block pending "$eth_address")
@@ -40,7 +67,7 @@ setup() {
 }
 
 # bats test_tags=smoke
-@test "request finalized safe and latest blocks" {
+@test "query finalized, safe, latest, and pending blocks return expected order" {
     prev_finalized_block=0
     prev_safe_block=0
     prev_latest_block=0
@@ -113,7 +140,7 @@ setup() {
 }
 
 # bats test_tags=smoke
-@test "send transactions with duplicate nonces" {
+@test "send multiple transactions with same nonce and verify rejection" {
     nonce=$(cast nonce "$eth_address")
     gas_price=$(cast gas-price)
 
