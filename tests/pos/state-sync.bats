@@ -5,9 +5,11 @@ setup() {
     bats_load_library 'bats-support'
     bats_load_library 'bats-assert'
     load "$PROJECT_ROOT/core/helpers/common.bash"
+    load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
 
     # Define environment variables.
     export ENCLAVE=${ENCLAVE:-"pos"}
+    export ADDRESS=${ADDRESS:-"0xD5dA268A48354959600715264a45d495946A0f5e"}
     export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
 
     export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
@@ -23,33 +25,51 @@ setup() {
 
 # bats file_tags=pos,state-sync
 @test "Trigger State Sync" {
-    # Bridge some ERC20 tokens to trigger a state sync.
-    erc20_token_amount_to_bridge=10
+    # Check initial account balance on L2.
+    initial_balance=$(cast balance --rpc-url "${L2_RPC_URL}" --ether "${ADDRESS}")
+    echo "${ADDRESS} initial balance: ${initial_balance} ether."
 
-    echo "✅ Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
-    cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-        "${ERC20_TOKEN_ADDRESS}" \
-        "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${erc20_token_amount_to_bridge}"
-
-    echo "🚀 Depositing ERC20 to trigger a state sync..."
-    cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-        "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" \
-        "depositERC20(address,uint)" "${ERC20_TOKEN_ADDRESS}" "${erc20_token_amount_to_bridge}"
-
-    # Monitor state syncs on the L2 consensus layer.
-    echo "👀 Monitoring state syncs on Heimdall..."
+    # Check initial state sync count.
     if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-        cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
+        heimdall_state_sync_count_cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
     elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-        cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
+        heimdall_state_sync_count_cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
     else
         echo '❌ Wrong L2 CL node type given: "${L2_CL_NODE_TYPE}". Expected "heimdall" or "heimdall-v2".'
         exit 1
     fi
-    assert_eventually_equal "$cmd" 1 180 10
+    initial_heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+    echo "Heimdall initial state sync count: ${initial_heimdall_state_sync_count}."
+
+    bor_state_sync_count_cmd='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
+    initial_bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
+    echo "Bor initial state sync count: ${initial_bor_state_sync_count}."
+
+    # Bridge some ERC20 tokens to trigger a state sync.
+    erc20_token_amount_to_bridge=10
+
+    echo "✅ Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
+    run send_tx "${L1_RPC_URL}" "${PRIVATE_KEY}" "${ERC20_TOKEN_ADDRESS}" \
+        "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${erc20_token_amount_to_bridge}"
+
+    echo "🚀 Depositing ERC20 to trigger a state sync..."
+    run send_tx "${L1_RPC_URL}" "${PRIVATE_KEY}" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" \
+        "depositERC20(address,uint)" "${ERC20_TOKEN_ADDRESS}" "${erc20_token_amount_to_bridge}"
+
+    # Monitor state syncs on the L2 consensus layer.
+    echo "👀 Monitoring state syncs on Heimdall..."
+    assert_eventually_greater_than "${heimdall_state_sync_count_cmd}" "${initial_heimdall_state_sync_count}" 180 10
 
     # Monitor state syncs on the L2 execution layer.
     echo "👀 Monitoring state syncs on Bor..."
     cmd='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
-    assert_eventually_equal "$cmd" 1 180 10
+    assert_eventually_greater_than "${bor_state_sync_count_cmd}" "${initial_bor_state_sync_count}" 180 10
+
+    # Check new account balance on L2.
+    balance=$(cast balance --rpc-url "${L2_RPC_URL}" --ether "${ADDRESS}")
+    if [[ "${balance}" -le "${initial_balance}" ]]; then
+        echo "❌ ${ADDRESS} balance has not changed."
+        exit 1
+    fi
+    echo "✅ ${ADDRESS} balance has increased: ${balance} ether."
 }

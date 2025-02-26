@@ -375,28 +375,3 @@ function mint_erc20_tokens() {
     run send_tx "$rpc_url" "$minter_private_key" "$erc20_token_addr" "$mint_fn_sig" "$receiver" "$tokens_amount"
     assert_success
 }
-
-# Asynchronous test.
-# Eventually checks that an assertion eventually passes.
-# It will attempt an assertion periodically until it passes or a timeout occurs.
-function assert_eventually_equal() {
-    local command="$1"
-    local expected="$2"
-    local timeout="${3:-60}" # 60s by default
-    local interval="${4:-5}" # 5s by default
-
-    local start_time=$(date +%s)
-    local end_time=$((start_time + timeout))
-    echo "Checking if '${command}' will eventually be equal to '${expected}' within ${timeout} seconds." >&3
-    while [[ "$(date +%s)" -lt "${end_time}" ]]; do
-        result=$(eval "$command")
-        if [[ "${result}" == "${expected}" ]]; then
-            return 0
-        fi
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is different than expected '${expected}'. Waiting ${interval} seconds..." >&3
-        sleep "${interval}"
-    done
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Timeout reached." >&3
-    return 1
-}
