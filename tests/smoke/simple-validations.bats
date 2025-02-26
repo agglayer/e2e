@@ -9,19 +9,58 @@ setup() {
 }
 
 # bats test_tags=smoke
+@test "send transaction and confirm pending nonce" {
+    nonce=$(cast nonce --block pending "$eth_address")
+    tmp_file=$(mktemp)
+    cast send \
+         --gas-limit 21000 \
+         --nonce "$nonce" \
+         --async \
+         --value "1" \
+         --private-key "$private_key" 0x0000000000000000000000000000000000000000 > "$tmp_file"
+
+    pending_nonce=$(cast nonce --block pending "$eth_address")
+    tx_hash="$(cat "$tmp_file")"
+    cast receipt "$tx_hash"
+    final_pending_nonce=$(cast nonce --block pending "$eth_address")
+
+    if [[ $nonce -eq $pending_nonce ]]; then
+        echo "the pending nonce returned by the rpc is not updated after accepting a transaction into the pool"
+        printf "tx hash: %s\n" "$tx_hash"
+        printf "initial nonce: %s\n" "$nonce"
+        printf "pending nonce: %s\n" "$pending_nonce"
+        printf "final nonce: %s\n" "$final_pending_nonce"
+        exit 1
+    fi
+}
+
+# bats test_tags=smoke
 @test "request finalized safe and latest blocks" {
     prev_finalized_block=0
     prev_safe_block=0
     prev_latest_block=0
+    prev_pending_block=0
 
     # shellcheck disable=SC2034
     for i in {1..20}; do
         finalized_block=$(cast block-number finalized)
         safe_block=$(cast block-number safe)
         latest_block=$(cast block-number latest)
+        pending_block=$(cast block-number pending)
+        earliest_block=$(cast block-number earliest)
 
-        if [[ $finalized_block -eq 0 || $safe_block -eq 0 || $latest_block -eq 0 ]]; then
-            echo "Safe, finalized, and latest blocks are not all non-zero"
+        if [[ $finalized_block -eq 0 || $safe_block -eq 0 || $latest_block -eq 0 || $pending_block -eq 0 ]]; then
+            echo "Safe, finalized, latest, and pending blocks are not all non-zero"
+            exit 1
+        fi
+
+        if [[ $earliest_block -ne 0 ]]; then
+            echo "the earliest block is not equal to 0"
+            exit 1
+        fi
+
+        if [[ $pending_block -lt $latest_block ]]; then
+            echo "The pending block is less than the latest block. This should never happen"
             exit 1
         fi
 
@@ -32,6 +71,12 @@ setup() {
 
         if [[ $safe_block -lt $finalized_block ]]; then
             echo "The safe block is less than the finalized block. This should never happen"
+            exit 1
+        fi
+
+        if [[ $prev_pending_block -gt $pending_block ]]; then
+            echo "The pending block number seems to have gone backward"
+            printf "Prev %d, Current %d\n" "$prev_pending_block" "$pending_block"
             exit 1
         fi
 
@@ -56,6 +101,7 @@ setup() {
         prev_finalized_block="$finalized_block"
         prev_safe_block="$safe_block"
         prev_latest_block="$latest_block"
+        prev_pending_block="$pending_block"
 
         sleep 2
     done
@@ -63,10 +109,6 @@ setup() {
 
 # bats test_tags=smoke
 @test "send transactions with duplicate nonces" {
-    prev_finalized_block=0
-    prev_safe_block=0
-    prev_latest_block=0
-
     nonce=$(cast nonce "$eth_address")
     gas_price=$(cast gas-price)
 
@@ -96,3 +138,4 @@ setup() {
         sleep 2
     done
 }
+
