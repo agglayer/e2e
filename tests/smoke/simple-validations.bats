@@ -10,28 +10,33 @@ setup() {
 
 # bats test_tags=smoke
 @test "send transaction and confirm pending nonce" {
-    nonce=$(cast nonce --block pending "$eth_address")
-    tmp_file=$(mktemp)
-    cast send \
-         --gas-limit 21000 \
-         --nonce "$nonce" \
-         --async \
-         --value "1" \
-         --private-key "$private_key" 0x0000000000000000000000000000000000000000 > "$tmp_file"
+    # shellcheck disable=SC2034
+    for i in {1..20}; do
+        nonce=$(cast nonce --block pending "$eth_address")
+        tmp_file=$(mktemp)
+        cast send \
+             --gas-limit 21000 \
+             --nonce "$nonce" \
+             --async \
+             --value "1" \
+             --private-key "$private_key" 0x0000000000000000000000000000000000000000 > "$tmp_file"
 
-    pending_nonce=$(cast nonce --block pending "$eth_address")
-    tx_hash="$(cat "$tmp_file")"
-    cast receipt "$tx_hash"
-    final_pending_nonce=$(cast nonce --block pending "$eth_address")
+        pending_nonce=$(cast nonce --block pending "$eth_address")
+        tx_hash="$(cat "$tmp_file")"
+        # block until mined
+        cast receipt "$tx_hash" &> /dev/null
+        final_pending_nonce=$(cast nonce --block pending "$eth_address")
 
-    if [[ $nonce -eq $pending_nonce ]]; then
-        echo "the pending nonce returned by the rpc is not updated after accepting a transaction into the pool"
-        printf "tx hash: %s\n" "$tx_hash"
-        printf "initial nonce: %s\n" "$nonce"
-        printf "pending nonce: %s\n" "$pending_nonce"
-        printf "final nonce: %s\n" "$final_pending_nonce"
-        exit 1
-    fi
+        if [[ $nonce -eq $pending_nonce ]]; then
+            echo "the pending nonce returned by the rpc is not updated after accepting a transaction into the pool"
+            printf "tx hash: %s\n" "$tx_hash"
+            printf "initial nonce: %s\n" "$nonce"
+            printf "pending nonce: %s\n" "$pending_nonce"
+            printf "final nonce: %s\n" "$final_pending_nonce"
+            exit 1
+        fi
+        sleep 2
+    done
 }
 
 # bats test_tags=smoke
