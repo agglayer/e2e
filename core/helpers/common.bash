@@ -34,7 +34,7 @@ function deploy_contract() {
 
     # Send the transaction and capture the output
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 2.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<<"$gas_price * 2.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -114,7 +114,7 @@ function send_tx() {
         local sender_initial_balance receiver_initial_balance
         sender_initial_balance=$(cast balance "$sender_addr" --ether --rpc-url "$rpc_url") || return 1
         receiver_initial_balance=$(cast balance "$receiver_addr" --ether --rpc-url "$rpc_url") || return 1
-        
+
         send_eoa_transaction "$private_key" "$receiver_addr" "$value_or_function_sig" "$sender_addr" "$sender_initial_balance" "$receiver_initial_balance"
     else
         # Case: Smart contract interaction (contract interaction with function signature and parameters)
@@ -135,7 +135,7 @@ function send_eoa_transaction() {
     # Send transaction via cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 3.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<<"$gas_price * 3.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -175,7 +175,7 @@ function send_smart_contract_transaction() {
     # Send the smart contract interaction using cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 2.5" | sed 's/\..*//')
+    local comp_gas_price=$(bc -l <<<"$gas_price * 2.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -208,7 +208,7 @@ function query_contract() {
     shift 3                  # Shift past the first 3 arguments
     local params=("$@")      # Collect remaining arguments as parameters array
 
-    echo "Querying state of $addr account (RPC URL: $rpc_url) with function signature: '$funcSignature' and params: ${params[*]}" >&3
+    echo "Querying state of $addr account (RPC URL: $rpc_url) with function signature: '$funcSignature' and params: '${params[*]}'" >&3
 
     # Check if rpc url is available
     if [[ -z "$rpc_url" ]]; then
@@ -321,7 +321,6 @@ function check_balances() {
     fi
 }
 
-
 function verify_balance() {
     local rpc_url="$1"             # RPC URL
     local token_addr="$2"          # gas token contract address
@@ -332,7 +331,7 @@ function verify_balance() {
     # Trim 'ether' from ether_amount if it exists
     ether_amount=$(echo "$ether_amount" | sed 's/ether//')
     local amount_wei=$(cast --to-wei "$ether_amount")
-    
+
     # Get final balance in wei (after the operation)
     local final_balance_wei
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
@@ -375,4 +374,29 @@ function mint_erc20_tokens() {
     # Mint the required tokens by sending a transaction
     run send_tx "$rpc_url" "$minter_private_key" "$erc20_token_addr" "$mint_fn_sig" "$receiver" "$tokens_amount"
     assert_success
+}
+
+# Asynchronous test.
+# Eventually checks that an assertion eventually passes.
+# It will attempt an assertion periodically until it passes or a timeout occurs.
+function assert_eventually_equal() {
+    local command="$1"
+    local expected="$2"
+    local timeout="${3:-60}" # 60s by default
+    local interval="${4:-5}" # 5s by default
+
+    local start_time=$(date +%s)
+    local end_time=$((start_time + timeout))
+    echo "Checking if '${command}' will eventually be equal to '${expected}' within ${timeout} seconds." >&3
+    while [[ "$(date +%s)" -lt "${end_time}" ]]; do
+        result=$(eval "$command")
+        if [[ "${result}" == "${expected}" ]]; then
+            return 0
+        fi
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is different than expected '${expected}'. Waiting ${interval} seconds..." >&3
+        sleep "${interval}"
+    done
+
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Timeout reached." >&3
+    return 1
 }
