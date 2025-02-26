@@ -26,20 +26,19 @@ _common_setup() {
     export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
     export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
-    # ✅ Standardized L2 RPC URL Handling
-    L2_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
-    export L2_RPC_URL="$L2_RPC_URL_CMD"
-    echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
-
-    # ✅ Standardized L2 SEQUENCER RPC URL Handling
+    # ✅ Standardized L2 RPC and SEQUENCER URL Handling
     if [[ "$ENCLAVE" == "cdk" ]]; then
-        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
-        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
+        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
+        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
+
     elif [[ "$ENCLAVE" == "op" ]]; then
-        echo "🔥 Detected OP Stack, using op-batcher-op-kurtosis"
-        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" op-batcher-op-kurtosis http)
-        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
+        echo "🔥 Detected OP Stack"
+        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" op-el-1-op-geth-op-node-op-kurtosis rpc)
+        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" op-batcher-op-kurtosis http)
     fi
+    export L2_RPC_URL="$L2_RPC_URL"
+    echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
+    export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
