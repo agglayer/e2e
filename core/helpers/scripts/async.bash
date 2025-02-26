@@ -17,7 +17,7 @@ function assert_eventually_greater_than() {
   while [[ "$(date +%s)" -lt "${end_time}" ]]; do
     result=$(eval "$command")
     if [[ "${result}" -gt "${threshold}" ]]; then
-      echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Result '${command}' is greater than '${threshold}'!" >&3
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Result '${result}' is greater than '${threshold}'!" >&3
       return 0
     fi
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is not greater than '${threshold}'. Waiting ${interval} seconds..." >&3
