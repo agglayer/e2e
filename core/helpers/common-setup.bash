@@ -21,7 +21,6 @@ _common_setup() {
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
     # ✅ Kurtosis service setup
-    export ENCLAVE="${ENCLAVE:-cdk}"
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
     export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
     export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
