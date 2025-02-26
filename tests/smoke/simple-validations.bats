@@ -3,17 +3,16 @@
 setup() {
     rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
     # bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
-    # private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    eth_address=$(cast wallet address --private-key "$private_key")
+    export ETH_RPC_URL="$rpc_url"
 }
-
 
 # bats test_tags=smoke
 @test "request finalized safe and latest blocks" {
     prev_finalized_block=0
     prev_safe_block=0
     prev_latest_block=0
-
-    export ETH_RPC_URL="$rpc_url"
 
     # shellcheck disable=SC2034
     for i in {1..20}; do
@@ -58,6 +57,42 @@ setup() {
         prev_safe_block="$safe_block"
         prev_latest_block="$latest_block"
 
+        sleep 2
+    done
+}
+
+# bats test_tags=smoke
+@test "send transactions with duplicate nonces" {
+    prev_finalized_block=0
+    prev_safe_block=0
+    prev_latest_block=0
+
+    nonce=$(cast nonce "$eth_address")
+    gas_price=$(cast gas-price)
+
+    # shellcheck disable=SC2034
+    for i in {1..5}; do
+
+        for j in {1..5}; do
+            cantor=$(bc <<< "((($i+$j)*($i+$j+1))/2)+$j")
+
+            set +e
+            cast send \
+                 --gas-limit 21000 \
+                 --nonce "$nonce" \
+                 --async \
+                 --gas-price "$gas_price" \
+                 --value "$cantor" \
+                 --private-key "$private_key" 0x0000000000000000000000000000000000000000
+            exit_code=$?
+            set -e
+            if [[ $j -ne 1 && $exit_code -eq 0 ]]; then
+                echo "it seems like the a later transaction was accepted into the pool. Race condition?"
+                exit 1
+            fi
+        done
+
+        nonce=$((nonce + 1))
         sleep 2
     done
 }
