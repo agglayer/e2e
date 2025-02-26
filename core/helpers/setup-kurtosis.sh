@@ -68,3 +68,5 @@ else
     export_env_var "L2_RPC_URL" $(kurtosis port print "${ENCLAVE}" cdk-erigon-rpc-001 rpc)
     export_env_var "L2_SEQUENCER_RPC_URL" $(kurtosis port print "${ENCLAVE}" cdk-erigon-sequencer-001 rpc)
 fi
+
+export_env_var "ENCLAVE" "${ENCLAVE}"
