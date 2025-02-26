@@ -21,44 +21,26 @@ _common_setup() {
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
     # ✅ Kurtosis service setup
-    export ENCLAVE="${KURTOSIS_ENCLAVE:-cdk}"
+    export ENCLAVE="${ENCLAVE:-cdk}"
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
     export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
     export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
     export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
     # ✅ Standardized L2 RPC URL Handling
-    if [[ -n "${L2_RPC_URL:-}" ]]; then
-        export L2_RPC_URL="$L2_RPC_URL"
-    elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        L2_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
-        export L2_RPC_URL="$L2_RPC_URL_CMD"
-    else
-        echo "❌ ERROR: No valid L2 RPC URL found!"
-        exit 1
-    fi
+    L2_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
+    export L2_RPC_URL="$L2_RPC_URL_CMD"
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
 
     # ✅ Standardized L2 SEQUENCER RPC URL Handling
-    if [[ -n "${L2_SEQUENCER_RPC_URL:-}" ]]; then
-        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
-
-    elif [[ -n "${KURTOSIS_ENCLAVE:-}" ]]; then
-        if [[ "$KURTOSIS_ENCLAVE" == "op" ]]; then
-            # 🚀 Special case for OP Stack
-            echo "🔥 Detected OP Stack, using op-batcher-op-kurtosis"
-            L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$KURTOSIS_ENCLAVE" op-batcher-op-kurtosis http)
-            export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
-        else
-            # ✅ Standard Erigon-based sequencer lookup
-            L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$KURTOSIS_ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
-            export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
-        fi
-    else
-        echo "❌ ERROR: No valid SEQUENCER RPC URL found!"
-        exit 1
+    if [[ "$ENCLAVE" == "cdk" ]]; then
+        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
+        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
+    elif [[ "$ENCLAVE" == "op" ]]; then
+        echo "🔥 Detected OP Stack, using op-batcher-op-kurtosis"
+        L2_SEQUENCER_RPC_URL_CMD=$(kurtosis port print "$ENCLAVE" op-batcher-op-kurtosis http)
+        export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL_CMD"
     fi
-
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
@@ -82,7 +64,6 @@ _common_setup() {
     fi
     echo "🆕 Generated wallet: $PUBLIC_ADDRESS"
 
-
     # ✅ Wallet Funding Configuration
     if [[ "${DISABLE_FUNDING:-false}" == "true" ]]; then
         echo "⚠️ Wallet funding is disabled. Skipping..."
@@ -90,9 +71,9 @@ _common_setup() {
     fi
 
     # ✅ Set funding amount dynamically
-    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-50}"  # Default to 50 ETH if not provided
+    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-50}" # Default to 50 ETH if not provided
     FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
-    
+
     echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
     echo "🛠 Length: ${#L2_SENDER_PRIVATE_KEY} characters"
 
@@ -103,7 +84,7 @@ _common_setup() {
     echo "🛠 ADMIN_ADDRESS: $ADMIN_ADDRESS"
     admin_balance=$(cast balance "$ADMIN_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
 
-    if (( $(echo "$admin_balance < 1" | bc -l) )); then
+    if (($(echo "$admin_balance < 1" | bc -l))); then
         echo "❌ ERROR: Admin wallet is out of funds! Current balance: $admin_balance ETH"
         exit 1
     fi
@@ -128,7 +109,7 @@ _common_setup() {
     sleep 10
     sender_balance=$(cast balance "$PUBLIC_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
 
-    if (( $(echo "$sender_balance < 1" | bc -l) )); then
+    if (($(echo "$sender_balance < 1" | bc -l))); then
         echo "❌ ERROR: Wallet did not receive test funds!"
         exit 1
     fi
