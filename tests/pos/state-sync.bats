@@ -9,7 +9,7 @@ setup() {
 
     # Define environment variables.
     export ENCLAVE=${ENCLAVE:-"pos"}
-    export ADDRESS=${ADDRESS:-"0xD5dA268A48354959600715264a45d495946A0f5e"}
+    export ADDRESS=${ADDRESS:-"0x74Ed6F462Ef4638dc10FFb05af285e8976Fb8DC9"}
     export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
 
     export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
