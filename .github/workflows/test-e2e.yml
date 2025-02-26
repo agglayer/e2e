@@ -45,11 +45,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Echo Debug Info
-        run: |
-          echo "🔍 Running tests for network: ${{ matrix.network }}"
-          echo "🔍 Using L2_SENDER_PRIVATE_KEY: $L2_SENDER_PRIVATE_KEY"
-
       - name: Install Dependencies
         run: |
           sudo apt-get update
