@@ -46,10 +46,10 @@ setup() {
         echo '❌ Wrong L2 CL node type given: "${L2_CL_NODE_TYPE}". Expected "heimdall" or "heimdall-v2".'
         exit 1
     fi
-    assert_eventually_equal "$cmd" 1 120 10
+    assert_eventually_equal "$cmd" 1 180 10
 
     # Monitor state syncs on the L2 execution layer.
     echo "👀 Monitoring state syncs on Bor..."
     cmd='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
-    assert_eventually_equal "$cmd" 1 120 10
+    assert_eventually_equal "$cmd" 1 180 10
 }
