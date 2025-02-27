@@ -207,7 +207,7 @@ make compile-contracts
 This will:
 
 1. **Run `forge build`** to compile the contracts.
-2. **Execute `./scripts/postprocess-contracts.sh`** to apply necessary processing.
+2. **Execute `./core/helpers/scripts/postprocess_contracts.sh`** to apply necessary processing.
 
 💡 **You should run this before executing any tests that interact with deployed contracts.**
 

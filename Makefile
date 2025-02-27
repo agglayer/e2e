@@ -60,5 +60,6 @@ uninstall:
 	echo "❌ Uninstalled polygon-test-runner."
 
 compile-contracts:
-	find core/contracts/ -type f | grep -P '(yul|sol)' | while read contract; do forge build -C $$contract ; done
-	./scripts/postprocess-contracts.sh
+	find core/contracts/ -type f | grep -E '(yul|sol)' | while read contract; do forge build -C $$contract ; done
+	./core/helpers/scripts/postprocess_contracts.sh
+
