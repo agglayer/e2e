@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-echo "$SCRIPT_DIR"
 source "$SCRIPT_DIR/send_eoa_tx.bash"
 source "$SCRIPT_DIR/send_smart_contract_tx.bash"
 

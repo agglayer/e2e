@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/extract_tx_hash.bash"
+source "$SCRIPT_DIR/check_balances.bash"
+
 function send_eoa_transaction() {
     local private_key="$1"
     local receiver_addr="$2"
