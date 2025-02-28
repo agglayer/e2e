@@ -13,17 +13,17 @@ function assert_eventually_greater_than() {
 
   local start_time=$(date +%s)
   local end_time=$((start_time + timeout))
-  echo "Checking if '${command}' will eventually be greater than '${threshold}' within ${timeout} seconds." >&3
+  echo "Checking if '${command}' will eventually be greater than '${threshold}' within ${timeout} seconds."
   while [[ "$(date +%s)" -lt "${end_time}" ]]; do
     result=$(eval "$command")
     if [[ "${result}" -gt "${threshold}" ]]; then
-      echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Result '${result}' is greater than '${threshold}'!" >&3
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Result '${result}' is greater than '${threshold}'!"
       return 0
     fi
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is not greater than '${threshold}'. Waiting ${interval} seconds..." >&3
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is not greater than '${threshold}'. Waiting ${interval} seconds..."
     sleep "${interval}"
   done
 
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Timeout reached." >&3
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Timeout reached."
   return 1
 }
