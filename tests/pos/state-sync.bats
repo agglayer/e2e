@@ -4,7 +4,7 @@ setup() {
     # Load libraries.
     bats_load_library 'bats-support'
     bats_load_library 'bats-assert'
-    load "$PROJECT_ROOT/core/helpers/common.bash"
+    load "$PROJECT_ROOT/core/helpers/scripts/send_tx.bash"
     load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
 
     # Define environment variables.
