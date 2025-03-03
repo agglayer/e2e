@@ -4,10 +4,11 @@ https://bats-core.readthedocs.io/en/stable/
 
 
 #+begin_src bash
-set +a
-source tests/.env
 set -a
+source tests/.env
+set +a
 
+export BATS_LIB_PATH="$PWD/core/helpers/lib"
 bats tests/agglayer/bridges.bats --filter-tags agglayer,rpc
 #+end_src
 
