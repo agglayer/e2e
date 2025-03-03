@@ -7,6 +7,30 @@ setup() {
     eth_address=$(cast wallet address --private-key "$private_key")
     export ETH_RPC_URL="$rpc_url"
 }
+
+# bats test_tags=smoke
+@test "send and sweep account with precise gas calculation" {
+    wallet_info=$(cast wallet new --json | jq '.[0]')
+    tmp_address=$(echo "$wallet_info" | jq -r '.address')
+    tmp_private_key=$(echo "$wallet_info" | jq -r '.private_key')
+
+    # Send 0.01 ETH to the new address
+    cast send \
+         --value "10000000000000000" \
+         --private-key "$private_key" "$tmp_address"
+
+    gas_price=$(cast gas-price)
+    gas_price=$(bc <<< "$gas_price * 2")
+
+    value_to_return=$(bc <<< "10000000000000000 - (21000 * $gas_price)")
+    printf "Attempting to return $value_to_return wei based on gas price $gas_price and gas limit of 21,000\n"
+    cast send \
+         --gas-price "$gas_price" \
+         --gas-limit 21000 \
+         --value "$value_to_return" \
+         --private-key "$tmp_private_key" "$eth_address"
+}
+
 # bats test_tags=smoke
 @test "send zero priced transactions and confirm rejection" {
     if cast send --legacy --gas-price 0 --value "1" --private-key "$private_key" 0x0000000000000000000000000000000000000000 ; then
@@ -170,4 +194,6 @@ setup() {
         sleep 2
     done
 }
+
+
 

@@ -38,6 +38,8 @@ Examples:
 - ~@test "deposit ETH on L2 with custom gas limit"~
 - ~@test "replay transaction on L1 with same nonce reverts"~
 - ~@test "bridge fails when contract is paused"~
+~ ~@test "query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields"~
+
 
 Best Practices:
 - Start with a clear action (e.g., bridge, deposit, send).
