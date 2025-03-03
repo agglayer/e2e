@@ -1,18 +1,104 @@
-https://devhints.io/bash
-https://google.github.io/styleguide/shellguide.html
-https://bats-core.readthedocs.io/en/stable/
+The TLDR for getting started is that these tests are based on a [[https://en.wikipedia.org/wiki/Test_Anything_Protocol][TAP]]
+compatible tool called [[https://github.com/bats-core/bats-core][Bats]]. All of the tests are small bash
+scripts. If the test exits with a non-zero exit code, the test
+fails. If you're new to bash or Bats, these are some useful links.
 
+- https://devhints.io/bash
+- https://google.github.io/styleguide/shellguide.html
+- https://bats-core.readthedocs.io/en/stable/
+
+* How to run your test
+
+There are two easy ways to run your test cases. The easiest way is to
+execute the [[./test-runner.sh]] script. That script has several
+convenience that will be important for test automation. If you'd like
+to run a single test file, or use Bats directly, it's pretty easy as
+well:
 
 #+begin_src bash
+# You'll want to set whatever environment variables your test needs
 set -a
 source tests/.env
 set +a
 
+# Some tests will use helpers. If your test does, you'll want to add that to the bats lib path.
 export BATS_LIB_PATH="$PWD/core/helpers/lib"
+
+# Now you can run bats
 bats tests/agglayer/bridges.bats --filter-tags agglayer,rpc
 #+end_src
 
-* Naming
+* Philosophy and Goals
+
+*Separation of concerns* between infrastructure and test logic is a
+major goal of this project. We want to have a wide variety of
+tests. The tests themselves shouldn't be concerned with the details of
+the infrastructure on which the execute. A single test should be
+configurable based on environment variables and should be able to run
+against a Kurtosis devnet or a mainnet RPC.
+
+Ideally this repository is *self documenting*. For our test cases,
+that means they should be thoughtfully [[Test Case Naming][named]] and [[Thinking about tagging][tagged]]. In the case
+of a failure, the error messaging and naming should be it very clear
+what failed and what it might mean.
+
+#+begin_src bash
+# Bad example
+@test "send bridge" {
+    if ! bridge ; then {
+        echo "bridge failed"
+        exit 1
+    }
+}
+
+# Better example
+@test "bridge native eth from l1 to l2" {
+    if ! bridge ; then {
+        echo "Bridge deposit was not claimed despite being finalized on L1. Check that bridge service is running properly"
+        exit 1
+    }
+}
+#+end_src
+
+The "better" example above has a descriptive name that indicates what
+type of bridge is being tested. It also has a lot more context if and
+when there is a failure.
+
+Another major goal of this project is to have a *simple developer
+experience*. Making that happen isn't easy, but we want to have shared
+[[Thinking about environment variables][environment variables]] that are common across test cases. Similarly, we
+want to have tags and a project layout that's intuitive.
+
+* Thinking about environment variables
+
+As a test developer, you can define whatever environment variables you
+like, but in order for the test cases to be executed via generic
+automations, it's critical that you're aware of commonly used
+environment variables and to use them whenever possible.
+
+| Variable           | Purpose                                                            |
+|--------------------+--------------------------------------------------------------------|
+| RPC_URL            | A generic JSON RPC URL for tests that do not require L1/L2 context |
+| L1_RPC_URL         | An RPC URL that serves as the L1 for some rollup or validium       |
+| L2_RPC_URL         | An RPC URL for a rollup that's anchored on L1                      |
+| PRIVATE_KEY        | A private key that's funded for RPC_URL                            |
+| L1_PRIVATE_KEY     | A private key that's funded for L1_RPC_URL                         |
+| L2_PRIVATE_KEY     | A private key that's funded for L2_RPC_URL                         |
+| SEQUENCER_RPC_URL  | An RPC URL that's directly connected to a sequencer                |
+| GAS_TOKEN_ADDR     | The L1 address of a custom gas token                               |
+| BRIDGE_SERVICE_URL | The URL of the bridge service used for claiming deposits           |
+| L1_BRIDGE_ADDR     | The address of the bridge on L1                                    |
+| L2_BRIDGE_ADDR     | The address of the bridge on L2                                    |
+
+A few points on the design and thinking. In general, we're going to
+*prefer deriving* rather than specifying everything. Rather than
+specifying an ~L1_ETH_ADDRESS~ variable that can be set, we would
+derive this value from the ~L1_PRIVATE_KEY~. Similarly, rather than
+specifying the [[https://github.com/0xPolygonHermez/zkevm-contracts/blob/98b8b1f0af6074d5e2cf6b6c223db99d1f3e29f3/contracts/v2/PolygonZkEVMBridgeV2.sol#L61][~networkID~]] with something like ~L2_NETWORK_ID~, we
+would rather read this value from the bridge.
+
+
+* Test Case Naming
 
 Consistent and clear test naming is critical for maintaining
 readability, ensuring searchability, and improving test result
@@ -52,3 +138,38 @@ Best Practices:
 Test names should be reviewed for clarity and adherence to this
 standard before merging. Future linting may enforce a predefined set
 of allowed actions to further standardize test naming.
+
+* Project organization
+
+TODO - This is still a work in progress. All of the tests live in the
+[[./tests]] folder, but there isn't a clear standard right now in terms of
+sub-folders, the names of files, how many cases should exist in a
+single file. Additionally, the standards for individual bats files are
+a bit arbitrary.
+
+* Thinking about tagging
+
+TODO - Like the overall project organization, there's more thinking
+needed for test tags. Each test probably needs a least two tags to be
+useful. E.g:
+
+- Target (i.e. what is being tested)
+  - ~agglayer~
+  - ~lxly~
+  - ~erigon~
+  - ~evm~
+  - ~pos~
+  - ~heimdall~
+- Type of test
+  - ~regression~
+  - ~smoke~
+  - ~acceptance~
+  - ~stress~
+  - ~load~
+
+* Common helper functions
+
+TODO - We need to document the various helper functions. Some helpers
+might be mandatory (enforced by code review) while others are there
+for your convenience.
+

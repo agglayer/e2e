@@ -24,7 +24,7 @@ setup() {
 
 function fund_claim_tx_manager() {
     local balance
-    
+
     balance=$(cast balance --rpc-url "$l2_rpc_url" "$claimtxmanager_addr")
     if [[ $balance != "0" ]]; then
         return
@@ -154,4 +154,3 @@ function fund_claim_tx_manager() {
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
 }
-
