@@ -31,7 +31,7 @@ setup() {
     fudge_factor=1
     value_to_return=$(bc <<< "10000000000000000 - (21000 * $gas_price) - ($da_cost * $fudge_factor)" | sed 's/\..*$//')
 
-    printf "Attempting to return $value_to_return wei based on DA cost of $da_cost, gas price $gas_price, and gas limit of 21,000\n"
+    echo "Attempting to return $value_to_return wei based on DA cost of $da_cost, gas price $gas_price, and gas limit of 21,000"
     cast send \
          --gas-price "$gas_price" \
          --gas-limit 21000 \
@@ -44,8 +44,8 @@ setup() {
 # bats test_tags=smoke
 @test "send concurrent transactions and verify DA fee handling" {
     a_wallet=$(cast wallet new --json)
-    a_address=$(echo $a_wallet | jq -r .[0].address)
-    a_private_key=$(echo $a_wallet | jq -r .[0].private_key)
+    a_address=$(echo "$a_wallet" | jq -r .[0].address)
+    a_private_key=$(echo "$a_wallet" | jq -r .[0].private_key)
 
     gas_limit=21000
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
@@ -66,31 +66,32 @@ setup() {
     total_fund_amount=$(bc <<< "($mult * $test_fund_amount) + ($mult * $datafee) + ($mult * $gas_limit * $gas_price)" | sed 's/\..*$//')
 
     cast send \
-         --gas-price $gas_price \
+         --gas-price "$gas_price" \
          --priority-gas-price 0 \
-         --gas-limit $gas_limit \
-         --private-key $private_key \
-         --value $total_fund_amount $a_address \
-         --rpc-url $rpc_url
+         --gas-limit "$gas_limit" \
+         --private-key "$private_key" \
+         --value "$total_fund_amount" \
+         --rpc-url "$rpc_url" \
+         "$a_address"
 
     cast send \
          --async \
-         --gas-price $gas_price \
+         --gas-price "$gas_price" \
          --priority-gas-price 0 \
-         --gas-limit $gas_limit \
-         --private-key $a_private_key \
+         --gas-limit "$gas_limit" \
+         --private-key "$a_private_key" \
          --nonce 0 \
          --value 0.001ether \
-         --rpc-url $rpc_url \
-         $(cast az)
+         --rpc-url "$rpc_url" \
+         "$(cast az)"
 
     cast send \
-         --gas-price $gas_price \
+         --gas-price "$gas_price" \
          --priority-gas-price 0 \
-         --gas-limit $gas_limit \
-         --private-key $a_private_key \
+         --gas-limit "$gas_limit" \
+         --private-key "$a_private_key" \
          --nonce 1 \
          --value 0.001ether \
-         --rpc-url $rpc_url \
-         $(cast az)
+         --rpc-url "$rpc_url" \
+         "$(cast az)"
 }
