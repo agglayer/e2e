@@ -2,12 +2,12 @@
 
 setup() {
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l1_eth_address=$(cast wallet address --private-key $l1_private_key)
+    # l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
     l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)"}
     l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x83F138B325164b162b320F797b57f6f7E235ABAC"}
 
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l2_eth_address=$(cast wallet address --private-key $l2_private_key)
+    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
     l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x83F138B325164b162b320F797b57f6f7E235ABAC"}
 
@@ -23,7 +23,9 @@ setup() {
 }
 
 function fund_claim_tx_manager() {
-    local balance=$(cast balance --rpc-url "$l2_rpc_url" "$claimtxmanager_addr")
+    local balance
+    
+    balance=$(cast balance --rpc-url "$l2_rpc_url" "$claimtxmanager_addr")
     if [[ $balance != "0" ]]; then
         return
     fi
@@ -35,9 +37,6 @@ function fund_claim_tx_manager() {
 
 # bats file_tags=lxly,bridge
 @test "bridge native eth from l1 to l2" {
-    cast balance --rpc-url $l2_rpc_url $l2_eth_address
-    cast balance --rpc-url $l1_rpc_url $l1_eth_address
-
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
     bridge_amount=$(date +%s)
@@ -75,11 +74,11 @@ function fund_claim_tx_manager() {
 
     erc_20_bytecode=$(cat core/contracts/bin/erc20permitmock.bin)
     constructor_args=$(cast abi-encode 'f(string,string,address,uint256)' "$erc20_token_name" "$erc20_token_symbol" "$l2_eth_address" 100000000000000000000 | sed 's/0x//')
-    test_erc20_addr=$(cast create2 --salt $salt --init-code $erc_20_bytecode$constructor_args)
+    test_erc20_addr=$(cast create2 --salt $salt --init-code "$erc_20_bytecode$constructor_args")
 
-    if [[ $(cast code --rpc-url $l2_rpc_url $test_erc20_addr) == "0x" ]]; then
-        cast send --legacy --rpc-url $l2_rpc_url --private-key $l2_private_key $deterministic_deployer_addr $salt$erc_20_bytecode$constructor_args
-        cast send --legacy --rpc-url $l2_rpc_url --private-key $l2_private_key $test_erc20_addr 'approve(address,uint256)' $l2_bridge_addr $(cast max-uint)
+    if [[ $(cast code --rpc-url "$l2_rpc_url" "$test_erc20_addr") == "0x" ]]; then
+        cast send --legacy --rpc-url "$l2_rpc_url" --private-key "$l2_private_key" "$deterministic_deployer_addr" "$salt$erc_20_bytecode$constructor_args"
+        cast send --legacy --rpc-url "$l2_rpc_url" --private-key "$l2_private_key" "$test_erc20_addr" 'approve(address,uint256)' "$l2_bridge_addr" "$(cast max-uint)"
     fi
 
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
@@ -95,7 +94,7 @@ function fund_claim_tx_manager() {
 
     deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
 
-    if [[ $initial_deposit_count -eq $depositCount ]]; then
+    if [[ $initial_deposit_count -eq $deposit_count ]]; then
         echo "the deposit count didn't increase"
         exit 1
     fi
@@ -109,8 +108,8 @@ function fund_claim_tx_manager() {
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
 
-    token_hash=$(cast keccak $(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr"))
-    wrapped_token_addr=$(cast call --rpc-url $l1_rpc_url "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
+    token_hash=$(cast keccak "$(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr")")
+    wrapped_token_addr=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
 
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
