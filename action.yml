@@ -1,0 +1,137 @@
+name: "Run Polygon E2E Test Runner"
+description: "Sets up Kurtosis devnet and runs the Polygon E2E test suite"
+inputs:
+  network:
+    description: "The target network (e.g., fork12-cdk-erigon-validium)"
+    required: true
+  docker-image-tar-path:
+    description: "Path to the AggLayer Docker image tar file"
+    required: true
+  filter-tags:
+    description: "Comma-separated list of test filter tags"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck jq
+        shellcheck --version
+
+    - name: Checkout `agglayer/e2e` repo (since action runs in `agglayer/agglayer`)
+      uses: actions/checkout@v4
+      with:
+        repository: agglayer/e2e
+        path: e2e-repo  # Checkout into a subfolder to prevent conflicts
+
+    - name: Install Kurtosis
+      shell: bash
+      run: |
+        echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+        sudo apt update
+        sudo apt install kurtosis-cli=1.4.1
+        kurtosis version
+        kurtosis analytics disable
+
+    - name: Install yq
+      shell: bash
+      run: |
+        pip3 install yq
+        yq --version
+
+    - name: Install polycli
+      shell: bash
+      run: |
+        POLYCLI_VERSION=$(curl -s https://api.github.com/repos/0xPolygon/polygon-cli/releases/latest | jq -r '.tag_name')
+        tmp_dir=$(mktemp -d)
+        curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
+        sudo mv "$tmp_dir"/* /usr/local/bin/polycli
+        sudo chmod +x /usr/local/bin/polycli
+        /usr/local/bin/polycli version
+
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+
+    - name: Install Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.22.11
+
+    - name: Checkout Kurtosis CDK
+      uses: actions/checkout@v4
+      with:
+        repository: 0xPolygon/kurtosis-cdk
+        path: kurtosis-cdk
+        ref: ${{ inputs.kurtosis-cdk-ref }}
+
+    - name: Load AggLayer Docker Image
+      shell: bash
+      run: |
+        if ! docker load --input ${{ inputs.docker-image-tar-path }}; then
+          echo "❌ Failed to load the AggLayer Docker image!"
+          exit 1
+        fi
+        docker image ls -a
+
+    - name: Detect Loaded AggLayer Image
+      id: detect-image
+      shell: bash
+      run: |
+        IMAGE_TAG=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep agglayer | head -n 1)
+        if [[ -z "$IMAGE_TAG" ]]; then
+          echo "❌ Failed to detect AggLayer image after loading!"
+          exit 1
+        fi
+        echo "Detected AggLayer image: $IMAGE_TAG"
+        echo "CUSTOM_AGGLAYER_IMAGE=$IMAGE_TAG" >> "$GITHUB_ENV"
+    
+    - name: Setup Devnet w/ Kurtosis
+      shell: bash
+      run: |
+        chmod +x e2e-repo/core/helpers/setup-kurtosis.sh
+        e2e-repo/core/helpers/setup-kurtosis.sh "${{ inputs.network }}"
+
+    - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
+      shell: bash
+      run: |
+        echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
+        echo "✅ Using Kurtosis SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
+
+        touch e2e-repo/tests/.env
+        sed -i '/^L2_RPC_URL=/d' e2e-repo/tests/.env
+        sed -i '/^L2_SEQUENCER_RPC_URL=/d' e2e-repo/tests/.env
+        echo "" >> e2e-repo/tests/.env
+        echo "L2_RPC_URL=$L2_RPC_URL" >> e2e-repo/tests/.env
+        echo "L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL" >> e2e-repo/tests/.env
+        cat e2e-repo/tests/.env
+
+    - name: Build polygon-test-runner
+      shell: bash
+      run: |
+        cd e2e-repo
+        make install
+
+    - name: Run E2E Tests
+      shell: bash
+      run: |
+        cd e2e-repo
+        polygon-test-runner --filter-tags "${{ inputs.filter-tags }}"
+
+    - name: Dump enclave logs if test fails
+      if: failure()
+      shell: bash
+      run: |
+        kurtosis dump ./dump
+        archive_name="dump_${{ inputs.network }}_${{ github.run_id }}_${{ strategy.job-index }}"
+        echo "ARCHIVE_NAME=${archive_name}" >> $GITHUB_ENV
+        kurtosis service exec cdk cdk-node-001 'cat /etc/cdk/cdk-node-config.toml' > ./dump/cdk-node-config.toml
+
+    - name: Upload logs if test fails
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARCHIVE_NAME }}
+        path: ./dump
