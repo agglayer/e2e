@@ -23,7 +23,7 @@ setup() {
     gas_price=$(bc <<< "$gas_price * 2")
 
     value_to_return=$(bc <<< "10000000000000000 - (21000 * $gas_price)")
-    printf "Attempting to return $value_to_return wei based on gas price $gas_price and gas limit of 21,000\n"
+    echo "Attempting to return $value_to_return wei based on gas price $gas_price and gas limit of 21,000"
     cast send \
          --gas-price "$gas_price" \
          --gas-limit 21000 \
