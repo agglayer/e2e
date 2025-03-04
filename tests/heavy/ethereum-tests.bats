@@ -186,7 +186,7 @@ function fund_new_wallet() {
 @test "execute ethereum test cases and ensure liveness" {
     wallet_address=$(cast wallet address --private-key "$master_private_key")
     wallet_nonce=$(cast nonce --rpc-url "$rpc_url" "$wallet_address")
-    counter_file="$(mktemp -p /tmp retest-counter-XXXXXXXX)"
+    lock_dir="$(mktemp -d -p /tmp retest-lockdir-XXXXXXX)"
     main_lock="$(mktemp -p /tmp retest-lock-XXXXXXXX)"
 
 
@@ -204,11 +204,13 @@ function fund_new_wallet() {
         echo "$test_item" > "$testfile"
         test_counter=$((test_counter+1))
 
-        # Increment a counter to keep track of how many tasks are running in parallel
-        flock "$counter_file" -c "counter=\$(cat $counter_file); echo \$((counter + 1)) > $counter_file"
-
+        job_lock="$lock_dir/$test_counter"
+        touch "$job_lock"
         # Run the test in the background and redirect its output to the log file
         (
+            # Increment a counter to keep track of how many tasks are running in parallel
+            trap 'rm -f "$job_lock"' EXIT
+
             log_file="$(mktemp -p /tmp retest-log-XXXXXXXX)"
             wallet_file="$(mktemp -p /tmp retest-wallet-XXXXXXXX)"
 
@@ -233,15 +235,15 @@ function fund_new_wallet() {
             # rm $wallet_file
 
             # Now that the job is done, we can decrement the counter
-            flock "$counter_file" -c "counter=\$(cat $counter_file); echo \$((counter - 1)) > $counter_file"
+            rm -f "$job_lock"
         ) &
 
         # we will check the value of the counter and if we're greater or equal to the number of our limit, we'll sleep
-        current_jobs=$(flock "$counter_file" -c "counter=\$(cat $counter_file); echo \$counter")
+        current_jobs=$(find "$lock_dir" -type f 2>/dev/null | wc -l)
         while [[ "$current_jobs" -ge "$parallel_job_limit" ]]; do
             echo "it looks like there are $current_jobs jobs running.. pausing briefly"
             sleep 2
-            current_jobs=$(flock "$counter_file" -c "counter=\$(cat $counter_file); echo \$counter")
+            current_jobs=$(find "$lock_dir" -type f 2>/dev/null | wc -l)
         done
     done
 
