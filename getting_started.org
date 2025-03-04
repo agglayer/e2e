@@ -11,7 +11,7 @@ fails. If you're new to bash or Bats, these are some useful links.
 
 There are two easy ways to run your test cases. The easiest way is to
 execute the [[./test-runner.sh]] script. That script has several
-convenience that will be important for test automation. If you'd like
+conveniences that will be important for test automation. If you'd like
 to run a single test file, or use Bats directly, it's pretty easy as
 well:
 
@@ -97,6 +97,17 @@ derive this value from the ~L1_PRIVATE_KEY~. Similarly, rather than
 specifying the [[https://github.com/0xPolygonHermez/zkevm-contracts/blob/98b8b1f0af6074d5e2cf6b6c223db99d1f3e29f3/contracts/v2/PolygonZkEVMBridgeV2.sol#L61][~networkID~]] with something like ~L2_NETWORK_ID~, we
 would rather read this value from the bridge.
 
+The test cases aren't meant for a specific environment, but in many
+cases the default values for environment variables will target the
+[[https://github.com/0xPolygon/kurtosis-cdk][kurtosis-cdk]] package or the [[https://github.com/0xPolygon/kurtosis-polygon-pos][kurtosis-polygon-pos]] package. For example,
+if you startup the kurtosis package like this:
+
+#+begin_src bash
+kurtosis run --enclave cdk --args-file .github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+#+end_src
+
+Many tests will assume the default target of the test is kurtosis and
+define the keys and URLs accordingly.
 
 * Test Case Naming
 
@@ -125,7 +136,7 @@ Examples:
 - ~@test "deposit ETH on L2 with custom gas limit"~
 - ~@test "replay transaction on L1 with same nonce reverts"~
 - ~@test "bridge fails when contract is paused"~
-~ ~@test "query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields"~
+- ~@test "query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields"~
 
 
 Best Practices:
