@@ -196,7 +196,7 @@ make fix-lint
 
 ---
 
-## 🛠️ Compiling Contracts Before Running Tests
+## 🛠️ Compile Contracts Before Running Tests
 
 To ensure your contracts are compiled before testing, run:
 
