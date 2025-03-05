@@ -15,7 +15,7 @@ setup() {
     cast_timeout="20"
     export RPC_TIMEOUT="$cast_timeout"
     test_fund_amount=$(cast to-wei 0.01)
-    master_nonce_file=$(mktemp -p /tmp master-nonce-XXXXXXXXXXXX)
+    master_nonce_file=$(mktemp -p /tmp retest-master-nonce-XXXXXXXXXXXX)
 }
 
 function print_warning() {
@@ -156,7 +156,8 @@ function process_test_item() {
         return
     else
         gas_price=$(cast gas-price --rpc-url "$rpc_url")
-        fudge_factor=100000000000
+        # This will need to be pretty big. We should use the gas price oracle
+        fudge_factor=10000000000000
         value_to_send=$(bc <<< "$balance - $fudge_factor - ($gas_price * 21000)")
         >&2 echo "Clawing back $value_to_send from $tmp_address"
 
@@ -178,17 +179,45 @@ function fund_new_wallet() {
     wallet_info=$(cast wallet new --json | jq -c '.[]')
     tmp_address=$(echo "$wallet_info" | jq -r '.address')
     nonce=$(increment_nonce "$master_nonce_file")
-    cast send --legacy --rpc-url "$rpc_url" --nonce "$nonce" --value "$test_fund_amount" --private-key "$master_private_key" "$tmp_address" > /dev/null
+
+    # cur_nonce=$(cast nonce --rpc-url "$rpc_url" "$master_address")
+    # diff=$((nonce - cur_nonce))
+    # while [[ "$diff" -gt 16 ]]; do
+    #     sleep 2
+    #     cur_nonce=$(cast nonce --rpc-url "$rpc_url" "$master_address")
+    #     diff=$((nonce - cur_nonce))
+    # done
+
+    ret_code=1
+    while [[ "$ret_code" -ne 0 ]]; do
+        set +e
+        cast send $legacy_flag \
+             --timeout "$cast_timeout" \
+             --rpc-url "$rpc_url" \
+             --nonce "$nonce" \
+             --value "$test_fund_amount" \
+             --private-key "$master_private_key" "$tmp_address" &>> "$main_log_file.funding"
+        ret_code="$?"
+        set -e
+        if [[ "$ret_code" -ne 0 ]]; then
+            cur_nonce=$(cast nonce --rpc-url "$rpc_url" "$master_address")
+            echo "Funding $tmp_address failed with nonce $nonce and gas price $gas_price. The current nonce seems to be $cur_nonce. Trying again" >> "$main_log_file.funding"
+            sleep 2
+        fi
+    done
+
     echo "$wallet_info"
 }
 
 # bats test_tags=evm,stress
 @test "execute ethereum test cases and ensure liveness" {
+    # Need to figure out if there is a better way to manage this. It seems too nuclear
+    # trap 'kill 0; exit' EXIT SIGINT SIGTERM
+
     wallet_address=$(cast wallet address --private-key "$master_private_key")
     wallet_nonce=$(cast nonce --rpc-url "$rpc_url" "$wallet_address")
     lock_dir="$(mktemp -d -p /tmp retest-lockdir-XXXXXXX)"
     main_lock="$(mktemp -p /tmp retest-lock-XXXXXXXX)"
-
 
     echo "$wallet_nonce" > "$master_nonce_file"
 
@@ -209,12 +238,12 @@ function fund_new_wallet() {
         # Run the test in the background and redirect its output to the log file
         (
             # Increment a counter to keep track of how many tasks are running in parallel
-            trap 'rm -f "$job_lock"' EXIT
+            trap 'rm -f "$job_lock"; exit' EXIT SIGINT SIGTERM
+
+            wallet_file="$(mktemp -p /tmp retest-wallet-XXXXXXXX)"
+            fund_new_wallet > "$wallet_file"
 
             log_file="$(mktemp -p /tmp retest-log-XXXXXXXX)"
-            wallet_file="$(mktemp -p /tmp retest-wallet-XXXXXXXX)"
-
-            fund_new_wallet > "$wallet_file"
 
             wallet_info="$(cat "$wallet_file")"
             start=$(date +%s)
@@ -253,3 +282,12 @@ function fund_new_wallet() {
         exit 1
     fi
 }
+
+# There can be a lot of temp file safter running this. Usually I'll clean up with something like this
+# find /tmp -name 'retest*' | xargs rm -rf
+
+# Something like this can also be useful to purge old logs
+# find /tmp -type f -older /tmp/retest-log-DvbqSeZ8 -name 'retest-log* | xargs rm
+
+# Clearing the nonces from the master account
+# polycli loadtest --mode t --private-key "$PRIVATE_KEY" --eth-amount "0.000000000000000001" --requests 10 --rate-limit 500 --verbosity 700 --rpc-url "$RPC_URL" --legacy --gas-limit 21000 --gas-price 2000000000 --concurrency 25
