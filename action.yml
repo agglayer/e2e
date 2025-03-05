@@ -65,7 +65,7 @@ runs:
       with:
         repository: 0xPolygon/kurtosis-cdk
         path: kurtosis-cdk
-        ref: dan/agglayer_toml_fix
+        ref: main
 
     - name: Load AggLayer Docker Image
       shell: bash

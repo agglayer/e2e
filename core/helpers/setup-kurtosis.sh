@@ -59,8 +59,8 @@ else
 
     # ✅ Download the default config
     ENCLAVE="cdk"
-    VERSION="v0.2.30"
-    COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/.github/tests/combinations/${NETWORK}.yml"
+    VERSION="main"
+    COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/${VERSION}/.github/tests/combinations/${NETWORK}.yml"
     
     CONFIG_FILE=$(mktemp)
     curl -sSL "${COMBINATIONS_FILE}" -o "${CONFIG_FILE}"
@@ -85,7 +85,7 @@ else
 
     # ✅ Run Kurtosis with modified config
     kurtosis run --enclave "${ENCLAVE}" --args-file="${CONFIG_FILE}" \
-        "github.com/rebelartists/kurtosis-cdk?ref=dan/agglayer_toml_fix"
+        "github.com/0xPolygon/kurtosis-cdk@${VERSION}"
 
     # ✅ Fetch and export RPC URLs
     export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" cdk-erigon-rpc-001 rpc)"
