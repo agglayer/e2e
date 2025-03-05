@@ -85,7 +85,7 @@ else
 
     # ✅ Run Kurtosis with modified config
     kurtosis run --enclave "${ENCLAVE}" --args-file="${CONFIG_FILE}" \
-        "github.com/0xPolygon/kurtosis-cdk@${VERSION}"
+        "github.com/rebelartists/kurtosis-cdk?ref=dan/agglayer_toml_fix"
 
     # ✅ Fetch and export RPC URLs
     export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" cdk-erigon-rpc-001 rpc)"
