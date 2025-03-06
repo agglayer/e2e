@@ -59,8 +59,8 @@ else
 
     # ✅ Download the default config
     ENCLAVE="cdk"
-    VERSION="main"
-    COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/${VERSION}/.github/tests/combinations/${NETWORK}.yml"
+    VERSION="dan/agglayer_toml_fix"
+    COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/main/.github/tests/combinations/${NETWORK}.yml"
     
     CONFIG_FILE=$(mktemp)
     curl -sSL "${COMBINATIONS_FILE}" -o "${CONFIG_FILE}"
