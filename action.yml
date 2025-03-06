@@ -60,6 +60,9 @@ runs:
       uses: actions/setup-go@v5
       with:
         go-version: 1.22.11
+        
+    - name: Setup Bats and bats libs
+      uses: bats-core/bats-action@2.0.0
 
     - name: Checkout Kurtosis CDK with agglayer fix
       uses: actions/checkout@v4
