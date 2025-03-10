@@ -28,8 +28,8 @@ setup() {
   TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq ".result[0].amount"'
 }
 
-# bats file_tags=pos,top-up-fee
-@test "send top-up fee" {
+# bats file_tags=pos,validator
+@test "update validator top-up fee" {
   initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
   echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
 
