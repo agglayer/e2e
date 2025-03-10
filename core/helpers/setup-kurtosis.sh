@@ -2,8 +2,10 @@
 set -euo pipefail
 
 # 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
-NETWORK="${1:-fork12-cdk-erigon-validium}"
-CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}"  # Allow optional override
+PACKAGE="${1:-kurtosis-cdk}"
+VERSION="${2:-v0.2.30}"
+ARGS_FILE="${3:-fork12-cdk-erigon-validium}"
+CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}" # Allow optional override
 
 # Export environment variables for CI consumption.
 export_env_var() {
@@ -18,13 +20,12 @@ export_env_var() {
 kurtosis clean --all
 
 # ✅ OP Stack Devnet Handling (No AggLayer Modifications Here)
-if [[ "${NETWORK}" == "op-stack" ]]; then
+if [[ "${PACKAGE}" == "optimism-package" ]]; then
     echo "🔥 Deploying Kurtosis environment for OP Stack"
 
     # ✅ Run Kurtosis for OP Stack
     ENCLAVE="op"
-    VERSION="main"
-    ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/network_params.yaml"
+    ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/${ARGS_FILE}"
     kurtosis run --enclave "${ENCLAVE}" --args-file="${ARGS_FILE}" \
         "github.com/ethpandaops/optimism-package@${VERSION}"
 
@@ -32,13 +33,12 @@ if [[ "${NETWORK}" == "op-stack" ]]; then
     export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-el-1-op-geth-op-node-op-kurtosis rpc)"
     export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-batcher-op-kurtosis http)"
 
-elif [[ "${NETWORK}" == "polygon-pos" ]]; then
+elif [[ "${PACKAGE}" == "polygon-pos" ]]; then
     echo "🔥 Deploying Kurtosis environment for Polygon PoS"
 
     # ✅ Run Kurtosis for Polygon PoS
     ENCLAVE="pos"
-    VERSION="v1.0.1"
-    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/.github/tests/combinations/heimdall-bor-multi-validators.yml"
+    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/${ARGS_FILE}"
     kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" \
         "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
 
@@ -59,11 +59,10 @@ else
 
     # ✅ Download the default config
     ENCLAVE="cdk"
-    VERSION="v0.2.30"
-    COMBINATIONS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/.github/tests/combinations/${NETWORK}.yml"
-    
+    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
+
     CONFIG_FILE=$(mktemp)
-    curl -sSL "${COMBINATIONS_FILE}" -o "${CONFIG_FILE}"
+    curl -sSL "${ARGS_FILE}" -o "${CONFIG_FILE}"
 
     # ✅ Modify AggLayer Image if Provided
     if [[ -n "${CUSTOM_AGGLAYER_IMAGE}" ]]; then
