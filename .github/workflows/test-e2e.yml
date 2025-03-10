@@ -69,13 +69,13 @@ jobs:
           kurtosis analytics disable
 
       - name: Install jq
-        run: apt-get update && apt-get install --yes jq && jq --version
+        run: sudo apt update && sudo apt install --yes jq && jq --version
 
       - name: Install yq
         run: pip3 install yq && yq --version
 
       - name: Install shellcheck
-        run: apt-get update && apt-get install --yes shellcheck && shellcheck --version
+        run: sudo apt update && sudo apt install --yes shellcheck && shellcheck --version
 
       - name: Install polycli
         run: |
