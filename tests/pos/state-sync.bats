@@ -11,9 +11,13 @@ setup() {
 
     # RPC Urls.
     export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
-    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)}
-    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE}" l2-cl-1-heimdall-bor-validator http)}
     export L2_CL_NODE_TYPE=${L2_CL_NODE_TYPE:-"heimdall"}
+    if [[ "${L2_CL_NODE_TYPE}" != "heimdall" && "${L2_CL_NODE_TYPE}" != "heimdall-v2" ]]; then
+        echo "❌ Wrong L2 CL node type given: '${L2_CL_NODE_TYPE}'. Expected 'heimdall' or 'heimdall-v2'."
+        exit 1
+    fi
+    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-${L2_CL_NODE_TYPE}-validator" rpc)}
+    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE}" "l2-cl-1-${L2_CL_NODE_TYPE}-bor-validator" http)}
 
     # Contract addresses
     matic_contract_addresses=$(kurtosis files inspect $ENCLAVE matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
@@ -26,9 +30,6 @@ setup() {
         HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
     elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
         HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
-    else
-        echo '❌ Wrong L2 CL node type given: "${L2_CL_NODE_TYPE}". Expected "heimdall" or "heimdall-v2".'
-        exit 1
     fi
     export HEIMDALL_STATE_SYNC_COUNT_CMD="${HEIMDALL_STATE_SYNC_COUNT_CMD}"
 
