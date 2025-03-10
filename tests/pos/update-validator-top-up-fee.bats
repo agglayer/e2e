@@ -25,7 +25,7 @@ setup() {
   export MATIC_TOKEN_ADDRESS=${MATIC_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
 
   # Commands.
-  TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq ".result[0].amount"'
+  TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[0].amount"'
 }
 
 # bats file_tags=pos,validator

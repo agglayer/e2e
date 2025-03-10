@@ -19,7 +19,7 @@ setup() {
   export MATIC_TOKEN_ADDRESS=${MATIC_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
 
   # Commands.
-  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq ".result.power"'
+  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
 }
 
 # bats file_tags=pos,validator
