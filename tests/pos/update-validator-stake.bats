@@ -7,7 +7,7 @@ setup() {
   # Define test parameters.
   export ENCLAVE=${ENCLAVE:-"pos"}
   export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
-  export VALIDATOR_ID=${VALIDATOR_ID:="TODO"}
+  export VALIDATOR_ID=${VALIDATOR_ID:="1"}
 
   # RPC Urls.
   export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"}
