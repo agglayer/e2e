@@ -75,7 +75,7 @@ jobs:
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
-          sudo apt install kurtosis-cli=1.4.1
+          sudo apt install kurtosis-cli=1.5.0
           kurtosis version
 
       - name: Disable Kurtosis analytics
@@ -88,7 +88,7 @@ jobs:
 
       - name: Install polycli
         run: |
-          POLYCLI_VERSION=$(curl -s https://api.github.com/repos/0xPolygon/polygon-cli/releases/latest | jq -r '.tag_name')
+          POLYCLI_VERSION="v0.1.74"
           tmp_dir=$(mktemp -d)
           curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
           mv "$tmp_dir"/* /usr/local/bin/polycli
@@ -102,9 +102,9 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.11
+          go-version: 1.22
         env:
-          GOARCH: "amd64"
+          GOARCH: amd64
 
       - name: Checkout Kurtosis CDK
         uses: actions/checkout@v4
@@ -118,7 +118,7 @@ jobs:
 
       - name: Setup Devnet w/ Kurtosis
         run: |
-          ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.args_file }}"
+          ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
 
       - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
         run: |
