@@ -14,32 +14,43 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Fork 9 - Validium (defaults used)
-          - network: "fork9-cdk-erigon-validium"
-            filter_tags: "light"
+          # Kurtosis CDK.
+          - package: kurtosis-cdk
+            version: v0.2.30
+            args_file: .github/tests/combinations/fork9-cdk-erigon-validium.yml
+            filter_tags: light
+          - package: kurtosis-cdk
+            version: v0.2.30
+            args_file: .github/tests/combinations/fork11-cdk-erigon-validium.yml
+            filter_tags: zk-counters
+          - package: kurtosis-cdk
+            version: v0.2.30
+            args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
+            filter_tags: batch-verification,gas-limit-overflow,access-list
+          # Custom AggLayer Image, example
+          - package: kurtosis-cdk
+            version: v0.2.30
+            args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
+            filter_tags: batch-verification,gas-limit-overflow,access-list
+            custom_agglayer_image: ghcr.io/agglayer/agglayer:0.3.0-rc.2
 
-          # Fork 11 - Validium (defaults used)
-          - network: "fork11-cdk-erigon-validium"
-            filter_tags: "zk-counters"
+          # Kurtosis Polygon PoS.
+          - package: kurtosis-polygon-pos
+            version: v1.0.2
+            args_file: .github/tests/heimdall-bor-multi-validators.yml
+            filter_tags: pos
+          - package: kurtosis-polygon-pos
+            version: v1.0.2
+            args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
+            filter_tags: pos
 
-          # Fork 12 - Validium (defaults used)
-          - network: "fork12-cdk-erigon-validium"
-            filter_tags: "batch-verification,gas-limit-overflow,access-list"
-
-          # OP Stack (with custom env vars), example
-          - network: "op-stack"
-            filter_tags: "pessimistic"
+          # Optimism package.
+          - package: optimism-package
+            version: main
+            args_file: network_params.yaml
+            filter_tags: pessimistic
             env:
               L2_SENDER_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-              
-          # Custom AggLayer Image, example
-          - network: "fork12-cdk-erigon-validium"
-            filter_tags: "batch-verification,gas-limit-overflow,access-list"
-            custom_agglayer_image: "ghcr.io/agglayer/agglayer:0.3.0-rc.2"
-
-          # 🟣 Polygon PoS
-          - network: polygon-pos
-            filter_tags: pos
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -61,7 +72,7 @@ jobs:
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
-          sudo apt install kurtosis-cli=1.4.1
+          sudo apt install kurtosis-cli=1.5.0
           kurtosis version
 
       - name: Disable Kurtosis analytics
@@ -74,7 +85,7 @@ jobs:
 
       - name: Install polycli
         run: |
-          POLYCLI_VERSION=$(curl -s https://api.github.com/repos/0xPolygon/polygon-cli/releases/latest | jq -r '.tag_name')
+          POLYCLI_VERSION="v0.1.74"
           tmp_dir=$(mktemp -d)
           curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
           mv "$tmp_dir"/* /usr/local/bin/polycli
@@ -88,9 +99,9 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.11
+          go-version: 1.22
         env:
-          GOARCH: "amd64"
+          GOARCH: amd64
 
       - name: Checkout Kurtosis CDK
         uses: actions/checkout@v4
@@ -104,7 +115,7 @@ jobs:
 
       - name: Setup Devnet w/ Kurtosis
         run: |
-          ./core/helpers/setup-kurtosis.sh "${{ matrix.network }}"
+          ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
 
       - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
         run: |
@@ -138,17 +149,18 @@ jobs:
           polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
 
       - name: Dump enclave logs
-        if: failure()
+        if: always()
         run: kurtosis dump ./dump
 
       - name: Generate archive name
-        if: failure()
+        if: always()
         run: |
-          archive_name="dump_run_with_args_${{ matrix.network }}_${{ github.run_id }}_${{ strategy.job-index }}"
+          file_name=$(basename "${{ matrix.args_file }}" ".yml")
+          archive_name="dump_run_with_args_${{ matrix.package }}_${file_name}_${{ github.run_id }}_${{ strategy.job-index }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
 
       - name: Upload logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARCHIVE_NAME }}
