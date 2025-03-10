@@ -1,12 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# 🚀 Set up Kurtosis Devnet & Export L2_RPC_URL
-PACKAGE="${1:-kurtosis-cdk}"
-VERSION="${2:-v0.2.30}"
-ARGS_FILE="${3:-fork12-cdk-erigon-validium}"
-CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}" # Allow optional override
-
 # Export environment variables for CI consumption.
 export_env_var() {
     name="$1"
@@ -16,55 +10,26 @@ export_env_var() {
     echo "✅ Exported ${name}=${value}"
 }
 
-# ✅ Clean up old environments
-kurtosis clean --all
+PACKAGE="${1:-kurtosis-cdk}"
+VERSION="${2:-v0.2.30}"
+ARGS_FILE="${3:-fork12-cdk-erigon-validium}"
+CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}" # Allow optional override
+echo "PACKAGE=${PACKAGE}"
+echo "VERSION=${VERSION}"
+echo "ARGS_FILE=${ARGS_FILE}"
+echo "CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE}"
 
-# ✅ OP Stack Devnet Handling (No AggLayer Modifications Here)
-if [[ "${PACKAGE}" == "optimism-package" ]]; then
-    echo "🔥 Deploying Kurtosis environment for OP Stack"
-
-    # ✅ Run Kurtosis for OP Stack
-    ENCLAVE="op"
-    ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/${ARGS_FILE}"
-    kurtosis run --enclave "${ENCLAVE}" --args-file="${ARGS_FILE}" \
-        "github.com/ethpandaops/optimism-package@${VERSION}"
-
-    # ✅ Fetch and export RPC URLs
-    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-el-1-op-geth-op-node-op-kurtosis rpc)"
-    export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-batcher-op-kurtosis http)"
-
-elif [[ "${PACKAGE}" == "polygon-pos" ]]; then
-    echo "🔥 Deploying Kurtosis environment for Polygon PoS"
-
-    # ✅ Run Kurtosis for Polygon PoS
-    ENCLAVE="pos"
-    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/${ARGS_FILE}"
-    kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" \
-        "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
-
-    # ✅ Fetch and export RPC URLs
-    export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"
-    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)"
-    export_env_var "L2_CL_API_URL" "$(kurtosis port print "${ENCLAVE}" l2-cl-1-heimdall-bor-validator http)"
-    export_env_var "L2_CL_NODE_TYPE" "heimdall"
-
-    # ✅ Fetch and export contract addresses
-    matic_contract_addresses=$(kurtosis files inspect ${ENCLAVE} matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
-    export_env_var "L1_DEPOSIT_MANAGER_PROXY_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')"
-    export_env_var "ERC20_TOKEN_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')"
-    export_env_var "L2_STATE_RECEIVER_ADDRESS" "$(kurtosis files inspect "${ENCLAVE}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')"
-
-else
-    echo "🔥 Deploying Kurtosis environment for Polygon CDK network: ${NETWORK}"
-
-    # ✅ Download the default config
+if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     ENCLAVE="cdk"
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
+    echo "ENCALVE=${ENCLAVE}"
+    echo "ARGS_FILE=${ARGS_FILE}"
+    cat "${ARGS_FILE}"
 
+    # If provided, add custom agglayer image to the args file.
     CONFIG_FILE=$(mktemp)
     curl -sSL "${ARGS_FILE}" -o "${CONFIG_FILE}"
 
-    # ✅ Modify AggLayer Image if Provided
     if [[ -n "${CUSTOM_AGGLAYER_IMAGE}" ]]; then
         echo "🛠 Overriding AggLayer image with: ${CUSTOM_AGGLAYER_IMAGE}"
 
@@ -77,18 +42,53 @@ else
             yq -i -y '.args += {"agglayer_image": "'"${CUSTOM_AGGLAYER_IMAGE}"'"}' "${CONFIG_FILE}"
         fi
     fi
-
-    # ✅ Print final config for debugging
-    echo "📄 Final Kurtosis Config (Sanity Check):"
+    echo "CONFIG_FILE=${CONFIG_FILE}"
     cat "${CONFIG_FILE}"
 
-    # ✅ Run Kurtosis with modified config
-    kurtosis run --enclave "${ENCLAVE}" --args-file="${CONFIG_FILE}" \
-        "github.com/0xPolygon/kurtosis-cdk@${VERSION}"
+    # Deploy the package.
+    kurtosis run --enclave "${ENCLAVE}" --args-file="${CONFIG_FILE}" "github.com/0xPolygon/kurtosis-cdk@${VERSION}"
 
-    # ✅ Fetch and export RPC URLs
+    # Export environment variables.
     export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" cdk-erigon-rpc-001 rpc)"
     export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE}" cdk-erigon-sequencer-001 rpc)"
+
+elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
+    ENCLAVE="pos"
+    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/${ARGS_FILE}"
+    echo "ENCLAVE=${ENCLAVE}"
+    echo "ARGS_FILE=${ARGS_FILE}"
+    cat "${ARGS_FILE}"
+
+    # Deploy the package.
+    kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
+
+    # Export environment variables.
+    export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"
+    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" l2-el-1-bor-heimdall-validator rpc)"
+    export_env_var "L2_CL_API_URL" "$(kurtosis port print "${ENCLAVE}" l2-cl-1-heimdall-bor-validator http)"
+    export_env_var "L2_CL_NODE_TYPE" "heimdall"
+
+    matic_contract_addresses=$(kurtosis files inspect ${ENCLAVE} matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
+    export_env_var "L1_DEPOSIT_MANAGER_PROXY_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')"
+    export_env_var "ERC20_TOKEN_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')"
+    export_env_var "L2_STATE_RECEIVER_ADDRESS" "$(kurtosis files inspect "${ENCLAVE}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')"
+
+elif [[ "${PACKAGE}" == "optimism-package" ]]; then
+    ENCLAVE="op"
+    ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/${ARGS_FILE}"
+    echo "ENCLAVE=${ENCLAVE}"
+    echo "ARGS_FILE=${ARGS_FILE}"
+    cat "${ARGS_FILE}"
+
+    # Deploy the package.
+    kurtosis run --enclave "${ENCLAVE}" --args-file="${ARGS_FILE}" "github.com/ethpandaops/optimism-package@${VERSION}"
+
+    # Export environment variables.
+    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-el-1-op-geth-op-node-op-kurtosis rpc)"
+    export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-batcher-op-kurtosis http)"
+else
+    echo "❌ Unsupported package: ${PACKAGE}"
+    exit 1
 fi
 
 export_env_var "ENCLAVE" "${ENCLAVE}"
