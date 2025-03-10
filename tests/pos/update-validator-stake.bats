@@ -32,7 +32,7 @@ setup() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
-  echo "Updating the stake of the validator (${VALIDATOR_ADDRESS})..."
+  echo "Updating the stake of the validator (${VALIDATOR_ID})..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${STAKE_MANAGER_PROXY_ADDRESS}" "restakePOL(uint,uint,bool)" "${VALIDATOR_ID}" "${stake_update_amount}" false
 
