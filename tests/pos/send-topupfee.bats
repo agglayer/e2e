@@ -1,5 +1,11 @@
 #!/usr/bin/env bats
 
+# Top-ups are amounts used to pay fees on the Heimdall chain.
+# 1) When a new validator joins, they can mention a top-up amount to be used for fees, in addition
+# to the staked amount, which will be used as balance on Heimdall chain to pay fees.
+# 2) A user can also directly call the top-up function on the staking smart contract on Ethereum to
+# increase the top-up balance on Heimdall.
+
 setup() {
   # Load libraries.
   load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
@@ -22,11 +28,7 @@ setup() {
   TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq ".result[0].amount"'
 }
 
-# Top-ups are amounts used to pay fees on the Heimdall chain.
-# 1) When a new validator joins, they can mention a top-up amount to be used for fees, in addition
-# to the staked amount, which will be used as balance on Heimdall chain to pay fees.
-# 2) A user can also directly call the top-up function on the staking smart contract on Ethereum to
-# increase the top-up balance on Heimdall.
+# bats file_tags=pos,top-up-fee
 @test "send top-up fee" {
   initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
   echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
