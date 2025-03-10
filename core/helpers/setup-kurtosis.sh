@@ -10,10 +10,10 @@ export_env_var() {
     echo "✅ Exported ${name}=${value}"
 }
 
-PACKAGE="${1:-kurtosis-cdk}"
-VERSION="${2:-v0.2.30}"
-ARGS_FILE="${3:-fork12-cdk-erigon-validium}"
-CUSTOM_AGGLAYER_IMAGE="${CUSTOM_AGGLAYER_IMAGE:-""}" # Allow optional override
+PACKAGE=${1:-"kurtosis-cdk"}
+VERSION=${2:-"v0.3.2"}
+ARGS_FILE=${3:-".github/tests/combinations/fork12-cdk-erigon-validium.yml"}
+CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE:-""} # Allow optional override.
 echo "PACKAGE=${PACKAGE}"
 echo "VERSION=${VERSION}"
 echo "ARGS_FILE=${ARGS_FILE}"

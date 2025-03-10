@@ -16,20 +16,19 @@ jobs:
         include:
           # Kurtosis CDK.
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: v0.3.2
             args_file: .github/tests/combinations/fork9-cdk-erigon-validium.yml
             filter_tags: light
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: v0.3.2
             args_file: .github/tests/combinations/fork11-cdk-erigon-validium.yml
             filter_tags: zk-counters
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: v0.3.2
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
-          # Custom AggLayer Image, example
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: v0.3.2
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
             custom_agglayer_image: ghcr.io/agglayer/agglayer:0.3.0-rc.2
@@ -59,29 +58,24 @@ jobs:
       CUSTOM_AGGLAYER_IMAGE: ${{ matrix.custom_agglayer_image || '' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck jq
-          shellcheck --version
-
-      - name: Install Kurtosis
+      - name: Install kurtosis
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install kurtosis-cli=1.5.0
           kurtosis version
+          kurtosis analytics disable
 
-      - name: Disable Kurtosis analytics
-        run: kurtosis analytics disable
+      - name: Install jq
+        run: apt-get update && apt-get install --yes jq && jq --version
 
       - name: Install yq
-        run: |
-          pip3 install yq
-          yq --version
+        run: pip3 install yq && yq --version
+
+      - name: Install shellcheck
+        run: apt-get update && apt-get install --yes shellcheck && shellcheck --version
 
       - name: Install polycli
         run: |
@@ -93,29 +87,21 @@ jobs:
           sudo chmod +x /usr/local/bin/polycli
           /usr/local/bin/polycli version
 
-      - name: Install Foundry
+      - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Install Go
+      - name: Install go
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
         env:
           GOARCH: amd64
 
-      - name: Checkout Kurtosis CDK
-        uses: actions/checkout@v4
-        with:
-          repository: 0xPolygon/kurtosis-cdk
-          path: "kurtosis-cdk"
-          ref: "v0.2.30"
-
-      - name: Setup Bats and bats libs
+      - name: Setup bats
         uses: bats-core/bats-action@2.0.0
 
-      - name: Setup Devnet w/ Kurtosis
-        run: |
-          ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
+      - name: Deploy devnet
+        run: ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
 
       - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
         run: |
@@ -138,10 +124,9 @@ jobs:
           cat tests/.env
 
       - name: Build polygon-test-runner
-        run: |
-          make install
+        run: make install
 
-      - name: Run E2E Tests with Custom Env Vars
+      - name: Run e2e tests
         run: |
           L2_RPC_URL="$L2_RPC_URL" \
           L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL" \
