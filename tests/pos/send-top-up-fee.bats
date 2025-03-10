@@ -34,7 +34,7 @@ setup() {
   echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
 
   echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
-  top_up_amount = $(cast to-wei 1 ether)
+  top_up_amount=$(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
 
