@@ -62,7 +62,7 @@ elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
 
     # Export environment variables.
     export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"
-    if [[ "${ARGS_FILE}" =~ "*heimdall-v2*" ]]; then
+    if [[ "${ARGS_FILE}" =~ "heimdall-v2" ]]; then
         L2_CL_NODE_TYPE="heimdall-v2"
         L2_RPC_URL="$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-modified-for-heimdall-v2-heimdall-v2-validator" rpc)"
         L2_CL_API_URL="$(kurtosis port print "${ENCLAVE}" "l2-cl-1-heimdall-v2-bor-modified-for-heimdall-v2-validator" http)"
@@ -71,9 +71,9 @@ elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
         L2_RPC_URL="$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-heimdall-validator" rpc)"
         L2_CL_API_URL="$(kurtosis port print "${ENCLAVE}" "l2-cl-1-heimdall-bor-validator" http)"
     fi
+    export_env_var "L2_CL_NODE_TYPE" "${L2_CL_NODE_TYPE}"
     export_env_var "L2_RPC_URL" "${L2_RPC_URL}"
     export_env_var "L2_CL_API_URL" "${L2_CL_API_URL}"
-    export_env_var "L2_CL_NODE_TYPE" "${L2_CL_NODE_TYPE}"
 
     matic_contract_addresses=$(kurtosis files inspect ${ENCLAVE} matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
     export_env_var "L1_DEPOSIT_MANAGER_PROXY_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')"
