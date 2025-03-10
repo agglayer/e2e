@@ -24,7 +24,6 @@ if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
     echo "ENCALVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
-    cat "${ARGS_FILE}"
 
     # If provided, add custom agglayer image to the args file.
     CONFIG_FILE=$(mktemp)
@@ -57,7 +56,6 @@ elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/${ARGS_FILE}"
     echo "ENCLAVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
-    cat "${ARGS_FILE}"
 
     # Deploy the package.
     kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
@@ -78,7 +76,6 @@ elif [[ "${PACKAGE}" == "optimism-package" ]]; then
     ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/${ARGS_FILE}"
     echo "ENCLAVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
-    cat "${ARGS_FILE}"
 
     # Deploy the package.
     kurtosis run --enclave "${ENCLAVE}" --args-file="${ARGS_FILE}" "github.com/ethpandaops/optimism-package@${VERSION}"
