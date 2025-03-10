@@ -8,48 +8,50 @@ on:
     - cron: "0 2 * * *" # Run nightly at 2 AM UTC
   workflow_dispatch: {}
 
+env:
+  KURTOSIS_CDK_VERSION: v0.2.30
+  KURTOSIS_POS_VERSION: v1.0.2
+  OPTIMISM_PACKAGE_VERSION: main
+
 jobs:
   test-e2e:
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Kurtosis CDK
-          # https://github.com/0xPolygon/kurtosis-cdk
+          # Kurtosis CDK.
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: ${{ env.KURTOSIS_CDK_VERSION }}
             args_file: .github/tests/combinations/fork9-cdk-erigon-validium.yml
             filter_tags: light
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: ${{ env.KURTOSIS_CDK_VERSION }}
             args_file: .github/tests/combinations/fork11-cdk-erigon-validium.yml
             filter_tags: zk-counters
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: ${{ env.KURTOSIS_CDK_VERSION }}
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
           # Custom AggLayer Image, example
           - package: kurtosis-cdk
-            version: v0.2.30
+            version: ${{ env.KURTOSIS_CDK_VERSION }}
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
             custom_agglayer_image: ghcr.io/agglayer/agglayer:0.3.0-rc.2
 
-          # Kurtosis Polygon PoS
-          # https://github.com/0xPolygon/kurtosis-polygon-pos
+          # Kurtosis Polygon PoS.
           - package: kurtosis-polygon-pos
-            version: v1.0.2
+            version: ${{ env.KURTOSIS_POS_VERSION }}
             args_file: .github/tests/heimdall-bor-multi-validators.yml
             filter_tags: pos
           - package: kurtosis-polygon-pos
-            version: v1.0.2
+            version: ${{ env.KURTOSIS_POS_VERSION }}
             args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
             filter_tags: pos
 
-          # Optimism package
-          # https://github.com/ethpandaops/optimism-package
+          # Optimism package.
           - package: optimism-package
-            version: main
+            version: ${{ env.OPTIMISM_PACKAGE_VERSION }}
             args_file: network_params.yaml
             filter_tags: pessimistic
             env:
