@@ -14,7 +14,7 @@ setup() {
 
   # Test parameters.
   export VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:="0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
-  export TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[0].amount"'
+  export TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == "pol") | .amount"'
 }
 
 # bats file_tags=pos,validator
