@@ -16,10 +16,11 @@ setup() {
 }
 
 generate_new_keypair() {
-  polycli wallet inspect --mnemonic "sibling lend brave explain wait orbit mom alcohol disorder message grace sun" --addresses 1 >key.json
-  address=$(echo key.json | jq --raw-output '.Addresses[0].ETHAddress')
-  public_key=0x$(echo key.json | jq --raw-output '.Addresses[0].HexPublicKey')
-  private_key=$(echo key.json | jq --raw-output '.Addresses[0].HexPrivateKey')
+  mnemonic=$(cast wallet new-mnemonic --json | jq --raw-output '.mnemonic')
+  polycli wallet inspect --mnemonic "${mnemonic}" --addresses 1 >key.json
+  address=$(cat key.json | jq --raw-output '.Addresses[0].ETHAddress')
+  public_key=0x$(cat key.json | jq --raw-output '.Addresses[0].HexFullPublicKey')
+  private_key=$(cat key.json | jq --raw-output '.Addresses[0].HexPrivateKey')
   echo "${address}"
   echo "${public_key}"
   echo "${private_key}"
