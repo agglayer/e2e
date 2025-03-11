@@ -7,7 +7,12 @@ setup() {
   pos_setup
 
   # Test parameters.
-  export VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators.length"'
+  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
+  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators.length"'
+  fi
+  export VALIDATOR_COUNT_CMD="${VALIDATOR_COUNT_CMD}"
 }
 
 generate_new_keypair() {
