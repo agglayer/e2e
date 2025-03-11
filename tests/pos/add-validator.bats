@@ -11,12 +11,10 @@ setup() {
 }
 
 generate_new_keypair() {
-  # Generate a new public/private keypair.
-  # For reference: https://gist.github.com/miguelmota/3793b160992b4ea0b616497b8e5aee2f
-  openssl ecparam -name secp256k1 -genkey -noout | openssl ec -text -noout >key
-  public_key=$(cat key | grep pub -A 5 | tail -n +2 | tr -d '\n[:space:]:' | sed 's/^04//')
-  private_key=$(cat key | grep priv -A 3 | tail -n +2 | tr -d '\n[:space:]:' | sed 's/^00//')
-  address=$(echo "${public_key}" | keccak-256sum -x -l | tr -d ' -' | tail -c 41)
+  polycli wallet inspect --mnemonic "sibling lend brave explain wait orbit mom alcohol disorder message grace sun" --addresses 1 >key.json
+  address=$(echo key.json | jq --raw-output '.Addresses[0].ETHAddress')
+  public_key=0x$(echo key.json | jq --raw-output '.Addresses[0].HexPublicKey')
+  private_key=$(echo key.json | jq --raw-output '.Addresses[0].HexPrivateKey')
   echo "${address}"
   echo "${public_key}"
   echo "${private_key}"
