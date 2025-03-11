@@ -2,8 +2,8 @@
 
 setup() {
     # Load libraries.
-    load "$PROJECT_ROOT/core/helpers/pos-setup.bash"
-    load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
+    load "../../core/helpers/pos-setup.bash"
+    load "../../core/helpers/scripts/async.bash"
     pos_setup
 
     # Test parameters.
@@ -19,7 +19,7 @@ setup() {
 }
 
 # bats file_tags=pos,state-sync
-@test "bridge ERC20 tokens from L1 to L2 to trigger state sync" {
+@test "bridge native L2 eth from L1 to L2 to trigger state sync" {
     address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
     # Get initial values.
@@ -36,7 +36,7 @@ setup() {
     cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
         "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" 10
 
-    echo "Depositing ERC20 to trigger a state sync..."
+    echo "Depositing tokens to trigger a state sync..."
     cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
         "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_MATIC_TOKEN_ADDRESS}" 10
 
