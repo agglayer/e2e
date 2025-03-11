@@ -2,8 +2,8 @@
 
 setup() {
   # Load libraries.
-  load "$PROJECT_ROOT/core/helpers/pos-setup.bash"
-  load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
+  load "../../core/helpers/pos-setup.bash"
+  load "../../core/helpers/scripts/async.bash"
   pos_setup
 
   # Test parameters.
@@ -18,12 +18,10 @@ setup() {
 generate_new_keypair() {
   mnemonic=$(cast wallet new-mnemonic --json | jq --raw-output '.mnemonic')
   polycli wallet inspect --mnemonic "${mnemonic}" --addresses 1 >key.json
-  address=$(cat key.json | jq --raw-output '.Addresses[0].ETHAddress')
-  public_key=0x$(cat key.json | jq --raw-output '.Addresses[0].HexFullPublicKey')
-  private_key=$(cat key.json | jq --raw-output '.Addresses[0].HexPrivateKey')
-  echo "${address}"
-  echo "${public_key}"
-  echo "${private_key}"
+  address=$(jq --raw-output '.Addresses[0].ETHAddress' key.json)
+  public_key=0x$(jq --raw-output '.Addresses[0].HexFullPublicKey' key.json)
+  private_key=$(jq --raw-output '.Addresses[0].HexPrivateKey' key.json)
+  echo "${address} ${public_key} ${private_key}"
 }
 
 # bats file_tags=pos,validator
@@ -34,7 +32,9 @@ generate_new_keypair() {
   echo "Generating a new validator keypair..."
   # Note: We're using the `generate_new_keypair` function defined below instead of cast wallet new
   # because we need to generate a public key.
-  read -r validator_address validator_public_key _ < <(generate_new_keypair)
+  read validator_address validator_public_key validator_private_key < <(generate_new_keypair)
+  echo "address: ${validator_address}"
+  echo "public key: ${validator_public_key}"
 
   echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
   validator_balance=$(cast to-unit 1000000000ether wei)
