@@ -1,3 +1,5 @@
+# This function sets up environment variables for `pos` tests using a Kurtosis Polygon PoS
+# environment if they are not already provided.
 pos_setup() {
   # Private key used to send transactions.
   export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
