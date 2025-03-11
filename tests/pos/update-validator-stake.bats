@@ -8,7 +8,7 @@ setup() {
 
   # Test parameters.
   export VALIDATOR_ID=${VALIDATOR_ID:="1"}
-  export VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:="2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
+  export VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:="0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
   export VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
 }
 
