@@ -8,13 +8,18 @@
 
 setup() {
   # Load libraries.
-  load "$PROJECT_ROOT/core/helpers/pos-setup.bash"
-  load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
+  load "../../core/helpers/pos-setup.bash"
+  load "../../core/helpers/scripts/async.bash"
   pos_setup
 
   # Test parameters.
   export VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:="0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
-  export TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == "pol") | .amount"'
+  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+    TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"matic\") | .amount"'
+  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+    TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"pol\") | .amount"'
+  fi
+  export TOP_UP_FEE_BALANCE_CMD="${TOP_UP_FEE_BALANCE_CMD}"
 }
 
 # bats file_tags=pos,validator
