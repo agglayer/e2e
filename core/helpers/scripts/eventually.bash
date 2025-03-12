@@ -21,7 +21,7 @@ function assert_command_eventually_equal() {
 
     result=$(eval "$command")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result: ${result}"
-    if [[ "${result}" -eq "${threshold}" ]]; then
+    if [[ "${result}" -eq "${target}" ]]; then
       break
     fi
 
