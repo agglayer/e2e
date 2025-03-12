@@ -3,7 +3,7 @@
 setup() {
   # Load libraries.
   load "../../core/helpers/pos-setup.bash"
-  load "../../core/helpers/scripts/async.bash"
+  load "../../core/helpers/scripts/eventually.bash"
   pos_setup
 }
 
@@ -17,6 +17,7 @@ setup() {
   echo "Initial power of the validator (${validator_id}): ${initial_validator_power}."
 
   echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
+  stake_update_amount = $(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
