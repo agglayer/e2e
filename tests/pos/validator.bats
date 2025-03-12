@@ -65,7 +65,7 @@ generate_new_keypair() {
 }
 
 # bats file_tags=pos,validator
-@test "add new validator to the validator set on L1" {
+@test "add new validator to the validator set" {
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then

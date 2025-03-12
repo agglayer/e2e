@@ -18,6 +18,16 @@ setup() {
   export BOR_STATE_SYNC_COUNT_CMD="${BOR_STATE_SYNC_COUNT_CMD}"
 }
 
+# bats file_tags=pos,bridge
+@test "bridge ERC20 token from L1 to L2" {
+  # TODO
+}
+
+# bats file_tags=pos,bridge
+@test "bridge ERC721 token from L1 to L2" {
+  # TODO
+}
+
 # bats file_tags=pos,state-sync
 @test "bridge native L2 eth from L1 to L2 to trigger state sync" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
@@ -56,14 +66,4 @@ setup() {
     exit 1
   fi
   echo "✅ ${address} balance has increased: ${new_balance} ether."
-}
-
-# bats file_tags=pos,bridge
-@test "bridge ERC20 token from L1 to L2" {
-  # TODO
-}
-
-# bats file_tags=pos,bridge
-@test "bridge ERC721 token from L1 to L2" {
-  # TODO
 }
