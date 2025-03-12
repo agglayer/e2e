@@ -20,8 +20,11 @@ function generate_new_keypair() {
 # bats file_tags=pos,validator
 @test "update validator stake" {
   VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
+  echo "VALIDATOR_ID=${VALIDATOR_ID}"
   VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
+  echo "VALIDATOR_POWER_CMD=${VALIDATOR_POWER_CMD}"
 
   validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
   echo "validator_address=${validator_address}"
@@ -52,11 +55,14 @@ function generate_new_keypair() {
 # bats file_tags=pos,validator
 @test "update validator top-up fee" {
   VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
+  echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
+
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"matic\") | .amount"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
     TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"pol\") | .amount"'
   fi
+  echo "TOP_UP_FEE_BALANCE_CMD=${TOP_UP_FEE_BALANCE_CMD}"
 
   initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
   echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
@@ -81,6 +87,7 @@ function generate_new_keypair() {
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
     VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators.length"'
   fi
+  echo "VALIDATOR_COUNT_CMD=${VALIDATOR_COUNT_CMD}"
 
   initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
   echo "Initial validator count: ${initial_validator_count}"
@@ -119,7 +126,9 @@ function generate_new_keypair() {
 # bats file_tags=pos,validator
 @test "remove validator" {
   VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
+  echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
