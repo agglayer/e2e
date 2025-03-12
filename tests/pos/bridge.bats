@@ -5,6 +5,29 @@ setup() {
   load "../../core/helpers/pos-setup.bash"
   load "../../core/helpers/scripts/eventually.bash"
   pos_setup
+
+  # Define state sync count commands.
+  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
+  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
+  fi
+  BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
+
+  # Get state sync count.
+  export HEIMDALL_STATE_SYNC_COUNT=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
+  export BOR_STATE_SYNC_COUNT=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+}
+
+function wait_for_state_sync_to_occur() {
+  timeout="180" # seconds
+  interval="10" # seconds
+
+  echo "Monitoring state syncs on Heimdall..."
+  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((HEIMDALL_STATE_SYNC_COUNT + 1)) "${timeout}" "${interval}"
+
+  echo "Monitoring state syncs on Bor..."
+  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((BOR_STATE_SYNC_COUNT + 1)) "${timeout}" "${interval}"
 }
 
 # bats file_tags=pos,bridge,erc20
@@ -28,13 +51,20 @@ setup() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_ERC20_TOKEN_ADDRESS}" "${bridge_amount}"
 
+  # Wait for Heimdall and Bor to process the bridge event.
+  wait_for_state_sync_to_occur
+
+  # Monitor balances on L1 and L2.
+  echo "Monitoring ERC721 balance on L1..."
+  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}"
+
   # Monitor balances on L1 and L2.
   echo "Monitoring ERC20 balance on L1..."
   assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
 
   # TODO: Find out why L2 balance is not increasing.
-  # echo "Monitoring ERC20 balance on L2..."
-  # assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
+  echo "Monitoring ERC20 balance on L2..."
+  assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
 }
 
 # bats file_tags=pos,bridge,erc20
@@ -69,13 +99,16 @@ setup() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC721(address,uint)" "${L1_ERC721_TOKEN_ADDRESS}" "${token_id}"
 
+  # Wait for Heimdall and Bor to process the bridge event.
+  wait_for_state_sync_to_occur
+
   # Monitor balances on L1 and L2.
   echo "Monitoring ERC721 balance on L1..."
   assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}"
 
   # TODO: Find out why L2 balance is not increasing.
-  # echo "Monitoring ERC721 balance on L2..."
-  # assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}"
+  echo "Monitoring ERC721 balance on L2..."
+  assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}"
 }
 
 # bats file_tags=pos,bridge,erc721
@@ -83,28 +116,16 @@ setup() {
   echo TODO
 }
 
-# bats file_tags=pos,state-sync
+# bats file_tags=pos,bridge,matic,pol
 @test "bridge MATIC/POL from L1 to L2 and confirm L2 ETH balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
-
-  # Define state sync count commands.
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    heimdall_state_sync_count_cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    heimdall_state_sync_count_cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
-  fi
-  bor_state_sync_count_cmd='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
 
   # Get initial values.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_MATIC_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
-  initial_heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
-  initial_bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
   echo "Initial values:"
   echo "- L1 balance: ${initial_l1_balance} MATIC"
   echo "- L2 balance: ${initial_l2_balance} wei"
-  echo "- Heimdall state sync count: ${initial_heimdall_state_sync_count}"
-  echo "- Bor state sync count: ${initial_bor_state_sync_count}"
 
   # Bridge some ERC20 tokens from L1 to L2 to trigger a state sync.
   bridge_amount=10
@@ -116,19 +137,14 @@ setup() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_MATIC_TOKEN_ADDRESS}" "${bridge_amount}"
 
-  # Monitor state syncs on Heimdall and Bor.
-  timeout="180" # seconds
-  interval="10" # seconds
-  echo "Monitoring state syncs on Heimdall..."
-  assert_command_eventually_equal "${heimdall_state_sync_count_cmd}" $((initial_heimdall_state_sync_count + 1)) "${timeout}" "${interval}"
-
-  echo "Monitoring state syncs on Bor..."
-  assert_command_eventually_equal "${bor_state_sync_count_cmd}" $((initial_bor_state_sync_count + 1)) "${timeout}" "${interval}"
+  # Wait for Heimdall and Bor to process the bridge event.
+  wait_for_state_sync_to_occur
 
   # Monitor balances on L1 and L2.
   echo "Monitoring MATIC balance on L1..."
   assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
 
+  # TODO: Find out why L2 balance is not increasing.
   echo "Monitoring ether balance on L2..."
   assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
 }
