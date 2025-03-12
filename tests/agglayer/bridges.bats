@@ -39,6 +39,7 @@ function fund_claim_tx_manager() {
 @test "bridge native ETH from L1 to L2" {
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
+    initial_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
     bridge_amount=$(cast to-wei 0.1)
     polycli ulxly bridge asset \
             --bridge-address "$l1_bridge_addr" \
@@ -48,7 +49,7 @@ function fund_claim_tx_manager() {
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount"
 
-    set -e
+    set +e
     polycli ulxly claim asset \
             --bridge-address "$l2_bridge_addr" \
             --private-key "$l2_private_key" \
@@ -57,13 +58,19 @@ function fund_claim_tx_manager() {
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
-    set +e
+    set -e
+    final_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
+    if [[ $initial_l2_balance == $final_l2_balance ]]; then
+        echo "It looks like the bridge deposit to l2 was not synced correctly. The balance on L2 did not increase."
+        exit 1
+    fi
 }
 
 
 # bats test_tags=smoke,bridge
 @test "bridge native ETH from L2 to L1" {
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
 
     bridge_amount=$(cast to-wei 0.05)
     polycli ulxly bridge asset \
@@ -85,6 +92,12 @@ function fund_claim_tx_manager() {
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
+
+    final_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
+    if [[ $initial_l1_balance == $final_l1_balance ]]; then
+        echo "It looks like the bridge deposit to l1 was not processed. The balance on L1 did not increase."
+        exit 1
+    fi
 }
 
 # bats test_tags=smoke,rpc

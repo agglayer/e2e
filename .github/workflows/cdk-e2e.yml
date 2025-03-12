@@ -1,0 +1,127 @@
+name: Configurable E2E Execution
+run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
+
+# act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
+on:
+  pull_request:
+  workflow_call:
+    inputs:
+      kurtosis_cdk_ref:
+        description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for "
+        required: false
+        type: string
+        default: "v0.3.2"
+      kurtosis_cdk_args:
+        description: "Input arguments for the Kurtosis CDK package."
+        required: false
+        type: string
+        default: |
+          {
+            "deployment_stages": {
+              "deploy_l2_contracts": true,
+              "deploy_cdk_bridge_ui": false,
+            },
+            "args": {
+              "consensus_contract_type": "pessimistic",
+              "erigon_strict_mode": false,
+              "enable_normalcy": true,
+              "agglayer_prover_sp1_key": "",
+              "agglayer_prover_primary_prover": "mock-prover",
+              "sequencer_type": "erigon"
+            }
+          }
+
+      kurtosis_cdk_enclave_name:
+        description: "The name to be used for the kurtosis enclave"
+        required: false
+        type: string
+        default: "cdk"
+
+      docker_archive:
+        description: "An unpublished docker image archive to be used to over ride one of the default kurtosis images (e.g. /tmp/docker-image.tar)"
+        required: false
+        type: string
+        default: ""
+
+      docker_image_override:
+        description: "The docker image in kurtosis that will be overriden by the docker_archive (e.g. agglayer_image)"
+        required: false
+        type: string
+        default: ""
+
+      docker_tag:
+        description: "Assuming a docker_archive is specified, the docker_tag species the associated tag (e.g. busybox:latest)"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  run-kurtosis-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout agglayer-e2e
+        uses: actions/checkout@v4
+        with:
+          path: agglayer-e2e
+
+      - name: Checkout kurtosis-cdk
+        uses: actions/checkout@v4
+        with:
+          repository: 0xPolygon/kurtosis-cdk
+          ref: ${{ inputs.kurtosis_cdk_ref }}
+          path: kurtosis-cdk
+
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@v1.3.1
+
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Install polycli
+        run: |
+          polycli_version="v0.1.74"
+          pushd $(mktemp -d) || exit 1
+          curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+          tar xf polycli.tar.gz
+          mv polycli_* /usr/local/bin/polycli
+          polycli version
+
+      - name: Install kurtosis cli and jq
+        run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install -y kurtosis-cli jq
+
+      - name: Write args input to a file
+        run: |
+          docker_archive='${{ inputs.docker_archive }}'
+          if [[ $docker_archive == "" ]]; then
+              echo '${{ inputs.kurtosis_cdk_args }}' | tee /tmp/kurtosis-args.json
+              exit
+          fi
+          if [[ ! -e $docker_archive ]]; then
+              echo "The docker archive at $docker_archive is missing"
+              exit 1
+          fi
+          docker load --input "$docker_archive"
+          echo '${{ inputs.kurtosis_cdk_args }}' | jq --arg img ${{ inputs.docker_image_override }} --arg tag ${{ inputs.docker_tag }} '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
+
+
+      - name: Startup the kurtosis-cdk package
+        run: |
+          pushd kurtosis-cdk || exit 1
+          kurtosis run --enclave '${{ inputs.kurtosis_cdk_enclave_name }}' --args-file /tmp/kurtosis-args.json .
+          kurtosis analytics disable
+
+      - name: Run e2e tests
+        run: |
+          pushd agglayer-e2e || exit 1
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          bats tests/agglayer/bridges.bats --filter-tags agglayer
+
+      - name: Clean up kurtosis-cdk enclave
+        if: ${{ always() }}
+        run: |
+          kurtosis enclave stop '${{ inputs.kurtosis_cdk_enclave_name }}'
+          kurtosis clean
+

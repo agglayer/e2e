@@ -24,7 +24,6 @@ setup() {
     fi
 }
 
-
 @test "send 61,200 ERC20 transfers and confirm mined in 60 seconds" {
     start=$(date +%s)
     polycli loadtest \
@@ -42,8 +41,6 @@ setup() {
         exit 1
     fi
 }
-
-
 
 @test "send 29,800 ERC721 mints and confirm mined in 60 seconds" {
     start=$(date +%s)
@@ -64,7 +61,7 @@ setup() {
     fi
 }
 
-# TODO this one is a little trick because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful
+# TODO this one is a little tricky because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful or we should pre deploy the contracts
 @test "send 17,200 Uniswapv3 swaps sent and mined in 150 seconds" {
     start=$(date +%s)
     polycli loadtest \
