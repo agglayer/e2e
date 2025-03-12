@@ -96,7 +96,7 @@ setup() {
 
   # Get initial values.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_MATIC_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
-  initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" --ether "${address}")
+  initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
   initial_heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
   initial_bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
   echo "Initial values:"
@@ -119,10 +119,10 @@ setup() {
   timeout="180" # seconds
   interval="10" # seconds
   echo "Monitoring state syncs on Heimdall..."
-  assert_eventually_greater_than "${heimdall_state_sync_count_cmd}" "${initial_heimdall_state_sync_count}" "${timeout}" "${interval}"
+  assert_command_eventually_equal "${heimdall_state_sync_count_cmd}" $((initial_heimdall_state_sync_count + 1)) "${timeout}" "${interval}"
 
   echo "Monitoring state syncs on Bor..."
-  assert_eventually_greater_than "${bor_state_sync_count_cmd}" "${initial_bor_state_sync_count}" "${timeout}" "${interval}"
+  assert_command_eventually_equal "${bor_state_sync_count_cmd}" $((initial_bor_state_sync_count + 1))"${timeout}" "${interval}"
 
   # Monitor balances on L1 and L2.
   echo "Monitoring MATIC balance on L1..."

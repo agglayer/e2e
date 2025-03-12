@@ -27,7 +27,7 @@ setup() {
 
   echo "Monitoring the power of the validator..."
   validator_power_update_amount=$(cast to-unit "${stake_update_amount}"wei ether)
-  assert_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_validator_power + validator_power_update_amount))
+  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_validator_power + validator_power_update_amount))
 }
 
 # bats file_tags=pos,validator
@@ -53,7 +53,7 @@ setup() {
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${VALIDATOR_ADDRESS}" "${top_up_amount}"
 
   echo "Monitoring the top-up balance of the validator..."
-  assert_eventually_equal "${TOP_UP_FEE_BALANCE_CMD}" $((initial_top_up_balance + top_up_amount))
+  assert_command_eventually_equal "${TOP_UP_FEE_BALANCE_CMD}" $((initial_top_up_balance + top_up_amount))
 }
 
 generate_new_keypair() {
@@ -94,5 +94,5 @@ generate_new_keypair() {
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "stakeForPOL(address,uint,uint,bool,bytes)" "${validator_address}" 10 10 false "${validator_public_key}"
 
   echo "Monitoring the validator count..."
-  assert_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1))
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1))
 }

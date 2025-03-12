@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-# Asynchronous tests.
-# Eventually checks that an assertion eventually passes.
-# It will attempt an assertion periodically until it passes or a timeout occurs.
+# Eventually checks that an assertion passes within a given timeout.
+# It will repeatedly attempt the assertion at regular intervals until it passes or the timeout is reached.
 
-function assert_eventually_equal() {
+# Please note that this function does not handle piped commands!
+function assert_command_eventually_equal() {
   local command="$1"
   local target="$2"
   local timeout="${3:-60}"
@@ -13,42 +13,20 @@ function assert_eventually_equal() {
 
   local start_time=$(date +%s)
   local end_time=$((start_time + timeout))
-  echo "Checking if '${command}' will eventually be equal to '${target}' within ${timeout} seconds."
-  while [[ "$(date +%s)" -ne "${end_time}" ]]; do
-    result=$(eval "$command")
-    if [[ "${result}" -eq "${target}" ]]; then
-      echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Result '${result}' is equal to '${target}'!"
-      return 0
+  while true; do
+    if [[ "$(date +%s)" -ge "${end_time}" ]]; then
+      echo "Timeout reached."
+      exit 1
     fi
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is not equal to '${target}'. Waiting ${interval} seconds..."
+
+    result=$(eval "$command")
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result: ${result}"
+    if [[ "${result}" -eq "${threshold}" ]]; then
+      break
+    fi
+
     sleep "${interval}"
   done
-
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Timeout reached."
-  return 1
-}
-
-function assert_eventually_greater_than() {
-  local command="$1"
-  local threshold="$2"
-  local timeout="${3:-60}"
-  local interval="${4:-5}"
-
-  local start_time=$(date +%s)
-  local end_time=$((start_time + timeout))
-  echo "Checking if '${command}' will eventually be greater than '${threshold}' within ${timeout} seconds."
-  while [[ "$(date +%s)" -lt "${end_time}" ]]; do
-    result=$(eval "$command")
-    if [[ "${result}" -gt "${threshold}" ]]; then
-      echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Result '${result}' is greater than '${threshold}'!"
-      return 0
-    fi
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result '${result}' is not greater than '${threshold}'. Waiting ${interval} seconds..."
-    sleep "${interval}"
-  done
-
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Timeout reached."
-  return 1
 }
 
 function assert_token_balance_eventually_equal() {
@@ -68,7 +46,7 @@ function assert_token_balance_eventually_equal() {
     fi
 
     balance=$(cast call --json --rpc-url "${rpc_url}" "${contract_address}" "balanceOf(address)(uint)" "${eoa_address}" | jq --raw-output ".[0]")
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance}."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Token balance: ${balance}."
     if [[ "${balance}" -eq "${target}" ]]; then
       break
     fi
@@ -93,7 +71,7 @@ function assert_ether_balance_eventually_equal() {
     fi
 
     balance=$(cast balance --rpc-url "${rpc_url}" "${address}")
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance}."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ETH balance: ${balance} wei"
     if [[ "${balance}" -eq "${target}" ]]; then
       break
     fi
