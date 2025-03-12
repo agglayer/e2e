@@ -5,8 +5,10 @@ setup() {
     load "../../core/helpers/pos-setup.bash"
     load "../../core/helpers/scripts/async.bash"
     pos_setup
+}
 
-    # Test parameters.
+# bats file_tags=pos,state-sync
+@test "bridge native L2 eth from L1 to L2 to trigger state sync" {
     if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
         HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
     elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
@@ -16,10 +18,7 @@ setup() {
 
     BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
     export BOR_STATE_SYNC_COUNT_CMD="${BOR_STATE_SYNC_COUNT_CMD}"
-}
 
-# bats file_tags=pos,state-sync
-@test "bridge native L2 eth from L1 to L2 to trigger state sync" {
     address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
     # Get initial values.
