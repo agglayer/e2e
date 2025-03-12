@@ -11,6 +11,8 @@ function assert_command_eventually_equal() {
   local timeout="${3:-60}"
   local interval="${4:-5}"
 
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
+
   local start_time=$(date +%s)
   local end_time=$((start_time + timeout))
   while true; do
@@ -37,6 +39,8 @@ function assert_token_balance_eventually_equal() {
   local timeout="${5:-60}"
   local interval="${6:-5}"
 
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
+
   start_time=$(date +%s)
   end_time=$((start_time + timeout))
   while true; do
@@ -61,6 +65,8 @@ function assert_ether_balance_eventually_equal() {
   local rpc_url="$3"
   local timeout="${4:-60}"
   local interval="${5:-5}"
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
   start_time=$(date +%s)
   end_time=$((start_time + timeout))
