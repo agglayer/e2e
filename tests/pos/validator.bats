@@ -115,3 +115,25 @@ function generate_new_keypair() {
   echo "Monitoring the validator count on Heimdall..."
   assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1))
 }
+
+# bats file_tags=pos,validator
+@test "remove validator" {
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
+
+  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
+  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators.length"'
+  fi
+
+  initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
+  echo "Initial validator count: ${initial_validator_count}"
+
+  echo "Removing the validator from the validator set..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstake(uint)" "${VALIDATOR_ID}"
+
+  echo "Monitoring the validator count on Heimdall..."
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1))
+}
