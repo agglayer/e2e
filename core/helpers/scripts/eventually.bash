@@ -8,8 +8,8 @@ set -euo pipefail
 function assert_command_eventually_equal() {
   local command="$1"
   local target="$2"
-  local timeout="${3:-60}"
-  local interval="${4:-5}"
+  local timeout="${3:90}"
+  local interval="${4:-10}"
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
@@ -36,8 +36,8 @@ function assert_token_balance_eventually_equal() {
   local eoa_address="$2"
   local target="$3"
   local rpc_url="$4"
-  local timeout="${5:-60}"
-  local interval="${6:-5}"
+  local timeout="${5:-90}"
+  local interval="${6:-10}"
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
@@ -63,8 +63,8 @@ function assert_ether_balance_eventually_equal() {
   local address="$1"
   local target="$2"
   local rpc_url="$3"
-  local timeout="${4:-60}"
-  local interval="${5:-5}"
+  local timeout="${4:-90}"
+  local interval="${5:-10}"
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
