@@ -13,26 +13,36 @@ function generate_new_keypair() {
   address=$(jq --raw-output '.Addresses[0].ETHAddress' key.json)
   public_key=0x$(jq --raw-output '.Addresses[0].HexFullPublicKey' key.json)
   private_key=$(jq --raw-output '.Addresses[0].HexPrivateKey' key.json)
+  rm key.json
   echo "${address} ${public_key} ${private_key}"
 }
 
 # bats file_tags=pos,validator
 @test "update validator stake" {
-  VALIDATOR_ID=${VALIDATOR_ID:="1"}
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:="0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
+
+  validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
+  echo "validator_address=${validator_address}"
 
   initial_validator_power=$(eval "${VALIDATOR_POWER_CMD}")
   echo "Initial power of the validator (${VALIDATOR_ID}): ${initial_validator_power}."
 
+  echo "Funding the validator acount with MATIC tokens..."
+  stake_update_amount=$(cast to-unit 10ether wei)
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
+
   echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
-  stake_update_amount = $(cast to-unit 1ether wei)
+
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
   echo "Updating the stake of the validator (${VALIDATOR_ID})..."
+  stake_rewards=false
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "restakePOL(uint,uint,bool)" "${VALIDATOR_ID}" "${stake_update_amount}" false
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "restake(uint,uint,bool)" "${VALIDATOR_ID}" "${stake_update_amount}" "${stake_rewards}"
 
   echo "Monitoring the power of the validator..."
   validator_power_update_amount=$(cast to-unit "${stake_update_amount}"wei ether)
@@ -41,7 +51,7 @@ function generate_new_keypair() {
 
 # bats file_tags=pos,validator
 @test "update validator top-up fee" {
-  VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:="0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
+  VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"matic\") | .amount"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
@@ -99,7 +109,7 @@ function generate_new_keypair() {
   echo "Adding the new validator to the validator set..."
   accept_delegation=false
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "stakeForPOL(address,uint,uint,bool,bytes)" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "stakeFor(address,uint,uint,bool,bytes)" \
     "${validator_address}" "${deposit_amount}" "${heimdall_fee_amount}" "${accept_delegation}" "${validator_public_key}"
 
   echo "Monitoring the validator count on Heimdall..."
