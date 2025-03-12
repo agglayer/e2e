@@ -46,7 +46,7 @@ function assert_token_balance_eventually_equal() {
     fi
 
     balance=$(cast call --json --rpc-url "${rpc_url}" "${contract_address}" "balanceOf(address)(uint)" "${eoa_address}" | jq --raw-output ".[0]")
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Token balance: ${balance}."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} tokens"
     if [[ "${balance}" -eq "${target}" ]]; then
       break
     fi
@@ -71,7 +71,7 @@ function assert_ether_balance_eventually_equal() {
     fi
 
     balance=$(cast balance --rpc-url "${rpc_url}" "${address}")
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ETH balance: ${balance} wei"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} wei"
     if [[ "${balance}" -eq "${target}" ]]; then
       break
     fi

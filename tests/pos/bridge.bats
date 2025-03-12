@@ -84,7 +84,7 @@ setup() {
 }
 
 # bats file_tags=pos,state-sync
-@test "bridge native L2 eth from L1 to L2 to trigger a state sync" {
+@test "bridge MATIC/POL from L1 to L2 and confirm L2 ETH balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Define state sync count commands.
@@ -101,8 +101,8 @@ setup() {
   initial_heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
   initial_bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
   echo "Initial values:"
-  echo "- L1 balance: ${initial_l1_balance} MATIC tokens"
-  echo "- L2 balance: ${initial_l2_balance} ether"
+  echo "- L1 balance: ${initial_l1_balance} MATIC"
+  echo "- L2 balance: ${initial_l2_balance} wei"
   echo "- Heimdall state sync count: ${initial_heimdall_state_sync_count}"
   echo "- Bor state sync count: ${initial_bor_state_sync_count}"
 
