@@ -84,9 +84,10 @@ setup() {
 }
 
 # bats file_tags=pos,state-sync
-@test "bridge native L2 eth from L1 to L2 to trigger state sync" {
+@test "bridge native L2 eth from L1 to L2 to trigger a state sync" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
+  # Define state sync count commands.
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     heimdall_state_sync_count_cmd='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
@@ -122,7 +123,7 @@ setup() {
   assert_command_eventually_equal "${heimdall_state_sync_count_cmd}" $((initial_heimdall_state_sync_count + 1)) "${timeout}" "${interval}"
 
   echo "Monitoring state syncs on Bor..."
-  assert_command_eventually_equal "${bor_state_sync_count_cmd}" $((initial_bor_state_sync_count + 1))"${timeout}" "${interval}"
+  assert_command_eventually_equal "${bor_state_sync_count_cmd}" $((initial_bor_state_sync_count + 1)) "${timeout}" "${interval}"
 
   # Monitor balances on L1 and L2.
   echo "Monitoring MATIC balance on L1..."
