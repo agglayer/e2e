@@ -3,7 +3,7 @@
 setup() {
   # Load libraries.
   load "../../core/helpers/pos-setup.bash"
-  load "../../core/helpers/scripts/async.bash"
+  load "../../core/helpers/scripts/eventually.bash"
   pos_setup
 
   # Test parameters.
