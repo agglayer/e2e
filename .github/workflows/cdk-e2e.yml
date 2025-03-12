@@ -2,58 +2,56 @@ name: Configurable E2E Execution
 run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
 
 # act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
-on:
-  pull_request:
-  workflow_call:
-    inputs:
-      kurtosis_cdk_ref:
-        description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for "
-        required: false
-        type: string
-        default: "v0.3.2"
-      kurtosis_cdk_args:
-        description: "Input arguments for the Kurtosis CDK package."
-        required: false
-        type: string
-        default: |
-          {
-            "deployment_stages": {
-              "deploy_l2_contracts": true,
-              "deploy_cdk_bridge_ui": false,
-            },
-            "args": {
-              "consensus_contract_type": "pessimistic",
-              "erigon_strict_mode": false,
-              "enable_normalcy": true,
-              "agglayer_prover_sp1_key": "",
-              "agglayer_prover_primary_prover": "mock-prover",
-              "sequencer_type": "erigon"
-            }
+on: [pull_request, workflow_call]
+  inputs:
+    kurtosis_cdk_ref:
+      description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for "
+      required: false
+      type: string
+      default: "v0.3.2"
+    kurtosis_cdk_args:
+      description: "Input arguments for the Kurtosis CDK package."
+      required: false
+      type: string
+      default: |
+        {
+          "deployment_stages": {
+            "deploy_l2_contracts": true,
+            "deploy_cdk_bridge_ui": false,
+          },
+          "args": {
+            "consensus_contract_type": "pessimistic",
+            "erigon_strict_mode": false,
+            "enable_normalcy": true,
+            "agglayer_prover_sp1_key": "",
+            "agglayer_prover_primary_prover": "mock-prover",
+            "sequencer_type": "erigon"
           }
+        }
 
-      kurtosis_cdk_enclave_name:
-        description: "The name to be used for the kurtosis enclave"
-        required: false
-        type: string
-        default: "cdk"
+    kurtosis_cdk_enclave_name:
+      description: "The name to be used for the kurtosis enclave"
+      required: false
+      type: string
+      default: "cdk"
 
-      docker_archive:
-        description: "An unpublished docker image archive to be used to over ride one of the default kurtosis images (e.g. /tmp/docker-image.tar)"
-        required: false
-        type: string
-        default: ""
+    docker_archive:
+      description: "An unpublished docker image archive to be used to over ride one of the default kurtosis images (e.g. /tmp/docker-image.tar)"
+      required: false
+      type: string
+      default: ""
 
-      docker_image_override:
-        description: "The docker image in kurtosis that will be overriden by the docker_archive (e.g. agglayer_image)"
-        required: false
-        type: string
-        default: ""
+    docker_image_override:
+      description: "The docker image in kurtosis that will be overriden by the docker_archive (e.g. agglayer_image)"
+      required: false
+      type: string
+      default: ""
 
-      docker_tag:
-        description: "Assuming a docker_archive is specified, the docker_tag species the associated tag (e.g. busybox:latest)"
-        required: false
-        type: string
-        default: ""
+    docker_tag:
+      description: "Assuming a docker_archive is specified, the docker_tag species the associated tag (e.g. busybox:latest)"
+      required: false
+      type: string
+      default: ""
 
 jobs:
   run-kurtosis-image:
@@ -105,7 +103,6 @@ jobs:
           fi
           docker load --input "$docker_archive"
           echo '${{ inputs.kurtosis_cdk_args }}' | jq --arg img ${{ inputs.docker_image_override }} --arg tag ${{ inputs.docker_tag }} '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
-
 
       - name: Startup the kurtosis-cdk package
         run: |
