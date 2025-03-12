@@ -55,10 +55,6 @@ function wait_for_state_sync_to_occur() {
   wait_for_state_sync_to_occur
 
   # Monitor balances on L1 and L2.
-  echo "Monitoring ERC721 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}"
-
-  # Monitor balances on L1 and L2.
   echo "Monitoring ERC20 balance on L1..."
   assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
 
