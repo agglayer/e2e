@@ -31,7 +31,7 @@ function wait_for_state_sync_to_occur() {
 }
 
 # bats file_tags=pos,bridge,erc20
-@test "bridge some ERC20 tokens from L1 to L2" {
+@test "bridge some ERC20 tokens from L1 to L2 and confirm receipt on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get initial values.
@@ -64,12 +64,12 @@ function wait_for_state_sync_to_occur() {
 }
 
 # bats file_tags=pos,bridge,erc20
-@test "bridge some ERC20 tokens from L2 to L1" {
-  echo TODO
-}
+# @test "bridge some ERC20 tokens from L2 to L1 and confirm receipt on L1" {
+#   echo TODO
+# }
 
 # bats file_tags=pos,bridge,erc721
-@test "bridge an ERC721 token from L1 to L2" {
+@test "bridge an ERC721 token from L1 to L2 and confirm receipt on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Mint an ERC721 token.
@@ -108,9 +108,9 @@ function wait_for_state_sync_to_occur() {
 }
 
 # bats file_tags=pos,bridge,erc721
-@test "bridge an ERC721 token from L2 to L1" {
-  echo TODO
-}
+# @test "bridge an ERC721 token from L2 to L1 and confirm receipt on L1" {
+#   echo TODO
+# }
 
 # bats file_tags=pos,bridge,matic,pol
 @test "bridge MATIC/POL from L1 to L2 and confirm L2 ETH balance increased" {
@@ -144,3 +144,8 @@ function wait_for_state_sync_to_occur() {
   echo "Monitoring ether balance on L2..."
   assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
 }
+
+# bats file_tags=pos,bridge,matic,pol
+# @test "bridge ETH from L2 to L1 and confirm L1 MATIC/POL balance increased" {
+#   echo TODO
+# }
