@@ -27,11 +27,11 @@ jobs:
             args_file: .github/tests/combinations/fork11-cdk-erigon-validium.yml
             filter_tags: zk-counters
           - package: kurtosis-cdk
-            version: v0.3.2
+            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
           - package: kurtosis-cdk
-            version: v0.3.2
+            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
             custom_agglayer_image: ghcr.io/agglayer/agglayer:0.3.0-rc.2
@@ -48,7 +48,7 @@ jobs:
 
           # Optimism package.
           - package: optimism-package
-            version: main
+            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
             args_file: network_params.yaml
             filter_tags: pessimistic
             env:

@@ -9,7 +9,7 @@ on:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for "
         required: false
         type: string
-        default: "v0.3.2"
+        default: "139d2c92775b104df5e5adbb756a0b81718793a3"
       kurtosis_cdk_args:
         description: "Input arguments for the Kurtosis CDK package."
         required: false
