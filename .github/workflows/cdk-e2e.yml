@@ -6,10 +6,17 @@ on:
   workflow_call:
     inputs:
       kurtosis-cdk-ref:
-        description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for"
+        description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
         type: string
         default: "139d2c92775b104df5e5adbb756a0b81718793a3"
+
+      agglayer-e2e-ref:
+        description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
+        required: false
+        type: string
+        default: ${{ github.ref }}
+
       kurtosis-cdk-args:
         description: "Input arguments for the Kurtosis CDK package."
         required: false
@@ -61,7 +68,15 @@ jobs:
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
         with:
-          path: /tmp/agglayer-e2e
+          path: agglayer-e2e
+          ref: ${{ inputs.agglayer-e2e-ref }}
+
+      - name: Checkout kurtosis-cdk
+        uses: actions/checkout@v4
+        with:
+          repository: 0xPolygon/kurtosis-cdk
+          ref: ${{ inputs.kurtosis-cdk-ref }}
+          path: kurtosis-cdk
 
       - name: Download artifact
         if: inputs.docker-artifact-name != ''
@@ -74,13 +89,6 @@ jobs:
         run: |
           docker load --input /tmp/${{ inputs.docker-artifact-name }}.tar
           docker images
-
-      - name: Checkout kurtosis-cdk
-        uses: actions/checkout@v4
-        with:
-          repository: 0xPolygon/kurtosis-cdk
-          ref: ${{ inputs.kurtosis-cdk-ref }}
-          path: /tmp/kurtosis-cdk
 
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1.3.1
@@ -96,6 +104,7 @@ jobs:
           tar xf polycli.tar.gz
           mv polycli_* /usr/local/bin/polycli
           polycli version
+          popd
 
       - name: Install kurtosis cli and jq
         run: |
@@ -125,13 +134,13 @@ jobs:
 
       - name: Startup the kurtosis-cdk package
         run: |
-          pushd /tmp/kurtosis-cdk || exit 1
+          pushd kurtosis-cdk || exit 1
           kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args.json .
           popd
 
       - name: Run e2e tests
         run: |
-          pushd /tmp/agglayer-e2e || exit 1
+          pushd agglayer-e2e || exit 1
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           bats tests/agglayer/bridges.bats --filter-tags agglayer
           popd
