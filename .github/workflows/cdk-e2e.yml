@@ -63,6 +63,7 @@ on:
 
 jobs:
   run-kurtosis-image:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
