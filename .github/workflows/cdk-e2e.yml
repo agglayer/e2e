@@ -72,8 +72,7 @@ jobs:
 
       - name: Load image
         run: |
-          ls -lha /tmp
-          docker load --input /tmp/${{ inputs.docker-artifact-name }}
+          docker load --input /tmp/${{ inputs.docker-artifact-name }}.tar
           docker images
 
       - name: Checkout kurtosis-cdk
