@@ -6,7 +6,7 @@ on:
   workflow_call:
     inputs:
       kurtosis-cdk-ref:
-        description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for "
+        description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for"
         required: false
         type: string
         default: "139d2c92775b104df5e5adbb756a0b81718793a3"
@@ -102,11 +102,12 @@ jobs:
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install -y kurtosis-cli jq
+          kurtosis analytics disable
 
       - name: Write args input to a file
         run: |
-          docker-tag='${{ inputs.docker-tag }}'
-          if [[ $docker-tag == "" ]]; then
+          docker_tag='${{ inputs.docker-tag }}'
+          if [[ $docker_tag == "" ]]; then
               echo '${{ inputs.kurtosis-cdk-args }}' | tee /tmp/kurtosis-args.json
               exit
           fi
@@ -126,7 +127,6 @@ jobs:
         run: |
           pushd kurtosis-cdk || exit 1
           kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args.json .
-          kurtosis analytics disable
 
       - name: Run e2e tests
         run: |
