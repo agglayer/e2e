@@ -63,13 +63,13 @@ on:
 
 jobs:
   run-kurtosis-image:
-    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
         with:
-          path: agglayer-e2e
+          repository: agglayer/e2e
           ref: ${{ inputs.agglayer-e2e-ref }}
+          path: agglayer-e2e
 
       - name: Checkout kurtosis-cdk
         uses: actions/checkout@v4
