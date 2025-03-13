@@ -5,12 +5,12 @@ run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ gi
 on:
   workflow_call:
     inputs:
-      kurtosis_cdk_ref:
+      kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used for "
         required: false
         type: string
         default: "139d2c92775b104df5e5adbb756a0b81718793a3"
-      kurtosis_cdk_args:
+      kurtosis-cdk-args:
         description: "Input arguments for the Kurtosis CDK package."
         required: false
         type: string
@@ -30,20 +30,26 @@ on:
             }
           }
 
-      kurtosis_cdk_enclave_name:
+      kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
         required: false
         type: string
         default: "cdk"
 
-      docker_image_override:
+      docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
         required: false
         type: string
         default: ""
 
-      docker_tag:
+      docker-tag:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
+        required: false
+        type: string
+        default: ""
+
+      docker-artifact-name:
+        description: "A name of a docker image to download (e.g. docker-image)"
         required: false
         type: string
         default: ""
@@ -57,11 +63,23 @@ jobs:
         with:
           path: agglayer-e2e
 
+      - name: Download artifact
+        if: inputs.docker-artifact-name != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.docker-artifact-name }}
+          path: "/tmp"
+
+      - name: Load image
+        run: |
+          docker load --input /tmp/${{ inputs.docker-artifact-name }}
+          docker images
+
       - name: Checkout kurtosis-cdk
         uses: actions/checkout@v4
         with:
           repository: 0xPolygon/kurtosis-cdk
-          ref: ${{ inputs.kurtosis_cdk_ref }}
+          ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
 
       - name: Install foundry
@@ -87,12 +105,12 @@ jobs:
 
       - name: Write args input to a file
         run: |
-          docker_tag='${{ inputs.docker_tag }}'
-          if [[ $docker_tag == "" ]]; then
-              echo '${{ inputs.kurtosis_cdk_args }}' | tee /tmp/kurtosis-args.json
+          docker-tag='${{ inputs.docker-tag }}'
+          if [[ $docker-tag == "" ]]; then
+              echo '${{ inputs.kurtosis-cdk-args }}' | tee /tmp/kurtosis-args.json
               exit
           fi
-          echo '${{ inputs.kurtosis_cdk_args }}' | jq --arg img '${{ inputs.docker_image_override }}' --arg tag '${{ inputs.docker_tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
+          echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
 
       # Do not merge this
       - name: List current images
@@ -107,7 +125,7 @@ jobs:
       - name: Startup the kurtosis-cdk package
         run: |
           pushd kurtosis-cdk || exit 1
-          kurtosis run --enclave '${{ inputs.kurtosis_cdk_enclave_name }}' --args-file /tmp/kurtosis-args.json .
+          kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args.json .
           kurtosis analytics disable
 
       - name: Run e2e tests
@@ -119,6 +137,6 @@ jobs:
       - name: Clean up kurtosis-cdk enclave
         if: ${{ always() }}
         run: |
-          kurtosis enclave stop '${{ inputs.kurtosis_cdk_enclave_name }}'
+          kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
 
