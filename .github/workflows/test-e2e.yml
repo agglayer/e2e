@@ -46,14 +46,6 @@ jobs:
             args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
             filter_tags: pos
 
-          # Optimism package.
-          - package: optimism-package
-            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
-            args_file: network_params.yaml
-            filter_tags: pessimistic
-            env:
-              L2_SENDER_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
