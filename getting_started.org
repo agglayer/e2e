@@ -16,7 +16,7 @@ to run a single test file, or use Bats directly, it's pretty easy as
 well:
 
 #+begin_src bash
-# You'll want to set whatever environment variables your test needs
+# You'll want to set whatever environment variables your test needs. If you want to use defaults you could skip this.
 set -a
 source tests/.env
 set +a
