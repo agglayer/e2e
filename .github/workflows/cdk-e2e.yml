@@ -94,6 +94,16 @@ jobs:
           fi
           echo '${{ inputs.kurtosis_cdk_args }}' | jq --arg img '${{ inputs.docker_image_override }}' --arg tag '${{ inputs.docker_tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
 
+      # Do not merge this
+      - name: List current images
+        run: |
+          docker images
+          if [[ -e /tmp/docker-image.tar ]]; then
+              echo "We have an image locally"
+          else
+              echo "We have nothing!!!"
+          fi
+
       - name: Startup the kurtosis-cdk package
         run: |
           pushd kurtosis-cdk || exit 1
