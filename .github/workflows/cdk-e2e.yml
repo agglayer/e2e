@@ -61,7 +61,7 @@ jobs:
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
         with:
-          path: agglayer-e2e
+          path: /tmp/agglayer-e2e
 
       - name: Download artifact
         if: inputs.docker-artifact-name != ''
@@ -80,7 +80,7 @@ jobs:
         with:
           repository: 0xPolygon/kurtosis-cdk
           ref: ${{ inputs.kurtosis-cdk-ref }}
-          path: kurtosis-cdk
+          path: /tmp/kurtosis-cdk
 
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1.3.1
@@ -125,14 +125,16 @@ jobs:
 
       - name: Startup the kurtosis-cdk package
         run: |
-          pushd kurtosis-cdk || exit 1
+          pushd /tmp/kurtosis-cdk || exit 1
           kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args.json .
+          popd
 
       - name: Run e2e tests
         run: |
-          pushd agglayer-e2e || exit 1
+          pushd /tmp/agglayer-e2e || exit 1
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           bats tests/agglayer/bridges.bats --filter-tags agglayer
+          popd
 
       - name: Clean up kurtosis-cdk enclave
         if: ${{ always() }}
