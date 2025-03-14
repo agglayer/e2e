@@ -1,6 +1,7 @@
 name: Configurable E2E Execution
 run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
 
+# TODO solve for remote callers setting bats environment variables
 # act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
 on:
   workflow_call:
