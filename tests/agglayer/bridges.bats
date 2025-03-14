@@ -16,7 +16,7 @@ setup() {
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
-    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print cdk agglayer agglayer)"}
+    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print cdk agglayer aglr-grpc)"}
 
     fund_claim_tx_manager
 }
