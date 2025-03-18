@@ -42,6 +42,11 @@ export BATS_LIB_PATH="$PWD/core/helpers/lib"
 bats tests/agglayer/bridges.bats --filter-tags agglayer,rpc
 #+end_src
 
+If you just want to run like CI does, you can use the following command:
+#+begin_src bash
+act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
+#+end_src bash
+
 * Philosophy and Goals
 
 *Separation of concerns* between infrastructure and test logic is a
