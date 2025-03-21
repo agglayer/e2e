@@ -92,7 +92,8 @@ function fund_claim_tx_manager() {
             --destination-network 0 \
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
-            --value "$bridge_amount"
+            --value "$bridge_amount" \
+            --token-address "$weth_address"
 
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
@@ -141,6 +142,7 @@ function fund_claim_tx_manager() {
          "approve(address spender, uint256 value)" \
          "$l2_bridge_addr" 100000000000000000000
 
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     polycli ulxly bridge asset \
             --bridge-address "$l2_bridge_addr" \
             --destination-address "$l1_eth_address" \
@@ -149,6 +151,15 @@ function fund_claim_tx_manager() {
             --rpc-url "$l2_rpc_url" \
             --value "100" \
             --token-address "$erc20_addr"
+
+    polycli ulxly claim asset \
+            --bridge-address "$l1_bridge_addr" \
+            --private-key "$l1_private_key" \
+            --rpc-url "$l1_rpc_url" \
+            --deposit-count "$initial_deposit_count" \
+            --deposit-network "$network_id" \
+            --bridge-service-url "$bridge_service_url" \
+            --wait "$claim_wait_duration"
 }
 
 # bats test_tags=smoke,rpc

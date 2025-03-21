@@ -23,11 +23,17 @@ fails. If you're new to bash or Bats, these are some useful links.
 
 * How to run your test
 
-There are two easy ways to run your test cases. The easiest way is to
-execute the [[./test-runner.sh]] script. That script has several
-conveniences that will be important for test automation. If you'd like
-to run a single test file, or use Bats directly, it's pretty easy as
-well:
+The tests in this repository depend on an external RPC which can be
+specified via environment variables. If you're testing locally, using
+the [[https://github.com/0xPolygon/kurtosis-cdk/releases/tag/v0.3.4][kurtosis-cdk]] is probably the easiest way to get started.
+
+#+begin_src bash
+# from within the kurtosis cdk-repo
+kurtosis run --enclave cdk --args-file .github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+#+end_src
+
+With a network in place, if you'd like to run a single test file, or use Bats directly, it's
+pretty easy as well:
 
 #+begin_src bash
 # You'll want to set whatever environment variables your test needs. If you want to use defaults you could skip this.
@@ -103,6 +109,8 @@ environment variables and to use them whenever possible.
 | BRIDGE_SERVICE_URL | The URL of the bridge service used for claiming deposits           |
 | L1_BRIDGE_ADDR     | The address of the bridge on L1                                    |
 | L2_BRIDGE_ADDR     | The address of the bridge on L2                                    |
+| LEGACY_MODE        | If true, don't send a type 2 transaction                           |
+
 
 A few points on the design and thinking. In general, we're going to
 *prefer deriving* rather than specifying everything. Rather than
