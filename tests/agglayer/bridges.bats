@@ -5,23 +5,22 @@ setup() {
 
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)"}
+    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
     l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x12494fE98D3f67EB0c9e2512a4cd18e703aDe49d"}
 
     l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)"}
+    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
     l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x0ba8688239009E5748895b06D30556040b0866b5"}
 
-    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)"}
+    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
-    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc)"}
+    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
 
     gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
-    gas_token_network=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenNetwork()(uint32)')
     weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
 
     fund_claim_tx_manager
@@ -75,7 +74,7 @@ function fund_claim_tx_manager() {
         final_l2_balance=$(cast call --rpc-url "$l2_rpc_url" "$weth_address" "balanceOf(address)(uint256)" "$l2_eth_address")
     fi
 
-    if [[ $initial_l2_balance == $final_l2_balance ]]; then
+    if [[ $initial_l2_balance == "$final_l2_balance" ]]; then
         echo "It looks like the bridge deposit to l2 was not synced correctly. The balance on L2 did not increase."
         exit 1
     fi
@@ -110,7 +109,7 @@ function fund_claim_tx_manager() {
             --wait "$claim_wait_duration"
 
     final_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
-    if [[ $initial_l1_balance == $final_l1_balance ]]; then
+    if [[ $initial_l1_balance == "$final_l1_balance" ]]; then
         echo "It looks like the bridge deposit to l1 was not processed. The balance on L1 did not increase."
         exit 1
     fi
@@ -124,13 +123,13 @@ function fund_claim_tx_manager() {
     fi
     init_code=$(cat core/contracts/bin/erc20permitmock.bin)
     constructor_data=$(cast abi-encode 'f(string name, string symbol, address initAccount, uint256 initBalance)' "agglayer e2e" "e2e" "$l2_eth_address" 100000000000000000000)
-    erc20_addr=$(cast create2 --salt $(cast hz) --init-code $(cast concat-hex "$init_code" "$constructor_data" ))
+    erc20_addr=$(cast create2 --salt "$(cast hz)" --init-code "$(cast concat-hex "$init_code" "$constructor_data" )")
     erc20_code=$(cast code --rpc-url "$l2_rpc_url" "$erc20_addr")
     if [[ $erc20_code == "0x" ]]; then
         cast send \
              --private-key "$l2_private_key" \
              --rpc-url "$l2_rpc_url" 0x4e59b44847b379578588920ca78fbf26c0b4956c \
-             $(cast concat-hex $(cast hz) "$init_code" "$constructor_data")
+             "$(cast concat-hex "$(cast hz)" "$init_code" "$constructor_data")"
     fi
     cast send \
          --private-key "$l2_private_key" \
