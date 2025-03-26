@@ -1,6 +1,7 @@
 [Common]
 IsValidiumMode = false
 ContractVersions = "banana"
+NetworkID = 1
 
 [SequenceSender]
 WaitPeriodSendSequence = "15s"

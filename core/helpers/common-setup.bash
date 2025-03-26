@@ -2,6 +2,28 @@ _common_setup() {
     bats_load_library 'bats-support'
     bats_load_library 'bats-assert'
 
+    load '../../core/helpers/scripts/bridge_message'
+    load '../../core/helpers/scripts/bridge_asset'
+    load '../../core/helpers/scripts/get_bridge'
+    load '../../core/helpers/scripts/find_l1_info_tree_index_for_bridge'
+    load '../../core/helpers/scripts/find_injected_info_after_index'
+    load '../../core/helpers/scripts/generate_claim_proof'
+    load '../../core/helpers/scripts/claim_bridge'
+    load '../../core/helpers/scripts/log'
+    load '../../core/helpers/scripts/query_contract'
+    load '../../core/helpers/scripts/send_tx'
+    load '../../core/helpers/scripts/mint_erc20_tokens'
+    load '../../core/helpers/scripts/get_claim'
+    load '../../core/helpers/scripts/verify_balance'
+    load '../../core/helpers/scripts/wait_for_expected_token'
+    load '../../core/helpers/scripts/check_claim_revert_code'
+    load '../../core/helpers/scripts/add_network2_to_agglayer'
+    load '../../core/helpers/scripts/fund_claim_tx_manager'
+    load '../../core/helpers/scripts/mint_pol_token'
+    load '../../core/helpers/scripts/run_with_timeout'
+
+    # TODO - remove set
+    set +u
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
@@ -10,6 +32,7 @@ _common_setup() {
         echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
     fi
     PATH="$PROJECT_ROOT/src:$PATH"
+    set -u
 
     # ✅ Standard contract addresses
     export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
@@ -27,7 +50,7 @@ _common_setup() {
     export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
     # ✅ Standardized L2 RPC and SEQUENCER URL Handling
-    if [[ "$ENCLAVE" == "cdk" ]]; then
+    if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
         L2_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
         L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
 
