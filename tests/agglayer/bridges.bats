@@ -11,7 +11,7 @@ setup() {
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc)"}
     l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x0ba8688239009E5748895b06D30556040b0866b5"}
 
-    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk sovereign-bridge-service-001 rpc)"}
+    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
