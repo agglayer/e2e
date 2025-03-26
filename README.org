@@ -102,20 +102,21 @@ like, but in order for the test cases to be executed via generic
 automations, it's critical that you're aware of commonly used
 environment variables and to use them whenever possible.
 
-| Variable           | Purpose                                                            |
-|--------------------+--------------------------------------------------------------------|
-| RPC_URL            | A generic JSON RPC URL for tests that do not require L1/L2 context |
-| L1_RPC_URL         | An RPC URL that serves as the L1 for some rollup or validium       |
-| L2_RPC_URL         | An RPC URL for a rollup that's anchored on L1                      |
-| PRIVATE_KEY        | A private key that's funded for RPC_URL                            |
-| L1_PRIVATE_KEY     | A private key that's funded for L1_RPC_URL                         |
-| L2_PRIVATE_KEY     | A private key that's funded for L2_RPC_URL                         |
-| SEQUENCER_RPC_URL  | An RPC URL that's directly connected to a sequencer                |
-| GAS_TOKEN_ADDR     | The L1 address of a custom gas token                               |
-| BRIDGE_SERVICE_URL | The URL of the bridge service used for claiming deposits           |
-| L1_BRIDGE_ADDR     | The address of the bridge on L1                                    |
-| L2_BRIDGE_ADDR     | The address of the bridge on L2                                    |
-| LEGACY_MODE        | If true, don't send a type 2 transaction                           |
+| Variable              | Purpose                                                            |
+|-----------------------+--------------------------------------------------------------------|
+| RPC_URL               | A generic JSON RPC URL for tests that do not require L1/L2 context |
+| L1_RPC_URL            | An RPC URL that serves as the L1 for some rollup or validium       |
+| L2_RPC_URL            | An RPC URL for a rollup that's anchored on L1                      |
+| PRIVATE_KEY           | A private key that's funded for RPC_URL                            |
+| L1_PRIVATE_KEY        | A private key that's funded for L1_RPC_URL                         |
+| L2_PRIVATE_KEY        | A private key that's funded for L2_RPC_URL                         |
+| SEQUENCER_RPC_URL     | An RPC URL that's directly connected to a sequencer                |
+| GAS_TOKEN_ADDR        | The L1 address of a custom gas token                               |
+| BRIDGE_SERVICE_URL    | The URL of the bridge service used for claiming deposits           |
+| L1_BRIDGE_ADDR        | The address of the bridge on L1                                    |
+| L2_BRIDGE_ADDR        | The address of the bridge on L2                                    |
+| LEGACY_MODE           | If true, don't send a type 2 transaction                           |
+| KURTOSIS_ENCLAVE_NAME | Specifies the enclave name used in some defaults                   |
 
 
 A few points on the design and thinking. In general, we're going to

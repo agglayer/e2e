@@ -1,22 +1,24 @@
 #!/usr/bin/env bats
 
 setup() {
+    kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
+
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)"}
+    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)"}
     l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x12494fE98D3f67EB0c9e2512a4cd18e703aDe49d"}
 
     l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc)"}
+    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)"}
     l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x0ba8688239009E5748895b06D30556040b0866b5"}
 
-    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
+    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
-    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print cdk agglayer aglr-readrpc)"}
+    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc)"}
 
     gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
     gas_token_network=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenNetwork()(uint32)')
