@@ -174,11 +174,32 @@ of allowed actions to further standardize test naming.
 
 * Project organization
 
-TODO - This is still a work in progress. All of the tests live in the
-[[./tests]] folder, but there isn't a clear standard right now in terms of
-sub-folders, the names of files, how many cases should exist in a
-single file. Additionally, the standards for individual bats files are
-a bit arbitrary.
+All of the tests live in the [[./tests]] folder. We're still trying to
+figure out the right organization, but for now please follow these
+guidelines:
+
+- Place your tests in sub-folders of the ~tests~ directory according
+  to their dependencies.
+  - ~agglayer/~ tests depend on access directly to the Agglayer RPC
+    and the bridge
+  - ~lxly/~ tests would depend on direct access to the bridge service
+    and contracts, but might not need access to the Agglayer itself
+  - ~pos/~ tests depend on a running PoS environment
+- There are going to be some generic tests that can be reused across
+  varied environments. In that case, we can name based on the test
+  case itself
+  - ~ethereum-test-cases/~ come from the standard Ethereume test
+    suite, but could be run against any EVM RPC
+  - ~polycli-loadtests/~ depend on running the PolyCLI load tests, but
+    could also be run against any EVM RPC
+- Bats files should contain test cases that can be run together:
+  - Each file represents a logical collection of related tests
+  - Try to keep each file small and focused (e.g., 5–15 tests) so it’s
+    easier to run, maintain, and debug
+  - If a particular test case is likely to break subsequent tests, it
+    should be placed in its own file.
+- Use descriptive naming for `.bats` files:
+  - Each file name should reflect the test’s primary focus.
 
 * Thinking about tagging
 
