@@ -21,6 +21,7 @@ _common_setup() {
     load '../../core/helpers/scripts/fund_claim_tx_manager'
     load '../../core/helpers/scripts/mint_pol_token'
     load '../../core/helpers/scripts/run_with_timeout'
+    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then

@@ -4,6 +4,12 @@ run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ gi
 on:
   workflow_call:
     inputs:
+      aggsender-find-imported-bridge-path:
+        description: "Path for aggsender to find the imported bridge"
+        required: true
+        type: string
+        default: ""
+
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
@@ -16,8 +22,15 @@ on:
         type: string
         default: ${{ github.ref }}
 
-      kurtosis-cdk-args:
-        description: "Input arguments for the Kurtosis CDK package."
+      kurtosis-cdk-args-1:
+        description: "Input arguments for the Kurtosis CDK package 1."
+        required: false
+        type: string
+        default: |
+          {}
+
+      kurtosis-cdk-args-2:
+        description: "Input arguments for the Kurtosis CDK package 2."
         required: false
         type: string
         default: |
@@ -96,10 +109,12 @@ jobs:
         run: |
           docker_tag='${{ inputs.docker-tag }}'
           if [[ $docker_tag == "" ]]; then
-              echo '${{ inputs.kurtosis-cdk-args }}' | tee /tmp/kurtosis-args.json
+              echo '${{ inputs.kurtosis-cdk-args-1 }}' | tee /tmp/kurtosis-args-1.json
+              echo '${{ inputs.kurtosis-cdk-args-2 }}' | tee /tmp/kurtosis-args-2.json
               exit
           fi
-          echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
+          echo '${{ inputs.kurtosis-cdk-args-1 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-1.json
+          echo '${{ inputs.kurtosis-cdk-args-2 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-2.json
 
       # Do not merge this
       - name: List current images
@@ -114,7 +129,8 @@ jobs:
       - name: Startup the kurtosis-cdk package
         run: |
           pushd kurtosis-cdk || exit 1
-          kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args.json .
+          kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args-1.json .
+          kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args-2.json .
           popd
 
       - name: Run e2e tests
@@ -126,7 +142,8 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/bridge-e2e-msg.bats ./tests/aggkit/e2e-pp.bats
+          export AGGSENDER_IMPORTED_BRIDGE_PATH="${{ inputs.aggsender-find-imported-bridge-path }}"
+          bats ./tests/aggkit/bridge-l2_to_l2-e2e.bats
           popd
 
       - name: Dump enclave logs

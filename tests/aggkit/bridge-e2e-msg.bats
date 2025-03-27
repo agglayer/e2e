@@ -18,7 +18,7 @@ setup() {
     amount=$(cast to-wei $ether_value ether)
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly rollup_params_file=/opt/zkevm/create_rollup_parameters.json
-    run bash -c "$CONTRACTS_SERVICE_WRAPPER 'cat $rollup_params_file' | jq -r '.gasTokenAddress'"
+    run bash -c "$CONTRACTS_SERVICE_WRAPPER 'cat $rollup_params_file' | tail -n +2 | jq -r '.gasTokenAddress'"
     assert_success
     assert_output --regexp "0x[a-fA-F0-9]{40}"
     gas_token_addr=$output
