@@ -6,7 +6,7 @@ setup() {
     _common_setup
 
     local combined_json_file="/opt/zkevm/combined.json"
-    combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file" | tail -n +2)
+    combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
     bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
     echo "Bridge address=$bridge_addr" >&3
 
@@ -18,7 +18,7 @@ setup() {
     amount=$(cast to-wei $ether_value ether)
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly rollup_params_file=/opt/zkevm/create_rollup_parameters.json
-    run bash -c "$CONTRACTS_SERVICE_WRAPPER 'cat $rollup_params_file' | tail -n +2 | jq -r '.gasTokenAddress'"
+    run bash -c "$CONTRACTS_SERVICE_WRAPPER 'cat $rollup_params_file' | jq -r '.gasTokenAddress'"
     assert_success
     assert_output --regexp "0x[a-fA-F0-9]{40}"
     gas_token_addr=$output

@@ -22,8 +22,6 @@ _common_setup() {
     load '../../core/helpers/scripts/mint_pol_token'
     load '../../core/helpers/scripts/run_with_timeout'
 
-    # TODO - remove set
-    set +u
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
@@ -32,7 +30,6 @@ _common_setup() {
         echo "✅ Fixed PROJECT_ROOT: $PROJECT_ROOT"
     fi
     PATH="$PROJECT_ROOT/src:$PATH"
-    set -u
 
     # ✅ Standard contract addresses
     export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
