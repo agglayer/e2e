@@ -15,10 +15,10 @@ function run_with_timeout() {
             exit 1
         fi
         echo "....[$(date '+%Y-%m-%d %H:%M:%S')] ⏳ Running [$name]..." >&3
-        echo "executing: $*"
+        echo "executing: $*" >&3
         run $*
-        echo "output: $output"
-        echo "result: $status"
+        echo "output: $output" >&3
+        echo "result: $status" >&3
         if [ $status -eq 0 ]; then
             echo "....[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Executed successfully! [$name] " >&3
             break

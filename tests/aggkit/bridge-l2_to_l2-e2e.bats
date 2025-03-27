@@ -4,28 +4,9 @@ setup() {
     _common_setup
     _common_multi_setup
 
-    if [ ! -f $aggsender_find_imported_bridge ]; then
-        echo "missing required tool: $aggsender_find_imported_bridge" >&3
-        return 1
-    fi
-
     add_network2_to_agglayer
     fund_claim_tx_manager
     mint_pol_token
-
-    readonly dry_run=${DRY_RUN:-"false"}
-    ether_value=${ETHER_VALUE:-"0.0200000054"}
-    amount=$(cast to-wei $ether_value ether)
-    native_token_addr="0x0000000000000000000000000000000000000000"
-    readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
-    # Params for lxly-bridge functions
-    is_forced=${IS_FORCED:-"true"}
-    meta_bytes=${META_BYTES:-"0x1234"}
-    destination_addr=$target_address
-    claim_frequency="30"
-
-    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
 }
 
 @test "Test L2 to L2 bridge" {

@@ -1,37 +1,6 @@
 setup() {
     load '../../core/helpers/common-setup'
-
     _common_setup
-
-    local combined_json_file="/opt/zkevm/combined.json"
-    combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
-    bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
-    echo "Bridge address=$bridge_addr" >&3
-
-    readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
-    destination_net=${DESTINATION_NET:-"1"}
-    destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
-    ether_value=${ETHER_VALUE:-"0.0200000054"}
-    amount=$(cast to-wei $ether_value ether)
-    readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
-    readonly rollup_params_file=/opt/zkevm/create_rollup_parameters.json
-    run bash -c "$CONTRACTS_SERVICE_WRAPPER 'cat $rollup_params_file' | tail -n +2 | jq -r '.gasTokenAddress'"
-    assert_success
-    assert_output --regexp "0x[a-fA-F0-9]{40}"
-    gas_token_addr=$output
-    readonly is_forced=${IS_FORCED:-"true"}
-    meta_bytes=${META_BYTES:-"0x1234"}
-
-    readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
-    readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
-
-    readonly dry_run=${DRY_RUN:-"false"}
-    readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $bridge_addr 'networkID() (uint32)')
-    readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $bridge_addr 'networkID() (uint32)')
-    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
-
-    readonly erc20_artifact_path="core/contracts/erc20mock/ERC20Mock.json"
 }
 
 @test "Native gas token deposit to WETH" {

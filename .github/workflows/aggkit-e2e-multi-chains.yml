@@ -4,7 +4,7 @@ run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ gi
 on:
   workflow_call:
     inputs:
-      aggsender-find-imported-bridge-path:
+      aggsender-find-imported-bridge-artifact:
         description: "Path for aggsender to find the imported bridge"
         required: true
         type: string
@@ -61,7 +61,8 @@ on:
         default: ""
 
 jobs:
-  test-e2e:
+  test-multi-e2e:
+    name: Multi chains E2E test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
@@ -77,6 +78,13 @@ jobs:
           repository: 0xPolygon/kurtosis-cdk
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
+
+      - name: Download binary
+        if: inputs.aggsender-find-imported-bridge-artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.aggsender-find-imported-bridge-artifact }}
+          path: "/tmp"
 
       - name: Download artifact
         if: inputs.docker-artifact-name != ''
@@ -142,7 +150,8 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          export AGGSENDER_IMPORTED_BRIDGE_PATH="${{ inputs.aggsender-find-imported-bridge-path }}"
+          chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
+          export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           bats ./tests/aggkit/bridge-l2_to_l2-e2e.bats
           popd
 

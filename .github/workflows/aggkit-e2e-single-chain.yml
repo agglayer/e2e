@@ -48,7 +48,8 @@ on:
         default: ""
 
 jobs:
-  test-e2e:
+  test-single-e2e:
+    name: Single chain E2E test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
