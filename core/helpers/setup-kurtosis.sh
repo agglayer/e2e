@@ -13,6 +13,7 @@ export_env_var() {
 PACKAGE=${1:-"kurtosis-cdk"}
 VERSION=${2:-"v0.3.2"}
 ARGS_FILE=${3:-".github/tests/combinations/fork12-cdk-erigon-validium.yml"}
+ENCLAVE=${4:-"cdk"}
 CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE:-""} # Allow optional override.
 echo "PACKAGE=${PACKAGE}"
 echo "VERSION=${VERSION}"
@@ -20,7 +21,6 @@ echo "ARGS_FILE=${ARGS_FILE}"
 echo "CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE}"
 
 if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
-    ENCLAVE="cdk"
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
     echo "ENCALVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
