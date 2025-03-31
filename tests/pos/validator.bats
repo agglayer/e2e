@@ -39,6 +39,8 @@ function generate_new_keypair() {
 
   echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
 
+  # TODO: Find out why the call is reverting
+  # Error: server returned an error response: error code -32000: execution reverted
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
@@ -52,7 +54,7 @@ function generate_new_keypair() {
   assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_validator_power + validator_power_update_amount))
 }
 
-# bats file_tags=pos,validator
+bats file_tags=pos,validator
 @test "update validator top-up fee" {
   VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
   echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
@@ -76,6 +78,19 @@ function generate_new_keypair() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${VALIDATOR_ADDRESS}" "${top_up_amount}"
 
+  # TODO: Find out why the target is wrong here.
+  # Monitoring the top-up balance of the validator...
+  # [2025-03-31 13:39:35] Target: -5930898827444486144
+  # [2025-03-31 13:39:35] Result: 1000000000000000000000000000
+  # [2025-03-31 13:39:45] Result: 1000000000000000000000000000
+  # [2025-03-31 13:39:55] Result: 1000000000000000000000000000
+  # [2025-03-31 13:40:05] Result: 1000000000000000000000000000
+  # [2025-03-31 13:40:15] Result: 999999999999000000000000000
+  # [2025-03-31 13:40:25] Result: 1000000000999000000000000000
+  # [2025-03-31 13:40:35] Result: 1000000000999000000000000000
+  # [2025-03-31 13:40:45] Result: 1000000000999000000000000000
+  # [2025-03-31 13:40:55] Result: 1000000000999000000000000000
+  # Timeout reached.
   echo "Monitoring the top-up balance of the validator..."
   assert_command_eventually_equal "${TOP_UP_FEE_BALANCE_CMD}" $((initial_top_up_balance + top_up_amount))
 }
@@ -113,6 +128,8 @@ function generate_new_keypair() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${funding_amount}"
 
+  # TODO: Find out why the call is reverting
+  # Error: server returned an error response: error code -32000: execution reverted
   echo "Adding the new validator to the validator set..."
   accept_delegation=false
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
@@ -139,10 +156,38 @@ function generate_new_keypair() {
   initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
   echo "Initial validator count: ${initial_validator_count}"
 
+  # TODO: Find out why the call is reverting
+  # Error: server returned an error response: error code -32000: execution reverted
   echo "Removing the validator from the validator set..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstake(uint)" "${VALIDATOR_ID}"
 
   echo "Monitoring the validator count on Heimdall..."
   assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1))
+}
+
+# bats file_tags=pos,validator
+@test "update signer" {
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
+  echo "VALIDATOR_ID=${VALIDATOR_ID}"
+
+  VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.signer"'
+
+  initial_signer=$(eval "${VALIDATOR_SIGNER_CMD}")
+  echo "Initial signer: ${initial_signer}"
+
+  # New account:
+  # - address: 0xd74c0D3dEe45a0a9516fB66E31C01536e8756e2A
+  # - public key: 0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908
+  # - private-key: f118c1f07cd6e1a417175f6316a5a36707da7be07cf5e360a9397e8a52bc690f
+  new_public_key="0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908"
+
+  echo "Updating signer..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "updateSigner(uint,bytes)" "${VALIDATOR_ID}" "${new_public_key}"
+  
+  echo "Monitoring signer change..."
+  assert_command_eventually_equal "${VALIDATOR_SIGNER_CMD}" "0xd74c0D3dEe45a0a9516fB66E31C01536e8756e2A"
 }
