@@ -2,7 +2,7 @@
 
 setup() {
     # Load libraries.
-    load "$PROJECT_ROOT/core/helpers/scripts/async.bash"
+    load "core/helpers/scripts/async.bash"
 
     # Define parameters.
     export ENCLAVE=${ENCLAVE:-"pos"}
@@ -26,10 +26,12 @@ setup() {
     fi
 
     # Contract addresses
-    matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE}" matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
-    export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
-    export ERC20_TOKEN_ADDRESS=${ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
-    export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
+    if [ -z "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" ] || [ -z "${L1_ERC20_TOKEN_ADDRESS}" ] || [ -z "${L2_STATE_RECEIVER_ADDRESS}" ]; then
+        matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE}" matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
+        export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
+        export L1_ERC20_TOKEN_ADDRESS=${L1_ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
+        export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
+    fi
 
     # Commands.
     if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
@@ -57,11 +59,11 @@ setup() {
     # Bridge some ERC20 tokens to trigger a state sync.
     echo "Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
     cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-        "${ERC20_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" 10
+        "${L1_ERC20_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" 10
 
     echo "Depositing ERC20 to trigger a state sync..."
     cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-        "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${ERC20_TOKEN_ADDRESS}" 10
+        "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_ERC20_TOKEN_ADDRESS}" 10
 
     # Monitor state syncs.
     timeout="180" # seconds

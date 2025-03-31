@@ -3,5 +3,7 @@ src = "core/contracts"
 out = "compiled-contracts"
 libs = ["lib"]
 via_ir = true
+optimizer = true
+optimizer_runs = 200
 ignored_warnings_from = ["core/contracts/claimmock/ClaimMock.sol", "core/contracts/claimmockcaller/ClaimMockCaller.sol"]
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
