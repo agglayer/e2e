@@ -16,7 +16,7 @@ function verify_balance() {
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
         final_balance_wei=$(cast balance "$account" --rpc-url "$rpc_url" | awk '{print $1}')
     else
-        final_balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$balance_of_fn_sig" "$destination_addr" | awk '{print $1}')
+        final_balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
     fi
     echo "Final balance of $account in $rpc_url: $final_balance_wei wei" >&3
 
