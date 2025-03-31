@@ -98,35 +98,8 @@ jobs:
       - name: Deploy devnet
         run: ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
 
-      - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
-        run: |
-          echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
-          echo "✅ Using Kurtosis SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
-
-          # Ensure the .env file exists
-          touch tests/.env
-
-          # Remove existing L2_RPC_URL entries
-          sed -i '/^L2_RPC_URL=/d' tests/.env
-          sed -i '/^L2_SEQUENCER_RPC_URL=/d' tests/.env
-
-          # Append new values
-          echo "" >> tests/.env
-          echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
-          echo "L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL" >> tests/.env
-
-          # Debugging Output
-          cat tests/.env
-
-      - name: Build polygon-test-runner
-        run: make install
-
       - name: Run e2e tests
-        run: |
-          L2_RPC_URL="$L2_RPC_URL" \
-          L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL" \
-          L2_SENDER_PRIVATE_KEY="$L2_SENDER_PRIVATE_KEY" \
-          polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
+        run: bats --filter-tags=${{ matrix.filter_tags }} --recursive tests/
 
       - name: Dump enclave logs
         if: always()
