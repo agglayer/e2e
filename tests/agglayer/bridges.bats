@@ -11,7 +11,7 @@ setup() {
     l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x0ba8688239009E5748895b06D30556040b0866b5"}
+    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x12494fE98D3f67EB0c9e2512a4cd18e703aDe49d"}
 
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
