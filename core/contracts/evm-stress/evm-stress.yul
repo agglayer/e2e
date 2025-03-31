@@ -461,6 +461,23 @@
                 }
         }
 
+        // MISC
+        // BLAKE2F variable rounds- Will run once or in a loop with the final flag set to 0.
+        case 0x0100 {
+                limit := shl(224, limit)
+                let blakeInput := 0x0000000148c9bdf267e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f
+                blakeInput := or(limit, blakeInput)
+
+                mstore(0,   blakeInput)
+                mstore(32,  0x3af54fa5d182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e13)
+                mstore(64,  0x19cde05b61626300000000000000000000000000000000000000000000000000)
+                mstore(96,  0x0000000000000000000000000000000000000000000000000000000000000000)
+                mstore(128, 0x0000000000000000000000000000000000000000000000000000000000000000)
+                mstore(160, 0x0000000000000000000000000000000000000000000000000000000000000000)
+                mstore(192, 0x0000000003000000000000000000000000000000010000000000000000000000)
+                pop(call(gas(), 0x09, 0, 0, 213, 0, 64))
+        }
+
         default {
                 // FAIL!
                 mstore(0, 0x4641494c21)
