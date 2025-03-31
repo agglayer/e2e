@@ -54,7 +54,7 @@ function generate_new_keypair() {
   assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_validator_power + validator_power_update_amount))
 }
 
-bats file_tags=pos,validator
+# bats file_tags=pos,validator
 @test "update validator top-up fee" {
   VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
   echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
