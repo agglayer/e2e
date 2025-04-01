@@ -19,30 +19,17 @@ jobs:
         include:
           # Kurtosis CDK.
           - package: kurtosis-cdk
-            version: v0.3.2
-            args_file: .github/tests/combinations/fork9-cdk-erigon-validium.yml
-            filter_tags: light
-          - package: kurtosis-cdk
-            version: v0.3.2
-            args_file: .github/tests/combinations/fork11-cdk-erigon-validium.yml
-            filter_tags: zk-counters
-          - package: kurtosis-cdk
-            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
+            version: v0.3.5
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
-          - package: kurtosis-cdk
-            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
-            args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
-            filter_tags: batch-verification,gas-limit-overflow,access-list
-            custom_agglayer_image: ghcr.io/agglayer/agglayer:0.3.0-rc.2
 
           # Kurtosis Polygon PoS.
           - package: kurtosis-polygon-pos
-            version: v1.0.5
+            version: v1.0.6
             args_file: .github/tests/heimdall-bor-multi-validators.yml
             filter_tags: pos,bridge
           - package: kurtosis-polygon-pos
-            version: v1.0.5
+            version: v1.0.6
             args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
             filter_tags: pos,bridge
 
