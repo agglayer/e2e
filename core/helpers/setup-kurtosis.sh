@@ -22,7 +22,7 @@ echo "CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE}"
 if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     ENCLAVE="cdk"
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
-    echo "ENCALVE=${ENCLAVE}"
+    echo "ENCLAVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
     # If provided, add custom agglayer image to the args file.
@@ -60,25 +60,14 @@ elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
     # Deploy the package.
     kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
 
-    # Export environment variables.
+    # Determine the L2 CL node type.
     export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"
     if [[ "${ARGS_FILE}" =~ "heimdall-v2" ]]; then
         L2_CL_NODE_TYPE="heimdall-v2"
-        L2_RPC_URL="$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-modified-for-heimdall-v2-heimdall-v2-validator" rpc)"
-        L2_CL_API_URL="$(kurtosis port print "${ENCLAVE}" "l2-cl-1-heimdall-v2-bor-modified-for-heimdall-v2-validator" http)"
     else
         L2_CL_NODE_TYPE="heimdall"
-        L2_RPC_URL="$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-heimdall-validator" rpc)"
-        L2_CL_API_URL="$(kurtosis port print "${ENCLAVE}" "l2-cl-1-heimdall-bor-validator" http)"
     fi
     export_env_var "L2_CL_NODE_TYPE" "${L2_CL_NODE_TYPE}"
-    export_env_var "L2_RPC_URL" "${L2_RPC_URL}"
-    export_env_var "L2_CL_API_URL" "${L2_CL_API_URL}"
-
-    matic_contract_addresses=$(kurtosis files inspect ${ENCLAVE} matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
-    export_env_var "L1_DEPOSIT_MANAGER_PROXY_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')"
-    export_env_var "ERC20_TOKEN_ADDRESS" "$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')"
-    export_env_var "L2_STATE_RECEIVER_ADDRESS" "$(kurtosis files inspect "${ENCLAVE}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')"
 
 elif [[ "${PACKAGE}" == "optimism-package" ]]; then
     ENCLAVE="op"
