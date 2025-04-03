@@ -145,35 +145,13 @@ jobs:
       - name: Run e2e tests
         run: |
           pushd agglayer-e2e || exit 1
-          set -a
-          source ./tests/.env
-          set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
-          export PROJECT_ROOT="$PWD"
-          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats tests/cdk
+          bats tests/agglayer/bridges.bats --filter-tags agglayer
           popd
-
-      - name: Dump enclave logs
-        if: ${{ failure() }}
-        run: kurtosis dump ./dump
-    
-      - name: Generate archive name
-        if: ${{ failure() }}
-        run: |
-          archive_name="dump_run_with_args_${{matrix.e2e-group}}_${{ github.run_id }}"
-          echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
-          echo "Generated archive name: ${archive_name}"
-  
-      - name: Upload logs
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARCHIVE_NAME }}
-          path: ./dump
 
       - name: Clean up kurtosis-cdk enclave
         if: ${{ always() }}
         run: |
           kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
+
