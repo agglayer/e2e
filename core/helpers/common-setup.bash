@@ -138,6 +138,8 @@ _common_setup() {
 
     local combined_json_file="/opt/zkevm/combined.json"
     combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
+    echo "Combined JSON output:"
+    echo "$combined_json_output"
     bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
     echo "Bridge address=$bridge_addr" >&3
 
