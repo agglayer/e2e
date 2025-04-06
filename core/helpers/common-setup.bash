@@ -138,7 +138,7 @@ _common_setup() {
 
     local combined_json_file="/opt/zkevm/combined.json"
     combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
-    bridge_addr=$(echo "$combined_json_output" | grep -m 1 '^{.*}$' | jq -r .polygonZkEVMBridgeAddress)
+    bridge_addr=$(echo "$combined_json_output" | grep '"polygonZkEVMBridgeAddress"' | sed -E 's/.*: *"(0x[a-fA-F0-9]+)".*/\1/')
     echo "Bridge address=$bridge_addr" >&3
 
     local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
