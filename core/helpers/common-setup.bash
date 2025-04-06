@@ -140,12 +140,12 @@ _common_setup() {
     combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
     echo "Combined JSON output:"
     echo "$combined_json_output"
-    bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
+    bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
     echo "Bridge address=$bridge_addr" >&3
 
     local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
-    gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
+    gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
     echo "Gas token address=$gas_token_addr" >&3
 
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
