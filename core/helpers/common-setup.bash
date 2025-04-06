@@ -140,7 +140,7 @@ _common_setup() {
     combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
     echo "Combined JSON output:"
     echo "$combined_json_output"
-    echo "echo "$combined_json_output" | grep '^{.*}$'"
+    echo "----"
     echo "$combined_json_output" | grep '^{.*}$'
     bridge_addr=$(echo "$combined_json_output" | grep '^{.*}$' | jq -r .polygonZkEVMBridgeAddress)
     echo "Bridge address=$bridge_addr" >&3
