@@ -12,6 +12,12 @@ on:
         type: string
         default: "139d2c92775b104df5e5adbb756a0b81718793a3"
 
+      test-name:
+        description: "The name of the test to run"
+        required: true
+        type: string
+        default: ""
+
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
         required: false
@@ -161,7 +167,7 @@ jobs:
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
-          archive_name="dump_run_with_args_${{ github.run_id }}"
+          archive_name="dump_run_with_args_${{ inputs.test-name}}_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
   
