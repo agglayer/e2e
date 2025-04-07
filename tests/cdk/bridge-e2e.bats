@@ -10,7 +10,7 @@ native_gas_token_deposit_to_WETH() {
     echo "Bridge_type: $bridge_type" >&3
 
     destination_addr=$sender_addr
-    local initial_receiver_balance=$(cast call --rpc-url "$l2_rpc_url" "$weth_token_addr" "$balance_of_fn_sig" "$destination_addr" | awk '{print $1}')
+    local initial_receiver_balance=$(cast call --rpc-url "$L2_RPC_URL" "$weth_token_addr" "$balance_of_fn_sig" "$destination_addr" | awk '{print $1}')
     echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
 
     echo "=== Running LxLy deposit $bridge_type on L1 to network: $l2_rpc_network_id native_token: $native_token_addr" >&3
@@ -27,10 +27,10 @@ native_gas_token_deposit_to_WETH() {
     echo "=== Claiming on L2..." >&3
     timeout="120"
     claim_frequency="10"
-    run wait_for_claim "$timeout" "$claim_frequency" "$l2_rpc_url" "$bridge_type"
+    run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "$bridge_type"
     assert_success
 
-    run verify_balance "$l2_rpc_url" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
+    run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
     assert_success
 
     echo "=== $bridge_type L2 WETH: $weth_token_addr to L1 ETH" >&3
@@ -38,9 +38,9 @@ native_gas_token_deposit_to_WETH() {
     destination_net=0
 
     if [[ $bridge_type == "bridgeMessage" ]]; then
-        run bridge_message "$weth_token_addr" "$l2_rpc_url"
+        run bridge_message "$weth_token_addr" "$L2_RPC_URL"
     else
-        run bridge_asset "$weth_token_addr" "$l2_rpc_url"
+        run bridge_asset "$weth_token_addr" "$L2_RPC_URL"
     fi
     assert_success
 
@@ -64,7 +64,7 @@ native_gas_token_deposit_to_WETH() {
 
     # Set receiver address and query for its initial native token balance on the L2
     receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
-    local initial_receiver_balance=$(cast balance "$receiver" --rpc-url "$l2_rpc_url")
+    local initial_receiver_balance=$(cast balance "$receiver" --rpc-url "$L2_RPC_URL")
     echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
 
     local l1_minter_balance=$(cast balance "0x8943545177806ED17B9F23F0a21ee5948eCaa776" --rpc-url "$l1_rpc_url")
@@ -112,11 +112,11 @@ native_gas_token_deposit_to_WETH() {
     # Claim deposits (settle them on the L2)
     timeout="120"
     claim_frequency="10"
-    run wait_for_claim "$timeout" "$claim_frequency" "$l2_rpc_url" "bridgeAsset"
+    run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "bridgeAsset"
     assert_success
 
     # Validate that the native token of receiver on L2 has increased by the bridge tokens amount
-    run verify_balance "$l2_rpc_url" "$native_token_addr" "$receiver" "$initial_receiver_balance" "$tokens_amount"
+    run verify_balance "$L2_RPC_URL" "$native_token_addr" "$receiver" "$initial_receiver_balance" "$tokens_amount"
     assert_success
 }
 
@@ -129,7 +129,7 @@ native_gas_token_deposit_to_WETH() {
     echo "Receiver balance of gas token on L1 $initial_receiver_balance" >&3
 
     destination_net=$l1_rpc_network_id
-    run bridge_asset "$native_token_addr" "$l2_rpc_url"
+    run bridge_asset "$native_token_addr" "$L2_RPC_URL"
     assert_success
 
     # Claim withdrawals (settle them on the L1)
