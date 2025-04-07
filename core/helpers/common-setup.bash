@@ -11,7 +11,7 @@ _common_setup() {
     load '../../core/helpers/scripts/claim_tx_hash'
     load '../../core/helpers/scripts/claim'
     load '../../core/helpers/scripts/deploy_contract'
-    load '../../core/helpers/scripts/deploy_test_contract'
+    load '../../core/helpers/scripts/deploy_test_contracts'
     load '../../core/helpers/scripts/claim'
     load '../../core/helpers/scripts/find_injected_info_after_index'
     load '../../core/helpers/scripts/find_l1_info_tree_index_for_bridge'
