@@ -124,7 +124,6 @@ native_gas_token_deposit_to_WETH() {
     echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
 
     local initial_receiver_balance=$(cast call --rpc-url "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
-    assert_success
     echo "Receiver balance of gas token on L1 $initial_receiver_balance" >&3
 
     destination_net=$l1_rpc_network_id
