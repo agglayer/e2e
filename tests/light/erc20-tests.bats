@@ -5,8 +5,6 @@ setup() {
     load "$PROJECT_ROOT/core/helpers/scripts/deploy_contract.bash"
     load "$PROJECT_ROOT/core/helpers/scripts/send_tx.bash"
     _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
-
-    contract_artifact="./core/contracts/erc20mock/ERC20Mock.json"
 }
 
 # bats file_tags=light,erc20,el:any

@@ -35,14 +35,13 @@ setup() {
 }
 
 @test "Test ERC20Mock contract" {
-    local contract_artifact="./contracts/erc20mock/ERC20Mock.json"
     wallet_A_output=$(cast wallet new)
     address_A=$(echo "$wallet_A_output" | grep "Address" | awk '{print $2}')
     address_A_private_key=$(echo "$wallet_A_output" | grep "Private key" | awk '{print $3}')
     address_B=$(cast wallet new | grep "Address" | awk '{print $2}')
 
     # Deploy ERC20Mock
-    run deploy_contract "$L2_RPC_URL" "$sender_private_key" "$contract_artifact"
+    run deploy_contract "$L2_RPC_URL" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     contract_addr=$(echo "$output" | tail -n 1)
 
