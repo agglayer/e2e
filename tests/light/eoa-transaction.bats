@@ -2,7 +2,6 @@
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/common-setup.bash"
-    load "$PROJECT_ROOT/core/helpers/scripts/send_tx.bash"
     _common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
