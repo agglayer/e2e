@@ -79,7 +79,7 @@ setup() {
     # Fetch initial nonce for address_A
     local address_A_initial_nonce=$(cast nonce "$address_A" --rpc-url "$L2_RPC_URL") || return 1
     # Attempt to deploy contract with insufficient gas
-    run deploy_contract "$L2_RPC_URL" "$address_A_private_key" "$erc"
+    run deploy_contract "$L2_RPC_URL" "$address_A_private_key" "$erc20_artifact_path"
     assert_failure
 
     ## Case 3: Transaction should fail as address_A tries to transfer more tokens than it has

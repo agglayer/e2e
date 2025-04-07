@@ -63,7 +63,7 @@ on:
         default: ""
 
 jobs:
-  run-kurtosis-image:
+  test-agglayer-e2e:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
