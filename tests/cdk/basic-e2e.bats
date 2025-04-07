@@ -48,7 +48,7 @@ setup() {
     # Mint ERC20 tokens
     local amount="5"
 
-    run send_tx "$L2_RPC_URL" "$sender_private_key" "$contract_addr" "$mint_fn_sig" "$address_A" "$amount"
+    run send_tx "$L2_RPC_URL" "$sender_private_key" "$contract_addr" "$MINT_FN_SIG" "$address_A" "$amount"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
