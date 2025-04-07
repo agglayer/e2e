@@ -3,6 +3,7 @@ _common_setup() {
     bats_load_library 'bats-assert'
 
     load '../../core/helpers/scripts/add_network2_to_agglayer'
+    load '../../core/helpers/scripts/assert_block_production'
     load '../../core/helpers/scripts/bridge_asset'
     load '../../core/helpers/scripts/bridge_message'
     load '../../core/helpers/scripts/check_balances'

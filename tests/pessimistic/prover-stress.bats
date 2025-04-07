@@ -7,8 +7,6 @@ setup() {
 
 # bats file_tags=pessimistic,prover-stress
 @test "prover stress test" {
-    load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
-
     # ✅ Get wallet address
     local wallet_addr
     wallet_addr=$(cast wallet address --private-key "$PRIVATE_KEY") || {
