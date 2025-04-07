@@ -55,9 +55,9 @@ setup() {
     ## Case 2: Insufficient gas scenario => Transactions fails
     # nonce would not increase since transaction fails at the node's pre-validation check
     # Get bytecode from the contract artifact
-    local bytecode=$(jq -r .bytecode "$contract_artifact")
+    local bytecode=$(jq -r .bytecode "$erc20_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        echo "Error: Failed to read bytecode from $contract_artifact"
+        echo "Error: Failed to read bytecode from $erc20_artifact_path"
         return 1
     fi
 
@@ -79,7 +79,7 @@ setup() {
     # Fetch initial nonce for address_A
     local address_A_initial_nonce=$(cast nonce "$address_A" --rpc-url "$L2_RPC_URL") || return 1
     # Attempt to deploy contract with insufficient gas
-    run deploy_contract "$L2_RPC_URL" "$address_A_private_key" "$contract_artifact"
+    run deploy_contract "$L2_RPC_URL" "$address_A_private_key" "$erc"
     assert_failure
 
     ## Case 3: Transaction should fail as address_A tries to transfer more tokens than it has
