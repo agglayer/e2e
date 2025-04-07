@@ -39,7 +39,7 @@ setup() {
     echo "👤 Wallet B: $ADDRESS_B"
 
     # ✅ Deploy ERC20Mock Contract
-    run deploy_contract "$L2_RPC_URL" "$PRIVATE_KEY" "$contract_artifact"
+    run deploy_contract "$L2_RPC_URL" "$PRIVATE_KEY" "$erc20_artifact_path"
     assert_success
 
     # ✅ Fix SC2155: Assign before exporting
@@ -57,7 +57,7 @@ setup() {
 
     # ✅ Insufficient Gas Scenario (Should Fail)
     local bytecode
-    bytecode=$(jq -r .bytecode "$contract_artifact")
+    bytecode=$(jq -r .bytecode "$erc20_artifact_path")
 
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
         echo "❌ ERROR: Failed to read bytecode"
@@ -75,6 +75,6 @@ setup() {
     cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" "$ADDRESS_A" --value "$value_ether" --legacy
 
     # ✅ Explicitly Capture Deploy Contract Failure
-    run deploy_contract "$L2_RPC_URL" "$PRIVATE_KEY_A" "$contract_artifact"
+    run deploy_contract "$L2_RPC_URL" "$PRIVATE_KEY_A" "$erc20_artifact_path"
     assert_failure  # ✅ Should fail due to low gas
 }
