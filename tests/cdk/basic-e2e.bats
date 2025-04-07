@@ -4,7 +4,6 @@ setup() {
 }
 
 @test "Send EOA transaction" {
-    local sender_addr=$(cast wallet address --private-key "$sender_private_key")
     local initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$L2_RPC_URL") || {
         echo "Failed to retrieve nonce for sender: $sender_addr using RPC URL: $L2_RPC_URL"
         return 1
