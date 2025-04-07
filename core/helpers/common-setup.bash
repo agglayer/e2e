@@ -5,28 +5,31 @@ _common_setup() {
     load '../../core/helpers/scripts/add_network2_to_agglayer'
     load '../../core/helpers/scripts/bridge_asset'
     load '../../core/helpers/scripts/bridge_message'
-    load '../../core/helpers/scripts/get_bridge'
-    load '../../core/helpers/scripts/find_l1_info_tree_index_for_bridge'
-    load '../../core/helpers/scripts/find_injected_info_after_index'
-    load '../../core/helpers/scripts/generate_claim_proof'
-    load '../../core/helpers/scripts/claim_bridge'
-    load '../../core/helpers/scripts/log'
-    load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/send_tx'
-    load '../../core/helpers/scripts/mint_erc20_tokens'
-    load '../../core/helpers/scripts/get_claim'
-    load '../../core/helpers/scripts/verify_balance'
-    load '../../core/helpers/scripts/wait_for_expected_token'
+    load '../../core/helpers/scripts/check_balances'
     load '../../core/helpers/scripts/check_claim_revert_code'
-    load '../../core/helpers/scripts/fund_claim_tx_manager'
-    load '../../core/helpers/scripts/mint_pol_token'
-    load '../../core/helpers/scripts/run_with_timeout'
-    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
+    load '../../core/helpers/scripts/claim_bridge'
     load '../../core/helpers/scripts/claim_tx_hash'
     load '../../core/helpers/scripts/claim'
+    load '../../core/helpers/scripts/find_injected_info_after_index'
+    load '../../core/helpers/scripts/find_l1_info_tree_index_for_bridge'
+    load '../../core/helpers/scripts/fund_claim_tx_manager'
+    load '../../core/helpers/scripts/generate_claim_proof'
+    load '../../core/helpers/scripts/get_bridge'
+    load '../../core/helpers/scripts/get_claim'
+    load '../../core/helpers/scripts/log'
+    load '../../core/helpers/scripts/mint_erc20_tokens'
+    load '../../core/helpers/scripts/mint_pol_token'
+    load '../../core/helpers/scripts/query_contract'
     load '../../core/helpers/scripts/request_claim'
     load '../../core/helpers/scripts/request_merkle_proof'
+    load '../../core/helpers/scripts/run_with_timeout'
+    load '../../core/helpers/scripts/send_eoa_tx'
+    load '../../core/helpers/scripts/send_smart_contract_tx'
+    load '../../core/helpers/scripts/send_tx'
+    load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_for_claim'
+    load '../../core/helpers/scripts/wait_for_expected_token'
+    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
@@ -176,7 +179,7 @@ _common_setup() {
     readonly bridge_api_url=${BRIDGE_API_URL:-"$(kurtosis port print $ENCLAVE zkevm-bridge-service-001 rpc)"}
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
     readonly erigon_sequencer_node=${KURTOSIS_ERIGON_SEQUENCER:-cdk-erigon-sequencer-001}
-    readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $enclave $erigon_sequencer_node"}
+    readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $ENCLAVE $erigon_sequencer_node"}
     readonly key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
     readonly data_dir=${ACL_DATA_DIR:-"/home/erigon/data/dynamic-kurtosis-sequencer/txpool/acls"}
