@@ -3,7 +3,6 @@
 setup() {
     load "$PROJECT_ROOT/core/helpers/common-setup.bash"
     _common_setup  # Standard setup (wallet, funding, RPC, etc.)
-    load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
 }
 
 # bats file_tags=regression,el:cdk-erigon
