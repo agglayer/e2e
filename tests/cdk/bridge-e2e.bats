@@ -10,7 +10,7 @@ native_gas_token_deposit_to_WETH() {
     echo "Bridge_type: $bridge_type" >&3
 
     destination_addr=$sender_addr
-    local initial_receiver_balance=$(cast call --rpc-url "$L2_RPC_URL" "$weth_token_addr" "$balance_of_fn_sig" "$destination_addr" | awk '{print $1}')
+    local initial_receiver_balance=$(cast call --rpc-url "$L2_RPC_URL" "$weth_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
     echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
 
     echo "=== Running LxLy deposit $bridge_type on L1 to network: $l2_rpc_network_id native_token: $native_token_addr" >&3
@@ -71,7 +71,7 @@ native_gas_token_deposit_to_WETH() {
     echo "Initial minter balance on L1 $l1_minter_balance" >&3
 
     # Query for initial sender balance
-    run query_contract "$l1_rpc_url" "$gas_token_addr" "$balance_of_fn_sig" "$sender_addr"
+    run query_contract "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
     local gas_token_init_sender_balance=$(echo "$output" | tail -n 1 | awk '{print $1}')
     echo "Initial sender balance $gas_token_init_sender_balance" of gas token on L1 >&3
@@ -84,7 +84,7 @@ native_gas_token_deposit_to_WETH() {
     assert_success
 
     # Assert that balance of gas token (on the L1) is correct
-    run query_contract "$l1_rpc_url" "$gas_token_addr" "$balance_of_fn_sig" "$sender_addr"
+    run query_contract "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
     local gas_token_final_sender_balance=$(echo "$output" |
         tail -n 1 |
@@ -98,7 +98,7 @@ native_gas_token_deposit_to_WETH() {
 
     # Send approve transaction to the gas token on L1
     deposit_ether_value="0.1ether"
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$approve_fn_sig" "$bridge_addr" "$deposit_ether_value"
+    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$bridge_addr" "$deposit_ether_value"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
@@ -124,7 +124,7 @@ native_gas_token_deposit_to_WETH() {
     echo "Running LxLy withdrawal" >&3
     echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
 
-    local initial_receiver_balance=$(cast call --rpc-url "$l1_rpc_url" "$gas_token_addr" "$balance_of_fn_sig" "$destination_addr" | awk '{print $1}')
+    local initial_receiver_balance=$(cast call --rpc-url "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
     assert_success
     echo "Receiver balance of gas token on L1 $initial_receiver_balance" >&3
 
