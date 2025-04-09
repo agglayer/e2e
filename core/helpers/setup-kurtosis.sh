@@ -21,7 +21,11 @@ echo "CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE}"
 
 if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     ENCLAVE="cdk"
-    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
+    if [[ ${VERSION:0:1} = "v" ]]; then
+        ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
+    else
+        ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/${VERSION}/${ARGS_FILE}"
+    fi
     echo "ENCLAVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
