@@ -7,9 +7,6 @@ setup() {
 
 # bats file_tags=regression,gas-limit-overflow
 @test "RPC and sequencer handle two large transactions" {    
-    load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
-    load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
-
     # ✅ Deploy necessary contracts and capture deployed address
     deploy_test_contracts "$L2_RPC_URL" "$PRIVATE_KEY"
     

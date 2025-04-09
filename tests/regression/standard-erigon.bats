@@ -3,7 +3,6 @@
 setup() {
     load "$PROJECT_ROOT/core/helpers/common-setup.bash"
     _common_setup  # Standard setup (wallet, funding, RPC, etc.)
-    load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
 }
 
 # bats file_tags=regression,el:cdk-erigon
@@ -277,9 +276,6 @@ setup() {
 
 
 @test "counter overflowing transactions do not create new batches" {
-    load "$PROJECT_ROOT/core/helpers/scripts/deploy_test_contracts.sh"
-    load "$PROJECT_ROOT/core/helpers/scripts/assert_block_production.sh"
-
     deploy_test_contracts "$L2_RPC_URL" "$PRIVATE_KEY"
 
     local start_bn

@@ -9,8 +9,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-cdk-e2e:
-    uses: ./.github/workflows/cdk-e2e.yml
+  call-agglayer-e2e:
+    uses: ./.github/workflows/agglayer-e2e.yml
 
   test-e2e:
     strategy:
