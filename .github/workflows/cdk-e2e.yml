@@ -8,9 +8,8 @@ on:
     inputs:
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
-        required: false
+        required: true
         type: string
-        default: "139d2c92775b104df5e5adbb756a0b81718793a3"
 
       test-name:
         description: "The name of the test to run"
@@ -20,9 +19,8 @@ on:
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
-        required: false
+        required: true
         type: string
-        default: ${{ github.ref }}
 
       kurtosis-cdk-args:
         description: "Input arguments for the Kurtosis CDK package."
@@ -70,6 +68,7 @@ on:
 
 jobs:
   test-cdk-e2e:
+    name: ${{ inputs.test-name }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
