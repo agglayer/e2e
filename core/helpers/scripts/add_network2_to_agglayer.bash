@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-add_network2_to_agglayer() {
+function add_network2_to_agglayer() {
     echo "=== Checking if network 2 is added to agglayer ===" >&3
     local _prev=$(kurtosis service exec $ENCLAVE agglayer "grep \"2 = \" /etc/zkevm/agglayer-config.toml || true" | tail -n +2)
     if [ ! -z "$_prev" ]; then
