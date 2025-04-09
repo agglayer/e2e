@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-mint_pol_token() {
-    echo "=== Minting POL  ===" >&3
+function mint_pol_token() {
+    echo "=== Minting POL ===" >&3
     cast send \
         --rpc-url $l1_rpc_url \
         --private-key $private_key \
