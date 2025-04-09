@@ -26,7 +26,7 @@ if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     else
         ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/${VERSION}/${ARGS_FILE}"
     fi
-    echo "ENCALVE=${ENCLAVE}"
+    echo "ENCLAVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
     # If provided, add custom agglayer image to the args file.
