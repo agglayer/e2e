@@ -66,10 +66,9 @@ setup() {
         return 1
     fi
 
-    local gas_units gas_price value value_ether
+    local gas_units value value_ether
     gas_units=$(cast estimate --rpc-url "$L2_RPC_URL" --create "$bytecode") || return 1
     gas_units=$(echo "scale=0; $gas_units / 2" | bc)
-    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL") || return 1
     value=$(echo "$gas_units * $gas_price" | bc)
     value_ether=$(cast to-unit "$value" ether)"ether"
 

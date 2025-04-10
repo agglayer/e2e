@@ -1,8 +1,6 @@
 name: Configurable E2E Execution
 run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
 
-# TODO solve for remote callers setting bats environment variables
-# act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
 on:
   workflow_call:
     inputs:
@@ -10,7 +8,7 @@ on:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
         type: string
-        default: "b9403ffe70b6a28a65cf29fc3a22ea68bcb8ee84" # Temp tag
+        default: ""
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
@@ -23,20 +21,7 @@ on:
         required: false
         type: string
         default: |
-          {
-            "deployment_stages": {
-              "deploy_l2_contracts": true,
-              "deploy_cdk_bridge_ui": false
-            },
-            "args": {
-              "consensus_contract_type": "pessimistic",
-              "erigon_strict_mode": false,
-              "enable_normalcy": true,
-              "agglayer_prover_sp1_key": "",
-              "agglayer_prover_primary_prover": "mock-prover",
-              "sequencer_type": "erigon"
-            }
-          }
+          {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
@@ -63,7 +48,8 @@ on:
         default: ""
 
 jobs:
-  run-kurtosis-image:
+  test-single-e2e:
+    name: Single chain E2E test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
@@ -100,16 +86,6 @@ jobs:
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
 
-      - name: Install polycli
-        run: |
-          polycli_version="v0.1.74"
-          pushd $(mktemp -d) || exit 1
-          curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
-          tar xf polycli.tar.gz
-          mv polycli_* /usr/local/bin/polycli
-          polycli version
-          popd
-
       - name: Install kurtosis cli and jq
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
@@ -124,6 +100,7 @@ jobs:
               echo '${{ inputs.kurtosis-cdk-args }}' | tee /tmp/kurtosis-args.json
               exit
           fi
+          echo '${{ inputs.kurtosis-cdk-args }}'
           echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
 
       # Do not merge this
@@ -145,13 +122,35 @@ jobs:
       - name: Run e2e tests
         run: |
           pushd agglayer-e2e || exit 1
+          set -a
+          source ./tests/.env
+          set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
-          bats tests/agglayer/bridges.bats --filter-tags agglayer
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
+          bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/bridge-e2e-msg.bats ./tests/aggkit/e2e-pp.bats
           popd
+
+      - name: Dump enclave logs
+        if: ${{ failure() }}
+        run: kurtosis dump ./dump
+    
+      - name: Generate archive name
+        if: ${{ failure() }}
+        run: |
+          archive_name="dump_run_with_args_${{matrix.e2e-group}}_${{ github.run_id }}"
+          echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
+          echo "Generated archive name: ${archive_name}"
+  
+      - name: Upload logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ./dump
 
       - name: Clean up kurtosis-cdk enclave
         if: ${{ always() }}
         run: |
           kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
-

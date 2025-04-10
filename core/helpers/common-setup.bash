@@ -2,6 +2,16 @@ _common_setup() {
     bats_load_library 'bats-support'
     bats_load_library 'bats-assert'
 
+    load '../../core/helpers/scripts/aggkit_bridge_service'
+    load '../../core/helpers/scripts/query_contract'
+    load '../../core/helpers/scripts/send_tx'
+    load '../../core/helpers/scripts/mint_token_helpers'
+    load '../../core/helpers/scripts/verify_balance'
+    load '../../core/helpers/scripts/add_network2_to_agglayer'
+    load '../../core/helpers/scripts/fund_claim_tx_manager'
+    load '../../core/helpers/scripts/run_with_timeout'
+    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
+
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
@@ -27,7 +37,7 @@ _common_setup() {
     export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
     # ✅ Standardized L2 RPC and SEQUENCER URL Handling
-    if [[ "$ENCLAVE" == "cdk" ]]; then
+    if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
         L2_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
         L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
 
@@ -111,4 +121,40 @@ _common_setup() {
         echo "❌ ERROR: Wallet did not receive test funds!"
         exit 1
     fi
+
+    readonly is_forced=${IS_FORCED:-"true"}
+    meta_bytes=${META_BYTES:-"0x1234"}
+
+    local combined_json_file="/opt/zkevm/combined.json"
+    combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
+    if echo "$combined_json_output" | jq empty > /dev/null 2>&1; then
+        bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
+    else
+        bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
+    fi
+    echo "Bridge address=$bridge_addr" >&3
+
+    local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
+    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
+    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
+        gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
+    else
+        gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
+    fi
+    echo "Gas token address=$gas_token_addr" >&3
+
+    readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
+    readonly dry_run=${DRY_RUN:-"false"}
+    ether_value=${ETHER_VALUE:-"0.0200000054"}
+    amount=$(cast to-wei $ether_value ether)
+    destination_net=${DESTINATION_NET:-"1"}
+    destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
+    readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
+    readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
+    readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+    readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $bridge_addr 'networkID() (uint32)')
+    readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $bridge_addr 'networkID() (uint32)')
+    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
+    readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
 }
