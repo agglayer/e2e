@@ -10,7 +10,7 @@ on:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
         type: string
-        default: "50c6e082ca402f0b612b028c075e1322546b3e79"
+        default: "arpit/bridge-service"
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
