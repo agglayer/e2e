@@ -4,6 +4,7 @@ _common_setup() {
 
     load '../../core/helpers/scripts/add_network2_to_agglayer'
     load '../../core/helpers/scripts/aggkit_bridge_service'
+    load '../../core/helpers/scripts/assert_block_production'
     load '../../core/helpers/scripts/check_balances'
     load '../../core/helpers/scripts/claim_tx_hash'
     load '../../core/helpers/scripts/claim'
