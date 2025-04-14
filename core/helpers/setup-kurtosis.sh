@@ -22,7 +22,7 @@ echo "CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE}"
 
 if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
-    echo "ENCALVE=${ENCLAVE}"
+    echo "ENCLAVE=${ENCLAVE}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
     # If provided, add custom agglayer image to the args file.

@@ -4,7 +4,6 @@ setup() {
     load '../../core/helpers/common-setup'
     _common_setup
 
-    readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $bridge_addr 'WETHToken() (address)')
 }
 
 @test "Transfer message" {
