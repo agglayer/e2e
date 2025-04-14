@@ -144,8 +144,6 @@ _common_setup() {
 
     local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
-    echo "Rollup params file=$rollup_params_file" >&3
-    echo "Rollup params output=$rollup_params_output" >&3
     if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
         gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
     else
