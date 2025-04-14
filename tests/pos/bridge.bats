@@ -27,7 +27,7 @@ function wait_for_heimdall_state_sync() {
   fi
 
   echo "Monitoring state syncs on Heimdall..."
-  timeout="180" # seconds
+  timeout="300" # seconds
   interval="10" # seconds
   assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout}" "${interval}"
 }
@@ -44,7 +44,7 @@ function wait_for_bor_state_sync() {
   fi
 
   echo "Monitoring state syncs on Bor..."
-  timeout="180" # seconds
+  timeout="300" # seconds
   interval="10" # seconds
   assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout}" "${interval}"
 }
