@@ -23,7 +23,7 @@ RUN apt-get update --yes \
   # Install yq.
   && pip3 install --break-system-packages yq \
   # Create folder for antithesis tests.
-  && mkdir /opt/antithesis/test/v1
+  && mkdir -p /opt/antithesis/test/v1
 
 COPY . .
 COPY ./tests/antithesis/ /opt/antithesis/test/v1/
