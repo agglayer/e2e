@@ -21,7 +21,9 @@ RUN apt-get update --yes \
   && /root/.foundry/bin/foundryup --install ${FOUNDRY_VERSION} \
   && cp -r /root/.foundry/bin/* /usr/local/bin \
   # Install yq.
-  && pip3 install --break-system-packages yq
+  && pip3 install --break-system-packages yq \
+  # Create folder for antithesis tests.
+  && mkdir /opt/antithesis/test/v1
 
 COPY . .
-
+COPY ./tests/antithesis/ /opt/antithesis/test/v1/
