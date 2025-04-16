@@ -1,3 +1,3 @@
-#!/usr/bin/env/bash
+#!/usr/bin/env bash
 
 bats --filter-tags pos,bridge,matic,pol --recursive tests/

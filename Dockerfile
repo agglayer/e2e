@@ -26,4 +26,4 @@ RUN apt-get update --yes \
   && mkdir -p /opt/antithesis/test/v1
 
 COPY . .
-COPY ./tests/antithesis/ /opt/antithesis/test/v1/
+COPY ./tests/antithesis/ /opt/antithesis/test/v1
