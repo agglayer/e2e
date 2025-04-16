@@ -2,14 +2,22 @@ _common_setup() {
     bats_load_library 'bats-support'
     bats_load_library 'bats-assert'
 
-    load '../../core/helpers/scripts/aggkit_bridge_service'
-    load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/send_tx'
-    load '../../core/helpers/scripts/mint_token_helpers'
-    load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/add_network2_to_agglayer'
+    load '../../core/helpers/scripts/aggkit_bridge_service'
+    load '../../core/helpers/scripts/assert_block_production'
+    load '../../core/helpers/scripts/check_balances'
+    load '../../core/helpers/scripts/claim_tx_hash'
+    load '../../core/helpers/scripts/claim'
+    load '../../core/helpers/scripts/deploy_contract'
+    load '../../core/helpers/scripts/deploy_test_contracts'
     load '../../core/helpers/scripts/fund_claim_tx_manager'
-    load '../../core/helpers/scripts/run_with_timeout'
+    load '../../core/helpers/scripts/mint_token_helpers'
+    load '../../core/helpers/scripts/query_contract'
+    load '../../core/helpers/scripts/send_eoa_tx'
+    load '../../core/helpers/scripts/send_smart_contract_tx'
+    load '../../core/helpers/scripts/send_tx'
+    load '../../core/helpers/scripts/verify_balance'
+    load '../../core/helpers/scripts/wait_for_claim'
     load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
     # ✅ Ensure PROJECT_ROOT is correct
@@ -157,4 +165,10 @@ _common_setup() {
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
+    readonly bridge_api_url=${BRIDGE_API_URL:-"$(kurtosis port print $ENCLAVE zkevm-bridge-service-001 rpc)"}
+    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+    readonly erigon_sequencer_node=${KURTOSIS_ERIGON_SEQUENCER:-cdk-erigon-sequencer-001}
+    readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $ENCLAVE $erigon_sequencer_node"}
+    readonly key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    readonly data_dir=${ACL_DATA_DIR:-"/home/erigon/data/dynamic-kurtosis-sequencer/txpool/acls"}
 }
