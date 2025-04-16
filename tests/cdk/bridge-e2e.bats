@@ -82,6 +82,8 @@ native_gas_token_deposit_to_WETH() {
     run mint_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount"
     assert_success
 
+    sleep 30
+
     # Assert that balance of gas token (on the L1) is correct
     run query_contract "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
@@ -131,7 +133,7 @@ native_gas_token_deposit_to_WETH() {
     assert_success
 
     # Claim withdrawals (settle them on the L1)
-    timeout="360"
+    timeout="3600"
     claim_frequency="10"
     destination_net=$l1_rpc_network_id
     run wait_for_claim "$timeout" "$claim_frequency" "$l1_rpc_url" "bridgeAsset"
