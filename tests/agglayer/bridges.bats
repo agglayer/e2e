@@ -14,7 +14,7 @@ setup() {
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print aggkit zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
-    claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
+    claim_wait_duration=${CLAIM_WAIT_DURATION:-"100m"}
 
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print aggkit agglayer aglr-readrpc)"}
 
