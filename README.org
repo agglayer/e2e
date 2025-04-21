@@ -48,12 +48,6 @@ export BATS_LIB_PATH="$PWD/core/helpers/lib"
 bats tests/agglayer/bridges.bats --filter-tags agglayer,rpc
 #+end_src
 
-If you just want to run like CI does, you can use the following command:
-
-#+begin_src bash
-act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
-#+end_src
-
 * Philosophy and Goals
 
 *Separation of concerns* between infrastructure and test logic is a
@@ -117,7 +111,6 @@ environment variables and to use them whenever possible.
 | L2_BRIDGE_ADDR        | The address of the bridge on L2                                    |
 | LEGACY_MODE           | If true, don't send a type 2 transaction                           |
 | KURTOSIS_ENCLAVE_NAME | Specifies the enclave name used in some defaults                   |
-
 
 A few points on the design and thinking. In general, we're going to
 *prefer deriving* rather than specifying everything. Rather than
@@ -208,6 +201,41 @@ guidelines:
 - Use descriptive naming for `.bats` files:
   - Each file name should reflect the test’s primary focus.
 
+In addition to *tests*, we have *scenarios* that live in the
+[[./scenarios]] folder. The main guideline is that *tests* should be used
+in most cases so that we can run checks against generic RPCs and treat
+the infrastructure as a black-box. In situations where we need
+manipulate the underlying infrastructure, we use *scenarios*.
+
+|                    | Tests                         | Scenarios                   |
+|--------------------+-------------------------------+-----------------------------|
+| Scripting Language | Bats                          | Generic Bash                |
+| Infrastructure     | Pre-configured                | Setup and torn down in test |
+| Coupling           | Decoupled from client version | Bundled with client version |
+| Example            | Bridge transactions           | Bridge version upgrade      |
+
+A scenario consists of a single executable ~run.sh~ plus optional
+helpers.  ~run.sh~:
+
+1. spin up its environment (Kurtosis, Docker, ...) in a temporary namespace
+2. run its assertions (you may call Bats, Go tests, or plain shell here)
+3. tear everything down cleanly, even on failure (set an ~EXIT~ trap)
+
+Because scenarios are isolated, they can run in parallel with each
+other and with ~tests/~ without clashing over ports, volume mounts, or
+chain state.
+
+#+begin_example
+scenarios/
+├── <scenario-name>/   # One folder per scenario
+│   ├── run.sh         # The orchestrator. *Must* be executable and idempotent.
+│   ├── READMEmd       # Some short description of the test secneario
+│   ├── env.example    # Minimal set of env vars a caller may override.
+│   ├── lib/           # Optional helper scripts reused by this scenario
+│   └── assets/        # SQL snapshots, JSON fixtures, contract byte-code
+└── common/            # Shared helpers for *all* scenarios (similar to tests/core/helpers/)
+
+#+end_example
 * Thinking about tagging
 
 TODO - Like the overall project organization, there's more thinking
@@ -234,3 +262,12 @@ TODO - We need to document the various helper functions. Some helpers
 might be mandatory (enforced by code review) while others are there
 for your convenience.
 
+* CI Development
+
+We use [[https://github.com/nektos/act][act]] to do a local simulation of the github action in this
+repo. If you just want to run like CI does, you can use the following
+command:
+
+#+begin_src bash
+act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
+#+end_src
