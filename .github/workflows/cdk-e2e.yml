@@ -42,7 +42,7 @@ on:
         description: "The name to be used for the kurtosis enclave"
         required: false
         type: string
-        default: "cdk"
+        default: "aggkit"
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
