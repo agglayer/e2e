@@ -86,7 +86,7 @@ jobs:
         run: ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
 
       - name: Run e2e tests
-        run: bats --filter-tags ${{ matrix.filter_tags }} --recursive tests/
+        run: ENCLAVE=cdk bats --filter-tags ${{ matrix.filter_tags }} --recursive tests/
 
       - name: Dump enclave logs
         if: always()
