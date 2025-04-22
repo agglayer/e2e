@@ -11,8 +11,6 @@ on:
 jobs:
   call-cdk-e2e:
     uses: ./.github/workflows/cdk-e2e.yml
-    with:
-      kurtosis-cdk-enclave-name: aggkit
 
   test-e2e:
     strategy:
