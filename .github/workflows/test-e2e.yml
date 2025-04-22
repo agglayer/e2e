@@ -19,8 +19,8 @@ jobs:
         include:
           # Kurtosis CDK.
           - package: kurtosis-cdk
-            version: v0.3.5
-            args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
+            version: v0.4.0
+            args_file: .github/tests/chains/op-succinct.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
 
           # Kurtosis Polygon PoS.
