@@ -23,11 +23,17 @@ fails. If you're new to bash or Bats, these are some useful links.
 
 * How to run your test
 
-There are two easy ways to run your test cases. The easiest way is to
-execute the [[./test-runner.sh]] script. That script has several
-conveniences that will be important for test automation. If you'd like
-to run a single test file, or use Bats directly, it's pretty easy as
-well:
+The tests in this repository depend on an external RPC which can be
+specified via environment variables. If you're testing locally, using
+the [[https://github.com/0xPolygon/kurtosis-cdk/releases/tag/v0.3.4][kurtosis-cdk]] is probably the easiest way to get started.
+
+#+begin_src bash
+# from within the kurtosis cdk-repo
+kurtosis run --enclave cdk --args-file .github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+#+end_src
+
+With a network in place, if you'd like to run a single test file, or use Bats directly, it's
+pretty easy as well:
 
 #+begin_src bash
 # You'll want to set whatever environment variables your test needs. If you want to use defaults you could skip this.
@@ -41,11 +47,6 @@ export BATS_LIB_PATH="$PWD/core/helpers/lib"
 # Now you can run bats
 bats tests/agglayer/bridges.bats --filter-tags agglayer,rpc
 #+end_src
-
-If you just want to run like CI does, you can use the following command:
-#+begin_src bash
-act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
-#+end_src bash
 
 * Philosophy and Goals
 
@@ -95,19 +96,21 @@ like, but in order for the test cases to be executed via generic
 automations, it's critical that you're aware of commonly used
 environment variables and to use them whenever possible.
 
-| Variable           | Purpose                                                            |
-|--------------------+--------------------------------------------------------------------|
-| RPC_URL            | A generic JSON RPC URL for tests that do not require L1/L2 context |
-| L1_RPC_URL         | An RPC URL that serves as the L1 for some rollup or validium       |
-| L2_RPC_URL         | An RPC URL for a rollup that's anchored on L1                      |
-| PRIVATE_KEY        | A private key that's funded for RPC_URL                            |
-| L1_PRIVATE_KEY     | A private key that's funded for L1_RPC_URL                         |
-| L2_PRIVATE_KEY     | A private key that's funded for L2_RPC_URL                         |
-| SEQUENCER_RPC_URL  | An RPC URL that's directly connected to a sequencer                |
-| GAS_TOKEN_ADDR     | The L1 address of a custom gas token                               |
-| BRIDGE_SERVICE_URL | The URL of the bridge service used for claiming deposits           |
-| L1_BRIDGE_ADDR     | The address of the bridge on L1                                    |
-| L2_BRIDGE_ADDR     | The address of the bridge on L2                                    |
+| Variable              | Purpose                                                            |
+|-----------------------+--------------------------------------------------------------------|
+| RPC_URL               | A generic JSON RPC URL for tests that do not require L1/L2 context |
+| L1_RPC_URL            | An RPC URL that serves as the L1 for some rollup or validium       |
+| L2_RPC_URL            | An RPC URL for a rollup that's anchored on L1                      |
+| PRIVATE_KEY           | A private key that's funded for RPC_URL                            |
+| L1_PRIVATE_KEY        | A private key that's funded for L1_RPC_URL                         |
+| L2_PRIVATE_KEY        | A private key that's funded for L2_RPC_URL                         |
+| SEQUENCER_RPC_URL     | An RPC URL that's directly connected to a sequencer                |
+| GAS_TOKEN_ADDR        | The L1 address of a custom gas token                               |
+| BRIDGE_SERVICE_URL    | The URL of the bridge service used for claiming deposits           |
+| L1_BRIDGE_ADDR        | The address of the bridge on L1                                    |
+| L2_BRIDGE_ADDR        | The address of the bridge on L2                                    |
+| LEGACY_MODE           | If true, don't send a type 2 transaction                           |
+| KURTOSIS_ENCLAVE_NAME | Specifies the enclave name used in some defaults                   |
 
 A few points on the design and thinking. In general, we're going to
 *prefer deriving* rather than specifying everything. Rather than
@@ -171,12 +174,68 @@ of allowed actions to further standardize test naming.
 
 * Project organization
 
-TODO - This is still a work in progress. All of the tests live in the
-[[./tests]] folder, but there isn't a clear standard right now in terms of
-sub-folders, the names of files, how many cases should exist in a
-single file. Additionally, the standards for individual bats files are
-a bit arbitrary.
+All of the tests live in the [[./tests]] folder. We're still trying to
+figure out the right organization, but for now please follow these
+guidelines:
 
+- Place your tests in sub-folders of the ~tests~ directory according
+  to their dependencies.
+  - ~agglayer/~ tests depend on access directly to the Agglayer RPC
+    and the bridge
+  - ~lxly/~ tests would depend on direct access to the bridge service
+    and contracts, but might not need access to the Agglayer itself
+  - ~pos/~ tests depend on a running PoS environment
+- There are going to be some generic tests that can be reused across
+  varied environments. In that case, we can name based on the test
+  case itself
+  - ~ethereum-test-cases/~ come from the standard Ethereume test
+    suite, but could be run against any EVM RPC
+  - ~polycli-loadtests/~ depend on running the PolyCLI load tests, but
+    could also be run against any EVM RPC
+- Bats files should contain test cases that can be run together:
+  - Each file represents a logical collection of related tests
+  - Try to keep each file small and focused (e.g., 5–15 tests) so it’s
+    easier to run, maintain, and debug
+  - If a particular test case is likely to break subsequent tests, it
+    should be placed in its own file.
+- Use descriptive naming for `.bats` files:
+  - Each file name should reflect the test’s primary focus.
+
+In addition to *tests*, we have *scenarios* that live in the
+[[./scenarios]] folder. The main guideline is that *tests* should be used
+in most cases so that we can run checks against generic RPCs and treat
+the infrastructure as a black-box. In situations where we need
+manipulate the underlying infrastructure, we use *scenarios*.
+
+|                    | Tests                         | Scenarios                   |
+|--------------------+-------------------------------+-----------------------------|
+| Scripting Language | Bats                          | Generic Bash                |
+| Infrastructure     | Pre-configured                | Setup and torn down in test |
+| Coupling           | Decoupled from client version | Bundled with client version |
+| Example            | Bridge transactions           | Bridge version upgrade      |
+
+A scenario consists of a single executable ~run.sh~ plus optional
+helpers.  ~run.sh~:
+
+1. spin up its environment (Kurtosis, Docker, ...) in a temporary namespace
+2. run its assertions (you may call Bats, Go tests, or plain shell here)
+3. tear everything down cleanly, even on failure (set an ~EXIT~ trap)
+
+Because scenarios are isolated, they can run in parallel with each
+other and with ~tests/~ without clashing over ports, volume mounts, or
+chain state.
+
+#+begin_example
+scenarios/
+├── <scenario-name>/   # One folder per scenario
+│   ├── run.sh         # The orchestrator. *Must* be executable and idempotent.
+│   ├── READMEmd       # Some short description of the test scenario.
+│   ├── env.example    # Minimal set of env vars a caller may override.
+│   ├── lib/           # Optional helper scripts reused by this scenario
+│   └── assets/        # SQL snapshots, JSON fixtures, contract byte-code
+└── common/            # Shared helpers for *all* scenarios (similar to tests/core/helpers/)
+
+#+end_example
 * Thinking about tagging
 
 TODO - Like the overall project organization, there's more thinking
@@ -203,3 +262,12 @@ TODO - We need to document the various helper functions. Some helpers
 might be mandatory (enforced by code review) while others are there
 for your convenience.
 
+* CI Development
+
+We use [[https://github.com/nektos/act][act]] to do a local simulation of the github action in this
+repo. If you just want to run like CI does, you can use the following
+command:
+
+#+begin_src bash
+act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
+#+end_src
