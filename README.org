@@ -229,7 +229,7 @@ chain state.
 scenarios/
 ├── <scenario-name>/   # One folder per scenario
 │   ├── run.sh         # The orchestrator. *Must* be executable and idempotent.
-│   ├── READMEmd       # Some short description of the test secneario
+│   ├── READMEmd       # Some short description of the test scenario.
 │   ├── env.example    # Minimal set of env vars a caller may override.
 │   ├── lib/           # Optional helper scripts reused by this scenario
 │   └── assets/        # SQL snapshots, JSON fixtures, contract byte-code
