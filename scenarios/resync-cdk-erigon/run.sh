@@ -8,7 +8,7 @@ load_env
 # Spin up the enclave
 kurtosis run --enclave "$ENCLAVE_NAME" "$KURTOSIS_PACKAGE_SELECTOR"
 
-# get the RPC url of the rpc node
+# Get the RPC url of the rpc node
 rpc_url=$(kurtosis port print "$ENCLAVE_NAME" cdk-erigon-rpc-001 rpc)
 sequencer_url=$(kurtosis port print "$ENCLAVE_NAME" cdk-erigon-sequencer-001 rpc)
 
