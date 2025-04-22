@@ -25,32 +25,19 @@ on:
         default: |
           {
             "deployment_stages": {
-              "deploy_optimism_rollup": true,
-              "deploy_op_succinct": true,
-              "deploy_cdk_bridge_ui": false
+              "deploy_cdk_bridge_ui": false,
+              "deploy_optimism_rollup": true
             },
             "args": {
-              "agglayer_prover_primary_prover": "mock-prover",
-              "aggkit_prover_primary_prover": "mock-prover",
-              "sp1_prover_key": "0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31",
-              "consensus_contract_type": "fep",
-              "op_succinct_mock": true,
-              "op_succinct_agglayer": true,
-              "op_succinct_agg_proof_mode": "compressed",
-              "op_succinct_proposer_span_proof": "60",
-              "op_succinct_submission_interval": "1",
-              "op_succinct_max_concurrent_proof_requests": "1",
-              "op_succinct_max_concurrent_witness_gen": "1",
+              "verbosity": "debug",
+              "consensus_contract_type": "pessimistic",
               "zkevm_rollup_chain_id": 2151908,
-              "deployment_suffix": "-001",
-              "zkevm_rollup_id": 1,
-              "l1_seconds_per_slot": 2,
-              "additional_services": [
-                "bridge_spammer"
-              ]
+              "sp1_prover_key": "0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31",
+              "agglayer_prover_primary_prover": "mock-prover",
+              "aggkit_prover_primary_prover": "mock-prover"
             },
             "optimism_package": {
-              "source": "github.com/xavier-romero/optimism-package/main.star@355b15efd61b603d2302478dd4b3ef74ccc6e462",
+              "source": "github.com/xavier-romero/optimism-package/main.star@d09d841bd5528f4b29144cfc7ecba88a162427ce",
               "predeployed_contracts": true,
               "chains": [
                 {
@@ -67,10 +54,7 @@ on:
                     "image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher@sha256:a017bf0a1dbe88e770eb6979354a148534b36e58ea7bc2fd7ae01f5e90eb9ed3"
                   },
                   "proposer_params": {
-                    "enabled": false
-                  },
-                  "challenger_params": {
-                    "enabled": false
+                    "image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer@sha256:1c6e0c0ac79b561652af1bd5df30f0fcca1490c3989ea0a15e7e18d823e96825"
                   },
                   "network_params": {
                     "name": "001",
