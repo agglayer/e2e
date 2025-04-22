@@ -1,7 +1,7 @@
 # We're going to try to tune these tests to so that they're targeting
 # 30M gas per second. When testing these cases with kurtosis it's
 # likely that some local network issues might come up due to the
-# implementation of the docker proxy. In this case, I'm by passing the
+# implementation of the docker proxy. In this case, I'm bypassing the
 # proxy all together to directly connect to the sequencer's native IP.
 setup() {
     rpc_url=${RPC_URL:-"$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"}
