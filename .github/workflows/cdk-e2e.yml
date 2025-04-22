@@ -10,7 +10,7 @@ on:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
         type: string
-        default: "139d2c92775b104df5e5adbb756a0b81718793a3"
+        default: "v0.4.0"
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
@@ -154,4 +154,3 @@ jobs:
         run: |
           kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
-
