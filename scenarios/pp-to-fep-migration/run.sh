@@ -20,7 +20,7 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 # TEMPORARY TO SPEED UP TESTING
 yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg sl "$SPAN_LENGTH_OVERRIDE" '
 .optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
-.args.op_succinct_proposer_span_proof = sl |
+.args.op_succinct_proposer_span_proof = $sl |
 .args.l1_seconds_per_slot = 1' initial-pp.yml > _t; mv _t initial-pp.yml
 
 # Spin up the network
