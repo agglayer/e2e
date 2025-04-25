@@ -6,6 +6,7 @@ load_env
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 
+
 curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
 
 # TODO we should make sure that op_succinct can run with PP
@@ -17,9 +18,9 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 ' tmp-pp.yml > initial-pp.yml
 
 # TEMPORARY TO SPEED UP TESTING
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg sl "$SPAN_LENGTH_OVERRIDE" '
 .optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
-.args.op_succinct_proposer_span_proof = "128" |
+.args.op_succinct_proposer_span_proof = sl |
 .args.l1_seconds_per_slot = 1' initial-pp.yml > _t; mv _t initial-pp.yml
 
 # Spin up the network
@@ -82,9 +83,19 @@ l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lightho
 l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
 
+# Stopping the bridge spammer for our own sanity
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+
+# TODO use this in the future to block the upgrade This should be `null`
+cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
 # I assume we should stop the sequencer before we update it
 cast rpc --rpc-url "$l2_node_url" admin_stopSequencer > stop.out
+
+# We're going to update the aggkit now so that we don't settle additional certs.
+docker exec -u root -it "$aggkit_container_name" sed -i 's/Mode="PessimisticProof"/Mode="AggchainProof"/' /etc/aggkit/config.toml
+kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 
 # Get the current rollup type count and make sure that it make sense
 rollup_type_count=$(cast call --rpc-url "$l1_rpc_url" $(jq -r '.polygonRollupManagerAddress' combined.json) 'rollupTypeCount() external view returns (uint32)')
@@ -93,7 +104,7 @@ if [[ $rollup_type_count -ne 2 ]]; then
     exit 1
 fi
 
-# Create the upgrade data - John
+# Create the upgrade data
 upgrade_data=$(cast calldata "initAggchainManager(address)" 0xE34aaF64b29273B7D567FCFc40544c014EEe9970)
 rollup_address=$(jq -r '.rollupAddress' combined.json)
 
@@ -225,7 +236,9 @@ cast rpc --rpc-url "$l2_node_url" admin_startSequencer $(cat stop.out)
 
 # stop the proposer
 # TODO check to see why this isn't running anymore
-kurtosis service stop "$kurtosis_enclave_name" op-proposer-001
+if [[ false ]]; then
+    kurtosis service stop "$kurtosis_enclave_name" op-proposer-001
+fi
 
 # TODO there are some env variables that seem unnecessary now
 # server
@@ -263,25 +276,35 @@ docker run \
        -e "MAX_CONCURRENT_WITNESS_GEN=1" \
        -e "OP_SUCCINCT_SERVER_URL=http://op-succinct-server:3000" \
        -e "L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e" \
-       -e "MAX_BLOCK_RANGE_PER_SPAN_PROOF=1800" \
+       -e "MAX_BLOCK_RANGE_PER_SPAN_PROOF=$SPAN_LENGTH_OVERRIDE" \
        -e "OP_SUCCINCT_MOCK=false" \
        -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
        ghcr.io/agglayer/op-succinct/op-proposer:v1.2.12-agglayer
 
 
-docker exec -u root -it "$aggkit_container_name" sed -i 's/Mode="PessimisticProof"/Mode="AggchainProof"/' /etc/aggkit/config.toml
-kurtosis service stop "$kurtosis_enclave_name" aggkit-001
-kurtosis service start "$kurtosis_enclave_name" aggkit-001
-
 docker exec -u root -it "$aggkit_prover_container_name" sed -i 's/proposer-endpoint.*/proposer-endpoint = "http:\/\/op-succinct-proposer:8545"/' /etc/aggkit/aggkit-prover-config.toml
 kurtosis service stop "$kurtosis_enclave_name" aggkit-prover
 kurtosis service start "$kurtosis_enclave_name" aggkit-prover
 
+kurtosis service start "$kurtosis_enclave_name" aggkit-001
 
+kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 
 
 ################################################################################
 
+exit
+
+# TODO use this in the future to block the upgrade This should be `null`
+cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+
 cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
+cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
+
+cast abi-encode --packed 'f(bytes,uint64,uint64,uint64,bytes)' 0x00 1 1 1 0xFFFFFFFFFFFFFF
 
 cast tx --rpc-url http://$(kurtosis port print pp-to-fep-test  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
+
+docker stop op-succinct-proposer
+docker stop op-succinct-server
+
