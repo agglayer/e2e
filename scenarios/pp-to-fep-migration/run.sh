@@ -1,25 +1,55 @@
 #!/bin/env bash
 
-kurtosis_hash="86d88c638b807cc16bb58149fa0bf45543cb806a"
-kurtosis_enclave_name="pp-to-fep-test"
+source ../common/load-env.sh
+load_env
+
+kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
+kurtosis_enclave_name="$ENCLAVE_NAME"
+
+curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
+
+# TODO we should make sure that op_succinct can run with PP
+# Create a yaml file that has the pp consense configured but ideally a real prover
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.args.sp1_prover_key = $sp1key |
+.args.consensus_contract_type = "pessimistic" |
+.deployment_stages.deploy_op_succinct = false
+' tmp-pp.yml > initial-pp.yml
+
+# TEMPORARY TO SPEED UP TESTING
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
+.args.op_succinct_proposer_span_proof = "128" |
+.args.l1_seconds_per_slot = 1' initial-pp.yml > _t; mv _t initial-pp.yml
 
 # Spin up the network
 kurtosis run \
          --enclave "$kurtosis_enclave_name" \
-         --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/nightly/op-rollup/op-default.yml" \
+         --args-file "initial-pp.yml" \
          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
 
-#     _       _     _   ____       _ _               _____
-#    / \   __| | __| | |  _ \ ___ | | |_   _ _ __   |_   _|   _ _ __   ___
-#   / _ \ / _` |/ _` | | |_) / _ \| | | | | | '_ \    | || | | | '_ \ / _ \
-#  / ___ \ (_| | (_| | |  _ < (_) | | | |_| | |_) |   | || |_| | |_) |  __/
-# /_/   \_\__,_|\__,_| |_| \_\___/|_|_|\__,_| .__/    |_| \__, | .__/ \___|
-#                                           |_|           |___/|_|
+
+echo '   #                     ######                                        #######                     '
+echo '  # #   #####  #####     #     #  ####  #      #      #    # #####        #    #   # #####  ###### '
+echo ' #   #  #    # #    #    #     # #    # #      #      #    # #    #       #     # #  #    # #      '
+echo '#     # #    # #    #    ######  #    # #      #      #    # #    #       #      #   #    # #####  '
+echo '####### #    # #    #    #   #   #    # #      #      #    # #####        #      #   #####  #      '
+echo '#     # #    # #    #    #    #  #    # #      #      #    # #            #      #   #      #      '
+echo '#     # #####  #####     #     #  ####  ###### ######  ####  #            #      #   #      ###### '
+
+
 contracts_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep contracts-001 | awk '{print $1}')
 contracts_container_name=contracts-001--$contracts_uuid
 
 agglayer_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep agglayer[^-] | awk '{print $1}')
 agglayer_container_name=agglayer--$agglayer_uuid
+
+aggkit_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-001 | awk '{print $1}')
+aggkit_container_name=aggkit-001--$aggkit_uuid
+
+# TODO there is an issue here. the aggkit prover should have the -001 suffix
+aggkit_prover_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-prover[^-] | awk '{print $1}')
+aggkit_prover_container_name=aggkit-prover--$aggkit_prover_uuid
 
 # Read the agglayer vkey value
 agglayer_vkey=$(docker exec -it "$agglayer_container_name" agglayer vkey | tr -d "\r\n")
@@ -38,17 +68,23 @@ docker cp add_rollup_type.json $contracts_container_name:/opt/zkevm-contracts/to
 # this step might print errors related to verification
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/addRollupType/addRollupType.ts --network localhost
 
-#  _   _           _       _         ____       _ _
-# | | | |_ __   __| | __ _| |_ ___  |  _ \ ___ | | |_   _ _ __
-# | | | | '_ \ / _` |/ _` | __/ _ \ | |_) / _ \| | | | | | '_ \
-# | |_| | |_) | (_| | (_| | ||  __/ |  _ < (_) | | | |_| | |_) |
-#  \___/| .__/ \__,_|\__,_|\__\___| |_| \_\___/|_|_|\__,_| .__/
-#       |_|                                              |_|
+
+echo '#     #                                      ######                                     '
+echo '#     # #####  #####    ##   ##### ######    #     #  ####  #      #      #    # #####  '
+echo '#     # #    # #    #  #  #    #   #         #     # #    # #      #      #    # #    # '
+echo '#     # #    # #    # #    #   #   #####     ######  #    # #      #      #    # #    # '
+echo '#     # #####  #    # ######   #   #         #   #   #    # #      #      #    # #####  '
+echo '#     # #      #    # #    #   #   #         #    #  #    # #      #      #    # #      '
+echo ' #####  #      #####  #    #   #   ######    #     #  ####  ###### ######  ####  #     '
 
 # Set the urls
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
+
+# FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
+# I assume we should stop the sequencer before we update it
+cast rpc --rpc-url "$l2_node_url" admin_stopSequencer > stop.out
 
 # Get the current rollup type count and make sure that it make sense
 rollup_type_count=$(cast call --rpc-url "$l1_rpc_url" $(jq -r '.polygonRollupManagerAddress' combined.json) 'rollupTypeCount() external view returns (uint32)')
@@ -57,8 +93,6 @@ if [[ $rollup_type_count -ne 2 ]]; then
     exit 1
 fi
 
-# Create the upgrade data - Carlos
-# upgrade_data=$(cast calldata "initAggchainManager(address)" 0xa40d5f56745a118d0906a34e69aec8c0db1cb8fa)
 # Create the upgrade data - John
 upgrade_data=$(cast calldata "initAggchainManager(address)" 0xE34aaF64b29273B7D567FCFc40544c014EEe9970)
 rollup_address=$(jq -r '.rollupAddress' combined.json)
@@ -74,17 +108,19 @@ docker cp updateRollup.json $contracts_container_name:/opt/zkevm-contracts/tools
 # Execute the update rollup script
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/updateRollup/updateRollup.ts --network localhost
 
-#  ___       _ _   _       _ _           ____       _ _
-# |_ _|_ __ (_) |_(_) __ _| (_)_______  |  _ \ ___ | | |_   _ _ __
-#  | || '_ \| | __| |/ _` | | |_  / _ \ | |_) / _ \| | | | | | '_ \
-#  | || | | | | |_| | (_| | | |/ /  __/ |  _ < (_) | | | |_| | |_) |
-# |___|_| |_|_|\__|_|\__,_|_|_/___\___| |_| \_\___/|_|_|\__,_| .__/
-#                                                            |_|
+
+echo '###                                                   ######                                     '
+echo ' #  #    # # ##### #   ##   #      # ###### ######    #     #  ####  #      #      #    # #####  '
+echo ' #  ##   # #   #   #  #  #  #      #     #  #         #     # #    # #      #      #    # #    # '
+echo ' #  # #  # #   #   # #    # #      #    #   #####     ######  #    # #      #      #    # #    # '
+echo ' #  #  # # #   #   # ###### #      #   #    #         #   #   #    # #      #      #    # #####  '
+echo ' #  #   ## #   #   # #    # #      #  #     #         #    #  #    # #      #      #    # #      '
+echo '### #    # #   #   # #    # ###### # ###### ######    #     #  ####  ###### ######  ####  #    '
+
 
 docker cp $contracts_container_name:/opt/contract-deploy/create_new_rollup.json initialize_rollup.json
 
-cast rpc --rpc-url "$l2_node_url" admin_stopSequencer
-
+# TRYFIX - Maybe we can read the block number from the last settled PP
 current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')
 
 cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock $(printf "0x%x" $current_unsafe_block) | jq '.' > output.json
@@ -172,10 +208,80 @@ jq \
 docker cp initialize_rollup.json $contracts_container_name:/opt/zkevm-contracts/tools/initializeRollup/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/initializeRollup/initializeRollup.ts --network localhost
 
+
+echo '######                                       ###                             '
+echo '#     # ###### #      #####   ####  #   #     #  #    # ###### #####    ##   '
+echo '#     # #      #      #    # #    #  # #      #  ##   # #      #    #  #  #  '
+echo '#     # #####  #      #    # #    #   #       #  # #  # #####  #    # #    # '
+echo '#     # #      #      #####  #    #   #       #  #  # # #      #####  ###### '
+echo '#     # #      #      #      #    #   #       #  #   ## #      #   #  #    # '
+echo '######  ###### ###### #       ####    #      ### #    # #      #    # #    # '
+
+
 # TODO figure out what the input should be
 # https://github.com/ethereum-optimism/optimism/blob/6d9d43cb6f2721c9638be9fe11d261c0602beb54/op-node/node/api.go#L63
 # start it back up
-cast rpc --rpc-url "$l2_node_url" admin_startSequencer 0xd1a48f5c16f86a30caa51f22c916d213cc8fdc28465e577e396bd1eea91acdf0
+cast rpc --rpc-url "$l2_node_url" admin_startSequencer $(cat stop.out)
 
-# stop the propooser
+# stop the proposer
+# TODO check to see why this isn't running anymore
 kurtosis service stop "$kurtosis_enclave_name" op-proposer-001
+
+# TODO there are some env variables that seem unnecessary now
+# server
+docker run \
+       --rm -d \
+       --name op-succinct-server \
+       --network kt-$kurtosis_enclave_name \
+       -e "NETWORK_PRIVATE_KEY=$SP1_NETWORK_KEY" \
+       -e "NETWORK_RPC_URL=https://rpc.production.succinct.xyz" \
+       -e "AGG_PROOF_MODE=compressed" \
+       -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
+       -e "L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547" \
+       -e "PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" \
+       -e "L1_RPC=http://el-1-geth-lighthouse:8545" \
+       -e "OP_SUCCINCT_MOCK=false" \
+       -e "L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000" \
+       -e "ETHERSCAN_API_KEY=" \
+       -e "PORT=3000" \
+       ghcr.io/agglayer/op-succinct/succinct-proposer:v1.2.12-agglayer
+
+# Proposer
+# TODO the db seems to be created automatically. We should remove thie template in kurtosis
+docker run \
+       --rm -d \
+       --name op-succinct-proposer \
+       --network kt-$kurtosis_enclave_name \
+       -e "VERIFIER_ADDRESS=0xf22E2B040B639180557745F47aB97dFA95B1e22a" \
+       -e "PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" \
+       -e "L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000" \
+       -e "ETHERSCAN_API_KEY=" \
+       -e "OP_SUCCINCT_AGGLAYER=true" \
+       -e "L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547" \
+       -e "L1_RPC=http://el-1-geth-lighthouse:8545" \
+       -e "MAX_CONCURRENT_PROOF_REQUESTS=1" \
+       -e "MAX_CONCURRENT_WITNESS_GEN=1" \
+       -e "OP_SUCCINCT_SERVER_URL=http://op-succinct-server:3000" \
+       -e "L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e" \
+       -e "MAX_BLOCK_RANGE_PER_SPAN_PROOF=1800" \
+       -e "OP_SUCCINCT_MOCK=false" \
+       -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
+       ghcr.io/agglayer/op-succinct/op-proposer:v1.2.12-agglayer
+
+
+docker exec -u root -it "$aggkit_container_name" sed -i 's/Mode="PessimisticProof"/Mode="AggchainProof"/' /etc/aggkit/config.toml
+kurtosis service stop "$kurtosis_enclave_name" aggkit-001
+kurtosis service start "$kurtosis_enclave_name" aggkit-001
+
+docker exec -u root -it "$aggkit_prover_container_name" sed -i 's/proposer-endpoint.*/proposer-endpoint = "http:\/\/op-succinct-proposer:8545"/' /etc/aggkit/aggkit-prover-config.toml
+kurtosis service stop "$kurtosis_enclave_name" aggkit-prover
+kurtosis service start "$kurtosis_enclave_name" aggkit-prover
+
+
+
+
+################################################################################
+
+cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
+
+cast tx --rpc-url http://$(kurtosis port print pp-to-fep-test  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
