@@ -83,10 +83,13 @@ l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lightho
 l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
 
+# TOOD We should add some pause here to make sure that there are some bridges sent... we can check that the pending certificate is not null
+cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+
 # Stopping the bridge spammer for our own sanity
 kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
 
-# TODO use this in the future to block the upgrade This should be `null`
+# TODO use this in the future to block the upgrade This should be `null`... Basically we want to make sure everything is settled
 cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
 
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
