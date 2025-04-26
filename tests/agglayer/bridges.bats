@@ -1,22 +1,27 @@
 #!/usr/bin/env bats
 
 setup() {
+    kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"aggkit"}
+
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x83F138B325164b162b320F797b57f6f7E235ABAC"}
+    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
+    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x9D86b4ec07d7e292F296Dad324b14C06F058a4f1"}
 
-    l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x83F138B325164b162b320F797b57f6f7E235ABAC"}
+    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x2E0309f8dDD1EeC27D41e623d73b25cfC4Bb4803"}
 
-    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
+    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
-    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print cdk agglayer agglayer)"}
+    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
+
+    gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
+    weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
 
     fund_claim_tx_manager
 }
@@ -40,6 +45,10 @@ function fund_claim_tx_manager() {
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
     initial_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
+    if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
+        initial_l2_balance=$(cast call --rpc-url "$l2_rpc_url" "$weth_address" "balanceOf(address)(uint256)" "$l2_eth_address")
+    fi
+
     bridge_amount=$(cast to-wei 0.1)
     polycli ulxly bridge asset \
             --bridge-address "$l1_bridge_addr" \
@@ -59,8 +68,13 @@ function fund_claim_tx_manager() {
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
     set -e
+
     final_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
-    if [[ $initial_l2_balance == $final_l2_balance ]]; then
+    if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
+        final_l2_balance=$(cast call --rpc-url "$l2_rpc_url" "$weth_address" "balanceOf(address)(uint256)" "$l2_eth_address")
+    fi
+
+    if [[ $initial_l2_balance == "$final_l2_balance" ]]; then
         echo "It looks like the bridge deposit to l2 was not synced correctly. The balance on L2 did not increase."
         exit 1
     fi
@@ -79,7 +93,8 @@ function fund_claim_tx_manager() {
             --destination-network 0 \
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
-            --value "$bridge_amount"
+            --value "$bridge_amount" \
+            --token-address "$weth_address"
 
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
@@ -94,10 +109,58 @@ function fund_claim_tx_manager() {
             --wait "$claim_wait_duration"
 
     final_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
-    if [[ $initial_l1_balance == $final_l1_balance ]]; then
+    if [[ $initial_l1_balance == "$final_l1_balance" ]]; then
         echo "It looks like the bridge deposit to l1 was not processed. The balance on L1 did not increase."
         exit 1
     fi
+}
+
+@test "bridge L2 originated ERC20 from L2 to L1" {
+    dd_code=$(cast code --rpc-url "$l2_rpc_url" 0x4e59b44847b379578588920ca78fbf26c0b4956c)
+    if [[ $dd_code == "0x" ]]; then
+       echo "The deterministict deployer address is empty"
+       exit 1
+    fi
+    init_code=$(cat core/contracts/bin/erc20permitmock.bin)
+    constructor_data=$(cast abi-encode 'f(string name, string symbol, address initAccount, uint256 initBalance)' "agglayer e2e" "e2e" "$l2_eth_address" 100000000000000000000)
+    erc20_addr=$(cast create2 --salt "$(cast hz)" --init-code "$(cast concat-hex "$init_code" "$constructor_data" )")
+    erc20_code=$(cast code --rpc-url "$l2_rpc_url" "$erc20_addr")
+    if [[ $erc20_code == "0x" ]]; then
+        cast send \
+             --private-key "$l2_private_key" \
+             --rpc-url "$l2_rpc_url" 0x4e59b44847b379578588920ca78fbf26c0b4956c \
+             "$(cast concat-hex "$(cast hz)" "$init_code" "$constructor_data")"
+    fi
+    cast send \
+         --private-key "$l2_private_key" \
+         --rpc-url "$l2_rpc_url" "$erc20_addr" \
+         "mint(address account, uint256 amount)" \
+         "$l2_eth_address" 100000000000000000000
+
+    cast send \
+         --private-key "$l2_private_key" \
+         --rpc-url "$l2_rpc_url" "$erc20_addr" \
+         "approve(address spender, uint256 value)" \
+         "$l2_bridge_addr" 100000000000000000000
+
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    polycli ulxly bridge asset \
+            --bridge-address "$l2_bridge_addr" \
+            --destination-address "$l1_eth_address" \
+            --destination-network 0 \
+            --private-key "$l2_private_key" \
+            --rpc-url "$l2_rpc_url" \
+            --value "100" \
+            --token-address "$erc20_addr"
+
+    polycli ulxly claim asset \
+            --bridge-address "$l1_bridge_addr" \
+            --private-key "$l1_private_key" \
+            --rpc-url "$l1_rpc_url" \
+            --deposit-count "$initial_deposit_count" \
+            --deposit-network "$network_id" \
+            --bridge-service-url "$bridge_service_url" \
+            --wait "$claim_wait_duration"
 }
 
 # bats test_tags=smoke,rpc

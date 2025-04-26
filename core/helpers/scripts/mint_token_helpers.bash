@@ -2,6 +2,7 @@
 set -euo pipefail
 
 function mint_pol_token() {
+    local bridge_addr="$1"
     echo "=== Minting POL ===" >&3
     cast send \
         --rpc-url $l1_rpc_url \

@@ -1,15 +1,19 @@
 _common_setup() {
     bats_load_library 'bats-support'
+    if [ $? -ne 0 ]; then return 1; fi
     bats_load_library 'bats-assert'
+    if [ $? -ne 0 ]; then return 1; fi
 
-    load '../../core/helpers/scripts/aggkit_bridge_service'
-    load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/send_tx'
-    load '../../core/helpers/scripts/mint_token_helpers'
-    load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/add_network2_to_agglayer'
+    load '../../core/helpers/scripts/aggkit_bridge_service'
+    load '../../core/helpers/scripts/fund'
     load '../../core/helpers/scripts/fund_claim_tx_manager'
+    load '../../core/helpers/scripts/get_token_balance'
+    load '../../core/helpers/scripts/mint_token_helpers'
+    load '../../core/helpers/scripts/query_contract'
     load '../../core/helpers/scripts/run_with_timeout'
+    load '../../core/helpers/scripts/send_tx'
+    load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
     # ✅ Ensure PROJECT_ROOT is correct
@@ -40,11 +44,10 @@ _common_setup() {
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
         L2_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
         L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
-
     elif [[ "$ENCLAVE" == "op" ]]; then
         echo "🔥 Detected OP Stack"
-        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" op-el-1-op-geth-op-node-op-kurtosis rpc)
-        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" op-batcher-op-kurtosis http)
+        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" op-el-1-op-geth-op-node-001 rpc)
+        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" op-batcher-001 http)
     fi
     export L2_RPC_URL="$L2_RPC_URL"
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
@@ -79,7 +82,7 @@ _common_setup() {
     fi
 
     # ✅ Set funding amount dynamically
-    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-50}" # Default to 50 ETH if not provided
+    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 50 ETH if not provided
     FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
 
     echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
@@ -125,21 +128,60 @@ _common_setup() {
     readonly is_forced=${IS_FORCED:-"true"}
     meta_bytes=${META_BYTES:-"0x1234"}
 
+    if [[ -z "${DISABLE_L2_FUND}" || "${DISABLE_L2_FUND}" == "false" ]]; then
+        readonly test_account_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+        readonly test_account_addr="$(cast wallet address --private-key $test_account_key)"
+
+        local token_balance
+        token_balance=$(cast balance --rpc-url "$L2_RPC_URL" "$test_account_addr" 2>/dev/null)
+        if [ $? -ne 0 ]; then
+            echo "⚠️ Failed to fetch token balance for $test_account_addr on $L2_RPC_URL" >&2
+            token_balance=0
+        fi
+
+        # Threshold: 0.1 ether in wei
+        local threshold=100000000000000000
+
+        # Only fund if balance is less than or equal to 0.1 ether
+        if [[ $token_balance -le $threshold ]]; then
+            local l2_coinbase_key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            local amt="10ether"
+
+            echo "💸 $test_account_addr L2 balance is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
+            fund "$l2_coinbase_key" "$test_account_addr" "$amt" "$L2_RPC_URL"
+            if [ $? -ne 0 ]; then
+                echo "❌ Funding L2 receiver $test_account_addr failed" >&2
+                return 1
+            fi
+            echo "✅ Successfully funded $test_account_addr with $amt on L2" >&3
+        else
+            echo "✅ Receiver $test_account_addr already has $(cast --from-wei "$token_balance") ETH on L2" >&3
+        fi
+    else
+        echo "🚫 Skipping L2 funding since DISABLE_L2_FUND is set to true" >&3
+    fi
+
     local combined_json_file="/opt/zkevm/combined.json"
     combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
     if echo "$combined_json_output" | jq empty > /dev/null 2>&1; then
-        bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
+        l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
+        l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
+        pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
     else
-        bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
+        l1_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
+        l2_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVML2BridgeAddress)
+        pol_address=$(echo "$combined_json_output" | tail -n +2 | jq -r .polTokenAddress)
     fi
-    echo "Bridge address=$bridge_addr" >&3
+    echo "L1 Bridge address=$l1_bridge_addr" >&3
+    echo "L2 Bridge address=$l2_bridge_addr" >&3
+    echo "POL address=$pol_address" >&3
 
-    local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
+    local rollup_params_file="/opt/zkevm/create_rollup_output.json"
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
     if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
-        gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
+        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
     else
-        gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
+        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
     fi
     echo "Gas token address=$gas_token_addr" >&3
 
@@ -152,9 +194,14 @@ _common_setup() {
     destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
-    readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
-    readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $bridge_addr 'networkID() (uint32)')
-    readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $bridge_addr 'networkID() (uint32)')
+    if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
+        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+    elif [[ "$ENCLAVE" == "op" ]]; then
+        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+    fi
+    readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
+    readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
+    readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
 }

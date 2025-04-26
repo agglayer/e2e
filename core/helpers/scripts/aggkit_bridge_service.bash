@@ -4,6 +4,7 @@ set -euo pipefail
 function bridge_asset() {
     local token_addr="$1"
     local rpc_url="$2"
+    local bridge_addr="$3"
     local bridge_sig='bridgeAsset(uint32,address,uint256,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
@@ -47,6 +48,7 @@ function bridge_asset() {
 function bridge_message() {
     local token_addr="$1"
     local rpc_url="$2"
+    local bridge_addr="$3"
     local bridge_sig='bridgeMessage(uint32,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
@@ -118,6 +120,7 @@ function claim_bridge() {
     local max_attempts="$4"
     local poll_frequency="$5"
     local source_network_id="$6"
+    local bridge_addr="$7"
 
     local attempt=0
 
@@ -125,7 +128,7 @@ function claim_bridge() {
         ((attempt++))
         log "🔍 Attempt $attempt"
 
-        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$source_network_id"
+        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$source_network_id" "$bridge_addr"
         local request_result="$status"
         log "💡 claim_call returns $request_result"
         if [ "$request_result" -eq 0 ]; then
@@ -152,6 +155,7 @@ function claim_call() {
     local proof="$2"
     local destination_rpc_url="$3"
     local source_network_id="$4"
+    local bridge_addr="$5"
 
     local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
