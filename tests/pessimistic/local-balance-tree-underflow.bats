@@ -32,6 +32,27 @@ setup() {
     # Extract l2_token_address from output
     l2_token_address=$(echo "$l2_deploy_output" | grep "Deployed to:" | awk '{print $3}')
 
+    # Remap yeETH on L2 to the TokenWrapped ERC20
+    echo "Remapping yeETH on L2 to TokenWrapped ERC20"
+    cast send "$bridge_address" \
+    "setMultipleSovereignTokenAddress(uint32[],address[],address[],bool[])" \
+    "[0]" \
+    "["$l1_token_address"]" \
+    "["$l2_token_address"]" \
+    "[false]" \
+    --private-key "$bridge_manager_private_key" \
+    --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc)
+
+    # Check tokenInfoToWrappedToken information
+    echo "Query getTokenWrappedAddress(uint32,address)(address)"
+    cast call "$bridge_address" "getTokenWrappedAddress(uint32,address)(address)" \
+    "0" "$l1_token_address" \
+    --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc)
+
+    # Check L1 and L2 Token addresses
+    echo "L1 Token Address: $l1_token_address"
+    echo "L2 Token Address: $l2_token_address"
+
     # Mint L1 ERC20 (yeETH)
     echo "Mint yeETH to address"
     cast send "$l1_token_address" "mint(address,uint256)" \
@@ -71,27 +92,6 @@ setup() {
         --private-key $private_key \
         --rpc-url $l1_rpc_url \
         --value 20000000000
-
-    # Remap yeETH on L2 to the TokenWrapped ERC20
-    echo "Remapping yeETH on L2 to TokenWrapped ERC20"
-    cast send "$bridge_address" \
-    "setMultipleSovereignTokenAddress(uint32[],address[],address[],bool[])" \
-    "[0]" \
-    "["$l1_token_address"]" \
-    "["$l2_token_address"]" \
-    "[false]" \
-    --private-key "$bridge_manager_private_key" \
-    --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc)
-
-    # Check tokenInfoToWrappedToken information
-    echo "Query getTokenWrappedAddress(uint32,address)(address)"
-    cast call "$bridge_address" "getTokenWrappedAddress(uint32,address)(address)" \
-    "0" "$l1_token_address" \
-    --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc)
-
-    # Check L1 and L2 Token addresses
-    echo "L1 Token Address: $l1_token_address"
-    echo "L2 Token Address: $l2_token_address"
 
     # Bridge yeETH from L1 -> L2
     echo "Bridging yeETH from L1 -> remapped L2 TokenWrapped"
