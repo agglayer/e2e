@@ -14,20 +14,20 @@ setup() {
 
 # bats file_tags=lxly,bridge,localbalancetree
 @test "trigger local balance tree underflow bridge revert" {
-    # Deploy SimpleToken on L1 and capture output
+    # Deploy TokenWrapped ERC20 on L1 and capture output
     l1_deploy_output=$(forge create --broadcast --rpc-url $l1_rpc_url \
     --private-key "$private_key" \
-    core/contracts/erc20sovereignbridge/TokenSimple.sol:TokenSimple \
-    --constructor-args 20000000000)
+    core/contracts/erc20sovereignbridge/TokenWrapped.sol:TokenWrapped \
+    --constructor-args "L1 ERC20" "yeETH" 18)
 
     # Extract l1_token_address from output
     l1_token_address=$(echo "$l1_deploy_output" | grep "Deployed to:" | awk '{print $3}')
 
-    # Deploy TokenWrapped on L2 and capture output
+    # Deploy TokenWrapped ERC20 on L2 and capture output
     l2_deploy_output=$(forge create --broadcast --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) \
     --private-key "$private_key" \
     core/contracts/erc20sovereignbridge/TokenWrapped.sol:TokenWrapped \
-    --constructor-args "Wrapped Token" "WTKN" 18)
+    --constructor-args "L2 Wrapped ERC20" "zETH" 18)
 
     # Extract l2_token_address from output
     l2_token_address=$(echo "$l2_deploy_output" | grep "Deployed to:" | awk '{print $3}')
