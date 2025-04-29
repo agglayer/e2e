@@ -17,6 +17,7 @@ setup() {
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
+    tx_receipt_timeout=${TX_RECEIPT_TIMEOUT:-"1m"}
 
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
 
@@ -56,7 +57,8 @@ function fund_claim_tx_manager() {
             --destination-network "$network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
-            --value "$bridge_amount"
+            --value "$bridge_amount" \
+            --transaction-receipt-timeout "$tx_receipt_timeout"
 
     set +e
     polycli ulxly claim asset \
@@ -66,7 +68,8 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --transaction-receipt-timeout "$tx_receipt_timeout"
     set -e
 
     final_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
@@ -94,7 +97,8 @@ function fund_claim_tx_manager() {
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
             --value "$bridge_amount" \
-            --token-address "$weth_address"
+            --token-address "$weth_address" \
+            --transaction-receipt-timeout "$tx_receipt_timeout"
 
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
@@ -106,7 +110,8 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --transaction-receipt-timeout "$tx_receipt_timeout"
 
     final_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
     if [[ $initial_l1_balance == "$final_l1_balance" ]]; then
@@ -151,7 +156,8 @@ function fund_claim_tx_manager() {
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
             --value "100" \
-            --token-address "$erc20_addr"
+            --token-address "$erc20_addr" \
+            --transaction-receipt-timeout "$tx_receipt_timeout"
 
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
@@ -160,7 +166,8 @@ function fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --transaction-receipt-timeout "$tx_receipt_timeout"
 }
 
 # bats test_tags=smoke,rpc
