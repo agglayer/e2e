@@ -8,6 +8,9 @@ on:
     - cron: "0 2 * * *" # Run nightly at 2 AM UTC
   workflow_dispatch: {}
 
+env:
+  POLYCLI_VERSION: v0.1.78
+
 jobs:
   call-cdk-e2e:
     uses: ./.github/workflows/cdk-e2e.yml
@@ -61,9 +64,9 @@ jobs:
 
       - name: Install polycli
         run: |
-          POLYCLI_VERSION="v0.1.74"
+          polycli_version="${{ env.POLYCLI_VERSION }}"
           tmp_dir=$(mktemp -d)
-          curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
+          curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
           mv "$tmp_dir"/* /usr/local/bin/polycli
           rm -rf "$tmp_dir"
           sudo chmod +x /usr/local/bin/polycli

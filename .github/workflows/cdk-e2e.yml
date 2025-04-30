@@ -98,6 +98,9 @@ on:
         type: string
         default: ""
 
+env:
+  POLYCLI_VERSION: v0.1.78
+
 jobs:
   run-kurtosis-image:
     runs-on: ubuntu-latest
@@ -138,7 +141,7 @@ jobs:
 
       - name: Install polycli
         run: |
-          polycli_version="v0.1.74"
+          polycli_version="${{ env.POLYCLI_VERSION }}"
           pushd $(mktemp -d) || exit 1
           curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
           tar xf polycli.tar.gz

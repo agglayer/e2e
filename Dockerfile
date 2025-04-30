@@ -1,5 +1,5 @@
 FROM golang:1.23-bookworm AS polycli-builder
-ENV POLYCLI_VERSION="v0.1.75"
+ENV POLYCLI_VERSION="v0.1.78"
 
 WORKDIR /opt/polygon-cli
 RUN apt-get update --yes \
