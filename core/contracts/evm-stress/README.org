@@ -138,3 +138,49 @@ cast send --rpc-url "$rpc_url" --private-key "$private_key" \
     --gas-limit 5000000 \
     0x863134579e4812F9d78081e9f519fAE9D01F2a10 $(cast abi-encode 'f(uint256,uint256,uint256)' 0x0100 4000000 0x0000000000000000000000000000000000000000)
 #+end_src
+
+
+
+
+#+begin_src bash
+eth_address="0x1eB6A5Fcb63A00f5972c69Cc76Fe75EA60E835F3"
+private_key="0xbf42a6008cc8f6bf0e2cc6ca73195a1968be768a21d95e112bcf01fe5e9710c6"
+rpc_url="https://sepolia.drpc.org"
+
+# Run KECCACK256 in a loop with 5M gas. Stop looping once there is 50000 gas left
+# 0x3d145729cc4b7942982438cf01de700f32e7531e6eed2d4295aa457470657de8
+cast send --rpc-url "$rpc_url" --private-key "$private_key" \
+    --gas-limit 5000000 \
+    0x863134579e4812F9d78081e9f519fAE9D01F2a10 $(cast abi-encode 'f(uint256,uint256,uint256)' 0x0003 50000 0x0000000000000000000000000000000000000000)
+
+# Run SHA-256 in a loop with 5M gas. Stop looping once there is 50000 gas left
+# 0xc11f5aa2e90e055ccf038f2e7fa6e89db30cc301c7b969d4e23d19bb056761a3
+cast send --rpc-url "$rpc_url" --private-key "$private_key" \
+    --gas-limit 5000000 \
+    0x863134579e4812F9d78081e9f519fAE9D01F2a10 $(cast abi-encode 'f(uint256,uint256,uint256)' 0x0023 50000 0x0000000000000000000000000000000000000000)
+
+# Run modexp in a loop with 5M gas. Stop looping once there is 50000 gas left
+# 0x571d3e34a4ea601d324a9434913acc7d6264baaf3a1d4b80d7acff327fd0bdca
+cast send --rpc-url "$rpc_url" --private-key "$private_key" \
+    --gas-limit 5000000 \
+    0x863134579e4812F9d78081e9f519fAE9D01F2a10 $(cast abi-encode 'f(uint256,uint256,uint256)' 0x0027 50000 0x0000000000000000000000000000000000000000)
+
+# Run ecrecover in a loop with 5M gas. Stop looping once there is 50000 gas left
+# 0x6a26d14f13c6aef4b8757afcb704e1c49df32ee2d8e033f9c0dd39ac12fc9f2a
+cast send --rpc-url "$rpc_url" --private-key "$private_key" \
+    --gas-limit 5000000 \
+    0x863134579e4812F9d78081e9f519fAE9D01F2a10 $(cast abi-encode 'f(uint256,uint256,uint256)' 0x0021 50000 0x0000000000000000000000000000000000000000)
+
+
+cast rpc --rpc-url "$rpc_url" debug_traceTransaction 0x3d145729cc4b7942982438cf01de700f32e7531e6eed2d4295aa457470657de8 > 0x3d145729cc4b7942982438cf01de700f32e7531e6eed2d4295aa457470657de8.trace.json
+cast rpc --rpc-url "$rpc_url" debug_traceTransaction 0xc11f5aa2e90e055ccf038f2e7fa6e89db30cc301c7b969d4e23d19bb056761a3 > 0xc11f5aa2e90e055ccf038f2e7fa6e89db30cc301c7b969d4e23d19bb056761a3.trace.json
+cast rpc --rpc-url "$rpc_url" debug_traceTransaction 0x571d3e34a4ea601d324a9434913acc7d6264baaf3a1d4b80d7acff327fd0bdca > 0x571d3e34a4ea601d324a9434913acc7d6264baaf3a1d4b80d7acff327fd0bdca.trace.json
+cast rpc --rpc-url "$rpc_url" debug_traceTransaction 0x6a26d14f13c6aef4b8757afcb704e1c49df32ee2d8e033f9c0dd39ac12fc9f2a > 0x6a26d14f13c6aef4b8757afcb704e1c49df32ee2d8e033f9c0dd39ac12fc9f2a.trace.json
+
+for trace in *.trace.json; do
+    polycli fold-trace --metric actualgas < "$trace" > "$trace.folded"
+    ~/code/FlameGraph/flamegraph.pl --title "Gas Profile" --countname gas "$trace.folded" > "$trace.svg"
+done
+
+#+end_src
+
