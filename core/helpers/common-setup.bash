@@ -4,10 +4,8 @@ _common_setup() {
     bats_load_library 'bats-assert'
     if [ $? -ne 0 ]; then return 1; fi
 
-    load '../../core/helpers/scripts/add_network2_to_agglayer'
     load '../../core/helpers/scripts/aggkit_bridge_service'
     load '../../core/helpers/scripts/fund'
-    load '../../core/helpers/scripts/fund_claim_tx_manager'
     load '../../core/helpers/scripts/get_token_balance'
     load '../../core/helpers/scripts/mint_token_helpers'
     load '../../core/helpers/scripts/query_contract'

@@ -9,6 +9,19 @@ setup() {
     mint_pol_token "$l1_bridge_addr"
 }
 
+function add_network2_to_agglayer() {
+    echo "=== Checking if network 2 is added to agglayer ===" >&3
+    local _prev=$(kurtosis service exec $ENCLAVE agglayer "grep \"2 = \" /etc/zkevm/agglayer-config.toml || true" | tail -n +2)
+    if [ ! -z "$_prev" ]; then
+        echo "Network 2 is already added to agglayer" >&3
+        return
+    fi
+    echo "=== Adding network 2 to agglayer ===" >&3
+    kurtosis service exec $ENCLAVE agglayer "sed -i 's/\[proof\-signers\]/2 = \"http:\/\/cdk-erigon-rpc-002:8123\"\n\[proof-signers\]/i' /etc/zkevm/agglayer-config.toml"
+    kurtosis service stop $ENCLAVE agglayer
+    kurtosis service start $ENCLAVE agglayer
+}
+
 @test "Test L2 to L2 bridge" {
     echo "=== Running LxLy bridge eth L1 to L2(PP1) amount:$amount" >&3
     destination_net=$l2_pp1_network_id
@@ -116,4 +129,10 @@ setup() {
 
     echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1"
     wait_to_settled_certificate_containing_global_index $aggkit_pp1_node_url $global_index_pp2_to_pp1
+}
+
+function fund_claim_tx_manager() {
+    echo "=== Funding bridge auto-claim  ===" >&3
+    cast send --legacy --value 100ether --rpc-url $l2_pp1_url --private-key $private_key 0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8
+    cast send --legacy --value 100ether --rpc-url $l2_pp2_url --private-key $private_key 0x93F63c24735f45Cd0266E87353071B64dd86bc05
 }
