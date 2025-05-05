@@ -192,11 +192,11 @@ _common_setup() {
     destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
-    # if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-    #     readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
-    # elif [[ "$ENCLAVE" == "op" ]]; then
-    # fi
-    readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+    if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
+        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+    elif [[ "$ENCLAVE" == "op" ]]; then
+        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+    fi
     readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")

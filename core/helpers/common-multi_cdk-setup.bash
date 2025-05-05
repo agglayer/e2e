@@ -5,8 +5,8 @@ _common_multi_setup() {
     readonly eth_address=$(cast wallet address --private-key $private_key)
     readonly l2_pp1_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-001 rpc)
     readonly l2_pp2_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-002 rpc)
-    readonly aggkit_pp1_node_url=$(kurtosis port print $ENCLAVE aggkit-001 rpc)
-    readonly aggkit_pp2_node_url=$(kurtosis port print $ENCLAVE aggkit-002 rpc)
+    readonly aggkit_pp1_node_url=$(kurtosis port print $ENCLAVE cdk-node-001 rpc)
+    readonly aggkit_pp2_node_url=$(kurtosis port print $ENCLAVE cdk-node-002 rpc)
     readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
 
