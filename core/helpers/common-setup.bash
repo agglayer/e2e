@@ -14,8 +14,6 @@ _common_setup() {
     load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
-    load '../../core/helpers/scripts/add_network2_to_agglayer'
-    load '../../core/helpers/scripts/aggkit_bridge_service'
     load '../../core/helpers/scripts/assert_block_production'
     load '../../core/helpers/scripts/check_balances'
     load '../../core/helpers/scripts/claim_tx_hash'
@@ -23,14 +21,9 @@ _common_setup() {
     load '../../core/helpers/scripts/deploy_contract'
     load '../../core/helpers/scripts/deploy_test_contracts'
     load '../../core/helpers/scripts/fund_claim_tx_manager'
-    load '../../core/helpers/scripts/mint_token_helpers'
-    load '../../core/helpers/scripts/query_contract'
     load '../../core/helpers/scripts/send_eoa_tx'
     load '../../core/helpers/scripts/send_smart_contract_tx'
-    load '../../core/helpers/scripts/send_tx'
-    load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_for_claim'
-    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
