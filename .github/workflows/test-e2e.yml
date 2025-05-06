@@ -8,6 +8,9 @@ on:
     - cron: "0 2 * * *" # Run nightly at 2 AM UTC
   workflow_dispatch: {}
 
+env:
+  POLYCLI_VERSION: v0.1.78
+
 jobs:
   call-agglayer-e2e:
     uses: ./.github/workflows/agglayer-e2e.yml
@@ -19,32 +22,19 @@ jobs:
         include:
           # Kurtosis CDK.
           - package: kurtosis-cdk
-            version: v0.3.2
-            args_file: .github/tests/combinations/fork9-cdk-erigon-validium.yml
-            filter_tags: light
-          - package: kurtosis-cdk
-            version: v0.3.2
-            args_file: .github/tests/combinations/fork11-cdk-erigon-validium.yml
-            filter_tags: zk-counters
-          - package: kurtosis-cdk
-            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
+            version: v0.3.5
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
-          - package: kurtosis-cdk
-            version: "139d2c92775b104df5e5adbb756a0b81718793a3"
-            args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
-            filter_tags: batch-verification,gas-limit-overflow,access-list
-            custom_agglayer_image: ghcr.io/agglayer/agglayer:0.3.0-rc.2
 
           # Kurtosis Polygon PoS.
           - package: kurtosis-polygon-pos
             version: v1.0.6
             args_file: .github/tests/heimdall-bor-multi-validators.yml
-            filter_tags: pos
+            filter_tags: pos,bridge
           - package: kurtosis-polygon-pos
             version: v1.0.6
             args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
-            filter_tags: pos
+            filter_tags: pos,bridge
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -74,9 +64,9 @@ jobs:
 
       - name: Install polycli
         run: |
-          POLYCLI_VERSION="v0.1.74"
+          polycli_version="${{ env.POLYCLI_VERSION }}"
           tmp_dir=$(mktemp -d)
-          curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
+          curl -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
           mv "$tmp_dir"/* /usr/local/bin/polycli
           rm -rf "$tmp_dir"
           sudo chmod +x /usr/local/bin/polycli
@@ -98,35 +88,8 @@ jobs:
       - name: Deploy devnet
         run: ./core/helpers/setup-kurtosis.sh "${{ matrix.package }}" "${{ matrix.version }}" "${{ matrix.args_file }}"
 
-      - name: Export L2_RPC_URL and L2_SEQUENCER_RPC_URL for CI
-        run: |
-          echo "✅ Using Kurtosis RPC URL: $L2_RPC_URL"
-          echo "✅ Using Kurtosis SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
-
-          # Ensure the .env file exists
-          touch tests/.env
-
-          # Remove existing L2_RPC_URL entries
-          sed -i '/^L2_RPC_URL=/d' tests/.env
-          sed -i '/^L2_SEQUENCER_RPC_URL=/d' tests/.env
-
-          # Append new values
-          echo "" >> tests/.env
-          echo "L2_RPC_URL=$L2_RPC_URL" >> tests/.env
-          echo "L2_SEQUENCER_RPC_URL=$L2_SEQUENCER_RPC_URL" >> tests/.env
-
-          # Debugging Output
-          cat tests/.env
-
-      - name: Build polygon-test-runner
-        run: make install
-
       - name: Run e2e tests
-        run: |
-          L2_RPC_URL="$L2_RPC_URL" \
-          L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL" \
-          L2_SENDER_PRIVATE_KEY="$L2_SENDER_PRIVATE_KEY" \
-          polygon-test-runner --filter-tags "${{ matrix.filter_tags }}"
+        run: bats --filter-tags ${{ matrix.filter_tags }} --recursive tests/
 
       - name: Dump enclave logs
         if: always()
