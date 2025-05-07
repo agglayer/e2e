@@ -1,0 +1,12 @@
+{
+    "type": "EOA",
+    "polygonRollupManagerAddress": "",
+    "deployerPvtKey": "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625",
+    "rollups": [
+        {
+            "rollupAddress": "",
+            "newRollupTypeID": 2,
+            "upgradeData": "0x"
+        }
+    ]
+}
