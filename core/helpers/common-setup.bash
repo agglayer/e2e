@@ -174,6 +174,8 @@ _common_setup() {
     echo "L2 Bridge address=$l2_bridge_addr" >&3
     echo "POL address=$pol_address" >&3
 
+    l2_ger_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+
     local rollup_params_file="/opt/zkevm/create_rollup_output.json"
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
     if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then

@@ -488,3 +488,49 @@ function find_injected_info_after_index() {
     log "❌ Failed to find injected info after index $index after $max_attempts attempts."
     return 1
 }
+
+function update_removal_hash_chain_value() {
+    local in_ger="$1"
+
+    l2_sovereignadmin_private_key="0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"
+
+    # Query initial status
+    initial_status=$(cast call \
+      $l2_ger_addr \
+      "globalExitRootMap(bytes32)(uint256)" \
+      "$in_ger" \
+      --rpc-url "$L2_RPC_URL")
+
+    echo "initial_status for GER $in_ger -> $initial_status"
+    if [ "$initial_status" -eq 0 ]; then
+      echo "  ↳ GER not found in map, skipping removal."
+      return 1
+    fi
+
+    # Remove the GER sovereign admin should be the sender
+    tx_hash=$(cast send \
+      --rpc-url "$L2_RPC_URL" \
+      --private-key "$l2_sovereignadmin_private_key" \
+      $l2_ger_addr \
+      "removeGlobalExitRoots(bytes32[])" \
+      "[$in_ger]" )
+    echo "  ↳ Sent removeGlobalExitRoots tx: $tx_hash"
+
+    # wait for the tx to be mined
+    cast wait "$tx_hash" --rpc-url "$L2_RPC_URL"
+
+    # Query final status
+    final_status=$(cast call \
+      $l2_ger_addr \
+      "globalExitRootMap(bytes32)(uint256)" \
+      "$in_ger" \
+      --rpc-url "$L2_RPC_URL")
+
+    echo "final_status for GER $in_ger -> $final_status"
+    if [ "$final_status" -eq 0 ]; then
+      echo "  ✔ GER successfully removed"
+    else
+      echo "  ✖ Failed to remove GER"
+      return 1
+    fi
+}
