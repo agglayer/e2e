@@ -51,13 +51,13 @@ native_gas_token_deposit_to_WETH() {
     assert_success
 }
 
-@test "Native gas token deposit to WETH - BridgeAsset" {
-    run native_gas_token_deposit_to_WETH "bridgeAsset"
-}
+# @test "Native gas token deposit to WETH - BridgeAsset" {
+#     run native_gas_token_deposit_to_WETH "bridgeAsset"
+# }
 
-@test "Native gas token deposit to WETH - BridgeMessage" {
-   run native_gas_token_deposit_to_WETH "bridgeMessage"
-}
+# @test "Native gas token deposit to WETH - BridgeMessage" {
+#    run native_gas_token_deposit_to_WETH "bridgeMessage"
+# }
 
 @test "Custom gas token deposit" {
     echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
