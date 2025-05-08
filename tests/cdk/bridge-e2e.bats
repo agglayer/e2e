@@ -97,6 +97,12 @@ native_gas_token_deposit_to_WETH() {
 
     # Send approve transaction to the gas token on L1
     deposit_ether_value="0.1ether"
+    echo "$l1_rpc_url" >&3
+    echo "$sender_private_key" >&3
+    echo "$gas_token_addr" >&3
+    echo "$APPROVE_FN_SIG" >&3
+    echo "$l1_bridge_addr" >&3
+    echo "$deposit_ether_value" >&3
     run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$deposit_ether_value"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
