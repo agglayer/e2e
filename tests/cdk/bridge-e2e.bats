@@ -79,6 +79,11 @@ native_gas_token_deposit_to_WETH() {
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
     local minter_key=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
+    echo "$l1_rpc_url" >&3
+    echo "$gas_token_addr" >&3
+    echo "$minter_key" >&3
+    echo "$sender_addr" >&3
+    echo "$tokens_amount" >&3
     run mint_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount"
     assert_success
 
@@ -97,12 +102,6 @@ native_gas_token_deposit_to_WETH() {
 
     # Send approve transaction to the gas token on L1
     deposit_ether_value="0.1ether"
-    echo "$l1_rpc_url" >&3
-    echo "$sender_private_key" >&3
-    echo "$gas_token_addr" >&3
-    echo "$APPROVE_FN_SIG" >&3
-    echo "$l1_bridge_addr" >&3
-    echo "$deposit_ether_value" >&3
     run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$deposit_ether_value"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"

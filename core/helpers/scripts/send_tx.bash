@@ -25,8 +25,6 @@ function send_tx() {
     shift 4             # Shift the first 4 arguments (rpc_url, private_key, receiver_addr, value_or_function_sig)
     local params=("$@") # Collect all remaining arguments as function parameters
 
-    echo "Sending transaction to $receiver_addr with value or function signature: '$value_or_function_sig' and params: ${params[*]}" >&3
-
     # Get sender address from private key
     local sender
     sender=$(cast wallet address "$private_key") || {
