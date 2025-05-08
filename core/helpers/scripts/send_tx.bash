@@ -40,7 +40,6 @@ function send_tx() {
         local sender_initial_balance receiver_initial_balance
         sender_initial_balance=$(cast balance "$sender_addr" --ether --rpc-url "$rpc_url") || return 1
         receiver_initial_balance=$(cast balance "$receiver_addr" --ether --rpc-url "$rpc_url") || return 1
-        
         send_eoa_transaction "$private_key" "$receiver_addr" "$value_or_function_sig" "$sender_addr" "$sender_initial_balance" "$receiver_initial_balance"
     else
         # Case: Smart contract interaction (contract interaction with function signature and parameters)
