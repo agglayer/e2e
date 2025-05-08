@@ -63,6 +63,7 @@ native_gas_token_deposit_to_WETH() {
     echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
 
     # Set receiver address and query for its initial native token balance on the L2
+    receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
     local initial_receiver_balance=$(cast balance "$receiver" --rpc-url "$L2_RPC_URL")
     echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
 
