@@ -149,6 +149,12 @@ setup() {
     assert_success
 }
 
+@test "Test UpdateRemovalHashChainValue" {
+    echo "=== Running UpdateRemovalHashChainValue" >&3
+    run update_removal_hash_chain_value
+    assert_success
+}
+
 @test "Verify certificate settlement" {
     echo "Waiting 10 minutes to get some settle certificate...." >&3
 
