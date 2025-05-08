@@ -11,8 +11,8 @@ function bridge_asset() {
         echo "...The ETH balance for sender "$sender_addr":" $(cast balance -e --rpc-url $rpc_url $sender_addr) >&3
     else
         echo "The "$token_addr" token balance for sender "$sender_addr":" >&3
-        echo "cast call --rpc-url $rpc_url $token_addr \"$balance_of_fn_sig\" $sender_addr"
-        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$balance_of_fn_sig" "$sender_addr" | awk '{print $1}')
+        echo "cast call --rpc-url $rpc_url $token_addr \"$BALANCE_OF_FN_SIG\" $sender_addr"
+        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
         echo "$(cast --from-wei "$balance_wei")" >&3
     fi
 
@@ -46,8 +46,8 @@ function bridge_message() {
         cast balance -e --rpc-url $rpc_url $sender_addr >&3
     else
         echo "The "$token_addr" token balance for sender "$sender_addr":" >&3
-        echo "cast call --rpc-url $rpc_url $token_addr \"$balance_of_fn_sig\" $sender_addr" >&3
-        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$balance_of_fn_sig" "$sender_addr" | awk '{print $1}')
+        echo "cast call --rpc-url $rpc_url $token_addr \"$BALANCE_OF_FN_SIG\" $sender_addr" >&3
+        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
         echo "$(cast --from-wei "$balance_wei")" >&3
     fi
 
