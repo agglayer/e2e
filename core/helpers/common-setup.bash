@@ -183,7 +183,7 @@ _common_setup() {
     echo "L2 Bridge address=$l2_bridge_addr" >&3
     echo "POL address=$pol_address" >&3
 
-    local rollup_params_file="/opt/zkevm/create_rollup_output.json"
+    local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
     if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
         readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
