@@ -82,8 +82,6 @@ native_gas_token_deposit_to_WETH() {
     run mint_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount"
     assert_success
 
-    sleep 30
-
     # Assert that balance of gas token (on the L1) is correct
     run query_contract "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
@@ -99,7 +97,7 @@ native_gas_token_deposit_to_WETH() {
 
     # Send approve transaction to the gas token on L1
     deposit_ether_value="0.1ether"
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$bridge_addr" "$deposit_ether_value"
+    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$deposit_ether_value"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
