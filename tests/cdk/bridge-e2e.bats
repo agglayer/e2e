@@ -3,61 +3,61 @@ setup() {
     _common_setup
 }
 
-# Helper function to run native gas token deposit to WETH
-# native_gas_token_deposit_to_WETH() {
-#     local bridge_type="$1"
+Helper function to run native gas token deposit to WETH
+native_gas_token_deposit_to_WETH() {
+    local bridge_type="$1"
 
-#     echo "Bridge_type: $bridge_type" >&3
+    echo "Bridge_type: $bridge_type" >&3
 
-#     destination_addr=$sender_addr
-#     local initial_receiver_balance=$(cast call --rpc-url "$L2_RPC_URL" "$weth_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
-#     echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
+    destination_addr=$sender_addr
+    local initial_receiver_balance=$(cast call --rpc-url "$L2_RPC_URL" "$weth_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
+    echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
 
-#     echo "=== Running LxLy deposit $bridge_type on L1 to network: $l2_rpc_network_id native_token: $native_token_addr" >&3
+    echo "=== Running LxLy deposit $bridge_type on L1 to network: $l2_rpc_network_id native_token: $native_token_addr" >&3
     
-#     destination_net=$l2_rpc_network_id
+    destination_net=$l2_rpc_network_id
 
-#     if [[ $bridge_type == "bridgeMessage" ]]; then
-#         run bridge_message "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-#     else
-#         run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-#     fi
-#     assert_success
+    if [[ $bridge_type == "bridgeMessage" ]]; then
+        run bridge_message "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    else
+        run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    fi
+    assert_success
 
-#     echo "=== Claiming on L2..." >&3
-#     timeout="120"
-#     claim_frequency="10"
-#     run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "$bridge_type" "$l2_bridge_addr"
-#     assert_success
+    echo "=== Claiming on L2..." >&3
+    timeout="120"
+    claim_frequency="10"
+    run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "$bridge_type" "$l2_bridge_addr"
+    assert_success
 
-#     run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
-#     assert_success
+    run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
+    assert_success
 
-#     echo "=== $bridge_type L2 WETH: $weth_token_addr to L1 ETH" >&3
-#     destination_addr=$sender_addr
-#     destination_net=0
+    echo "=== $bridge_type L2 WETH: $weth_token_addr to L1 ETH" >&3
+    destination_addr=$sender_addr
+    destination_net=0
 
-#     if [[ $bridge_type == "bridgeMessage" ]]; then
-#         run bridge_message "$weth_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
-#     else
-#         run bridge_asset "$weth_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
-#     fi
-#     assert_success
+    if [[ $bridge_type == "bridgeMessage" ]]; then
+        run bridge_message "$weth_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    else
+        run bridge_asset "$weth_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    fi
+    assert_success
 
-#     echo "=== Claiming on L1..." >&3
-#     timeout="400"
-#     claim_frequency="60"
-#     run wait_for_claim "$timeout" "$claim_frequency" "$l1_rpc_url" "$bridge_type" "$l1_bridge_addr"
-#     assert_success
-# }
+    echo "=== Claiming on L1..." >&3
+    timeout="400"
+    claim_frequency="60"
+    run wait_for_claim "$timeout" "$claim_frequency" "$l1_rpc_url" "$bridge_type" "$l1_bridge_addr"
+    assert_success
+}
 
-# @test "Native gas token deposit to WETH - BridgeAsset" {
-#     run native_gas_token_deposit_to_WETH "bridgeAsset"
-# }
+@test "Native gas token deposit to WETH - BridgeAsset" {
+    run native_gas_token_deposit_to_WETH "bridgeAsset"
+}
 
-# @test "Native gas token deposit to WETH - BridgeMessage" {
-#    run native_gas_token_deposit_to_WETH "bridgeMessage"
-# }
+@test "Native gas token deposit to WETH - BridgeMessage" {
+   run native_gas_token_deposit_to_WETH "bridgeMessage"
+}
 
 @test "Custom gas token deposit" {
     echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
