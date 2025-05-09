@@ -3,7 +3,7 @@ setup() {
     _common_setup
 }
 
-Helper function to run native gas token deposit to WETH
+# Helper function to run native gas token deposit to WETH
 native_gas_token_deposit_to_WETH() {
     local bridge_type="$1"
 
