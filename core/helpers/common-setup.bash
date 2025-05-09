@@ -183,15 +183,6 @@ _common_setup() {
     echo "L2 Bridge address=$l2_bridge_addr" >&3
     echo "POL address=$pol_address" >&3
 
-    local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
-    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
-    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
-        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
-    else
-        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address=$gas_token_addr" >&3
-
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
     readonly dry_run=${DRY_RUN:-"false"}
@@ -203,9 +194,20 @@ _common_setup() {
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
         readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+        local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     elif [[ "$ENCLAVE" == "op" ]]; then
+        local rollup_params_file="/opt/zkevm/create_rollup_output.json"
         readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
     fi
+
+    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
+    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
+        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
+    else
+        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
+    fi
+    echo "Gas token address=$gas_token_addr" >&3
+
     readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
