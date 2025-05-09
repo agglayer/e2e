@@ -457,7 +457,7 @@ function find_l1_info_tree_index_for_bridge() {
     return 1
 }
 
-function find_injected_info_after_index() {
+function find_injected_l1_info_leaf() {
     local network_id="$1"
     local index="$2"
     local max_attempts="$3"
@@ -473,7 +473,7 @@ function find_injected_info_after_index() {
 
         # Capture both stdout (injected_info) and stderr (error message)
         injected_info=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/injected-l1-info-tree-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
+            "$aggkit_url/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
         log "------ injected_info ------"
         log "$injected_info"
         log "------ injected_info ------"
