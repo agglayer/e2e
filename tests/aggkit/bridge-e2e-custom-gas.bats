@@ -65,7 +65,7 @@ setup() {
     run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_node_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
@@ -104,7 +104,7 @@ setup() {
     run find_l1_info_tree_index_for_bridge "$l2_rpc_network_id" "$deposit_count" 50 10 "$aggkit_node_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l1_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
+    run find_injected_l1_info_leaf "$l1_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
