@@ -1,39 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-function bridge_message() {
-    local token_addr="$1"
-    local rpc_url="$2"
-    local bridge_addr="$3"
-    local bridge_sig='bridgeMessage(uint32,address,bool,bytes)'
-
-    if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-        echo "The ETH balance for sender "$sender_addr":" >&3
-        cast balance -e --rpc-url $rpc_url $sender_addr >&3
-    else
-        echo "The "$token_addr" token balance for sender "$sender_addr":" >&3
-        echo "cast call --rpc-url $rpc_url $token_addr \"$BALANCE_OF_FN_SIG\" $sender_addr" >&3
-        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
-        echo "$(cast --from-wei "$balance_wei")" >&3
-    fi
-
-    echo "Attempting to deposit $amount [wei] using bridgeMessage to $destination_addr, token $token_addr (sender=$sender_addr, network id=$destination_net, rpc url=$rpc_url)" >&3
-
-    if [[ $dry_run == "true" ]]; then
-        cast calldata $bridge_sig $destination_net $destination_addr $amount $token_addr $is_forced $meta_bytes
-    else
-        if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-            echo "cast send --legacy --private-key $sender_private_key --value $amount --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $is_forced $meta_bytes"
-            cast send --legacy --private-key $sender_private_key --value $amount --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $is_forced $meta_bytes
-        else
-            echo "cast send --legacy --private-key $sender_private_key --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $is_forced $meta_bytes"
-            cast send --legacy --private-key $sender_private_key --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $is_forced $meta_bytes
-        fi
-    fi
-}
-
-# returns:
-#  - bridge_tx_hash
 function bridge_asset() {
     local token_addr="$1"
     local rpc_url="$2"
@@ -41,30 +8,84 @@ function bridge_asset() {
     local bridge_sig='bridgeAsset(uint32,address,uint256,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-        echo "...The ETH balance for sender "$sender_addr":" $(cast balance -e --rpc-url $rpc_url $sender_addr) >&3
+        local eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
+        log "💰 $sender_addr ETH Balance: $eth_balance wei"
     else
-        echo "The "$token_addr" token balance for sender "$sender_addr":" >&3
-        echo "cast call --rpc-url $rpc_url $token_addr \"$BALANCE_OF_FN_SIG\" $sender_addr"
-        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
-        echo "$(cast --from-wei "$balance_wei")" >&3
+        local balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
+        local token_balance=$(cast --from-wei "$balance_wei")
+        log "💎 $sender_addr Token Balance: $token_balance units [$token_addr]"
     fi
 
-    echo "....Attempting to deposit $amount [wei] using bridgeAsset to $destination_addr, token $token_addr (sender=$sender_addr, network id=$destination_net, rpc url=$rpc_url)" >&3
+    log "🚀 Bridge asset $amount wei → $destination_addr [network: $destination_net]"
 
     if [[ $dry_run == "true" ]]; then
-        cast calldata $bridge_sig $destination_net $destination_addr $amount $token_addr $is_forced $meta_bytes
+        log "📝 Dry run bridge asset (showing calldata only)"
+        cast calldata "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes"
     else
-        local tmp_response_file=$(mktemp)
+        local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-            echo "cast send --legacy --private-key $sender_private_key --value $amount --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $amount $token_addr $is_forced $meta_bytes" 
-            cast send --legacy --private-key $sender_private_key --value $amount --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $amount $token_addr $is_forced $meta_bytes > $tmp_response_file
+            response=$(cast send --legacy --private-key "$sender_private_key" \
+                --value "$amount" \
+                --rpc-url "$rpc_url" "$bridge_addr" \
+                "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         else
-            echo "cast send --legacy --private-key $sender_private_key --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $amount $token_addr $is_forced $meta_bytes"
-            
-            cast send --legacy --private-key $sender_private_key                 --rpc-url $rpc_url $bridge_addr $bridge_sig $destination_net $destination_addr $amount $token_addr $is_forced $meta_bytes > $tmp_response_file
+            response=$(cast send --legacy --private-key "$sender_private_key" \
+                --rpc-url "$rpc_url" "$bridge_addr" \
+                "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         fi
-        export bridge_tx_hash=$(grep "^transactionHash" $tmp_response_file | cut -f 2- -d ' ' | sed 's/ //g')
-        echo "bridge_tx_hash=$bridge_tx_hash" 
+
+        local bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
+        if [[ -n "$bridge_tx_hash" ]]; then
+            log "🎉 Success: Tx Hash → $bridge_tx_hash"
+            echo $bridge_tx_hash
+        else
+            log "❌ Error: Transaction failed (no hash returned)"
+            return 1
+        fi
+    fi
+}
+
+function bridge_message() {
+    local token_addr="$1"
+    local rpc_url="$2"
+    local bridge_addr="$3"
+    local bridge_sig='bridgeMessage(uint32,address,bool,bytes)'
+
+    if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
+        local eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
+        log "💰 $sender_addr ETH Balance: $eth_balance wei"
+    else
+        local balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
+        local token_balance=$(cast --from-wei "$balance_wei")
+        log "💎 $sender_addr Token Balance: $token_balance units [$token_addr]"
+    fi
+
+    log "🚀 Bridge message $amount wei → $destination_addr [network: $destination_net, token: $token_addr, rpc: $rpc_url]"
+
+    if [[ $dry_run == "true" ]]; then
+        log "📝 Dry run bridge message (showing calldata only)"
+        cast calldata "$bridge_sig" "$destination_net" \
+            "$destination_addr" "$is_forced" "$meta_bytes"
+    else
+        local response
+        if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
+            response=$(cast send --legacy --private-key "$sender_private_key" --value "$amount" \
+                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" \
+                "$destination_addr" "$is_forced" "$meta_bytes")
+        else
+            response=$(cast send --legacy --private-key "$sender_private_key" \
+                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" \
+                "$destination_addr" "$is_forced" "$meta_bytes")
+        fi
+
+        local bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
+        if [[ -n "$bridge_tx_hash" ]]; then
+            log "🎉 Success: Tx Hash → $bridge_tx_hash"
+            echo $bridge_tx_hash
+        else
+            log "❌ Error: Transaction failed (no hash returned)"
+            return 1
+        fi
     fi
 }
 
