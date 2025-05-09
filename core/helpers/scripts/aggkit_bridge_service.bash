@@ -204,8 +204,8 @@ function generate_global_index() {
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
     # Ensure source_network_id and deposit_count are within valid bit ranges
-    source_network_id=$((source_network_id & 0xFFFFFFFF))           # Mask to 32 bits
-    deposit_count=$((deposit_count & 0xFFFFFFFF)) # Mask to 32 bits
+    source_network_id=$((source_network_id & 0xFFFFFFFF)) # Mask to 32 bits
+    deposit_count=$((deposit_count & 0xFFFFFFFF))         # Mask to 32 bits
 
     # Construct the final value using bitwise operations
     final_value=0
@@ -241,7 +241,7 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
-        token_mappings_result=$(cast rpc --rpc-url "$aggkit_url" "bridge_getTokenMappings" "$l2_rpc_network_id")
+        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/token-mappings?network_id=$l2_rpc_network_id")
 
         # Extract the first origin_token_address (if available)
         origin_token_address=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].origin_token_address')
@@ -279,7 +279,7 @@ function get_claim() {
     while true; do
         ((attempt++))
         log "🔍 Attempt $attempt"
-        claims_result=$(cast rpc --rpc-url "$aggkit_url" "bridge_getClaims" "$network_id")
+        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/claims?network_id=$network_id")
 
         log "------ claims_result ------"
         log "$claims_result"
@@ -348,7 +348,8 @@ function get_bridge() {
         log "🔎 Attempt $attempt/$max_attempts: fetching bridge, params: network_id = $network_id, tx_hash = $expected_tx_hash"
 
         # Capture both stdout (bridge result) and stderr (error message)
-        bridges_result=$(cast rpc --rpc-url "$aggkit_url" "bridge_getBridges" "$network_id" 2>&1)
+
+        bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridges?network_id=$network_id" 2>&1)
         log "------ bridges_result ------"
         log "$bridges_result"
         log "------ bridges_result ------"
@@ -399,7 +400,8 @@ function generate_claim_proof() {
         log "🔎 Attempt $attempt/$max_attempts: fetching proof, params: network_id = $network_id, deposit_count = $deposit_count, l1_info_tree_index = $l1_info_tree_index"
 
         # Capture both stdout (proof) and stderr (error message)
-        proof=$(cast rpc --rpc-url "$aggkit_url" "bridge_claimProof" "$network_id" "$deposit_count" "$l1_info_tree_index" 2>&1)
+        proof=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/claim-proof?network_id=$network_id&deposit_count=$deposit_count&leaf_index=$l1_info_tree_index" 2>&1)
         log "------ proof ------"
         log "$proof"
         log "------ proof ------"
@@ -434,7 +436,8 @@ function find_l1_info_tree_index_for_bridge() {
         log "🔎 Attempt $attempt/$max_attempts: Fetching L1 info tree index for bridge with deposit count $expected_deposit_count"
 
         # Capture both stdout (index) and stderr (error message)
-        index=$(cast rpc --rpc-url "$aggkit_url" "bridge_l1InfoTreeIndexForBridge" "$network_id" "$expected_deposit_count" 2>&1)
+        index=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
         log "------ index ------"
         log "$index"
         log "------ index ------"
@@ -469,7 +472,8 @@ function find_injected_info_after_index() {
         log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index, params: network_id = $network_id, index = $index"
 
         # Capture both stdout (injected_info) and stderr (error message)
-        injected_info=$(cast rpc --rpc-url "$aggkit_url" "bridge_injectedInfoAfterIndex" "$network_id" "$index" 2>&1)
+        injected_info=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/injected-l1-info-tree-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
         log "------ injected_info ------"
         log "$injected_info"
         log "------ injected_info ------"
