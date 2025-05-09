@@ -244,7 +244,7 @@ function wait_for_expected_token() {
         token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/token-mappings?network_id=$l2_rpc_network_id")
 
         # Extract the first origin_token_address (if available)
-        origin_token_address=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].origin_token_address')
+        origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
 
         echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token)" >&3
 
