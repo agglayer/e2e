@@ -109,7 +109,7 @@ setup() {
     assert_success
 
     # Claim deposits (settle them on the L2)
-    timeout="720"
+    timeout="360"
     claim_frequency="10"
     run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "bridgeAsset" "$l2_bridge_addr"
     assert_success
@@ -131,7 +131,7 @@ setup() {
     assert_success
 
     # Claim withdrawals (settle them on the L1)
-    timeout="720"
+    timeout="360"
     claim_frequency="10"
     destination_net=$l1_rpc_network_id
     run wait_for_claim "$timeout" "$claim_frequency" "$l1_rpc_url" "bridgeAsset" "$l1_bridge_addr"
