@@ -60,11 +60,12 @@ native_gas_token_deposit_to_WETH() {
 }
 
 @test "Custom gas token deposit" {
-    echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
+    echo "Custom gas token deposit (gas token addr: $gas_token_addr, L1 RPC: $l1_rpc_url, L2 RPC: $L2_RPC_URL)" >&3
 
+    # SETUP
     # Set receiver address and query for its initial native token balance on the L2
     local initial_receiver_balance=$(cast balance "$receiver" --rpc-url "$L2_RPC_URL")
-    echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
+    echo "Initial receiver ($receiver) balance of native token on L2 $initial_receiver_balance" >&3
 
     local l1_minter_balance=$(cast balance "0x8943545177806ED17B9F23F0a21ee5948eCaa776" --rpc-url "$l1_rpc_url")
     echo "Initial minter balance on L1 $l1_minter_balance" >&3
@@ -101,10 +102,11 @@ native_gas_token_deposit_to_WETH() {
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
-    # Deposit
+    # DEPOSIT
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
     amount=$wei_amount
+    meta_bytes="0x"
     run bridge_asset "$gas_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
 
