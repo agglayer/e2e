@@ -144,7 +144,7 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
           export DISABLE_L2_FUND="true"
-          bats tests/cdk/bridge-e2e.bats
+          bats tests/cdk
           popd
 
       - name: Dump enclave logs
