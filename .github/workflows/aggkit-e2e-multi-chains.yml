@@ -12,35 +12,33 @@ on:
 
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
-        required: false
+        required: true
         type: string
-        default: ""
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
-        required: false
+        required: true
         type: string
-        default: ${{ github.ref }}
 
       kurtosis-cdk-args-1:
         description: "Input arguments for the Kurtosis CDK package 1."
-        required: false
+        required: true
         type: string
         default: |
           {}
 
       kurtosis-cdk-args-2:
         description: "Input arguments for the Kurtosis CDK package 2."
-        required: false
+        required: true
         type: string
         default: |
           {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
-        required: false
+        required: true
         type: string
-        default: "cdk"
+        default: ""
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
@@ -52,13 +50,13 @@ on:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
         required: false
         type: string
-        default: ""
+        default: "local"
 
       docker-artifact-name:
         description: "A name of a docker image to download (e.g. docker-image)"
         required: false
         type: string
-        default: ""
+        default: "aggkit"
 
 jobs:
   test-multi-e2e:
