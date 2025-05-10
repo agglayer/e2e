@@ -355,8 +355,14 @@ function get_bridge() {
         log "------ bridges_result ------"
 
         # Check if the response contains an error
-        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* || "$bridges_result" == "" ]]; then
-            log "⚠️ RPC Error: $bridges_result"
+        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* ]]; then
+            log "⚠️ Error: $bridges_result"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$bridges_result" == "" ]]; then
+            log "Empty bridges response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -407,8 +413,14 @@ function generate_claim_proof() {
         log "------ proof ------"
 
         # Check if the response contains an error
-        if [[ "$proof" == *"error"* || "$proof" == *"Error"* || "$proof" == "" ]]; then
-            log "⚠️ RPC Error: $proof"
+        if [[ "$proof" == *"error"* || "$proof" == *"Error"* ]]; then
+            log "⚠️ Error: $proof"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$proof" == "" ]]; then
+            log "Empty proof retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -443,8 +455,14 @@ function find_l1_info_tree_index_for_bridge() {
         log "------ index ------"
 
         # Check if the response contains an error
-        if [[ "$index" == *"error"* || "$index" == *"Error"* || "$index" == "" ]]; then
-            log "⚠️ RPC Error: $index"
+        if [[ "$index" == *"error"* || "$index" == *"Error"* ]]; then
+            log "⚠️ Error: $index"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$index" == "" ]]; then
+            log "Empty index retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -479,8 +497,14 @@ function find_injected_l1_info_leaf() {
         log "------ injected_info ------"
 
         # Check if the response contains an error
-        if [[ "$injected_info" == *"error"* || "$injected_info" == *"Error"* || "$injected_info" == "" ]]; then
-            log "⚠️ RPC Error: $injected_info"
+        if [[ "$injected_info" == *"error"* || "$injected_info" == *"Error"* ]]; then
+            log "⚠️ Error: $injected_info"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$injected_info" == "" ]]; then
+            log "Empty injected info response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
