@@ -193,7 +193,7 @@ setup() {
     run generate_claim_proof "$l2_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 5 "$aggkit_node_url"
     assert_success
     local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 10 "$l2_rpc_network_id"
+    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 10 "$l2_rpc_network_id" "$l1_bridge_addr"
     assert_success
 
     run wait_for_expected_token "$aggkit_node_url" "$l2_erc20_addr" 15 2 "$l1_rpc_network_id"
@@ -239,7 +239,7 @@ setup() {
     run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 5 "$aggkit_node_url"
     assert_success
     local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 10 "$l1_rpc_network_id"
+    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 10 10 "$l1_rpc_network_id" "$l2_bridge_addr"
     assert_success
 
     echo "==== 💰 Verifying balance on L2 ($L2_RPC_URL)" >&3
@@ -279,7 +279,7 @@ setup() {
     run generate_claim_proof "$l2_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 5 "$aggkit_node_url"
     assert_success
     local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 10 "$l2_rpc_network_id"
+    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 10 "$l2_rpc_network_id" "$l1_bridge_addr"
     assert_success
 
     echo "==== 💰 Verifying balance on L1 ($l1_rpc_url)" >&3
