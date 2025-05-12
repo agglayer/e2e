@@ -229,10 +229,10 @@ function generate_global_index() {
 
 function wait_for_expected_token() {
     local expected_origin_token="$1"
-    local max_attempts="$2"
-    local poll_frequency="$3"
-    local aggkit_url="$4"
-    local network_id="$5"
+    local network_id="$2"
+    local max_attempts="$3"
+    local poll_frequency="$4"
+    local aggkit_url="$5"
 
     local attempt=0
     local token_mappings_result

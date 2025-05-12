@@ -99,7 +99,7 @@ setup() {
     run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
     assert_success
 
-    run wait_for_expected_token "$l1_erc20_addr" 50 10 "$aggkit_bridge_url" "$l2_rpc_network_id"
+    run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
 
