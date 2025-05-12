@@ -1,5 +1,3 @@
-
-
 setup() {
     load '../../core/helpers/common-setup'
     _common_setup
@@ -155,10 +153,10 @@ setup() {
     log "💰 Sender balance ($sender_addr) (ERC20 token L2): $l2_erc20_token_sender_balance [weis]"
 
     # Send approve transaction to the ERC20 token on L2
-    run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_erc20_addr" "$APPROVE_FN_SIG" "$bridge_addr" "$tokens_amount"
+    run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_erc20_addr" "$APPROVE_FN_SIG" "$l2_bridge_addr" "$tokens_amount"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
-    run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "allowance(address owner, address spender)(uint256)" "$sender_addr" "$bridge_addr"
+    run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "allowance(address owner, address spender)(uint256)" "$sender_addr" "$l2_bridge_addr"
     assert_success
     log "🔐 Allowance for bridge contract: $output [weis]"
 
@@ -169,7 +167,7 @@ setup() {
     tokens_amount="1ether"
     amount=$(cast --to-unit $tokens_amount wei)
     meta_bytes="0x"
-    run bridge_asset "$l2_erc20_addr" "$L2_RPC_URL"
+    run bridge_asset "$l2_erc20_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
     local bridge_tx_hash=$output
 
@@ -213,7 +211,7 @@ setup() {
 
     # Send approve transaction to the ERC20 token on L1
     tokens_amount="1ether"
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$l1_wrapped_token_addr" "$APPROVE_FN_SIG" "$bridge_addr" "$tokens_amount"
+    run send_tx "$l1_rpc_url" "$sender_private_key" "$l1_wrapped_token_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$tokens_amount"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
@@ -223,7 +221,7 @@ setup() {
     destination_net=$l2_rpc_network_id
     amount=$(cast --to-unit $tokens_amount wei)
     meta_bytes="0x"
-    run bridge_asset "$l1_wrapped_token_addr" "$l1_rpc_url"
+    run bridge_asset "$l1_wrapped_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     bridge_tx_hash=$output
 
@@ -263,7 +261,7 @@ setup() {
     tokens_amount="1ether"
     amount=$(cast --to-unit $tokens_amount wei)
     meta_bytes="0x"
-    run bridge_asset "$l2_erc20_addr" "$L2_RPC_URL"
+    run bridge_asset "$l2_erc20_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
     bridge_tx_hash=$output
 
