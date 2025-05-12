@@ -202,10 +202,10 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].origin_token_address')
+    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l2_erc20_addr" "$origin_token_addr"
 
-    local l1_wrapped_token_addr=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].wrapped_token_address')
+    local l1_wrapped_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     log "🪙 L1 wrapped token address $l1_wrapped_token_addr"
 
     run verify_balance "$l1_rpc_url" "$l1_wrapped_token_addr" "$destination_addr" 0 "$tokens_amount"
