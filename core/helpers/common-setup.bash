@@ -65,7 +65,7 @@ _common_setup() {
         echo "❌ Failed to resolve L2 RPC URL from all fallback nodes" >&2
         return 1
     fi
-    readonly L2_RPC_URL="$resolved_url"
+    export L2_RPC_URL="$resolved_url"
 
     local fallback_nodes=("op-batcher-001" "cdk-erigon-sequencer-001")
     local resolved_url=""
@@ -87,7 +87,7 @@ _common_setup() {
         echo "❌ Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" >&2
         return 1
     fi
-    readonly L2_SEQUENCER_RPC_URL="$resolved_url"
+    export L2_SEQUENCER_RPC_URL="$resolved_url"
 
     local fallback_nodes=("aggkit-001" "cdk-node-001")
     local resolved_url=""
@@ -111,9 +111,7 @@ _common_setup() {
     fi
     readonly aggkit_node_url="$resolved_url"
 
-    export L2_RPC_URL="$L2_RPC_URL"
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
-    export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
