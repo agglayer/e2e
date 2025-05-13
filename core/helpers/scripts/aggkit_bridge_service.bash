@@ -241,7 +241,7 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
-        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/token-mappings?network_id=$l2_rpc_network_id")
+        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$l2_rpc_network_id")
 
         # Extract the first origin_token_address (if available)
         origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
@@ -279,7 +279,7 @@ function get_claim() {
     while true; do
         ((attempt++))
         log "🔍 Attempt $attempt"
-        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/claims?network_id=$network_id")
+        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id")
 
         log "------ claims_result ------"
         log "$claims_result"
@@ -349,7 +349,7 @@ function get_bridge() {
 
         # Capture both stdout (bridge result) and stderr (error message)
 
-        bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridges?network_id=$network_id" 2>&1)
+        bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
         log "------ bridges_result ------"
         log "$bridges_result"
         log "------ bridges_result ------"
@@ -407,7 +407,7 @@ function generate_claim_proof() {
 
         # Capture both stdout (proof) and stderr (error message)
         proof=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/claim-proof?network_id=$network_id&deposit_count=$deposit_count&leaf_index=$l1_info_tree_index" 2>&1)
+            "$aggkit_url/bridge/v1/claim-proof?network_id=$network_id&deposit_count=$deposit_count&leaf_index=$l1_info_tree_index" 2>&1)
         log "------ proof ------"
         log "$proof"
         log "------ proof ------"
@@ -449,7 +449,7 @@ function find_l1_info_tree_index_for_bridge() {
 
         # Capture both stdout (index) and stderr (error message)
         index=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
+            "$aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
         log "------ index ------"
         log "$index"
         log "------ index ------"
@@ -491,7 +491,7 @@ function find_injected_l1_info_leaf() {
 
         # Capture both stdout (injected_info) and stderr (error message)
         injected_info=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
+            "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
         log "------ injected_info ------"
         log "$injected_info"
         log "------ injected_info ------"
