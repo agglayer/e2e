@@ -50,12 +50,12 @@ _common_setup() {
     for node in "${fallback_nodes[@]}"; do
         # Need to invoke the command this way, otherwise it would fail the entire test
         # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$enclave" "$node" || {
-            echo "⚠️ Node $node is not running in the "$enclave" enclave, trying next one..." >&3
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
             continue
         }
 
-        resolved_url=$(kurtosis port print "$enclave" "$node" rpc)
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
         if [ -n "$resolved_url" ]; then
             echo "✅ Successfully resolved L2 RPC URL ("$resolved_url") from "$node"" >&3
             break
@@ -72,12 +72,12 @@ _common_setup() {
     for node in "${fallback_nodes[@]}"; do
         # Need to invoke the command this way, otherwise it would fail the entire test
         # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$enclave" "$node" || {
-            echo "⚠️ Node $node is not running in the "$enclave" enclave, trying next one..." >&3
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
             continue
         }
 
-        resolved_url=$(kurtosis port print "$enclave" "$node" rpc)
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
         if [ -n "$resolved_url" ]; then
             echo "✅ Successfully resolved L2 SEQUENCER RPC URL ("$resolved_url") from "$node"" >&3
             break
@@ -94,12 +94,12 @@ _common_setup() {
     for node in "${fallback_nodes[@]}"; do
         # Need to invoke the command this way, otherwise it would fail the entire test
         # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$enclave" "$node" || {
-            echo "⚠️ Node $node is not running in the "$enclave" enclave, trying next one..." >&3
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
             continue
         }
 
-        resolved_url=$(kurtosis port print "$enclave" "$node" rpc)
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
         if [ -n "$resolved_url" ]; then
             echo "✅ Successfully resolved aggkit node url ("$resolved_url") from "$node"" >&3
             break
