@@ -8,7 +8,6 @@ on:
         description: "Path for aggsender to find the imported bridge"
         required: true
         type: string
-        default: ""
 
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
@@ -24,21 +23,16 @@ on:
         description: "Input arguments for the Kurtosis CDK package 1."
         required: true
         type: string
-        default: |
-          {}
 
       kurtosis-cdk-args-2:
         description: "Input arguments for the Kurtosis CDK package 2."
         required: true
         type: string
-        default: |
-          {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
         required: true
         type: string
-        default: ""
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"

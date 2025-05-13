@@ -42,7 +42,7 @@ on:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
         required: false
         type: string
-        default: "latest"
+        default: "local"
 
       docker-artifact-name:
         description: "A name of a docker image to download (e.g. docker-image)"

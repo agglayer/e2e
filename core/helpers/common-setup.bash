@@ -215,7 +215,4 @@ _common_setup() {
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
     readonly bridge_api_url=${BRIDGE_API_URL:-"$(kurtosis port print $ENCLAVE zkevm-bridge-service-001 rpc)"}
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
-    readonly erigon_sequencer_node=${KURTOSIS_ERIGON_SEQUENCER:-cdk-erigon-sequencer-001}
-    readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $ENCLAVE $erigon_sequencer_node"}
-    readonly data_dir=${ACL_DATA_DIR:-"/home/erigon/data/dynamic-kurtosis-sequencer/txpool/acls"}
 }
