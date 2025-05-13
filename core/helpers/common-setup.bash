@@ -193,11 +193,11 @@ _common_setup() {
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rest)"}
         local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     elif [[ "$ENCLAVE" == "op" ]]; then
         local rollup_params_file="/opt/zkevm/create_rollup_output.json"
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rest)"}
     fi
 
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
