@@ -67,26 +67,34 @@ _common_setup() {
     fi
     export L2_RPC_URL="$resolved_url"
 
-    local fallback_nodes=("op-batcher-001" "cdk-erigon-sequencer-001")
+    local fallback_nodes=(
+        "op-batcher-001" "http"
+        "cdk-erigon-sequencer-001" "rpc"
+    )
     local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+    local num_nodes=${#fallback_nodes[@]}
+
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${fallback_nodes[i]}"
+        local node_port_type="${fallback_nodes[i+1]}"
+
+        kurtosis service inspect "$ENCLAVE" "$node_name" || {
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
             continue
         }
 
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
         if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved L2 SEQUENCER RPC URL ("$resolved_url") from "$node"" >&3
+            echo "✅ Successfully resolved L2 SEQUENCER RPC URL ($resolved_url) from $node_name" >&3
             break
         fi
     done
+
     if [ -z "$resolved_url" ]; then
         echo "❌ Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" >&2
         return 1
     fi
+
     export L2_SEQUENCER_RPC_URL="$resolved_url"
 
     local fallback_nodes=("aggkit-001" "cdk-node-001")
