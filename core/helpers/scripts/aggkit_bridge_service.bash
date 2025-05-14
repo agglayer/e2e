@@ -232,6 +232,7 @@ function wait_for_expected_token() {
     local max_attempts="$2"
     local poll_frequency="$3"
     local aggkit_url="$4"
+    local network_id="$5"
 
     local attempt=0
     local token_mappings_result
@@ -241,12 +242,12 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
-        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$l2_rpc_network_id")
+        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
         origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
 
-        echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token)" >&3
+        echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token), network id=$network_id" >&3
 
         # Break loop if the expected token is found
         if [[ "$origin_token_address" == "$expected_origin_token" ]]; then
