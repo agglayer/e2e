@@ -18,14 +18,11 @@ on:
         description: "Input arguments for the Kurtosis CDK package."
         required: true
         type: string
-        default: |
-          {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
         required: true
         type: string
-        default: ""
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
@@ -49,7 +46,6 @@ on:
         description: "Name of test"
         required: true
         type: string
-        default: ""
 
 jobs:
   test-single-e2e:
@@ -106,16 +102,6 @@ jobs:
           fi
           echo '${{ inputs.kurtosis-cdk-args }}'
           echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
-
-      # Do not merge this
-      - name: List current images
-        run: |
-          docker images
-          if [[ -e /tmp/docker-image.tar ]]; then
-              echo "We have an image locally"
-          else
-              echo "We have nothing!!!"
-          fi
 
       - name: Startup the kurtosis-cdk package
         run: |

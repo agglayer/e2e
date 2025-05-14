@@ -42,7 +42,7 @@ on:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
         required: false
         type: string
-        default: "latest"
+        default: "local"
 
       docker-artifact-name:
         description: "A name of a docker image to download (e.g. docker-image)"
@@ -117,16 +117,6 @@ jobs:
               exit
           fi
           echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
-
-      # Do not merge this
-      - name: List current images
-        run: |
-          docker images
-          if [[ -e /tmp/docker-image.tar ]]; then
-              echo "We have an image locally"
-          else
-              echo "We have nothing!!!"
-          fi
 
       - name: Startup the kurtosis-cdk package
         run: |
