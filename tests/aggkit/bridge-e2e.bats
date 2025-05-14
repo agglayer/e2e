@@ -73,7 +73,6 @@ setup() {
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     # DEPOSIT ON L1
-    local receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
     amount=$(cast --to-unit $tokens_amount wei)

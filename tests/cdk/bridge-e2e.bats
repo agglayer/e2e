@@ -1,11 +1,65 @@
-
-
 setup() {
     load '../../core/helpers/common-setup'
     _common_setup
 }
 
-@test "Custom gas token deposit L1 -> L2" {
+# Helper function to run native gas token deposit to WETH
+native_gas_token_deposit_to_WETH() {
+    local bridge_type="$1"
+
+    echo "Bridge_type: $bridge_type" >&3
+
+    destination_addr=$sender_addr
+    local initial_receiver_balance=$(cast call --rpc-url "$L2_RPC_URL" "$weth_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
+    echo "Initial receiver balance of native token on L2 $initial_receiver_balance" >&3
+
+    echo "=== Running LxLy deposit $bridge_type on L1 to network: $l2_rpc_network_id native_token: $native_token_addr" >&3
+    
+    destination_net=$l2_rpc_network_id
+
+    if [[ $bridge_type == "bridgeMessage" ]]; then
+        run bridge_message "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    else
+        run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    fi
+    assert_success
+
+    echo "=== Claiming on L2..." >&3
+    timeout="120"
+    claim_frequency="10"
+    run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "$bridge_type" "$l2_bridge_addr"
+    assert_success
+
+    run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
+    assert_success
+
+    echo "=== $bridge_type L2 WETH: $weth_token_addr to L1 ETH" >&3
+    destination_addr=$sender_addr
+    destination_net=0
+
+    if [[ $bridge_type == "bridgeMessage" ]]; then
+        run bridge_message "$weth_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    else
+        run bridge_asset "$weth_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    fi
+    assert_success
+
+    echo "=== Claiming on L1..." >&3
+    timeout="400"
+    claim_frequency="60"
+    run wait_for_claim "$timeout" "$claim_frequency" "$l1_rpc_url" "$bridge_type" "$l1_bridge_addr"
+    assert_success
+}
+
+@test "Native gas token deposit to WETH - BridgeAsset" {
+    run native_gas_token_deposit_to_WETH "bridgeAsset"
+}
+
+@test "Native gas token deposit to WETH - BridgeMessage" {
+   run native_gas_token_deposit_to_WETH "bridgeMessage"
+}
+
+@test "Custom gas token deposit" {
     echo "Custom gas token deposit (gas token addr: $gas_token_addr, L1 RPC: $l1_rpc_url, L2 RPC: $L2_RPC_URL)" >&3
 
     # SETUP
@@ -55,29 +109,11 @@ setup() {
     meta_bytes="0x"
     run bridge_asset "$gas_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
-    local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the L2)
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_node_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_node_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
-    assert_success
-    local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
-    assert_success
-    local claim_global_index="$output"
-
-    # Validate the bridge_getClaims API
-    run get_claim "$l2_rpc_network_id" "$claim_global_index" 50 10 "$aggkit_node_url"
+    timeout="360"
+    claim_frequency="10"
+    run wait_for_claim "$timeout" "$claim_frequency" "$L2_RPC_URL" "bridgeAsset" "$l2_bridge_addr"
     assert_success
 
     # Validate that the native token of receiver on L2 has increased by the bridge tokens amount
@@ -85,8 +121,9 @@ setup() {
     assert_success
 }
 
-@test "Custom gas token withdrawal L2 -> L1" {
-    echo "Custom gas token withdrawal (gas token addr: $gas_token_addr, L1 RPC: $l1_rpc_url, L2 RPC: $L2_RPC_URL)" >&3
+@test "Custom gas token withdrawal" {
+    echo "Running LxLy withdrawal" >&3
+    echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
 
     local initial_receiver_balance=$(cast call --rpc-url "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$destination_addr" | awk '{print $1}')
     echo "Receiver balance of gas token on L1 $initial_receiver_balance" >&3
@@ -94,24 +131,12 @@ setup() {
     destination_net=$l1_rpc_network_id
     run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
-    local bridge_tx_hash=$output
 
     # Claim withdrawals (settle them on the L1)
-    run get_bridge "$l2_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_node_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l2_rpc_network_id" "$deposit_count" 50 10 "$aggkit_node_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l1_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l2_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
-    assert_success
-    local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 50 10 "$l2_rpc_network_id" "$l1_bridge_addr"
+    timeout="360"
+    claim_frequency="10"
+    destination_net=$l1_rpc_network_id
+    run wait_for_claim "$timeout" "$claim_frequency" "$l1_rpc_url" "bridgeAsset" "$l1_bridge_addr"
     assert_success
 
     # Validate that the token of receiver on L1 has increased by the bridge tokens amount
