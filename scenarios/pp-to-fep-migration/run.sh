@@ -1,5 +1,5 @@
 #!/bin/env bash
-
+set -e
 source ../common/load-env.sh
 load_env
 
@@ -47,10 +47,6 @@ agglayer_container_name=agglayer--$agglayer_uuid
 
 aggkit_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-001 | awk '{print $1}')
 aggkit_container_name=aggkit-001--$aggkit_uuid
-
-# TODO there is an issue here. the aggkit prover should have the -001 suffix
-aggkit_prover_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-prover[^-] | awk '{print $1}')
-aggkit_prover_container_name=aggkit-prover--$aggkit_prover_uuid
 
 # Read the agglayer vkey value
 agglayer_vkey=$(docker exec -it "$agglayer_container_name" agglayer vkey | tr -d "\r\n")
@@ -160,29 +156,17 @@ cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2
       "blobBaseFeeScalar": null,
       "eip1559Denominator": 0,
       "eip1559Elasticity": 0,
-      "operatorFeeScalar": null,
-      "operatorFeeConstant": null
+      "operatorFeeScalar": 0,
+      "operatorFeeConstant": 0
     }
   },
-
   block_time:                 .block_time,
   max_sequencer_drift:        .max_sequencer_drift,
   seq_window_size:            .seq_window_size,
   channel_timeout:            .channel_timeout,
   "granite_channel_timeout": 50,
-
   l1_chain_id:                .l1_chain_id,
   l2_chain_id:                .l2_chain_id,
-
-  base_fee_params: {
-    max_change_denominator: "0x32",
-    elasticity_multiplier: "0x6"
-  },
-  canyon_base_fee_params: {
-    max_change_denominator: "0xfa",
-    elasticity_multiplier: "0x6"
-  },
-
 
   regolith_time:              .regolith_time,
   canyon_time:                .canyon_time,
@@ -191,12 +175,19 @@ cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2
   fjord_time:                 .fjord_time,
   granite_time:               .granite_time,
   holocene_time:              .holocene_time,
+  isthmus_time:               .isthmus_time,
 
   batch_inbox_address:        .batch_inbox_address,
   deposit_contract_address:   .deposit_contract_address,
   l1_system_config_address:   .l1_system_config_address,
   protocol_versions_address:  "0x0000000000000000000000000000000000000000",
-  interop_message_expiry_window: 3600
+  interop_message_expiry_window: 3600,
+  "alt_da": null,
+  "chain_op_config": {
+    "eip1559Elasticity": "0x6",
+    "eip1559Denominator": "0x32",
+    "eip1559DenominatorCanyon": "0xfa"
+  }
 }' | sed 's/"scalar": "0x01/"scalar": "0x1/' | head -c -1 > rollup.json
 
 rollup_config_hash=0x$(sha256sum rollup.json | awk '{print $1}')
@@ -212,8 +203,8 @@ jq \
     .aggchainParams.initParams.startingBlockNumber = $o[0].blockRef.number |
     .aggchainParams.initParams.startingTimestamp = $o[0].blockRef.timestamp |
     .aggchainParams.initParams.submissionInterval = 1 |
-    .aggchainParams.initParams.aggregationVkey = "0x00e85a8274b6b98b791afeef499b00895c59b5e2e118844dda57eda801dbb10d" |
-    .aggchainParams.initParams.rangeVkeyCommitment = "0x0367776036b0d8b12720eab775b651c7251e63a249cb84f63eb1c20418b24e9c" |
+    .aggchainParams.initParams.aggregationVkey = "0x00c34e1ea92b8e3708fb2213142e746caa75a01308f817af6310976012a6fe40" |
+    .aggchainParams.initParams.rangeVkeyCommitment = "0x35882a76205af8c12eaeea7551ff8dbc392dc2a95b0f7f31660a5468237d4434" |
     .aggchainParams.initParams.rollupConfigHash = $rch |
     .realVerifier = true |
     .consensusContractName = "AggchainFEP"
@@ -237,62 +228,12 @@ echo '######  ###### ###### #       ####    #      ### #    # #      #    # #   
 # start it back up
 cast rpc --rpc-url "$l2_node_url" admin_startSequencer $(cat stop.out)
 
-# stop the proposer
-# TODO check to see why this isn't running anymore
-if [[ false ]]; then
-    kurtosis service stop "$kurtosis_enclave_name" op-proposer-001
-fi
-
-# TODO there are some env variables that seem unnecessary now
-# server
-docker run \
-       --rm -d \
-       --name op-succinct-server \
-       --network kt-$kurtosis_enclave_name \
-       -e "NETWORK_PRIVATE_KEY=$SP1_NETWORK_KEY" \
-       -e "NETWORK_RPC_URL=https://rpc.production.succinct.xyz" \
-       -e "AGG_PROOF_MODE=compressed" \
-       -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
-       -e "L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547" \
-       -e "PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" \
-       -e "L1_RPC=http://el-1-geth-lighthouse:8545" \
-       -e "OP_SUCCINCT_MOCK=false" \
-       -e "L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000" \
-       -e "ETHERSCAN_API_KEY=" \
-       -e "PORT=3000" \
-       ghcr.io/agglayer/op-succinct/succinct-proposer:v1.2.12-agglayer
-
-# Proposer
-# TODO the db seems to be created automatically. We should remove thie template in kurtosis
-docker run \
-       --rm -d \
-       --name op-succinct-proposer \
-       --network kt-$kurtosis_enclave_name \
-       -e "VERIFIER_ADDRESS=0xf22E2B040B639180557745F47aB97dFA95B1e22a" \
-       -e "PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" \
-       -e "L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000" \
-       -e "ETHERSCAN_API_KEY=" \
-       -e "OP_SUCCINCT_AGGLAYER=true" \
-       -e "L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547" \
-       -e "L1_RPC=http://el-1-geth-lighthouse:8545" \
-       -e "MAX_CONCURRENT_PROOF_REQUESTS=1" \
-       -e "MAX_CONCURRENT_WITNESS_GEN=1" \
-       -e "OP_SUCCINCT_SERVER_URL=http://op-succinct-server:3000" \
-       -e "L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e" \
-       -e "MAX_BLOCK_RANGE_PER_SPAN_PROOF=$SPAN_LENGTH_OVERRIDE" \
-       -e "OP_SUCCINCT_MOCK=false" \
-       -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
-       ghcr.io/agglayer/op-succinct/op-proposer:v1.2.12-agglayer
-
-
-docker exec -u root -it "$aggkit_prover_container_name" sed -i 's/proposer-endpoint.*/proposer-endpoint = "http:\/\/op-succinct-proposer:8545"/' /etc/aggkit/aggkit-prover-config.toml
-kurtosis service stop "$kurtosis_enclave_name" aggkit-prover
-kurtosis service start "$kurtosis_enclave_name" aggkit-prover
-
+echo "Starting up aggkit service..."
 kurtosis service start "$kurtosis_enclave_name" aggkit-001
 
-kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
+docker compose up -d
 
+kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 
 ################################################################################
 
@@ -308,6 +249,8 @@ cast abi-encode --packed 'f(bytes,uint64,uint64,uint64,bytes)' 0x00 1 1 1 0xFFFF
 
 cast tx --rpc-url http://$(kurtosis port print pp-to-fep-test  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
 
-docker stop op-succinct-proposer
-docker stop op-succinct-server
+docker compose down
+# docker stop aggkit-prover-001
+# docker stop op-succinct-proposer-001
+# docker stop op-succinct-server
 

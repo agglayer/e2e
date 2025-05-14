@@ -1,0 +1,56 @@
+services:
+  op-succinct-proposer-001:
+    image: ghcr.io/agglayer/op-succinct/op-succinct:v2.1.6-agglayer
+    container_name: op-succinct-proposer-001
+    networks:
+      - kt-network
+    environment:
+      - VERIFIER_ADDRESS=0xf22E2B040B639180557745F47aB97dFA95B1e22a
+      - PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31
+      - NETWORK_PRIVATE_KEY=${SP1_NETWORK_KEY}
+      - RANGE_PROOF_INTERVAL=1800
+      - GRPC_ADDRESS=0.0.0.0:50051
+      - AGGLAYER=true
+      - AGG_PROOF_MODE=compressed
+      - PROVER_ADDRESS=0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
+      - METRICS_PORT=8080
+      - DATABASE_URL=postgres://op_succinct_user:op_succinct_password@postgres-001:5432/op_succinct_db
+      - L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000
+      - ETHERSCAN_API_KEY=
+      - L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547
+      - L1_RPC=http://el-1-geth-lighthouse:8545
+      - MAX_CONCURRENT_PROOF_REQUESTS=1
+      - MAX_CONCURRENT_WITNESS_GEN=1
+      - L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e
+      - MAX_BLOCK_RANGE_PER_SPAN_PROOF=${SPAN_LENGTH_OVERRIDE}
+      - OP_SUCCINCT_MOCK=false
+      - L2_RPC=http://op-el-1-op-geth-op-node-001:8545
+    healthcheck:
+      test: ["CMD", "curl", "-f", "0.0.0.0:8080"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  aggkit-prover-001:
+    image: ghcr.io/agglayer/aggkit-prover:0.1.0-rc.22
+    container_name: aggkit-prover-001
+    networks:
+      - kt-network
+    environment:
+      - PROPOSER_NETWORK_PRIVATE_KEY=${SP1_NETWORK_KEY}
+      - NETWORK_PRIVATE_KEY=${SP1_NETWORK_KEY}
+      - RUST_LOG=info,aggkit_prover=debug,prover=debug,aggchain=debug
+      - RUST_BACKTRACE=1
+    volumes:
+      - ./aggkit-prover-config.toml:/etc/aggkit/aggkit-prover-config.toml
+    entrypoint: /usr/local/bin/aggkit-prover
+    command: run --config-path /etc/aggkit/aggkit-prover-config.toml
+    depends_on:
+      op-succinct-proposer-001:
+        condition: service_healthy
+
+networks:
+  kt-network:
+      name: kt-${ENCLAVE_NAME}
+      external: true
