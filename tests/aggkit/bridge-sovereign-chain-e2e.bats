@@ -70,13 +70,13 @@ setup() {
     run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
     assert_success
 
-    local l1_erc20_addr=$(echo "$output" | tail -n 1)
-    log "ERC20 contract address: $l1_erc20_addr" >&3
+    local l1_erc20_addr=$(echo "$output" | tail -n 1 | tr '[:upper:]' '[:lower:]')
+    log "ERC20 contract address: $l1_erc20_addr"
 
     # Mint ERC20 tokens on L1
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
-    run mint_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount"
+    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
     # Assert that balance of gas token (on the L1) is correct
@@ -85,12 +85,7 @@ setup() {
     local l1_erc20_token_sender_balance=$(echo "$output" |
         tail -n 1 |
         awk '{print $1}')
-    echo "Sender balance ($sender_addr) (ERC20 token L1): $l1_erc20_token_sender_balance [weis]" >&3
-
-    # Send approve transaction to the gas token on L1
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$l1_erc20_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$tokens_amount"
-    assert_success
-    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
+    log "Sender balance ($sender_addr) (ERC20 token L1): $l1_erc20_token_sender_balance [weis]"
 
     # DEPOSIT ON L1
     destination_addr=$receiver
@@ -123,11 +118,11 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address' | tr '[:upper:]' '[:lower:]')
     assert_equal "$l1_erc20_addr" "$origin_token_addr"
 
     local l2_token_addr_legacy=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
-    echo "L2 Token address legacy: $l2_token_addr_legacy" >&3
+    log "L2 Token address legacy: $l2_token_addr_legacy"
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr_legacy" "$receiver" 0 "$tokens_amount"
     assert_success
@@ -135,11 +130,11 @@ setup() {
     # Deploy sovereign token erc20 contract on L2
     run deploy_contract $L2_RPC_URL $sender_private_key $erc20_artifact_path  
     assert_success  
-    local l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
-    echo "L2 Token address sovereign: $l2_token_addr_sovereign" >&3
+    local l2_token_addr_sovereign=$(echo "$output" | tail -n 1 | tr '[:upper:]' '[:lower:]')
+    log "L2 Token address sovereign: $l2_token_addr_sovereign"
 
     # event SetSovereignTokenAddress
-    log "Emitting SetSovereignTokenAddress event" >&3
+    log "Emitting SetSovereignTokenAddress event"
     arg1='[0]'
     arg2="[$l1_erc20_addr]"
     arg3="[$l2_token_addr_sovereign]"
@@ -148,7 +143,7 @@ setup() {
     run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
     assert_success
     local setMultipleSovereignTokenAddress_tx_details=$output
-    log "setMultipleSovereignTokenAddress transaction details: $setMultipleSovereignTokenAddress_tx_details" >&3
+    log "setMultipleSovereignTokenAddress transaction details: $setMultipleSovereignTokenAddress_tx_details"
 
     # Decode the transaction details and check emmited event SetSovereignTokenAddress
     setMultipleSovereignTokenAddres_tx_data=$(echo "$setMultipleSovereignTokenAddress_tx_details" | jq -r '.logs[0].data')
@@ -163,23 +158,23 @@ setup() {
     assert_equal "$l1_erc20_addr" "$setMultipleSovereignTokenAddre_event_originTokenAddress"
     assert_equal "$l2_token_addr_sovereign" "$setMultipleSovereignTokenAddre_event_sovereignTokenAddress"
     assert_equal "false" "$setMultipleSovereignTokenAddre_event_isNotMintable"
-    log "✅ SetSovereignTokenAddress event successful" >&3
+    log "✅ SetSovereignTokenAddress event successful"
 
     # event MigrateLegacyToken
-    log "Emitting MigrateLegacyToken event" >&3
+    log "Emitting MigrateLegacyToken event"
     # Grant minter role to l2_bridge_addr on l2_token_addr_sovereign
     MINTER_ROLE=$(cast keccak "MINTER_ROLE")
     run cast send --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" "$l2_token_addr_sovereign" "$grant_role_func_sig" "$MINTER_ROLE" "$l2_bridge_addr"
     assert_success
     local grant_role_tx_hash=$output
-    log "✅ Minter role granted to $l2_bridge_addr on $l2_token_addr_sovereign: $grant_role_tx_hash" >&3
+    log "✅ Minter role granted to $l2_bridge_addr on $l2_token_addr_sovereign: $grant_role_tx_hash"
 
     run cast send --private-key "$sender_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$migrate_legacy_token_func_sig" "$l2_token_addr_legacy" 0  "0x" --json
     assert_success
     local migrateLegacyToken_tx_details=$output
-    log "migrateLegacyToken transaction details: $migrateLegacyToken_tx_details" >&3
+    log "migrateLegacyToken transaction details: $migrateLegacyToken_tx_details"
     migrateLegacyToken_tx_details_from_block=$(echo "$migrateLegacyToken_tx_details" | jq -r '.blockNumber')
-    log "migrate_from_block: $migrateLegacyToken_tx_details_from_block" >&3
+    log "migrate_from_block: $migrateLegacyToken_tx_details_from_block"
 
     # Find logs for MigrateLegacyToken event
     run cast logs --rpc-url $L2_RPC_URL --from-block "$migrateLegacyToken_tx_details_from_block" --to-block latest --address "$l2_bridge_addr" $migrate_legacy_token_event_sig --json    
@@ -202,14 +197,14 @@ setup() {
     assert_equal "$l2_token_addr_legacy" "$migrateLegacyToken_event_legacyTokenAddress"
     assert_equal "$l2_token_addr_sovereign" "$migrateLegacyToken_event_updatedTokenAddress"
     assert_equal "0" "$migrateLegacyToken_event_amount"
-    log "✅ MigrateLegacyToken event successful" >&3
+    log "✅ MigrateLegacyToken event successful"
 
     # event RemoveLegacySovereignTokenAddress
-    log "Sending transaction to emit RemoveLegacySovereignTokenAddress event" >&3
-    run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
+    log "Emitting RemoveLegacySovereignTokenAddress event"
+    run cast send --private-key "$l2_sovereignadmin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
     assert_success
     local removeLegacySovereignTokenAddress_tx_details=$output
-    log "removeLegacySovereignTokenAddress transaction details: $removeLegacySovereignTokenAddress_tx_details" >&3
+    log "removeLegacySovereignTokenAddress transaction details: $removeLegacySovereignTokenAddress_tx_details"
 
     # Decode the transaction details and check emmited event RemoveLegacySovereignTokenAddress
     removeLegacySovereignTokenAddress_event_data=$(echo "$removeLegacySovereignTokenAddress_tx_details" | jq -r '.logs[0].data')
@@ -218,5 +213,6 @@ setup() {
     local removeLegacySovereignTokenAddress_event=$output
     removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0] | ascii_downcase' <<<"$removeLegacySovereignTokenAddress_event")
     assert_equal "$l2_token_addr_legacy" "$removeLegacySovereignTokenAddress_event_sovereignTokenAddress"
-    log "✅ RemoveLegacySovereignTokenAddress event successful" >&3
+    log "✅ RemoveLegacySovereignTokenAddress event successful"
+    log "✅ Test Sovereign Chain Bridge Event successful"
 }
