@@ -349,7 +349,6 @@ function get_bridge() {
         log "🔎 Attempt $attempt/$max_attempts: fetching bridge, params: network_id = $network_id, tx_hash = $expected_tx_hash"
 
         # Capture both stdout (bridge result) and stderr (error message)
-
         bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
         log "------ bridges_result ------"
         log "$bridges_result"

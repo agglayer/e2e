@@ -16,7 +16,6 @@ _common_setup() {
 
     load '../../core/helpers/scripts/assert_block_production'
     load '../../core/helpers/scripts/check_balances'
-    load '../../core/helpers/scripts/claim'
     load '../../core/helpers/scripts/deploy_contract'
     load '../../core/helpers/scripts/deploy_test_contracts'
     load '../../core/helpers/scripts/send_eoa_tx'
@@ -213,6 +212,5 @@ _common_setup() {
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
-    readonly bridge_api_url=${BRIDGE_API_URL:-"$(kurtosis port print $ENCLAVE zkevm-bridge-service-001 rpc)"}
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }
