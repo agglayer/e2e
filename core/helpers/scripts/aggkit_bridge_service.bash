@@ -494,16 +494,16 @@ function update_removal_hash_chain_value() {
     local l2_sov_ger_addr="$2"
     local l2_sovereignadmin_pvt_key="$3"
 
-    UpdateHashChainValue_events=$(cast logs \
+    update_hash_chain_value_events=$(cast logs \
         --rpc-url     "$l2_rpc_url" \
         --from-block  0x0 \
         --to-block    latest \
         --address     "$l2_sov_ger_addr" \
         "UpdateHashChainValue(bytes32,bytes32)" \
         --json)
-    log "🔍 Fetched UpdateHashChainValue events: $UpdateHashChainValue_events"
+    log "🔍 Fetched UpdateHashChainValue events: $update_hash_chain_value_events"
 
-    UpdateHashChainValue_last_event=$(echo "$UpdateHashChainValue_events" | jq -r '.[-1]')
+    UpdateHashChainValue_last_event=$(echo "$update_hash_chain_value_events" | jq -r '.[-1]')
     last_ger=$(echo "$UpdateHashChainValue_last_event" | jq -r '.topics[1]')
     log "🔍 Last GER: $last_ger"
 
@@ -530,9 +530,6 @@ function update_removal_hash_chain_value() {
       --json)
     tx_hash=$(echo "$tx" | jq -r '.transactionHash')
     log "📨 Sent removeGlobalExitRoots tx: $tx_hash"
-
-    # Wait for the transaction to be mined
-    sleep 2
 
     # Query final status
     final_status=$(cast call \

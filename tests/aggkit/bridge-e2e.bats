@@ -149,10 +149,10 @@ setup() {
     assert_success
 }
 
-@test "Test UpdateRemovalHashChainValue" {
+@test "Test GlobalExitRoot removal" {
     echo "=== 🧑‍💻 Running UpdateRemovalHashChainValue" >&3
     run update_removal_hash_chain_value "$L2_RPC_URL" "$l2_ger_addr" "$l2_sovereignadmin_private_key"
-    assert_success "UpdateRemovalHashChainValue failed"
+    assert_success
 }
 
 @test "Verify certificate settlement" {
