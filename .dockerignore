@@ -1,7 +1,8 @@
 # Ignore everything.
-**
+*
 
 !core/
 !lib/
+!scenarios/
 !tests/
 !foundry.toml
