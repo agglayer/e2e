@@ -9,9 +9,11 @@ RUN apt-get update --yes \
 
 FROM debian:bookworm-slim
 ENV FOUNDRY_VERSION="stable"
+ENV ANTITHESIS_TESTS_PATH=""
 
 COPY --from=polycli-builder /opt/polygon-cli/out/polycli /usr/local/bin/polycli
 COPY --from=polycli-builder /opt/polygon-cli/bindings /opt/bindings
+COPY . .
 
 WORKDIR /opt/e2e
 RUN apt-get update --yes \
@@ -22,8 +24,9 @@ RUN apt-get update --yes \
   && cp -r /root/.foundry/bin/* /usr/local/bin \
   # Install yq.
   && pip3 install --break-system-packages yq \
-  # Create folder for antithesis tests.
-  && mkdir -p /opt/antithesis/test/v1
-
-COPY . .
-COPY ./tests/antithesis/ /opt/antithesis/test/v1
+  # If ANTITHESIS_TESTS_PATH is specified, copy test files to the correct location so that
+  # antithesis test composer can find them.
+  && if [[ -n "${ANTITHESIS_TESTS_PATH}" ]]; then \
+  mkdir -p /opt/antithesis/test/v1; \
+  cp -r ${ANTITHESIS_TESTS_PATH}/* /opt/antithesis/test/v1; \
+  fi
