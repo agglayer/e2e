@@ -2,9 +2,10 @@ setup() {
     load '../../core/helpers/common-setup'
     _common_setup
 
-    # Load bridge sovereign chain setup functions
-    load '../../core/helpers/bridge-sovereign-chain-setup'
-    _bridge_sovereign_chain_setup
+    update_hash_chain_value_event_sig="UpdateHashChainValue(bytes32,bytes32)"
+    global_exit_root_map_sig="globalExitRootMap(bytes32)(uint256)"
+    remove_global_exit_roots_func_sig="removeGlobalExitRoots(bytes32[])"
+    readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
 }
 
 @test "Test GlobalExitRoot removal" {
@@ -15,7 +16,7 @@ setup() {
         --from-block  0x0 \
         --to-block    latest \
         --address     "$l2_ger_addr" \
-        "UpdateHashChainValue(bytes32,bytes32)" \
+        "$update_hash_chain_value_event_sig" \
         --json)
     log "🔍 Fetched UpdateHashChainValue events: $update_hash_chain_value_events"
 
@@ -26,7 +27,7 @@ setup() {
     # Query initial status
     initial_status=$(cast call \
       $l2_ger_addr \
-      "globalExitRootMap(bytes32)(uint256)" \
+      "$global_exit_root_map_sig" \
       "$last_ger" \
       --rpc-url "$L2_RPC_URL")
     log "⏳ initial_status for GER $last_ger -> $initial_status"
@@ -41,7 +42,7 @@ setup() {
       --rpc-url "$L2_RPC_URL" \
       --private-key "$l2_sovereign_admin_private_key" \
       $l2_ger_addr \
-      "removeGlobalExitRoots(bytes32[])" \
+      "$remove_global_exit_roots_func_sig" \
       "[$last_ger]" \
       --json)
     tx_hash=$(echo "$tx" | jq -r '.transactionHash')
@@ -50,7 +51,7 @@ setup() {
     # Query final status
     final_status=$(cast call \
       $l2_ger_addr \
-      "globalExitRootMap(bytes32)(uint256)" \
+      "$global_exit_root_map_sig" \
       "$last_ger" \
       --rpc-url "$L2_RPC_URL")
     log "⏳ final_status for GER $last_ger -> $final_status"
