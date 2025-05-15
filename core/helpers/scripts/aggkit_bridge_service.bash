@@ -126,7 +126,7 @@ function claim_bridge() {
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt $attempt"
+        log "🔍 Attempt "$attempt"/"$max_attempts""
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$source_network_id" "$bridge_addr"
         local request_result="$status"
@@ -536,18 +536,18 @@ function process_bridge_claim() {
     local rpc_url="$6"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 50 5 "$bridge_service_url"
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 10 5 "$bridge_service_url"
     assert_success
     local bridge="$output"
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
 
     # Find the L1 info tree index for the given deposit count.
-    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 50 5 "$bridge_service_url"
+    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 50 10 "$bridge_service_url"
     assert_success
     local l1_info_tree_index="$output"
 
     # Retrieve the injected L1 info leaf using the L1 info tree index.
-    run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 50 5 "$bridge_service_url"
+    run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 50 10 "$bridge_service_url"
     assert_success
 
     # Generate the claim proof based on the network ID, deposit count, and L1 info tree index.
@@ -556,6 +556,6 @@ function process_bridge_claim() {
     local proof="$output"
 
     # Submit the claim using the generated proof and bridge details.
-    run claim_bridge "$bridge" "$proof" "$rpc_url" 50 5 "$origin_network_id" "$bridge_addr"
+    run claim_bridge "$bridge" "$proof" "$rpc_url" 50 10 "$origin_network_id" "$bridge_addr"
     assert_success
 }
