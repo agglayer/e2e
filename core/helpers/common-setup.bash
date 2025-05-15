@@ -16,7 +16,6 @@ _common_setup() {
 
     load '../../core/helpers/scripts/assert_block_production'
     load '../../core/helpers/scripts/check_balances'
-    load '../../core/helpers/scripts/claim'
     load '../../core/helpers/scripts/deploy_contract'
     load '../../core/helpers/scripts/deploy_test_contracts'
     load '../../core/helpers/scripts/send_eoa_tx'
@@ -193,11 +192,11 @@ _common_setup() {
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rest)"}
         local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     elif [[ "$ENCLAVE" == "op" ]]; then
         local rollup_params_file="/opt/zkevm/create_rollup_output.json"
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rest)"}
     fi
 
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
@@ -213,6 +212,5 @@ _common_setup() {
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
-    readonly bridge_api_url=${BRIDGE_API_URL:-"$(kurtosis port print $ENCLAVE zkevm-bridge-service-001 rpc)"}
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }

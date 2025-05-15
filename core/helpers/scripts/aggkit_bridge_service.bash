@@ -204,8 +204,8 @@ function generate_global_index() {
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
     # Ensure source_network_id and deposit_count are within valid bit ranges
-    source_network_id=$((source_network_id & 0xFFFFFFFF))           # Mask to 32 bits
-    deposit_count=$((deposit_count & 0xFFFFFFFF)) # Mask to 32 bits
+    source_network_id=$((source_network_id & 0xFFFFFFFF)) # Mask to 32 bits
+    deposit_count=$((deposit_count & 0xFFFFFFFF))         # Mask to 32 bits
 
     # Construct the final value using bitwise operations
     final_value=0
@@ -232,6 +232,7 @@ function wait_for_expected_token() {
     local max_attempts="$2"
     local poll_frequency="$3"
     local aggkit_url="$4"
+    local network_id="$5"
 
     local attempt=0
     local token_mappings_result
@@ -241,12 +242,12 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
-        token_mappings_result=$(cast rpc --rpc-url "$aggkit_url" "bridge_getTokenMappings" "$l2_rpc_network_id")
+        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
-        origin_token_address=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].origin_token_address')
+        origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
 
-        echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token)" >&3
+        echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token), network id=$network_id" >&3
 
         # Break loop if the expected token is found
         if [[ "$origin_token_address" == "$expected_origin_token" ]]; then
@@ -279,7 +280,7 @@ function get_claim() {
     while true; do
         ((attempt++))
         log "🔍 Attempt $attempt"
-        claims_result=$(cast rpc --rpc-url "$aggkit_url" "bridge_getClaims" "$network_id")
+        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id")
 
         log "------ claims_result ------"
         log "$claims_result"
@@ -348,14 +349,20 @@ function get_bridge() {
         log "🔎 Attempt $attempt/$max_attempts: fetching bridge, params: network_id = $network_id, tx_hash = $expected_tx_hash"
 
         # Capture both stdout (bridge result) and stderr (error message)
-        bridges_result=$(cast rpc --rpc-url "$aggkit_url" "bridge_getBridges" "$network_id" 2>&1)
+        bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
         log "------ bridges_result ------"
         log "$bridges_result"
         log "------ bridges_result ------"
 
         # Check if the response contains an error
-        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* || "$bridges_result" == "" ]]; then
-            log "⚠️ RPC Error: $bridges_result"
+        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* ]]; then
+            log "⚠️ Error: $bridges_result"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$bridges_result" == "" ]]; then
+            log "Empty bridges response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -399,14 +406,21 @@ function generate_claim_proof() {
         log "🔎 Attempt $attempt/$max_attempts: fetching proof, params: network_id = $network_id, deposit_count = $deposit_count, l1_info_tree_index = $l1_info_tree_index"
 
         # Capture both stdout (proof) and stderr (error message)
-        proof=$(cast rpc --rpc-url "$aggkit_url" "bridge_claimProof" "$network_id" "$deposit_count" "$l1_info_tree_index" 2>&1)
+        proof=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/claim-proof?network_id=$network_id&deposit_count=$deposit_count&leaf_index=$l1_info_tree_index" 2>&1)
         log "------ proof ------"
         log "$proof"
         log "------ proof ------"
 
         # Check if the response contains an error
-        if [[ "$proof" == *"error"* || "$proof" == *"Error"* || "$proof" == "" ]]; then
-            log "⚠️ RPC Error: $proof"
+        if [[ "$proof" == *"error"* || "$proof" == *"Error"* ]]; then
+            log "⚠️ Error: $proof"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$proof" == "" ]]; then
+            log "Empty proof retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -434,14 +448,21 @@ function find_l1_info_tree_index_for_bridge() {
         log "🔎 Attempt $attempt/$max_attempts: Fetching L1 info tree index for bridge with deposit count $expected_deposit_count"
 
         # Capture both stdout (index) and stderr (error message)
-        index=$(cast rpc --rpc-url "$aggkit_url" "bridge_l1InfoTreeIndexForBridge" "$network_id" "$expected_deposit_count" 2>&1)
+        index=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
         log "------ index ------"
         log "$index"
         log "------ index ------"
 
         # Check if the response contains an error
-        if [[ "$index" == *"error"* || "$index" == *"Error"* || "$index" == "" ]]; then
-            log "⚠️ RPC Error: $index"
+        if [[ "$index" == *"error"* || "$index" == *"Error"* ]]; then
+            log "⚠️ Error: $index"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$index" == "" ]]; then
+            log "Empty index retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -454,7 +475,7 @@ function find_l1_info_tree_index_for_bridge() {
     return 1
 }
 
-function find_injected_info_after_index() {
+function find_injected_l1_info_leaf() {
     local network_id="$1"
     local index="$2"
     local max_attempts="$3"
@@ -469,14 +490,21 @@ function find_injected_info_after_index() {
         log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index, params: network_id = $network_id, index = $index"
 
         # Capture both stdout (injected_info) and stderr (error message)
-        injected_info=$(cast rpc --rpc-url "$aggkit_url" "bridge_injectedInfoAfterIndex" "$network_id" "$index" 2>&1)
+        injected_info=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
         log "------ injected_info ------"
         log "$injected_info"
         log "------ injected_info ------"
 
         # Check if the response contains an error
-        if [[ "$injected_info" == *"error"* || "$injected_info" == *"Error"* || "$injected_info" == "" ]]; then
-            log "⚠️ RPC Error: $injected_info"
+        if [[ "$injected_info" == *"error"* || "$injected_info" == *"Error"* ]]; then
+            log "⚠️ Error: $injected_info"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$injected_info" == "" ]]; then
+            log "Empty injected info response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
