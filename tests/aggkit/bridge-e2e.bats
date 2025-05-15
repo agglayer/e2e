@@ -198,11 +198,11 @@ setup() {
     run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 5 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 10 10 "$l1_rpc_network_id" "$l2_bridge_addr"
+    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 10 "$l1_rpc_network_id" "$l2_bridge_addr"
     assert_success
 
     # TODO: @Stefan-Ethernal revise
-    #process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    #process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$l1_rpc_url"
 
     echo "==== 💰 Verifying balance on L2 ($L2_RPC_URL)" >&3
     run verify_balance "$L2_RPC_URL" "$l2_erc20_addr" "$destination_addr" "$l2_erc20_token_sender_balance" "$tokens_amount"
