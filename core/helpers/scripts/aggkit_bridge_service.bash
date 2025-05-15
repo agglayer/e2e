@@ -516,3 +516,46 @@ function find_injected_l1_info_leaf() {
     log "❌ Failed to find injected info after index $index after $max_attempts attempts."
     return 1
 }
+
+# process_bridge_claim processes a bridge claim by fetching the bridge details,
+# finding the L1 info tree index, generating a claim proof, and submitting the claim.
+#
+# Arguments:
+#   $1 - origin_network_id: The origin network ID where the bridge transaction occurred.
+#   $2 - bridge_tx_hash: The transaction hash of the bridge interaction.
+#   $3 - destination_network_id: The destination network ID for bridge transaction.
+#   $4 - bridge_addr: The bridge contract address where the claim will be submitted.
+#   $5 - aggkit_bridge_url: The base URL of the bridge service.
+#   $6 - rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
+function process_bridge_claim() {
+    local origin_network_id="$1"
+    local bridge_tx_hash="$2"
+    local destination_network_id="$3"
+    local bridge_addr="$4"
+    local aggkit_bridge_url="$5"
+    local rpc_url="$6"
+
+    # Fetch bridge details using the transaction hash and extract the deposit count.
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 10 3 "$aggkit_bridge_url"
+    assert_success
+    local bridge="$output"
+    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+
+    # Find the L1 info tree index for the given deposit count.
+    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 10 5 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index="$output"
+
+    # Retrieve the injected L1 info leaf using the L1 info tree index.
+    run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 10 20 "$aggkit_bridge_url"
+    assert_success
+
+    # Generate the claim proof based on the network ID, deposit count, and L1 info tree index.
+    run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 5 "$aggkit_bridge_url"
+    assert_success
+    local proof="$output"
+
+    # Submit the claim using the generated proof and bridge details.
+    run claim_bridge "$bridge" "$proof" "$rpc_url" 10 10 "$origin_network_id" "$bridge_addr"
+    assert_success
+}
