@@ -94,25 +94,14 @@ setup() {
     assert_success
 }
 
-@test "Test Bridge Events" {
-    echo "Retrieving ERC20 contract artifact from $erc20_artifact_path" >&3
-
-    run jq -r '.bytecode' "$erc20_artifact_path"
+@test "Test Sovereign Chain Bridge Events" {
+    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
     assert_success
-    local erc20_bytecode="$output"
 
-    run cast send --rpc-url "$l1_rpc_url" --private-key "$sender_private_key" --legacy --create "$erc20_bytecode"
-    assert_success
-    local erc20_deploy_output=$output
-    echo "Contract deployment $erc20_deploy_output"
-
-    local l1_erc20_addr=$(echo "$erc20_deploy_output" |
-        grep 'contractAddress' |
-        awk '{print $2}' |
-        tr '[:upper:]' '[:lower:]')
+    local l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "ERC20 contract address: $l1_erc20_addr" >&3
 
-    # Mint gas token on L1
+    # Mint ERC20 tokens on L1
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
     run mint_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount"
@@ -162,24 +151,19 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].origin_token_address')
+    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l1_erc20_addr" "$origin_token_addr"
 
-    local l2_token_addr_legacy=$(echo "$token_mappings_result" | jq -r '.tokenMappings[0].wrapped_token_address')
+    local l2_token_addr_legacy=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 Token address legacy: $l2_token_addr_legacy" >&3
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr_legacy" "$receiver" 0 "$tokens_amount"
     assert_success
 
     # Deploy sovereign token erc20 contract on L2
-    run cast send --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" --legacy --create "$erc20_bytecode"
-    assert_success
-    local erc20_deploy_output=$output
-    echo "Contract deployment $erc20_deploy_output"
-    local l2_token_addr_sovereign=$(echo "$erc20_deploy_output" |
-        grep 'contractAddress' |
-        awk '{print $2}' |
-        tr '[:upper:]' '[:lower:]')
+    run deploy_contract $L2_RPC_URL $sender_private_key $erc20_artifact_path  
+    assert_success  
+    local l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
     echo "L2 Token address sovereign: $l2_token_addr_sovereign" >&3
 
     log "Sending transaction to emit SetSovereignTokenAddress event" >&3
