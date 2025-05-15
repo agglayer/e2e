@@ -101,7 +101,7 @@ _common_setup() {
             continue
         }
 
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rest)
         if [ -n "$resolved_url" ]; then
             echo "✅ Successfully resolved aggkit node url ("$resolved_url") from "$node"" >&3
             break
@@ -111,7 +111,7 @@ _common_setup() {
         echo "❌ Failed to resolve aggkit node url from all fallback nodes" >&2
         return 1
     fi
-    readonly aggkit_node_url="$resolved_url"
+    readonly aggkit_bridge_url="$resolved_url"
 
     local fallback_nodes=("zkevm-bridge-service-001")
     local resolved_url=""
