@@ -160,6 +160,13 @@ setup() {
     assert_equal "false" "$setMultipleSovereignTokenAddre_event_isNotMintable"
     log "✅ SetSovereignTokenAddress event successful"
 
+    # Query aggkit node for legacy token migrations
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    assert_success
+    local initial_legacy_token_migrations="$output"
+    log "Initial legacy token migrations: $initial_legacy_token_migrations"
+    local initial_legacy_token_migrations_count=$(echo "$initial_legacy_token_migrations" | jq -r '.count')
+
     # event MigrateLegacyToken
     log "Emitting MigrateLegacyToken event"
     # Grant minter role to l2_bridge_addr on l2_token_addr_sovereign
@@ -199,6 +206,18 @@ setup() {
     assert_equal "0" "$migrateLegacyToken_event_amount"
     log "✅ MigrateLegacyToken event successful"
 
+    # sleep briefly to give aggkit time to index the event
+    sleep 3
+
+    # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 100 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    assert_success
+    local legacy_token_migrations="$output"
+    local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacyTokenMigrations[-1].legacy_token_address')
+    local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacyTokenMigrations[-1].updated_token_address')
+    assert_equal "$l2_token_addr_legacy" "$legacy_token_address"
+    assert_equal "$l2_token_addr_sovereign" "$updated_token_address"
+
     # event RemoveLegacySovereignTokenAddress
     log "Emitting RemoveLegacySovereignTokenAddress event"
     run cast send --private-key "$l2_sovereignadmin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
@@ -214,5 +233,16 @@ setup() {
     removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0] | ascii_downcase' <<<"$removeLegacySovereignTokenAddress_event")
     assert_equal "$l2_token_addr_legacy" "$removeLegacySovereignTokenAddress_event_sovereignTokenAddress"
     log "✅ RemoveLegacySovereignTokenAddress event successful"
+
+    # sleep briefly to give aggkit time to index the event
+    sleep 3
+
+    # Query aggkit node for legacy token migrations
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 5 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    assert_success
+    local final_legacy_token_migrations="$output"
+    log "Initial legacy token migrations: $final_legacy_token_migrations"
+    local final_legacy_token_migrations_count=$(echo "$final_legacy_token_migrations" | jq -r '.count')
+    assert_equal "$initial_legacy_token_migrations_count" "$final_legacy_token_migrations_count"
     log "✅ Test Sovereign Chain Bridge Event successful"
 }

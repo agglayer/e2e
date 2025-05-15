@@ -564,3 +564,39 @@ function process_bridge_claim() {
 
     echo "$global_index"
 }
+
+function get_legacy_token_migrations() {
+    local network_id="$1"
+    local page_number="$2"
+    local page_size="$3"
+    local aggkit_url="$4"
+    local max_attempts="$5"
+    local poll_frequency="$6"
+
+    local attempt=0
+    local legacy_token_migrations=""
+
+    while ((attempt < max_attempts)); do
+        ((attempt++))
+        log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index, params: network_id = $network_id, page_number = $page_number, page_size = $page_size"
+
+        # Capture both stdout (legacy_token_migrations) and stderr (error message)
+        legacy_token_migrations=$(cast rpc --rpc-url "$aggkit_url" "bridge_getLegacyTokenMigrations" "$network_id" "$page_number" "$page_size" 2>&1)
+        log "------ legacy_token_migrations ------"
+        log "$legacy_token_migrations"
+        log "------ legacy_token_migrations ------"
+
+        # Check if the response contains an error
+        if [[ "$legacy_token_migrations" == *"error"* || "$legacy_token_migrations" == *"Error"* || "$legacy_token_migrations" == "" ]]; then
+            log "⚠️ RPC Error: $legacy_token_migrations"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        echo "$legacy_token_migrations"
+        return 0
+    done
+
+    log "❌ Failed to find legacy token migrations after $max_attempts attempts."
+    return 1
+}
