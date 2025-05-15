@@ -2,9 +2,10 @@ setup() {
     load '../../core/helpers/common-setup'
     _common_setup
 
-    update_hash_chain_value_event_sig="UpdateHashChainValue(bytes32,bytes32)"
-    global_exit_root_map_sig="globalExitRootMap(bytes32)(uint256)"
-    remove_global_exit_roots_func_sig="removeGlobalExitRoots(bytes32[])"
+    readonly update_hash_chain_value_event_sig="UpdateHashChainValue(bytes32,bytes32)"
+    readonly remove_global_exit_roots_func_sig="removeGlobalExitRoots(bytes32[])"
+    readonly global_exit_root_map_sig="globalExitRootMap(bytes32)(uint256)"
+
     readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
 }
 
