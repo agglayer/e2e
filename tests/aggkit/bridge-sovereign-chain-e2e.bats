@@ -238,10 +238,10 @@ setup() {
     sleep 3
 
     # Query aggkit node for legacy token migrations
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 5 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_node_url" "$l1_info_tree_index" 50 10
     assert_success
     local final_legacy_token_migrations="$output"
-    log "Initial legacy token migrations: $final_legacy_token_migrations"
+    log "Final legacy token migrations: $final_legacy_token_migrations"
     local final_legacy_token_migrations_count=$(echo "$final_legacy_token_migrations" | jq -r '.count')
     assert_equal "$initial_legacy_token_migrations_count" "$final_legacy_token_migrations_count"
     log "✅ Test Sovereign Chain Bridge Event successful"
