@@ -186,7 +186,6 @@ _common_setup() {
     echo "POL address=$pol_address" >&3
     echo "L2 GER address=$l2_ger_addr" >&3
 
-    readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
     readonly dry_run=${DRY_RUN:-"false"}
