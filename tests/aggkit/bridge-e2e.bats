@@ -150,9 +150,9 @@ setup() {
 }
 
 @test "Test UpdateRemovalHashChainValue" {
-    echo "=== Running UpdateRemovalHashChainValue" >&3
-    run update_removal_hash_chain_value
-    assert_success
+    echo "=== 🧑‍💻 Running UpdateRemovalHashChainValue" >&3
+    run update_removal_hash_chain_value "$L2_RPC_URL" "$l2_ger_addr" "$l2_sovereignadmin_private_key"
+    assert_success "UpdateRemovalHashChainValue failed"
 }
 
 @test "Verify certificate settlement" {

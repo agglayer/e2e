@@ -490,47 +490,62 @@ function find_injected_info_after_index() {
 }
 
 function update_removal_hash_chain_value() {
-    local in_ger="$1"
+    local l2_rpc_url="$1"
+    local l2_sov_ger_addr="$2"
+    local l2_sovereignadmin_pvt_key="$3"
 
-    l2_sovereignadmin_private_key="0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"
+    UpdateHashChainValue_events=$(cast logs \
+        --rpc-url     "$l2_rpc_url" \
+        --from-block  0x0 \
+        --to-block    latest \
+        --address     "$l2_sov_ger_addr" \
+        "UpdateHashChainValue(bytes32,bytes32)" \
+        --json)
+    log "🔍 Fetched UpdateHashChainValue events: $UpdateHashChainValue_events"
+
+    UpdateHashChainValue_last_event=$(echo "$UpdateHashChainValue_events" | jq -r '.[-1]')
+    last_ger=$(echo "$UpdateHashChainValue_last_event" | jq -r '.topics[1]')
+    log "🔍 Last GER: $last_ger"
 
     # Query initial status
     initial_status=$(cast call \
-      $l2_ger_addr \
+      $l2_sov_ger_addr \
       "globalExitRootMap(bytes32)(uint256)" \
-      "$in_ger" \
-      --rpc-url "$L2_RPC_URL")
-
-    echo "initial_status for GER $in_ger -> $initial_status"
+      "$last_ger" \
+      --rpc-url "$l2_rpc_url")
+    log "⏳ initial_status for GER $last_ger -> $initial_status"
+    
     if [ "$initial_status" -eq 0 ]; then
-      echo "  ↳ GER not found in map, skipping removal."
+      log "🚫 GER not found in map, skipping removal"
       return 1
     fi
 
-    # Remove the GER sovereign admin should be the sender
-    tx_hash=$(cast send \
-      --rpc-url "$L2_RPC_URL" \
-      --private-key "$l2_sovereignadmin_private_key" \
-      $l2_ger_addr \
+    # Remove the GER from map, sovereign admin should be the sender
+    tx=$(cast send \
+      --rpc-url "$l2_rpc_url" \
+      --private-key "$l2_sovereignadmin_pvt_key" \
+      $l2_sov_ger_addr \
       "removeGlobalExitRoots(bytes32[])" \
-      "[$in_ger]" )
-    echo "  ↳ Sent removeGlobalExitRoots tx: $tx_hash"
+      "[$last_ger]" \
+      --json)
+    tx_hash=$(echo "$tx" | jq -r '.transactionHash')
+    log "📨 Sent removeGlobalExitRoots tx: $tx_hash"
 
-    # wait for the tx to be mined
-    cast wait "$tx_hash" --rpc-url "$L2_RPC_URL"
+    # Wait for the transaction to be mined
+    sleep 2
 
     # Query final status
     final_status=$(cast call \
-      $l2_ger_addr \
+      $l2_sov_ger_addr \
       "globalExitRootMap(bytes32)(uint256)" \
-      "$in_ger" \
-      --rpc-url "$L2_RPC_URL")
-
-    echo "final_status for GER $in_ger -> $final_status"
+      "$last_ger" \
+      --rpc-url "$l2_rpc_url")
+    log "⏳ final_status for GER $last_ger -> $final_status"
+    
     if [ "$final_status" -eq 0 ]; then
-      echo "  ✔ GER successfully removed"
+      log "✅ GER successfully removed"
     else
-      echo "  ✖ Failed to remove GER"
+      log "❌ Failed to remove GER"
       return 1
     fi
 }
