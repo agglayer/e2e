@@ -25,13 +25,8 @@ setup() {
   log "🔍 Fetched UpdateHashChainValue events: $update_hash_chain_value_events"
 
   # Extract last GER
-  run echo "$update_hash_chain_value_events" | jq -r '.[-1]'
+  local last_ger=$(echo "$update_hash_chain_value_events" | jq -r '.[-1].topics[1]')
   assert_success
-  update_hash_chain_value_last_event="$output"
-
-  run echo "$update_hash_chain_value_last_event" | jq -r '.topics[1]'
-  assert_success
-  last_ger="$output"
   log "🔍 Last GER: $last_ger"
 
   # Query initial status
