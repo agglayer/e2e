@@ -104,7 +104,7 @@ setup() {
     run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
@@ -114,7 +114,7 @@ setup() {
     run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
     assert_success
 
-    run wait_for_expected_token "$l1_erc20_addr" 50 10 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l1_erc20_addr" 50 10 "$aggkit_bridge_url" "$l2_rpc_network_id"
     assert_success
     local token_mappings_result=$output
 
@@ -139,7 +139,6 @@ setup() {
     arg2="[$l1_erc20_addr]"
     arg3="[$l2_token_addr_sovereign]"
     arg4='[false]'
-
     run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
     assert_success
     local setMultipleSovereignTokenAddress_tx_details=$output
@@ -213,14 +212,14 @@ setup() {
     run get_legacy_token_migrations "$l2_rpc_network_id" 1 100 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
     assert_success
     local legacy_token_migrations="$output"
-    local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacyTokenMigrations[-1].legacy_token_address')
-    local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacyTokenMigrations[-1].updated_token_address')
+    local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[-1].legacy_token_address')
+    local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[-1].updated_token_address')
     assert_equal "$l2_token_addr_legacy" "$legacy_token_address"
     assert_equal "$l2_token_addr_sovereign" "$updated_token_address"
 
     # event RemoveLegacySovereignTokenAddress
     log "Emitting RemoveLegacySovereignTokenAddress event"
-    run cast send --private-key "$l2_sovereignadmin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
+    run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
     assert_success
     local removeLegacySovereignTokenAddress_tx_details=$output
     log "removeLegacySovereignTokenAddress transaction details: $removeLegacySovereignTokenAddress_tx_details"
