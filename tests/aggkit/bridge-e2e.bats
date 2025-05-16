@@ -29,7 +29,7 @@ setup() {
     # Mint ERC20 token on L1
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
-    run mint_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount"
+    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
     # Assert that balance of ERC20 token (on the L1) is correct
@@ -39,11 +39,6 @@ setup() {
         tail -n 1 |
         awk '{print $1}')
     echo "Sender balance ($sender_addr) (ERC20 token L1): $l1_erc20_token_sender_balance [weis]" >&3
-
-    # Send approve transaction to the ERC20 token on L1
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$l1_erc20_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$tokens_amount"
-    assert_success
-    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     # DEPOSIT ON L1
     echo "==== 🚀 Depositing ERC20 token on L1 ($l1_rpc_url)" >&3
