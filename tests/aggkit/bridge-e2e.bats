@@ -88,9 +88,7 @@ setup() {
     # Assert that balance of ERC20 token (on the L2) is correct
     run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
-    local l2_erc20_token_sender_balance=$(echo "$output" |
-        tail -n 1 |
-        awk '{print $1}')
+    local l2_erc20_token_sender_balance=$(echo "$output" | tail -n 1 | awk '{print $1}')
     log "💰 Sender balance ($sender_addr) (ERC20 token L2): $l2_erc20_token_sender_balance [weis]"
 
     # Send approve transaction to the ERC20 token on L2
@@ -115,9 +113,7 @@ setup() {
     # Query balance of ERC20 token on L2
     run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
-    local l2_erc20_token_sender_balance=$(echo "$output" |
-        tail -n 1 |
-        awk '{print $1}')
+    local l2_erc20_token_sender_balance=$(echo "$output" | tail -n 1 | awk '{print $1}')
     log "💰 Sender balance ($sender_addr) (ERC20 token L2): $l2_erc20_token_sender_balance [weis]"
 
     # Claim deposit (settle it on the L1)
@@ -164,9 +160,7 @@ setup() {
     # Query balance of ERC20 token on L1
     run query_contract "$l1_rpc_url" "$l1_wrapped_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
-    local l1_wrapped_token_balance=$(echo "$output" |
-        tail -n 1 |
-        awk '{print $1}')
+    local l1_wrapped_token_balance=$(echo "$output" | tail -n 1 | awk '{print $1}')
     log "💰 Sender balance ($sender_addr) (wrapped ERC20 token L1): $l1_wrapped_token_balance [weis]"
 
     # Deposit on L2
