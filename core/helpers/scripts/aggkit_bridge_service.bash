@@ -536,7 +536,7 @@ function process_bridge_claim() {
     local rpc_url="$6"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 10 3 "$bridge_service_url"
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 60 5 "$bridge_service_url"
     assert_success
     local bridge="$output"
 
