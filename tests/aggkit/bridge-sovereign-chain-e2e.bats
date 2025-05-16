@@ -97,24 +97,24 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the L2)
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_node_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
     assert_success
     local bridge="$output"
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_node_url"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
+    run find_injected_info_after_index "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_node_url"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
     run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
     assert_success
 
-    run wait_for_expected_token "$l1_erc20_addr" 50 10 "$aggkit_node_url"
+    run wait_for_expected_token "$l1_erc20_addr" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
 
@@ -161,7 +161,7 @@ setup() {
     log "✅ SetSovereignTokenAddress event successful"
 
     # Query aggkit node for legacy token migrations
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
     assert_success
     local initial_legacy_token_migrations="$output"
     log "Initial legacy token migrations: $initial_legacy_token_migrations"
@@ -210,7 +210,7 @@ setup() {
     sleep 3
 
     # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 100 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 100 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
     assert_success
     local legacy_token_migrations="$output"
     local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacyTokenMigrations[-1].legacy_token_address')
@@ -238,7 +238,7 @@ setup() {
     sleep 3
 
     # Query aggkit node for legacy token migrations
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_node_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
     assert_success
     local final_legacy_token_migrations="$output"
     log "Final legacy token migrations: $final_legacy_token_migrations"
