@@ -122,8 +122,8 @@ jobs:
               export DISABLE_L2_FUND="false"
               bats ./tests/aggkit/bridge-e2e.bats
           else
-              export DISABLE_L2_FUND="true"
-              bats ./tests/aggkit/bridge-e2e-custom-gas.bats ./tests/aggkit/bridge-e2e.bats
+              export DISABLE_L2_FUND="false"
+              bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/bridge-e2e-custom-gas.bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats
           fi
           popd
 
