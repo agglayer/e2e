@@ -36,7 +36,7 @@ function fund() {
 
         # Bump gas price by 50%
         local gas_price
-        gas_price=$(printf "%.0f" "$(echo "$raw_gas_price * 1.5" | bc -l)")
+        gas_price=$(echo "$raw_gas_price * 1.5" | bc -l | cut -f 1 -d '.')
         echo "Using bumped gas price: $gas_price [wei] (original: $raw_gas_price [wei])" >&2
 
         cast send --rpc-url "$rpc_url" \
