@@ -54,7 +54,6 @@ setup() {
   log "⏳ final_status for GER $last_ger -> $final_status"
 
   # Assert that the final status is zero
-  assert_eq "$final_status" "0" "❌ Failed to remove GER"
-
+  assert_equal "$final_status" "0"
   log "✅ GER successfully removed"
 }
