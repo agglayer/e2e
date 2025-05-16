@@ -250,14 +250,17 @@ _common_setup() {
         l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
+        l2_ger_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
     else
         l1_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | tail -n +2 | jq -r .polTokenAddress)
+        l2_ger_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMGlobalExitRootL2Address)
     fi
     echo "L1 Bridge address=$l1_bridge_addr" >&3
     echo "L2 Bridge address=$l2_bridge_addr" >&3
     echo "POL address=$pol_address" >&3
+    echo "L2 GER address=$l2_ger_addr" >&3
 
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
