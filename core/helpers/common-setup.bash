@@ -227,7 +227,7 @@ _common_setup() {
 
         # Only fund if balance is less than or equal to 0.1 ether
         if [[ $token_balance -le $threshold ]]; then
-            local l2_coinbase_key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            local l2_coinbase_key=${L2_COINBASE_KEY:-"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
             local amt="10ether"
 
             echo "💸 $test_account_addr L2 balance is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
