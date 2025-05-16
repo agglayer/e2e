@@ -2,9 +2,9 @@ setup() {
   load '../../core/helpers/common-setup'
   _common_setup
 
-  readonly update_hash_chain_value_event_sig="UpdateHashChainValue(bytes32,bytes32)"
-  readonly remove_global_exit_roots_func_sig="removeGlobalExitRoots(bytes32[])"
-  readonly global_exit_root_map_sig="globalExitRootMap(bytes32)(uint256)"
+  readonly update_hash_chain_value_event_sig="event UpdateHashChainValue(bytes32, bytes32)"
+  readonly remove_global_exit_roots_func_sig="function removeGlobalExitRoots(bytes32[])"
+  readonly global_exit_root_map_sig="function globalExitRootMap(bytes32) (uint256)"
 
   readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
 }
@@ -35,11 +35,7 @@ setup() {
   log "🔍 Last GER: $last_ger"
 
   # Query initial status
-  run cast call \
-    $l2_ger_addr \
-    "$global_exit_root_map_sig" \
-    "$last_ger" \
-    --rpc-url "$L2_RPC_URL"
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
   assert_success
   initial_status="$output"
   log "⏳ initial_status for GER $last_ger -> $initial_status"
@@ -51,28 +47,19 @@ setup() {
   fi
 
   # Remove the GER from map, sovereign admin should be the sender
-  run cast send \
-    --rpc-url "$L2_RPC_URL" \
-    --private-key "$l2_sovereign_admin_private_key" \
-    $l2_ger_addr \
-    "$remove_global_exit_roots_func_sig" \
-    "[$last_ger]" \
-    --json
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "$last_ger" "$deposit_ether_value"
   assert_success
-  tx_hash=$(echo "$output" | jq -r '.transactionHash')
+  tx_hash=$(echo "$output" | grep -oP '(?<=transaction hash: )0x\w+')
   log "📨 Sent removeGlobalExitRoots tx: $tx_hash"
 
   # Query final status
-  run cast call \
-    $l2_ger_addr \
-    "$global_exit_root_map_sig" \
-    "$last_ger" \
-    --rpc-url "$L2_RPC_URL"
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
   assert_success
   final_status="$output"
   log "⏳ final_status for GER $last_ger -> $final_status"
 
   # Assert that the final status is zero
   assert_eq "$final_status" "0" "❌ Failed to remove GER"
+
   log "✅ GER successfully removed"
 }
