@@ -1,36 +1,87 @@
 name: Configurable E2E Execution
-run-name: Run Kurtosis CDK E2E test by @${{ github.actor }}
+run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
 
 # TODO solve for remote callers setting bats environment variables
 # act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
+
+permissions:
+  contents: read
 on:
   workflow_call:
     inputs:
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
-        required: true
+        required: false
         type: string
-
-      test-name:
-        description: "The name of the test to run"
-        required: true
-        type: string
+        default: "4afaf689af3264dcb23eb92817b5c25949b62b12"
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
-        required: true
+        required: false
         type: string
+        default: ${{ github.ref }}
 
       kurtosis-cdk-args:
         description: "Input arguments for the Kurtosis CDK package."
-        required: true
+        required: false
         type: string
+        default: |
+          {
+            "deployment_stages": {
+              "deploy_cdk_bridge_ui": false,
+              "deploy_optimism_rollup": true
+            },
+            "args": {
+              "verbosity": "debug",
+              "consensus_contract_type": "pessimistic",
+              "zkevm_rollup_chain_id": 2151908,
+              "sp1_prover_key": "0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31",
+              "agglayer_prover_primary_prover": "mock-prover",
+              "aggkit_prover_primary_prover": "mock-prover"
+            },
+            "optimism_package": {
+              "source": "github.com/xavier-romero/optimism-package/main.star@d09d841bd5528f4b29144cfc7ecba88a162427ce",
+              "predeployed_contracts": true,
+              "chains": [
+                {
+                  "participants": [
+                    {
+                      "el_type": "op-geth",
+                      "el_image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth@sha256:8cad527a982e929f80fca539e612c59ccb503fc076b86ce1f4ebeefb112dee03",
+                      "cl_type": "op-node",
+                      "cl_image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node@sha256:207943c6ca92a203e5c2f7908769023c76d2304060c8d8c4cfbd469b7fbaaf0d",
+                      "count": 1
+                    }
+                  ],
+                  "batcher_params": {
+                    "image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher@sha256:a017bf0a1dbe88e770eb6979354a148534b36e58ea7bc2fd7ae01f5e90eb9ed3"
+                  },
+                  "proposer_params": {
+                    "image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer@sha256:1c6e0c0ac79b561652af1bd5df30f0fcca1490c3989ea0a15e7e18d823e96825"
+                  },
+                  "network_params": {
+                    "name": "001",
+                    "network_id": "2151908",
+                    "seconds_per_slot": 1
+                  }
+                }
+              ],
+              "op_contract_deployer_params": {
+                "image": "xavierromero/op-deployer:20250314",
+                "l1_artifacts_locator": "https://storage.googleapis.com/oplabs-contract-artifacts/artifacts-v1-fffcbb0ebf7f83311791534a41e65ef90df47797f9ca8f86941452f597f7128c.tar.gz",
+                "l2_artifacts_locator": "https://storage.googleapis.com/oplabs-contract-artifacts/artifacts-v1-fffcbb0ebf7f83311791534a41e65ef90df47797f9ca8f86941452f597f7128c.tar.gz"
+              },
+              "observability": {
+                "enabled": true
+              }
+            }
+          }
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
         required: false
         type: string
-        default: "cdk"
+        default: "aggkit"
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
@@ -42,20 +93,19 @@ on:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
         required: false
         type: string
-        default: "local"
+        default: ""
 
       docker-artifact-name:
         description: "A name of a docker image to download (e.g. docker-image)"
         required: false
         type: string
-        default: "cdk"
+        default: ""
 
 env:
   POLYCLI_VERSION: v0.1.78
 
 jobs:
-  test-cdk-e2e:
-    name: ${{ inputs.test-name }}
+  run-kurtosis-image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
@@ -127,33 +177,9 @@ jobs:
       - name: Run e2e tests
         run: |
           pushd agglayer-e2e || exit 1
-          set -a
-          source ./tests/.env
-          set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
-          export PROJECT_ROOT="$PWD"
-          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          export DISABLE_L2_FUND="true"
-          bats tests/cdk
+          bats tests/agglayer/bridges.bats --filter-tags agglayer
           popd
-
-      - name: Dump enclave logs
-        if: ${{ failure() }}
-        run: kurtosis dump ./dump
-    
-      - name: Generate archive name
-        if: ${{ failure() }}
-        run: |
-          archive_name="dump_run_with_args_${{ inputs.test-name}}_${{ github.run_id }}"
-          echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
-          echo "Generated archive name: ${archive_name}"
-  
-      - name: Upload logs
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARCHIVE_NAME }}
-          path: ./dump
 
       - name: Clean up kurtosis-cdk enclave
         if: ${{ always() }}

@@ -36,36 +36,36 @@ function add_network2_to_agglayer() {
     local bridge_tx_hash_pp2=$output
 
     echo "=== Running LxLy claim L1 to L2(PP1) for $bridge_tx_hash_pp1" >&3
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_pp1" 50 10 "$aggkit_pp1_node_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_pp1" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local bridge="$output"
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_pp1_node_url"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_pp1_network_id" "$l1_info_tree_index" 50 10 "$aggkit_pp1_node_url"
+    run find_injected_l1_info_leaf "$l2_pp1_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_pp1_node_url"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local proof="$output"
     run claim_bridge "$bridge" "$proof" "$l2_pp1_url" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
     assert_success
 
     echo "=== Running LxLy claim L1 to L2(PP2) for $bridge_tx_hash_pp2" >&3
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_pp2" 50 10 "$aggkit_pp2_node_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_pp2" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local bridge="$output"
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_pp2_node_url"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_pp2_network_id" "$l1_info_tree_index" 50 10 "$aggkit_pp2_node_url"
+    run find_injected_l1_info_leaf "$l2_pp2_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_pp2_node_url"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local proof="$output"
     run claim_bridge "$bridge" "$proof" "$l2_pp2_url" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
@@ -81,18 +81,18 @@ function add_network2_to_agglayer() {
     local bridge_tx_hash=$output
 
     echo "=== Running LxLy claim L2(PP2) to L2(PP1) for: $bridge_tx_hash" >&3
-    run get_bridge "$l2_pp2_network_id" "$bridge_tx_hash" 50 10 "$aggkit_pp2_node_url"
+    run get_bridge "$l2_pp2_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local bridge="$output"
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l2_pp2_network_id" "$deposit_count" 50 10 "$aggkit_pp2_node_url"
+    run find_l1_info_tree_index_for_bridge "$l2_pp2_network_id" "$deposit_count" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l2_pp1_network_id" "$l1_info_tree_index" 50 10 "$aggkit_pp1_node_url"
+    run find_injected_l1_info_leaf "$l2_pp1_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l2_pp2_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_pp2_node_url"
+    run generate_claim_proof "$l2_pp2_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
     local proof="$output"
     run claim_bridge "$bridge" "$proof" "$l2_pp1_url" 50 10 "$l2_pp2_network_id" "$l2_bridge_addr"
@@ -110,25 +110,25 @@ function add_network2_to_agglayer() {
     bridge_tx_hash=$output
 
     echo "=== Running LxLy claim L2(PP1) to L1 for $bridge_tx_hash" >&3
-    run get_bridge "$l2_pp1_network_id" "$bridge_tx_hash" 50 10 "$aggkit_pp1_node_url"
+    run get_bridge "$l2_pp1_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local bridge="$output"
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l2_pp1_network_id" "$deposit_count" 50 10 "$aggkit_pp1_node_url"
+    run find_l1_info_tree_index_for_bridge "$l2_pp1_network_id" "$deposit_count" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local l1_info_tree_index="$output"
-    run find_injected_info_after_index "$l1_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_pp1_node_url"
+    run find_injected_l1_info_leaf "$l1_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local injected_info="$output"
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l2_pp1_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_pp1_node_url"
+    run generate_claim_proof "$l2_pp1_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
     local proof="$output"
     run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 50 10 "$l2_pp1_network_id" "$l1_bridge_addr"
     assert_success
 
     echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1"
-    wait_to_settled_certificate_containing_global_index $aggkit_pp1_node_url $global_index_pp2_to_pp1
+    wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp2_to_pp1
 }
 
 function fund_claim_tx_manager() {

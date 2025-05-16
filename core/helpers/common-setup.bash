@@ -14,6 +14,14 @@ _common_setup() {
     load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
+    load '../../core/helpers/scripts/assert_block_production'
+    load '../../core/helpers/scripts/check_balances'
+    load '../../core/helpers/scripts/deploy_contract'
+    load '../../core/helpers/scripts/deploy_test_contracts'
+    load '../../core/helpers/scripts/send_eoa_tx'
+    load '../../core/helpers/scripts/send_smart_contract_tx'
+    load '../../core/helpers/scripts/wait_for_claim'
+
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
@@ -142,7 +150,7 @@ _common_setup() {
 
         # Only fund if balance is less than or equal to 0.1 ether
         if [[ $token_balance -le $threshold ]]; then
-            local l2_coinbase_key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            local l2_coinbase_key=${L2_COINBASE_KEY:-"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
             local amt="10ether"
 
             echo "💸 $test_account_addr L2 balance is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
@@ -165,23 +173,17 @@ _common_setup() {
         l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
+        l2_ger_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
     else
         l1_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | tail -n +2 | jq -r .polTokenAddress)
+        l2_ger_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMGlobalExitRootL2Address)
     fi
     echo "L1 Bridge address=$l1_bridge_addr" >&3
     echo "L2 Bridge address=$l2_bridge_addr" >&3
     echo "POL address=$pol_address" >&3
-
-    local rollup_params_file="/opt/zkevm/create_rollup_output.json"
-    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
-    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
-        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
-    else
-        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address=$gas_token_addr" >&3
+    echo "L2 GER address=$l2_ger_addr" >&3
 
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
@@ -193,13 +195,25 @@ _common_setup() {
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rest)"}
+        local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     elif [[ "$ENCLAVE" == "op" ]]; then
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+        local rollup_params_file="/opt/zkevm/create_rollup_output.json"
+        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rest)"}
     fi
+
+    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
+    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
+        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
+    else
+        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
+    fi
+    echo "Gas token address=$gas_token_addr" >&3
+
     readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
+    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }

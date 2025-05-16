@@ -6,28 +6,23 @@ on:
     inputs:
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
-        required: false
+        required: true
         type: string
-        default: ""
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
-        required: false
+        required: true
         type: string
-        default: ${{ github.ref }}
 
       kurtosis-cdk-args:
         description: "Input arguments for the Kurtosis CDK package."
-        required: false
+        required: true
         type: string
-        default: |
-          {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
-        required: false
+        required: true
         type: string
-        default: "cdk"
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
@@ -39,19 +34,18 @@ on:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
         required: false
         type: string
-        default: ""
+        default: "local"
 
       docker-artifact-name:
         description: "A name of a docker image to download (e.g. docker-image)"
         required: false
         type: string
-        default: ""
+        default: "aggkit"
 
       test-name:
         description: "Name of test"
         required: true
         type: string
-        default: ""
 
 jobs:
   test-single-e2e:
@@ -109,16 +103,6 @@ jobs:
           echo '${{ inputs.kurtosis-cdk-args }}'
           echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
 
-      # Do not merge this
-      - name: List current images
-        run: |
-          docker images
-          if [[ -e /tmp/docker-image.tar ]]; then
-              echo "We have an image locally"
-          else
-              echo "We have nothing!!!"
-          fi
-
       - name: Startup the kurtosis-cdk package
         run: |
           pushd kurtosis-cdk || exit 1
@@ -136,10 +120,10 @@ jobs:
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
           if [[ $ENCLAVE == "op" ]]; then
               export DISABLE_L2_FUND="false"
-              bats ./tests/aggkit/bridge-e2e.bats
+              bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats
           else
               export DISABLE_L2_FUND="true"
-              bats ./tests/aggkit/bridge-e2e-custom-gas.bats ./tests/aggkit/bridge-e2e.bats
+              bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/bridge-e2e-custom-gas.bats
           fi
           popd
 
