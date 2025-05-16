@@ -209,11 +209,11 @@ setup() {
     sleep 3
 
     # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 100 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
     assert_success
     local legacy_token_migrations="$output"
-    local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[-1].legacy_token_address')
-    local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[-1].updated_token_address')
+    local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
+    local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address')
     assert_equal "$l2_token_addr_legacy" "$legacy_token_address"
     assert_equal "$l2_token_addr_sovereign" "$updated_token_address"
 
