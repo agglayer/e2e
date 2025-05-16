@@ -12,22 +12,7 @@ setup() {
     local bridge_tx_hash=$output
 
     echo "====== claimMessage (L2)" >&3
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
-    assert_success
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "====== bridgeMessage L2 -> L1" >&3
     destination_net=0
@@ -215,23 +200,8 @@ setup() {
     assert_success
     local bridge_tx_hash=$output
 
-    # Claim deposits (settle them on the L2)
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
-    assert_success
+    # Claim deposit (settle it on the L2)
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "=== Running L2 gas token ($native_token_addr) deposit to L1 network" >&3
     destination_addr=$sender_addr

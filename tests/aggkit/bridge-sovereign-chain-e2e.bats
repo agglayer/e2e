@@ -10,7 +10,7 @@ setup() {
 }
 
 @test "Test GlobalExitRoot removal" {
-    echo "=== 🧑‍💻 Running UpdateRemovalHashChainValue" >&3
+    echo "=== 🧑‍💻 Running GlobalExitRoot removal" >&3
 
     update_hash_chain_value_events=$(cast logs \
         --rpc-url     "$L2_RPC_URL" \
