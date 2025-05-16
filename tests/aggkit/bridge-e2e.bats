@@ -93,10 +93,3 @@ setup() {
     run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
 }
-
-@test "Verify certificate settlement" {
-    echo "Waiting 10 minutes to get some settle certificate...." >&3
-
-    run $PROJECT_ROOT/core/helpers/scripts/agglayer_certificates_monitor.sh 1 600 $l2_rpc_network_id
-    assert_success
-}

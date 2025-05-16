@@ -9,7 +9,6 @@ _common_setup() {
     load '../../core/helpers/scripts/get_token_balance'
     load '../../core/helpers/scripts/mint_token_helpers'
     load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/run_with_timeout'
     load '../../core/helpers/scripts/send_tx'
     load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
@@ -20,9 +19,8 @@ _common_setup() {
     load '../../core/helpers/scripts/deploy_test_contracts'
     load '../../core/helpers/scripts/send_eoa_tx'
     load '../../core/helpers/scripts/send_smart_contract_tx'
-    load '../../core/helpers/scripts/wait_for_claim'
+    load '../../core/helpers/scripts/zkevm_bridge_service'
 
-    # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
         PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
@@ -31,8 +29,6 @@ _common_setup() {
     fi
     PATH="$PROJECT_ROOT/src:$PATH"
 
-    # ✅ Standard contract addresses
-    export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
     export DEPLOY_SALT="${DEPLOY_SALT:-0x0000000000000000000000000000000000000000000000000000000000000000}"
 
     # ✅ Standard function signatures
@@ -43,21 +39,102 @@ _common_setup() {
     # ✅ Kurtosis service setup
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
     export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
-    export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
-    export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
-    # ✅ Standardized L2 RPC and SEQUENCER URL Handling
-    if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
-        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
-    elif [[ "$ENCLAVE" == "op" ]]; then
-        echo "🔥 Detected OP Stack"
-        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" op-el-1-op-geth-op-node-001 rpc)
-        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" op-batcher-001 http)
+    local fallback_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
+    local resolved_url=""
+    for node in "${fallback_nodes[@]}"; do
+        # Need to invoke the command this way, otherwise it would fail the entire test
+        # if the node is not running, but this is just a sanity check
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved L2 RPC URL ("$resolved_url") from "$node"" >&3
+            break
+        fi
+    done
+    if [ -z "$resolved_url" ]; then
+        echo "❌ Failed to resolve L2 RPC URL from all fallback nodes" >&2
+        return 1
     fi
-    export L2_RPC_URL="$L2_RPC_URL"
+    export L2_RPC_URL="$resolved_url"
+
+    local fallback_nodes=(
+        "op-batcher-001" "http"
+        "cdk-erigon-sequencer-001" "rpc"
+    )
+    local resolved_url=""
+    local num_nodes=${#fallback_nodes[@]}
+
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${fallback_nodes[i]}"
+        local node_port_type="${fallback_nodes[i+1]}"
+
+        kurtosis service inspect "$ENCLAVE" "$node_name" || {
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved L2 SEQUENCER RPC URL ($resolved_url) from $node_name" >&3
+            break
+        fi
+    done
+
+    if [ -z "$resolved_url" ]; then
+        echo "❌ Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" >&2
+        return 1
+    fi
+    export L2_SEQUENCER_RPC_URL="$resolved_url"
+
+    local fallback_nodes=("aggkit-001" "cdk-node-001")
+    local resolved_url=""
+    for node in "${fallback_nodes[@]}"; do
+        # Need to invoke the command this way, otherwise it would fail the entire test
+        # if the node is not running, but this is just a sanity check
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rest)
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved aggkit node url ("$resolved_url") from "$node"" >&3
+            break
+        fi
+    done
+    if [ -z "$resolved_url" ]; then
+        echo "❌ Failed to resolve aggkit node url from all fallback nodes" >&2
+        return 1
+    fi
+    readonly aggkit_bridge_url="$resolved_url"
+
+    local fallback_nodes=("zkevm-bridge-service-001")
+    local resolved_url=""
+    for node in "${fallback_nodes[@]}"; do
+        # Need to invoke the command this way, otherwise it would fail the entire test
+        # if the node is not running, but this is just a sanity check
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved bridge api url ("$resolved_url") from "$node"" >&3
+            break
+        fi
+    done
+    if [ -z "$resolved_url" ]; then
+        echo "zkevm-bridge-service isnt running" >&3
+    fi
+    readonly bridge_api_url="$resolved_url"
+
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
-    export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
@@ -195,11 +272,9 @@ _common_setup() {
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rest)"}
         local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     elif [[ "$ENCLAVE" == "op" ]]; then
         local rollup_params_file="/opt/zkevm/create_rollup_output.json"
-        readonly aggkit_bridge_url=${AGGKIT_BRIDGE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rest)"}
     fi
 
     rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
