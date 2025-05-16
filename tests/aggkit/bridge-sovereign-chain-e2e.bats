@@ -42,7 +42,7 @@ setup() {
   fi
 
   # Remove the GER from map, sovereign admin should be the sender
-  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "$last_ger"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$last_ger]"
   assert_success
   tx_hash=$(echo "$output" | grep -oP '(?<=transaction hash: )0x\w+')
   log "📨 Sent removeGlobalExitRoots tx: $tx_hash"
