@@ -21,7 +21,7 @@ _common_setup() {
     load '../../core/helpers/scripts/send_smart_contract_tx'
     load '../../core/helpers/scripts/zkevm_bridge_service'
 
-    load './scripts/kurtosis-helpers'
+    load '../../core/helpers/scripts/kurtosis-helpers'
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
