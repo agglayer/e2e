@@ -176,7 +176,7 @@ setup() {
     assert_success
     local proof="$output"
     
-    run claim_bridge_claimSponsor "$bridge" "$proof" "$L2_RPC_URL" "$l1_rpc_network_id" 50 10 "$initial_receiver_balance"
+    run claim_bridge_claimSponsor "$bridge" "$proof" "$aggkit_node_url" "$l1_rpc_network_id" 10 2 "$initial_receiver_balance"
     assert_success
 }
 

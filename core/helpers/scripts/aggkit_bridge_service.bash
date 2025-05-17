@@ -543,7 +543,7 @@ function claim_bridge_claimSponsor() {
    log "Claim JSON: $claim_json"
 
     log "📤 Submitting claim with bridge_sponsorClaim... $destination_rpc_url"
-    cast rpc --rpc-url "$destination_rpc_url" --raw "bridge_sponsorClaim"  "$claim_json"
+    cast rpc --rpc-url "$destination_rpc_url" "bridge_sponsorClaim"  "$claim_json"
     if [[ $? -ne 0 ]]; then
         echo "❌ Error: Failed to submit claim sponsorship."
         exit 1
@@ -553,10 +553,10 @@ function claim_bridge_claimSponsor() {
     local attempt=0
     while (( attempt < max_attempts )); do
         sleep "$poll_frequency"
-        local status_response=$(cast rpc --rpc-url "$destination_rpc_url" bridge_getSponsoredClaimStatus "$global_index")
-        local status=$(echo "$status_response" | jq -r '.result.status')
+        local status=$(cast rpc --rpc-url "$destination_rpc_url" bridge_getSponsoredClaimStatus "$global_index")
+        status=$(echo "$status" | xargs)
+        log "⏱️  Attempt $((attempt+1)): Status = $status"
 
-        echo "⏱️  Attempt $((attempt+1)): Status = $status"
         if [[ "$status" == "success" ]]; then
             log "✅ Claim sponsorship succeeded."
             return 0
@@ -565,15 +565,15 @@ function claim_bridge_claimSponsor() {
             exit 1
         else 
             # check if bridge has already been claimed
-            local current_receiver_balance=$(get_token_balance "$destination_rpc_url" "$origin_token_address" "$destination_address")
+            local current_receiver_balance=$(get_token_balance "$L2_RPC_URL" "0x0000000000000000000000000000000000000000" "$destination_address")
             delta=$(echo "$current_receiver_balance - $initial_receiver_balance" | bc)
-            delta=$(cast --to-unit "$delta" wei)
+            delta=$(cast --to-wei "$delta")
+            log "⏱️  Attempt $((attempt+1)): change in receiver($destination_address) balance = $delta wei"
             if [[ "$delta" == "$amount" ]]; then
-                log "✅ Bridge already claimed =>balance increased by $amount."
+                log "✅ Bridge already claimed receiver: $destination_address balance increased by $amount."
                 return 0
             fi
         fi
-
         ((attempt++))
     done
 
