@@ -565,7 +565,7 @@ function claim_bridge_claimSponsor() {
             exit 1
         else 
             # check if bridge has already been claimed
-            local current_receiver_balance=$(get_token_balance "$L2_RPC_URL" "0x0000000000000000000000000000000000000000" "$destination_address")
+            local current_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_address")
             delta=$(echo "$current_receiver_balance - $initial_receiver_balance" | bc)
             delta=$(cast --to-wei "$delta")
             log "⏱️  Attempt $((attempt+1)): change in receiver($destination_address) balance = $delta wei"
