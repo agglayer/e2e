@@ -8,39 +8,31 @@ on:
         description: "Path for aggsender to find the imported bridge"
         required: true
         type: string
-        default: ""
 
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
-        required: false
+        required: true
         type: string
-        default: ""
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
-        required: false
+        required: true
         type: string
-        default: ${{ github.ref }}
 
       kurtosis-cdk-args-1:
         description: "Input arguments for the Kurtosis CDK package 1."
-        required: false
+        required: true
         type: string
-        default: |
-          {}
 
       kurtosis-cdk-args-2:
         description: "Input arguments for the Kurtosis CDK package 2."
-        required: false
+        required: true
         type: string
-        default: |
-          {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
-        required: false
+        required: true
         type: string
-        default: "cdk"
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
@@ -52,13 +44,13 @@ on:
         description: "A local docker tag to be used as the image for a particular service in kurtosis (e.g. agglayer:local)"
         required: false
         type: string
-        default: ""
+        default: "local"
 
       docker-artifact-name:
         description: "A name of a docker image to download (e.g. docker-image)"
         required: false
         type: string
-        default: ""
+        default: "aggkit"
 
 jobs:
   test-multi-e2e:
@@ -124,16 +116,6 @@ jobs:
           echo '${{ inputs.kurtosis-cdk-args-1 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-1.json
           echo '${{ inputs.kurtosis-cdk-args-2 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-2.json
 
-      # Do not merge this
-      - name: List current images
-        run: |
-          docker images
-          if [[ -e /tmp/docker-image.tar ]]; then
-              echo "We have an image locally"
-          else
-              echo "We have nothing!!!"
-          fi
-
       - name: Startup the kurtosis-cdk package
         run: |
           pushd kurtosis-cdk || exit 1
@@ -163,7 +145,7 @@ jobs:
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
-          archive_name="dump_run_with_args_${{matrix.e2e-group}}_${{ github.run_id }}"
+          archive_name="dump_run_with_args_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
   

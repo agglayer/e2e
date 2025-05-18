@@ -9,12 +9,18 @@ _common_setup() {
     load '../../core/helpers/scripts/get_token_balance'
     load '../../core/helpers/scripts/mint_token_helpers'
     load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/run_with_timeout'
     load '../../core/helpers/scripts/send_tx'
     load '../../core/helpers/scripts/verify_balance'
     load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
 
-    # ✅ Ensure PROJECT_ROOT is correct
+    load '../../core/helpers/scripts/assert_block_production'
+    load '../../core/helpers/scripts/check_balances'
+    load '../../core/helpers/scripts/deploy_contract'
+    load '../../core/helpers/scripts/deploy_test_contracts'
+    load '../../core/helpers/scripts/send_eoa_tx'
+    load '../../core/helpers/scripts/send_smart_contract_tx'
+    load '../../core/helpers/scripts/zkevm_bridge_service'
+
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
         PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
@@ -23,8 +29,6 @@ _common_setup() {
     fi
     PATH="$PROJECT_ROOT/src:$PATH"
 
-    # ✅ Standard contract addresses
-    export GAS_TOKEN_ADDR="${GAS_TOKEN_ADDR:-0x72ae2643518179cF01bcA3278a37ceAD408DE8b2}"
     export DEPLOY_SALT="${DEPLOY_SALT:-0x0000000000000000000000000000000000000000000000000000000000000000}"
 
     # ✅ Standard function signatures
@@ -35,21 +39,102 @@ _common_setup() {
     # ✅ Kurtosis service setup
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
     export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
-    export ERIGON_RPC_NODE="${KURTOSIS_ERIGON_RPC:-cdk-erigon-rpc-001}"
-    export ERIGON_SEQUENCER_RPC_NODE="${KURTOSIS_ERIGON_SEQUENCER_RPC:-cdk-erigon-sequencer-001}"
 
-    # ✅ Standardized L2 RPC and SEQUENCER URL Handling
-    if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_RPC_NODE" rpc)
-        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" "$ERIGON_SEQUENCER_RPC_NODE" rpc)
-    elif [[ "$ENCLAVE" == "op" ]]; then
-        echo "🔥 Detected OP Stack"
-        L2_RPC_URL=$(kurtosis port print "$ENCLAVE" op-el-1-op-geth-op-node-001 rpc)
-        L2_SEQUENCER_RPC_URL=$(kurtosis port print "$ENCLAVE" op-batcher-001 http)
+    local fallback_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
+    local resolved_url=""
+    for node in "${fallback_nodes[@]}"; do
+        # Need to invoke the command this way, otherwise it would fail the entire test
+        # if the node is not running, but this is just a sanity check
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved L2 RPC URL ("$resolved_url") from "$node"" >&3
+            break
+        fi
+    done
+    if [ -z "$resolved_url" ]; then
+        echo "❌ Failed to resolve L2 RPC URL from all fallback nodes" >&2
+        return 1
     fi
-    export L2_RPC_URL="$L2_RPC_URL"
+    export L2_RPC_URL="$resolved_url"
+
+    local fallback_nodes=(
+        "op-batcher-001" "http"
+        "cdk-erigon-sequencer-001" "rpc"
+    )
+    local resolved_url=""
+    local num_nodes=${#fallback_nodes[@]}
+
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${fallback_nodes[i]}"
+        local node_port_type="${fallback_nodes[i+1]}"
+
+        kurtosis service inspect "$ENCLAVE" "$node_name" || {
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved L2 SEQUENCER RPC URL ($resolved_url) from $node_name" >&3
+            break
+        fi
+    done
+
+    if [ -z "$resolved_url" ]; then
+        echo "❌ Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" >&2
+        return 1
+    fi
+    export L2_SEQUENCER_RPC_URL="$resolved_url"
+
+    local fallback_nodes=("aggkit-001" "cdk-node-001")
+    local resolved_url=""
+    for node in "${fallback_nodes[@]}"; do
+        # Need to invoke the command this way, otherwise it would fail the entire test
+        # if the node is not running, but this is just a sanity check
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rest)
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved aggkit node url ("$resolved_url") from "$node"" >&3
+            break
+        fi
+    done
+    if [ -z "$resolved_url" ]; then
+        echo "❌ Failed to resolve aggkit node url from all fallback nodes" >&2
+        return 1
+    fi
+    readonly aggkit_bridge_url="$resolved_url"
+
+    local fallback_nodes=("zkevm-bridge-service-001")
+    local resolved_url=""
+    for node in "${fallback_nodes[@]}"; do
+        # Need to invoke the command this way, otherwise it would fail the entire test
+        # if the node is not running, but this is just a sanity check
+        kurtosis service inspect "$ENCLAVE" "$node" || {
+            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
+        if [ -n "$resolved_url" ]; then
+            echo "✅ Successfully resolved bridge api url ("$resolved_url") from "$node"" >&3
+            break
+        fi
+    done
+    if [ -z "$resolved_url" ]; then
+        echo "zkevm-bridge-service isnt running" >&3
+    fi
+    readonly bridge_api_url="$resolved_url"
+
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
-    export L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
 
     # ✅ Generate a fresh wallet
@@ -142,7 +227,7 @@ _common_setup() {
 
         # Only fund if balance is less than or equal to 0.1 ether
         if [[ $token_balance -le $threshold ]]; then
-            local l2_coinbase_key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            local l2_coinbase_key=${L2_COINBASE_KEY:-"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
             local amt="10ether"
 
             echo "💸 $test_account_addr L2 balance is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
@@ -165,23 +250,17 @@ _common_setup() {
         l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
+        l2_ger_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
     else
         l1_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | tail -n +2 | jq -r .polTokenAddress)
+        l2_ger_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMGlobalExitRootL2Address)
     fi
     echo "L1 Bridge address=$l1_bridge_addr" >&3
     echo "L2 Bridge address=$l2_bridge_addr" >&3
     echo "POL address=$pol_address" >&3
-
-    local rollup_params_file="/opt/zkevm/create_rollup_output.json"
-    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
-    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
-        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
-    else
-        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address=$gas_token_addr" >&3
+    echo "L2 GER address=$l2_ger_addr" >&3
 
     readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     readonly sender_addr="$(cast wallet address --private-key $sender_private_key)"
@@ -193,13 +272,23 @@ _common_setup() {
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
     readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
     if [[ "$ENCLAVE" == "cdk" || "$ENCLAVE" == "aggkit" ]]; then
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE cdk-node-001 rpc)"}
+        local rollup_params_file="/opt/zkevm/create_rollup_parameters.json"
     elif [[ "$ENCLAVE" == "op" ]]; then
-        readonly aggkit_node_url=${AGGKIT_NODE_URL:-"$(kurtosis port print $ENCLAVE aggkit-001 rpc)"}
+        local rollup_params_file="/opt/zkevm/create_rollup_output.json"
     fi
+
+    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
+    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
+        readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
+    else
+        readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)
+    fi
+    echo "Gas token address=$gas_token_addr" >&3
+
     readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
+    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }
