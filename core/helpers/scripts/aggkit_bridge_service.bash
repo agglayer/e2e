@@ -567,22 +567,53 @@ function claim_bridge_claimSponsor() {
      amount:               $amount,
      metadata:             $metadata
    }')
+    log "Claim JSON: $claim_json"
+    log "📤 Submitting claim with sponsor-claim... $destination_rpc_url"
 
-   log "Claim JSON: $claim_json"
+    # Capture both stdout (sponsor-claim) and stderr (error message)
+    response=$(curl -s -X POST -H "Content-Type: application/json" \
+        -d "$claim_json" \
+        "$destination_rpc_url/bridge/v1/sponsor-claim" 2>&1)
+    log "sponsor-claim response: $response"
 
-    log "📤 Submitting claim with bridge_sponsorClaim... $destination_rpc_url"
-    cast rpc --rpc-url "$destination_rpc_url" "bridge_sponsorClaim"  "$claim_json"
-    if [[ $? -ne 0 ]]; then
-        echo "❌ Error: Failed to submit claim sponsorship."
-        exit 1
+    # Check if the response contains an error
+    if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+        log "⚠️ Error: $response"
+        sleep "$poll_frequency"
+        continue
     fi
 
-    log "🔄 Polling bridge_getSponsoredClaimStatus for global_index: $global_index"
+    if [[ "$response" == "" ]]; then
+        log "Empty response retrieved, retrying in "$poll_frequency"s..."
+        sleep "$poll_frequency"
+        continue
+    fi
+
+    log "🔄 Polling sponsored-claim-status for global_index: $global_index"
     local attempt=0
     while (( attempt < max_attempts )); do
         sleep "$poll_frequency"
-        local status=$(cast rpc --rpc-url "$destination_rpc_url" bridge_getSponsoredClaimStatus "$global_index")
-        status=$(echo "$status" | xargs)
+
+        # Capture both stdout (sponsored-claim-status) and stderr (error message)
+        local status=$(curl -s -H "Content-Type: application/json" \
+            "$destination_rpc_url/bridge/v1/sponsored-claim-status?global_index=$global_index" 2>&1)
+
+        # Check if the response contains an error
+        if [[ "$status" == *"error"* || "$status" == *"Error"* ]]; then
+            log "⚠️ Error: $status"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$status" == "" ]]; then
+            log "Empty status retrieved, retrying in "$poll_frequency"s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Remove surrounding double quotes
+        status=${status#\"}
+        status=${status%\"}
         log "⏱️  Attempt $((attempt+1)): Status = $status"
 
         if [[ "$status" == "success" ]]; then
