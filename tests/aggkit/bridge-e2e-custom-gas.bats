@@ -24,7 +24,7 @@ setup() {
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
     local minter_key=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
-    run mint_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount"
+    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
     # Assert that balance of gas token (on the L1) is correct
@@ -39,12 +39,6 @@ setup() {
 
     echo "Sender balance ($sender_addr) (gas token L1): $gas_token_final_sender_balance" >&3
     assert_equal "$gas_token_final_sender_balance" "$expected_balance"
-
-    # Send approve transaction to the gas token on L1
-    deposit_ether_value="0.1ether"
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$deposit_ether_value"
-    assert_success
-    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     # DEPOSIT
     destination_addr=$receiver
