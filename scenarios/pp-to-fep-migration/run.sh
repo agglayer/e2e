@@ -78,15 +78,38 @@ echo ' #####  #      #####  #    #   #   ######    #     #  ####  ###### ###### 
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
+# The timeout might be too large, but it should allow sufficient time for the certificates to settle.
+# TODO this timeout approach allows us to run the script without needing to manually check and continue the next steps. But there might be better approaches.
+timeout=2000
+retry_interval=20
+
+check_non_null() [[ -n "$1" && "$1" != "null" ]]
+check_null() [[ "$1" == "null" ]]
 
 # TOOD We should add some pause here to make sure that there are some bridges sent... we can check that the pending certificate is not null
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+echo "Checking non-null certificate..."
+start=$((SECONDS))
+while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_non_null "$output"; do
+  [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for non-null certificate"; exit 1; }
+  echo "Retrying..."
+  sleep $retry_interval
+done
+echo "Non-null latest pending certificate: $output"
 
 # Stopping the bridge spammer for our own sanity
-kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+echo "Stopping bridge spammer..."
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001 || { echo "Error: Failed to stop spammer"; exit 1; }
+echo "Spammer stopped."
 
 # TODO use this in the future to block the upgrade This should be `null`... Basically we want to make sure everything is settled
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+echo "Checking null certificate..."
+start=$((SECONDS))
+while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_null "$output"; do
+  [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for null certificate"; exit 1; }
+  echo "Retrying: $output"
+  sleep $retry_interval
+done
+echo "Null latest pending certificate confirmed"
 
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
 # I assume we should stop the sequencer before we update it
