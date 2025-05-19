@@ -588,8 +588,14 @@ function get_legacy_token_migrations() {
         log "------ legacy_token_migrations ------"
 
         # Check if the response contains an error
-        if [[ "$legacy_token_migrations" == *"error"* || "$legacy_token_migrations" == *"Error"* || "$legacy_token_migrations" == "" ]]; then
-            log "⚠️ RPC Error: $legacy_token_migrations"
+        if [[ "$legacy_token_migrations" == *"error"* || "$legacy_token_migrations" == *"Error"* ]]; then
+            log "⚠️ Error: $legacy_token_migrations"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$legacy_token_migrations" == "" ]]; then
+            log "Empty legacy token migration response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
         fi
