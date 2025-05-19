@@ -701,7 +701,7 @@ function get_legacy_token_migrations() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index, params: network_id = $network_id, page_number = $page_number, page_size = $page_size"
+        log "🔎 Attempt $attempt/$max_attempts: fetching legacy token migrations, params: network_id = $network_id, page_number = $page_number, page_size = $page_size"
 
         # Capture both stdout (legacy_token_migrations) and stderr (error message)
         legacy_token_migrations=$(curl -s -H "Content-Type: application/json" \

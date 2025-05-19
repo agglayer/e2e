@@ -52,8 +52,7 @@ setup() {
   # Remove the GER from map, sovereign admin should be the sender
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$last_ger]"
   assert_success
-  tx_hash=$(echo "$output" | grep -oP '(?<=transaction hash: )0x\w+')
-  log "📨 Sent removeGlobalExitRoots tx: $tx_hash"
+  log "🔄 Removing GER from map $last_ger"
 
   # Query final status
   run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
@@ -67,6 +66,7 @@ setup() {
 }
     
 @test "Test Sovereign Chain Bridge Events" {
+    log "=== 🧑‍💻 Running Sovereign Chain Bridge Events" >&3
     run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
     assert_success
 
@@ -99,7 +99,7 @@ setup() {
     # Claim deposits (settle them on the L2)
     process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"  
 
-    run wait_for_expected_token "$l1_erc20_addr" 50 10 "$aggkit_bridge_url" "$l2_rpc_network_id"
+    run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
 
@@ -144,8 +144,11 @@ setup() {
     assert_equal "false" "$setMultipleSovereignTokenAddre_event_isNotMintable"
     log "✅ SetSovereignTokenAddress event successful"
 
+    # sleep briefly to give aggkit time to index the event
+    sleep 3
+
     # Query aggkit node for legacy token migrations
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
     assert_success
     local initial_legacy_token_migrations="$output"
     log "Initial legacy token migrations: $initial_legacy_token_migrations"
@@ -168,7 +171,7 @@ setup() {
     log "migrate_from_block: $migrateLegacyToken_tx_details_from_block"
 
     # Find logs for MigrateLegacyToken event
-    run cast logs --rpc-url $L2_RPC_URL --from-block "$migrateLegacyToken_tx_details_from_block" --to-block latest --address "$l2_bridge_addr" $migrate_legacy_token_event_sig --json    
+    run cast logs --rpc-url "$L2_RPC_URL" --from-block "$migrateLegacyToken_tx_details_from_block" --to-block latest --address "$l2_bridge_addr" "$migrate_legacy_token_event_sig" --json    
     assert_success
     local migrateLegacyToken_event_logs=$output
 
@@ -194,7 +197,7 @@ setup() {
     sleep 3
 
     # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
     assert_success
     local legacy_token_migrations="$output"
     local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
@@ -218,8 +221,11 @@ setup() {
     assert_equal "$l2_token_addr_legacy" "$removeLegacySovereignTokenAddress_event_sovereignTokenAddress"
     log "✅ RemoveLegacySovereignTokenAddress event successful"
 
+    # sleep briefly to give aggkit time to index the event
+    sleep 3
+
     # Query aggkit node for legacy token migrations
-    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" "$l1_info_tree_index" 50 10
+    run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
     assert_success
     local final_legacy_token_migrations="$output"
     log "Final legacy token migrations: $final_legacy_token_migrations"
