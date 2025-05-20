@@ -1,6 +1,6 @@
 services:
   op-succinct-proposer-001:
-    image: ghcr.io/agglayer/op-succinct/op-succinct:v2.1.6-agglayer
+    image: ghcr.io/agglayer/op-succinct/op-succinct:v2.1.8-agglayer
     container_name: op-succinct-proposer-001
     networks:
       - kt-network
@@ -8,7 +8,7 @@ services:
       - VERIFIER_ADDRESS=0xf22E2B040B639180557745F47aB97dFA95B1e22a
       - PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31
       - NETWORK_PRIVATE_KEY=${SP1_NETWORK_KEY}
-      - RANGE_PROOF_INTERVAL=1800
+      - RANGE_PROOF_INTERVAL=${RANGE_PROOF_INTERVAL_OVERRIDE}
       - GRPC_ADDRESS=0.0.0.0:50051
       - AGGLAYER=true
       - AGG_PROOF_MODE=compressed
@@ -22,7 +22,6 @@ services:
       - MAX_CONCURRENT_PROOF_REQUESTS=1
       - MAX_CONCURRENT_WITNESS_GEN=1
       - L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e
-      - MAX_BLOCK_RANGE_PER_SPAN_PROOF=${SPAN_LENGTH_OVERRIDE}
       - OP_SUCCINCT_MOCK=false
       - L2_RPC=http://op-el-1-op-geth-op-node-001:8545
     healthcheck:
@@ -33,7 +32,7 @@ services:
       start_period: 10s
 
   aggkit-prover-001:
-    image: ghcr.io/agglayer/aggkit-prover:0.1.0-rc.22
+    image: ghcr.io/agglayer/aggkit-prover:0.1.0-rc.24
     container_name: aggkit-prover-001
     networks:
       - kt-network

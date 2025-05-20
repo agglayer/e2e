@@ -16,6 +16,10 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 .args.sp1_prover_key = $sp1key |
 .args.consensus_contract_type = "pessimistic" |
 .args.aggkit_image = "ghcr.io/agglayer/aggkit:0.3.0-beta5-tmp-bridge" |
+.args.agglayer_image = "ghcr.io/agglayer/agglayer:0.3.0-rc.18" |
+.args.aggkit_prover_image = "ghcr.io/agglayer/aggkit-prover:0.1.0-rc.26" |
+.args.pp_vkey_hash = "0x003e44ba3ba836221300b43d5bfbdec28d51cbc405c6f4358be60bfded389bc7" |
+.args.aggchain_vkey_hash = "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5" |
 .deployment_stages.deploy_op_succinct = false
 ' tmp-pp.yml > initial-pp.yml
 
