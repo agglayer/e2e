@@ -73,7 +73,7 @@ setup() {
     local l1_erc20_addr=$(echo "$output" | tail -n 1 | tr '[:upper:]' '[:lower:]')
     log "ERC20 contract address: $l1_erc20_addr"
 
-    # Mint ERC20 tokens on L1
+    # Mint and Approve ERC20 tokens on L1
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"

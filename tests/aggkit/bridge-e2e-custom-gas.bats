@@ -24,7 +24,7 @@ setup() {
     local tokens_amount="0.1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
     local minter_key=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
-    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
+    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_addr" "$minter_key" "$sender_addr" "$tokens_amount"
     assert_success
 
     # Assert that balance of gas token (on the L1) is correct
@@ -39,6 +39,12 @@ setup() {
 
     echo "Sender balance ($sender_addr) (gas token L1): $gas_token_final_sender_balance" >&3
     assert_equal "$gas_token_final_sender_balance" "$expected_balance"
+
+    # Send approve transaction to the gas token on L1
+    deposit_ether_value="0.1ether"
+    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$deposit_ether_value"
+    assert_success
+    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     # DEPOSIT
     destination_addr=$receiver
@@ -91,25 +97,21 @@ setup() {
     local l2_erc20_addr=$(echo "$output" | tail -n 1 | tr '[:upper:]' '[:lower:]')
     log "📜 ERC20 contract address: $l2_erc20_addr"
 
-    # Mint ERC20 tokens on L2
+    # Mint and Approve ERC20 tokens on L2
     local tokens_amount="10ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
-    run mint_erc20_tokens "$L2_RPC_URL" "$l2_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount"
+    run mint_and_approve_erc20_tokens "$L2_RPC_URL" "$l2_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l2_bridge_addr"
     assert_success
+
+    run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "allowance(address owner, address spender)(uint256)" "$sender_addr" "$l2_bridge_addr"
+    assert_success
+    log "🔐 Allowance for bridge contract: $output [weis]"
 
     # Assert that balance of ERC20 token (on the L2) is correct
     run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
     local l2_erc20_token_sender_balance=$(echo "$output" | tail -n 1 | awk '{print $1}')
     log "💰 Sender balance ($sender_addr) (ERC20 token L2): $l2_erc20_token_sender_balance [weis]"
-
-    # Send approve transaction to the ERC20 token on L2
-    run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_erc20_addr" "$APPROVE_FN_SIG" "$l2_bridge_addr" "$tokens_amount"
-    assert_success
-    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
-    run query_contract "$L2_RPC_URL" "$l2_erc20_addr" "allowance(address owner, address spender)(uint256)" "$sender_addr" "$l2_bridge_addr"
-    assert_success
-    log "🔐 Allowance for bridge contract: $output [weis]"
 
     # Deposit on L2
     echo "==== 🚀 Depositing ERC20 token on L2 ($L2_RPC_URL)" >&3

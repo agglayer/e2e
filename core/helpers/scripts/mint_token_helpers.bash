@@ -25,7 +25,7 @@ function mint_and_approve_erc20_tokens() {
     local minter_private_key="$3" # The minter private key
     local receiver_add="$4"       # The receiver address (for minted tokens)
     local tokens_amount="$5"      # The amount of tokens to transfer (e.g., "0.1ether")
-    local approve_to="$6"         # The address to approve the transfer (optional)
+    local approve_to="${6:-}"     # The address to approve the transfer (optional)
 
     # Query the erc20 token balance of the sender
     run query_contract "$rpc_url" "$erc20_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
