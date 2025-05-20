@@ -21,6 +21,9 @@ _common_setup() {
     load '../../core/helpers/scripts/send_smart_contract_tx'
     load '../../core/helpers/scripts/zkevm_bridge_service'
 
+    load '../../core/helpers/scripts/kurtosis-helpers'
+
+    # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
         echo "🚨 ERROR: PROJECT_ROOT is incorrect ($PROJECT_ROOT) – Auto-fixing..."
         PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
@@ -38,7 +41,6 @@ _common_setup() {
 
     # ✅ Kurtosis service setup
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
-    export CONTRACTS_SERVICE_WRAPPER="${KURTOSIS_CONTRACTS_WRAPPER:-"kurtosis service exec $ENCLAVE $CONTRACTS_CONTAINER"}"
 
     local fallback_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
     local resolved_url=""
@@ -226,11 +228,12 @@ _common_setup() {
         local threshold=100000000000000000
 
         # Only fund if balance is less than or equal to 0.1 ether
-        if [[ $token_balance -le $threshold ]]; then
+        # (it's a real big number, so we compare the length of strings)
+        if [[ ${#token_balance} -le ${#threshold} ]]; then
             local l2_coinbase_key=${L2_COINBASE_KEY:-"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
             local amt="10ether"
 
-            echo "💸 $test_account_addr L2 balance is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
+            echo "💸 $test_account_addr L2 balance ($token_balance) is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
             fund "$l2_coinbase_key" "$test_account_addr" "$amt" "$L2_RPC_URL"
             if [ $? -ne 0 ]; then
                 echo "❌ Funding L2 receiver $test_account_addr failed" >&2
@@ -245,8 +248,9 @@ _common_setup() {
     fi
 
     local combined_json_file="/opt/zkevm/combined.json"
-    combined_json_output=$($CONTRACTS_SERVICE_WRAPPER "cat $combined_json_file")
-    if echo "$combined_json_output" | jq empty > /dev/null 2>&1; then
+    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
+    local combined_json_output=$(cat combined.json)
+    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
         l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
@@ -277,8 +281,9 @@ _common_setup() {
         local rollup_params_file="/opt/zkevm/create_rollup_output.json"
     fi
 
-    rollup_params_output=$($CONTRACTS_SERVICE_WRAPPER "cat $rollup_params_file")
-    if echo "$rollup_params_output" | jq empty > /dev/null 2>&1; then
+    kurtosis_download_file_exec_method "$ENCLAVE" "$CONTRACTS_CONTAINER" "$rollup_params_file" | jq '.' >"rollup_params.json"
+    local rollup_params_output=$(cat rollup_params.json)
+    if echo "$rollup_params_output" | jq empty >/dev/null 2>&1; then
         readonly gas_token_addr=$(echo "$rollup_params_output" | jq -r .gasTokenAddress)
     else
         readonly gas_token_addr=$(echo "$rollup_params_output" | tail -n +2 | jq -r .gasTokenAddress)

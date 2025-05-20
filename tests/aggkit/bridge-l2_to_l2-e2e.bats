@@ -11,7 +11,7 @@ setup() {
 
 function add_network2_to_agglayer() {
     echo "=== Checking if network 2 is added to agglayer ===" >&3
-    local _prev=$(kurtosis service exec $ENCLAVE agglayer "grep \"2 = \" /etc/zkevm/agglayer-config.toml || true" | tail -n +2)
+    local _prev=$(kurtosis service exec $ENCLAVE agglayer "grep \"2 = \" /etc/zkevm/agglayer-config.toml || true" | kurtosis_filer_exec_method)
     if [ ! -z "$_prev" ]; then
         echo "Network 2 is already added to agglayer" >&3
         return
