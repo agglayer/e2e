@@ -8,19 +8,21 @@ kurtosis_enclave_name="$ENCLAVE_NAME"
 
 
 curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
+# curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml > tmp-pp.yml
 
 # TODO we should make sure that op_succinct can run with PP
 # Create a yaml file that has the pp consense configured but ideally a real prover
 yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 .args.sp1_prover_key = $sp1key |
 .args.consensus_contract_type = "pessimistic" |
+.args.aggkit_image = "ghcr.io/agglayer/aggkit:0.3.0-beta5-tmp-bridge" |
 .deployment_stages.deploy_op_succinct = false
 ' tmp-pp.yml > initial-pp.yml
 
 # TEMPORARY TO SPEED UP TESTING
-yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg sl "$SPAN_LENGTH_OVERRIDE" '
+yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg rpi "$RANGE_PROOF_INTERVAL_OVERRIDE" '
 .optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
-.args.op_succinct_proposer_span_proof = $sl |
+.args.op_succinct_range_proof_interval = $rpi |
 .args.l1_seconds_per_slot = 1' initial-pp.yml > _t; mv _t initial-pp.yml
 
 # Spin up the network
@@ -102,7 +104,7 @@ kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001 || { echo "Err
 echo "Spammer stopped."
 
 # TODO use this in the future to block the upgrade This should be `null`... Basically we want to make sure everything is settled
-echo "Checking null certificate..."
+echo "Checking null last pending certificate..."
 start=$((SECONDS))
 while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_null "$output"; do
   [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for null certificate"; exit 1; }
@@ -110,6 +112,10 @@ while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_nam
   sleep $retry_interval
 done
 echo "Null latest pending certificate confirmed"
+
+echo "Checking last settled certificate"
+latest_settled_l2_block=$(cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+echo $latest_settled_l2_block
 
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
 # I assume we should stop the sequencer before we update it
@@ -220,10 +226,11 @@ rollup_config_hash=0x$(sha256sum rollup.json | awk '{print $1}')
 # TODO block time should come from the rollup config
 jq \
     --arg rch "$rollup_config_hash" \
+    --argjson latest_settled_block "$latest_settled_l2_block" \
     --slurpfile o output.json \
    '.aggchainParams.initParams.l2BlockTime = 1 |
     .aggchainParams.initParams.startingOutputRoot = $o[0].outputRoot |
-    .aggchainParams.initParams.startingBlockNumber = $o[0].blockRef.number |
+    .aggchainParams.initParams.startingBlockNumber = $latest_settled_block |
     .aggchainParams.initParams.startingTimestamp = $o[0].blockRef.timestamp |
     .aggchainParams.initParams.submissionInterval = 1 |
     .aggchainParams.initParams.aggregationVkey = "0x00c34e1ea92b8e3708fb2213142e746caa75a01308f817af6310976012a6fe40" |
