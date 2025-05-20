@@ -5,20 +5,23 @@ load_env
 
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
-
+# Change these image versions to the needed images
+aggkit_image="ghcr.io/agglayer/aggkit:0.3.0-beta5"
+agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.19"
+aggkit_prover_image="ghcr.io/agglayer/aggkit-prover:0.1.0-rc.26"
 
 curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
 # curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml > tmp-pp.yml
 
 # TODO we should make sure that op_succinct can run with PP
 # Create a yaml file that has the pp consense configured but ideally a real prover
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg aggkit_image "$aggkit_image" --arg agglayer_image "$agglayer_image" --arg aggkit_prover_image "$aggkit_prover_image" '
 .args.sp1_prover_key = $sp1key |
 .args.consensus_contract_type = "pessimistic" |
-.args.aggkit_image = "ghcr.io/agglayer/aggkit:0.3.0-beta5-tmp-bridge" |
-.args.agglayer_image = "ghcr.io/agglayer/agglayer:0.3.0-rc.18" |
-.args.aggkit_prover_image = "ghcr.io/agglayer/aggkit-prover:0.1.0-rc.26" |
-.args.pp_vkey_hash = "0x003e44ba3ba836221300b43d5bfbdec28d51cbc405c6f4358be60bfded389bc7" |
+.args.aggkit_image = $aggkit_image |
+.args.agglayer_image = $agglayer_image |
+.args.aggkit_prover_image = $aggkit_prover_image |
+.args.pp_vkey_hash = "0x009b32f37dbfe4487dfb80c141b425d939ff07134223e2dabbc855d602cdba17" |
 .args.aggchain_vkey_hash = "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5" |
 .deployment_stages.deploy_op_succinct = false
 ' tmp-pp.yml > initial-pp.yml
