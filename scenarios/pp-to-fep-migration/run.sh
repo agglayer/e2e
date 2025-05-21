@@ -250,6 +250,21 @@ jq \
 docker cp initialize_rollup.json $contracts_container_name:/opt/zkevm-contracts/tools/initializeRollup/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/initializeRollup/initializeRollup.ts --network localhost
 
+# FIXME - Temporary work around to make sure the default aggkey is configured
+cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
+# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
+# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
+cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
+# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
+# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
+
+if ! cast call --rpc-url "$l1_rpc_url" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "getDefaultAggchainVKey(bytes4)" "0x00010001"; then
+    echo "Error: getDefaultAggchainVKey returned AggchainVKeyNotFound()"
+    exit 1
+fi
+
+# Save Rollup Information to a file.
+cast call --json --rpc-url "$l1_rpc_url" "$rollup_manager_addr" 'rollupIDToRollupData(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' "1" | jq '{"sovereignRollupContract": .[0], "rollupChainID": .[1], "verifier": .[2], "forkID": .[3], "lastLocalExitRoot": .[4], "lastBatchSequenced": .[5], "lastVerifiedBatch": .[6], "_legacyLastPendingState": .[7], "_legacyLastPendingStateConsolidated": .[8], "lastVerifiedBatchBeforeUpgrade": .[9], "rollupTypeID": .[10], "rollupVerifierType": .[11]}' > ./rollup-out.json
 
 echo '######                                       ###                             '
 echo '#     # ###### #      #####   ####  #   #     #  #    # ###### #####    ##   '
