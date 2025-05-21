@@ -6,9 +6,9 @@ load_env
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 # Change these image versions to the needed images
-aggkit_image="ghcr.io/agglayer/aggkit:0.3.0-beta5"
-agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.19"
-aggkit_prover_image="ghcr.io/agglayer/aggkit-prover:0.1.0-rc.26"
+aggkit_image="aggkit:update-buf-build-refs"
+agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.20"
+aggkit_prover_image="ghcr.io/agglayer/aggkit-prover:0.1.0-rc.27"
 
 curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
 # curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml > tmp-pp.yml
@@ -21,7 +21,7 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg aggkit_image "$aggkit_image" --arg a
 .args.aggkit_image = $aggkit_image |
 .args.agglayer_image = $agglayer_image |
 .args.aggkit_prover_image = $aggkit_prover_image |
-.args.pp_vkey_hash = "0x009b32f37dbfe4487dfb80c141b425d939ff07134223e2dabbc855d602cdba17" |
+.args.pp_vkey_hash = "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be" |
 .args.aggchain_vkey_hash = "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5" |
 .deployment_stages.deploy_op_succinct = false
 ' tmp-pp.yml > initial-pp.yml
