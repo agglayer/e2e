@@ -1,6 +1,6 @@
 services:
   op-succinct-proposer-001:
-    image: ghcr.io/agglayer/op-succinct/op-succinct:v2.1.8-agglayer
+    image: ${OP_SUCCINCT_PROPOSER_IMAGE}
     container_name: op-succinct-proposer-001
     networks:
       - kt-network
@@ -32,7 +32,7 @@ services:
       start_period: 10s
 
   aggkit-prover-001:
-    image: ghcr.io/agglayer/aggkit-prover:0.1.0-rc.24
+    image: ${AGGKIT_PROVER_IMAGE}
     container_name: aggkit-prover-001
     networks:
       - kt-network

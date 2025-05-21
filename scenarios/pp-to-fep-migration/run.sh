@@ -8,7 +8,7 @@ kurtosis_enclave_name="$ENCLAVE_NAME"
 # Change these image versions to the needed images
 aggkit_image="aggkit:update-buf-build-refs"
 agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.20"
-aggkit_prover_image="ghcr.io/agglayer/aggkit-prover:0.1.0-rc.28"
+aggkit_prover_image="$AGGKIT_PROVER_IMAGE"
 zkevm_contracts_image="jhkimqd/zkevm-contracts:v10.1.0-rc.5-fork.12"
 
 curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
@@ -169,9 +169,9 @@ echo '### #    # #   #   # #    # ###### # ###### ######    #     #  ####  #####
 docker cp $contracts_container_name:/opt/contract-deploy/create_new_rollup.json initialize_rollup.json
 
 # TRYFIX - Maybe we can read the block number from the last settled PP
-current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')
+# current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')
 
-cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock $(printf "0x%x" $current_unsafe_block) | jq '.' > output.json
+cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock $(printf "0x%x" $latest_settled_l2_block) | jq '.' > output.json
 
 # TODO this is very hacky.. There are some things in this that don't actually come from rollup config. And then some values are formatted differently
 cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2 '{
@@ -256,7 +256,7 @@ docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat ru
 cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
+cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
 
