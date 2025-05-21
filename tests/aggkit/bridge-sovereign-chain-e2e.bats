@@ -112,7 +112,7 @@ setup() {
   # Deploy sovereign token erc20 contract on L2
   run deploy_contract $L2_RPC_URL $sender_private_key $erc20_artifact_path
   assert_success
-  local l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
+  local l2_token_addr_sovereign=$(echo "$output" | tail -n 1 | ascii_downcase)
   log "L2 Token address sovereign: $l2_token_addr_sovereign"
 
   # event SetSovereignTokenAddress
@@ -130,15 +130,15 @@ setup() {
   setMultipleSovereignTokenAddres_tx_data=$(echo "$setMultipleSovereignTokenAddress_tx_details" | jq -r '.logs[0].data')
   run cast decode-event "$setMultipleSovereignTokenAddres_tx_data" --sig "$set_sovereign_token_address_event_sig" --json
   assert_success
-  local setMultipleSovereignTokenAddres_event=$output
-  setMultipleSovereignTokenAddre_event_originNetwork=$(jq -r '.[0]' <<<"$setMultipleSovereignTokenAddres_event")
-  setMultipleSovereignTokenAddre_event_originTokenAddress=$(jq -r '.[1] | ascii_downcase' <<<"$setMultipleSovereignTokenAddres_event")
-  setMultipleSovereignTokenAddre_event_sovereignTokenAddress=$(jq -r '.[2] | ascii_downcase' <<<"$setMultipleSovereignTokenAddres_event")
-  setMultipleSovereignTokenAddre_event_isNotMintable=$(jq -r '.[3]' <<<"$setMultipleSovereignTokenAddres_event")
-  assert_equal "0" "$setMultipleSovereignTokenAddre_event_originNetwork"
-  assert_equal "$l1_erc20_addr" "$setMultipleSovereignTokenAddre_event_originTokenAddress"
-  assert_equal "$l2_token_addr_sovereign" "$setMultipleSovereignTokenAddre_event_sovereignTokenAddress"
-  assert_equal "false" "$setMultipleSovereignTokenAddre_event_isNotMintable"
+  local set_sovereign_token_addrs_evt=$output
+  origin_network=$(jq -r '.[0]' <<<"$set_sovereign_token_addrs_evt")
+  origin_token_addr=$(jq -r '.[1]' <<<"$set_sovereign_token_addrs_evt")
+  sov_token_addr=$(jq -r '.[2] | ascii_downcase' <<<"$set_sovereign_token_addrs_evt")
+  is_not_mintable=$(jq -r '.[3]' <<<"$set_sovereign_token_addrs_evt")
+  assert_equal "0" "$origin_network"
+  assert_equal "${l1_erc20_addr,,}" "${origin_token_addr,,}"
+  assert_equal "${l2_token_addr_sovereign,,}" "${sov_token_addr,,}"
+  assert_equal "false" "$is_not_mintable"
   log "✅ SetSovereignTokenAddress event successful"
 
   # sleep briefly to give aggkit time to index the event
@@ -181,12 +181,12 @@ setup() {
   assert_success
   local migrateLegacyToken_event=$output
   migrateLegacyToken_event_sender=$(jq -r '.[0]' <<<"$migrateLegacyToken_event")
-  migrateLegacyToken_event_legacyTokenAddress=$(jq -r '.[1] | ascii_downcase' <<<"$migrateLegacyToken_event")
-  migrateLegacyToken_event_updatedTokenAddress=$(jq -r '.[2] | ascii_downcase' <<<"$migrateLegacyToken_event")
+  migrateLegacyToken_event_legacyTokenAddress=$(jq -r '.[1]' <<<"$migrateLegacyToken_event")
+  migrateLegacyToken_event_updatedTokenAddress=$(jq -r '.[2]' <<<"$migrateLegacyToken_event")
   migrateLegacyToken_event_amount=$(jq -r '.[3]' <<<"$migrateLegacyToken_event")
   assert_equal "$sender_addr" "$migrateLegacyToken_event_sender"
-  assert_equal "$l2_token_addr_legacy" "$migrateLegacyToken_event_legacyTokenAddress"
-  assert_equal "$l2_token_addr_sovereign" "$migrateLegacyToken_event_updatedTokenAddress"
+  assert_equal "${l2_token_addr_legacy,,}" "${migrateLegacyToken_event_legacyTokenAddress,,}"
+  assert_equal "${l2_token_addr_sovereign,,}" "${migrateLegacyToken_event_updatedTokenAddress,,}"
   assert_equal "0" "$migrateLegacyToken_event_amount"
   log "✅ MigrateLegacyToken event successful"
 
@@ -198,9 +198,9 @@ setup() {
   assert_success
   local legacy_token_migrations="$output"
   local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
-  local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address')
-  assert_equal "$l2_token_addr_legacy" "$legacy_token_address"
-  assert_equal "$l2_token_addr_sovereign" "$updated_token_address"
+  local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address' | ascii_downcase)
+  assert_equal "${l2_token_addr_legacy,,}" "${legacy_token_address,,}"
+  assert_equal "${l2_token_addr_sovereign,,}" "${updated_token_address,,}"
 
   # event RemoveLegacySovereignTokenAddress
   log "Emitting RemoveLegacySovereignTokenAddress event"
@@ -214,8 +214,8 @@ setup() {
   run cast decode-event "$removeLegacySovereignTokenAddress_event_data" --sig "$remove_legacy_sovereign_token_addr_event_sig" --json
   assert_success
   local removeLegacySovereignTokenAddress_event=$output
-  removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0] | ascii_downcase' <<<"$removeLegacySovereignTokenAddress_event")
-  assert_equal "$l2_token_addr_legacy" "$removeLegacySovereignTokenAddress_event_sovereignTokenAddress"
+  removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0]' <<<"$removeLegacySovereignTokenAddress_event")
+  assert_equal "${l2_token_addr_legacy,,}" "${removeLegacySovereignTokenAddress_event_sovereignTokenAddress,,}"
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
   # sleep briefly to give aggkit time to index the event
