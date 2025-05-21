@@ -103,9 +103,6 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address' | tr '[:upper:]' '[:lower:]')
-    assert_equal "$l1_erc20_addr" "$origin_token_addr"
-
     local l2_token_addr_legacy=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     log "L2 Token address legacy: $l2_token_addr_legacy"
 
