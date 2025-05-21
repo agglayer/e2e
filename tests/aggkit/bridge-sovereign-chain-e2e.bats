@@ -112,7 +112,7 @@ setup() {
   # Deploy sovereign token erc20 contract on L2
   run deploy_contract $L2_RPC_URL $sender_private_key $erc20_artifact_path
   assert_success
-  local l2_token_addr_sovereign=$(echo "$output" | tail -n 1 | ascii_downcase)
+  local l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
   log "L2 Token address sovereign: $l2_token_addr_sovereign"
 
   # event SetSovereignTokenAddress
@@ -123,17 +123,17 @@ setup() {
   arg4='[false]'
   run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
   assert_success
-  local setMultipleSovereignTokenAddress_tx_details=$output
-  log "setMultipleSovereignTokenAddress transaction details: $setMultipleSovereignTokenAddress_tx_details"
+  local set_sov_token_addr_tx_resp=$output
+  log "setMultipleSovereignTokenAddress transaction details: $set_sov_token_addr_tx_resp"
 
   # Decode the transaction details and check emmited event SetSovereignTokenAddress
-  setMultipleSovereignTokenAddres_tx_data=$(echo "$setMultipleSovereignTokenAddress_tx_details" | jq -r '.logs[0].data')
-  run cast decode-event "$setMultipleSovereignTokenAddres_tx_data" --sig "$set_sovereign_token_address_event_sig" --json
+  set_sov_token_addr_log_data=$(echo "$set_sov_token_addr_tx_resp" | jq -r '.logs[0].data')
+  run cast decode-event "$set_sov_token_addr_log_data" --sig "$set_sovereign_token_address_event_sig" --json
   assert_success
   local set_sovereign_token_addrs_evt=$output
   origin_network=$(jq -r '.[0]' <<<"$set_sovereign_token_addrs_evt")
   origin_token_addr=$(jq -r '.[1]' <<<"$set_sovereign_token_addrs_evt")
-  sov_token_addr=$(jq -r '.[2] | ascii_downcase' <<<"$set_sovereign_token_addrs_evt")
+  sov_token_addr=$(jq -r '.[2]' <<<"$set_sovereign_token_addrs_evt")
   is_not_mintable=$(jq -r '.[3]' <<<"$set_sovereign_token_addrs_evt")
   assert_equal "0" "$origin_network"
   assert_equal "${l1_erc20_addr,,}" "${origin_token_addr,,}"
@@ -162,32 +162,32 @@ setup() {
 
   run cast send --private-key "$sender_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$migrate_legacy_token_func_sig" "$l2_token_addr_legacy" 0 "0x" --json
   assert_success
-  local migrateLegacyToken_tx_details=$output
-  log "migrateLegacyToken transaction details: $migrateLegacyToken_tx_details"
-  migrateLegacyToken_tx_details_from_block=$(echo "$migrateLegacyToken_tx_details" | jq -r '.blockNumber')
-  log "migrate_from_block: $migrateLegacyToken_tx_details_from_block"
+  local migrate_legacy_token_tx_resp=$output
+  log "migrateLegacyToken transaction details: $migrate_legacy_token_tx_resp"
+  migrate_legacy_token_block_num=$(echo "$migrate_legacy_token_tx_resp" | jq -r '.blockNumber')
+  log "migrate_from_block: $migrate_legacy_token_block_num"
 
   # Find logs for MigrateLegacyToken event
-  run cast logs --rpc-url "$L2_RPC_URL" --from-block "$migrateLegacyToken_tx_details_from_block" --to-block latest --address "$l2_bridge_addr" "$migrate_legacy_token_event_sig" --json
+  run cast logs --rpc-url "$L2_RPC_URL" --from-block "$migrate_legacy_token_block_num" --to-block latest --address "$l2_bridge_addr" "$migrate_legacy_token_event_sig" --json
   assert_success
-  local migrateLegacyToken_event_logs=$output
+  local migrate_legacy_token_evt_logs=$output
 
   # Decode the MigrateLegacyToken event
-  migrateLegacyToken_event_data=$(echo "$migrateLegacyToken_event_logs" | jq -r '.[0].data')
+  migrateLegacyToken_event_data=$(echo "$migrate_legacy_token_evt_logs" | jq -r '.[0].data')
   run cast decode-event \
     "$migrateLegacyToken_event_data" \
     --sig "$migrate_legacy_token_event_sig" \
     --json
   assert_success
-  local migrateLegacyToken_event=$output
-  migrateLegacyToken_event_sender=$(jq -r '.[0]' <<<"$migrateLegacyToken_event")
-  migrateLegacyToken_event_legacyTokenAddress=$(jq -r '.[1]' <<<"$migrateLegacyToken_event")
-  migrateLegacyToken_event_updatedTokenAddress=$(jq -r '.[2]' <<<"$migrateLegacyToken_event")
-  migrateLegacyToken_event_amount=$(jq -r '.[3]' <<<"$migrateLegacyToken_event")
-  assert_equal "$sender_addr" "$migrateLegacyToken_event_sender"
-  assert_equal "${l2_token_addr_legacy,,}" "${migrateLegacyToken_event_legacyTokenAddress,,}"
-  assert_equal "${l2_token_addr_sovereign,,}" "${migrateLegacyToken_event_updatedTokenAddress,,}"
-  assert_equal "0" "$migrateLegacyToken_event_amount"
+  local migrate_legacy_token_event_data=$output
+  sender=$(jq -r '.[0]' <<<"$migrate_legacy_token_event_data")
+  legacy_token_addr=$(jq -r '.[1]' <<<"$migrate_legacy_token_event_data")
+  updated_token_addr=$(jq -r '.[2]' <<<"$migrate_legacy_token_event_data")
+  amount=$(jq -r '.[3]' <<<"$migrate_legacy_token_event_data")
+  assert_equal "$sender_addr" "$sender"
+  assert_equal "${l2_token_addr_legacy,,}" "${legacy_token_addr,,}"
+  assert_equal "${l2_token_addr_sovereign,,}" "${updated_token_addr,,}"
+  assert_equal "0" "$amount"
   log "✅ MigrateLegacyToken event successful"
 
   # sleep briefly to give aggkit time to index the event
@@ -198,7 +198,7 @@ setup() {
   assert_success
   local legacy_token_migrations="$output"
   local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
-  local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address' | ascii_downcase)
+  local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address')
   assert_equal "${l2_token_addr_legacy,,}" "${legacy_token_address,,}"
   assert_equal "${l2_token_addr_sovereign,,}" "${updated_token_address,,}"
 
@@ -210,11 +210,11 @@ setup() {
   log "removeLegacySovereignTokenAddress transaction details: $removeLegacySovereignTokenAddress_tx_details"
 
   # Decode the transaction details and check emmited event RemoveLegacySovereignTokenAddress
-  removeLegacySovereignTokenAddress_event_data=$(echo "$removeLegacySovereignTokenAddress_tx_details" | jq -r '.logs[0].data')
-  run cast decode-event "$removeLegacySovereignTokenAddress_event_data" --sig "$remove_legacy_sovereign_token_addr_event_sig" --json
+  remove_legacy_token_event_data=$(echo "$removeLegacySovereignTokenAddress_tx_details" | jq -r '.logs[0].data')
+  run cast decode-event "$remove_legacy_token_event_data" --sig "$remove_legacy_sovereign_token_addr_event_sig" --json
   assert_success
-  local removeLegacySovereignTokenAddress_event=$output
-  removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0]' <<<"$removeLegacySovereignTokenAddress_event")
+  local remove_legacy_token_data=$output
+  removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0]' <<<"$remove_legacy_token_data")
   assert_equal "${l2_token_addr_legacy,,}" "${removeLegacySovereignTokenAddress_event_sovereignTokenAddress,,}"
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
