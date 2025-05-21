@@ -6,7 +6,7 @@ load_env
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 # Change these image versions to the needed images
-aggkit_image="aggkit:update-buf-build-refs"
+aggkit_image="ghcr.io/agglayer/aggkit:0.3.0-beta6"
 agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.20"
 aggkit_prover_image="$AGGKIT_PROVER_IMAGE"
 zkevm_contracts_image="jhkimqd/zkevm-contracts:v10.1.0-rc.5-fork.12"
