@@ -249,8 +249,8 @@ function wait_for_expected_token() {
 
         echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token), network id=$network_id" >&3
 
-        # Break loop if the expected token is found
-        if [[ "$origin_token_address" == "$expected_origin_token" ]]; then
+        # Break loop if the expected token is found (case-insensitive)
+        if [[ "${origin_token_address,,}" == "${expected_origin_token,,}" ]]; then
             echo "Success: Expected origin_token_address '$expected_origin_token' found. Exiting loop." >&3
             echo "$token_mappings_result"
             return 0
@@ -541,19 +541,19 @@ function claim_bridge_claimSponsor() {
     local metadata=$(echo "$bridge_info" | jq -r '.metadata')
 
     claim_json=$(jq -n \
-  --argjson leaf_type           "$leaf_type" \
-  --argjson proof_local_exit_root  "$proof_local_exit_root" \
-  --argjson proof_rollup_exit_root "$proof_rollup_exit_root" \
-  --argjson global_index        "$global_index" \
-  --arg    mainnet_exit_root    "$mainnet_exit_root" \
-  --arg    rollup_exit_root     "$rollup_exit_root" \
-  --argjson origin_network      "$origin_network" \
-  --arg    origin_token_address "$origin_token_address" \
-  --argjson destination_network "$destination_network" \
-  --arg    destination_address  "$destination_address" \
-  --argjson amount              "$amount" \
-  --arg    metadata             "" \
-  '{
+        --argjson leaf_type "$leaf_type" \
+        --argjson proof_local_exit_root "$proof_local_exit_root" \
+        --argjson proof_rollup_exit_root "$proof_rollup_exit_root" \
+        --argjson global_index "$global_index" \
+        --arg mainnet_exit_root "$mainnet_exit_root" \
+        --arg rollup_exit_root "$rollup_exit_root" \
+        --argjson origin_network "$origin_network" \
+        --arg origin_token_address "$origin_token_address" \
+        --argjson destination_network "$destination_network" \
+        --arg destination_address "$destination_address" \
+        --argjson amount "$amount" \
+        --arg metadata "" \
+        '{
      leaf_type:            $leaf_type,
      proof_local_exit_root: $proof_local_exit_root,
      proof_rollup_exit_root:$proof_rollup_exit_root,
@@ -591,7 +591,7 @@ function claim_bridge_claimSponsor() {
 
     log "🔄 Polling sponsored-claim-status for global_index: $global_index"
     local attempt=0
-    while (( attempt < max_attempts )); do
+    while ((attempt < max_attempts)); do
         sleep "$poll_frequency"
 
         # Capture both stdout (sponsored-claim-status) and stderr (error message)
@@ -614,7 +614,7 @@ function claim_bridge_claimSponsor() {
         # Remove surrounding double quotes
         status=${status#\"}
         status=${status%\"}
-        log "⏱️  Attempt $((attempt+1)): Status = $status"
+        log "⏱️  Attempt $((attempt + 1)): Status = $status"
 
         if [[ "$status" == "success" ]]; then
             log "✅ Claim sponsorship succeeded."
@@ -622,12 +622,12 @@ function claim_bridge_claimSponsor() {
         elif [[ "$status" == "failed" ]]; then
             log "❌ Claim sponsorship failed."
             exit 1
-        else 
+        else
             # check if bridge has already been claimed
             local current_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_address")
             delta=$(echo "$current_receiver_balance - $initial_receiver_balance" | bc)
             delta=$(cast --to-wei "$delta")
-            log "⏱️  Attempt $((attempt+1)): change in receiver($destination_address) balance = $delta wei"
+            log "⏱️  Attempt $((attempt + 1)): change in receiver($destination_address) balance = $delta wei"
             if [[ "$delta" == "$amount" ]]; then
                 log "✅ Bridge already claimed receiver: $destination_address balance increased by $amount."
                 return 0

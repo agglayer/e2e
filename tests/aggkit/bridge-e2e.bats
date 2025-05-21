@@ -23,7 +23,7 @@ setup() {
 @test "ERC20 token deposit L1 -> L2" {
     run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
     assert_success
-    local l1_erc20_addr=$(echo "$output" | tail -n 1 | tr '[:upper:]' '[:lower:]')
+    local l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
 
     # Mint and Approve ERC20 token on L1
