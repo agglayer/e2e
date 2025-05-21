@@ -8,21 +8,23 @@ kurtosis_enclave_name="$ENCLAVE_NAME"
 # Change these image versions to the needed images
 aggkit_image="aggkit:update-buf-build-refs"
 agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.20"
-aggkit_prover_image="ghcr.io/agglayer/aggkit-prover:0.1.0-rc.27"
+aggkit_prover_image="ghcr.io/agglayer/aggkit-prover:0.1.0-rc.28"
+zkevm_contracts_image="jhkimqd/zkevm-contracts:v10.1.0-rc.5-fork.12"
 
 curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
 # curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml > tmp-pp.yml
 
 # TODO we should make sure that op_succinct can run with PP
 # Create a yaml file that has the pp consense configured but ideally a real prover
-yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg aggkit_image "$aggkit_image" --arg agglayer_image "$agglayer_image" --arg aggkit_prover_image "$aggkit_prover_image" '
+yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg aggkit_image "$aggkit_image" --arg agglayer_image "$agglayer_image" --arg aggkit_prover_image "$aggkit_prover_image" --arg zkevm_contracts_image "$zkevm_contracts_image" '
 .args.sp1_prover_key = $sp1key |
 .args.consensus_contract_type = "pessimistic" |
 .args.aggkit_image = $aggkit_image |
 .args.agglayer_image = $agglayer_image |
 .args.aggkit_prover_image = $aggkit_prover_image |
+.args.zkevm_contracts_image = $zkevm_contracts_image |
 .args.pp_vkey_hash = "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be" |
-.args.aggchain_vkey_hash = "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5" |
+.args.aggchain_vkey_hash = "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d" |
 .deployment_stages.deploy_op_succinct = false
 ' tmp-pp.yml > initial-pp.yml
 
@@ -254,17 +256,17 @@ docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat ru
 cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
-cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
+# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x6b649aca1ba2be1e509a1cce39f7f0a1601bfcf90f0a27104970669c22df59d5"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
 
 if ! cast call --rpc-url "$l1_rpc_url" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "getDefaultAggchainVKey(bytes4)" "0x00010001"; then
     echo "Error: getDefaultAggchainVKey returned AggchainVKeyNotFound()"
-    exit 1
+    exit 1s
 fi
 
 # Save Rollup Information to a file.
-cast call --json --rpc-url "$l1_rpc_url" "$rollup_manager_addr" 'rollupIDToRollupData(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' "1" | jq '{"sovereignRollupContract": .[0], "rollupChainID": .[1], "verifier": .[2], "forkID": .[3], "lastLocalExitRoot": .[4], "lastBatchSequenced": .[5], "lastVerifiedBatch": .[6], "_legacyLastPendingState": .[7], "_legacyLastPendingStateConsolidated": .[8], "lastVerifiedBatchBeforeUpgrade": .[9], "rollupTypeID": .[10], "rollupVerifierType": .[11]}' > ./rollup-out.json
+cast call --json --rpc-url "$l1_rpc_url" "$rollup_manager_address" 'rollupIDToRollupData(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' "1" | jq '{"sovereignRollupContract": .[0], "rollupChainID": .[1], "verifier": .[2], "forkID": .[3], "lastLocalExitRoot": .[4], "lastBatchSequenced": .[5], "lastVerifiedBatch": .[6], "_legacyLastPendingState": .[7], "_legacyLastPendingStateConsolidated": .[8], "lastVerifiedBatchBeforeUpgrade": .[9], "rollupTypeID": .[10], "rollupVerifierType": .[11]}' > ./rollup-out.json
 
 echo '######                                       ###                             '
 echo '#     # ###### #      #####   ####  #   #     #  #    # ###### #####    ##   '
