@@ -48,6 +48,9 @@ on:
         type: string
         default: "cdk"
 
+env:
+  POLYCLI_VERSION: v0.1.78
+
 jobs:
   test-multi-cdk-e2e:
     name: Multi chains E2E test
