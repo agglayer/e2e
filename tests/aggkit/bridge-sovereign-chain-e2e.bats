@@ -121,7 +121,7 @@ setup() {
   arg2="[$l1_erc20_addr]"
   arg3="[$l2_token_addr_sovereign]"
   arg4='[false]'
-  run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
   assert_success
   local set_sov_token_addr_tx_resp=$output
   log "setMultipleSovereignTokenAddress transaction details: $set_sov_token_addr_tx_resp"
@@ -155,12 +155,12 @@ setup() {
   log "Emitting MigrateLegacyToken event"
   # Grant minter role to l2_bridge_addr on l2_token_addr_sovereign
   MINTER_ROLE=$(cast keccak "MINTER_ROLE")
-  run cast send --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" "$l2_token_addr_sovereign" "$grant_role_func_sig" "$MINTER_ROLE" "$l2_bridge_addr"
+  run cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" "$l2_token_addr_sovereign" "$grant_role_func_sig" "$MINTER_ROLE" "$l2_bridge_addr"
   assert_success
   local grant_role_tx_hash=$output
   log "✅ Minter role granted to $l2_bridge_addr on $l2_token_addr_sovereign: $grant_role_tx_hash"
 
-  run cast send --private-key "$sender_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$migrate_legacy_token_func_sig" "$l2_token_addr_legacy" 0 "0x" --json
+  run cast send --legacy --private-key "$sender_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$migrate_legacy_token_func_sig" "$l2_token_addr_legacy" 0 "0x" --json
   assert_success
   local migrate_legacy_token_tx_resp=$output
   log "migrateLegacyToken transaction details: $migrate_legacy_token_tx_resp"
@@ -204,7 +204,7 @@ setup() {
 
   # event RemoveLegacySovereignTokenAddress
   log "Emitting RemoveLegacySovereignTokenAddress event"
-  run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
   assert_success
   local removeLegacySovereignTokenAddress_tx_details=$output
   log "removeLegacySovereignTokenAddress transaction details: $removeLegacySovereignTokenAddress_tx_details"
