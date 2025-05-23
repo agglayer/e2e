@@ -24,6 +24,7 @@ services:
       - L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e
       - OP_SUCCINCT_MOCK=false
       - L2_RPC=http://op-el-1-op-geth-op-node-001:8545
+      - RUST_LOG=info
     healthcheck:
       test: ["CMD", "curl", "-f", "0.0.0.0:8080"]
       interval: 5s

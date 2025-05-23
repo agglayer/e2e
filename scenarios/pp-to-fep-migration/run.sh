@@ -5,26 +5,24 @@ load_env
 
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
-# Change these image versions to the needed images
-aggkit_image="ghcr.io/agglayer/aggkit:0.3.0-beta6"
-agglayer_image="ghcr.io/agglayer/agglayer:0.3.0-rc.20"
-aggkit_prover_image="$AGGKIT_PROVER_IMAGE"
-zkevm_contracts_image="jhkimqd/zkevm-contracts:v10.1.0-rc.5-fork.12"
 
-curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
-# curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml > tmp-pp.yml
+# The aggregationVkey and rangeVkeyCommitment values need to be manually changed when op-succinct-proposer circuits are rebuilt.
+# agglayer/op-succinct uses a slimed image of the op-succinct-proposer, which doesn't contain the aggregation-elf and range-elf directly.
+aggregation_vkey="0x00b727dd4c322e04033a340e342a675b73c6ee8fec3946a7b3e93797b10ed721"
+range_vkey_commitment="0x1b5d3b2e062d5f24618fb82821b49ea2465d016e0820219d417ec351753b3adc"
+
+# If condition for CI to determines whether to use mock prover or network prover
+if [[ $MOCK_MODE == true ]]; then
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > tmp-pp.yml
+else
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml" > tmp-pp.yml
+fi
 
 # TODO we should make sure that op_succinct can run with PP
 # Create a yaml file that has the pp consense configured but ideally a real prover
-yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg aggkit_image "$aggkit_image" --arg agglayer_image "$agglayer_image" --arg aggkit_prover_image "$aggkit_prover_image" --arg zkevm_contracts_image "$zkevm_contracts_image" '
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 .args.sp1_prover_key = $sp1key |
 .args.consensus_contract_type = "pessimistic" |
-.args.aggkit_image = $aggkit_image |
-.args.agglayer_image = $agglayer_image |
-.args.aggkit_prover_image = $aggkit_prover_image |
-.args.zkevm_contracts_image = $zkevm_contracts_image |
-.args.pp_vkey_hash = "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be" |
-.args.aggchain_vkey_hash = "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d" |
 .deployment_stages.deploy_op_succinct = false
 ' tmp-pp.yml > initial-pp.yml
 
@@ -50,13 +48,13 @@ echo '#     # #    # #    #    #    #  #    # #      #      #    # #            
 echo '#     # #####  #####     #     #  ####  ###### ######  ####  #            #      #   #      ###### '
 
 
-contracts_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep contracts-001 | awk '{print $1}')
+contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
 contracts_container_name=contracts-001--$contracts_uuid
 
-agglayer_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep agglayer[^-] | awk '{print $1}')
+agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep agglayer[^-] | awk '{print $1}')
 agglayer_container_name=agglayer--$agglayer_uuid
 
-aggkit_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-001 | awk '{print $1}')
+aggkit_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep aggkit-001 | awk '{print $1}')
 aggkit_container_name=aggkit-001--$aggkit_uuid
 
 # Read the agglayer vkey value
@@ -123,7 +121,7 @@ done
 echo "Null latest pending certificate confirmed"
 
 echo "Checking last settled certificate"
-latest_settled_l2_block=$(cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+latest_settled_l2_block=$(cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
 echo $latest_settled_l2_block
 
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
@@ -235,6 +233,8 @@ rollup_config_hash=0x$(sha256sum rollup.json | awk '{print $1}')
 # TODO block time should come from the rollup config
 jq \
     --arg rch "$rollup_config_hash" \
+    --arg avk "$aggregation_vkey" \
+    --arg rvk "$range_vkey_commitment" \
     --argjson latest_settled_block "$latest_settled_l2_block" \
     --slurpfile o output.json \
    '.aggchainParams.initParams.l2BlockTime = 1 |
@@ -242,8 +242,8 @@ jq \
     .aggchainParams.initParams.startingBlockNumber = $latest_settled_block |
     .aggchainParams.initParams.startingTimestamp = $o[0].blockRef.timestamp |
     .aggchainParams.initParams.submissionInterval = 1 |
-    .aggchainParams.initParams.aggregationVkey = "0x00c34e1ea92b8e3708fb2213142e746caa75a01308f817af6310976012a6fe40" |
-    .aggchainParams.initParams.rangeVkeyCommitment = "0x35882a76205af8c12eaeea7551ff8dbc392dc2a95b0f7f31660a5468237d4434" |
+    .aggchainParams.initParams.aggregationVkey = $avk |
+    .aggchainParams.initParams.rangeVkeyCommitment = $rvk |
     .aggchainParams.initParams.rollupConfigHash = $rch |
     .realVerifier = true |
     .consensusContractName = "AggchainFEP"
@@ -253,7 +253,7 @@ docker cp initialize_rollup.json $contracts_container_name:/opt/zkevm-contracts/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/initializeRollup/initializeRollup.ts --network localhost
 
 # FIXME - Temporary work around to make sure the default aggkey is configured
-cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d"
+# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
 # cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d"
@@ -294,14 +294,14 @@ kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 exit
 
 # TODO use this in the future to block the upgrade This should be `null`
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
 
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
+cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
+cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
 
 cast abi-encode --packed 'f(bytes,uint64,uint64,uint64,bytes)' 0x00 1 1 1 0xFFFFFFFFFFFFFF
 
-cast tx --rpc-url http://$(kurtosis port print pp-to-fep-test  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
+cast tx --rpc-url http://$(kurtosis port print $kurtosis_enclave_name  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
 
 docker compose down
 # docker stop aggkit-prover-001
