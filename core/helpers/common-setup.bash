@@ -105,12 +105,12 @@ _common_setup() {
 
         resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rest)
         if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved aggkit node url ("$resolved_url") from "$node"" >&3
+            echo "✅ Successfully resolved aggkit bridge url ("$resolved_url") from "$node"" >&3
             break
         fi
     done
     if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve aggkit node url from all fallback nodes" >&2
+        echo "❌ Failed to resolve aggkit bridge url from all fallback nodes" >&2
         return 1
     fi
     readonly aggkit_bridge_url="$resolved_url"
