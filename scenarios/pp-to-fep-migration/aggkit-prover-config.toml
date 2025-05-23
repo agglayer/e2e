@@ -1,0 +1,42 @@
+grpc-endpoint = "0.0.0.0:4446"
+
+[log]
+level = "info"
+outputs = []
+format = "json"
+
+[telemetry]
+prometheus-addr = "0.0.0.0:9093"
+
+[shutdown]
+runtime-timeout = "5s"
+
+[aggchain-proof-service.aggchain-proof-builder]
+network-id = 1
+
+[aggchain-proof-service.aggchain-proof-builder.primary-prover.network-prover]
+proving-timeout = "1h"
+
+[aggchain-proof-service.aggchain-proof-builder.proving-timeout]
+secs = 3600
+nanos = 0
+
+[aggchain-proof-service.aggchain-proof-builder.contracts]
+l1-rpc-endpoint = "http://el-1-geth-lighthouse:8545"
+l2-execution-layer-rpc-endpoint = "http://op-el-1-op-geth-op-node-001:8545"
+l2-consensus-layer-rpc-endpoint = "http://op-cl-1-op-node-op-geth-001:8547"
+polygon-rollup-manager = "0x6c6c009cC348976dB4A908c92B24433d4F6edA43"
+global-exit-root-manager-v2-sovereign-chain = "0xa40d5f56745a118d0906a34e69aec8c0db1cb8fa"
+
+[aggchain-proof-service.proposer-service]
+l1-rpc-endpoint = "http://el-1-geth-lighthouse:8545"
+mock = false
+
+[aggchain-proof-service.proposer-service.client]
+proposer-endpoint = "http://op-succinct-proposer-001:50051"
+sp1-cluster-endpoint = "https://rpc.production.succinct.xyz"
+request-timeout = 600
+proving-timeout = 3600
+
+[primary-prover.network-prover]
+proving-timeout = "1h"
