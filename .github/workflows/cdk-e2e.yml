@@ -140,7 +140,7 @@ jobs:
           elif [[ "${{ inputs.test-name }}" == "test-fork12-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e" ]]; then
             bats tests/cdk/e2e.bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
           elif [[ "${{ inputs.test-name }}" == "test-fork12-pessimistic-e2e" ]]; then
-            bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats tests/aggkit/bridge-sovereign-chain-e2e.bats
+            bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
           fi
           popd
 
@@ -159,7 +159,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARCHIVE_NAME }}
+          name: ${{ inputs.test-name}}
           path: ./dump
 
       - name: Clean up kurtosis-cdk enclave

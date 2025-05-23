@@ -1,5 +1,5 @@
 name: Configurable E2E Execution
-run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
+run-name: Run Kurtosis CDK E2E test by @${{ github.actor }}
 
 on:
   workflow_call:
@@ -153,7 +153,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARCHIVE_NAME }}
+          name: cdk-e2e-multi-chains
           path: ./dump
 
       - name: Clean up kurtosis-cdk enclave
