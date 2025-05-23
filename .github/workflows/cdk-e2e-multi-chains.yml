@@ -4,11 +4,6 @@ run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ gi
 on:
   workflow_call:
     inputs:
-      aggsender-find-imported-bridge-artifact:
-        description: "Path for aggsender to find the imported bridge"
-        required: true
-        type: string
-
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: true
@@ -31,8 +26,9 @@ on:
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
-        required: true
+        required: false
         type: string
+        default: "cdk"
 
       docker-image-override:
         description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
@@ -50,10 +46,10 @@ on:
         description: "A name of a docker image to download (e.g. docker-image)"
         required: false
         type: string
-        default: "aggkit"
+        default: "cdk"
 
 jobs:
-  test-multi-aggkit-e2e:
+  test-multi-cdk-e2e:
     name: Multi chains E2E test
     runs-on: ubuntu-latest
     steps:
@@ -70,13 +66,6 @@ jobs:
           repository: 0xPolygon/kurtosis-cdk
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
-
-      - name: Download binary
-        if: inputs.aggsender-find-imported-bridge-artifact != ''
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.aggsender-find-imported-bridge-artifact }}
-          path: "/tmp"
 
       - name: Download artifact
         if: inputs.docker-artifact-name != ''
@@ -97,6 +86,16 @@ jobs:
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
+
+      - name: Install polycli
+        run: |
+          polycli_version="${{ env.POLYCLI_VERSION }}"
+          pushd $(mktemp -d) || exit 1
+          curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+          tar xf polycli.tar.gz
+          mv polycli_* /usr/local/bin/polycli
+          polycli version
+          popd
 
       - name: Install kurtosis cli and jq
         run: |
@@ -133,8 +132,6 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
           export DISABLE_L2_FUND="true"
-          chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-          export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           bats ./tests/aggkit/bridge-l2_to_l2-e2e.bats
           popd
 
