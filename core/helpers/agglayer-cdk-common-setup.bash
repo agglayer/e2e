@@ -44,26 +44,26 @@ _agglayer_cdk_common_setup() {
 
     # Resolve L2 RPC URL
     local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
-    L2_RPC_URL=$(_resolve_url_from_nodes l2_nodes "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL")
-    export L2_RPC_URL
+    export L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL" true | tail -1)
+    echo "L2_RPC_URL: $L2_RPC_URL" >&3
 
     # Resolve L2 Sequencer RPC URL
     local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
-    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes sequencer_nodes "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL")
+    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL" true | tail -1)
     export L2_SEQUENCER_RPC_URL
+    echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
 
     # Resolve Aggkit Bridge URL
     local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_url=$(_resolve_url_from_nodes aggkit_nodes "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
     readonly aggkit_bridge_url
+    echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
 
     # Resolve ZKEVM Bridge URL
     local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
-    zkevm_bridge_url=$(_resolve_url_from_nodes zkevm_nodes "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url")
+    zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
     readonly zkevm_bridge_url
-
-    echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
-    echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
+    echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
@@ -224,37 +224,39 @@ _agglayer_cdk_common_setup() {
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }
 
-# Helper function to resolve URL from fallback nodes
 _resolve_url_from_nodes() {
-    local -n nodes="$1"
-    local error_msg="$2"
-    local success_msg="$3"
+    local error_msg="${@: -3:1}"
+    local success_msg="${@: -2:1}"
+    local required="${@: -1}"
+
+    # --- everything before them are the node/port pairs ---
+    local -a nodes=("${@:1:$#-3}")
+
     local resolved_url=""
-    
     local num_nodes=${#nodes[@]}
 
     for ((i = 0; i < num_nodes; i += 2)); do
-        local node_name="${nodes[$i]}"
-        local node_port_type="${nodes[$((i+1))]}"
+        local node_name="${nodes[i]}"
+        local node_port_type="${nodes[i+1]}"
 
         kurtosis service inspect "$ENCLAVE" "$node_name" || {
-            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+            echo "⚠️  Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
             continue
         }
 
         resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
-        if [ -n "$resolved_url" ]; then
-            echo "✅ $success_msg ($resolved_url) from $node_name" >&3
+        if [[ "$resolved_url" != "" ]]; then
+            echo "$resolved_url"
             break
         fi
     done
 
-    if [ -z "$resolved_url" ]; then
+    if [[ "$resolved_url" == "" ]]; then
         echo "❌ $error_msg" >&2
-        return 1
+        if [[ "$required" == "true" ]]; then
+            exit 1
+        fi
     fi
-
-    echo "$resolved_url"
 }
 
 _agglayer_cdk_common_multi_setup() {
@@ -268,12 +270,14 @@ _agglayer_cdk_common_multi_setup() {
 
     # Resolve Aggkit Bridge URLs for both nodes
     local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_1_url=$(_resolve_url_from_nodes aggkit_nodes_1 "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" | tail -1)
     readonly aggkit_bridge_1_url
+    echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
 
     local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
-    aggkit_bridge_2_url=$(_resolve_url_from_nodes aggkit_nodes_2 "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" | tail -1)
     readonly aggkit_bridge_2_url
+    echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
     echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
