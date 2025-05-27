@@ -28,7 +28,7 @@ native_gas_token_deposit_to_WETH() {
     echo "=== Claiming on L2..." >&3
     timeout="120"
     claim_frequency="10"
-    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$L2_RPC_URL" "$bridge_api_url" "$l2_bridge_addr"
+    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$L2_RPC_URL" "$zkevm_bridge_url" "$l2_bridge_addr"
     assert_success
 
     run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
@@ -49,7 +49,7 @@ native_gas_token_deposit_to_WETH() {
     echo "=== Claiming on L1..." >&3
     timeout="400"
     claim_frequency="60"
-    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$l1_rpc_url" "$bridge_api_url" "$l1_bridge_addr"
+    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$l1_rpc_url" "$zkevm_bridge_url" "$l1_bridge_addr"
     assert_success
 }
 
@@ -116,7 +116,7 @@ native_gas_token_deposit_to_WETH() {
     # Claim deposits (settle them on the L2)
     timeout="360"
     claim_frequency="10"
-    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$L2_RPC_URL" "$bridge_api_url" "$l2_bridge_addr"
+    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$L2_RPC_URL" "$zkevm_bridge_url" "$l2_bridge_addr"
     assert_success
 
     # Validate that the native token of receiver on L2 has increased by the bridge tokens amount
@@ -140,7 +140,7 @@ native_gas_token_deposit_to_WETH() {
     timeout="360"
     claim_frequency="10"
     destination_net=$l1_rpc_network_id
-    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$l1_rpc_url" "$bridge_api_url" "$l1_bridge_addr"
+    run claim_tx_hash "$timeout" "$bridge_tx_hash" "$destination_addr" "$l1_rpc_url" "$zkevm_bridge_url" "$l1_bridge_addr"
     assert_success
 
     # Validate that the token of receiver on L1 has increased by the bridge tokens amount

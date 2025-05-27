@@ -127,14 +127,14 @@ _common_setup() {
 
         resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
         if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved bridge api url ("$resolved_url") from "$node"" >&3
+            echo "✅ Successfully resolved zkevm bridge url ("$resolved_url") from "$node"" >&3
             break
         fi
     done
     if [ -z "$resolved_url" ]; then
         echo "zkevm-bridge-service isnt running" >&3
     fi
-    readonly bridge_api_url="$resolved_url"
+    readonly zkevm_bridge_url="$resolved_url"
 
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
