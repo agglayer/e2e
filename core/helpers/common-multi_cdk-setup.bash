@@ -10,12 +10,12 @@ _common_multi_setup() {
     readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
 
     # Resolve Aggkit Bridge URLs for both nodes
-    local aggkit_nodes_1=("aggkit-001" "cdk-node-001")
-    aggkit_bridge_1_url=$(_resolve_url_from_nodes aggkit_nodes_1 "rest" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
+    aggkit_bridge_1_url=$(_resolve_url_from_nodes aggkit_nodes_1 "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
     readonly aggkit_bridge_1_url
 
-    local aggkit_nodes_2=("aggkit-002" "cdk-node-002")
-    aggkit_bridge_2_url=$(_resolve_url_from_nodes aggkit_nodes_2 "rest" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
+    aggkit_bridge_2_url=$(_resolve_url_from_nodes aggkit_nodes_2 "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
     readonly aggkit_bridge_2_url
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3

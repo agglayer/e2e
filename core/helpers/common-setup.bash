@@ -4,50 +4,27 @@ _resolve_url_from_nodes() {
     local port_type=$2
     local error_msg=$3
     local success_msg=$4
-    local is_required=${5:-true}
     local resolved_url=""
 
-    if [[ ${#nodes[@]} -eq 2 && "${nodes[1]}" =~ ^(http|rpc|rest)$ ]]; then
-        # Handle paired nodes with port types
-        local num_nodes=${#nodes[@]}
-        for ((i = 0; i < num_nodes; i += 2)); do
-            local node_name="${nodes[i]}"
-            local node_port_type="${nodes[i+1]}"
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${nodes[i]}"
+        local node_port_type="${nodes[i+1]}"
 
-            kurtosis service inspect "$ENCLAVE" "$node_name" || {
-                echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
-                continue
-            }
+        kurtosis service inspect "$ENCLAVE" "$node_name" || {
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+            continue
+        }
 
-            resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
-            if [ -n "$resolved_url" ]; then
-                echo "✅ $success_msg ($resolved_url) from $node_name" >&3
-                break
-            fi
-        done
-    else
-        # Handle simple node list
-        for node in "${nodes[@]}"; do
-            kurtosis service inspect "$ENCLAVE" "$node" || {
-                echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-                continue
-            }
-
-            resolved_url=$(kurtosis port print "$ENCLAVE" "$node" "$port_type")
-            if [ -n "$resolved_url" ]; then
-                echo "✅ $success_msg ($resolved_url) from $node" >&3
-                break
-            fi
-        done
-    fi
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+        if [ -n "$resolved_url" ]; then
+            echo "✅ $success_msg ($resolved_url) from $node_name" >&3
+            break
+        fi
+    done
 
     if [ -z "$resolved_url" ]; then
-        if [ "$is_required" = true ]; then
-            echo "❌ $error_msg" >&2
-            return 1
-        else
-            echo "$error_msg" >&3
-        fi
+        echo "❌ $error_msg" >&2
+        return 1
     fi
 
     echo "$resolved_url"
@@ -98,8 +75,8 @@ _common_setup() {
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
 
     # Resolve L2 RPC URL
-    local l2_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
-    L2_RPC_URL=$(_resolve_url_from_nodes l2_nodes "rpc" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL")
+    local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
+    L2_RPC_URL=$(_resolve_url_from_nodes l2_nodes "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL")
     export L2_RPC_URL
 
     # Resolve L2 Sequencer RPC URL
@@ -108,13 +85,13 @@ _common_setup() {
     export L2_SEQUENCER_RPC_URL
 
     # Resolve Aggkit Bridge URL
-    local aggkit_nodes=("aggkit-001" "cdk-node-001")
-    aggkit_bridge_url=$(_resolve_url_from_nodes aggkit_nodes "rest" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
+    aggkit_bridge_url=$(_resolve_url_from_nodes aggkit_nodes "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
     readonly aggkit_bridge_url
 
     # Resolve ZKEVM Bridge URL
-    local zkevm_nodes=("zkevm-bridge-service-001")
-    zkevm_bridge_url=$(_resolve_url_from_nodes zkevm_nodes "rpc" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false)
+    local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
+    zkevm_bridge_url=$(_resolve_url_from_nodes zkevm_nodes "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url")
     readonly zkevm_bridge_url
 
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
