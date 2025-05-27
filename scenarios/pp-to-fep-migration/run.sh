@@ -1,13 +1,22 @@
 #!/bin/env bash
-
+set -e
 source ../common/load-env.sh
 load_env
 
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 
+# The aggregationVkey and rangeVkeyCommitment values need to be manually changed when op-succinct-proposer circuits are rebuilt.
+# agglayer/op-succinct uses a slimed image of the op-succinct-proposer, which doesn't contain the aggregation-elf and range-elf directly.
+aggregation_vkey="0x00b727dd4c322e04033a340e342a675b73c6ee8fec3946a7b3e93797b10ed721"
+range_vkey_commitment="0x1b5d3b2e062d5f24618fb82821b49ea2465d016e0820219d417ec351753b3adc"
 
-curl -s https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml > tmp-pp.yml
+# If condition for CI to determines whether to use mock prover or network prover
+if [[ $MOCK_MODE == true ]]; then
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > tmp-pp.yml
+else
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml" > tmp-pp.yml
+fi
 
 # TODO we should make sure that op_succinct can run with PP
 # Create a yaml file that has the pp consense configured but ideally a real prover
@@ -18,9 +27,9 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 ' tmp-pp.yml > initial-pp.yml
 
 # TEMPORARY TO SPEED UP TESTING
-yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg sl "$SPAN_LENGTH_OVERRIDE" '
+yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg rpi "$RANGE_PROOF_INTERVAL_OVERRIDE" '
 .optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
-.args.op_succinct_proposer_span_proof = $sl |
+.args.op_succinct_range_proof_interval = $rpi |
 .args.l1_seconds_per_slot = 1' initial-pp.yml > _t; mv _t initial-pp.yml
 
 # Spin up the network
@@ -39,18 +48,14 @@ echo '#     # #    # #    #    #    #  #    # #      #      #    # #            
 echo '#     # #####  #####     #     #  ####  ###### ######  ####  #            #      #   #      ###### '
 
 
-contracts_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep contracts-001 | awk '{print $1}')
+contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
 contracts_container_name=contracts-001--$contracts_uuid
 
-agglayer_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep agglayer[^-] | awk '{print $1}')
+agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep agglayer[^-] | awk '{print $1}')
 agglayer_container_name=agglayer--$agglayer_uuid
 
-aggkit_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-001 | awk '{print $1}')
+aggkit_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep aggkit-001 | awk '{print $1}')
 aggkit_container_name=aggkit-001--$aggkit_uuid
-
-# TODO there is an issue here. the aggkit prover should have the -001 suffix
-aggkit_prover_uuid=$(kurtosis enclave inspect --full-uuids pp-to-fep-test | grep aggkit-prover[^-] | awk '{print $1}')
-aggkit_prover_container_name=aggkit-prover--$aggkit_prover_uuid
 
 # Read the agglayer vkey value
 agglayer_vkey=$(docker exec -it "$agglayer_container_name" agglayer vkey | tr -d "\r\n")
@@ -82,15 +87,42 @@ echo ' #####  #      #####  #    #   #   ######    #     #  ####  ###### ###### 
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
+# The timeout might be too large, but it should allow sufficient time for the certificates to settle.
+# TODO this timeout approach allows us to run the script without needing to manually check and continue the next steps. But there might be better approaches.
+timeout=2000
+retry_interval=20
+
+check_non_null() [[ -n "$1" && "$1" != "null" ]]
+check_null() [[ "$1" == "null" ]]
 
 # TOOD We should add some pause here to make sure that there are some bridges sent... we can check that the pending certificate is not null
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+echo "Checking non-null certificate..."
+start=$((SECONDS))
+while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_non_null "$output"; do
+  [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for non-null certificate"; exit 1; }
+  echo "Retrying..."
+  sleep $retry_interval
+done
+echo "Non-null latest pending certificate: $output"
 
 # Stopping the bridge spammer for our own sanity
-kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+echo "Stopping bridge spammer..."
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001 || { echo "Error: Failed to stop spammer"; exit 1; }
+echo "Spammer stopped."
 
 # TODO use this in the future to block the upgrade This should be `null`... Basically we want to make sure everything is settled
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+echo "Checking null last pending certificate..."
+start=$((SECONDS))
+while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_null "$output"; do
+  [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for null certificate"; exit 1; }
+  echo "Retrying: $output"
+  sleep $retry_interval
+done
+echo "Null latest pending certificate confirmed"
+
+echo "Checking last settled certificate"
+latest_settled_l2_block=$(cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+echo $latest_settled_l2_block
 
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
 # I assume we should stop the sequencer before we update it
@@ -135,9 +167,9 @@ echo '### #    # #   #   # #    # ###### # ###### ######    #     #  ####  #####
 docker cp $contracts_container_name:/opt/contract-deploy/create_new_rollup.json initialize_rollup.json
 
 # TRYFIX - Maybe we can read the block number from the last settled PP
-current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')
+# current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')
 
-cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock $(printf "0x%x" $current_unsafe_block) | jq '.' > output.json
+cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock $(printf "0x%x" $latest_settled_l2_block) | jq '.' > output.json
 
 # TODO this is very hacky.. There are some things in this that don't actually come from rollup config. And then some values are formatted differently
 cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2 '{
@@ -160,29 +192,17 @@ cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2
       "blobBaseFeeScalar": null,
       "eip1559Denominator": 0,
       "eip1559Elasticity": 0,
-      "operatorFeeScalar": null,
-      "operatorFeeConstant": null
+      "operatorFeeScalar": 0,
+      "operatorFeeConstant": 0
     }
   },
-
   block_time:                 .block_time,
   max_sequencer_drift:        .max_sequencer_drift,
   seq_window_size:            .seq_window_size,
   channel_timeout:            .channel_timeout,
   "granite_channel_timeout": 50,
-
   l1_chain_id:                .l1_chain_id,
   l2_chain_id:                .l2_chain_id,
-
-  base_fee_params: {
-    max_change_denominator: "0x32",
-    elasticity_multiplier: "0x6"
-  },
-  canyon_base_fee_params: {
-    max_change_denominator: "0xfa",
-    elasticity_multiplier: "0x6"
-  },
-
 
   regolith_time:              .regolith_time,
   canyon_time:                .canyon_time,
@@ -191,12 +211,19 @@ cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2
   fjord_time:                 .fjord_time,
   granite_time:               .granite_time,
   holocene_time:              .holocene_time,
+  isthmus_time:               .isthmus_time,
 
   batch_inbox_address:        .batch_inbox_address,
   deposit_contract_address:   .deposit_contract_address,
   l1_system_config_address:   .l1_system_config_address,
   protocol_versions_address:  "0x0000000000000000000000000000000000000000",
-  interop_message_expiry_window: 3600
+  interop_message_expiry_window: 3600,
+  "alt_da": null,
+  "chain_op_config": {
+    "eip1559Elasticity": "0x6",
+    "eip1559Denominator": "0x32",
+    "eip1559DenominatorCanyon": "0xfa"
+  }
 }' | sed 's/"scalar": "0x01/"scalar": "0x1/' | head -c -1 > rollup.json
 
 rollup_config_hash=0x$(sha256sum rollup.json | awk '{print $1}')
@@ -206,14 +233,17 @@ rollup_config_hash=0x$(sha256sum rollup.json | awk '{print $1}')
 # TODO block time should come from the rollup config
 jq \
     --arg rch "$rollup_config_hash" \
+    --arg avk "$aggregation_vkey" \
+    --arg rvk "$range_vkey_commitment" \
+    --argjson latest_settled_block "$latest_settled_l2_block" \
     --slurpfile o output.json \
    '.aggchainParams.initParams.l2BlockTime = 1 |
     .aggchainParams.initParams.startingOutputRoot = $o[0].outputRoot |
-    .aggchainParams.initParams.startingBlockNumber = $o[0].blockRef.number |
+    .aggchainParams.initParams.startingBlockNumber = $latest_settled_block |
     .aggchainParams.initParams.startingTimestamp = $o[0].blockRef.timestamp |
     .aggchainParams.initParams.submissionInterval = 1 |
-    .aggchainParams.initParams.aggregationVkey = "0x00e85a8274b6b98b791afeef499b00895c59b5e2e118844dda57eda801dbb10d" |
-    .aggchainParams.initParams.rangeVkeyCommitment = "0x0367776036b0d8b12720eab775b651c7251e63a249cb84f63eb1c20418b24e9c" |
+    .aggchainParams.initParams.aggregationVkey = $avk |
+    .aggchainParams.initParams.rangeVkeyCommitment = $rvk |
     .aggchainParams.initParams.rollupConfigHash = $rch |
     .realVerifier = true |
     .consensusContractName = "AggchainFEP"
@@ -222,6 +252,13 @@ jq \
 docker cp initialize_rollup.json $contracts_container_name:/opt/zkevm-contracts/tools/initializeRollup/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/initializeRollup/initializeRollup.ts --network localhost
 
+if ! cast call --rpc-url "$l1_rpc_url" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "getDefaultAggchainVKey(bytes4)" "0x00010001"; then
+    echo "Error: getDefaultAggchainVKey returned AggchainVKeyNotFound()"
+    exit 1s
+fi
+
+# Save Rollup Information to a file.
+cast call --json --rpc-url "$l1_rpc_url" "$rollup_manager_address" 'rollupIDToRollupData(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' "1" | jq '{"sovereignRollupContract": .[0], "rollupChainID": .[1], "verifier": .[2], "forkID": .[3], "lastLocalExitRoot": .[4], "lastBatchSequenced": .[5], "lastVerifiedBatch": .[6], "_legacyLastPendingState": .[7], "_legacyLastPendingStateConsolidated": .[8], "lastVerifiedBatchBeforeUpgrade": .[9], "rollupTypeID": .[10], "rollupVerifierType": .[11]}' > ./rollup-out.json
 
 echo '######                                       ###                             '
 echo '#     # ###### #      #####   ####  #   #     #  #    # ###### #####    ##   '
@@ -237,77 +274,25 @@ echo '######  ###### ###### #       ####    #      ### #    # #      #    # #   
 # start it back up
 cast rpc --rpc-url "$l2_node_url" admin_startSequencer $(cat stop.out)
 
-# stop the proposer
-# TODO check to see why this isn't running anymore
-if [[ false ]]; then
-    kurtosis service stop "$kurtosis_enclave_name" op-proposer-001
-fi
-
-# TODO there are some env variables that seem unnecessary now
-# server
-docker run \
-       --rm -d \
-       --name op-succinct-server \
-       --network kt-$kurtosis_enclave_name \
-       -e "NETWORK_PRIVATE_KEY=$SP1_NETWORK_KEY" \
-       -e "NETWORK_RPC_URL=https://rpc.production.succinct.xyz" \
-       -e "AGG_PROOF_MODE=compressed" \
-       -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
-       -e "L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547" \
-       -e "PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" \
-       -e "L1_RPC=http://el-1-geth-lighthouse:8545" \
-       -e "OP_SUCCINCT_MOCK=false" \
-       -e "L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000" \
-       -e "ETHERSCAN_API_KEY=" \
-       -e "PORT=3000" \
-       ghcr.io/agglayer/op-succinct/succinct-proposer:v1.2.12-agglayer
-
-# Proposer
-# TODO the db seems to be created automatically. We should remove thie template in kurtosis
-docker run \
-       --rm -d \
-       --name op-succinct-proposer \
-       --network kt-$kurtosis_enclave_name \
-       -e "VERIFIER_ADDRESS=0xf22E2B040B639180557745F47aB97dFA95B1e22a" \
-       -e "PRIVATE_KEY=0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" \
-       -e "L1_BEACON_RPC=http://cl-1-lighthouse-geth:4000" \
-       -e "ETHERSCAN_API_KEY=" \
-       -e "OP_SUCCINCT_AGGLAYER=true" \
-       -e "L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547" \
-       -e "L1_RPC=http://el-1-geth-lighthouse:8545" \
-       -e "MAX_CONCURRENT_PROOF_REQUESTS=1" \
-       -e "MAX_CONCURRENT_WITNESS_GEN=1" \
-       -e "OP_SUCCINCT_SERVER_URL=http://op-succinct-server:3000" \
-       -e "L2OO_ADDRESS=0x414e9E227e4b589aF92200508aF5399576530E4e" \
-       -e "MAX_BLOCK_RANGE_PER_SPAN_PROOF=$SPAN_LENGTH_OVERRIDE" \
-       -e "OP_SUCCINCT_MOCK=false" \
-       -e "L2_RPC=http://op-el-1-op-geth-op-node-001:8545" \
-       ghcr.io/agglayer/op-succinct/op-proposer:v1.2.12-agglayer
-
-
-docker exec -u root -it "$aggkit_prover_container_name" sed -i 's/proposer-endpoint.*/proposer-endpoint = "http:\/\/op-succinct-proposer:8545"/' /etc/aggkit/aggkit-prover-config.toml
-kurtosis service stop "$kurtosis_enclave_name" aggkit-prover
-kurtosis service start "$kurtosis_enclave_name" aggkit-prover
-
+echo "Starting up aggkit service..."
 kurtosis service start "$kurtosis_enclave_name" aggkit-001
 
-kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
+docker compose up -d
 
+kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 
 ################################################################################
 
 exit
 
 # TODO use this in the future to block the upgrade This should be `null`
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
 
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
-cast rpc --rpc-url $(kurtosis port print pp-to-fep-test agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
+cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
+cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
 
 cast abi-encode --packed 'f(bytes,uint64,uint64,uint64,bytes)' 0x00 1 1 1 0xFFFFFFFFFFFFFF
 
-cast tx --rpc-url http://$(kurtosis port print pp-to-fep-test  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
+cast tx --rpc-url http://$(kurtosis port print $kurtosis_enclave_name  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
 
-docker stop op-succinct-proposer
-docker stop op-succinct-server
-
+docker compose down
