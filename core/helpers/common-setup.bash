@@ -1,3 +1,58 @@
+# Helper function to resolve URL from fallback nodes
+_resolve_url_from_nodes() {
+    local -n nodes=$1
+    local port_type=$2
+    local error_msg=$3
+    local success_msg=$4
+    local is_required=${5:-true}
+    local resolved_url=""
+
+    if [[ ${#nodes[@]} -eq 2 && "${nodes[1]}" =~ ^(http|rpc|rest)$ ]]; then
+        # Handle paired nodes with port types
+        local num_nodes=${#nodes[@]}
+        for ((i = 0; i < num_nodes; i += 2)); do
+            local node_name="${nodes[i]}"
+            local node_port_type="${nodes[i+1]}"
+
+            kurtosis service inspect "$ENCLAVE" "$node_name" || {
+                echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+                continue
+            }
+
+            resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+            if [ -n "$resolved_url" ]; then
+                echo "✅ $success_msg ($resolved_url) from $node_name" >&3
+                break
+            fi
+        done
+    else
+        # Handle simple node list
+        for node in "${nodes[@]}"; do
+            kurtosis service inspect "$ENCLAVE" "$node" || {
+                echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
+                continue
+            }
+
+            resolved_url=$(kurtosis port print "$ENCLAVE" "$node" "$port_type")
+            if [ -n "$resolved_url" ]; then
+                echo "✅ $success_msg ($resolved_url) from $node" >&3
+                break
+            fi
+        done
+    fi
+
+    if [ -z "$resolved_url" ]; then
+        if [ "$is_required" = true ]; then
+            echo "❌ $error_msg" >&2
+            return 1
+        else
+            echo "$error_msg" >&3
+        fi
+    fi
+
+    echo "$resolved_url"
+}
+
 _common_setup() {
     bats_load_library 'bats-support'
     if [ $? -ne 0 ]; then return 1; fi
@@ -42,99 +97,25 @@ _common_setup() {
     # ✅ Kurtosis service setup
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
 
-    local fallback_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
-    local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-            continue
-        }
+    # Resolve L2 RPC URL
+    local l2_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
+    L2_RPC_URL=$(_resolve_url_from_nodes l2_nodes "rpc" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL")
+    export L2_RPC_URL
 
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved L2 RPC URL ("$resolved_url") from "$node"" >&3
-            break
-        fi
-    done
-    if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve L2 RPC URL from all fallback nodes" >&2
-        return 1
-    fi
-    export L2_RPC_URL="$resolved_url"
+    # Resolve L2 Sequencer RPC URL
+    local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
+    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes sequencer_nodes "" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL")
+    export L2_SEQUENCER_RPC_URL
 
-    local fallback_nodes=(
-        "op-batcher-001" "http"
-        "cdk-erigon-sequencer-001" "rpc"
-    )
-    local resolved_url=""
-    local num_nodes=${#fallback_nodes[@]}
+    # Resolve Aggkit Bridge URL
+    local aggkit_nodes=("aggkit-001" "cdk-node-001")
+    aggkit_bridge_url=$(_resolve_url_from_nodes aggkit_nodes "rest" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    readonly aggkit_bridge_url
 
-    for ((i = 0; i < num_nodes; i += 2)); do
-        local node_name="${fallback_nodes[i]}"
-        local node_port_type="${fallback_nodes[i+1]}"
-
-        kurtosis service inspect "$ENCLAVE" "$node_name" || {
-            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved L2 SEQUENCER RPC URL ($resolved_url) from $node_name" >&3
-            break
-        fi
-    done
-
-    if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" >&2
-        return 1
-    fi
-    export L2_SEQUENCER_RPC_URL="$resolved_url"
-
-    local fallback_nodes=("aggkit-001" "cdk-node-001")
-    local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rest)
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved aggkit bridge url ("$resolved_url") from "$node"" >&3
-            break
-        fi
-    done
-    if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve aggkit bridge url from all fallback nodes" >&2
-        return 1
-    fi
-    readonly aggkit_bridge_url="$resolved_url"
-
-    local fallback_nodes=("zkevm-bridge-service-001")
-    local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved zkevm bridge url ("$resolved_url") from "$node"" >&3
-            break
-        fi
-    done
-    if [ -z "$resolved_url" ]; then
-        echo "zkevm-bridge-service isnt running" >&3
-    fi
-    readonly zkevm_bridge_url="$resolved_url"
+    # Resolve ZKEVM Bridge URL
+    local zkevm_nodes=("zkevm-bridge-service-001")
+    zkevm_bridge_url=$(_resolve_url_from_nodes zkevm_nodes "rpc" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false)
+    readonly zkevm_bridge_url
 
     echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
     echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
