@@ -252,14 +252,6 @@ jq \
 docker cp initialize_rollup.json $contracts_container_name:/opt/zkevm-contracts/tools/initializeRollup/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/initializeRollup/initializeRollup.ts --network localhost
 
-# FIXME - Temporary work around to make sure the default aggkey is configured
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d"
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "addDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00010001" "0x1e82b1193be48c5c6ba14dda2bcc29ab4d3dc3a2379198ac1f8571040d0a7a4d"
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000001" "4b7898a6472e298b19bee7254bc684525bce910466fc339c76d65af11e332e69"
-# cast send --rpc-url "$l1_rpc_url" --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "updateDefaultAggchainVKey(bytes4,bytes32)" "0x00000002" "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be"
-
 if ! cast call --rpc-url "$l1_rpc_url" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "getDefaultAggchainVKey(bytes4)" "0x00010001"; then
     echo "Error: getDefaultAggchainVKey returned AggchainVKeyNotFound()"
     exit 1s
@@ -304,7 +296,3 @@ cast abi-encode --packed 'f(bytes,uint64,uint64,uint64,bytes)' 0x00 1 1 1 0xFFFF
 cast tx --rpc-url http://$(kurtosis port print $kurtosis_enclave_name  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
 
 docker compose down
-# docker stop aggkit-prover-001
-# docker stop op-succinct-proposer-001
-# docker stop op-succinct-server
-
