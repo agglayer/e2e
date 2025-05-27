@@ -1,36 +1,4 @@
-# Helper function to resolve URL from fallback nodes
-_resolve_url_from_nodes() {
-    local -n nodes=$1
-    local port_type=$2
-    local error_msg=$3
-    local success_msg=$4
-    local resolved_url=""
-
-    for ((i = 0; i < num_nodes; i += 2)); do
-        local node_name="${nodes[i]}"
-        local node_port_type="${nodes[i+1]}"
-
-        kurtosis service inspect "$ENCLAVE" "$node_name" || {
-            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
-        if [ -n "$resolved_url" ]; then
-            echo "✅ $success_msg ($resolved_url) from $node_name" >&3
-            break
-        fi
-    done
-
-    if [ -z "$resolved_url" ]; then
-        echo "❌ $error_msg" >&2
-        return 1
-    fi
-
-    echo "$resolved_url"
-}
-
-_common_setup() {
+_agglayer_cdk_common_setup() {
     bats_load_library 'bats-support'
     if [ $? -ne 0 ]; then return 1; fi
     bats_load_library 'bats-assert'
@@ -81,7 +49,7 @@ _common_setup() {
 
     # Resolve L2 Sequencer RPC URL
     local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
-    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes sequencer_nodes "" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL")
+    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes sequencer_nodes "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL")
     export L2_SEQUENCER_RPC_URL
 
     # Resolve Aggkit Bridge URL
@@ -254,4 +222,66 @@ _common_setup() {
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+}
+
+# Helper function to resolve URL from fallback nodes
+_resolve_url_from_nodes() {
+    local -n nodes="$1"
+    local error_msg="$2"
+    local success_msg="$3"
+    local resolved_url=""
+    
+    local num_nodes=${#nodes[@]}
+
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${nodes[$i]}"
+        local node_port_type="${nodes[$((i+1))]}"
+
+        kurtosis service inspect "$ENCLAVE" "$node_name" || {
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+        if [ -n "$resolved_url" ]; then
+            echo "✅ $success_msg ($resolved_url) from $node_name" >&3
+            break
+        fi
+    done
+
+    if [ -z "$resolved_url" ]; then
+        echo "❌ $error_msg" >&2
+        return 1
+    fi
+
+    echo "$resolved_url"
+}
+
+_agglayer_cdk_common_multi_setup() {
+    readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+    readonly eth_address=$(cast wallet address --private-key $private_key)
+    readonly l2_pp1_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-001 rpc)
+    readonly l2_pp2_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-002 rpc)
+    readonly aggkit_pp1_rpc_url=$(kurtosis port print $ENCLAVE cdk-node-001 rpc)
+    readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
+    readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
+
+    # Resolve Aggkit Bridge URLs for both nodes
+    local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
+    aggkit_bridge_1_url=$(_resolve_url_from_nodes aggkit_nodes_1 "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    readonly aggkit_bridge_1_url
+
+    local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
+    aggkit_bridge_2_url=$(_resolve_url_from_nodes aggkit_nodes_2 "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url")
+    readonly aggkit_bridge_2_url
+
+    echo "=== L1 network id=$l1_rpc_network_id ===" >&3
+    echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
+    echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
+    echo "=== L1 RPC URL=$l1_rpc_url ===" >&3
+    echo "=== L2 PP1 URL=$l2_pp1_url ===" >&3
+    echo "=== L2 PP2 URL=$l2_pp2_url ===" >&3
+    echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
+    echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
+    echo "=== Aggkit PP1 RPC URL=$aggkit_pp1_rpc_url ===" >&3
 }

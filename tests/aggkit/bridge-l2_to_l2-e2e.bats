@@ -1,8 +1,7 @@
 setup() {
-    load '../../core/helpers/common-setup'
-    load '../../core/helpers/common-multi_cdk-setup'
-    _common_setup
-    _common_multi_setup
+    load '../../core/helpers/agglayer-cdk-common-setup'
+    _agglayer_cdk_common_setup
+    _agglayer_cdk_common_multi_setup
 
     add_network2_to_agglayer
     fund_claim_tx_manager

@@ -1,6 +1,6 @@
 setup() {
-    load '../../core/helpers/common-setup'
-    _common_setup
+    load '../../core/helpers/agglayer-cdk-common-setup'
+    _agglayer_cdk_common_setup
 }
 
 @test "Custom gas token deposit L1 -> L2" {

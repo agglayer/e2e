@@ -1,6 +1,6 @@
 setup() {
-  load '../../core/helpers/common-setup'
-  _common_setup
+  load '../../core/helpers/agglayer-cdk-common-setup'
+  _agglayer_cdk_common_setup
 
   readonly update_hash_chain_value_event_sig="event UpdateHashChainValue(bytes32, bytes32)"
   readonly set_sovereign_token_address_event_sig="event SetSovereignTokenAddress(uint32, address, address, bool)"
