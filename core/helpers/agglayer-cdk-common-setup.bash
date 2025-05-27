@@ -270,12 +270,12 @@ _agglayer_cdk_common_multi_setup() {
 
     # Resolve Aggkit Bridge URLs for both nodes
     local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" | tail -1)
+    aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_1" "Successfully resolved aggkit bridge url" true | tail -1)
     readonly aggkit_bridge_1_url
     echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
 
     local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
-    aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" | tail -1)
+    aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_2" "Successfully resolved aggkit bridge url" true | tail -1)
     readonly aggkit_bridge_2_url
     echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
 
