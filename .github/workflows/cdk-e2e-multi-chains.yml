@@ -31,7 +31,7 @@ on:
         default: "cdk"
 
       docker-image-override:
-        description: "The docker image in kurtosis that will replaced with a local tag (e.g. agglayer_image)"
+        description: "The docker image in kurtosis that will be replaced with a local tag (e.g. agglayer_image)"
         required: false
         type: string
         default: ""
