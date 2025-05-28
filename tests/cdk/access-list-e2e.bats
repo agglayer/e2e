@@ -1,6 +1,6 @@
 setup() {
-    load '../../core/helpers/common-setup'
-    _common_setup
+    load '../../core/helpers/agglayer-cdk-common-setup'
+    _agglayer_cdk_common_setup
 
     readonly erigon_sequencer_node=${KURTOSIS_ERIGON_SEQUENCER:-cdk-erigon-sequencer-001}
     readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $ENCLAVE $erigon_sequencer_node"}

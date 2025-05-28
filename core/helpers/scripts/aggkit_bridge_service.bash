@@ -554,19 +554,19 @@ function claim_bridge_claimSponsor() {
         --argjson amount "$amount" \
         --arg metadata "" \
         '{
-     leaf_type:            $leaf_type,
-     proof_local_exit_root: $proof_local_exit_root,
-     proof_rollup_exit_root:$proof_rollup_exit_root,
-     global_index:         $global_index,
-     mainnet_exit_root:    $mainnet_exit_root,
-     rollup_exit_root:     $rollup_exit_root,
-     origin_network:       $origin_network,
-     origin_token_address: $origin_token_address,
-     destination_network:  $destination_network,
-     destination_address:  $destination_address,
-     amount:               $amount,
-     metadata:             $metadata
-   }')
+            leaf_type:            $leaf_type,
+            proof_local_exit_root: $proof_local_exit_root,
+            proof_rollup_exit_root:$proof_rollup_exit_root,
+            global_index:         $global_index,
+            mainnet_exit_root:    $mainnet_exit_root,
+            rollup_exit_root:     $rollup_exit_root,
+            origin_network:       $origin_network,
+            origin_token_address: $origin_token_address,
+            destination_network:  $destination_network,
+            destination_address:  $destination_address,
+            amount:               $amount,
+            metadata:             $metadata
+        }')
     log "Claim JSON: $claim_json"
     log "📤 Submitting claim with sponsor-claim... $destination_rpc_url"
 

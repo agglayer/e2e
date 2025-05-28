@@ -1,8 +1,7 @@
 setup() {
-    load '../../core/helpers/common-setup'
-    load '../../core/helpers/common-multi_cdk-setup'
-    _common_setup
-    _common_multi_setup
+    load '../../core/helpers/agglayer-cdk-common-setup'
+    _agglayer_cdk_common_setup
+    _agglayer_cdk_common_multi_setup
 
     add_network2_to_agglayer
     fund_claim_tx_manager
@@ -127,8 +126,14 @@ function add_network2_to_agglayer() {
     run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 50 10 "$l2_pp1_network_id" "$l1_bridge_addr"
     assert_success
 
-    echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1"
-    wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp2_to_pp1
+    if [[ "$ENCLAVE" == "aggkit" ]]; then
+        echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1"
+        wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp2_to_pp1
+    else
+        echo "Waiting 10 minutes to get some verified batch...."
+        run $PROJECT_ROOT/core/helpers/scripts/batch_verification_monitor.sh 0 600
+        assert_success
+    fi
 }
 
 function fund_claim_tx_manager() {
