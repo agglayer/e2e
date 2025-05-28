@@ -97,7 +97,8 @@ jq \
     --arg aga "$agglayer_gateway_address" '.rollupManagerAddress = $rma | .aggLayerGatewayAddress = $aga' \
     assets/upgrade_parameters.json  > upgrade_parameters.json
 
-docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeAL
-docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeAL/upgradeALV3.ts --network localhost
+docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeV3/upgradeV3.ts --network localhost
+docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3/upgrade_output.json .
 
 exit
