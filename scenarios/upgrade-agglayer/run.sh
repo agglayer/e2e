@@ -53,7 +53,8 @@ echo '██       ██████  ███████ ██████�
 # Commands to checkout newer contracts branch
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git fetch --all
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git stash
-docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout feature/forge-doc
+# docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout feature/forge-doc
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout tags/v10.1.0-rc.6
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git stash apply
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm -rf node_modules/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm -rf /root/.cache/hardhat-nodejs/
