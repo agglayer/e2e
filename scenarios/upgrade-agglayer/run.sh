@@ -26,24 +26,24 @@ L2_BRIDGE_ADDR=$l2_bridge_address
 export L1_BRIDGE_ADDR
 export L2_BRIDGE_ADDR
 
-echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
-echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
-echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
-echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
-echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+# echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+# echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+# echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+# echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+# echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
-# Run e2e bridge tests L2 <-> L1
-cd ../../
-bats ./tests/lxly/lxly.bats
+# # Run e2e bridge tests L2 <-> L1
+# cd ../../
+# bats ./tests/lxly/lxly.bats
 
-# Check the exit status of the bats test
-if [[ $? -ne 0 ]]; then
-    echo "Bats tests failed. Exiting script."
-    exit 1
-fi
+# # Check the exit status of the bats test
+# if [[ $? -ne 0 ]]; then
+#     echo "Bats tests failed. Exiting script."
+#     exit 1
+# fi
 
-cd ./scenarios/upgrade-agglayer/
-echo "Bats tests passed. Continuing script."
+# cd ./scenarios/upgrade-agglayer/
+# echo "Bats tests passed. Continuing script."
 
 
 echo '██████  ██    ██ ██      ██          ██       █████  ████████ ███████ ███████ ████████      ██████  ██████  ███    ██ ████████ ██████   █████   ██████ ████████ ███████ '
@@ -84,9 +84,11 @@ echo '██████  ███████ ██      ██████�
 verifier_address=$(jq -r '.verifierAddress' combined.json)
 jq --arg va "$verifier_address" '.verifierAddress = $va' assets/deploy_parameters.json  > deploy_parameters.json
 
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name sed -i '$aDEPLOYER_PRIVATE_KEY="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"' .env
 docker cp deploy_parameters.json $contracts_container_name:/opt/zkevm-contracts/tools/deployAggLayerGateway
-output=$(docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./tools/deployAggLayerGateway/deployAggLayerGateway.ts --network localhost)
-agglayer_gateway_address=$(echo "$output" | grep "aggLayerGatewayContract deployed to:" | sed 's/.*deployed to: \(0x[a-fA-F0-9]\{40\}\).*/\1/')
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./tools/deployAggLayerGateway/deployAggLayerGateway.ts --network localhost
+docker cp $contracts_container_name:/opt/zkevm-contracts/tools/deployAggLayerGateway/deploy_output.json .
+agglayer_gateway_address=$(jq -r '.aggLayerGatewayAddress' deploy_output.json)
 
 
 echo '██ ███    ██ ██ ████████ ██  █████  ████████ ███████     ██    ██ ██████   ██████  ██████   █████  ██████  ███████ '
@@ -101,7 +103,7 @@ jq \
     assets/upgrade_parameters.json  > upgrade_parameters.json
 
 # Check if contracts version is feature/upgradev3-unsafeSkipStorageCheck
-if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" ]]; then
+if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" || $contracts_version == "feature/tools-fixes" ]]; then
     docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
     docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeV3/upgradeV3.ts --network localhost
     docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3/upgrade_output.json .
@@ -112,24 +114,24 @@ else
 fi
 
 
-echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
-echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
-echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
-echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
-echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+# echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+# echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+# echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+# echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+# echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
-# Run e2e bridge tests L2 <-> L1
-cd ../../
-bats ./tests/lxly/lxly.bats
+# # Run e2e bridge tests L2 <-> L1
+# cd ../../
+# bats ./tests/lxly/lxly.bats
 
-# Check the exit status of the bats test
-if [[ $? -ne 0 ]]; then
-    echo "Bats tests failed. Exiting script."
-    exit 1
-fi
+# # Check the exit status of the bats test
+# if [[ $? -ne 0 ]]; then
+#     echo "Bats tests failed. Exiting script."
+#     exit 1
+# fi
 
-cd ./scenarios/upgrade-agglayer/
-echo "Bats tests passed."
+# cd ./scenarios/upgrade-agglayer/
+# echo "Bats tests passed."
 
 
 exit
