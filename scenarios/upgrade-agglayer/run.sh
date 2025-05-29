@@ -5,6 +5,7 @@ load_env
 
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
+contracts_version="$AGGLAYER_CONTRACTS_VERSION"
 
 # Spin up the network
 kurtosis run \
@@ -22,26 +23,27 @@ l2_bridge_address=$(jq -r '.polygonZkEVML2BridgeAddress' combined.json)
 
 L1_BRIDGE_ADDR=$l1_bridge_address
 L2_BRIDGE_ADDR=$l2_bridge_address
+export L1_BRIDGE_ADDR
+export L2_BRIDGE_ADDR
 
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
-# echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
-# echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
-# echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
-# echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
-# echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
 
-# # Run e2e bridge tests L2 <-> L1
-# cd ../../
-# bats ./tests/lxly/lxly.bats
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script."
+    exit 1
+fi
 
-# # Check the exit status of the bats test
-# if [[ $? -ne 0 ]]; then
-#     echo "Bats tests failed. Exiting script."
-#     exit 1
-# fi
-
-# cd ./scenarios/upgrade-rollup-manager/
-# echo "Bats tests passed. Continuing script."
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script."
 
 
 echo '██████  ██    ██ ██      ██          ██       █████  ████████ ███████ ███████ ████████      ██████  ██████  ███    ██ ████████ ██████   █████   ██████ ████████ ███████ '
@@ -51,10 +53,11 @@ echo '██      ██    ██ ██      ██          ██      █�
 echo '██       ██████  ███████ ███████     ███████ ██   ██    ██    ███████ ███████    ██         ██████  ██████  ██   ████    ██    ██   ██ ██   ██  ██████    ██    ███████ '
                                                                                                                                                                         
 # Commands to checkout newer contracts branch
-docker exec -w /opt/zkevm-contracts -it $contracts_container_name git fetch --all
+if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" ]]; then
+    docker exec -w /opt/zkevm-contracts -it $contracts_container_name git fetch origin
+fi
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git stash
-# docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout feature/forge-doc
-docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout feature/upgradev3-unsafeSkipStorageCheck
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout $contracts_version --force
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git stash apply
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm -rf node_modules/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm -rf /root/.cache/hardhat-nodejs/
@@ -97,8 +100,36 @@ jq \
     --arg aga "$agglayer_gateway_address" '.rollupManagerAddress = $rma | .aggLayerGatewayAddress = $aga' \
     assets/upgrade_parameters.json  > upgrade_parameters.json
 
-docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
-docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeV3/upgradeV3.ts --network localhost
-docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3/upgrade_output.json .
+# Check if contracts version is feature/upgradev3-unsafeSkipStorageCheck
+if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" ]]; then
+    docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
+    docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeV3/upgradeV3.ts --network localhost
+    docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3/upgrade_output.json .
+else
+    docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeAL
+    docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeAL/upgradeALV3.ts --network localhost
+    docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeAL/upgrade_output.json .
+fi
+
+
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
+
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script."
+    exit 1
+fi
+
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed."
+
 
 exit
