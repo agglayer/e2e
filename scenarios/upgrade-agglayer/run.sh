@@ -7,6 +7,13 @@ kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 contracts_version="$AGGLAYER_CONTRACTS_VERSION"
 
+
+echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██████  ██  ██████   ██████  ███    ██     ██    ██  █████  ██      ██ ██████  ██ ██    ██ ███    ███ '
+echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██      ██   ██ ██  ██        ██      ██   ██ ██ ██       ██    ██ ████   ██     ██    ██ ██   ██ ██      ██ ██   ██ ██ ██    ██ ████  ████ '
+echo '███████    ██       ██    ███████ ██      ███████     ██      ██   ██ █████   █████ █████   ██████  ██ ██   ███ ██    ██ ██ ██  ██     ██    ██ ███████ ██      ██ ██   ██ ██ ██    ██ ██ ████ ██ '
+echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██      ██   ██ ██  ██        ██      ██   ██ ██ ██    ██ ██    ██ ██  ██ ██      ██  ██  ██   ██ ██      ██ ██   ██ ██ ██    ██ ██  ██  ██ '
+echo '██   ██    ██       ██    ██   ██  ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██   ██ ██  ██████   ██████  ██   ████       ████   ██   ██ ███████ ██ ██████  ██  ██████  ██      ██ '
+
 # Spin up the network
 kurtosis run \
          --enclave "$kurtosis_enclave_name" \
@@ -26,24 +33,104 @@ L2_BRIDGE_ADDR=$l2_bridge_address
 export L1_BRIDGE_ADDR
 export L2_BRIDGE_ADDR
 
-# echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
-# echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
-# echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
-# echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
-# echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
-# # Run e2e bridge tests L2 <-> L1
-# cd ../../
-# bats ./tests/lxly/lxly.bats
+echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██████  ██  ██████   ██████  ███    ██     ██████  ██████  '
+echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██      ██   ██ ██  ██        ██      ██   ██ ██ ██       ██    ██ ████   ██     ██   ██ ██   ██ '
+echo '███████    ██       ██    ███████ ██      ███████     ██      ██   ██ █████   █████ █████   ██████  ██ ██   ███ ██    ██ ██ ██  ██     ██████  ██████  '
+echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██      ██   ██ ██  ██        ██      ██   ██ ██ ██    ██ ██    ██ ██  ██ ██     ██      ██      '
+echo '██   ██    ██       ██    ██   ██  ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██   ██ ██  ██████   ██████  ██   ████     ██      ██      '
 
-# # Check the exit status of the bats test
-# if [[ $? -ne 0 ]]; then
-#     echo "Bats tests failed. Exiting script."
-#     exit 1
-# fi
+# Spin up the network
+kurtosis run \
+         --enclave "$kurtosis_enclave_name" \
+         --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/contracts/v9.0.0-rc.2-pp/.github/tests/chains/cdk-erigon-pessimistic.yml" \
+         "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
 
-# cd ./scenarios/upgrade-agglayer/
-# echo "Bats tests passed. Continuing script."
+
+echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██████  ██  ██████   ██████  ███    ██     ██████   ██████  ██      ██      ██    ██ ██████  '
+echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██      ██   ██ ██  ██        ██      ██   ██ ██ ██       ██    ██ ████   ██     ██   ██ ██    ██ ██      ██      ██    ██ ██   ██ '
+echo '███████    ██       ██    ███████ ██      ███████     ██      ██   ██ █████   █████ █████   ██████  ██ ██   ███ ██    ██ ██ ██  ██     ██████  ██    ██ ██      ██      ██    ██ ██████  '
+echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██      ██   ██ ██  ██        ██      ██   ██ ██ ██    ██ ██    ██ ██  ██ ██     ██   ██ ██    ██ ██      ██      ██    ██ ██      '
+echo '██   ██    ██       ██    ██   ██  ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██   ██ ██  ██████   ██████  ██   ████     ██   ██  ██████  ███████ ███████  ██████  ██      '
+
+# Spin up the network
+kurtosis run \
+         --enclave "$kurtosis_enclave_name" \
+         --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/contracts/v9.0.0-rc.2-pp/.github/tests/chains/cdk-erigon-rollup.yml" \
+         "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"                                                                                                                                                                     
+
+
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+echo "Test CDK-Erigon Validium Bridging"
+L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-003 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-004 rpc)
+
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
+
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script. ❌"
+    exit 1
+fi
+
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script. ✅"
+
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+echo "Test CDK-Erigon Rollup Bridging"
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)
+L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-003 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-004 rpc)
+
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
+
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script. ❌"
+    exit 1
+fi
+
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script. ✅"
+
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+echo "Test CDK-Erigon PP Bridging"
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-003 rpc)
+L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-004 rpc)
+
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
+
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script. ❌"
+    exit 1
+fi
+
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script. ✅"
 
 
 echo '██████  ██    ██ ██      ██          ██       █████  ████████ ███████ ███████ ████████      ██████  ██████  ███    ██ ████████ ██████   █████   ██████ ████████ ███████ '
@@ -114,24 +201,76 @@ else
 fi
 
 
-# echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
-# echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
-# echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
-# echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
-# echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
-# # Run e2e bridge tests L2 <-> L1
-# cd ../../
-# bats ./tests/lxly/lxly.bats
+echo "Test CDK-Erigon Validium Bridging"
+L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-003 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-004 rpc)
 
-# # Check the exit status of the bats test
-# if [[ $? -ne 0 ]]; then
-#     echo "Bats tests failed. Exiting script."
-#     exit 1
-# fi
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
 
-# cd ./scenarios/upgrade-agglayer/
-# echo "Bats tests passed."
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script. ❌"
+    exit 1
+fi
 
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script. ✅"
+
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+echo "Test CDK-Erigon Rollup Bridging"
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)
+L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-003 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-004 rpc)
+
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
+
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script. ❌"
+    exit 1
+fi
+
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script. ✅"
+
+echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
+echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
+echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
+echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
+echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+echo "Test CDK-Erigon PP Bridging"
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)
+# L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-003 rpc)
+L2_RPC_URL=$(kurtosis port print cdk cdk-erigon-rpc-004 rpc)
+
+# Run e2e bridge tests L2 <-> L1
+cd ../../
+bats ./tests/lxly/lxly.bats
+
+# Check the exit status of the bats test
+if [[ $? -ne 0 ]]; then
+    echo "Bats tests failed. Exiting script. ❌"
+    exit 1
+fi
+
+cd ./scenarios/upgrade-agglayer/
+echo "Bats tests passed. Continuing script. ✅"
 
 exit
