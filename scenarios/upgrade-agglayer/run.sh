@@ -224,6 +224,20 @@ echo '██ ██ ██  ██ ██    ██    ██ ██████
 echo '██ ██  ██ ██ ██    ██    ██ ██   ██    ██    ██          ██    ██ ██      ██    ██ ██   ██ ██   ██ ██   ██ ██      '
 echo '██ ██   ████ ██    ██    ██ ██   ██    ██    ███████      ██████  ██       ██████  ██   ██ ██   ██ ██████  ███████ '
 
+echo "Check Rollup Manager Contract Version Before Upgrade"
+rollup_manager_version=$(cast call $rollup_manager_address "ROLLUP_MANAGER_VERSION()(string)" --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc))
+
+# Expected version
+expected_version=\"pessimistic\"
+
+# Check if the version matches
+if [[ "$rollup_manager_version" != "$expected_version" ]]; then
+    echo "Error: Expected ROLLUP_MANAGER_VERSION to be $expected_version, but got $rollup_manager_version"
+    exit 1
+else
+    echo "Version check passed: $rollup_manager_version"
+fi
+
 jq \
     --arg rma "$rollup_manager_address" \
     --arg aga "$agglayer_gateway_address" '.rollupManagerAddress = $rma | .aggLayerGatewayAddress = $aga' \
@@ -231,6 +245,11 @@ jq \
 
 # Check if contracts version is feature/upgradev3-unsafeSkipStorageCheck
 if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" || $contracts_version == "feature/tools-fixes" ]]; then
+
+    # # Modified upgradeV3 script for testing purposes
+    # docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm ./upgrade/upgradeV3/upgradeV3.ts
+    # docker cp assets/upgradeV3.ts $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
+
     docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
     docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeV3/upgradeV3.ts --network localhost
     docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3/upgrade_output.json .
@@ -240,6 +259,45 @@ else
     docker cp $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeAL/upgrade_output.json .
 fi
 
+# Trigger the upgrade after the timelock delay
+timelock_address=$(jq -r '.timelockContractAddress' combined.json)
+pvt_key=$(jq -r '.deployerPvtKey' upgrade_parameters.json)
+execute_data=$(jq -r '.executeData' upgrade_output.json)
+schedule_tx_hash=$(jq -r '.scheduleTxHash' upgrade_output.json)
+
+# Check operation readiness
+check_ready() {
+  cast call "$timelock_address" "isOperationReady(bytes32)(bool)" "$schedule_tx_hash" --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc) 2>/dev/null
+}
+
+max_retries=360
+retry_interval=10
+# Retry loop
+for ((retries=0; retries<max_retries; retries++)); do
+  echo "Checking operation $OPERATION_ID (Attempt $((retries + 1))/$max_retries)..."
+  if [[ $(check_ready) =~ ^(true|1)$ ]]; then
+    echo "Operation ready. Executing..."
+    cast send $timelock_address --private-key $pvt_key --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc) "$execute_data"
+    [[ $? -eq 0 ]] && { echo "Execution successful."; exit 0; } || { echo "Execution failed."; exit 1; }
+  else
+    echo "Operation not ready. Retrying in $retry_interval seconds..."
+    sleep $retry_interval
+  fi
+done
+
+echo "Check Rollup Manager Contract Version After Upgrade"
+rollup_manager_version=$(cast call $rollup_manager_address "ROLLUP_MANAGER_VERSION()(string)" --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc))
+
+# Expected version
+expected_version=\"al-v0.3.0\"
+
+# Check if the version matches
+if [[ "$rollup_manager_version" != "$expected_version" ]]; then
+    echo "Error: Expected ROLLUP_MANAGER_VERSION to be $expected_version, but got $rollup_manager_version"
+    exit 1
+else
+    echo "Version check passed: $rollup_manager_version"
+fi
 
 echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
 echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
