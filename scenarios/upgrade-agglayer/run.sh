@@ -247,8 +247,8 @@ jq \
 if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" || $contracts_version == "feature/tools-fixes" ]]; then
 
     # # Modified upgradeV3 script for testing purposes
-    # docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm ./upgrade/upgradeV3/upgradeV3.ts
-    # docker cp assets/upgradeV3.ts $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
+    docker exec -w /opt/zkevm-contracts -it $contracts_container_name rm ./upgrade/upgradeV3/upgradeV3.ts
+    docker cp assets/upgradeV3.ts $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
 
     docker cp upgrade_parameters.json $contracts_container_name:/opt/zkevm-contracts/upgrade/upgradeV3
     docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./upgrade/upgradeV3/upgradeV3.ts --network localhost
@@ -274,7 +274,7 @@ max_retries=360
 retry_interval=10
 # Retry loop
 for ((retries=0; retries<max_retries; retries++)); do
-  echo "Checking operation $OPERATION_ID (Attempt $((retries + 1))/$max_retries)..."
+  echo "Checking operation $schedule_tx_hash (Attempt $((retries + 1))/$max_retries)..."
   if [[ $(check_ready) =~ ^(true|1)$ ]]; then
     echo "Operation ready. Executing..."
     cast send $timelock_address --private-key $pvt_key --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc) "$execute_data"
