@@ -275,13 +275,24 @@ retry_interval=10
 # Retry loop
 for ((retries=0; retries<max_retries; retries++)); do
   echo "Checking operation $schedule_tx_hash (Attempt $((retries + 1))/$max_retries)..."
-  if [[ $(check_ready) =~ ^(true|1)$ ]]; then
+  check_output=$(check_ready 2>/dev/null) || { echo "Error: check_ready command failed"; exit 1; }
+  echo "check_ready output: $check_output"
+  if [[ $check_output =~ ^(true|1)$ ]]; then
     echo "Operation ready. Executing..."
-    cast send $timelock_address --private-key $pvt_key --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc) "$execute_data"
+    cast send "$timelock_address" --private-key "$pvt_key" --rpc-url "http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)" "$execute_data"
     [[ $? -eq 0 ]] && { echo "Execution successful."; exit 0; } || { echo "Execution failed."; exit 1; }
   else
+    if [[ $retries -ge 12 ]]; then
+      cast send "$timelock_address" --private-key "$pvt_key" --rpc-url "http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)" "$execute_data"
+      if [[ $? -eq 0 ]]; then
+        echo "Execution successful at retries >= 12. Breaking loop."
+        break
+      else
+        echo "Execution failed at retries >= 12. Continuing..."
+      fi
+    fi
     echo "Operation not ready. Retrying in $retry_interval seconds..."
-    sleep $retry_interval
+    sleep "$retry_interval"
   fi
 done
 
