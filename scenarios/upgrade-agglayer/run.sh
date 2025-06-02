@@ -84,14 +84,14 @@ agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | g
 agglayer_container_name=agglayer--$agglayer_uuid
 
 # Add lines under [full-node-rpcs]
-# docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the second PP network\n2 = "http://op-el-1-op-geth-op-node-002:8545"' /etc/zkevm/agglayer-config.toml
+docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the second PP network\n2 = "http://op-el-1-op-geth-op-node-002:8545"' /etc/zkevm/agglayer-config.toml
 docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the third rollup node\n3 = "http://cdk-erigon-rpc-003:8123"' /etc/zkevm/agglayer-config.toml
-# docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the fourth PP network\n4 = "http://cdk-erigon-rpc-004:8123"' /etc/zkevm/agglayer-config.toml
+docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the fourth PP network\n4 = "http://cdk-erigon-rpc-004:8123"' /etc/zkevm/agglayer-config.toml
 
 # Add lines under [proof-signers]
-# docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for PP network\n2 = "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"' /etc/zkevm/agglayer-config.toml
+docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for PP network\n2 = "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"' /etc/zkevm/agglayer-config.toml
 docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for third rollup\n3 = "0x3bd49B59d0d61e83FA5C7856312b9bfEddbCbDA8"' /etc/zkevm/agglayer-config.toml
-# docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for fourth PP network\n4 = "0x0d59BC8C02A089D48d9Cd465b74Cb6E23dEB950D"' /etc/zkevm/agglayer-config.toml
+docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for fourth PP network\n4 = "0x0d59BC8C02A089D48d9Cd465b74Cb6E23dEB950D"' /etc/zkevm/agglayer-config.toml
 
 kurtosis service stop $kurtosis_enclave_name agglayer
 kurtosis service start $kurtosis_enclave_name agglayer
@@ -125,11 +125,42 @@ run_lxly_bridging() {
     echo "Bats tests passed for $test_name. ✅" >&2
 }
 
+run_agglayer_bridging() {
+    local test_name="$1"
+    local rpc_url="$2"
+    local bridge_service_name="$3"
+    local claimtxmanager_address="$4"
+    local l2_bridge_addr="$5"
+    local l2_private_key="$6"
+    local l1_bridge_addr="$7"
+
+    echo "Test $test_name" >&2
+
+    # Set env variables
+    export KURTOSIS_ENCLAVE_NAME=$kurtosis_enclave_name
+    export L2_RPC_URL=$(kurtosis port print $kurtosis_enclave_name "$rpc_url" rpc)
+    export BRIDGE_SERVICE_URL=$(kurtosis port print $kurtosis_enclave_name "$bridge_service_name" rpc)
+    export CLAIMTXMANAGER_ADDR=$claimtxmanager_address
+    export L1_BRIDGE_ADDR=$l1_bridge_addr
+    export L2_BRIDGE_ADDR=$l2_bridge_addr
+
+    # Run e2e bridge tests
+    bats ./tests/agglayer/bridges.bats
+
+    # Check exit status
+    if [[ $? -ne 0 ]]; then
+        echo "Bats tests failed for $test_name. ❌" >&2
+        exit 1
+    fi
+
+    echo "Bats tests passed for $test_name. ✅" >&2
+}
+
 # Run tests in parallel
 cd ../../
 pids=()
 run_lxly_bridging "CDK-Erigon Validium Bridging" "cdk-erigon-rpc-001" "zkevm-bridge-service-001" "0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-validium-bridging.log 2>&1 & pids+=($!)
-run_lxly_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
+run_agglayer_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" "0xD71f8F956AD979Cc2988381B8A743a2fE280537D" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
 run_lxly_bridging "CDK-Erigon Rollup Bridging" "cdk-erigon-rpc-003" "zkevm-bridge-service-003" "0x1a1C53bA714643B53b39D82409915b513349a1ff" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-rollup-bridging.log 2>&1 & pids+=($!)
 run_lxly_bridging "CDK-Erigon PP Bridging" "cdk-erigon-rpc-004" "zkevm-bridge-service-004" "0x1359D1eAf25aADaA04304Ee7EFC5b94C43e0e1D5" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-pp-bridging.log 2>&1 & pids+=($!)
 
@@ -293,7 +324,7 @@ echo '██   ██  ██████  ██   ████     ███�
 cd ../../
 pids=()
 run_lxly_bridging "CDK-Erigon Validium Bridging" "cdk-erigon-rpc-001" "zkevm-bridge-service-001" "0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-validium-bridging.log 2>&1 & pids+=($!)
-run_lxly_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
+run_agglayer_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" "0xD71f8F956AD979Cc2988381B8A743a2fE280537D" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
 run_lxly_bridging "CDK-Erigon Rollup Bridging" "cdk-erigon-rpc-003" "zkevm-bridge-service-003" "0x1a1C53bA714643B53b39D82409915b513349a1ff" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-rollup-bridging.log 2>&1 & pids+=($!)
 run_lxly_bridging "CDK-Erigon PP Bridging" "cdk-erigon-rpc-004" "zkevm-bridge-service-004" "0x1359D1eAf25aADaA04304Ee7EFC5b94C43e0e1D5" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-pp-bridging.log 2>&1 & pids+=($!)
 
