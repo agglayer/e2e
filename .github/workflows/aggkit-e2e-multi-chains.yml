@@ -61,7 +61,7 @@ on:
 
       number-of-chains:
         description: "The number of chains to run the test on"
-        required: true
+        required: false
         type: number
         default: 2
 
