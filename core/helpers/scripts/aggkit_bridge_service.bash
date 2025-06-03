@@ -723,6 +723,15 @@ function get_legacy_token_migrations() {
             continue
         fi
 
+        count=$(echo "$legacy_token_migrations" | jq -r '.count')
+        log "ℹ️ Parsed count = $count"
+        # If count is still 0, sleep and retry
+        if (( count < 1 )); then
+            log "🔄 count is $count (<1), retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
         echo "$legacy_token_migrations"
         return 0
     done
