@@ -13,6 +13,10 @@ setup() {
     HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
   fi
   BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
+
+  # Define timeout and interval for eventually commands.
+  timeout_seconds=${TIMEOUT_SECONDS:-"180"}
+  interval_seconds=${INTERVAL_SECONDS:-"10"}
 }
 
 function wait_for_heimdall_state_sync() {
@@ -27,9 +31,7 @@ function wait_for_heimdall_state_sync() {
   fi
 
   echo "Monitoring state syncs on Heimdall..."
-  timeout="180" # seconds
-  interval="10" # seconds
-  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout}" "${interval}"
+  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 function wait_for_bor_state_sync() {
@@ -44,9 +46,7 @@ function wait_for_bor_state_sync() {
   fi
 
   echo "Monitoring state syncs on Bor..."
-  timeout="180" # seconds
-  interval="10" # seconds
-  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout}" "${interval}"
+  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,matic,pol
