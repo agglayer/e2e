@@ -79,10 +79,10 @@ function wait_for_bor_state_sync() {
 
   # Monitor balances on L1 and L2.
   echo "Monitoring MATIC balance on L1..."
-  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
+  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Monitoring ETH balance on L2..."
-  assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
+  assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,matic,pol
@@ -120,11 +120,11 @@ function wait_for_bor_state_sync() {
 
   # Monitor balances on L1 and L2.
   echo "Monitoring ERC20 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
+  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   # TODO: Understand why the balance is not increasing on L2!
   # echo "Monitoring ERC20 balance on L2..."
-  # assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
+  # assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,erc20
@@ -168,11 +168,11 @@ function wait_for_bor_state_sync() {
 
   # Monitor balances on L1 and L2.
   echo "Monitoring ERC721 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}"
+  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   # TODO: Understand why the balance is not increasing on L2!
   # echo "Monitoring ERC721 balance on L2..."
-  # assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}"
+  # assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,erc721
