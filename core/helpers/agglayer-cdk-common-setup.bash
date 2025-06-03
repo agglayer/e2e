@@ -4,6 +4,7 @@ _agglayer_cdk_common_setup() {
     bats_load_library 'bats-assert'
     if [ $? -ne 0 ]; then return 1; fi
 
+    load '../../core/helpers/scripts/agglayer_network_setup'
     load '../../core/helpers/scripts/aggkit_bridge_service'
     load '../../core/helpers/scripts/fund'
     load '../../core/helpers/scripts/get_token_balance'
@@ -260,13 +261,21 @@ _resolve_url_from_nodes() {
 }
 
 _agglayer_cdk_common_multi_setup() {
+    readonly number_of_chains=$1
+
     readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
     readonly eth_address=$(cast wallet address --private-key $private_key)
     readonly l2_pp1_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-001 rpc)
     readonly l2_pp2_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-002 rpc)
+    if [[ $number_of_chains -eq 3 ]]; then
+        readonly l2_pp3_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-003 rpc)
+    fi
     readonly aggkit_pp1_rpc_url=$(kurtosis port print $ENCLAVE cdk-node-001 rpc)
     readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
+    if [[ $number_of_chains -eq 3 ]]; then
+        readonly l2_pp3_network_id=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'networkID() (uint32)')
+    fi
 
     # Resolve Aggkit Bridge URLs for both nodes
     local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
@@ -279,6 +288,13 @@ _agglayer_cdk_common_multi_setup() {
     readonly aggkit_bridge_2_url
     echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
 
+    if [[ $number_of_chains -eq 3 ]]; then
+        local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
+        aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_3" "Successfully resolved aggkit bridge url" true | tail -1)
+        readonly aggkit_bridge_3_url
+        echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
+    fi
+
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
     echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
     echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
@@ -287,5 +303,10 @@ _agglayer_cdk_common_multi_setup() {
     echo "=== L2 PP2 URL=$l2_pp2_url ===" >&3
     echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
     echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        echo "=== L2 PP2 network id=$l2_pp3_network_id ===" >&3
+        echo "=== L2 PP2 URL=$l2_pp3_url ===" >&3
+        echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
+    fi
     echo "=== Aggkit PP1 RPC URL=$aggkit_pp1_rpc_url ===" >&3
 }
