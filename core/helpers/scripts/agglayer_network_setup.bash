@@ -20,7 +20,7 @@ function add_network_to_agglayer() {
 }
 
 function fund_claim_tx_manager() {
-    readonly number_of_chains=$1
+    local number_of_chains=$1
 
     echo "=== Funding bridge auto-claim  ===" >&3
     cast send --legacy --value 100ether --rpc-url $l2_pp1_url --private-key $private_key 0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8

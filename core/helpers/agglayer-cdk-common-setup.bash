@@ -261,7 +261,7 @@ _resolve_url_from_nodes() {
 }
 
 _agglayer_cdk_common_multi_setup() {
-    readonly number_of_chains=$1
+    local number_of_chains=$1
 
     readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
     readonly eth_address=$(cast wallet address --private-key $private_key)
