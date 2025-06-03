@@ -31,8 +31,10 @@ on:
 
       kurtosis-cdk-args-3:
         description: "Input arguments for the Kurtosis CDK package 3."
-        required: true
+        required: false
         type: string
+        default: |
+          {}
 
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
