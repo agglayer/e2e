@@ -1,24 +1,11 @@
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
-    _agglayer_cdk_common_multi_setup
+    _agglayer_cdk_common_multi_setup 2
 
-    add_network2_to_agglayer
-    fund_claim_tx_manager
+    add_network_to_agglayer 2 "$l2_pp2_url"
+    fund_claim_tx_manager 2
     mint_pol_token "$l1_bridge_addr"
-}
-
-function add_network2_to_agglayer() {
-    echo "=== Checking if network 2 is added to agglayer ===" >&3
-    local _prev=$(kurtosis service exec $ENCLAVE agglayer "grep \"2 = \" /etc/zkevm/agglayer-config.toml || true" | kurtosis_filer_exec_method)
-    if [ ! -z "$_prev" ]; then
-        echo "Network 2 is already added to agglayer" >&3
-        return
-    fi
-    echo "=== Adding network 2 to agglayer ===" >&3
-    kurtosis service exec $ENCLAVE agglayer "sed -i 's/\[proof\-signers\]/2 = \"http:\/\/cdk-erigon-rpc-002:8123\"\n\[proof-signers\]/i' /etc/zkevm/agglayer-config.toml"
-    kurtosis service stop $ENCLAVE agglayer
-    kurtosis service start $ENCLAVE agglayer
 }
 
 @test "Test L2 to L2 bridge" {
@@ -134,10 +121,4 @@ function add_network2_to_agglayer() {
         run $PROJECT_ROOT/core/helpers/scripts/batch_verification_monitor.sh 0 600
         assert_success
     fi
-}
-
-function fund_claim_tx_manager() {
-    echo "=== Funding bridge auto-claim  ===" >&3
-    cast send --legacy --value 100ether --rpc-url $l2_pp1_url --private-key $private_key 0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8
-    cast send --legacy --value 100ether --rpc-url $l2_pp2_url --private-key $private_key 0x93F63c24735f45Cd0266E87353071B64dd86bc05
 }
