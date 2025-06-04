@@ -213,6 +213,9 @@ setup() {
   assert_equal "${l2_token_addr_legacy,,}" "${removeLegacySovereignTokenAddress_event_sovereignTokenAddress,,}"
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
+  # sleep briefly to give aggkit time to index the event
+  sleep 600
+
   # Query aggkit node for legacy token migrations
   run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
   assert_success
