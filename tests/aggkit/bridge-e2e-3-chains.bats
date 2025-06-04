@@ -24,7 +24,7 @@ setup() {
 
     # Claim deposit on PP3
     echo "=== Running claim for L1 to PP3 bridge" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_l1_to_pp3" "$l2_pp3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$l2_pp3_url"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_l1_to_pp3" "$l2_pp3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_pp3_url"
 
     # Get balance on PP3 after first bridge
     local balance_pp3=$(get_token_balance "$l2_pp3_url" "$weth_token_addr_pp3" "$destination_addr")
@@ -39,7 +39,7 @@ setup() {
 
     # Claim deposit on PP1
     echo "=== Running claim for PP3 to PP1 bridge" >&3
-    process_bridge_claim "$l2_pp3_network_id" "$bridge_tx_hash_pp3_to_pp1" "$l2_pp1_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$l2_pp1_url"
+    process_bridge_claim "$l2_pp3_network_id" "$bridge_tx_hash_pp3_to_pp1" "$l2_pp1_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_1_url" "$l2_pp1_url"
 
     # Verify final balance on PP1
     local final_balance_pp1=$(get_token_balance "$l2_pp1_url" "$weth_token_addr_pp1" "$destination_addr")
