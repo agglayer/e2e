@@ -195,7 +195,7 @@ setup() {
   sleep 10
 
   # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
-  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 500 10 "$migrate_legacy_token_transaction_hash"
+  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10 "$migrate_legacy_token_transaction_hash"
   assert_success
   local legacy_token_migrations="$output"
   local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
