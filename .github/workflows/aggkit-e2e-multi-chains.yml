@@ -157,7 +157,11 @@ jobs:
           export DISABLE_L2_FUND="true"
           chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-          bats ./tests/aggkit/bridge-e2e-2-l2s.bats
+          if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            bats ./tests/aggkit/bridge-e2e-2-chains.bats ./tests/aggkit/bridge-e2e-3-chains.bats
+          else
+            bats ./tests/aggkit/bridge-e2e-2-chains.bats
+          fi
           popd
 
       - name: Dump enclave logs

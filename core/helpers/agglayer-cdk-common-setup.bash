@@ -295,6 +295,12 @@ _agglayer_cdk_common_multi_setup() {
         echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
     fi
 
+    readonly weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_addr_pp2=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'WETHToken() (address)')
+    if [[ $number_of_chains -eq 3 ]]; then
+        readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
+    fi
+
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
     echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
     echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
@@ -304,8 +310,8 @@ _agglayer_cdk_common_multi_setup() {
     echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
     echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
     if [[ $number_of_chains -eq 3 ]]; then
-        echo "=== L2 PP2 network id=$l2_pp3_network_id ===" >&3
-        echo "=== L2 PP2 URL=$l2_pp3_url ===" >&3
+        echo "=== L2 PP3 network id=$l2_pp3_network_id ===" >&3
+        echo "=== L2 PP3 URL=$l2_pp3_url ===" >&3
         echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
     fi
     echo "=== Aggkit PP1 RPC URL=$aggkit_pp1_rpc_url ===" >&3
