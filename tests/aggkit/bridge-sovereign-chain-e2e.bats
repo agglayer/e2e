@@ -141,9 +141,6 @@ setup() {
   assert_equal "false" "$is_not_mintable"
   log "✅ SetSovereignTokenAddress event successful"
 
-  # sleep briefly to give aggkit time to index the event
-  sleep 3
-
   # Query aggkit node for legacy token migrations
   run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
   assert_success
@@ -165,6 +162,7 @@ setup() {
   local migrate_legacy_token_tx_resp=$output
   log "migrateLegacyToken transaction details: $migrate_legacy_token_tx_resp"
   migrate_legacy_token_block_num=$(echo "$migrate_legacy_token_tx_resp" | jq -r '.blockNumber')
+  migrate_legacy_token_transaction_hash=$(echo "$migrate_legacy_token_tx_resp" | jq -r '.transactionHash')
   log "migrate_from_block: $migrate_legacy_token_block_num"
 
   # Find logs for MigrateLegacyToken event
@@ -190,11 +188,8 @@ setup() {
   assert_equal "0" "$amount"
   log "✅ MigrateLegacyToken event successful"
 
-  # sleep briefly to give aggkit time to index the event
-  sleep 3
-
   # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
-  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
+  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10 "$migrate_legacy_token_transaction_hash"
   assert_success
   local legacy_token_migrations="$output"
   local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
@@ -219,7 +214,8 @@ setup() {
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
   # sleep briefly to give aggkit time to index the event
-  sleep 3
+  # Increasing the sleep time to 450 seconds to give aggkit time to index the event as the settings for BridgeL2Sync is FinalizedBlock and not LatestBlock
+  sleep 450
 
   # Query aggkit node for legacy token migrations
   run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
