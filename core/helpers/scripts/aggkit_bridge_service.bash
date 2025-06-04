@@ -696,6 +696,7 @@ function get_legacy_token_migrations() {
     local aggkit_url="$4"
     local max_attempts="$5"
     local poll_frequency="$6"
+    local tx_hash="${7:-}"
 
     local attempt=0
     local legacy_token_migrations=""
@@ -722,6 +723,18 @@ function get_legacy_token_migrations() {
             log "Empty legacy token migration response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
+        fi
+
+        if [[ -n "$tx_hash" ]]; then
+            if echo "$legacy_token_migrations" | grep -q "\"tx_hash\":\"$tx_hash\""; then
+                log "✅ Found tx_hash $tx_hash in response."
+                echo "$legacy_token_migrations"
+                return 0
+            else
+                log "⚠️ tx_hash $tx_hash not found; retrying in ${poll_frequency}s..."
+                sleep "$poll_frequency"
+                continue
+            fi
         fi
 
         echo "$legacy_token_migrations"

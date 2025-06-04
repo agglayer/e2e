@@ -5,7 +5,6 @@ setup() {
     _agglayer_cdk_common_multi_setup $num_chain
 
     add_network_to_agglayer 2 "$l2_pp2_url"
-    fund_claim_tx_manager $num_chain
     mint_pol_token "$l1_bridge_addr"
 }
 

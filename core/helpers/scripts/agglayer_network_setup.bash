@@ -18,14 +18,3 @@ function add_network_to_agglayer() {
     kurtosis service stop $ENCLAVE agglayer
     kurtosis service start $ENCLAVE agglayer
 }
-
-function fund_claim_tx_manager() {
-    local number_of_chains=$1
-
-    echo "=== Funding bridge auto-claim  ===" >&3
-    cast send --legacy --value 100ether --rpc-url $l2_pp1_url --private-key $private_key 0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8
-    cast send --legacy --value 100ether --rpc-url $l2_pp2_url --private-key $private_key 0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8
-    if [ $number_of_chains -eq 3 ]; then
-        cast send --legacy --value 100ether --rpc-url $l2_pp3_url --private-key $private_key 0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8
-    fi
-}
