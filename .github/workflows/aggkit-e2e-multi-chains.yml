@@ -120,6 +120,10 @@ jobs:
 
       - name: Write args input to a file
         run: |
+          if [[ "${{ inputs.kurtosis-cdk-args-3 }}" == "{}" && ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            echo "Error: kurtosis-cdk-args-3 is empty but number-of-chains is set to 3"
+            exit 1
+          fi
           docker_tag='${{ inputs.docker-tag }}'
           if [[ $docker_tag == "" ]]; then
               echo '${{ inputs.kurtosis-cdk-args-1 }}' | tee /tmp/kurtosis-args-1.json
