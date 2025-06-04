@@ -15,20 +15,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the L2)
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof="$output"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
     
     run claim_bridge_claimSponsor "$bridge" "$proof" "$aggkit_bridge_url" "$l1_rpc_network_id" 10 2 "$initial_receiver_balance"
     assert_success
