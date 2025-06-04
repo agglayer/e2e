@@ -22,40 +22,10 @@ setup() {
     local bridge_tx_hash_pp2=$output
 
     echo "=== Running LxLy claim L1 to L2(PP1) for $bridge_tx_hash_pp1" >&3
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_pp1" 50 10 "$aggkit_bridge_1_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_1_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_l1_info_leaf "$l2_pp1_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_1_url"
-    assert_success
-    local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$l2_pp1_url" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
-    assert_success
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp1" "$l2_pp1_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_pp1_url"
 
     echo "=== Running LxLy claim L1 to L2(PP2) for $bridge_tx_hash_pp2" >&3
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_pp2" 50 10 "$aggkit_bridge_2_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_2_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_l1_info_leaf "$l2_pp2_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_2_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_2_url"
-    assert_success
-    local proof="$output"
-    run claim_bridge "$bridge" "$proof" "$l2_pp2_url" 50 10 "$l1_rpc_network_id" "$l2_bridge_addr"
-    assert_success
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp2" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_2_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
 
     # reduce eth amount
     amount=1234567

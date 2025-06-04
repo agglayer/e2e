@@ -657,7 +657,7 @@ function process_bridge_claim() {
     local bridge_addr="$4"
     local origin_aggkit_bridge_url="$5"
     local destination_aggkit_bridge_url="$6"
-    local rpc_url="$7"
+    local destination_rpc_url="$7"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
     run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
@@ -682,7 +682,7 @@ function process_bridge_claim() {
     local proof="$output"
 
     # Submit the claim using the generated proof and bridge details.
-    run claim_bridge "$bridge" "$proof" "$rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
+    run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
     assert_success
     local global_index="$output"
 
