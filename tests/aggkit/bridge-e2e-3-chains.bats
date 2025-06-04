@@ -33,6 +33,8 @@ setup() {
     # Bridge from PP3 to PP1
     echo "=== Running PP3 native token deposit to PP1 network $l2_pp1_network_id" >&3
     destination_net=$l2_pp1_network_id
+    ether_value=${ETHER_VALUE:-"0.0100000054"}
+    amount=$(cast to-wei $ether_value ether)
     run bridge_asset "$native_token_addr" "$l2_pp3_url" "$l2_bridge_addr"
     assert_success
     local bridge_tx_hash_pp3_to_pp1=$output
@@ -40,8 +42,12 @@ setup() {
     # Claim deposit on PP1
     echo "=== Running claim for PP3 to PP1 bridge" >&3
     process_bridge_claim "$l2_pp3_network_id" "$bridge_tx_hash_pp3_to_pp1" "$l2_pp1_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_1_url" "$l2_pp1_url"
+    global_index_pp3_to_pp1=$output
 
     # Verify final balance on PP1
     local final_balance_pp1=$(get_token_balance "$l2_pp1_url" "$weth_token_addr_pp1" "$destination_addr")
     echo "Final balance on PP1: $final_balance_pp1" >&3
+
+    echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp3_to_pp1"
+    wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp3_to_pp1
 }

@@ -270,7 +270,25 @@ _agglayer_cdk_common_multi_setup() {
     if [[ $number_of_chains -eq 3 ]]; then
         readonly l2_pp3_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-003 rpc)
     fi
-    readonly aggkit_pp1_rpc_url=$(kurtosis port print $ENCLAVE cdk-node-001 rpc)
+
+    # Resolve Aggkit RPC URL
+    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
+    aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+    readonly aggkit_pp1_rpc_url
+    echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
+
+    local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
+    aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+    readonly aggkit_pp2_rpc_url
+    echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
+        aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+        readonly aggkit_pp3_rpc_url
+        echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
+    fi
+
     readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
     if [[ $number_of_chains -eq 3 ]]; then
@@ -314,5 +332,4 @@ _agglayer_cdk_common_multi_setup() {
         echo "=== L2 PP3 URL=$l2_pp3_url ===" >&3
         echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
     fi
-    echo "=== Aggkit PP1 RPC URL=$aggkit_pp1_rpc_url ===" >&3
 }
