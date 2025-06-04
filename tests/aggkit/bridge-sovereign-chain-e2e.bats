@@ -214,6 +214,7 @@ setup() {
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
   # sleep briefly to give aggkit time to index the event
+  # Increasing the sleep time to 450 seconds to give aggkit time to index the event as the settings for BridgeL2Sync is FinalizedBlock and not LatestBlock
   sleep 450
 
   # Query aggkit node for legacy token migrations
