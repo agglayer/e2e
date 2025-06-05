@@ -56,7 +56,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the L2)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
     local claim_global_index="$output"
 
     # Validate the bridge_getClaims API
@@ -80,7 +80,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim withdrawals (settle them on the L1)
-    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$l1_rpc_url"
+    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
 
     # Validate that the token of receiver on L1 has increased by the bridge tokens amount
     run verify_balance "$l1_rpc_url" "$gas_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
@@ -132,7 +132,7 @@ setup() {
 
     # Claim deposit (settle it on the L1)
     echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
-    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$l1_rpc_url"
+    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
 
     run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 15 2 "$aggkit_bridge_url"
     assert_success
@@ -165,7 +165,7 @@ setup() {
 
     # Claim deposit (settle it on the L2)
     echo "==== 🔐 Claiming deposit on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "==== 💰 Verifying balance on L2 ($L2_RPC_URL)" >&3
     run verify_balance "$L2_RPC_URL" "$l2_erc20_addr" "$destination_addr" "$l2_erc20_token_sender_balance" "$tokens_amount"
@@ -190,7 +190,7 @@ setup() {
 
     # Claim deposit (settle it on the L1)
     echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
-    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$l1_rpc_url"
+    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
 
     echo "==== 💰 Verifying balance on L1 ($l1_rpc_url)" >&3
     run verify_balance "$l1_rpc_url" "$l1_wrapped_token_addr" "$destination_addr" "$l1_wrapped_token_balance" "$tokens_amount"

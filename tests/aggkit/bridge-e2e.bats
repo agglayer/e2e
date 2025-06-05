@@ -12,7 +12,7 @@ setup() {
     local bridge_tx_hash=$output
 
     echo "====== claimMessage (L2)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "====== bridgeMessage L2 -> L1" >&3
     destination_net=0
@@ -52,7 +52,7 @@ setup() {
 
     # CLAIM (settle deposit on L2)
     echo "==== 🔐 Claiming deposit on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
@@ -80,7 +80,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposit (settle it on the L2)
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "=== Running L2 gas token ($native_token_addr) deposit to L1 network" >&3
     destination_addr=$sender_addr
