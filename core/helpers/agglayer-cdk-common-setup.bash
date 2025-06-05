@@ -319,6 +319,12 @@ _agglayer_cdk_common_multi_setup() {
         readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
     fi
 
+    echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
+    echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        echo "weth_token_addr_pp3: $weth_token_addr_pp3" >&3
+    fi
+
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
     echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
     echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
