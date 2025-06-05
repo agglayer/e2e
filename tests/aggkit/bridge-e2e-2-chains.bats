@@ -38,6 +38,7 @@ setup() {
 
     echo "=== Running LxLy claim L2(PP2) to L2(PP1) for: $bridge_tx_hash" >&3
     process_bridge_claim "$l2_pp2_network_id" "$bridge_tx_hash" "$l2_pp1_network_id" "$l2_bridge_addr" "$aggkit_bridge_2_url" "$aggkit_bridge_1_url" "$l2_pp1_url"
+    global_index_pp2_to_pp1=$output
 
     # Now we need to do a bridge on L2(PP1) to trigger a certificate to be sent to L1
     ether_value=${ETHER_VALUE:-"0.0100000054"}
@@ -51,7 +52,6 @@ setup() {
 
     echo "=== Running LxLy claim L2(PP1) to L1 for $bridge_tx_hash" >&3
     process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
-    global_index_pp2_to_pp1=$output
 
     if [[ "$ENCLAVE" == "aggkit" ]]; then
         echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1"
