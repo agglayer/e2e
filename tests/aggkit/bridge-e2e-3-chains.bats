@@ -17,6 +17,8 @@ setup() {
     echo "=== Running L1 native token deposit to PP3 network $l2_pp3_network_id (native_token: $native_token_addr)" >&3
     destination_addr=$sender_addr
     destination_net=$l2_pp3_network_id
+    ether_value=${ETHER_VALUE:-"0.0100000054"}
+    amount=$(cast to-wei $ether_value ether)
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     local bridge_tx_hash_l1_to_pp3=$output
@@ -46,6 +48,8 @@ setup() {
     # Verify final balance on PP1
     local final_balance_pp1=$(get_token_balance "$l2_pp1_url" "$weth_token_addr_pp1" "$destination_addr")
     echo "Final balance on PP1: $final_balance_pp1" >&3
+
+    verify_balance "$l2_pp1_url" "$weth_token_addr_pp1" "$destination_addr" "$initial_balance_pp1" "$ether_value"
 
     echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp3_to_pp1"
     wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp3_to_pp1
