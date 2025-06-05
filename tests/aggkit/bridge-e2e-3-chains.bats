@@ -17,8 +17,7 @@ setup() {
     echo "=== Running L1 native token deposit to PP3 network $l2_pp3_network_id (native_token: $native_token_addr)" >&3
     destination_addr=$sender_addr
     destination_net=$l2_pp3_network_id
-    ether_value=${ETHER_VALUE:-"0.0100000054"}
-    amount=$(cast to-wei $ether_value ether)
+    meta_bytes="0x1111"
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     local bridge_tx_hash_l1_to_pp3=$output
@@ -34,8 +33,7 @@ setup() {
     # Bridge from PP3 to PP1
     echo "=== Running PP3 native token deposit to PP1 network $l2_pp1_network_id" >&3
     destination_net=$l2_pp1_network_id
-    ether_value=${ETHER_VALUE:-"0.0100000054"}
-    amount=$(cast to-wei $ether_value ether)
+    meta_bytes="0x2222"
     run bridge_asset "$native_token_addr" "$l2_pp3_url" "$l2_bridge_addr"
     assert_success
     local bridge_tx_hash_pp3_to_pp1=$output
