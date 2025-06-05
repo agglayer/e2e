@@ -1,5 +1,5 @@
 {
-    "unsafeSkipStorageCheck": false,
+    "unsafeSkipStorageCheck": true,
     "tagSCPreviousVersion": "v9.0.0-rc.2-pp",
     "rollupManagerAddress": "0x2F50ef6b8e8Ee4E579B17619A92dE3E2ffbD8AD2",
     "aggLayerGatewayAddress":"0xf22E2B040B639180557745F47aB97dFA95B1e22a",
