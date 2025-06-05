@@ -46,7 +46,7 @@ function fund() {
             --value "$amount" \
             "$receiver_addr" || {
             echo "⚠️ Attempt $attempt failed. Retrying in 3s..." >&2
-            sleep 10
+            sleep 3
             attempt=$((attempt + 1))
             continue
         }
