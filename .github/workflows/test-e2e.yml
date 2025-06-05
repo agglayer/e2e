@@ -28,12 +28,8 @@ jobs:
 
           # Kurtosis Polygon PoS.
           - package: kurtosis-polygon-pos
-            version: v1.0.6
-            args_file: .github/tests/heimdall-bor-multi-validators.yml
-            filter_tags: pos,bridge
-          - package: kurtosis-polygon-pos
-            version: v1.0.6
-            args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
+            version: v1.0.12
+            args_file: .github/configs/heimdall-bor.yml
             filter_tags: pos,bridge
 
     runs-on: ubuntu-latest
