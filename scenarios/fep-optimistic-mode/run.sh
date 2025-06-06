@@ -105,6 +105,7 @@ jq --arg ra "$rollup_address" '.rollupAddress = $ra' assets/parameters.json  > p
 docker cp parameters.json $contracts_container_name:/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
 
+# The optimistic mode is enabled in the above script. The below command is left for reference to manually enable optimisticMode by calling the rollup contract.
 # sovereignadmin address, also the optimisticModeManager address
 # "zkevm_l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
 # "zkevm_l2_sovereignadmin_private_key": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
@@ -112,14 +113,14 @@ docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat ru
 
 # Check optimisticMode enabled
 # Call the optimisticMode() function using cast
-# OUTPUT=$(cast call "$rollup_address" "optimisticMode()" --rpc-url "$l1_rpc_url")
-# # Check if the output matches the expected value
-# if [ "$OUTPUT" = "0x0000000000000000000000000000000000000000000000000000000000000001" ]; then
-#     echo "Success: optimisticMode() returned true"
-# else
-#     echo "Error: optimisticMode() did not return true. Got: $OUTPUT"
-#     exit 1
-# fi
+OUTPUT=$(cast call "$rollup_address" "optimisticMode()" --rpc-url "$l1_rpc_url")
+# Check if the output matches the expected value
+if [ "$OUTPUT" = "0x0000000000000000000000000000000000000000000000000000000000000001" ]; then
+    echo "Success: optimisticMode() returned true"
+else
+    echo "Error: optimisticMode() did not return true. Got: $OUTPUT"
+    exit 1
+fi
 
 # TODO figure out what the input should be
 # https://github.com/ethereum-optimism/optimism/blob/6d9d43cb6f2721c9638be9fe11d261c0602beb54/op-node/node/api.go#L63
