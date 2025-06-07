@@ -228,6 +228,54 @@ setup() {
     run verify_balance "$l2_pp1_url" "$native_token_addr" "$destination_addr" "$initial_receiver1_balance_pp1" "$amount"
     assert_success
 
+    # Set receiver1 address and query for its initial native token addr balance on the PP2
+    local initial_receiver1_balance_pp2=$(cast balance "$receiver1_addr" --rpc-url "$l2_pp2_url")
+    echo "Initial receiver1 ($receiver1_addr) balance of native token addr on PP2 $initial_receiver1_balance_pp2" >&3
+
+    local l1_minter_balance=$(cast balance "0x8943545177806ED17B9F23F0a21ee5948eCaa776" --rpc-url "$l1_rpc_url")
+    echo "Initial minter balance on L1 $l1_minter_balance" >&3
+
+    # Query for initial sender balance
+    run query_contract "$l1_rpc_url" "$gas_token_addr_pp2" "$BALANCE_OF_FN_SIG" "$sender_addr"
+    assert_success
+    local gas_token_init_sender_balance_l1=$(echo "$output" | tail -n 1 | awk '{print $1}')
+    echo "Initial sender balance $gas_token_init_sender_balance_l1" of gas token on L1 >&3
+
+    # Mint gas token on L1
+    local tokens_amount="1ether"
+    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local minter_key=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
+    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_addr_pp2" "$minter_key" "$sender_addr" "$tokens_amount"
+    assert_success
+
+    # Send approve transaction to the gas token on L1
+    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr_pp2" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$tokens_amount"
+    assert_success
+    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
+
+    # DEPOSIT
+    destination_addr=$receiver1_addr
+    destination_net=$l2_pp2_network_id
+    amount="0.1ether"
+    meta_bytes="0x"
+    run bridge_asset "$gas_token_addr_pp2" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+
+    # Claim deposits (settle them on the PP2)
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_pp2_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
+    local claim_global_index="$output"
+    # Validate the bridge_getClaims API
+    run get_claim "$l2_pp2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
+    assert_success
+
+    local final_receiver1_balance_pp2=$(cast balance "$receiver1_addr" --rpc-url "$l2_pp2_url")
+    echo "Final receiver1 ($receiver1_addr) balance of gas token addr on PP2 $final_receiver1_balance_pp2" >&3
+
+    echo "==== 💰 Verifying balance on PP2" >&3
+    run verify_balance "$l2_pp2_url" "$native_token_addr" "$destination_addr" "$initial_receiver1_balance_pp2" "$amount"
+    assert_success
+
     echo "=== Running LxLy bridge eth L1 to L2(PP3) amount:$amount for gas" >&3
     destination_addr=$receiver1_addr
     destination_net=$l2_pp3_network_id
@@ -237,16 +285,6 @@ setup() {
 
     echo "=== Running LxLy claim L1 to L2(PP3) for $bridge_tx_hash_pp3" >&3
     process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp3" "$l2_pp3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_pp3_url"
-
-    echo "=== Running LxLy bridge eth L1 to L2(PP2) amount:$amount for gas" >&3
-    destination_addr=$receiver1_addr
-    destination_net=$l2_pp2_network_id
-    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-    assert_success
-    local bridge_tx_hash_pp2=$output
-
-    echo "=== Running LxLy claim L1 to L2(PP2) for $bridge_tx_hash_pp2" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp2" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
 
     # DEPOSIT
     sender_private_key=$receiver1_private_key
