@@ -67,7 +67,7 @@ setup() {
     echo "Initial sender balance $gas_token_init_sender_balance_l1" of gas token on L1 >&3
 
     # Mint gas token on L1
-    local tokens_amount="0.1ether"
+    local tokens_amount="1ether"
     local wei_amount=$(cast --to-unit $tokens_amount wei)
     local minter_key=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_addr_pp1" "$minter_key" "$sender_addr" "$tokens_amount"
@@ -129,5 +129,52 @@ setup() {
 
     echo "==== 💰 Verifying balance on PP2" >&3
     run verify_balance "$l2_pp2_url" "$pp2_wrapped_token_addr" "$destination_addr" 0 "$amount"
+    assert_success
+}
+
+@test "L1 → PP1 (native) → PP3" {
+    # Query for initial sender_addr balance on PP1
+    run query_contract "$l2_pp1_url" "$weth_token_addr_pp1" "$BALANCE_OF_FN_SIG" "$sender_addr"
+    assert_success
+    local weth_token_init_sender_balance_pp1=$(echo "$output" | tail -n 1 | awk '{print $1}')
+    echo "Initial sender balance $weth_token_init_sender_balance_pp1" of WETH on PP1 >&3
+
+    # Bridge native from L1 to PP1
+    destination_net=$l2_pp1_network_id
+    destination_addr=$sender_addr
+    amount="0.1ether"
+    meta_bytes="0x"
+    echo "=== Running LxLy bridge native L1 to PP1 amount:$amount" >&3
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_pp1=$output
+
+    # Claim on PP1
+    echo "=== Running LxLy claim L1 to PP1 for $bridge_tx_hash_pp1" >&3
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp1" "$l2_pp1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_pp1_url"
+    echo "==== 💰 Verifying balance on PP1" >&3
+    run verify_balance "$l2_pp1_url" "$weth_token_addr_pp1" "$destination_addr" "$weth_token_init_sender_balance_pp1" "$amount"
+    assert_success
+
+    # Set receiver address and query for its initial native token addr balance on the PP1
+    local initial_receiver_balance_pp3=$(cast balance "$receiver" --rpc-url "$l2_pp3_url")
+    echo "Initial receiver ($receiver) balance of native token addr on PP3 $initial_receiver_balance_pp3" >&3
+
+    # Bridge WETH from PP1 to PP3
+    amount="0.01ether"
+    meta_bytes="0x"
+    destination_net=$l2_pp3_network_id
+    destination_addr=$receiver
+    echo "=== Running LxLy bridge WETH PP1 to PP3 amount:$amount" >&3
+    run bridge_asset "$weth_token_addr_pp1" "$l2_pp1_url" "$l2_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+
+    # Final claim on PP3
+    echo "=== Running LxLy claim PP1 to PP3 for: $bridge_tx_hash" >&3
+    process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l2_pp3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_pp3_url"
+
+    echo "==== 💰 Verifying balance on PP3" >&3
+    run verify_balance "$l2_pp3_url" "$native_token_addr" "$destination_addr" "$initial_receiver_balance_pp3" "$amount"
     assert_success
 }
