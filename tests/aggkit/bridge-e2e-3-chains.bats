@@ -238,6 +238,16 @@ setup() {
     echo "=== Running LxLy claim L1 to L2(PP3) for $bridge_tx_hash_pp3" >&3
     process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp3" "$l2_pp3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_pp3_url"
 
+    echo "=== Running LxLy bridge eth L1 to L2(PP2) amount:$amount for gas" >&3
+    destination_addr=$receiver1_addr
+    destination_net=$l2_pp2_network_id
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_pp2=$output
+
+    echo "=== Running LxLy claim L1 to L2(PP2) for $bridge_tx_hash_pp2" >&3
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp2" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
+
     # DEPOSIT
     sender_private_key=$receiver1_private_key
     sender_addr=$receiver1_addr
