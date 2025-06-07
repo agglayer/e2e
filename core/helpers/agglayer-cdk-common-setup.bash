@@ -196,7 +196,7 @@ _agglayer_cdk_common_setup() {
     echo "L2 GER address=$l2_ger_addr" >&3
     echo "Gas token address=$gas_token_addr" >&3
 
-    readonly sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     sender_addr="$(cast wallet address --private-key $sender_private_key)"
     readonly dry_run=${DRY_RUN:-"false"}
     ether_value=${ETHER_VALUE:-"0.0200000054"}
@@ -346,4 +346,7 @@ _agglayer_cdk_common_multi_setup() {
         echo "=== L2 PP3 URL=$l2_pp3_url ===" >&3
         echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
     fi
+
+    readonly receiver1_private_key="0x9eece9566497455837334ad4d2cc1f81e24ea4fc532c5d9ac2c471df8560f5dd"
+    readonly receiver1_addr="$(cast wallet address --private-key $receiver1_private_key)"
 }
