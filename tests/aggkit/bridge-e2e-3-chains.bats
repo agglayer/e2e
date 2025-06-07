@@ -285,7 +285,7 @@ setup() {
     sender_addr=$receiver1_addr
     destination_addr=$receiver1_addr
     destination_net=$l2_pp2_network_id
-    amount="0.001ether"
+    amount="0.01ether"
     meta_bytes="0x"
     run bridge_asset "$pp3_wrapped_token_addr" "$l2_pp3_url" "$l2_bridge_addr"
     assert_success
