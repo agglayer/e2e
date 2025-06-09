@@ -1,0 +1,32 @@
+services:
+  agglayer-prover:
+    image: ${AGGLAYER_IMAGE}
+    container_name: agglayer-prover
+    networks:
+      - kt-network
+    environment:
+      - NETWORK_PRIVATE_KEY=${SP1_NETWORK_KEY}
+      - SP1_PRIVATE_KEY=${SP1_NETWORK_KEY}
+      - NETWORK_RPC_URL=${NETWORK_RPC_URL}
+      # - RUST_LOG=info
+      # - RUST_BACKTRACE=1
+    volumes:
+      - ./agglayer-prover-config.toml:/etc/zkevm/agglayer-prover-config.toml
+    entrypoint: /usr/local/bin/agglayer
+    command: prover --cfg /etc/zkevm/agglayer-prover-config.toml
+
+  agglayer:
+    image: ${AGGLAYER_IMAGE}
+    container_name: agglayer
+    networks:
+      - kt-network
+    volumes:
+      - ./agglayer-config.toml:/etc/zkevm/agglayer-config.toml
+      - ./agglayer.keystore:/etc/zkevm/agglayer.keystore
+    entrypoint: /usr/local/bin/agglayer
+    command: run --cfg /etc/zkevm/agglayer-config.toml
+
+networks:
+  kt-network:
+      name: kt-${ENCLAVE_NAME}
+      external: true

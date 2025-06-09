@@ -215,7 +215,7 @@ echo '██████  ███████ ██      ██████�
 verifier_address=$(jq -r '.verifierAddress' combined.json)
 jq --arg va "$verifier_address" '.verifierAddress = $va' assets/deploy_parameters.json  > deploy_parameters.json
 
-docker exec -w /opt/zkevm-contracts -it $contracts_container_name sed -i '$aDEPLOYER_PRIVATE_KEY="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"' .env
+# docker exec -w /opt/zkevm-contracts -it $contracts_container_name sed -i '$aDEPLOYER_PRIVATE_KEY="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"' .env
 docker cp deploy_parameters.json $contracts_container_name:/opt/zkevm-contracts/tools/deployAggLayerGateway
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./tools/deployAggLayerGateway/deployAggLayerGateway.ts --network localhost
 docker cp $contracts_container_name:/opt/zkevm-contracts/tools/deployAggLayerGateway/deploy_output.json .
