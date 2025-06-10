@@ -14,6 +14,12 @@ services:
       - ./agglayer-prover-config.toml:/etc/zkevm/agglayer-prover-config.toml
     entrypoint: /usr/local/bin/agglayer
     command: prover --cfg /etc/zkevm/agglayer-prover-config.toml
+    healthcheck:
+      test: ["CMD", "true"] # TODO: this is a hack. add better health check
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   agglayer:
     image: ${AGGLAYER_IMAGE}
@@ -21,10 +27,14 @@ services:
     networks:
       - kt-network
     volumes:
+      # - ./zkevm:/etc/zkevm
       - ./agglayer-config.toml:/etc/zkevm/agglayer-config.toml
       - ./agglayer.keystore:/etc/zkevm/agglayer.keystore
     entrypoint: /usr/local/bin/agglayer
     command: run --cfg /etc/zkevm/agglayer-config.toml
+    depends_on:
+      agglayer-prover:
+        condition: service_healthy
 
 networks:
   kt-network:
