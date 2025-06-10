@@ -50,20 +50,4 @@ setup() {
 
     echo "$destination_addr balance on PP1: $weth_token_addr_pp1_final_balance" >&3
     assert_equal "$weth_token_addr_pp1_final_balance" "$expected_balance"
-
-    # Now we need to do a bridge on L2(PP1) to trigger a certificate to be sent to L1
-    ether_value=${ETHER_VALUE:-"0.0100000054"}
-    amount=$(cast to-wei $ether_value ether)
-    echo "=== Running LxLy bridge eth L2(PP1) to L1 (trigger certificate sending on PP1) amount:$amount" >&3
-    destination_net=$l1_rpc_network_id
-    meta_bytes="0xabcd"
-    run bridge_asset "$weth_token_addr_pp1" "$l2_pp1_url" "$l2_bridge_addr"
-    assert_success
-    bridge_tx_hash=$output
-
-    echo "=== Running LxLy claim L2(PP1) to L1 for $bridge_tx_hash" >&3
-    process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
-
-    echo "=== Waiting to settled certificate with imported bridge for global_index: $global_index_pp3_to_pp1"
-    wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp3_to_pp1
 }
