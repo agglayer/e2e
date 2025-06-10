@@ -57,9 +57,6 @@ setup() {
     local initial_receiver_balance_pp1=$(cast balance "$receiver" --rpc-url "$l2_pp1_url")
     echo "Initial receiver ($receiver) balance of native token addr on PP1 $initial_receiver_balance_pp1" >&3
 
-    local l1_minter_balance=$(cast balance "0x8943545177806ED17B9F23F0a21ee5948eCaa776" --rpc-url "$l1_rpc_url")
-    echo "Initial minter balance on L1 $l1_minter_balance" >&3
-
     # Query for initial sender balance
     run query_contract "$l1_rpc_url" "$gas_token_addr_pp1" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
@@ -72,11 +69,6 @@ setup() {
     local minter_key=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_addr_pp1" "$minter_key" "$sender_addr" "$tokens_amount"
     assert_success
-
-    # Send approve transaction to the gas token on L1
-    run send_tx "$l1_rpc_url" "$sender_private_key" "$gas_token_addr_pp1" "$APPROVE_FN_SIG" "$l1_bridge_addr" "$tokens_amount"
-    assert_success
-    assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
     # DEPOSIT
     destination_addr=$receiver
