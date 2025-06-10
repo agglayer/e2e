@@ -38,7 +38,7 @@ setup() {
     process_bridge_claim "$l2_pp3_network_id" "$bridge_tx_hash" "$l2_pp1_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_1_url" "$l2_pp1_url"
     global_index_pp3_to_pp1=$output
 
-    # # Verify final balance on PP1
+    # Verify final balance on PP1
     run query_contract "$l2_pp1_url" "$weth_token_addr_pp1" "$BALANCE_OF_FN_SIG" "$destination_addr"
     assert_success
     local weth_token_addr_pp1_final_balance=$(echo "$output" |
