@@ -385,9 +385,14 @@ for i in {1..25}; do
     cast send --rpc-url $l1_rpc_url --value 0.1ether --private-key $random_pkey $l1_op_bridge_addr
 done
 
-# Random L2 -> L1 bridgeskurtosis service inspect agglayer zkevm-bridge-service-001 --full-uuid | grep UUID | sed  's/.*: //'
-echo "Sending random L2 -> L1 bridges..."agglayer_contracts_tag=$AGGLAYER_CONTRACTS_TAG
- 0.1ether --private-key $random_pkey $l2_op_bridge_addr
+# Random L2 -> L1 bridges
+echo "Sending random L2 -> L1 bridges..."
+for i in {1..25}; do
+    tmp_random_wallet_json=$(cast wallet new --json)
+    random_addr=$(echo "$tmp_random_wallet_json" | jq -r '.[0].address')
+    random_pkey=$(echo "$tmp_random_wallet_json" | jq -r '.[0].private_key')
+    cast send --rpc-url $l2_rpc_url --value 0.2ether --private-key $test_pkey $random_addr
+    cast send --rpc-url $l2_rpc_url --value 0.1ether --private-key $random_pkey $l2_op_bridge_addr
 done
 
 # create a reference wallet to check after the outpost is attached
