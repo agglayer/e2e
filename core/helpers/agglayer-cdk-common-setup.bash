@@ -214,6 +214,18 @@ _resolve_url_from_nodes() {
     fi
 }
 
+_get_gas_token_address() {
+    local chain_number=$1
+    local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
+    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+    local combined_json_output=$(cat "combined-${chain_number}.json")
+    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
+        echo "$(echo "$combined_json_output" | jq -r .gasTokenAddress)"
+    else
+        echo "$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)"
+    fi
+}
+
 _agglayer_cdk_common_multi_setup() {
     local number_of_chains=$1
 
@@ -272,31 +284,19 @@ _agglayer_cdk_common_multi_setup() {
     if [[ $number_of_chains -eq 3 ]]; then
         readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
     fi
-
-    local combined_json_file="/opt/zkevm/combined-001.json"
-    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined-001.json
-    local combined_json_output=$(cat combined-001.json)
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        gas_token_addr_pp1=$(echo "$combined_json_output" | jq -r .gasTokenAddress)
-    else
-        gas_token_addr_pp1=$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address on PP1=$gas_token_addr_pp1" >&3
-
-    local combined_json_file="/opt/zkevm/combined-002.json"
-    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined-002.json
-    local combined_json_output=$(cat combined-002.json)
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        gas_token_addr_pp2=$(echo "$combined_json_output" | jq -r .gasTokenAddress)
-    else
-        gas_token_addr_pp2=$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address on PP2=$gas_token_addr_pp2" >&3
-
     echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
     echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
     if [[ $number_of_chains -eq 3 ]]; then
         echo "weth_token_addr_pp3: $weth_token_addr_pp3" >&3
+    fi
+
+    gas_token_addr_pp1=$(_get_gas_token_address "001")
+    echo "Gas token address on PP1=$gas_token_addr_pp1" >&3
+    gas_token_addr_pp2=$(_get_gas_token_address "002")
+    echo "Gas token address on PP2=$gas_token_addr_pp2" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        gas_token_addr_pp3=$(_get_gas_token_address "003")
+        echo "Gas token address on PP3=$gas_token_addr_pp3" >&3
     fi
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
