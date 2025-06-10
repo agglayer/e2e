@@ -160,7 +160,11 @@ jobs:
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
           chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-          bats ./tests/aggkit/bridge-e2e-2-l2s.bats
+          if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            bats ./tests/aggkit/bridge-e2e-3-chains.bats
+          else
+            bats ./tests/aggkit/bridge-e2e-2-chains.bats
+          fi
           popd
 
       - name: Dump enclave logs
@@ -170,7 +174,7 @@ jobs:
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
-          archive_name="dump_run_with_args_${{ github.run_id }}"
+          archive_name="dump_run_with_args_${{ inputs.number-of-chains}}_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
   
