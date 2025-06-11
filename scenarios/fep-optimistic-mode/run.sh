@@ -6,11 +6,6 @@ load_env
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 
-# The aggregationVkey and rangeVkeyCommitment values need to be manually changed when op-succinct-proposer circuits are rebuilt.
-# agglayer/op-succinct uses a slimed image of the op-succinct-proposer, which doesn't contain the aggregation-elf and range-elf directly.
-aggregation_vkey="0x00b727dd4c322e04033a340e342a675b73c6ee8fec3946a7b3e93797b10ed721"
-range_vkey_commitment="0x1b5d3b2e062d5f24618fb82821b49ea2465d016e0820219d417ec351753b3adc"
-
 # If condition for CI to determines whether to use mock prover or network prover
 if [[ $MOCK_MODE == true ]]; then
   curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > tmp-fep.yml
@@ -146,6 +141,13 @@ cast rpc --rpc-url "$l2_node_url" admin_startSequencer $(cat stop.out)
 kurtosis service start "$kurtosis_enclave_name" aggkit-001
 
 kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
+
+
+echo '██████  ██ ███████  █████  ██████  ██      ███████      ██████  ██████  ████████ ██ ███    ███ ██ ███████ ████████ ██  ██████     ███    ███  ██████  ██████  ███████ '
+echo '██   ██ ██ ██      ██   ██ ██   ██ ██      ██          ██    ██ ██   ██    ██    ██ ████  ████ ██ ██         ██    ██ ██          ████  ████ ██    ██ ██   ██ ██      '
+echo '██   ██ ██ ███████ ███████ ██████  ██      █████       ██    ██ ██████     ██    ██ ██ ████ ██ ██ ███████    ██    ██ ██          ██ ████ ██ ██    ██ ██   ██ █████   '
+echo '██   ██ ██      ██ ██   ██ ██   ██ ██      ██          ██    ██ ██         ██    ██ ██  ██  ██ ██      ██    ██    ██ ██          ██  ██  ██ ██    ██ ██   ██ ██      '
+echo '██████  ██ ███████ ██   ██ ██████  ███████ ███████      ██████  ██         ██    ██ ██      ██ ██ ███████    ██    ██  ██████     ██      ██  ██████  ██████  ███████ '
 
 wait_for_non_null_cert
 
