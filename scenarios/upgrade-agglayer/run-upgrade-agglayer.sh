@@ -7,9 +7,6 @@ kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 contracts_version="$AGGLAYER_CONTRACTS_VERSION"
 
-# Remove existing docker compose containers if any
-# docker compose down
-
 # Get agglayer configs
 agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep agglayer[^-] | awk '{print $1}')
 agglayer_container_name=agglayer--$agglayer_uuid
@@ -45,7 +42,10 @@ kurtosis service stop $kurtosis_enclave_name agglayer-prover
 echo "Removing the agglayer-prover service..."
 kurtosis service rm $kurtosis_enclave_name agglayer-prover
 
+# Add some timeout to prevent docker compose not starting up agglayer properly
+sleep 5
+
 # Attach the new agglayer and agglayer-prover v0.3.x service
 echo "Starting v0.3.x agglayer and agglayer prover containers"
 docker compose up -d > docker-compose.log 2>&1
-# docker compose logs -f >> docker-compose.log 2>&1 &
+docker compose logs -f >> docker-compose.log 2>&1 &

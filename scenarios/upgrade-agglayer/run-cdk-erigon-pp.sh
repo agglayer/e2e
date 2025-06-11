@@ -3,6 +3,9 @@ set -e
 source ../common/load-env.sh
 load_env
 
+# Remove existing docker compose containers if any
+docker compose down
+
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 contracts_version="$AGGLAYER_CONTRACTS_VERSION"
@@ -410,8 +413,6 @@ echo '██████  ██    ██ ██ ██  ██     ██     
 echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
 echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
-# Give some time for agglayer container to fully start up
-sleep 5
 
 echo "Starting the aggsender (cdk-node/aggkit) service..."
 kurtosis service start $kurtosis_enclave_name cdk-node-001

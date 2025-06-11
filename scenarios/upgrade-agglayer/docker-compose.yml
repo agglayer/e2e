@@ -35,6 +35,13 @@ services:
     depends_on:
       agglayer-prover:
         condition: service_healthy
+    restart: on-failure:5 # Restart up to 5 times on failure
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f 0.0.0.0:9092/metrics || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 networks:
   kt-network:

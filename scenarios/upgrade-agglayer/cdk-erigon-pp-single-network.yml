@@ -13,7 +13,7 @@ args:
   gas_token_enabled: false
   zkevm_use_real_verifier: false
   enable_normalcy: true
-  agglayer_prover_sp1_key: '0x58301ea64f48a91e21f900bacf599eb61ec9331455db34f9b4279d5c652f368f' # DONOTCOMMIT
+  agglayer_prover_sp1_key: '0x50630eb71ab68ff812fcb9b9c58859f9e9f70a62b7e9e97c9c1cc09d86c760d8' # Replace with valid key
   agglayer_prover_primary_prover: network-prover
   sequencer_type: erigon
 
