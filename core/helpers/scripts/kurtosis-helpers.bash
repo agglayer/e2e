@@ -12,10 +12,10 @@ function kurtosis_download_file_exec_method() {
 }
 
 function kurtosis_filer_exec_method() {
-    local _kurtosis_version=$(kurtosis version | cut -d ':' -f 2 | head -n 1)
+    local _kurtosis_version=$(kurtosis version | cut -d ':' -f 2 | head -n 1 | xargs)
     # versions previous 1.7.0 first line in stdout is
     # "The command was successfully executed and returned '0'."
     # After this version this line is output in stderr
     # So if kurtosis version is <1.7.0 need tail -n +2, if not just same output
-    dpkg --compare-versions "$_kurtosis_version" "ge" "1.7.0" && cat || tail -n +2
+    printf "1.7.0\n$_kurtosis_version" | sort -V -C && cat || tail -n +2
 }
