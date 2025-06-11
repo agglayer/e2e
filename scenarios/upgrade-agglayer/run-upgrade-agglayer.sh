@@ -16,6 +16,10 @@ agglayer_container_name=agglayer--$agglayer_uuid
 echo "Copy agglayer data"
 # docker cp $agglayer_container_name:/etc/zkevm/agglayer-config.toml .
 # docker cp $agglayer_container_name:/etc/zkevm/agglayer.keystore .
+echo "Changing ownership of backsup and storage directories in agglayer service"
+docker exec -it $agglayer_container_name chown 755 /etc/zkevm/backups
+docker exec -it $agglayer_container_name chown 755 /etc/zkevm/storage
+echo "Copying agglayer db"
 docker cp $agglayer_container_name:/etc/zkevm/ .
 
 # Replace prover url to something recognizable by agglayer container
