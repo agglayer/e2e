@@ -338,6 +338,16 @@ echo '███████ ██   ██ ██   ██ ██████  
 echo '██   ██ ██   ██ ██   ██ ██   ██ ██    ██ ██      ██      ██    ██ ██         ██       ██    ██      ██      '
 echo '██   ██ ██████  ██████  ██   ██  ██████  ███████ ███████  ██████  ██         ██       ██    ██      ███████ '
 
+# Remove cdk-node/aggkit db
+cdk_node_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep cdk-node-001[^-] | awk '{print $1}')
+cdk_node_container_name=cdk-node-001--$cdk_node_uuid
+# docker exec -it $cdk_node_container_name rm -rf /tmp
+# docker exec -it $cdk_node_container_name mkdir /tmp
+
+# Stop sending certificates to agglayer
+echo "Stopping the aggsender (cdk-node/aggkit) service..."
+kurtosis service stop $kurtosis_enclave_name cdk-node-001
+
 # Add rolluptype
 docker cp assets/add_rollup_type.json $contracts_container_name:/opt/zkevm-contracts/tools/addRollupType
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost
@@ -391,7 +401,7 @@ echo "Null latest pending certificate confirmed"
 # fi
 # echo "Non-null latest settled L2 block confirmed: $latest_settled_l2_block"
 
-# Run agglayer upgrade script
+echo "Run agglayer upgrade script"
 ./run-upgrade-agglayer.sh
 
 echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
@@ -399,6 +409,12 @@ echo '██   ██ ██    ██ ████   ██     ██       �
 echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
 echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
 echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
+
+# Give some time for agglayer container to fully start up
+sleep 5
+
+echo "Starting the aggsender (cdk-node/aggkit) service..."
+kurtosis service start $kurtosis_enclave_name cdk-node-001
 
 # Run tests in parallel
 cd ../../
