@@ -1,9 +1,10 @@
-_common_setup() {
+_agglayer_cdk_common_setup() {
     bats_load_library 'bats-support'
     if [ $? -ne 0 ]; then return 1; fi
     bats_load_library 'bats-assert'
     if [ $? -ne 0 ]; then return 1; fi
 
+    load '../../core/helpers/scripts/agglayer_network_setup'
     load '../../core/helpers/scripts/aggkit_bridge_service'
     load '../../core/helpers/scripts/fund'
     load '../../core/helpers/scripts/get_token_balance'
@@ -42,102 +43,28 @@ _common_setup() {
     # ✅ Kurtosis service setup
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
 
-    local fallback_nodes=("op-el-1-op-geth-op-node-001" "cdk-erigon-rpc-001")
-    local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-            continue
-        }
+    # Resolve L2 RPC URL
+    local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
+    export L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL" true | tail -1)
+    echo "L2_RPC_URL: $L2_RPC_URL" >&3
 
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved L2 RPC URL ("$resolved_url") from "$node"" >&3
-            break
-        fi
-    done
-    if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve L2 RPC URL from all fallback nodes" >&2
-        return 1
-    fi
-    export L2_RPC_URL="$resolved_url"
+    # Resolve L2 Sequencer RPC URL
+    local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
+    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL" true | tail -1)
+    export L2_SEQUENCER_RPC_URL
+    echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
 
-    local fallback_nodes=(
-        "op-batcher-001" "http"
-        "cdk-erigon-sequencer-001" "rpc"
-    )
-    local resolved_url=""
-    local num_nodes=${#fallback_nodes[@]}
+    # Resolve Aggkit Bridge URL
+    local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
+    aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
+    readonly aggkit_bridge_url
+    echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
 
-    for ((i = 0; i < num_nodes; i += 2)); do
-        local node_name="${fallback_nodes[i]}"
-        local node_port_type="${fallback_nodes[i+1]}"
-
-        kurtosis service inspect "$ENCLAVE" "$node_name" || {
-            echo "⚠️ Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved L2 SEQUENCER RPC URL ($resolved_url) from $node_name" >&3
-            break
-        fi
-    done
-
-    if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" >&2
-        return 1
-    fi
-    export L2_SEQUENCER_RPC_URL="$resolved_url"
-
-    local fallback_nodes=("aggkit-001" "cdk-node-001")
-    local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rest)
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved aggkit node url ("$resolved_url") from "$node"" >&3
-            break
-        fi
-    done
-    if [ -z "$resolved_url" ]; then
-        echo "❌ Failed to resolve aggkit node url from all fallback nodes" >&2
-        return 1
-    fi
-    readonly aggkit_bridge_url="$resolved_url"
-
-    local fallback_nodes=("zkevm-bridge-service-001")
-    local resolved_url=""
-    for node in "${fallback_nodes[@]}"; do
-        # Need to invoke the command this way, otherwise it would fail the entire test
-        # if the node is not running, but this is just a sanity check
-        kurtosis service inspect "$ENCLAVE" "$node" || {
-            echo "⚠️ Node $node is not running in the "$ENCLAVE" enclave, trying next one..." >&3
-            continue
-        }
-
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node" rpc)
-        if [ -n "$resolved_url" ]; then
-            echo "✅ Successfully resolved bridge api url ("$resolved_url") from "$node"" >&3
-            break
-        fi
-    done
-    if [ -z "$resolved_url" ]; then
-        echo "zkevm-bridge-service isnt running" >&3
-    fi
-    readonly bridge_api_url="$resolved_url"
-
-    echo "🔧 Using L2 RPC URL: $L2_RPC_URL"
-    echo "🔧 Using L2 SEQUENCER RPC URL: $L2_SEQUENCER_RPC_URL"
+    # Resolve ZKEVM Bridge URL
+    local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
+    zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
+    readonly zkevm_bridge_url
+    echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
@@ -213,40 +140,6 @@ _common_setup() {
     readonly is_forced=${IS_FORCED:-"true"}
     meta_bytes=${META_BYTES:-"0x1234"}
 
-    if [[ -z "${DISABLE_L2_FUND}" || "${DISABLE_L2_FUND}" == "false" ]]; then
-        readonly test_account_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-        readonly test_account_addr="$(cast wallet address --private-key $test_account_key)"
-
-        local token_balance
-        token_balance=$(cast balance --rpc-url "$L2_RPC_URL" "$test_account_addr" 2>/dev/null)
-        if [ $? -ne 0 ]; then
-            echo "⚠️ Failed to fetch token balance for $test_account_addr on $L2_RPC_URL" >&2
-            token_balance=0
-        fi
-
-        # Threshold: 0.1 ether in wei
-        local threshold=100000000000000000
-
-        # Only fund if balance is less than or equal to 0.1 ether
-        # (it's a real big number, so we compare the length of strings)
-        if [[ ${#token_balance} -le ${#threshold} ]]; then
-            local l2_coinbase_key=${L2_COINBASE_KEY:-"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
-            local amt="10ether"
-
-            echo "💸 $test_account_addr L2 balance ($token_balance) is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
-            fund "$l2_coinbase_key" "$test_account_addr" "$amt" "$L2_RPC_URL"
-            if [ $? -ne 0 ]; then
-                echo "❌ Funding L2 receiver $test_account_addr failed" >&2
-                return 1
-            fi
-            echo "✅ Successfully funded $test_account_addr with $amt on L2" >&3
-        else
-            echo "✅ Receiver $test_account_addr already has $(cast --from-wei "$token_balance") ETH on L2" >&3
-        fi
-    else
-        echo "🚫 Skipping L2 funding since DISABLE_L2_FUND is set to true" >&3
-    fi
-
     local combined_json_file="/opt/zkevm/combined.json"
     kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
     local combined_json_output=$(cat combined.json)
@@ -296,4 +189,119 @@ _common_setup() {
     readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
     readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
     readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+}
+
+_resolve_url_from_nodes() {
+    local error_msg="${@: -3:1}"
+    local success_msg="${@: -2:1}"
+    local required="${@: -1}"
+
+    # --- everything before them are the node/port pairs ---
+    local -a nodes=("${@:1:$#-3}")
+
+    local resolved_url=""
+    local num_nodes=${#nodes[@]}
+
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${nodes[i]}"
+        local node_port_type="${nodes[i+1]}"
+
+        kurtosis service inspect "$ENCLAVE" "$node_name" || {
+            echo "⚠️  Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+        if [[ "$resolved_url" != "" ]]; then
+            echo "$resolved_url"
+            break
+        fi
+    done
+
+    if [[ "$resolved_url" == "" ]]; then
+        echo "❌ $error_msg" >&2
+        if [[ "$required" == "true" ]]; then
+            exit 1
+        fi
+    fi
+}
+
+_agglayer_cdk_common_multi_setup() {
+    local number_of_chains=$1
+
+    readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+    readonly eth_address=$(cast wallet address --private-key $private_key)
+    readonly l2_pp1_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-001 rpc)
+    readonly l2_pp2_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-002 rpc)
+    if [[ $number_of_chains -eq 3 ]]; then
+        readonly l2_pp3_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-003 rpc)
+    fi
+
+    # Resolve Aggkit RPC URL
+    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
+    aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+    readonly aggkit_pp1_rpc_url
+    echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
+
+    local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
+    aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+    readonly aggkit_pp2_rpc_url
+    echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
+        aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+        readonly aggkit_pp3_rpc_url
+        echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
+    fi
+
+    readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
+    readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
+    if [[ $number_of_chains -eq 3 ]]; then
+        readonly l2_pp3_network_id=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'networkID() (uint32)')
+    fi
+
+    # Resolve Aggkit Bridge URLs for both nodes
+    local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
+    aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_1" "Successfully resolved aggkit bridge url" true | tail -1)
+    readonly aggkit_bridge_1_url
+    echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
+
+    local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
+    aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_2" "Successfully resolved aggkit bridge url" true | tail -1)
+    readonly aggkit_bridge_2_url
+    echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
+        aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_3" "Successfully resolved aggkit bridge url" true | tail -1)
+        readonly aggkit_bridge_3_url
+        echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
+    fi
+
+    readonly weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_addr_pp2=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'WETHToken() (address)')
+    if [[ $number_of_chains -eq 3 ]]; then
+        readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
+    fi
+
+    echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
+    echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        echo "weth_token_addr_pp3: $weth_token_addr_pp3" >&3
+    fi
+
+    echo "=== L1 network id=$l1_rpc_network_id ===" >&3
+    echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
+    echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
+    echo "=== L1 RPC URL=$l1_rpc_url ===" >&3
+    echo "=== L2 PP1 URL=$l2_pp1_url ===" >&3
+    echo "=== L2 PP2 URL=$l2_pp2_url ===" >&3
+    echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
+    echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        echo "=== L2 PP3 network id=$l2_pp3_network_id ===" >&3
+        echo "=== L2 PP3 URL=$l2_pp3_url ===" >&3
+        echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
+    fi
 }

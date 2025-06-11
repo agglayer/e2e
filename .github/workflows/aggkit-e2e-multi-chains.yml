@@ -29,6 +29,13 @@ on:
         required: true
         type: string
 
+      kurtosis-cdk-args-3:
+        description: "Input arguments for the Kurtosis CDK package 3."
+        required: false
+        type: string
+        default: |
+          {}
+
       kurtosis-cdk-enclave-name:
         description: "The name to be used for the kurtosis enclave"
         required: true
@@ -52,8 +59,14 @@ on:
         type: string
         default: "aggkit"
 
+      number-of-chains:
+        description: "The number of chains to run the test on"
+        required: false
+        type: number
+        default: 2
+
 jobs:
-  test-multi-e2e:
+  test-multi-aggkit-e2e:
     name: Multi chains E2E test
     runs-on: ubuntu-latest
     steps:
@@ -107,20 +120,33 @@ jobs:
 
       - name: Write args input to a file
         run: |
+          if [[ "${{ inputs.kurtosis-cdk-args-3 }}" == "{}" && ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            echo "Error: kurtosis-cdk-args-3 is empty but number-of-chains is set to 3"
+            exit 1
+          fi
           docker_tag='${{ inputs.docker-tag }}'
           if [[ $docker_tag == "" ]]; then
               echo '${{ inputs.kurtosis-cdk-args-1 }}' | tee /tmp/kurtosis-args-1.json
               echo '${{ inputs.kurtosis-cdk-args-2 }}' | tee /tmp/kurtosis-args-2.json
+              if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then
+                echo '${{ inputs.kurtosis-cdk-args-3 }}' | tee /tmp/kurtosis-args-3.json
+              fi
               exit
           fi
           echo '${{ inputs.kurtosis-cdk-args-1 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-1.json
           echo '${{ inputs.kurtosis-cdk-args-2 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-2.json
+          if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            echo '${{ inputs.kurtosis-cdk-args-3 }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args-3.json
+          fi
 
       - name: Startup the kurtosis-cdk package
         run: |
           pushd kurtosis-cdk || exit 1
           kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args-1.json .
           kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args-2.json .
+          if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args-3.json .
+          fi
           popd
 
       - name: Run e2e tests
@@ -132,10 +158,13 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          export DISABLE_L2_FUND="true"
           chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-          bats ./tests/aggkit/bridge-l2_to_l2-e2e.bats
+          if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then
+            bats ./tests/aggkit/bridge-e2e-3-chains.bats
+          else
+            bats ./tests/aggkit/bridge-e2e-2-chains.bats
+          fi
           popd
 
       - name: Dump enclave logs
@@ -145,7 +174,7 @@ jobs:
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
-          archive_name="dump_run_with_args_${{ github.run_id }}"
+          archive_name="dump_run_with_args_${{ inputs.number-of-chains}}_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
   

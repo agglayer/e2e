@@ -554,19 +554,19 @@ function claim_bridge_claimSponsor() {
         --argjson amount "$amount" \
         --arg metadata "" \
         '{
-     leaf_type:            $leaf_type,
-     proof_local_exit_root: $proof_local_exit_root,
-     proof_rollup_exit_root:$proof_rollup_exit_root,
-     global_index:         $global_index,
-     mainnet_exit_root:    $mainnet_exit_root,
-     rollup_exit_root:     $rollup_exit_root,
-     origin_network:       $origin_network,
-     origin_token_address: $origin_token_address,
-     destination_network:  $destination_network,
-     destination_address:  $destination_address,
-     amount:               $amount,
-     metadata:             $metadata
-   }')
+            leaf_type:            $leaf_type,
+            proof_local_exit_root: $proof_local_exit_root,
+            proof_rollup_exit_root:$proof_rollup_exit_root,
+            global_index:         $global_index,
+            mainnet_exit_root:    $mainnet_exit_root,
+            rollup_exit_root:     $rollup_exit_root,
+            origin_network:       $origin_network,
+            origin_token_address: $origin_token_address,
+            destination_network:  $destination_network,
+            destination_address:  $destination_address,
+            amount:               $amount,
+            metadata:             $metadata
+        }')
     log "Claim JSON: $claim_json"
     log "📤 Submitting claim with sponsor-claim... $destination_rpc_url"
 
@@ -648,40 +648,42 @@ function claim_bridge_claimSponsor() {
 #   $2 - bridge_tx_hash: The transaction hash of the bridge interaction.
 #   $3 - destination_network_id: The destination network ID for bridge transaction.
 #   $4 - bridge_addr: The bridge contract address where the claim will be submitted.
-#   $5 - bridge_service_url: The base URL of the bridge service.
-#   $6 - rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
+#   $5 - origin_aggkit_bridge_url: The base URL of the bridge service of origin network.
+#   $6 - destination_aggkit_bridge_url: The base URL of the bridge service of destination network.
+#   $7 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
 function process_bridge_claim() {
     local origin_network_id="$1"
     local bridge_tx_hash="$2"
     local destination_network_id="$3"
     local bridge_addr="$4"
-    local bridge_service_url="$5"
-    local rpc_url="$6"
+    local origin_aggkit_bridge_url="$5"
+    local destination_aggkit_bridge_url="$6"
+    local destination_rpc_url="$7"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$bridge_service_url"
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
     assert_success
     local bridge="$output"
 
     # Find the L1 info tree index for the given deposit count.
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$bridge_service_url"
+    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$origin_aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
 
     # Retrieve the injected L1 info leaf using the L1 info tree index.
-    run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$bridge_service_url"
+    run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$destination_aggkit_bridge_url"
     assert_success
     local injected_info="$output"
 
     # Generate the claim proof based on the network ID, deposit count, and L1 info tree index.
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$bridge_service_url"
+    run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url"
     assert_success
     local proof="$output"
 
     # Submit the claim using the generated proof and bridge details.
-    run claim_bridge "$bridge" "$proof" "$rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
+    run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
     assert_success
     local global_index="$output"
 
@@ -695,6 +697,7 @@ function get_legacy_token_migrations() {
     local aggkit_url="$4"
     local max_attempts="$5"
     local poll_frequency="$6"
+    local tx_hash="${7:-}"
 
     local attempt=0
     local legacy_token_migrations=""
@@ -721,6 +724,18 @@ function get_legacy_token_migrations() {
             log "Empty legacy token migration response retrieved, retrying in "$poll_frequency"s..."
             sleep "$poll_frequency"
             continue
+        fi
+
+        if [[ -n "$tx_hash" ]]; then
+            if echo "$legacy_token_migrations" | grep -q "\"tx_hash\":\"$tx_hash\""; then
+                log "✅ Found tx_hash $tx_hash in response."
+                echo "$legacy_token_migrations"
+                return 0
+            else
+                log "⚠️ tx_hash $tx_hash not found; retrying in ${poll_frequency}s..."
+                sleep "$poll_frequency"
+                continue
+            fi
         fi
 
         echo "$legacy_token_migrations"

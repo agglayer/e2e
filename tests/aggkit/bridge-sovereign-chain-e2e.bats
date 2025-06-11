@@ -1,6 +1,6 @@
 setup() {
-  load '../../core/helpers/common-setup'
-  _common_setup
+  load '../../core/helpers/agglayer-cdk-common-setup'
+  _agglayer_cdk_common_setup
 
   readonly update_hash_chain_value_event_sig="event UpdateHashChainValue(bytes32, bytes32)"
   readonly set_sovereign_token_address_event_sig="event SetSovereignTokenAddress(uint32, address, address, bool)"
@@ -97,7 +97,7 @@ setup() {
   local bridge_tx_hash=$output
 
   # Claim deposits (settle them on the L2)
-  process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+  process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
   run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
   assert_success
@@ -121,7 +121,7 @@ setup() {
   arg2="[$l1_erc20_addr]"
   arg3="[$l2_token_addr_sovereign]"
   arg4='[false]'
-  run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$set_multiple_sovereign_token_address_func_sig" "$arg1" "$arg2" "$arg3" "$arg4" --json
   assert_success
   local set_sov_token_addr_tx_resp=$output
   log "setMultipleSovereignTokenAddress transaction details: $set_sov_token_addr_tx_resp"
@@ -141,9 +141,6 @@ setup() {
   assert_equal "false" "$is_not_mintable"
   log "✅ SetSovereignTokenAddress event successful"
 
-  # sleep briefly to give aggkit time to index the event
-  sleep 3
-
   # Query aggkit node for legacy token migrations
   run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
   assert_success
@@ -155,16 +152,17 @@ setup() {
   log "Emitting MigrateLegacyToken event"
   # Grant minter role to l2_bridge_addr on l2_token_addr_sovereign
   MINTER_ROLE=$(cast keccak "MINTER_ROLE")
-  run cast send --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" "$l2_token_addr_sovereign" "$grant_role_func_sig" "$MINTER_ROLE" "$l2_bridge_addr"
+  run cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" "$l2_token_addr_sovereign" "$grant_role_func_sig" "$MINTER_ROLE" "$l2_bridge_addr"
   assert_success
   local grant_role_tx_hash=$output
   log "✅ Minter role granted to $l2_bridge_addr on $l2_token_addr_sovereign: $grant_role_tx_hash"
 
-  run cast send --private-key "$sender_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$migrate_legacy_token_func_sig" "$l2_token_addr_legacy" 0 "0x" --json
+  run cast send --legacy --private-key "$sender_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$migrate_legacy_token_func_sig" "$l2_token_addr_legacy" 0 "0x" --json
   assert_success
   local migrate_legacy_token_tx_resp=$output
   log "migrateLegacyToken transaction details: $migrate_legacy_token_tx_resp"
   migrate_legacy_token_block_num=$(echo "$migrate_legacy_token_tx_resp" | jq -r '.blockNumber')
+  migrate_legacy_token_transaction_hash=$(echo "$migrate_legacy_token_tx_resp" | jq -r '.transactionHash')
   log "migrate_from_block: $migrate_legacy_token_block_num"
 
   # Find logs for MigrateLegacyToken event
@@ -190,11 +188,8 @@ setup() {
   assert_equal "0" "$amount"
   log "✅ MigrateLegacyToken event successful"
 
-  # sleep briefly to give aggkit time to index the event
-  sleep 3
-
   # Query aggkit node for legacy token mapping(bridge_getLegacyTokenMigrations)
-  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
+  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10 "$migrate_legacy_token_transaction_hash"
   assert_success
   local legacy_token_migrations="$output"
   local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
@@ -204,7 +199,7 @@ setup() {
 
   # event RemoveLegacySovereignTokenAddress
   log "Emitting RemoveLegacySovereignTokenAddress event"
-  run cast send --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$remove_legacy_sovereign_token_address_func_sig" "$l2_token_addr_legacy" --json
   assert_success
   local removeLegacySovereignTokenAddress_tx_details=$output
   log "removeLegacySovereignTokenAddress transaction details: $removeLegacySovereignTokenAddress_tx_details"
@@ -219,7 +214,8 @@ setup() {
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
   # sleep briefly to give aggkit time to index the event
-  sleep 3
+  # Increasing the sleep time to 450 seconds to give aggkit time to index the event as the settings for BridgeL2Sync is FinalizedBlock and not LatestBlock
+  sleep 450
 
   # Query aggkit node for legacy token migrations
   run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10

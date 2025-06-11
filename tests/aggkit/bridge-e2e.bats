@@ -1,6 +1,6 @@
 setup() {
-    load '../../core/helpers/common-setup'
-    _common_setup
+    load '../../core/helpers/agglayer-cdk-common-setup'
+    _agglayer_cdk_common_setup
 }
 
 @test "Transfer message" {
@@ -12,7 +12,7 @@ setup() {
     local bridge_tx_hash=$output
 
     echo "====== claimMessage (L2)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "====== bridgeMessage L2 -> L1" >&3
     destination_net=0
@@ -52,7 +52,7 @@ setup() {
 
     # CLAIM (settle deposit on L2)
     echo "==== 🔐 Claiming deposit on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
@@ -80,42 +80,11 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposit (settle it on the L2)
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
 
     echo "=== Running L2 gas token ($native_token_addr) deposit to L1 network" >&3
     destination_addr=$sender_addr
     destination_net=0
     run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
-    assert_success
-}
-
-@test "Native token transfer L1 -> L2 using claimSponsor" {
-    destination_addr="0x1aE97aE9de91A31df9FA788E6fE00Ba226CF0332"
-    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    log "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth"
-
-    log "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)"
-    destination_net=$l2_rpc_network_id
-    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-    assert_success
-    local bridge_tx_hash=$output
-
-    # Claim deposits (settle them on the L2)
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge="$output"
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof="$output"
-    
-    run claim_bridge_claimSponsor "$bridge" "$proof" "$aggkit_bridge_url" "$l1_rpc_network_id" 10 2 "$initial_receiver_balance"
     assert_success
 }

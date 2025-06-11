@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 setup() {
-    load "$PROJECT_ROOT/core/helpers/common-setup.bash"
-    _common_setup  # Standard setup (wallet, funding, RPC, etc.)
+    load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
+    _agglayer_cdk_common_setup  # Standard setup (wallet, funding, RPC, etc.)
 }
 
 # bats file_tags=regression,el:cdk-erigon
