@@ -90,7 +90,7 @@ setup() {
     echo "Sender balance ($sender_addr) (ERC20 token L1) after duplicate claim: $l1_erc20_token_sender_balance_after_duplicate_claim [weis]" >&3
     # Assert it stayed at zero (because it was already claimed)
     assert_equal "$l1_erc20_token_sender_balance_after_duplicate_claim" 0
-# }
+}
 
 @test "Native token transfer L1 -> L2" {
     destination_addr=$sender_addr
