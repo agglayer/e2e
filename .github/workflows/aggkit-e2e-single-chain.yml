@@ -119,9 +119,14 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
           if [[ $ENCLAVE == "op" ]]; then
-            bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/e2e-pp.bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats
+            bats ./tests/aggkit/bridge-e2e.bats \
+                 ./tests/aggkit/e2e-pp.bats \
+                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+                 ./scenarios/fep-optimistic-mode/optimistic-mode.bats
           else
-            bats ./tests/aggkit/bridge-e2e-custom-gas.bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/e2e-pp.bats
+            bats ./tests/aggkit/bridge-e2e.bats \
+                 ./tests/aggkit/e2e-pp.bats \
+                 ./tests/aggkit/bridge-e2e-custom-gas.bats
           fi
           popd
 
