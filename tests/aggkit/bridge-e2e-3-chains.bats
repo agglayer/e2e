@@ -183,7 +183,7 @@ setup() {
     run query_contract "$l1_rpc_url" "$gas_token_addr_pp1" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
     local gas_token_init_sender_balance_l1=$(echo "$output" | tail -n 1 | awk '{print $1}')
-    echo "Initial sender balance $gas_token_init_sender_balance_l1" of gas token on L1 >&3
+    echo "Initial sender balance $gas_token_init_sender_balance_l1 of gas token on L1" >&3
 
     # Mint gas token on L1
     local tokens_amount="1ether"
