@@ -140,40 +140,6 @@ _agglayer_cdk_common_setup() {
     readonly is_forced=${IS_FORCED:-"true"}
     meta_bytes=${META_BYTES:-"0x1234"}
 
-    if [[ -z "${DISABLE_L2_FUND}" || "${DISABLE_L2_FUND}" == "false" ]]; then
-        readonly test_account_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-        readonly test_account_addr="$(cast wallet address --private-key $test_account_key)"
-
-        local token_balance
-        token_balance=$(cast balance --rpc-url "$L2_RPC_URL" "$test_account_addr" 2>/dev/null)
-        if [ $? -ne 0 ]; then
-            echo "⚠️ Failed to fetch token balance for $test_account_addr on $L2_RPC_URL" >&2
-            token_balance=0
-        fi
-
-        # Threshold: 0.1 ether in wei
-        local threshold=100000000000000000
-
-        # Only fund if balance is less than or equal to 0.1 ether
-        # (it's a real big number, so we compare the length of strings)
-        if [[ ${#token_balance} -le ${#threshold} ]]; then
-            local l2_coinbase_key=${L2_COINBASE_KEY:-"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
-            local amt="10ether"
-
-            echo "💸 $test_account_addr L2 balance ($token_balance) is low (≤ 0.1 ETH), funding with amt=$amt..." >&3
-            fund "$l2_coinbase_key" "$test_account_addr" "$amt" "$L2_RPC_URL"
-            if [ $? -ne 0 ]; then
-                echo "❌ Funding L2 receiver $test_account_addr failed" >&2
-                return 1
-            fi
-            echo "✅ Successfully funded $test_account_addr with $amt on L2" >&3
-        else
-            echo "✅ Receiver $test_account_addr already has $(cast --from-wei "$token_balance") ETH on L2" >&3
-        fi
-    else
-        echo "🚫 Skipping L2 funding since DISABLE_L2_FUND is set to true" >&3
-    fi
-
     local combined_json_file="/opt/zkevm/combined.json"
     kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
     local combined_json_output=$(cat combined.json)
@@ -248,6 +214,18 @@ _resolve_url_from_nodes() {
     fi
 }
 
+_get_gas_token_address() {
+    local chain_number=$1
+    local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
+    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+    local combined_json_output=$(cat "combined-${chain_number}.json")
+    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
+        echo "$(echo "$combined_json_output" | jq -r .gasTokenAddress)"
+    else
+        echo "$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)"
+    fi
+}
+
 _agglayer_cdk_common_multi_setup() {
     local number_of_chains=$1
 
@@ -306,31 +284,19 @@ _agglayer_cdk_common_multi_setup() {
     if [[ $number_of_chains -eq 3 ]]; then
         readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
     fi
-
-    local combined_json_file="/opt/zkevm/combined-001.json"
-    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined-001.json
-    local combined_json_output=$(cat combined-001.json)
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        gas_token_addr_pp1=$(echo "$combined_json_output" | jq -r .gasTokenAddress)
-    else
-        gas_token_addr_pp1=$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address on PP1=$gas_token_addr_pp1" >&3
-
-    local combined_json_file="/opt/zkevm/combined-002.json"
-    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined-002.json
-    local combined_json_output=$(cat combined-002.json)
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        gas_token_addr_pp2=$(echo "$combined_json_output" | jq -r .gasTokenAddress)
-    else
-        gas_token_addr_pp2=$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "Gas token address on PP2=$gas_token_addr_pp2" >&3
-
     echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
     echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
     if [[ $number_of_chains -eq 3 ]]; then
         echo "weth_token_addr_pp3: $weth_token_addr_pp3" >&3
+    fi
+
+    gas_token_addr_pp1=$(_get_gas_token_address "001")
+    echo "Gas token address on PP1=$gas_token_addr_pp1" >&3
+    gas_token_addr_pp2=$(_get_gas_token_address "002")
+    echo "Gas token address on PP2=$gas_token_addr_pp2" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        gas_token_addr_pp3=$(_get_gas_token_address "003")
+        echo "Gas token address on PP3=$gas_token_addr_pp3" >&3
     fi
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3

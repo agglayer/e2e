@@ -648,8 +648,9 @@ function claim_bridge_claimSponsor() {
 #   $2 - bridge_tx_hash: The transaction hash of the bridge interaction.
 #   $3 - destination_network_id: The destination network ID for bridge transaction.
 #   $4 - bridge_addr: The bridge contract address where the claim will be submitted.
-#   $5 - bridge_service_url: The base URL of the bridge service.
-#   $6 - rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
+#   $5 - origin_aggkit_bridge_url: The base URL of the bridge service of origin network.
+#   $6 - destination_aggkit_bridge_url: The base URL of the bridge service of destination network.
+#   $7 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
 function process_bridge_claim() {
     local origin_network_id="$1"
     local bridge_tx_hash="$2"
