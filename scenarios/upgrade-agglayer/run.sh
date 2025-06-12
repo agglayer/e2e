@@ -3,9 +3,25 @@ set -e
 source ../common/load-env.sh
 load_env
 
+# Remove existing docker compose containers if any
+docker compose down
+
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
 contracts_version="$AGGLAYER_CONTRACTS_VERSION"
+
+# Create a yml files with a real SP1 keys if needed
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.args.agglayer_prover_sp1_key = $sp1key
+' ./assets/cdk-erigon-validium.yml > initial-cdk-erigon-validium.yml
+
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.args.agglayer_prover_sp1_key = $sp1key
+' ./assets/cdk-erigon-rollup.yml > initial-cdk-erigon-rollup.yml
+
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.args.agglayer_prover_sp1_key = $sp1key
+' ./assets/cdk-erigon-pp.yml > initial-cdk-erigon-pp.yml
 
 # This step MUST be the first deployment - it is the default.
 echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██████  ██  ██████   ██████  ███    ██     ██    ██  █████  ██      ██ ██████  ██ ██    ██ ███    ███ '
@@ -15,8 +31,12 @@ echo '██   ██    ██       ██    ██   ██ ██      █�
 echo '██   ██    ██       ██    ██   ██  ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██   ██ ██  ██████   ██████  ██   ████       ████   ██   ██ ███████ ██ ██████  ██  ██████  ██      ██ '
 
 # Spin up cdk-erigon validium
+# kurtosis run \
+#          --enclave "$kurtosis_enclave_name" \
+#          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
 kurtosis run \
          --enclave "$kurtosis_enclave_name" \
+         --args-file ./initial-cdk-erigon-validium.yml \
          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
 
 contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
@@ -34,17 +54,17 @@ export L1_BRIDGE_ADDR
 export L2_BRIDGE_ADDR
 
 
-echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████  ██████         ██████  ███████ ████████ ██   ██     ██████  ██████  '
-echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██    ██ ██   ██       ██       ██         ██    ██   ██     ██   ██ ██   ██ '
-echo '███████    ██       ██    ███████ ██      ███████     ██    ██ ██████  █████ ██   ███ █████      ██    ███████     ██████  ██████  '
-echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██    ██ ██            ██    ██ ██         ██    ██   ██     ██      ██      '
-echo '██   ██    ██       ██    ██   ██  ██████ ██   ██      ██████  ██             ██████  ███████    ██    ██   ██     ██      ██      '
+# echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████  ██████         ██████  ███████ ████████ ██   ██     ██████  ██████  '
+# echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██    ██ ██   ██       ██       ██         ██    ██   ██     ██   ██ ██   ██ '
+# echo '███████    ██       ██    ███████ ██      ███████     ██    ██ ██████  █████ ██   ███ █████      ██    ███████     ██████  ██████  '
+# echo '██   ██    ██       ██    ██   ██ ██      ██   ██     ██    ██ ██            ██    ██ ██         ██    ██   ██     ██      ██      '
+# echo '██   ██    ██       ██    ██   ██  ██████ ██   ██      ██████  ██             ██████  ███████    ██    ██   ██     ██      ██      '
                                                                                                                                    
-# Spin up cdk-op-geth pp
-kurtosis run \
-         --enclave "$kurtosis_enclave_name" \
-         --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/contracts/v9.0.0-rc.2-pp/.github/tests/chains/cdk-op-geth-pp.yml" \
-         "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"                                                                                                                
+# # Spin up cdk-op-geth pp
+# kurtosis run \
+#          --enclave "$kurtosis_enclave_name" \
+#          --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/contracts/v9.0.0-rc.2-pp/.github/tests/chains/cdk-op-geth-pp.yml" \
+#          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"                                                                                                                
 
 
 echo ' █████  ████████ ████████  █████   ██████ ██   ██      ██████ ██████  ██   ██       ███████ ██████  ██  ██████   ██████  ███    ██     ██████   ██████  ██      ██      ██    ██ ██████  '
@@ -56,7 +76,7 @@ echo '██   ██    ██       ██    ██   ██  █████
 # Spin up cdk-erigon rollup
 kurtosis run \
          --enclave "$kurtosis_enclave_name" \
-         --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/contracts/v9.0.0-rc.2-pp/.github/tests/chains/cdk-erigon-rollup.yml" \
+         --args-file ./initial-cdk-erigon-rollup.yml \
          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"    
 
 
@@ -69,9 +89,22 @@ echo '██   ██    ██       ██    ██   ██  █████
 # Spin up cdk-erigon pp
 kurtosis run \
          --enclave "$kurtosis_enclave_name" \
-         --args-file "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/contracts/v9.0.0-rc.2-pp/.github/tests/chains/cdk-erigon-pessimistic.yml" \
+         --args-file ./initial-cdk-erigon-pp.yml \
          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
 
+contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
+contracts_container_name=contracts-001--$contracts_uuid
+
+# Get the deployment details
+docker cp $contracts_container_name:/opt/zkevm/combined.json .
+rollup_manager_address=$(jq -r '.polygonRollupManagerAddress' combined.json)
+l1_bridge_address=$(jq -r '.polygonZkEVMBridgeAddress' combined.json)
+l2_bridge_address=$(jq -r '.polygonZkEVML2BridgeAddress' combined.json)
+
+L1_BRIDGE_ADDR=$l1_bridge_address
+L2_BRIDGE_ADDR=$l2_bridge_address
+export L1_BRIDGE_ADDR
+export L2_BRIDGE_ADDR
 
 echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
 echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
@@ -84,14 +117,12 @@ agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | g
 agglayer_container_name=agglayer--$agglayer_uuid
 
 # Add lines under [full-node-rpcs]
-docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the second PP network\n2 = "http://op-el-1-op-geth-op-node-002:8545"' /etc/zkevm/agglayer-config.toml
-docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the third rollup node\n3 = "http://cdk-erigon-rpc-003:8123"' /etc/zkevm/agglayer-config.toml
-docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the fourth PP network\n4 = "http://cdk-erigon-rpc-004:8123"' /etc/zkevm/agglayer-config.toml
+docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the second rollup node\n2 = "http://cdk-erigon-rpc-002:8123"' /etc/zkevm/agglayer-config.toml
+#docker exec -it $agglayer_container_name sed -i '/^\[full-node-rpcs\]/a # RPC of the fourth PP network\n4 = "http://cdk-erigon-rpc-001:8123"' /etc/zkevm/agglayer-config.toml
 
-# Add lines under [proof-signers]
-docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for PP network\n2 = "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"' /etc/zkevm/agglayer-config.toml
-docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for third rollup\n3 = "0x3bd49B59d0d61e83FA5C7856312b9bfEddbCbDA8"' /etc/zkevm/agglayer-config.toml
-docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for fourth PP network\n4 = "0x0d59BC8C02A089D48d9Cd465b74Cb6E23dEB950D"' /etc/zkevm/agglayer-config.toml
+# # Add lines under [proof-signers]
+docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for second rollup\n2 = "0x3bd49B59d0d61e83FA5C7856312b9bfEddbCbDA8"' /etc/zkevm/agglayer-config.toml
+#docker exec -it $agglayer_container_name sed -i '/^\[proof-signers\]/a # Sequencer address for fourth PP network\n4 = "0x0d59BC8C02A089D48d9Cd465b74Cb6E23dEB950D"' /etc/zkevm/agglayer-config.toml
 
 kurtosis service stop $kurtosis_enclave_name agglayer
 kurtosis service start $kurtosis_enclave_name agglayer
@@ -108,10 +139,11 @@ run_lxly_bridging() {
     echo "Test $test_name" >&2
 
     # Set env variables
-    export L2_RPC_URL=$(kurtosis port print cdk "$rpc_url" rpc)
-    export BRIDGE_SERVICE_URL=$(kurtosis port print cdk "$bridge_service_name" rpc)
+    export L2_RPC_URL=$(kurtosis port print $kurtosis_enclave_name "$rpc_url" rpc)
+    export BRIDGE_SERVICE_URL=$(kurtosis port print $kurtosis_enclave_name "$bridge_service_name" rpc)
     export CLAIMTXMANAGER_ADDR=$claimtxmanager_address
     export L2_BRIDGE_ADDR=$l2_bridge_addr
+    export KURTOSIS_ENCLAVE_NAME=$kurtosis_enclave_name
 
     # Run e2e bridge tests
     bats ./tests/lxly/lxly.bats
@@ -156,13 +188,15 @@ run_agglayer_bridging() {
     echo "Bats tests passed for $test_name. ✅" >&2
 }
 
+sleep 5
+
 # Run tests in parallel
 cd ../../
 pids=()
 run_lxly_bridging "CDK-Erigon Validium Bridging" "cdk-erigon-rpc-001" "zkevm-bridge-service-001" "0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-validium-bridging.log 2>&1 & pids+=($!)
-run_agglayer_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" "0xD71f8F956AD979Cc2988381B8A743a2fE280537D" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
-run_lxly_bridging "CDK-Erigon Rollup Bridging" "cdk-erigon-rpc-003" "zkevm-bridge-service-003" "0x1a1C53bA714643B53b39D82409915b513349a1ff" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-rollup-bridging.log 2>&1 & pids+=($!)
-run_lxly_bridging "CDK-Erigon PP Bridging" "cdk-erigon-rpc-004" "zkevm-bridge-service-004" "0x1359D1eAf25aADaA04304Ee7EFC5b94C43e0e1D5" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-pp-bridging.log 2>&1 & pids+=($!)
+# run_agglayer_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" "0xD71f8F956AD979Cc2988381B8A743a2fE280537D" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
+run_lxly_bridging "CDK-Erigon Rollup Bridging" "cdk-erigon-rpc-002" "zkevm-bridge-service-002" "0x1a1C53bA714643B53b39D82409915b513349a1ff" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-rollup-bridging.log 2>&1 & pids+=($!)
+run_lxly_bridging "CDK-Erigon PP Bridging" "cdk-erigon-rpc-003" "zkevm-bridge-service-003" "0x1359D1eAf25aADaA04304Ee7EFC5b94C43e0e1D5" "$l2_bridge_address" "12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625" > ./scenarios/upgrade-agglayer/cdk-erigon-pp-bridging.log 2>&1 & pids+=($!)
 
 failed=0
 for pid in "${pids[@]}"; do
@@ -187,6 +221,7 @@ echo '██       ██████  ███████ ██████�
 if [[ $contracts_version == "feature/upgradev3-unsafeSkipStorageCheck" ]]; then
     docker exec -w /opt/zkevm-contracts -it $contracts_container_name git fetch origin
 fi
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name git fetch origin
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git stash
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git checkout $contracts_version --force
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name git stash apply
@@ -314,19 +349,98 @@ else
     echo "Version check passed: $rollup_manager_version"
 fi
 
+
+echo ' █████  ██████  ██████  ██████   ██████  ██      ██      ██    ██ ██████  ████████ ██    ██ ██████  ███████ '
+echo '██   ██ ██   ██ ██   ██ ██   ██ ██    ██ ██      ██      ██    ██ ██   ██    ██     ██  ██  ██   ██ ██      '
+echo '███████ ██   ██ ██   ██ ██████  ██    ██ ██      ██      ██    ██ ██████     ██      ████   ██████  █████   '
+echo '██   ██ ██   ██ ██   ██ ██   ██ ██    ██ ██      ██      ██    ██ ██         ██       ██    ██      ██      '
+echo '██   ██ ██████  ██████  ██   ██  ██████  ███████ ███████  ██████  ██         ██       ██    ██      ███████ '
+
+# Remove cdk-node/aggkit db
+cdk_node_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep cdk-node-001[^-] | awk '{print $1}')
+cdk_node_container_name=cdk-node-001--$cdk_node_uuid
+# docker exec -it $cdk_node_container_name rm -rf /tmp
+# docker exec -it $cdk_node_container_name mkdir /tmp
+
+# Stop sending certificates to agglayer
+echo "Stopping the aggsender (cdk-node/aggkit) service..."
+kurtosis service stop $kurtosis_enclave_name cdk-node-001
+
+# Add rolluptype
+docker cp assets/add_rollup_type.json $contracts_container_name:/opt/zkevm-contracts/tools/addRollupType
+docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost
+output=$(docker exec $contracts_container_name ls /opt/zkevm-contracts/tools/addRollupType/ | grep add_rollup_type_output)
+docker cp $contracts_container_name:/opt/zkevm-contracts/tools/addRollupType/$output ./add_rollup_type_output.json
+
+rollup_type_id=$(jq -r '.rollupTypeID' add_rollup_type_output.json)
+
+# Check admin address for rollup
+# cast call 0x1Fe038B54aeBf558638CA51C91bC8cCa06609e91 "admin()(address)" --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
+
+cdk_erigon_pp_rollup_address=$(docker exec $contracts_container_name cat /opt/zkevm/combined-003.json | jq -r '.rollupAddress')
+
+# Update rolluptype
+cast send "$rollup_manager_address" "updateRollupByRollupAdmin(address,uint32)" "$cdk_erigon_pp_rollup_address" "$rollup_type_id" --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc) --private-key "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+
+# Save Rollup Information to a file.
+cast call --json --rpc-url http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc) "$rollup_manager_address" 'rollupIDToRollupData(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' "3" | jq '{"sovereignRollupContract": .[0], "rollupChainID": .[1], "verifier": .[2], "forkID": .[3], "lastLocalExitRoot": .[4], "lastBatchSequenced": .[5], "lastVerifiedBatch": .[6], "_legacyLastPendingState": .[7], "_legacyLastPendingStateConsolidated": .[8], "lastVerifiedBatchBeforeUpgrade": .[9], "rollupTypeID": .[10], "rollupVerifierType": .[11]}' > ./rollup-out.json
+
+
+echo '██    ██ ██████   ██████  ██████   █████  ██████  ███████      █████   ██████   ██████  ██       █████  ██    ██ ███████ ██████  '
+echo '██    ██ ██   ██ ██       ██   ██ ██   ██ ██   ██ ██          ██   ██ ██       ██       ██      ██   ██  ██  ██  ██      ██   ██ '
+echo '██    ██ ██████  ██   ███ ██████  ███████ ██   ██ █████       ███████ ██   ███ ██   ███ ██      ███████   ████   █████   ██████  '
+echo '██    ██ ██      ██    ██ ██   ██ ██   ██ ██   ██ ██          ██   ██ ██    ██ ██    ██ ██      ██   ██    ██    ██      ██   ██ '
+echo ' ██████  ██       ██████  ██   ██ ██   ██ ██████  ███████     ██   ██  ██████   ██████  ███████ ██   ██    ██    ███████ ██   ██ '
+
+
+# The timeout might be too large, but it should allow sufficient time for the certificates to settle.
+# TODO this timeout approach allows us to run the script without needing to manually check and continue the next steps. But there might be better approaches.
+timeout=5000
+retry_interval=50
+
+check_non_null() [[ -n "$1" && "$1" != "null" ]]
+check_null() [[ "$1" == "null" ]]
+
+# TODO use this in the future to block the upgrade This should be `null`... Basically we want to make sure everything is settled
+echo "Checking null last pending certificate..."
+start=$((SECONDS))
+while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_null "$output"; do
+  [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for null certificate"; exit 1; }
+  echo "Retrying: $output"
+  sleep $retry_interval
+done
+echo "Null latest pending certificate confirmed"
+
+# echo "Checking last settled certificate"
+# latest_settled_l2_block=$(cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+
+# # Add check for non-null latest_settled_l2_block
+# if ! check_non_null "$latest_settled_l2_block"; then
+#   echo "Error: latest_settled_l2_block is null or empty"
+#   exit 1
+# fi
+# echo "Non-null latest settled L2 block confirmed: $latest_settled_l2_block"
+
+echo "Run agglayer upgrade script"
+./run-upgrade-agglayer.sh
+
 echo '██████  ██    ██ ███    ██     ██      ██   ██ ██      ██    ██     ██████  ██████  ██ ██████   ██████  ██ ███    ██  ██████  '
 echo '██   ██ ██    ██ ████   ██     ██       ██ ██  ██       ██  ██      ██   ██ ██   ██ ██ ██   ██ ██       ██ ████   ██ ██       '
 echo '██████  ██    ██ ██ ██  ██     ██        ███   ██        ████       ██████  ██████  ██ ██   ██ ██   ███ ██ ██ ██  ██ ██   ███ '
 echo '██   ██ ██    ██ ██  ██ ██     ██       ██ ██  ██         ██        ██   ██ ██   ██ ██ ██   ██ ██    ██ ██ ██  ██ ██ ██    ██ '
 echo '██   ██  ██████  ██   ████     ███████ ██   ██ ███████    ██        ██████  ██   ██ ██ ██████   ██████  ██ ██   ████  ██████  '
 
+
+echo "Starting the aggsender (cdk-node/aggkit) service..."
+kurtosis service start $kurtosis_enclave_name cdk-node-001
+
 # Run tests in parallel
 cd ../../
 pids=()
 run_lxly_bridging "CDK-Erigon Validium Bridging" "cdk-erigon-rpc-001" "zkevm-bridge-service-001" "0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-validium-bridging.log 2>&1 & pids+=($!)
-run_agglayer_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" "0xD71f8F956AD979Cc2988381B8A743a2fE280537D" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
-run_lxly_bridging "CDK-Erigon Rollup Bridging" "cdk-erigon-rpc-003" "zkevm-bridge-service-003" "0x1a1C53bA714643B53b39D82409915b513349a1ff" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-rollup-bridging.log 2>&1 & pids+=($!)
-run_lxly_bridging "CDK-Erigon PP Bridging" "cdk-erigon-rpc-004" "zkevm-bridge-service-004" "0x1359D1eAf25aADaA04304Ee7EFC5b94C43e0e1D5" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-pp-bridging.log 2>&1 & pids+=($!)
+# run_agglayer_bridging "CDK-OPGeth-PP Bridging" "op-el-1-op-geth-op-node-002" "sovereign-bridge-service-002" "0x99e73731E5f6A6bB29AFD5e38D047Ce9Cc10C684" "0x21200F7501bEe9a06628d27c5e59b0F34E54487e" "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" "0xD71f8F956AD979Cc2988381B8A743a2fE280537D" > ./scenarios/upgrade-agglayer/op-geth-pp-bridging.log 2>&1 & pids+=($!)
+run_lxly_bridging "CDK-Erigon Rollup Bridging" "cdk-erigon-rpc-002" "zkevm-bridge-service-002" "0x1a1C53bA714643B53b39D82409915b513349a1ff" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-rollup-bridging.log 2>&1 & pids+=($!)
+run_lxly_bridging "CDK-Erigon PP Bridging" "cdk-erigon-rpc-003" "zkevm-bridge-service-003" "0x1359D1eAf25aADaA04304Ee7EFC5b94C43e0e1D5" "$l2_bridge_address" > ./scenarios/upgrade-agglayer/cdk-erigon-pp-bridging.log 2>&1 & pids+=($!)
 
 failed=0
 for pid in "${pids[@]}"; do
