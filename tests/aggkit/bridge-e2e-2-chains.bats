@@ -73,5 +73,5 @@ setup() {
     log "Bridge transaction hash: $bridge_tx_hash"
 
     echo "====== claimMessage (L2 pp2)" >&3
-    process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_pp1_rpc_url" "$l2_pp2_url"
+    process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
 }
