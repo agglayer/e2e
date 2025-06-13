@@ -1,0 +1,9 @@
+args:
+  verbosity: debug
+  agglayer_image: "ghcr.io/agglayer/agglayer:0.2.5"
+  zkevm_contracts_image: leovct/zkevm-contracts:v9.0.0-rc.6-pp-fork.12
+  zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12
+  additional_services:
+    - tx_spammer
+  sequencer_type: erigon
+  agglayer_prover_sp1_key: "0x50630eb71ab68ff812fcb9b9c58859f9e9f70a62b7e9e97c9c1cc09d86c760d8" # Replace with valid key
