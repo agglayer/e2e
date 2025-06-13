@@ -365,6 +365,8 @@ cdk_node_container_name=cdk-node-001--$cdk_node_uuid
 # Stop sending certificates to agglayer
 echo "Stopping the aggsender (cdk-node/aggkit) service..."
 kurtosis service stop $kurtosis_enclave_name cdk-node-001
+kurtosis service stop $kurtosis_enclave_name cdk-node-002
+kurtosis service stop $kurtosis_enclave_name cdk-node-003
 
 # Add rolluptype
 docker cp assets/add_rollup_type.json $contracts_container_name:/opt/zkevm-contracts/tools/addRollupType
@@ -433,6 +435,8 @@ echo '██   ██  ██████  ██   ████     ███�
 
 echo "Starting the aggsender (cdk-node/aggkit) service..."
 kurtosis service start $kurtosis_enclave_name cdk-node-001
+kurtosis service start $kurtosis_enclave_name cdk-node-002
+kurtosis service start $kurtosis_enclave_name cdk-node-003
 
 # Run tests in parallel
 cd ../../
