@@ -369,6 +369,14 @@ kurtosis service stop $kurtosis_enclave_name cdk-node-002
 kurtosis service stop $kurtosis_enclave_name cdk-node-003
 
 # Add rolluptype
+consensus_contract_addr=$(docker exec $contracts_container_name cat /opt/zkevm/combined-003.json | jq -r '.consensusContractAddress')
+program_vkey=$(docker run -it $AGGLAYER_IMAGE agglayer vkey | tr -d '[:space:]')
+
+jq --arg pv "$program_vkey" \
+   --arg ca "$consensus_contract_addr" \
+   '.consensusContractAddress = $ca | .programVKey = $pv' \
+   assets/add_rollup_type.json > tmp.json && mv tmp.json assets/add_rollup_type.json
+
 docker cp assets/add_rollup_type.json $contracts_container_name:/opt/zkevm-contracts/tools/addRollupType
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost
 output=$(docker exec $contracts_container_name ls /opt/zkevm-contracts/tools/addRollupType/ | grep add_rollup_type_output)
