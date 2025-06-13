@@ -10,7 +10,7 @@ setup() {
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
+    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-records/list" | jq ".event_records | length"'
   fi
   BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
 }
