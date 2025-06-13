@@ -198,3 +198,58 @@ setup() {
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
     assert_success
 }
+
+@test "Bridge message A → Claim message A → Bridge asset B → Claim asset B" {
+    # Step 1: Bridge message L1 -> L2
+    echo "====== bridgeMessage L1 -> L2" >&3
+    destination_addr=$sender_addr
+    destination_net=$l2_rpc_network_id
+    amount=0
+    run bridge_message "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_message_tx_hash=$output
+
+    # Step 2: Claim the bridged message on L2
+    echo "====== claimMessage (L2)" >&3
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+
+    # Step 3: Deploy and bridge ERC20 token L1 -> L2
+    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    assert_success
+    local l1_erc20_addr=$(echo "$output" | tail -n 1)
+    log "📜 ERC20 contract address: $l1_erc20_addr"
+
+    # Mint and Approve ERC20 token on L1
+    local tokens_amount="0.1ether"
+    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
+    assert_success
+
+    # Bridge ERC20 token
+    echo "==== 🚀 Depositing ERC20 token on L1 ($l1_rpc_url)" >&3
+    destination_addr=$receiver
+    destination_net=$l2_rpc_network_id
+    amount=$(cast --to-unit $tokens_amount wei)
+    meta_bytes="0x"
+    run bridge_asset "$l1_erc20_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_asset_tx_hash=$output
+
+    # Step 4: Claim the bridged asset on L2
+    echo "==== 🔐 Claiming asset deposit on L2 ($L2_RPC_URL)" >&3
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+
+    # Verify the ERC20 token was bridged correctly
+    run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local token_mappings_result=$output
+
+    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    assert_equal "$l1_erc20_addr" "$origin_token_addr"
+
+    local l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+    echo "L2 token addr $l2_token_addr" >&3
+
+    run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
+    assert_success
+}
