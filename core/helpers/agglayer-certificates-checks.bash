@@ -28,14 +28,14 @@ agglayer_certificates_checks_setup() {
     function print_settlement_info() {
         # We should loop until this number is greater than 1... This indicated a finalized L1 settlement
         printf "The latest block number recorded on L1: "
-        cast call --rpc-url "$l1_rpc_url" $(jq -r '.rollupAddress' combined.json) 'latestBlockNumber() external view returns (uint256)'
+        cast call --rpc-url "$l1_rpc_url" "$rollup_address" 'latestBlockNumber() external view returns (uint256)'
 
         # We can make sure there is an event as well
         echo "VerifyPessimisticStateTransition(uint32,bytes32,bytes32,bytes32,bytes32,bytes32,address) events recorded: "
-        cast logs --json  --rpc-url "$l1_rpc_url" --address $(jq -r '.polygonRollupManagerAddress' combined.json)  0xdf47e7dbf79874ec576f516c40bc1483f7c8ddf4b45bfd4baff4650f1229a711 | jq '.'
+        cast logs --json  --rpc-url "$l1_rpc_url" --address "$rollup_manager_address" 0xdf47e7dbf79874ec576f516c40bc1483f7c8ddf4b45bfd4baff4650f1229a711 | jq '.'
 
         # We can check for an 'OutputProposed(bytes32,uint256,uint256,uint256)' event to make sure the block number has advanced
         echo "OutputProposed(bytes32,uint256,uint256,uint256) events recorded: "
-        cast logs --json  --rpc-url "$l1_rpc_url" --address  $(jq -r '.rollupAddress' combined.json) 0xa7aaf2512769da4e444e3de247be2564225c2e7a8f74cfe528e46e17d24868e2| jq '.'
+        cast logs --json  --rpc-url "$l1_rpc_url" --address "$rollup_address" 0xa7aaf2512769da4e444e3de247be2564225c2e7a8f74cfe528e46e17d24868e2| jq '.'
     }
 }

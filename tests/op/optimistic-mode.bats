@@ -46,7 +46,7 @@ setup() {
 
     jq --arg ra "$rollup_address" --arg opmanpvk "$optimistic_mode_manager_pvk" \
         '.rollupAddress = $ra | .optimisticModeManagerPvk = $opmanpvk' \
-        assets/parameters.json >parameters.json
+        ./tests/op/assets/parameters.json >parameters.json
 
     docker cp parameters.json "$contracts_container_name":/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
     docker exec -w /opt/zkevm-contracts -it "$contracts_container_name" npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
@@ -98,7 +98,7 @@ setup() {
 
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 
-    jq --arg ra "$rollup_address" '.rollupAddress = $ra | .optimisticMode = false' assets/parameters.json >parameters.json
+    jq --arg ra "$rollup_address" '.rollupAddress = $ra | .optimisticMode = false' ./tests/op/assets/parameters.json >parameters.json
 
     docker cp parameters.json "$contracts_container_name":/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
     docker exec -w /opt/zkevm-contracts -it "$contracts_container_name" npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
