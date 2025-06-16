@@ -36,6 +36,9 @@ agglayer_prover_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_n
 agglayer_prover_container_name=agglayer-prover--$agglayer_prover_uuid
 docker cp $agglayer_prover_container_name:/etc/zkevm/agglayer-prover-config.toml .
 
+# Replace mock-prover with network-prover
+sed -i 's/\[primary-prover\.mock-prover\]/[primary-prover.network-prover]/' ./agglayer-prover-config.toml
+
 # Stop agglayer-prover service
 echo "Stopping the agglayer-prover service..."
 kurtosis service stop $kurtosis_enclave_name agglayer-prover
