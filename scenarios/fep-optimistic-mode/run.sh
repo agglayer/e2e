@@ -183,4 +183,6 @@ wait_for_null_cert
 
 print_settlement_info
 
+echo "Enabling and Disabling optimisticMode scenario test passed ✅"
+
 exit
