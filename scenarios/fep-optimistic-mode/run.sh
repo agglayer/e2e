@@ -53,8 +53,8 @@ l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
 # The timeout might be too large, but it should allow sufficient time for the certificates to settle.
 # TODO this timeout approach allows us to run the script without needing to manually check and continue the next steps. But there might be better approaches.
-timeout=5000
-retry_interval=50
+timeout=$AGGLAYER_WAIT_TIMEOUT
+retry_interval=$AGGLAYER_RETRY_INTERVAL
 
 check_non_null() [[ -n "$1" && "$1" != "null" ]]
 check_null() [[ "$1" == "null" ]]
