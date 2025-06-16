@@ -8,21 +8,22 @@ kurtosis_enclave_name="$ENCLAVE_NAME"
 
 # If condition for CI to determines whether to use mock prover or network prover
 if [[ $MOCK_MODE == true ]]; then
-  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > tmp-fep.yml
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > initial-fep.yml
 else
   curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml" > tmp-fep.yml
+
+    # Create a yml with FEP consensus with a real SP1 Key if needed
+    yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+    .args.sp1_prover_key = $sp1key
+    ' tmp-fep.yml > initial-fep.yml
+
+    # TEMPORARY TO SPEED UP TESTING
+    yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg rpi "$RANGE_PROOF_INTERVAL_OVERRIDE" '
+    .optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
+    .args.op_succinct_range_proof_interval = $rpi |
+    .args.l1_seconds_per_slot = 1' initial-fep.yml > _t; mv _t initial-fep.yml
 fi
 
-# Create a yml with FEP consensus with a real SP1 Key if needed
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.sp1_prover_key = $sp1key
-' tmp-fep.yml > initial-fep.yml
-
-# TEMPORARY TO SPEED UP TESTING
-yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg rpi "$RANGE_PROOF_INTERVAL_OVERRIDE" '
-.optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
-.args.op_succinct_range_proof_interval = $rpi |
-.args.l1_seconds_per_slot = 1' initial-fep.yml > _t; mv _t initial-fep.yml
 
 # Spin up the network
 kurtosis run \
