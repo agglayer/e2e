@@ -8,8 +8,9 @@ kurtosis_enclave_name="$ENCLAVE_NAME"
 
 # The aggregationVkey and rangeVkeyCommitment values need to be manually changed when op-succinct-proposer circuits are rebuilt.
 # agglayer/op-succinct uses a slimed image of the op-succinct-proposer, which doesn't contain the aggregation-elf and range-elf directly.
-aggregation_vkey="0x00b727dd4c322e04033a340e342a675b73c6ee8fec3946a7b3e93797b10ed721"
-range_vkey_commitment="0x1b5d3b2e062d5f24618fb82821b49ea2465d016e0820219d417ec351753b3adc"
+# https://github.com/agglayer/op-succinct/tree/v2.3.1-agglayer
+aggregation_vkey="0x003991487ea72a40a1caa7c234b12c0da52fc4ccc748a07f6ebd354bbb54772e"
+range_vkey_commitment="0x2ebb1e0d5380158f22adf3750cc6056100a133d274fd7c5b457148ff29dfe173"
 
 # If condition for CI to determines whether to use mock prover or network prover
 if [[ $MOCK_MODE == true ]]; then
@@ -252,9 +253,11 @@ jq \
 docker cp initialize_rollup.json $contracts_container_name:/opt/zkevm-contracts/tools/initializeRollup/
 docker exec -w /opt/zkevm-contracts -it $contracts_container_name npx hardhat run tools/initializeRollup/initializeRollup.ts --network localhost
 
-if ! cast call --rpc-url "$l1_rpc_url" "0xf22E2B040B639180557745F47aB97dFA95B1e22a" "getDefaultAggchainVKey(bytes4)" "0x00010001"; then
+agglayer_gateway_address=$(jq -r '.aggLayerGatewayAddress' combined.json)
+aggchain_vkey=$(docker run -it $AGGKIT_PROVER_IMAGE aggkit-prover vkey-selector | tr -d '[:space:]')
+if ! cast call --rpc-url "$l1_rpc_url" "$agglayer_gateway_address" "getDefaultAggchainVKey(bytes4)" "$aggchain_vkey"; then
     echo "Error: getDefaultAggchainVKey returned AggchainVKeyNotFound()"
-    exit 1s
+    exit 1
 fi
 
 # Save Rollup Information to a file.
@@ -282,6 +285,9 @@ docker compose up -d
 kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 
 ################################################################################
+
+# After migration, the agglayer [proof-signers] section might need to be updated as well.
+# Make sure to observe the aggkit and agglayer logs and adjust the agglayer config accoringly.
 
 exit
 
