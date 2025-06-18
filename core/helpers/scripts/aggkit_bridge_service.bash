@@ -133,7 +133,8 @@ function claim_bridge() {
         log "💡 claim_call returns $request_result"
         if [ "$request_result" -eq 0 ]; then
             log "🎉 Claim successful"
-            run generate_global_index "$bridge_info" "$source_network_id"
+            local destination_network_id=$(echo "$bridge_info" | jq -r '.destination_network')
+            run generate_global_index "$bridge_info" "$source_network_id" "$destination_network_id"
             echo $output
             return 0
         fi
@@ -165,8 +166,6 @@ function claim_call() {
 
     local in_merkle_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
     local in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_info" "$source_network_id"
-    local in_global_index=$output
     local in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     local in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
     local in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
@@ -175,6 +174,8 @@ function claim_call() {
     local in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
     local in_amount=$(echo "$bridge_info" | jq -r '.amount')
     local in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
+    run generate_global_index "$bridge_info" "$source_network_id" "$in_dest_net"
+    local in_global_index=$output
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
@@ -199,7 +200,7 @@ function claim_call() {
 function generate_global_index() {
     local bridge_info="$1"
     local source_network_id="$2"
-
+    local destination_network="$3"
     # Extract values from JSON
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
@@ -213,10 +214,14 @@ function generate_global_index() {
     # 192nd bit: (if mainnet is 0, then 1, otherwise 0)
     if [ "$source_network_id" -eq 0 ]; then
         final_value=$(echo "$final_value + 2^64" | bc)
+        dest_shifted=$(echo "($destination_network - 1) * 2^32" | bc)
+        final_value=$(echo "$final_value + $dest_shifted" | bc)
     fi
 
-    dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
-    final_value=$(echo "$final_value + $dest_shifted" | bc)
+    if [ "$source_network_id" -ne 0 ]; then
+        dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
+        final_value=$(echo "$final_value + $dest_shifted" | bc)
+    fi
 
     # 225-256 bits: deposit_count (32 bits)
     final_value=$(echo "$final_value + $deposit_count" | bc)
@@ -524,8 +529,6 @@ function claim_bridge_claimSponsor() {
     local initial_receiver_balance="$7"
 
     local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
-    run generate_global_index "$bridge_info" "$source_network_id"
-    local global_index=$output
     local proof_local_exit_root=$(echo "$proof" | jq '.proof_local_exit_root')
     local proof_rollup_exit_root=$(echo "$proof" | jq '.proof_rollup_exit_root')
     local mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
@@ -536,6 +539,8 @@ function claim_bridge_claimSponsor() {
     local destination_address=$(echo "$bridge_info" | jq -r '.destination_address')
     local amount=$(echo "$bridge_info" | jq -r '.amount')
     local metadata=$(echo "$bridge_info" | jq -r '.metadata')
+    run generate_global_index "$bridge_info" "$source_network_id" "$destination_network"
+    local global_index=$output
 
     claim_json=$(jq -n \
         --argjson leaf_type "$leaf_type" \
