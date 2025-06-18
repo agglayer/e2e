@@ -215,11 +215,8 @@ function generate_global_index() {
         final_value=$(echo "$final_value + 2^64" | bc)
     fi
 
-    # 193-224 bits: (if mainnet is 0, 0; otherwise source_network_id - 1)
-    if [ "$source_network_id" -ne 0 ]; then
-        dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
-        final_value=$(echo "$final_value + $dest_shifted" | bc)
-    fi
+    dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
+    final_value=$(echo "$final_value + $dest_shifted" | bc)
 
     # 225-256 bits: deposit_count (32 bits)
     final_value=$(echo "$final_value + $deposit_count" | bc)
