@@ -121,7 +121,7 @@ function claim_bridge() {
     local poll_frequency="$5"
     local source_network_id="$6"
     local bridge_addr="$7"
-    local manipulated_global_index="${8:"false"}"
+    local manipulated_global_index="${8:-false}"
     local attempt=0
 
     while true; do
@@ -156,7 +156,7 @@ function claim_call() {
     local destination_rpc_url="$3"
     local source_network_id="$4"
     local bridge_addr="$5"
-    local manipulated_global_index="${6:"false"}"
+    local manipulated_global_index="${6:-false}"
 
     local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
@@ -200,7 +200,7 @@ function claim_call() {
 function generate_global_index() {
     local bridge_info="$1"
     local source_network_id="$2"
-    local manipulated_global_index="${3:"false"}"
+    local manipulated_global_index="${3:-false}"
     # Extract values from JSON
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
@@ -214,15 +214,16 @@ function generate_global_index() {
     # 192nd bit: (if mainnet is 0, then 1, otherwise 0)
     if [ "$source_network_id" -eq 0 ]; then
         final_value=$(echo "$final_value + 2^64" | bc)
+        if [ "$manipulated_global_index" == "true" ]; then
+            log "🔍 -------------------------- Manipulated global index: true"
+            dest_shifted=$(echo "10 * 2^32" | bc)
+            final_value=$(echo "$final_value + $dest_shifted" | bc)
+        fi
     fi
 
     # 193-224 bits: (if mainnet is 0, 0; otherwise source_network_id - 1)
     if [ "$source_network_id" -ne 0 ]; then
-        if [ "$manipulated_global_index" == "true" ]; then
-            dest_shifted=$(echo "2 * 2^32" | bc)
-        else
-            dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
-        fi
+        dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
         final_value=$(echo "$final_value + $dest_shifted" | bc)
     fi
 
@@ -664,7 +665,7 @@ function process_bridge_claim() {
     local origin_aggkit_bridge_url="$5"
     local destination_aggkit_bridge_url="$6"
     local destination_rpc_url="$7"
-    local manipulated_global_index="${8:"false"}"
+    local manipulated_global_index="${8:-false}"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
     run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
