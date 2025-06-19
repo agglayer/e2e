@@ -121,19 +121,19 @@ function claim_bridge() {
     local poll_frequency="$5"
     local source_network_id="$6"
     local bridge_addr="$7"
-
+    local manipulated_global_index="${8:"false"}"
     local attempt=0
 
     while true; do
         ((attempt++))
         log "🔍 Attempt "$attempt"/"$max_attempts""
 
-        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$source_network_id" "$bridge_addr"
+        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$source_network_id" "$bridge_addr" "$manipulated_global_index"
         local request_result="$status"
         log "💡 claim_call returns $request_result"
         if [ "$request_result" -eq 0 ]; then
             log "🎉 Claim successful"
-            run generate_global_index "$bridge_info" "$source_network_id"
+            run generate_global_index "$bridge_info" "$source_network_id" "$manipulated_global_index"
             echo $output
             return 0
         fi
@@ -156,6 +156,7 @@ function claim_call() {
     local destination_rpc_url="$3"
     local source_network_id="$4"
     local bridge_addr="$5"
+    local manipulated_global_index="${6:"false"}"
 
     local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
@@ -165,7 +166,7 @@ function claim_call() {
 
     local in_merkle_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
     local in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_info" "$source_network_id"
+    run generate_global_index "$bridge_info" "$source_network_id" "$manipulated_global_index"
     local in_global_index=$output
     local in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     local in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
@@ -199,7 +200,7 @@ function claim_call() {
 function generate_global_index() {
     local bridge_info="$1"
     local source_network_id="$2"
-
+    local manipulated_global_index="${3:"false"}"
     # Extract values from JSON
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
@@ -217,7 +218,11 @@ function generate_global_index() {
 
     # 193-224 bits: (if mainnet is 0, 0; otherwise source_network_id - 1)
     if [ "$source_network_id" -ne 0 ]; then
-        dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
+        if [ "$manipulated_global_index" == "true" ]; then
+            dest_shifted=$(echo "2 * 2^32" | bc)
+        else
+            dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
+        fi
         final_value=$(echo "$final_value + $dest_shifted" | bc)
     fi
 
@@ -659,6 +664,7 @@ function process_bridge_claim() {
     local origin_aggkit_bridge_url="$5"
     local destination_aggkit_bridge_url="$6"
     local destination_rpc_url="$7"
+    local manipulated_global_index="${8:"false"}"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
     run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
@@ -683,7 +689,7 @@ function process_bridge_claim() {
     local proof="$output"
 
     # Submit the claim using the generated proof and bridge details.
-    run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
+    run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr" "$manipulated_global_index"
     assert_success
     local global_index="$output"
 
