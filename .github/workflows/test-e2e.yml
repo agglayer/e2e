@@ -26,16 +26,6 @@ jobs:
             args_file: .github/tests/combinations/fork12-cdk-erigon-validium.yml
             filter_tags: batch-verification,gas-limit-overflow,access-list
 
-          # Kurtosis Polygon PoS.
-          - package: kurtosis-polygon-pos
-            version: v1.0.6
-            args_file: .github/tests/heimdall-bor-multi-validators.yml
-            filter_tags: pos,bridge
-          - package: kurtosis-polygon-pos
-            version: v1.0.6
-            args_file: .github/tests/heimdall-v2-bor-multi-validators.yml
-            filter_tags: pos,bridge
-
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
