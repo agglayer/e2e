@@ -1,0 +1,568 @@
+{
+  "abi": [
+    {
+      "type": "constructor",
+      "inputs": [
+        { "name": "_bridge", "type": "address", "internalType": "address" }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "attemptTwoClaims",
+      "inputs": [
+        {
+          "name": "firstProofLocalExitRoot",
+          "type": "bytes32[32]",
+          "internalType": "bytes32[32]"
+        },
+        {
+          "name": "firstProofRollupExitRoot",
+          "type": "bytes32[32]",
+          "internalType": "bytes32[32]"
+        },
+        {
+          "name": "firstGlobalIndex",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "firstMainnetExitRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "firstRollupExitRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "firstOriginNetwork",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "firstOriginTokenAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "firstDestinationNetwork",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "firstDestinationAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        { "name": "firstAmount", "type": "uint256", "internalType": "uint256" },
+        { "name": "firstMetadata", "type": "bytes", "internalType": "bytes" },
+        {
+          "name": "secondProofLocalExitRoot",
+          "type": "bytes32[32]",
+          "internalType": "bytes32[32]"
+        },
+        {
+          "name": "secondProofRollupExitRoot",
+          "type": "bytes32[32]",
+          "internalType": "bytes32[32]"
+        },
+        {
+          "name": "secondGlobalIndex",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "secondMainnetExitRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "secondRollupExitRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "secondOriginNetwork",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "secondOriginTokenAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "secondDestinationNetwork",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "secondDestinationAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "secondAmount",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        { "name": "secondMetadata", "type": "bytes", "internalType": "bytes" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "bridge",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "address", "internalType": "contract IBridge" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "claimAssetWithChecks",
+      "inputs": [
+        {
+          "name": "smtProofLocalExitRoot",
+          "type": "bytes32[32]",
+          "internalType": "bytes32[32]"
+        },
+        {
+          "name": "smtProofRollupExitRoot",
+          "type": "bytes32[32]",
+          "internalType": "bytes32[32]"
+        },
+        { "name": "globalIndex", "type": "uint256", "internalType": "uint256" },
+        {
+          "name": "mainnetExitRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "rollupExitRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        { "name": "originNetwork", "type": "uint32", "internalType": "uint32" },
+        {
+          "name": "originTokenAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "destinationNetwork",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "destinationAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        { "name": "amount", "type": "uint256", "internalType": "uint256" },
+        { "name": "metadata", "type": "bytes", "internalType": "bytes" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "AssetClaimed",
+      "inputs": [
+        {
+          "name": "globalIndex",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        },
+        {
+          "name": "originNetwork",
+          "type": "uint32",
+          "indexed": false,
+          "internalType": "uint32"
+        },
+        {
+          "name": "originTokenAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "destinationAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "ClaimFailed",
+      "inputs": [
+        {
+          "name": "globalIndex",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
+        }
+      ],
+      "anonymous": false
+    }
+  ],
+  "bytecode": {
+    "object": "0x60a0346100bd57601f61089838819003918201601f19168301916001600160401b038311848410176100c1578084926020946040528339810103126100bd57516001600160a01b038116908190036100bd578015610078576080526040516107c290816100d682396080518181816050015261010c0152f35b60405162461bcd60e51b815260206004820152601d60248201527f42726964676520616464726573732063616e6e6f74206265207a65726f0000006044820152606490fd5b5f80fd5b634e487b7160e01b5f52604160045260245ffdfe60806040526004361015610011575f80fd5b5f803560e01c806313032f911461028d578063a837b560146100825763e78cea921461003b575f80fd5b3461007f578060031936011261007f576040517f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03168152602090f35b80fd5b503461007f5761092036600319011261007f57366104041161007f5761080436811161028957356100b1610652565b6100b961067e565b6100c161066a565b916100ca610695565b6108e435936109043567ffffffffffffffff8111610285576100f09036906004016106ac565b6001600160a01b039291848416156102405787156101fb5789937f000000000000000000000000000000000000000000000000000000000000000016803b156101f75786858b61016682968c968e8c6040519b8c9a8b998a9863ccaa2d1160e01b8a526108443590610824359060048c01610702565b03925af180156101ec576101d4575b50506040805163ffffffff90931683526001600160a01b03938416602084015292169181019190915260608101919091527fec5242ad9660803a5148bbd193fd7d3bb1be93a533d0858a102d8c25b9a86d4a9080608081015b0390a280f35b6101dd906106da565b6101e857855f610175565b8580fd5b6040513d84823e3d90fd5b8480fd5b60405162461bcd60e51b815260206004820152601d60248201527f416d6f756e74206d7573742062652067726561746572207468616e20300000006044820152606490fd5b60405162461bcd60e51b815260206004820152601b60248201527f496e76616c69642064657374696e6174696f6e206164647265737300000000006044820152606490fd5b8780fd5b5080fd5b503461007f5761124036600319011261007f57366104041161007f57366108041161007f576102ba610652565b906102c361067e565b6102cb61066a565b906102d4610695565b906109043567ffffffffffffffff81116101f7576102f69036906004016106ac565b91909236610d24116101e85736611124116101e85763ffffffff611184351661118435036101e8576111a4356001600160a01b03811690036101e8576111c4359363ffffffff8516850361064e576111e4356001600160a01b038116900361064e576112243567ffffffffffffffff8111610285576103799036906004016106ac565b969094303b1561064a57906103b9899392630541bdab60e51b6080526080938c876080958a6108e435936108443561082435610804356004608001610702565b03608083305af180610635575b96869796949596155f146105d557505050604051602081526012602082015271119a5c9cdd0818db185a5b4819985a5b195960721b60408201527f1f7283917b1d81abd1a8b8542aac05bd10397b20d11c609d73b1d447387105c560606108043592a25b303b1561028957604051630541bdab60e51b8152928291849163ffffffff90610400806109246004870137610d246104048601376111243561080485015261114435610824850152611164356108448501526111843582166108648501526001600160a01b036111a435811661088486015291166108a48401526111e435166108c4830152611204356108e48301819052610920610904840152610924830187905295610944918391908190848401375f828201840152601f01601f1916810103018183305af191826105bd575b5050610555575060405160208152601360208201527214d958dbdb990818db185a5b4819985a5b1959606a1b60408201527f1f7283917b1d81abd1a8b8542aac05bd10397b20d11c609d73b1d447387105c560606111243592a280f35b6040805163ffffffff611184351681526001600160a01b036111a435811660208301526111e4351691810191909152606081019190915261112435907fec5242ad9660803a5148bbd193fd7d3bb1be93a533d0858a102d8c25b9a86d4a9080608081016101ce565b6105c6906106da565b6105d157825f6104f8565b8280fd5b6040805163ffffffff9290921682526001600160a01b03938416602083015291909216908201526108e435606082015261080435907fec5242ad9660803a5148bbd193fd7d3bb1be93a533d0858a102d8c25b9a86d4a90608090a261042a565b93949561064260806106da565b9594936103c6565b8880fd5b8680fd5b610864359063ffffffff8216820361066657565b5f80fd5b6108a4359063ffffffff8216820361066657565b61088435906001600160a01b038216820361066657565b6108c435906001600160a01b038216820361066657565b9181601f840112156106665782359167ffffffffffffffff8311610666576020838186019501011161066657565b67ffffffffffffffff81116106ee57604052565b634e487b7160e01b5f52604160045260245ffd5b9899979694959291906104008060048c37610404818c01376108008a015261082089015261084088015263ffffffff9182166108608801526001600160a01b03938416610880880152166108a0860152166108c08401526108e083015261092061090083018190528201819052610940928190848401375f828201840152601f01601f191601019056fea2646970667358221220fd00d7b7d732e843c2dd568e9bd9e70b72f8553d5ceb02dfcf3fed5f5e9d229464736f6c63430008140033",
+    "sourceMap": "698:7755:22:-:0;;;;;;;;;;;;;-1:-1:-1;;698:7755:22;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;1285:21;;698:7755;;1350:25;;698:7755;;;;;;;;1350:25;698:7755;;;;;;;;;;;;;;-1:-1:-1;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;698:7755:22;;;;;;-1:-1:-1;698:7755:22;;;;;-1:-1:-1;698:7755:22",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x60806040526004361015610011575f80fd5b5f803560e01c806313032f911461028d578063a837b560146100825763e78cea921461003b575f80fd5b3461007f578060031936011261007f576040517f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03168152602090f35b80fd5b503461007f5761092036600319011261007f57366104041161007f5761080436811161028957356100b1610652565b6100b961067e565b6100c161066a565b916100ca610695565b6108e435936109043567ffffffffffffffff8111610285576100f09036906004016106ac565b6001600160a01b039291848416156102405787156101fb5789937f000000000000000000000000000000000000000000000000000000000000000016803b156101f75786858b61016682968c968e8c6040519b8c9a8b998a9863ccaa2d1160e01b8a526108443590610824359060048c01610702565b03925af180156101ec576101d4575b50506040805163ffffffff90931683526001600160a01b03938416602084015292169181019190915260608101919091527fec5242ad9660803a5148bbd193fd7d3bb1be93a533d0858a102d8c25b9a86d4a9080608081015b0390a280f35b6101dd906106da565b6101e857855f610175565b8580fd5b6040513d84823e3d90fd5b8480fd5b60405162461bcd60e51b815260206004820152601d60248201527f416d6f756e74206d7573742062652067726561746572207468616e20300000006044820152606490fd5b60405162461bcd60e51b815260206004820152601b60248201527f496e76616c69642064657374696e6174696f6e206164647265737300000000006044820152606490fd5b8780fd5b5080fd5b503461007f5761124036600319011261007f57366104041161007f57366108041161007f576102ba610652565b906102c361067e565b6102cb61066a565b906102d4610695565b906109043567ffffffffffffffff81116101f7576102f69036906004016106ac565b91909236610d24116101e85736611124116101e85763ffffffff611184351661118435036101e8576111a4356001600160a01b03811690036101e8576111c4359363ffffffff8516850361064e576111e4356001600160a01b038116900361064e576112243567ffffffffffffffff8111610285576103799036906004016106ac565b969094303b1561064a57906103b9899392630541bdab60e51b6080526080938c876080958a6108e435936108443561082435610804356004608001610702565b03608083305af180610635575b96869796949596155f146105d557505050604051602081526012602082015271119a5c9cdd0818db185a5b4819985a5b195960721b60408201527f1f7283917b1d81abd1a8b8542aac05bd10397b20d11c609d73b1d447387105c560606108043592a25b303b1561028957604051630541bdab60e51b8152928291849163ffffffff90610400806109246004870137610d246104048601376111243561080485015261114435610824850152611164356108448501526111843582166108648501526001600160a01b036111a435811661088486015291166108a48401526111e435166108c4830152611204356108e48301819052610920610904840152610924830187905295610944918391908190848401375f828201840152601f01601f1916810103018183305af191826105bd575b5050610555575060405160208152601360208201527214d958dbdb990818db185a5b4819985a5b1959606a1b60408201527f1f7283917b1d81abd1a8b8542aac05bd10397b20d11c609d73b1d447387105c560606111243592a280f35b6040805163ffffffff611184351681526001600160a01b036111a435811660208301526111e4351691810191909152606081019190915261112435907fec5242ad9660803a5148bbd193fd7d3bb1be93a533d0858a102d8c25b9a86d4a9080608081016101ce565b6105c6906106da565b6105d157825f6104f8565b8280fd5b6040805163ffffffff9290921682526001600160a01b03938416602083015291909216908201526108e435606082015261080435907fec5242ad9660803a5148bbd193fd7d3bb1be93a533d0858a102d8c25b9a86d4a90608090a261042a565b93949561064260806106da565b9594936103c6565b8880fd5b8680fd5b610864359063ffffffff8216820361066657565b5f80fd5b6108a4359063ffffffff8216820361066657565b61088435906001600160a01b038216820361066657565b6108c435906001600160a01b038216820361066657565b9181601f840112156106665782359167ffffffffffffffff8311610666576020838186019501011161066657565b67ffffffffffffffff81116106ee57604052565b634e487b7160e01b5f52604160045260245ffd5b9899979694959291906104008060048c37610404818c01376108008a015261082089015261084088015263ffffffff9182166108608801526001600160a01b03938416610880880152166108a0860152166108c08401526108e083015261092061090083018190528201819052610940928190848401375f828201840152601f01601f191601019056fea2646970667358221220fd00d7b7d732e843c2dd568e9bd9e70b72f8553d5ceb02dfcf3fed5f5e9d229464736f6c63430008140033",
+    "sourceMap": "698:7755:22:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;762:31;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;-1:-1:-1;;698:7755:22;;;;;;;;;;;;;;;;;;:::i;:::-;;;:::i;:::-;;;:::i;:::-;;;;:::i;:::-;;;;;;;;;;;;;;;;;;:::i;:::-;-1:-1:-1;;;;;698:7755:22;;;;;3792:32;698:7755;;3874:10;;698:7755;;2632:6;;;698:7755;2632:345;;;;;698:7755;;;2632:345;698:7755;;;;;;;;;;;;;;;;;;2632:345;;698:7755;;;;;2632:345;698:7755;2632:345;;;:::i;:::-;;;;;;;;;;;698:7755;-1:-1:-1;;698:7755:22;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;2993:158;;698:7755;;;;2993:158;;;;698:7755;;2632:345;;;;:::i;:::-;698:7755;;2632:345;;;;698:7755;;;;2632:345;698:7755;;;;;;;;;2632:345;698:7755;;;;;;-1:-1:-1;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;698:7755:22;;;;;;;;;;;;;;;;:::i;:::-;;;;:::i;:::-;;;:::i;:::-;;;;:::i;:::-;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;:::i;:::-;6925:4;;;;:402;;;;698:7755;6925:402;698:7755;;;;;;;6925:402;698:7755;;;;;;;;;;;;;;;;;;6925:402;;:::i;:::-;;698:7755;6925:4;;:402;;;;;698:7755;6921:732;;;;;;;;;;;;698:7755;;;;;;;;;;;;;-1:-1:-1;;;698:7755:22;;;;7591:51;698:7755;;;7591:51;;6921:732;6925:4;7699:413;;;;698:7755;;-1:-1:-1;;;7699:413:22;;698:7755;;;;;;;;;;;7699:413;;698:7755;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;698:7755:22;;;7699:413;;6925:4;;;7699:413;;;;;;6921:732;-1:-1:-1;;7695:750:22;;698:7755;;;;;;;;;;;-1:-1:-1;;;698:7755:22;;;;8381:53;698:7755;;;8381:53;;698:7755;;7695:750;698:7755;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;;;;;;8132:212;;698:7755;;;;8132:212;698:7755;7699:413;;;;:::i;:::-;698:7755;;7699:413;;;;698:7755;;;;6921:732;698:7755;;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;;7347:207;;698:7755;;7347:207;6921:732;;6925:402;698:7755;;;6925:402;698:7755;6925:402;:::i;:::-;;;;;;;698:7755;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;:::o;:::-;;;;-1:-1:-1;;;;;698:7755:22;;;;;;:::o;:::-;;;;-1:-1:-1;;;;;698:7755:22;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;698:7755:22;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;698:7755:22;;;;:::o",
+    "linkReferences": {},
+    "immutableReferences": {
+      "39456": [
+        { "start": 80, "length": 32 },
+        { "start": 268, "length": 32 }
+      ]
+    }
+  },
+  "methodIdentifiers": {
+    "attemptTwoClaims(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)": "13032f91",
+    "bridge()": "e78cea92",
+    "claimAssetWithChecks(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)": "a837b560"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_bridge\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"globalIndex\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"originNetwork\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"originTokenAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"AssetClaimed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"globalIndex\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"reason\",\"type\":\"string\"}],\"name\":\"ClaimFailed\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32[32]\",\"name\":\"firstProofLocalExitRoot\",\"type\":\"bytes32[32]\"},{\"internalType\":\"bytes32[32]\",\"name\":\"firstProofRollupExitRoot\",\"type\":\"bytes32[32]\"},{\"internalType\":\"uint256\",\"name\":\"firstGlobalIndex\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"firstMainnetExitRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"firstRollupExitRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"firstOriginNetwork\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"firstOriginTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"firstDestinationNetwork\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"firstDestinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"firstAmount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"firstMetadata\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[32]\",\"name\":\"secondProofLocalExitRoot\",\"type\":\"bytes32[32]\"},{\"internalType\":\"bytes32[32]\",\"name\":\"secondProofRollupExitRoot\",\"type\":\"bytes32[32]\"},{\"internalType\":\"uint256\",\"name\":\"secondGlobalIndex\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"secondMainnetExitRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"secondRollupExitRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"secondOriginNetwork\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"secondOriginTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"secondDestinationNetwork\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"secondDestinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"secondAmount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"secondMetadata\",\"type\":\"bytes\"}],\"name\":\"attemptTwoClaims\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"bridge\",\"outputs\":[{\"internalType\":\"contract IBridge\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32[32]\",\"name\":\"smtProofLocalExitRoot\",\"type\":\"bytes32[32]\"},{\"internalType\":\"bytes32[32]\",\"name\":\"smtProofRollupExitRoot\",\"type\":\"bytes32[32]\"},{\"internalType\":\"uint256\",\"name\":\"globalIndex\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"mainnetExitRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"rollupExitRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"originNetwork\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"originTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"destinationNetwork\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"metadata\",\"type\":\"bytes\"}],\"name\":\"claimAssetWithChecks\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Contract that provides functionality to claim assets from the bridge\",\"kind\":\"dev\",\"methods\":{\"attemptTwoClaims(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)\":{\"details\":\"Function to attempt two different claims, continuing even if one fails\",\"params\":{\"firstAmount\":\"First claim's amount\",\"firstDestinationAddress\":\"First claim's destination address\",\"firstDestinationNetwork\":\"First claim's destination network ID\",\"firstGlobalIndex\":\"First claim's global index\",\"firstMainnetExitRoot\":\"First claim's mainnet exit root\",\"firstMetadata\":\"First claim's metadata\",\"firstOriginNetwork\":\"First claim's origin network ID\",\"firstOriginTokenAddress\":\"First claim's origin token address\",\"firstProofLocalExitRoot\":\"First claim's Merkle proof for local exit root\",\"firstProofRollupExitRoot\":\"First claim's Merkle proof for rollup exit root\",\"firstRollupExitRoot\":\"First claim's rollup exit root\",\"secondAmount\":\"Second claim's amount\",\"secondDestinationAddress\":\"Second claim's destination address\",\"secondDestinationNetwork\":\"Second claim's destination network ID\",\"secondGlobalIndex\":\"Second claim's global index\",\"secondMainnetExitRoot\":\"Second claim's mainnet exit root\",\"secondMetadata\":\"Second claim's metadata\",\"secondOriginNetwork\":\"Second claim's origin network ID\",\"secondOriginTokenAddress\":\"Second claim's origin token address\",\"secondProofLocalExitRoot\":\"Second claim's Merkle proof for local exit root\",\"secondProofRollupExitRoot\":\"Second claim's Merkle proof for rollup exit root\",\"secondRollupExitRoot\":\"Second claim's rollup exit root\"}},\"claimAssetWithChecks(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)\":{\"details\":\"Public function that uses the internal claim function with additional checks\"},\"constructor\":{\"details\":\"Constructor that sets the bridge contract address\",\"params\":{\"_bridge\":\"Address of the deployed bridge contract\"}}},\"title\":\"TestDoubleClaim\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/TestDoubleClaim.sol\":\"TestDoubleClaim\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":forge-std/=lib/forge-std/src/\"],\"viaIR\":true},\"sources\":{\"src/TestDoubleClaim.sol\":{\"keccak256\":\"0x96aff6b2879b9a2f249830d66d2848807ffb5c5ee9bf62e2c2d5f8625cbaa3bc\",\"license\":\"AGPL-3.0\",\"urls\":[\"bzz-raw://d90dd0ab485cb9951deafa4f50b52cd71524f30a7241695a1a44da5921d15b9f\",\"dweb:/ipfs/QmQob1C6oH8SVhEvkqs33CyCwXPFs6Pb12rdRbr6nSHJNp\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": { "version": "0.8.20+commit.a1b79de6" },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            { "internalType": "address", "name": "_bridge", "type": "address" }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "globalIndex",
+              "type": "uint256",
+              "indexed": true
+            },
+            {
+              "internalType": "uint32",
+              "name": "originNetwork",
+              "type": "uint32",
+              "indexed": false
+            },
+            {
+              "internalType": "address",
+              "name": "originTokenAddress",
+              "type": "address",
+              "indexed": false
+            },
+            {
+              "internalType": "address",
+              "name": "destinationAddress",
+              "type": "address",
+              "indexed": false
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "AssetClaimed",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "globalIndex",
+              "type": "uint256",
+              "indexed": true
+            },
+            {
+              "internalType": "string",
+              "name": "reason",
+              "type": "string",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "ClaimFailed",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32[32]",
+              "name": "firstProofLocalExitRoot",
+              "type": "bytes32[32]"
+            },
+            {
+              "internalType": "bytes32[32]",
+              "name": "firstProofRollupExitRoot",
+              "type": "bytes32[32]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "firstGlobalIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "firstMainnetExitRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "firstRollupExitRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "firstOriginNetwork",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "firstOriginTokenAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint32",
+              "name": "firstDestinationNetwork",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "firstDestinationAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "firstAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "firstMetadata",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes32[32]",
+              "name": "secondProofLocalExitRoot",
+              "type": "bytes32[32]"
+            },
+            {
+              "internalType": "bytes32[32]",
+              "name": "secondProofRollupExitRoot",
+              "type": "bytes32[32]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "secondGlobalIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "secondMainnetExitRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "secondRollupExitRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "secondOriginNetwork",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "secondOriginTokenAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint32",
+              "name": "secondDestinationNetwork",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "secondDestinationAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "secondAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "secondMetadata",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "attemptTwoClaims"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "bridge",
+          "outputs": [
+            {
+              "internalType": "contract IBridge",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32[32]",
+              "name": "smtProofLocalExitRoot",
+              "type": "bytes32[32]"
+            },
+            {
+              "internalType": "bytes32[32]",
+              "name": "smtProofRollupExitRoot",
+              "type": "bytes32[32]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "globalIndex",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "mainnetExitRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "rollupExitRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "originNetwork",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "originTokenAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint32",
+              "name": "destinationNetwork",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "destinationAddress",
+              "type": "address"
+            },
+            { "internalType": "uint256", "name": "amount", "type": "uint256" },
+            { "internalType": "bytes", "name": "metadata", "type": "bytes" }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "claimAssetWithChecks"
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {
+          "attemptTwoClaims(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)": {
+            "details": "Function to attempt two different claims, continuing even if one fails",
+            "params": {
+              "firstAmount": "First claim's amount",
+              "firstDestinationAddress": "First claim's destination address",
+              "firstDestinationNetwork": "First claim's destination network ID",
+              "firstGlobalIndex": "First claim's global index",
+              "firstMainnetExitRoot": "First claim's mainnet exit root",
+              "firstMetadata": "First claim's metadata",
+              "firstOriginNetwork": "First claim's origin network ID",
+              "firstOriginTokenAddress": "First claim's origin token address",
+              "firstProofLocalExitRoot": "First claim's Merkle proof for local exit root",
+              "firstProofRollupExitRoot": "First claim's Merkle proof for rollup exit root",
+              "firstRollupExitRoot": "First claim's rollup exit root",
+              "secondAmount": "Second claim's amount",
+              "secondDestinationAddress": "Second claim's destination address",
+              "secondDestinationNetwork": "Second claim's destination network ID",
+              "secondGlobalIndex": "Second claim's global index",
+              "secondMainnetExitRoot": "Second claim's mainnet exit root",
+              "secondMetadata": "Second claim's metadata",
+              "secondOriginNetwork": "Second claim's origin network ID",
+              "secondOriginTokenAddress": "Second claim's origin token address",
+              "secondProofLocalExitRoot": "Second claim's Merkle proof for local exit root",
+              "secondProofRollupExitRoot": "Second claim's Merkle proof for rollup exit root",
+              "secondRollupExitRoot": "Second claim's rollup exit root"
+            }
+          },
+          "claimAssetWithChecks(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)": {
+            "details": "Public function that uses the internal claim function with additional checks"
+          },
+          "constructor": {
+            "details": "Constructor that sets the bridge contract address",
+            "params": { "_bridge": "Address of the deployed bridge contract" }
+          }
+        },
+        "version": 1
+      },
+      "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+    },
+    "settings": {
+      "remappings": ["forge-std/=lib/forge-std/src/"],
+      "optimizer": { "enabled": true, "runs": 200 },
+      "metadata": { "bytecodeHash": "ipfs" },
+      "compilationTarget": { "src/TestDoubleClaim.sol": "TestDoubleClaim" },
+      "evmVersion": "shanghai",
+      "libraries": {},
+      "viaIR": true
+    },
+    "sources": {
+      "src/TestDoubleClaim.sol": {
+        "keccak256": "0x96aff6b2879b9a2f249830d66d2848807ffb5c5ee9bf62e2c2d5f8625cbaa3bc",
+        "urls": [
+          "bzz-raw://d90dd0ab485cb9951deafa4f50b52cd71524f30a7241695a1a44da5921d15b9f",
+          "dweb:/ipfs/QmQob1C6oH8SVhEvkqs33CyCwXPFs6Pb12rdRbr6nSHJNp"
+        ],
+        "license": "AGPL-3.0"
+      }
+    },
+    "version": 1
+  },
+  "id": 22
+}
