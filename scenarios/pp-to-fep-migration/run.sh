@@ -286,6 +286,9 @@ kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 
 ################################################################################
 
+# After migration, the agglayer [proof-signers] section might need to be updated as well.
+# Make sure to observe the aggkit and agglayer logs and adjust the agglayer config accoringly.
+
 exit
 
 # TODO use this in the future to block the upgrade This should be `null`
