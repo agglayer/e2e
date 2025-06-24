@@ -1,0 +1,6 @@
+{
+    "type": "EOA",
+    "rollupAddress": "0x414e9E227e4b589aF92200508aF5399576530E4e",
+    "optimisticModeManagerPvk": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
+    "optimisticMode": true
+}
