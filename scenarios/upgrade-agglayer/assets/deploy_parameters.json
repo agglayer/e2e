@@ -1,0 +1,10 @@
+{
+    "defaultAdminAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+    "aggchainDefaultVKeyRoleAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+    "addRouteRoleAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+    "freezeRouteRoleAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+    "deployerPvtKey": "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625",
+    "verifierAddress": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+    "ppVKey": "0x00e60517ac96bf6255d81083269e72c14ad006e5f336f852f7ee3efb91b966be",
+    "ppVKeySelector": "0x00000002"
+}
