@@ -126,3 +126,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Fuzz tests / Stress Tests / Load Tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/fuzzing.sh) | |
 | Reliability / Chaos Tests | Full System | ✅ | 🚧 | | |
 | Ethereum test suite stress tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/run-retest-with-cast.sh) | |
+
+
+# CDK OP Geth Tests
+
+| Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
+|-----------|--------|--------------|-----------|-----------|-------|
+| Native bridge is disabled | CDK OP Geth | 🚧 | 🚧 | | |
+| Log Review | CDK OP Geth | 🚧 | 🚧 | | Ensure there are no critical errors in the logs other than known benign issues |
+| L2 hardfork supports | CDK OP Geth | 🚧 | 🚧 | |  |
