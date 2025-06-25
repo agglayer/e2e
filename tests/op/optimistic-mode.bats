@@ -44,18 +44,18 @@ setup() {
     cast rpc --rpc-url "$l2_node_url" admin_stopSequencer >stop.out
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 
-    jq --arg ra "$rollup_address" --arg opmanpvk "$optimistic_mode_manager_pvk" \
-        '.rollupAddress = $ra | .optimisticModeManagerPvk = $opmanpvk' \
-        ./tests/op/assets/parameters.json >parameters.json
+    # jq --arg ra "$rollup_address" --arg opmanpvk "$optimistic_mode_manager_pvk" \
+    #     '.rollupAddress = $ra | .optimisticModeManagerPvk = $opmanpvk' \
+    #     ./tests/op/assets/parameters.json >parameters.json
 
-    docker cp parameters.json "$contracts_container_name":/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
-    docker exec -w /opt/zkevm-contracts -it "$contracts_container_name" npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
+    # docker cp parameters.json "$contracts_container_name":/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
+    # docker exec -w /opt/zkevm-contracts -it "$contracts_container_name" npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
 
     # The optimistic mode is enabled in the above script. The below command is left for reference to manually enable optimisticMode by calling the rollup contract.
     # sovereignadmin address, also the optimisticModeManager address
     # "zkevm_l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
     # "zkevm_l2_sovereignadmin_private_key": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
-    # cast send $rollup_address "enableOptimisticMode()" --rpc-url "$l1_rpc_url" --private-key "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"
+    cast send $rollup_address "enableOptimisticMode()" --rpc-url "$l1_rpc_url" --private-key "$optimistic_mode_manager_pvk"
 
     # Check optimisticMode enabled
     # Call the optimisticMode() function using cast
@@ -98,10 +98,12 @@ setup() {
 
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 
-    jq --arg ra "$rollup_address" '.rollupAddress = $ra | .optimisticMode = false' ./tests/op/assets/parameters.json >parameters.json
+    # jq --arg ra "$rollup_address" '.rollupAddress = $ra | .optimisticMode = false' ./tests/op/assets/parameters.json >parameters.json
 
-    docker cp parameters.json "$contracts_container_name":/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
-    docker exec -w /opt/zkevm-contracts -it "$contracts_container_name" npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
+    # docker cp parameters.json "$contracts_container_name":/opt/zkevm-contracts/tools/aggchainFEPTools/changeOptimisticMode
+    # docker exec -w /opt/zkevm-contracts -it "$contracts_container_name" npx hardhat run tools/aggchainFEPTools/changeOptimisticMode/changeOptimisticMode.ts --network localhost
+
+    cast send $rollup_address "disableOptimisticMode()" --rpc-url "$l1_rpc_url" --private-key "$optimistic_mode_manager_pvk"
 
     if [[ 'false' == $(cast call "$rollup_address" 'optimisticMode()(bool)' --rpc-url "$l1_rpc_url") ]]; then
         echo "Success: optimisticMode() returned false"
