@@ -62,3 +62,19 @@ setup() {
         assert_success
     fi
 }
+
+@test "Transfer message L2 to L2" {
+    echo "====== bridgeMessage L2(pp1) -> L2(pp2)" >&3
+    destination_addr=$sender_addr
+    destination_net=$l2_pp2_network_id
+
+    # amount is 0 for now since we only want to bridge message
+    amount=0
+    run bridge_message "$native_token_addr" "$l2_pp1_url" "$l2_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+    log "Bridge transaction hash: $bridge_tx_hash"
+
+    echo "====== claimMessage (L2 pp2)" >&3
+    process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
+}
