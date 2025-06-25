@@ -51,21 +51,31 @@ agglayer_certificates_checks_setup() {
 
     function check_block_increase() {
         echo "Checking last settled certificate" >&3
-        local first_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
-        echo "Initial block: $first_block" >&3
+        start=$((SECONDS))
         
-        sleep $retry_interval
-        
-        local second_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
-        echo "Latest block: $second_block" >&3
-        
-        if [[ $second_block -gt $first_block ]]; then
-            echo "Block number has increased from $first_block to $second_block" >&3
-            return 0
-        else
-            echo "Error: Block number has not increased ($first_block -> $second_block)" >&3
-            return 1
-        fi
+        while true; do
+            local first_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+            echo "Initial block: $first_block" >&3
+            
+            sleep $retry_interval
+            
+            local second_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+            echo "Latest block: $second_block" >&3
+            
+            if [[ $second_block -gt $first_block ]]; then
+                echo "Block number has increased from $first_block to $second_block" >&3
+                return 0
+            fi
+            
+            [[ $((SECONDS - start)) -ge $timeout ]] && {
+                echo "Error: Timeout ($timeout s) waiting for block increase" >&3
+                echo "Last check: $first_block -> $second_block" >&3
+                return 1
+            }
+            
+            echo "Retrying block increase check..." >&3
+            sleep $retry_interval
+        done
     }
 
     function print_settlement_info() {

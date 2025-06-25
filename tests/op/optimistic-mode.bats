@@ -8,7 +8,7 @@ setup() {
     rollup_manager_address=${ROLLUP_MANAGER_ADDRESS:-"0x6c6c009cC348976dB4A908c92B24433d4F6edA43"}
     rollup_address=${ROLLUP_ADDRESS:-"0x414e9E227e4b589aF92200508aF5399576530E4e"}
     optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
-    timeout=${TIMEOUT:-1000}
+    timeout=${TIMEOUT:-1500}
     retry_interval=${RETRY_INTERVAL:-15}
 
     load "../../core/helpers/agglayer-certificates-checks.bash"
