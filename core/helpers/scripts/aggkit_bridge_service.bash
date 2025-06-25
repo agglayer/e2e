@@ -250,7 +250,7 @@ function wait_for_expected_token() {
         echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token), network id=$network_id" >&3
 
         # Break loop if the expected token is found (case-insensitive)
-        if [[ "${origin_token_address,,}" == "${expected_origin_token,,}" ]]; then
+        if [[ "$(echo "$origin_token_address" | tr '[:upper:]' '[:lower:]')" == "$(echo "$expected_origin_token" | tr '[:upper:]' '[:lower:]')" ]]; then
             echo "Success: Expected origin_token_address '$expected_origin_token' found. Exiting loop." >&3
             echo "$token_mappings_result"
             return 0
