@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-    kurtosis_enclave_name=${ENCLAVE_NAME:-"cdk"}
+    kurtosis_enclave_name=${ENCLAVE_NAME:-"op"}
     l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
     l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http)"}
