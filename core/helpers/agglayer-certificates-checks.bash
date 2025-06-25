@@ -25,6 +25,49 @@ agglayer_certificates_checks_setup() {
         echo "Null latest pending certificate confirmed"
     }
 
+    function check_for_null_cert() {
+        echo "Checking null last pending certificate..."
+        output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null)
+        if check_null "$output"; then
+            echo "Null latest pending certificate confirmed"
+            return 0
+        else
+            echo "Certificate is not null: $output"
+            return 1
+        fi
+    }
+
+    function check_for_latest_settled_cert() {
+        echo "Checking latest settled certificate..."
+        output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.' 2>/dev/null)
+        if check_non_null "$output"; then
+            echo "Non-null latest settled certificate: $output"
+            return 0
+        else
+            echo "Certificate is null: $output"
+            return 1
+        fi
+    }
+
+    function check_block_increase() {
+        echo "Checking last settled certificate" >&3
+        local first_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+        echo "Initial block: $first_block" >&3
+        
+        sleep $retry_interval
+        
+        local second_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+        echo "Latest block: $second_block" >&3
+        
+        if [[ $second_block -gt $first_block ]]; then
+            echo "Block number has increased from $first_block to $second_block" >&3
+            return 0
+        else
+            echo "Error: Block number has not increased ($first_block -> $second_block)" >&3
+            return 1
+        fi
+    }
+
     function print_settlement_info() {
         # We should loop until this number is greater than 1... This indicated a finalized L1 settlement
         printf "The latest block number recorded on L1: "
