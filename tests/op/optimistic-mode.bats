@@ -16,8 +16,6 @@ setup() {
 }
 
 @test "Enable OptimisticMode" {
-    contracts_uuid=$(kurtosis enclave inspect --full-uuids "$kurtosis_enclave_name" | grep contracts-001 | awk '{print $1}')
-    contracts_container_name=contracts-001--$contracts_uuid
 
     if check_for_null_cert; then
         if !check_for_latest_settled_cert; then
