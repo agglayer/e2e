@@ -110,6 +110,7 @@ jobs:
 
       - name: Run e2e tests
         run: |
+          set -eo pipefail
           pushd agglayer-e2e || exit 1
           set -a
           source ./tests/.env
@@ -121,11 +122,13 @@ jobs:
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
                  ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
-                 ./tests/op/optimistic-mode.bats
+                 ./tests/op/optimistic-mode.bats \
+                 || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-e2e-custom-gas.bats
+                 ./tests/aggkit/bridge-e2e-custom-gas.bats \
+                 || exit 1
           fi
           popd
 
