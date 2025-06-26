@@ -53,7 +53,7 @@ setup() {
     echo "=== Running LxLy claim L2(PP1) to L1 for $bridge_tx_hash" >&3
     process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
 
-    if [[ "$ENCLAVE" == "aggkit" ]]; then
+    if [[ "$ENCLAVE_NAME" == "aggkit" ]]; then
         echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1 (PP1 network: $aggkit_pp1_rpc_url)"
         wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp2_to_pp1
     else
