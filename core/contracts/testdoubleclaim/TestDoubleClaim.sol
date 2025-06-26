@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.28;
 
 /**
  * @title IBridge
@@ -53,6 +53,51 @@ contract TestDoubleClaim {
         bridge = IBridge(_bridge);
     }
 
+    /**
+     * @dev Normal claim function that takes individual parameters
+     */
+    function normalClaim(
+        bytes32[32] calldata proofLocalExitRoot,
+        bytes32[32] calldata proofRollupExitRoot,
+        uint256 globalIndex,
+        bytes32 mainnetExitRoot,
+        bytes32 rollupExitRoot,
+        uint32 originNetwork,
+        address originTokenAddress,
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        bytes calldata metadata
+    ) external {
+        try bridge.claimAsset(
+            proofLocalExitRoot,
+            proofRollupExitRoot,
+            globalIndex,
+            mainnetExitRoot,
+            rollupExitRoot,
+            originNetwork,
+            originTokenAddress,
+            destinationNetwork,
+            destinationAddress,
+            amount,
+            metadata
+        ) {
+            emit AssetClaimed(
+                globalIndex,
+                originNetwork,
+                originTokenAddress,
+                destinationAddress,
+                amount
+            );
+        } catch Error(string memory reason) {
+            // Catch revert with reason string
+            emit ClaimFailed(globalIndex, reason);
+        } catch (bytes memory) {
+            // Catch low-level revert (e.g., out of gas, invalid opcode)
+            emit ClaimFailed(globalIndex, "Low-level revert - possible gas limit or invalid data");
+        }
+    }
+
     function attemptTwoClaims(
         bytes32[32] calldata firstProofLocalExitRoot,
         bytes32[32] calldata firstProofRollupExitRoot,
@@ -98,8 +143,12 @@ contract TestDoubleClaim {
                 firstDestinationAddress,
                 firstAmount
             );
-        } catch {
-            emit ClaimFailed(firstGlobalIndex, "first claim failed");
+        } catch Error(string memory reason) {
+            // Catch revert with reason string
+            emit ClaimFailed(firstGlobalIndex, reason);
+        } catch (bytes memory) {
+            // Catch low-level revert (e.g., out of gas, invalid opcode)
+            emit ClaimFailed(firstGlobalIndex, "First claim: Low-level revert");
         }
 
         // Second claim attempt
@@ -123,8 +172,85 @@ contract TestDoubleClaim {
                 secondDestinationAddress,
                 secondAmount
             );
-        } catch {
-            emit ClaimFailed(secondGlobalIndex, "second claim failed");
+        } catch Error(string memory reason) {
+            // Catch revert with reason string
+            emit ClaimFailed(secondGlobalIndex, reason);
+        } catch (bytes memory) {
+            // Catch low-level revert (e.g., out of gas, invalid opcode)
+            emit ClaimFailed(secondGlobalIndex, "Second claim: Low-level revert");
+        }
+    }
+
+    /**
+     * @dev Debug function to test both claim methods with the same data
+     */
+    function debugCompareClaims(
+        bytes32[32] calldata proofLocalExitRoot,
+        bytes32[32] calldata proofRollupExitRoot,
+        uint256 globalIndex,
+        bytes32 mainnetExitRoot,
+        bytes32 rollupExitRoot,
+        uint32 originNetwork,
+        address originTokenAddress,
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        bytes calldata metadata
+    ) external {
+        // Try normalClaim first
+        try bridge.claimAsset(
+            proofLocalExitRoot,
+            proofRollupExitRoot,
+            globalIndex,
+            mainnetExitRoot,
+            rollupExitRoot,
+            originNetwork,
+            originTokenAddress,
+            destinationNetwork,
+            destinationAddress,
+            amount,
+            metadata
+        ) {
+            emit AssetClaimed(
+                globalIndex,
+                originNetwork,
+                originTokenAddress,
+                destinationAddress,
+                amount
+            );
+            emit ClaimFailed(globalIndex, "normalClaim succeeded");
+        } catch Error(string memory reason) {
+            emit ClaimFailed(globalIndex, string(abi.encodePacked("normalClaim failed: ", reason)));
+        } catch (bytes memory) {
+            emit ClaimFailed(globalIndex, "normalClaim failed: Low-level revert");
+        }
+        
+        // Try the same claim again (simulating attemptTwoClaims behavior)
+        try bridge.claimAsset(
+            proofLocalExitRoot,
+            proofRollupExitRoot,
+            globalIndex,
+            mainnetExitRoot,
+            rollupExitRoot,
+            originNetwork,
+            originTokenAddress,
+            destinationNetwork,
+            destinationAddress,
+            amount,
+            metadata
+        ) {
+            emit AssetClaimed(
+                globalIndex,
+                originNetwork,
+                originTokenAddress,
+                destinationAddress,
+                amount
+            );
+            emit ClaimFailed(globalIndex, "second attempt succeeded");
+        } catch Error(string memory reason) {
+            emit ClaimFailed(globalIndex, string(abi.encodePacked("second attempt failed: ", reason)));
+        } catch (bytes memory) {
+            emit ClaimFailed(globalIndex, "second attempt failed: Low-level revert");
         }
     }
 } 

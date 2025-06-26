@@ -163,7 +163,7 @@ _agglayer_cdk_common_setup() {
     echo "Gas token address=$gas_token_addr" >&3
 
     sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    sender_addr="$(cast wallet address --private-key $sender_private_key)"
+    sender_addr="$(cast wallet address --private-key $sender_private_key)" # 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
     readonly dry_run=${DRY_RUN:-"false"}
     ether_value=${ETHER_VALUE:-"0.0200000054"}
     amount=$(cast to-wei $ether_value ether)
