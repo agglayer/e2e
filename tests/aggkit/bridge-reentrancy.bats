@@ -5,7 +5,7 @@ setup() {
 
 export BATS_LIB_PATH="$PWD/core/helpers/lib"
 export PROJECT_ROOT="$PWD"
-export ENCLAVE="op"
+# export ENCLAVE="op"
 export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625
 
 @test "Test bridge reentrancy with onMessageReceived internal calls" {
@@ -66,7 +66,7 @@ export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab
     
     # Set up message bridging parameters
     amount=0  # No value for message bridging
-    is_forced=false
+    # is_forced=false
     meta_bytes="0x746573745f6d657373616765" # "test_message" in hex
     
     # Bridge message using the helper function
@@ -110,6 +110,7 @@ export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab
     run generate_global_index "$bridge" "$l1_rpc_network_id"
     assert_success
     local global_index=$output
+    log "📝 Global index: $global_index"
     local mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     local rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
     local origin_network=$(echo "$bridge" | jq -r '.origin_network')
