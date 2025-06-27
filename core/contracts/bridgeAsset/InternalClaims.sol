@@ -50,6 +50,19 @@ contract InternalClaims is IInternalClaims {
     uint256 amount3;
     bytes metadata3;
 
+    // Fourth claim parameters
+    bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofLocalExitRoot4;
+    bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofRollupExitRoot4;
+    uint256 globalIndex4;
+    bytes32 mainnetExitRoot4;
+    bytes32 rollupExitRoot4;
+    uint32 originNetwork4;
+    address originAddress4;
+    uint32 destinationNetwork4;
+    address destinationAddress4;
+    uint256 amount4;
+    bytes metadata4;
+
     bytes data;
 
     constructor(IPolygonZkEVMBridgeV2 _bridgeAddress) {
@@ -92,7 +105,19 @@ contract InternalClaims is IInternalClaims {
         uint32 mdestinationNetwork3,
         address mdestinationAddress3,
         uint256 mamount3,
-        bytes calldata mmetadata3
+        bytes calldata mmetadata3,
+        // Fourth claim parameters
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata msmtProofLocalExitRoot4,
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata msmtProofRollupExitRoot4,
+        uint256 mglobalIndex4,
+        bytes32 mmainnetExitRoot4,
+        bytes32 mrollupExitRoot4,
+        uint32 moriginNetwork4,
+        address moriginAddress4,
+        uint32 mdestinationNetwork4,
+        address mdestinationAddress4,
+        uint256 mamount4,
+        bytes calldata mmetadata4
     ) public {
         // Set first claim parameters
         smtProofLocalExitRoot1 = msmtProofLocalExitRoot1;
@@ -133,6 +158,19 @@ contract InternalClaims is IInternalClaims {
         amount3 = mamount3;
         metadata3 = mmetadata3;
 
+        // Set fourth claim parameters
+        smtProofLocalExitRoot4 = msmtProofLocalExitRoot4;
+        smtProofRollupExitRoot4 = msmtProofRollupExitRoot4;
+        globalIndex4 = mglobalIndex4;
+        mainnetExitRoot4 = mmainnetExitRoot4;
+        rollupExitRoot4 = mrollupExitRoot4;
+        originNetwork4 = moriginNetwork4;
+        originAddress4 = moriginAddress4;
+        destinationNetwork4 = mdestinationNetwork4;
+        destinationAddress4 = mdestinationAddress4;
+        amount4 = mamount4;
+        metadata4 = mmetadata4;
+
         emit UpdateParameters();
     }
 
@@ -145,7 +183,7 @@ contract InternalClaims is IInternalClaims {
         data = data1;
 
         // First claim with first set of parameters
-        bridgeAddress.claimAsset(
+        try bridgeAddress.claimAsset(
             smtProofLocalExitRoot1,
             smtProofRollupExitRoot1,
             globalIndex1,
@@ -157,10 +195,14 @@ contract InternalClaims is IInternalClaims {
             destinationAddress1,
             amount1,
             metadata1
-        );
+        ) {
+            // First claim succeeded
+        } catch {
+            // First claim failed, continue with next claims
+        }
 
         // Second claim with second set of parameters
-        bridgeAddress.claimAsset(
+        try bridgeAddress.claimAsset(
             smtProofLocalExitRoot2,
             smtProofRollupExitRoot2,
             globalIndex2,
@@ -172,10 +214,14 @@ contract InternalClaims is IInternalClaims {
             destinationAddress2,
             amount2,
             metadata2
-        );
+        ) {
+            // Second claim succeeded
+        } catch {
+            // Second claim failed, continue with next claims
+        }
 
         // Third claim with third set of parameters
-        bridgeAddress.claimAsset(
+        try bridgeAddress.claimAsset(
             smtProofLocalExitRoot3,
             smtProofRollupExitRoot3,
             globalIndex3,
@@ -187,6 +233,29 @@ contract InternalClaims is IInternalClaims {
             destinationAddress3,
             amount3,
             metadata3
-        );
+        ) {
+            // Third claim succeeded
+        } catch {
+            // Third claim failed, continue with next claims
+        }
+
+        // Fourth claim with fourth set of parameters
+        try bridgeAddress.claimAsset(
+            smtProofLocalExitRoot4,
+            smtProofRollupExitRoot4,
+            globalIndex4,
+            mainnetExitRoot4,
+            rollupExitRoot4,
+            originNetwork4,
+            originAddress4,
+            destinationNetwork4,
+            destinationAddress4,
+            amount4,
+            metadata4
+        ) {
+            // Fourth claim succeeded
+        } catch {
+            // Fourth claim failed, transaction continues
+        }
     }
 }
