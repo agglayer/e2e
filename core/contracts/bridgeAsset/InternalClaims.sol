@@ -10,7 +10,7 @@ contract InternalClaims is IInternalClaims {
     event UpdateParameters();
 
     IPolygonZkEVMBridgeV2 public immutable bridgeAddress;
-    
+
     // First claim parameters
     bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofLocalExitRoot1;
     bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofRollupExitRoot1;
@@ -23,7 +23,7 @@ contract InternalClaims is IInternalClaims {
     address destinationAddress1;
     uint256 amount1;
     bytes metadata1;
-    
+
     // Second claim parameters
     bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofLocalExitRoot2;
     bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofRollupExitRoot2;
@@ -36,7 +36,7 @@ contract InternalClaims is IInternalClaims {
     address destinationAddress2;
     uint256 amount2;
     bytes metadata2;
-    
+
     // Third claim parameters
     bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofLocalExitRoot3;
     bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] smtProofRollupExitRoot3;
@@ -49,7 +49,7 @@ contract InternalClaims is IInternalClaims {
     address destinationAddress3;
     uint256 amount3;
     bytes metadata3;
-    
+
     bytes data;
 
     constructor(IPolygonZkEVMBridgeV2 _bridgeAddress) {
@@ -106,7 +106,7 @@ contract InternalClaims is IInternalClaims {
         destinationAddress1 = mdestinationAddress1;
         amount1 = mamount1;
         metadata1 = mmetadata1;
-        
+
         // Set second claim parameters
         smtProofLocalExitRoot2 = msmtProofLocalExitRoot2;
         smtProofRollupExitRoot2 = msmtProofRollupExitRoot2;
@@ -119,7 +119,7 @@ contract InternalClaims is IInternalClaims {
         destinationAddress2 = mdestinationAddress2;
         amount2 = mamount2;
         metadata2 = mmetadata2;
-        
+
         // Set third claim parameters
         smtProofLocalExitRoot3 = msmtProofLocalExitRoot3;
         smtProofRollupExitRoot3 = msmtProofRollupExitRoot3;
@@ -143,7 +143,7 @@ contract InternalClaims is IInternalClaims {
         bytes memory data1
     ) external payable {
         data = data1;
-        
+
         // First claim with first set of parameters
         bridgeAddress.claimAsset(
             smtProofLocalExitRoot1,
@@ -158,7 +158,7 @@ contract InternalClaims is IInternalClaims {
             amount1,
             metadata1
         );
-        
+
         // Second claim with second set of parameters
         bridgeAddress.claimAsset(
             smtProofLocalExitRoot2,
@@ -173,7 +173,7 @@ contract InternalClaims is IInternalClaims {
             amount2,
             metadata2
         );
-        
+
         // Third claim with third set of parameters
         bridgeAddress.claimAsset(
             smtProofLocalExitRoot3,
