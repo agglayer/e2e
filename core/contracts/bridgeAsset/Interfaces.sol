@@ -257,7 +257,7 @@ interface IPolygonZkEVMBridgeV2 {
 /**
  * @dev Define interface for PolygonZkEVM Bridge message receiver
  */
-interface IBridgeMessageReceiver {
+interface IInternalClaims {
     function onMessageReceived(
         address originAddress,
         uint32 originNetwork,
