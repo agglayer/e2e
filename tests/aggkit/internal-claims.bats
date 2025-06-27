@@ -735,9 +735,63 @@ setup() {
     log "✅ Third asset claim parameters extracted successfully"
 
     # ========================================
-    # STEP 4: Create malformed parameters for second claim (to make it fail)
+    # STEP 4: Bridge fourth asset and get all claim parameters
     # ========================================
-    log "🔧 STEP 4: Creating malformed parameters for second claim (to make it fail)"
+    log "🌉 STEP 4: Bridging fourth asset from L1 to L2"
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_4=$output
+    log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
+
+    # Get all claim parameters for fourth asset
+    log "📋 Getting fourth bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_4="$output"
+    log "📝 Fourth bridge response: $bridge_4"
+    local deposit_count_4=$(echo "$bridge_4" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for fourth bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index_4="$output"
+    log "📝 Fourth L1 info tree index: $l1_info_tree_index_4"
+
+    log "Getting injected L1 info leaf for fourth bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info_4="$output"
+    log "📝 Fourth injected info: $injected_info_4"
+
+    log "🔐 Getting fourth claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_4" "$l1_info_tree_index_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof_4="$output"
+    log "📝 Fourth proof: $proof_4"
+
+    # Extract all claim parameters for fourth asset
+    log "🎯 Extracting claim parameters for fourth asset"
+    local proof_local_exit_root_4=$(echo "$proof_4" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_4=$(echo "$proof_4" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_4" "$l1_rpc_network_id"
+    assert_success
+    local global_index_4=$output
+    log "📝 Fourth global index: $global_index_4"
+    local mainnet_exit_root_4=$(echo "$proof_4" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_4=$(echo "$proof_4" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_4=$(echo "$bridge_4" | jq -r '.origin_network')
+    local origin_address_4=$(echo "$bridge_4" | jq -r '.origin_address')
+    local destination_network_4=$(echo "$bridge_4" | jq -r '.destination_network')
+    local destination_address_4=$(echo "$bridge_4" | jq -r '.destination_address')
+    local amount_4=$(echo "$bridge_4" | jq -r '.amount')
+    local metadata_4=$(echo "$bridge_4" | jq -r '.metadata')
+
+    log "✅ Fourth asset claim parameters extracted successfully"
+
+    # ========================================
+    # STEP 5: Create malformed parameters for second claim (to make it fail)
+    # ========================================
+    log "🔧 STEP 5: Creating malformed parameters for second claim (to make it fail)"
 
     # Create malformed proof for second claim (inspired from claim-call.bats)
     local malformed_proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root[1] = "0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
@@ -747,13 +801,13 @@ setup() {
     log "🔧 Malformed mainnet exit root for second claim: $malformed_mainnet_exit_root_2"
 
     # ========================================
-    # STEP 5: Update contract with all three sets of claim parameters
+    # STEP 6: Update contract with all four sets of claim parameters
     # ========================================
-    log "⚙️ STEP 5: Updating contract parameters with all three sets of claim data"
+    log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
     local update_output
     update_output=$(cast send \
         "$internal_claims_sc_addr" \
-        "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
+        "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
         "$global_index_1" \
@@ -787,6 +841,17 @@ setup() {
         "$destination_address_3" \
         "$amount_3" \
         "$metadata_3" \
+        "$proof_local_exit_root_4" \
+        "$proof_rollup_exit_root_4" \
+        "$global_index_4" \
+        "$mainnet_exit_root_4" \
+        "$rollup_exit_root_4" \
+        "$origin_network_4" \
+        "$origin_address_4" \
+        "$destination_network_4" \
+        "$destination_address_4" \
+        "$amount_4" \
+        "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
         --gas-price "$gas_price" 2>&1)
@@ -797,12 +862,12 @@ setup() {
         exit 1
     fi
 
-    log "✅ Contract parameters updated successfully with all three sets of claim data"
+    log "✅ Contract parameters updated successfully with all four sets of claim data"
 
     # ========================================
-    # STEP 6: Test onMessageReceived functionality
+    # STEP 7: Test onMessageReceived functionality
     # ========================================
-    log "🧪 STEP 6: Testing onMessageReceived with valid parameters (will attempt all three asset claims)"
+    log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
         "$internal_claims_sc_addr" \
@@ -821,7 +886,7 @@ setup() {
         local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
-        # Validate the bridge_getClaims API to verify first and third claims were processed
+        # Validate the bridge_getClaims API to verify first, third, and fourth claims were processed
         log "🔍 Validating first asset claim was processed (should succeed)"
         run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
         assert_success
@@ -846,8 +911,528 @@ setup() {
         log "🎯 Expected mainnet exit root: $mainnet_exit_root_3"
         assert_equal "$claim_mainnet_exit_root_3" "$mainnet_exit_root_3"
 
-        log "✅ First and third asset claims were successfully processed through onMessageReceived"
+        log "🔍 Validating fourth asset claim was processed (should succeed)"
+        run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
+        assert_success
+        local claim_4="$output"
+        log "📋 Fourth claim response: $claim_4"
+
+        # Verify mainnet exit root matches expected value for fourth claim
+        local claim_mainnet_exit_root_4=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
+        log "🌳 Fourth claim mainnet exit root: $claim_mainnet_exit_root_4"
+        log "🎯 Expected mainnet exit root: $mainnet_exit_root_4"
+        assert_equal "$claim_mainnet_exit_root_4" "$mainnet_exit_root_4"
+
+        log "✅ First, third, and fourth asset claims were successfully processed through onMessageReceived"
         log "✅ Second claim failed as expected due to malformed parameters"
+
+        # ========================================
+        # STEP 8: Validate that failed claims are not returned by the claims API
+        # ========================================
+        log "🔍 STEP 8: Validating that failed claim (third) is not returned by the claims API"
+
+        # Get all claims from the API to check if failed claims are present
+        log "📋 Getting all claims from the API"
+        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
+        log "📝 All claims response: $all_claims_result"
+
+        # Check if third claim (failed) is present in the API response
+        log "🔍 Checking if third claim (failed) with global_index $global_index_3 is present in API response"
+        local third_claim_found=false
+        for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
+            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            if [[ "$claim_global_index" == "$global_index_3" ]]; then
+                third_claim_found=true
+                log "❌ ERROR: Third claim with global_index $global_index_3 was found in API response, but it should have failed"
+                log "📋 Third claim details: $row"
+                break
+            fi
+        done
+
+        if [[ "$third_claim_found" == "false" ]]; then
+            log "✅ Third claim with global_index $global_index_3 correctly NOT found in API response (failed as expected)"
+        else
+            log "❌ ERROR: Third claim with global_index $global_index_3 should not be in API response since it failed"
+            exit 1
+        fi
+
+        log "✅ Failed claims validation completed successfully"
+        log "✅ Failed claims (third) correctly NOT present in API response"
+    else
+        log "❌ onMessageReceived transaction failed"
+        log "$on_message_output"
+        exit 1
+    fi
+
+    log "🎉 Quadruple claim test completed successfully"
+    log "📊 Summary:"
+    log "   ✅ Contract deployed successfully"
+    log "   ✅ First asset bridge created and parameters extracted"
+    log "   ✅ Second asset bridge created and malformed parameters prepared"
+    log "   ✅ Third asset bridge created and parameters extracted"
+    log "   ✅ Fourth asset bridge created and parameters extracted"
+    log "   ✅ All four sets of parameters configured in contract"
+    log "   ✅ First claim processed successfully"
+    log "   ✅ Second claim failed as expected (malformed parameters)"
+    log "   ✅ Third claim processed successfully"
+    log "   ✅ Fourth claim processed successfully"
+}
+
+@test "Test triple claim internal calls -> 1 fail, 1 success and 1 fail" {
+    log "🧪 Testing triple claim internal calls: 1 fail, 1 success, 1 fail, 1 success"
+
+    # Deploy the InternalClaims contract
+    local internal_claims_artifact_path="$PROJECT_ROOT/compiled-contracts/InternalClaims.sol/InternalClaims.json"
+
+    # Get bytecode from the contract artifact
+    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
+    if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
+        log "❌ Error: Failed to read bytecode from $internal_claims_artifact_path"
+        exit 1
+    fi
+
+    # ABI-encode the constructor argument (bridge address)
+    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
+    if [[ -z "$encoded_args" ]]; then
+        log "❌ Failed to ABI-encode constructor argument"
+        exit 1
+    fi
+
+    # Concatenate bytecode and encoded constructor args
+    local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
+
+    # Set a fixed gas price (1 gwei)
+    local gas_price=1000000000
+
+    # Deploy the contract
+    log "📝 Deploying InternalClaims contract"
+    local deploy_output
+    deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
+        --private-key "$sender_private_key" \
+        --gas-price "$gas_price" \
+        --legacy \
+        --create "$deploy_bytecode" 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log "❌ Error: Failed to deploy contract"
+        log "$deploy_output"
+        exit 1
+    fi
+
+    # Extract contract address from output
+    local internal_claims_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
+    if [[ -z "$internal_claims_sc_addr" ]]; then
+        log "❌ Failed to extract deployed contract address"
+        log "$deploy_output"
+        exit 1
+    fi
+
+    log "🎉 Deployed InternalClaims at: $internal_claims_sc_addr"
+
+    # ========================================
+    # STEP 1: Bridge first asset and get all claim parameters
+    # ========================================
+    log "🌉 STEP 1: Bridging first asset from L1 to L2"
+    destination_addr=$sender_addr
+    destination_net=$l2_rpc_network_id
+
+    # Bridge first asset using the helper function
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_1=$output
+    log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
+
+    # Get all claim parameters for first asset
+    log "📋 Getting first bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_1="$output"
+    log "📝 First bridge response: $bridge_1"
+    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for first bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_1" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index_1="$output"
+    log "📝 First L1 info tree index: $l1_info_tree_index_1"
+
+    log "Getting injected L1 info leaf for first bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info_1="$output"
+    log "📝 First injected info: $injected_info_1"
+
+    log "🔐 Getting first claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_1" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof_1="$output"
+    log "📝 First proof: $proof_1"
+
+    # Extract all claim parameters for first asset
+    log "🎯 Extracting claim parameters for first asset"
+    local proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_1=$(echo "$proof_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_1" "$l1_rpc_network_id"
+    assert_success
+    local global_index_1=$output
+    log "📝 First global index: $global_index_1"
+    local mainnet_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_1=$(echo "$bridge_1" | jq -r '.origin_network')
+    local origin_address_1=$(echo "$bridge_1" | jq -r '.origin_address')
+    local destination_network_1=$(echo "$bridge_1" | jq -r '.destination_network')
+    local destination_address_1=$(echo "$bridge_1" | jq -r '.destination_address')
+    local amount_1=$(echo "$bridge_1" | jq -r '.amount')
+    local metadata_1=$(echo "$bridge_1" | jq -r '.metadata')
+
+    log "✅ First asset claim parameters extracted successfully"
+
+    # ========================================
+    # STEP 2: Bridge second asset and get all claim parameters
+    # ========================================
+    log "🌉 STEP 2: Bridging second asset from L1 to L2"
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_2=$output
+    log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
+
+    # Get all claim parameters for second asset
+    log "📋 Getting second bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_2="$output"
+    log "📝 Second bridge response: $bridge_2"
+    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for second bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index_2="$output"
+    log "📝 Second L1 info tree index: $l1_info_tree_index_2"
+
+    log "Getting injected L1 info leaf for second bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info_2="$output"
+    log "📝 Second injected info: $injected_info_2"
+
+    log "🔐 Getting second claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_2" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof_2="$output"
+    log "📝 Second proof: $proof_2"
+
+    # Extract all claim parameters for second asset
+    log "🎯 Extracting claim parameters for second asset"
+    local proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_2=$(echo "$proof_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_2" "$l1_rpc_network_id"
+    assert_success
+    local global_index_2=$output
+    log "📝 Second global index: $global_index_2"
+    local mainnet_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_2=$(echo "$bridge_2" | jq -r '.origin_network')
+    local origin_address_2=$(echo "$bridge_2" | jq -r '.origin_address')
+    local destination_network_2=$(echo "$bridge_2" | jq -r '.destination_network')
+    local destination_address_2=$(echo "$bridge_2" | jq -r '.destination_address')
+    local amount_2=$(echo "$bridge_2" | jq -r '.amount')
+    local metadata_2=$(echo "$bridge_2" | jq -r '.metadata')
+
+    log "✅ Second asset claim parameters extracted successfully"
+
+    # ========================================
+    # STEP 3: Bridge third asset and get all claim parameters
+    # ========================================
+    log "🌉 STEP 3: Bridging third asset from L1 to L2"
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_3=$output
+    log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
+
+    # Get all claim parameters for third asset
+    log "📋 Getting third bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_3" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_3="$output"
+    log "📝 Third bridge response: $bridge_3"
+    local deposit_count_3=$(echo "$bridge_3" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for third bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_3" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index_3="$output"
+    log "📝 Third L1 info tree index: $l1_info_tree_index_3"
+
+    log "Getting injected L1 info leaf for third bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info_3="$output"
+    log "📝 Third injected info: $injected_info_3"
+
+    log "🔐 Getting third claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_3" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof_3="$output"
+    log "📝 Third proof: $proof_3"
+
+    # Extract all claim parameters for third asset
+    log "🎯 Extracting claim parameters for third asset"
+    local proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_3=$(echo "$proof_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_3" "$l1_rpc_network_id"
+    assert_success
+    local global_index_3=$output
+    log "📝 Third global index: $global_index_3"
+    local mainnet_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_3=$(echo "$bridge_3" | jq -r '.origin_network')
+    local origin_address_3=$(echo "$bridge_3" | jq -r '.origin_address')
+    local destination_network_3=$(echo "$bridge_3" | jq -r '.destination_network')
+    local destination_address_3=$(echo "$bridge_3" | jq -r '.destination_address')
+    local amount_3=$(echo "$bridge_3" | jq -r '.amount')
+    local metadata_3=$(echo "$bridge_3" | jq -r '.metadata')
+
+    log "✅ Third asset claim parameters extracted successfully"
+
+    # ========================================
+    # STEP 4: Bridge fourth asset and get all claim parameters
+    # ========================================
+    log "🌉 STEP 4: Bridging fourth asset from L1 to L2"
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_4=$output
+    log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
+
+    # Get all claim parameters for fourth asset
+    log "📋 Getting fourth bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_4="$output"
+    log "📝 Fourth bridge response: $bridge_4"
+    local deposit_count_4=$(echo "$bridge_4" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for fourth bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index_4="$output"
+    log "📝 Fourth L1 info tree index: $l1_info_tree_index_4"
+
+    log "Getting injected L1 info leaf for fourth bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info_4="$output"
+    log "📝 Fourth injected info: $injected_info_4"
+
+    log "🔐 Getting fourth claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_4" "$l1_info_tree_index_4" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof_4="$output"
+    log "📝 Fourth proof: $proof_4"
+
+    # Extract all claim parameters for fourth asset
+    log "🎯 Extracting claim parameters for fourth asset"
+    local proof_local_exit_root_4=$(echo "$proof_4" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_4=$(echo "$proof_4" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_4" "$l1_rpc_network_id"
+    assert_success
+    local global_index_4=$output
+    log "📝 Fourth global index: $global_index_4"
+    local mainnet_exit_root_4=$(echo "$proof_4" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_4=$(echo "$proof_4" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_4=$(echo "$bridge_4" | jq -r '.origin_network')
+    local origin_address_4=$(echo "$bridge_4" | jq -r '.origin_address')
+    local destination_network_4=$(echo "$bridge_4" | jq -r '.destination_network')
+    local destination_address_4=$(echo "$bridge_4" | jq -r '.destination_address')
+    local amount_4=$(echo "$bridge_4" | jq -r '.amount')
+    local metadata_4=$(echo "$bridge_4" | jq -r '.metadata')
+
+    log "✅ Fourth asset claim parameters extracted successfully"
+
+    # ========================================
+    # STEP 5: Create malformed parameters for first and third claims (to make them fail)
+    # ========================================
+    log "🔧 STEP 5: Creating malformed parameters for first and third claims (to make them fail)"
+
+    # Create malformed proof for first claim (to make it fail)
+    local malformed_proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root[1] = "0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_mainnet_exit_root_1=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
+
+    # Create malformed proof for third claim (to make it fail)
+    local malformed_proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root[2] = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_mainnet_exit_root_3=0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+
+    log "🔧 Malformed proof for first claim: $malformed_proof_local_exit_root_1"
+    log "🔧 Malformed mainnet exit root for first claim: $malformed_mainnet_exit_root_1"
+    log "🔧 Malformed proof for third claim: $malformed_proof_local_exit_root_3"
+    log "🔧 Malformed mainnet exit root for third claim: $malformed_mainnet_exit_root_3"
+
+    # ========================================
+    # STEP 6: Update contract with all four sets of claim parameters
+    # ========================================
+    log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
+    local update_output
+    update_output=$(cast send \
+        "$internal_claims_sc_addr" \
+        "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
+        "$malformed_proof_local_exit_root_1" \
+        "$proof_rollup_exit_root_1" \
+        "$global_index_1" \
+        "$malformed_mainnet_exit_root_1" \
+        "$rollup_exit_root_1" \
+        "$origin_network_1" \
+        "$origin_address_1" \
+        "$destination_network_1" \
+        "$destination_address_1" \
+        "$amount_1" \
+        "$metadata_1" \
+        "$proof_local_exit_root_2" \
+        "$proof_rollup_exit_root_2" \
+        "$global_index_2" \
+        "$mainnet_exit_root_2" \
+        "$rollup_exit_root_2" \
+        "$origin_network_2" \
+        "$origin_address_2" \
+        "$destination_network_2" \
+        "$destination_address_2" \
+        "$amount_2" \
+        "$metadata_2" \
+        "$malformed_proof_local_exit_root_3" \
+        "$proof_rollup_exit_root_3" \
+        "$global_index_3" \
+        "$malformed_mainnet_exit_root_3" \
+        "$rollup_exit_root_3" \
+        "$origin_network_3" \
+        "$origin_address_3" \
+        "$destination_network_3" \
+        "$destination_address_3" \
+        "$amount_3" \
+        "$metadata_3" \
+        "$proof_local_exit_root_4" \
+        "$proof_rollup_exit_root_4" \
+        "$global_index_4" \
+        "$mainnet_exit_root_4" \
+        "$rollup_exit_root_4" \
+        "$origin_network_4" \
+        "$origin_address_4" \
+        "$destination_network_4" \
+        "$destination_address_4" \
+        "$amount_4" \
+        "$metadata_4" \
+        --rpc-url "$L2_RPC_URL" \
+        --private-key "$sender_private_key" \
+        --gas-price "$gas_price" 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log "❌ Error: Failed to update parameters"
+        log "$update_output"
+        exit 1
+    fi
+
+    log "✅ Contract parameters updated successfully with all four sets of claim data"
+
+    # ========================================
+    # STEP 7: Test onMessageReceived functionality
+    # ========================================
+    log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
+    local on_message_output
+    on_message_output=$(cast send \
+        "$internal_claims_sc_addr" \
+        "onMessageReceived(address,uint32,bytes)" \
+        "$origin_address_1" \
+        "$origin_network_1" \
+        "0x" \
+        --rpc-url "$L2_RPC_URL" \
+        --private-key "$sender_private_key" \
+        --gas-price "$gas_price" 2>&1)
+
+    log "📝 onMessageReceived output: $on_message_output"
+
+    # Check if the transaction was successful (should succeed even if first and third claims fail)
+    if [[ $? -eq 0 ]]; then
+        local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
+        log "✅ onMessageReceived transaction successful: $tx_hash"
+
+        # Validate the bridge_getClaims API to verify second and fourth claims were processed
+        log "🔍 Validating second asset claim was processed (should succeed)"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        assert_success
+        local claim_2="$output"
+        log "📋 Second claim response: $claim_2"
+
+        # Verify mainnet exit root matches expected value for second claim
+        local claim_mainnet_exit_root_2=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+        log "🌳 Second claim mainnet exit root: $claim_mainnet_exit_root_2"
+        log "🎯 Expected mainnet exit root: $mainnet_exit_root_2"
+        assert_equal "$claim_mainnet_exit_root_2" "$mainnet_exit_root_2"
+
+        log "🔍 Validating fourth asset claim was processed (should succeed)"
+        run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
+        assert_success
+        local claim_4="$output"
+        log "📋 Fourth claim response: $claim_4"
+
+        # Verify mainnet exit root matches expected value for fourth claim
+        local claim_mainnet_exit_root_4=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
+        log "🌳 Fourth claim mainnet exit root: $claim_mainnet_exit_root_4"
+        log "🎯 Expected mainnet exit root: $mainnet_exit_root_4"
+        assert_equal "$claim_mainnet_exit_root_4" "$mainnet_exit_root_4"
+
+        log "✅ Second and fourth asset claims were successfully processed through onMessageReceived"
+        log "✅ First and third claims failed as expected due to malformed parameters"
+
+        # ========================================
+        # STEP 8: Validate that failed claims are not returned by the claims API
+        # ========================================
+        log "🔍 STEP 8: Validating that failed claims (first and third) are not returned by the claims API"
+
+        # Get all claims from the API to check if failed claims are present
+        log "📋 Getting all claims from the API"
+        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
+        log "📝 All claims response: $all_claims_result"
+
+        # Check if first claim (failed) is present in the API response
+        log "🔍 Checking if first claim (failed) with global_index $global_index_1 is present in API response"
+        local first_claim_found=false
+        for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
+            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            if [[ "$claim_global_index" == "$global_index_1" ]]; then
+                first_claim_found=true
+                log "❌ ERROR: First claim with global_index $global_index_1 was found in API response, but it should have failed"
+                log "📋 First claim details: $row"
+                break
+            fi
+        done
+
+        if [[ "$first_claim_found" == "false" ]]; then
+            log "✅ First claim with global_index $global_index_1 correctly NOT found in API response (failed as expected)"
+        else
+            log "❌ ERROR: First claim with global_index $global_index_1 should not be in API response since it failed"
+            exit 1
+        fi
+
+        # Check if third claim (failed) is present in the API response
+        log "🔍 Checking if third claim (failed) with global_index $global_index_3 is present in API response"
+        local third_claim_found=false
+        for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
+            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            if [[ "$claim_global_index" == "$global_index_3" ]]; then
+                third_claim_found=true
+                log "❌ ERROR: Third claim with global_index $global_index_3 was found in API response, but it should have failed"
+                log "📋 Third claim details: $row"
+                break
+            fi
+        done
+
+        if [[ "$third_claim_found" == "false" ]]; then
+            log "✅ Third claim with global_index $global_index_3 correctly NOT found in API response (failed as expected)"
+        else
+            log "❌ ERROR: Third claim with global_index $global_index_3 should not be in API response since it failed"
+            exit 1
+        fi
+
+        log "✅ Failed claims validation completed successfully"
+        log "✅ Failed claims (first and third) correctly NOT present in API response"
     else
         log "❌ onMessageReceived transaction failed"
         log "$on_message_output"
@@ -857,11 +1442,13 @@ setup() {
     log "🎉 Triple claim test completed successfully"
     log "📊 Summary:"
     log "   ✅ Contract deployed successfully"
-    log "   ✅ First asset bridge created and parameters extracted"
-    log "   ✅ Second asset bridge created and malformed parameters prepared"
-    log "   ✅ Third asset bridge created and parameters extracted"
-    log "   ✅ All three sets of parameters configured in contract"
-    log "   ✅ First claim processed successfully"
-    log "   ✅ Second claim failed as expected (malformed parameters)"
-    log "   ✅ Third claim processed successfully"
+    log "   ✅ First asset bridge created and malformed parameters prepared"
+    log "   ✅ Second asset bridge created and parameters extracted"
+    log "   ✅ Third asset bridge created and malformed parameters prepared"
+    log "   ✅ Fourth asset bridge created and parameters extracted"
+    log "   ✅ All four sets of parameters configured in contract"
+    log "   ✅ First claim failed as expected (malformed parameters)"
+    log "   ✅ Second claim processed successfully"
+    log "   ✅ Third claim failed as expected (malformed parameters)"
+    log "   ✅ Fourth claim processed successfully"
 }
