@@ -21,6 +21,7 @@ contract BridgeMessageReceiverMock is IBridgeMessageReceiver {
     address destinationAddress;
     uint256 amount;
     bytes metadata;
+    bytes data;
 
     constructor(IPolygonZkEVMBridgeV2 _bridgeAddress) {
         bridgeAddress = _bridgeAddress;
@@ -56,18 +57,19 @@ contract BridgeMessageReceiverMock is IBridgeMessageReceiver {
 
     /// @inheritdoc IBridgeMessageReceiver
     function onMessageReceived(
-        address originAddress,
-        uint32 originNetwork,
-        bytes memory data
+        address originAddress1,
+        uint32 originNetwork1,
+        bytes memory data1
     ) external payable {
+        data = data1;
         bridgeAddress.claimMessage(
             smtProofLocalExitRoot,
             smtProofRollupExitRoot,
             globalIndex,
             mainnetExitRoot,
             rollupExitRoot,
-            originNetwork,
-            originAddress,
+            originNetwork1,
+            originAddress1,
             destinationNetwork,
             destinationAddress,
             amount,
