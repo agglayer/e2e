@@ -59,84 +59,146 @@ export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab
 
     log "🎉 Deployed BridgeMessageReceiverMock at: $mock_sc_addr"
 
-    # Bridge a message from L1 to L2 to create a valid bridge transaction
-    log "🌉 Bridging message from L1 to L2"
+    # ========================================
+    # STEP 1: Bridge first message and get all claim parameters
+    # ========================================
+    log "🌉 STEP 1: Bridging first message from L1 to L2"
     destination_addr=$sender_addr
     destination_net=$l2_rpc_network_id
     
     # Set up message bridging parameters
     amount=0  # No value for message bridging
-    # is_forced=false
     meta_bytes="0x746573745f6d657373616765" # "test_message" in hex
     
-    # Bridge message using the helper function
+    # Bridge first message using the helper function
     run bridge_message "0x0000000000000000000000000000000000000000" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
-    local bridge_tx_hash=$output
-    log "🌉 Bridge message transaction hash: $bridge_tx_hash"
+    local bridge_tx_hash_1=$output
+    log "🌉 First bridge message transaction hash: $bridge_tx_hash_1"
 
-    # Get bridge details and proofs for the bridge
-    log "📋 Getting bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
+    # Get all claim parameters for first message
+    log "📋 Getting first bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
     assert_success
-    local bridge="$output"
-    log "📝 Bridge response: $bridge"
-    local deposit_count=$(echo "$bridge" | jq -r '.deposit_count')
+    local bridge_1="$output"
+    log "📝 First bridge response: $bridge_1"
+    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
     
-    log "🌳 Getting L1 info tree index"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
+    log "🌳 Getting L1 info tree index for first bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_1" 50 10 "$aggkit_bridge_url"
     assert_success
-    local l1_info_tree_index="$output"
-    log "📝 L1 info tree index: $l1_info_tree_index"
+    local l1_info_tree_index_1="$output"
+    log "📝 First L1 info tree index: $l1_info_tree_index_1"
     
-    log "Getting injected L1 info leaf"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    log "Getting injected L1 info leaf for first bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
     assert_success
-    local injected_info="$output"
-    log "📝 Injected info: $injected_info"
+    local injected_info_1="$output"
+    log "📝 First injected info: $injected_info_1"
     
-    log "🔐 Getting claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    log "🔐 Getting first claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_1" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
     assert_success
-    local proof="$output"
-    log "📝 Proof: $proof"
+    local proof_1="$output"
+    log "📝 First proof: $proof_1"
 
-    # Format the data for the contract call
-    log "🎯 Formatting data for contract call"
-    
-    # Extract claim parameters for message bridging
-    local proof_local_exit_root=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge" "$l1_rpc_network_id"
+    # Extract all claim parameters for first message
+    log "🎯 Extracting claim parameters for first message"
+    local proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_1=$(echo "$proof_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_1" "$l1_rpc_network_id"
     assert_success
-    local global_index=$output
-    log "📝 Global index: $global_index"
-    local mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network=$(echo "$bridge" | jq -r '.origin_network')
-    local origin_address=$(echo "$bridge" | jq -r '.origin_address')  # For messages, this is the origin address, not token address
-    local destination_network=$(echo "$bridge" | jq -r '.destination_network')
-    local destination_address=$(echo "$bridge" | jq -r '.destination_address')
-    local amount=$(echo "$bridge" | jq -r '.amount')
-    local metadata=$(echo "$bridge" | jq -r '.metadata')  # Use the actual metadata from the bridge
+    local global_index_1=$output
+    log "📝 First global index: $global_index_1"
+    local mainnet_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_1=$(echo "$bridge_1" | jq -r '.origin_network')
+    local origin_address_1=$(echo "$bridge_1" | jq -r '.origin_address')
+    local destination_network_1=$(echo "$bridge_1" | jq -r '.destination_network')
+    local destination_address_1=$(echo "$bridge_1" | jq -r '.destination_address')
+    local amount_1=$(echo "$bridge_1" | jq -r '.amount')
+    local metadata_1=$(echo "$bridge_1" | jq -r '.metadata')
+    
+    log "✅ First message claim parameters extracted successfully"
 
-    # Update the contract parameters with valid claim data
-    log "⚙️ Updating contract parameters"
+    # ========================================
+    # STEP 2: Bridge second message and get all claim parameters
+    # ========================================
+    log "🌉 STEP 2: Bridging second message from L1 to L2"
+    run bridge_message "0x0000000000000000000000000000000000000000" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash_2=$output
+    log "🌉 Second bridge message transaction hash: $bridge_tx_hash_2"
+
+    # Get all claim parameters for second message
+    log "📋 Getting second bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_2="$output"
+    log "📝 Second bridge response: $bridge_2"
+    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
+    
+    log "🌳 Getting L1 info tree index for second bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index_2="$output"
+    log "📝 Second L1 info tree index: $l1_info_tree_index_2"
+    
+    log "Getting injected L1 info leaf for second bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info_2="$output"
+    log "📝 Second injected info: $injected_info_2"
+    
+    log "🔐 Getting second claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_2" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof_2="$output"
+    log "📝 Second proof: $proof_2"
+
+    # Extract all claim parameters for second message
+    log "🎯 Extracting claim parameters for second message"
+    local proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root_2=$(echo "$proof_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_2" "$l1_rpc_network_id"
+    assert_success
+    local global_index_2=$output
+    log "📝 Second global index: $global_index_2"
+    local mainnet_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network_2=$(echo "$bridge_2" | jq -r '.origin_network')
+    local origin_address_2=$(echo "$bridge_2" | jq -r '.origin_address')
+    local destination_network_2=$(echo "$bridge_2" | jq -r '.destination_network')
+    local destination_address_2=$(echo "$bridge_2" | jq -r '.destination_address')
+    local amount_2=$(echo "$bridge_2" | jq -r '.amount')
+    local metadata_2=$(echo "$bridge_2" | jq -r '.metadata')
+    
+    log "✅ Second message claim parameters extracted successfully"
+
+    # ========================================
+    # STEP 3: Update contract with both sets of claim parameters
+    # ========================================
+    log "⚙️ STEP 3: Updating contract parameters with both sets of claim data"
     local update_output
     update_output=$(cast send \
         "$mock_sc_addr" \
-        "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
-        "$proof_local_exit_root" \
-        "$proof_rollup_exit_root" \
-        "$global_index" \
-        "$mainnet_exit_root" \
-        "$rollup_exit_root" \
-        "$origin_network" \
-        "$origin_address" \
-        "$destination_network" \
-        "$destination_address" \
-        "$amount" \
-        "$metadata" \
+        "updateParameters(bytes32[32],bytes32[32],bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
+        "$proof_local_exit_root_1" \
+        "$proof_rollup_exit_root_1" \
+        "$proof_local_exit_root_2" \
+        "$proof_rollup_exit_root_2" \
+        "$global_index_1" \
+        "$mainnet_exit_root_1" \
+        "$rollup_exit_root_1" \
+        "$global_index_2" \
+        "$mainnet_exit_root_2" \
+        "$rollup_exit_root_2" \
+        "$origin_network_1" \
+        "$origin_address_1" \
+        "$destination_network_1" \
+        "$destination_address_1" \
+        "$amount_1" \
+        "$metadata_1" \
         --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
         --gas-price "$gas_price" 2>&1)
@@ -147,16 +209,18 @@ export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab
         exit 1
     fi
 
-    log "✅ Contract parameters updated successfully"
+    log "✅ Contract parameters updated successfully with both sets of claim data"
 
-    # Test 1: Call onMessageReceived with valid parameters
-    log "🧪 Test 1: Calling onMessageReceived with valid parameters"
+    # ========================================
+    # STEP 4: Test onMessageReceived functionality
+    # ========================================
+    log "🧪 STEP 4: Testing onMessageReceived with valid parameters (will use first set of parameters)"
     local on_message_output
     on_message_output=$(cast send \
         "$mock_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
-        "$origin_address" \
-        "$origin_network" \
+        "$origin_address_1" \
+        "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
@@ -170,19 +234,19 @@ export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab
         log "✅ onMessageReceived transaction successful: $tx_hash"
         
         # Validate the bridge_getClaims API to verify the claim was processed
-        log "🔍 Validating claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index" 50 10 "$aggkit_bridge_url"
+        log "🔍 Validating first claim was processed"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
         assert_success
-        local claim="$output"
-        log "📋 Claim response: $claim"
+        local claim_1="$output"
+        log "📋 First claim response: $claim_1"
         
         # Verify mainnet exit root matches expected value
-        local claim_mainnet_exit_root=$(echo "$claim" | jq -r '.mainnet_exit_root')
-        log "🌳 Claim mainnet exit root: $claim_mainnet_exit_root"
-        log "🎯 Expected mainnet exit root: $mainnet_exit_root"
-        assert_equal "$claim_mainnet_exit_root" "$mainnet_exit_root"
+        local claim_mainnet_exit_root_1=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
+        log "🌳 First claim mainnet exit root: $claim_mainnet_exit_root_1"
+        log "🎯 Expected mainnet exit root: $mainnet_exit_root_1"
+        assert_equal "$claim_mainnet_exit_root_1" "$mainnet_exit_root_1"
         
-        log "✅ Claim was successfully processed through onMessageReceived"
+        log "✅ First claim was successfully processed through onMessageReceived"
     else
         log "❌ onMessageReceived transaction failed"
         log "$on_message_output"
@@ -192,4 +256,8 @@ export L2_SENDER_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab
     log "🎉 Bridge reentrancy test completed successfully"
     log "📊 Summary:"
     log "   ✅ Contract deployed successfully"
+    log "   ✅ First bridge message created and parameters extracted"
+    log "   ✅ Second bridge message created and parameters extracted"
+    log "   ✅ Both sets of parameters configured in contract"
+    log "   ✅ First claim processed successfully"
 }
