@@ -119,10 +119,10 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
           if [[ $ENCLAVE_NAME == "op" ]]; then
-          bats ./tests/op/optimistic-mode.bats \
-               ./tests/aggkit/bridge-e2e.bats \
+          bats ./tests/aggkit/bridge-e2e.bats \
                ./tests/aggkit/e2e-pp.bats \
                ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+               ./tests/op/optimistic-mode.bats \
                  || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \
