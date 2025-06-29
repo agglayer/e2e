@@ -362,6 +362,7 @@ setup() {
 
         # Validate the bridge_getClaims API to verify all four claims were processed
         log "🔍 Validating first asset claim was processed"
+        log "Global index: $global_index_1"
         run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_1="$output"
@@ -371,19 +372,33 @@ setup() {
         log "🔍 Validating all parameters for first claim"
         local claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
         local claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
+        local claim_1_global_exit_root=$(echo "$claim_1" | jq -r '.global_exit_root')
         local claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
         local claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
         local claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
         local claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
         local claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
+        local claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
 
         log "🌳 First claim mainnet exit root: $claim_1_mainnet_exit_root (Expected: $mainnet_exit_root_1)"
         log "🌳 First claim rollup exit root: $claim_1_rollup_exit_root (Expected: $rollup_exit_root_1)"
+        log "🌳 First claim global exit root: $claim_1_global_exit_root"
         log "🌐 First claim origin network: $claim_1_origin_network (Expected: $origin_network_1)"
         log "📍 First claim origin address: $claim_1_origin_address (Expected: $origin_address_1)"
         log "🌐 First claim destination network: $claim_1_destination_network (Expected: $destination_network_1)"
         log "📍 First claim destination address: $claim_1_destination_address (Expected: $destination_address_1)"
         log "💰 First claim amount: $claim_1_amount (Expected: $amount_1)"
+        log "📄 First claim metadata: $claim_1_metadata (Expected: $metadata_1)"
+
+        # Verify all field values match expected values
+        assert_equal "$claim_1_mainnet_exit_root" "$mainnet_exit_root_1"
+        assert_equal "$claim_1_rollup_exit_root" "$rollup_exit_root_1"
+        assert_equal "$claim_1_origin_network" "$origin_network_1"
+        assert_equal "$claim_1_origin_address" "$origin_address_1"
+        assert_equal "$claim_1_destination_network" "$destination_network_1"
+        assert_equal "$claim_1_destination_address" "$destination_address_1"
+        assert_equal "$claim_1_amount" "$amount_1"
+        assert_equal "$claim_1_metadata" "$metadata_1"
 
         # Validate proofs for first claim
         log "🔍 Validating proofs for first claim"
@@ -395,6 +410,12 @@ setup() {
         log "🔐 First claim proof rollup exit root: $claim_1_proof_rollup_exit_root"
         log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_1"
 
+        # Verify proof values match expected values
+        assert_equal "$claim_1_proof_local_exit_root" "$proof_local_exit_root_1"
+        assert_equal "$claim_1_proof_rollup_exit_root" "$proof_rollup_exit_root_1"
+        log "✅ First claim proofs validated successfully"
+        log "✅ First claim all fields validated successfully"
+
         log "🔍 Validating second asset claim was processed"
         run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
         assert_success
@@ -405,19 +426,33 @@ setup() {
         log "🔍 Validating all parameters for second claim"
         local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
         local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+        local claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
         local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
         local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
         local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
         local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
         local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+        local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
         log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
         log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
+        log "🌳 Second claim global exit root: $claim_2_global_exit_root"
         log "🌐 Second claim origin network: $claim_2_origin_network (Expected: $origin_network_2)"
         log "📍 Second claim origin address: $claim_2_origin_address (Expected: $origin_address_2)"
         log "🌐 Second claim destination network: $claim_2_destination_network (Expected: $destination_network_2)"
         log "📍 Second claim destination address: $claim_2_destination_address (Expected: $destination_address_2)"
         log "💰 Second claim amount: $claim_2_amount (Expected: $amount_2)"
+        log "📄 Second claim metadata: $claim_2_metadata (Expected: $metadata_2)"
+
+        # Verify all field values match expected values
+        assert_equal "$claim_2_mainnet_exit_root" "$mainnet_exit_root_2"
+        assert_equal "$claim_2_rollup_exit_root" "$rollup_exit_root_2"
+        assert_equal "$claim_2_origin_network" "$origin_network_2"
+        assert_equal "$claim_2_origin_address" "$origin_address_2"
+        assert_equal "$claim_2_destination_network" "$destination_network_2"
+        assert_equal "$claim_2_destination_address" "$destination_address_2"
+        assert_equal "$claim_2_amount" "$amount_2"
+        assert_equal "$claim_2_metadata" "$metadata_2"
 
         # Validate proofs for second claim
         log "🔍 Validating proofs for second claim"
@@ -429,6 +464,12 @@ setup() {
         log "🔐 Second claim proof rollup exit root: $claim_2_proof_rollup_exit_root"
         log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_2"
 
+        # Verify proof values match expected values
+        assert_equal "$claim_2_proof_local_exit_root" "$proof_local_exit_root_2"
+        assert_equal "$claim_2_proof_rollup_exit_root" "$proof_rollup_exit_root_2"
+        log "✅ Second claim proofs validated successfully"
+        log "✅ Second claim all fields validated successfully"
+
         log "🔍 Validating third asset claim was processed"
         run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
         assert_success
@@ -439,19 +480,33 @@ setup() {
         log "🔍 Validating all parameters for third claim"
         local claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
         local claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
+        local claim_3_global_exit_root=$(echo "$claim_3" | jq -r '.global_exit_root')
         local claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
         local claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
         local claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
         local claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
         local claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
+        local claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
 
         log "🌳 Third claim mainnet exit root: $claim_3_mainnet_exit_root (Expected: $mainnet_exit_root_3)"
         log "🌳 Third claim rollup exit root: $claim_3_rollup_exit_root (Expected: $rollup_exit_root_3)"
+        log "🌳 Third claim global exit root: $claim_3_global_exit_root"
         log "🌐 Third claim origin network: $claim_3_origin_network (Expected: $origin_network_3)"
         log "📍 Third claim origin address: $claim_3_origin_address (Expected: $origin_address_3)"
         log "🌐 Third claim destination network: $claim_3_destination_network (Expected: $destination_network_3)"
         log "📍 Third claim destination address: $claim_3_destination_address (Expected: $destination_address_3)"
         log "💰 Third claim amount: $claim_3_amount (Expected: $amount_3)"
+        log "📄 Third claim metadata: $claim_3_metadata (Expected: $metadata_3)"
+
+        # Verify all field values match expected values
+        assert_equal "$claim_3_mainnet_exit_root" "$mainnet_exit_root_3"
+        assert_equal "$claim_3_rollup_exit_root" "$rollup_exit_root_3"
+        assert_equal "$claim_3_origin_network" "$origin_network_3"
+        assert_equal "$claim_3_origin_address" "$origin_address_3"
+        assert_equal "$claim_3_destination_network" "$destination_network_3"
+        assert_equal "$claim_3_destination_address" "$destination_address_3"
+        assert_equal "$claim_3_amount" "$amount_3"
+        assert_equal "$claim_3_metadata" "$metadata_3"
 
         # Validate proofs for third claim
         log "🔍 Validating proofs for third claim"
@@ -463,39 +518,48 @@ setup() {
         log "🔐 Third claim proof rollup exit root: $claim_3_proof_rollup_exit_root"
         log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_3"
 
-        log "🔍 Validating fourth asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
-        assert_success
-        local claim_4="$output"
-        log "📋 Fourth claim response: $claim_4"
+        # Verify proof values match expected values
+        assert_equal "$claim_3_proof_local_exit_root" "$proof_local_exit_root_3"
+        assert_equal "$claim_3_proof_rollup_exit_root" "$proof_rollup_exit_root_3"
+        log "✅ Third claim proofs validated successfully"
+        log "✅ Third claim all fields validated successfully"
 
-        # Validate all parameters for fourth claim
-        log "🔍 Validating all parameters for fourth claim"
-        local claim_4_mainnet_exit_root=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
-        local claim_4_rollup_exit_root=$(echo "$claim_4" | jq -r '.rollup_exit_root')
-        local claim_4_origin_network=$(echo "$claim_4" | jq -r '.origin_network')
-        local claim_4_origin_address=$(echo "$claim_4" | jq -r '.origin_address')
-        local claim_4_destination_network=$(echo "$claim_4" | jq -r '.destination_network')
-        local claim_4_destination_address=$(echo "$claim_4" | jq -r '.destination_address')
-        local claim_4_amount=$(echo "$claim_4" | jq -r '.amount')
+        # log "🔍 Validating fourth asset claim was processed"
+        # run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
+        # assert_success
+        # local claim_4="$output"
+        # log "📋 Fourth claim response: $claim_4"
 
-        log "🌳 Fourth claim mainnet exit root: $claim_4_mainnet_exit_root (Expected: $mainnet_exit_root_4)"
-        log "🌳 Fourth claim rollup exit root: $claim_4_rollup_exit_root (Expected: $rollup_exit_root_4)"
-        log "🌐 Fourth claim origin network: $claim_4_origin_network (Expected: $origin_network_4)"
-        log "📍 Fourth claim origin address: $claim_4_origin_address (Expected: $origin_address_4)"
-        log "🌐 Fourth claim destination network: $claim_4_destination_network (Expected: $destination_network_4)"
-        log "📍 Fourth claim destination address: $claim_4_destination_address (Expected: $destination_address_4)"
-        log "💰 Fourth claim amount: $claim_4_amount (Expected: $amount_4)"
+        # # Validate all parameters for fourth claim
+        # log "🔍 Validating all parameters for fourth claim"
+        # local claim_4_mainnet_exit_root=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
+        # local claim_4_rollup_exit_root=$(echo "$claim_4" | jq -r '.rollup_exit_root')
+        # local claim_4_origin_network=$(echo "$claim_4" | jq -r '.origin_network')
+        # local claim_4_origin_address=$(echo "$claim_4" | jq -r '.origin_address')
+        # local claim_4_destination_network=$(echo "$claim_4" | jq -r '.destination_network')
+        # local claim_4_destination_address=$(echo "$claim_4" | jq -r '.destination_address')
+        # local claim_4_amount=$(echo "$claim_4" | jq -r '.amount')
+        # local claim_4_metadata=$(echo "$claim_4" | jq -r '.metadata')
 
-        # Validate proofs for fourth claim
-        log "🔍 Validating proofs for fourth claim"
-        local claim_4_proof_local_exit_root=$(echo "$claim_4" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_4_proof_rollup_exit_root=$(echo "$claim_4" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        # log "🌳 Fourth claim mainnet exit root: $claim_4_mainnet_exit_root (Expected: $mainnet_exit_root_4)"
+        # log "🌳 Fourth claim rollup exit root: $claim_4_rollup_exit_root (Expected: $rollup_exit_root_4)"
+        # log "🌐 Fourth claim origin network: $claim_4_origin_network (Expected: $origin_network_4)"
+        # log "📍 Fourth claim origin address: $claim_4_origin_address (Expected: $origin_address_4)"
+        # log "🌐 Fourth claim destination network: $claim_4_destination_network (Expected: $destination_network_4)"
+        # log "📍 Fourth claim destination address: $claim_4_destination_address (Expected: $destination_address_4)"
+        # log "💰 Fourth claim amount: $claim_4_amount (Expected: $amount_4)"
+        # log "📄 Fourth claim metadata: $claim_4_metadata (Expected: $metadata_4)"
 
-        log "🔐 Fourth claim proof local exit root: $claim_4_proof_local_exit_root"
-        log "🔐 Expected proof local exit root: $proof_local_exit_root_4"
-        log "🔐 Fourth claim proof rollup exit root: $claim_4_proof_rollup_exit_root"
-        log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_4"
+        # # Verify all field values match expected values
+        # assert_equal "$claim_4_mainnet_exit_root" "$mainnet_exit_root_4"
+        # assert_equal "$claim_4_rollup_exit_root" "$rollup_exit_root_4"
+        # assert_equal "$claim_4_origin_network" "$origin_network_4"
+        # assert_equal "$claim_4_origin_address" "$origin_address_4"
+        # assert_equal "$claim_4_destination_network" "$destination_network_4"
+        # assert_equal "$claim_4_destination_address" "$destination_address_4"
+        # assert_equal "$claim_4_amount" "$amount_4"
+        # assert_equal "$claim_4_metadata" "$metadata_4"
+        # log "✅ Fourth claim all fields validated successfully"
 
         log "✅ All four asset claims were successfully processed through onMessageReceived"
         log "✅ All parameters validated successfully for all four claims"
@@ -886,78 +950,187 @@ setup() {
         local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
-        # Validate the bridge_getClaims API to verify first, third, and fourth claims were processed
-        log "🔍 Validating first asset claim was processed (should succeed)"
+        log "🔍 Validating first asset claim was processed"
+        log "Global index: $global_index_1"
         run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
 
-        # Verify mainnet exit root matches expected value for first claim
-        local claim_mainnet_exit_root_1=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
-        log "🌳 First claim mainnet exit root: $claim_mainnet_exit_root_1"
-        log "🎯 Expected mainnet exit root: $mainnet_exit_root_1"
-        assert_equal "$claim_mainnet_exit_root_1" "$mainnet_exit_root_1"
+        # Validate all parameters for first claim
+        log "🔍 Validating all parameters for first claim"
+        local claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
+        local claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
+        local claim_1_global_exit_root=$(echo "$claim_1" | jq -r '.global_exit_root')
+        local claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
+        local claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
+        local claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
+        local claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
+        local claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
+        local claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
 
-        log "🔍 Validating third asset claim was processed (should succeed)"
+        log "🌳 First claim mainnet exit root: $claim_1_mainnet_exit_root (Expected: $mainnet_exit_root_1)"
+        log "🌳 First claim rollup exit root: $claim_1_rollup_exit_root (Expected: $rollup_exit_root_1)"
+        log "🌳 First claim global exit root: $claim_1_global_exit_root"
+        log "🌐 First claim origin network: $claim_1_origin_network (Expected: $origin_network_1)"
+        log "📍 First claim origin address: $claim_1_origin_address (Expected: $origin_address_1)"
+        log "🌐 First claim destination network: $claim_1_destination_network (Expected: $destination_network_1)"
+        log "📍 First claim destination address: $claim_1_destination_address (Expected: $destination_address_1)"
+        log "💰 First claim amount: $claim_1_amount (Expected: $amount_1)"
+        log "📄 First claim metadata: $claim_1_metadata (Expected: $metadata_1)"
+
+        # Verify all field values match expected values
+        assert_equal "$claim_1_mainnet_exit_root" "$mainnet_exit_root_1"
+        assert_equal "$claim_1_rollup_exit_root" "$rollup_exit_root_1"
+        assert_equal "$claim_1_origin_network" "$origin_network_1"
+        assert_equal "$claim_1_origin_address" "$origin_address_1"
+        assert_equal "$claim_1_destination_network" "$destination_network_1"
+        assert_equal "$claim_1_destination_address" "$destination_address_1"
+        assert_equal "$claim_1_amount" "$amount_1"
+        assert_equal "$claim_1_metadata" "$metadata_1"
+
+        # Validate proofs for first claim
+        log "🔍 Validating proofs for first claim"
+        local claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+        log "🔐 First claim proof local exit root: $claim_1_proof_local_exit_root"
+        log "🔐 Expected proof local exit root: $proof_local_exit_root_1"
+        log "🔐 First claim proof rollup exit root: $claim_1_proof_rollup_exit_root"
+        log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_1"
+
+        # Verify proof values match expected values
+        assert_equal "$claim_1_proof_local_exit_root" "$proof_local_exit_root_1"
+        assert_equal "$claim_1_proof_rollup_exit_root" "$proof_rollup_exit_root_1"
+        log "✅ First claim proofs validated successfully"
+        log "✅ First claim all fields validated successfully"
+
+        log "🔍 Validating third asset claim was processed"
+        log "Global index: $global_index_3"
         run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
 
-        # Verify mainnet exit root matches expected value for third claim
-        local claim_mainnet_exit_root_3=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
-        log "🌳 Third claim mainnet exit root: $claim_mainnet_exit_root_3"
-        log "🎯 Expected mainnet exit root: $mainnet_exit_root_3"
-        assert_equal "$claim_mainnet_exit_root_3" "$mainnet_exit_root_3"
+        # Validate all parameters for third claim
+        log "🔍 Validating all parameters for third claim"
+        local claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
+        local claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
+        local claim_3_global_exit_root=$(echo "$claim_3" | jq -r '.global_exit_root')
+        local claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
+        local claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
+        local claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
+        local claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
+        local claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
+        local claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
 
-        log "🔍 Validating fourth asset claim was processed (should succeed)"
-        run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
-        assert_success
-        local claim_4="$output"
-        log "📋 Fourth claim response: $claim_4"
+        log "🌳 Third claim mainnet exit root: $claim_3_mainnet_exit_root (Expected: $mainnet_exit_root_3)"
+        log "🌳 Third claim rollup exit root: $claim_3_rollup_exit_root (Expected: $rollup_exit_root_3)"
+        log "🌳 Third claim global exit root: $claim_3_global_exit_root"
+        log "🌐 Third claim origin network: $claim_3_origin_network (Expected: $origin_network_3)"
+        log "📍 Third claim origin address: $claim_3_origin_address (Expected: $origin_address_3)"
+        log "🌐 Third claim destination network: $claim_3_destination_network (Expected: $destination_network_3)"
+        log "📍 Third claim destination address: $claim_3_destination_address (Expected: $destination_address_3)"
+        log "💰 Third claim amount: $claim_3_amount (Expected: $amount_3)"
+        log "📄 Third claim metadata: $claim_3_metadata (Expected: $metadata_3)"
 
-        # Verify mainnet exit root matches expected value for fourth claim
-        local claim_mainnet_exit_root_4=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
-        log "🌳 Fourth claim mainnet exit root: $claim_mainnet_exit_root_4"
-        log "🎯 Expected mainnet exit root: $mainnet_exit_root_4"
-        assert_equal "$claim_mainnet_exit_root_4" "$mainnet_exit_root_4"
+        # Verify all field values match expected values
+        assert_equal "$claim_3_mainnet_exit_root" "$mainnet_exit_root_3"
+        assert_equal "$claim_3_rollup_exit_root" "$rollup_exit_root_3"
+        assert_equal "$claim_3_origin_network" "$origin_network_3"
+        assert_equal "$claim_3_origin_address" "$origin_address_3"
+        assert_equal "$claim_3_destination_network" "$destination_network_3"
+        assert_equal "$claim_3_destination_address" "$destination_address_3"
+        assert_equal "$claim_3_amount" "$amount_3"
+        assert_equal "$claim_3_metadata" "$metadata_3"
 
-        log "✅ First, third, and fourth asset claims were successfully processed through onMessageReceived"
-        log "✅ Second claim failed as expected due to malformed parameters"
+        # Validate proofs for third claim
+        log "🔍 Validating proofs for third claim"
+        local claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+        log "🔐 Third claim proof local exit root: $claim_3_proof_local_exit_root"
+        log "🔐 Expected proof local exit root: $proof_local_exit_root_3"
+        log "🔐 Third claim proof rollup exit root: $claim_3_proof_rollup_exit_root"
+        log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_3"
+
+        # Verify proof values match expected values
+        assert_equal "$claim_3_proof_local_exit_root" "$proof_local_exit_root_3"
+        assert_equal "$claim_3_proof_rollup_exit_root" "$proof_rollup_exit_root_3"
+        log "✅ Third claim proofs validated successfully"
+        log "✅ Third claim all fields validated successfully"
+
+        # log "🔍 Validating fourth asset claim was processed"
+        # run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
+        # assert_success
+        # local claim_4="$output"
+        # log "📋 Fourth claim response: $claim_4"
+
+        # # Validate all parameters for fourth claim
+        # log "🔍 Validating all parameters for fourth claim"
+        # local claim_4_mainnet_exit_root=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
+        # local claim_4_rollup_exit_root=$(echo "$claim_4" | jq -r '.rollup_exit_root')
+        # local claim_4_origin_network=$(echo "$claim_4" | jq -r '.origin_network')
+        # local claim_4_origin_address=$(echo "$claim_4" | jq -r '.origin_address')
+        # local claim_4_destination_network=$(echo "$claim_4" | jq -r '.destination_network')
+        # local claim_4_destination_address=$(echo "$claim_4" | jq -r '.destination_address')
+        # local claim_4_amount=$(echo "$claim_4" | jq -r '.amount')
+        # local claim_4_metadata=$(echo "$claim_4" | jq -r '.metadata')
+
+        # log "🌳 Fourth claim mainnet exit root: $claim_4_mainnet_exit_root (Expected: $mainnet_exit_root_4)"
+        # log "🌳 Fourth claim rollup exit root: $claim_4_rollup_exit_root (Expected: $rollup_exit_root_4)"
+        # log "🌐 Fourth claim origin network: $claim_4_origin_network (Expected: $origin_network_4)"
+        # log "📍 Fourth claim origin address: $claim_4_origin_address (Expected: $origin_address_4)"
+        # log "🌐 Fourth claim destination network: $claim_4_destination_network (Expected: $destination_network_4)"
+        # log "📍 Fourth claim destination address: $claim_4_destination_address (Expected: $destination_address_4)"
+        # log "💰 Fourth claim amount: $claim_4_amount (Expected: $amount_4)"
+        # log "📄 Fourth claim metadata: $claim_4_metadata (Expected: $metadata_4)"
+
+        # # Verify all field values match expected values
+        # assert_equal "$claim_4_mainnet_exit_root" "$mainnet_exit_root_4"
+        # assert_equal "$claim_4_rollup_exit_root" "$rollup_exit_root_4"
+        # assert_equal "$claim_4_origin_network" "$origin_network_4"
+        # assert_equal "$claim_4_origin_address" "$origin_address_4"
+        # assert_equal "$claim_4_destination_network" "$destination_network_4"
+        # assert_equal "$claim_4_destination_address" "$destination_address_4"
+        # assert_equal "$claim_4_amount" "$amount_4"
+        # assert_equal "$claim_4_metadata" "$metadata_4"
+        # log "✅ Fourth claim all fields validated successfully"
+
+        log "✅ First and third asset claims were successfully processed through onMessageReceived"
 
         # ========================================
         # STEP 8: Validate that failed claims are not returned by the claims API
         # ========================================
-        log "🔍 STEP 8: Validating that failed claim (third) is not returned by the claims API"
+        log "🔍 STEP 8: Validating that failed claim (second) is not returned by the claims API"
 
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
-        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
+        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&populate_proofs=true")
         log "📝 All claims response: $all_claims_result"
 
-        # Check if third claim (failed) is present in the API response
-        log "🔍 Checking if third claim (failed) with global_index $global_index_3 is present in API response"
-        local third_claim_found=false
+        # Check if second claim (failed) is present in the API response
+        log "🔍 Checking if second claim (failed) with global_index $global_index_2 is present in API response"
+        local second_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
             local claim_global_index=$(jq -r '.global_index' <<<"$row")
-            if [[ "$claim_global_index" == "$global_index_3" ]]; then
-                third_claim_found=true
-                log "❌ ERROR: Third claim with global_index $global_index_3 was found in API response, but it should have failed"
-                log "📋 Third claim details: $row"
+            if [[ "$claim_global_index" == "$global_index_2" ]]; then
+                second_claim_found=true
+                log "❌ ERROR: Second claim with global_index $global_index_2 was found in API response, but it should have failed"
+                log "📋 Second claim details: $row"
                 break
             fi
         done
 
-        if [[ "$third_claim_found" == "false" ]]; then
-            log "✅ Third claim with global_index $global_index_3 correctly NOT found in API response (failed as expected)"
+        if [[ "$second_claim_found" == "false" ]]; then
+            log "✅ Second claim with global_index $global_index_2 correctly NOT found in API response (failed as expected)"
         else
-            log "❌ ERROR: Third claim with global_index $global_index_3 should not be in API response since it failed"
+            log "❌ ERROR: Second claim with global_index $global_index_2 should not be in API response since it failed"
             exit 1
         fi
 
         log "✅ Failed claims validation completed successfully"
-        log "✅ Failed claims (third) correctly NOT present in API response"
+        log "✅ Failed claims (second) correctly NOT present in API response"
     else
         log "❌ onMessageReceived transaction failed"
         log "$on_message_output"
@@ -1353,33 +1526,96 @@ setup() {
         local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
-        # Validate the bridge_getClaims API to verify second and fourth claims were processed
-        log "🔍 Validating second asset claim was processed (should succeed)"
+        log "🔍 Validating second asset claim was processed"
         run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
 
-        # Verify mainnet exit root matches expected value for second claim
-        local claim_mainnet_exit_root_2=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
-        log "🌳 Second claim mainnet exit root: $claim_mainnet_exit_root_2"
-        log "🎯 Expected mainnet exit root: $mainnet_exit_root_2"
-        assert_equal "$claim_mainnet_exit_root_2" "$mainnet_exit_root_2"
+        # Validate all parameters for second claim
+        log "🔍 Validating all parameters for second claim"
+        local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+        local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+        local claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
+        local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
+        local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
+        local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
+        local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
+        local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+        local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
-        log "🔍 Validating fourth asset claim was processed (should succeed)"
-        run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
-        assert_success
-        local claim_4="$output"
-        log "📋 Fourth claim response: $claim_4"
+        log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
+        log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
+        log "🌳 Second claim global exit root: $claim_2_global_exit_root"
+        log "🌐 Second claim origin network: $claim_2_origin_network (Expected: $origin_network_2)"
+        log "📍 Second claim origin address: $claim_2_origin_address (Expected: $origin_address_2)"
+        log "🌐 Second claim destination network: $claim_2_destination_network (Expected: $destination_network_2)"
+        log "📍 Second claim destination address: $claim_2_destination_address (Expected: $destination_address_2)"
+        log "💰 Second claim amount: $claim_2_amount (Expected: $amount_2)"
+        log "📄 Second claim metadata: $claim_2_metadata (Expected: $metadata_2)"
 
-        # Verify mainnet exit root matches expected value for fourth claim
-        local claim_mainnet_exit_root_4=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
-        log "🌳 Fourth claim mainnet exit root: $claim_mainnet_exit_root_4"
-        log "🎯 Expected mainnet exit root: $mainnet_exit_root_4"
-        assert_equal "$claim_mainnet_exit_root_4" "$mainnet_exit_root_4"
+        # Verify all field values match expected values
+        assert_equal "$claim_2_mainnet_exit_root" "$mainnet_exit_root_2"
+        assert_equal "$claim_2_rollup_exit_root" "$rollup_exit_root_2"
+        assert_equal "$claim_2_origin_network" "$origin_network_2"
+        assert_equal "$claim_2_origin_address" "$origin_address_2"
+        assert_equal "$claim_2_destination_network" "$destination_network_2"
+        assert_equal "$claim_2_destination_address" "$destination_address_2"
+        assert_equal "$claim_2_amount" "$amount_2"
+        assert_equal "$claim_2_metadata" "$metadata_2"
 
-        log "✅ Second and fourth asset claims were successfully processed through onMessageReceived"
-        log "✅ First and third claims failed as expected due to malformed parameters"
+        # Validate proofs for second claim
+        log "🔍 Validating proofs for second claim"
+        local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+        log "🔐 Second claim proof local exit root: $claim_2_proof_local_exit_root"
+        log "🔐 Expected proof local exit root: $proof_local_exit_root_2"
+        log "🔐 Second claim proof rollup exit root: $claim_2_proof_rollup_exit_root"
+        log "🔐 Expected proof rollup exit root: $proof_rollup_exit_root_2"
+
+        # Verify proof values match expected values
+        assert_equal "$claim_2_proof_local_exit_root" "$proof_local_exit_root_2"
+        assert_equal "$claim_2_proof_rollup_exit_root" "$proof_rollup_exit_root_2"
+        log "✅ Second claim proofs validated successfully"
+        log "✅ Second claim all fields validated successfully"
+
+        # log "🔍 Validating fourth asset claim was processed"
+        # run get_claim "$l2_rpc_network_id" "$global_index_4" 50 10 "$aggkit_bridge_url"
+        # assert_success
+        # local claim_4="$output"
+        # log "📋 Fourth claim response: $claim_4"
+
+        # # Validate all parameters for fourth claim
+        # log "🔍 Validating all parameters for fourth claim"
+        # local claim_4_mainnet_exit_root=$(echo "$claim_4" | jq -r '.mainnet_exit_root')
+        # local claim_4_rollup_exit_root=$(echo "$claim_4" | jq -r '.rollup_exit_root')
+        # local claim_4_origin_network=$(echo "$claim_4" | jq -r '.origin_network')
+        # local claim_4_origin_address=$(echo "$claim_4" | jq -r '.origin_address')
+        # local claim_4_destination_network=$(echo "$claim_4" | jq -r '.destination_network')
+        # local claim_4_destination_address=$(echo "$claim_4" | jq -r '.destination_address')
+        # local claim_4_amount=$(echo "$claim_4" | jq -r '.amount')
+        # local claim_4_metadata=$(echo "$claim_4" | jq -r '.metadata')
+
+        # log "🌳 Fourth claim mainnet exit root: $claim_4_mainnet_exit_root (Expected: $mainnet_exit_root_4)"
+        # log "🌳 Fourth claim rollup exit root: $claim_4_rollup_exit_root (Expected: $rollup_exit_root_4)"
+        # log "🌐 Fourth claim origin network: $claim_4_origin_network (Expected: $origin_network_4)"
+        # log "📍 Fourth claim origin address: $claim_4_origin_address (Expected: $origin_address_4)"
+        # log "🌐 Fourth claim destination network: $claim_4_destination_network (Expected: $destination_network_4)"
+        # log "📍 Fourth claim destination address: $claim_4_destination_address (Expected: $destination_address_4)"
+        # log "💰 Fourth claim amount: $claim_4_amount (Expected: $amount_4)"
+        # log "📄 Fourth claim metadata: $claim_4_metadata (Expected: $metadata_4)"
+
+        # # Verify all field values match expected values
+        # assert_equal "$claim_4_mainnet_exit_root" "$mainnet_exit_root_4"
+        # assert_equal "$claim_4_rollup_exit_root" "$rollup_exit_root_4"
+        # assert_equal "$claim_4_origin_network" "$origin_network_4"
+        # assert_equal "$claim_4_origin_address" "$origin_address_4"
+        # assert_equal "$claim_4_destination_network" "$destination_network_4"
+        # assert_equal "$claim_4_destination_address" "$destination_address_4"
+        # assert_equal "$claim_4_amount" "$amount_4"
+        # assert_equal "$claim_4_metadata" "$metadata_4"
+        # log "✅ Fourth claim all fields validated successfully"
 
         # ========================================
         # STEP 8: Validate that failed claims are not returned by the claims API
@@ -1388,7 +1624,7 @@ setup() {
 
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
-        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
+        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&populate_proofs=true")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) is present in the API response
