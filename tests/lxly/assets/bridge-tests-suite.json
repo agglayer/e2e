@@ -1,0 +1,90 @@
+[
+    {
+      "DestinationAddress": "EOA",
+      "BridgeType": "Asset",
+      "Token": "Buggy",
+      "MetaData": "0x",
+      "ForceUpdate": "False",
+      "Amount": "0"
+    },
+    {
+      "DestinationAddress": "Precompile",
+      "BridgeType": "Asset",
+      "Token": "LocalERC20",
+      "MetaData": "0x",
+      "ForceUpdate": "True",
+      "Amount": "Random"
+    },
+    {
+      "DestinationAddress": "Contract",
+      "BridgeType": "Message",
+      "Token": "NativeEther",
+      "MetaData": "Huge",
+      "ForceUpdate": "True",
+      "Amount": "1"
+    },
+    {
+      "DestinationAddress": "Contract",
+      "BridgeType": "Asset",
+      "Token": "LocalERC20",
+      "MetaData": "0x",
+      "ForceUpdate": "False",
+      "Amount": "0"
+    },
+    {
+      "DestinationAddress": "EOA",
+      "BridgeType": "Asset",
+      "Token": "GasToken",
+      "MetaData": "0x",
+      "ForceUpdate": "False",
+      "Amount": "Random"
+    },
+    {
+      "DestinationAddress": "Precompile",
+      "BridgeType": "Message",
+      "Token": "NativeEther",
+      "MetaData": "Random",
+      "ForceUpdate": "False",
+      "Amount": "Random"
+    },
+    {
+      "DestinationAddress": "EOA",
+      "BridgeType": "Asset",
+      "Token": "GasToken",
+      "MetaData": "0x",
+      "ForceUpdate": "True",
+      "Amount": "1"
+    },
+    {
+      "DestinationAddress": "EOA",
+      "BridgeType": "Message",
+      "Token": "NativeEther",
+      "MetaData": "Max",
+      "ForceUpdate": "True",
+      "Amount": "0"
+    },
+    {
+      "DestinationAddress": "Precompile",
+      "BridgeType": "Weth",
+      "Token": "WETH",
+      "MetaData": "0x",
+      "ForceUpdate": "False",
+      "Amount": "1"
+    },
+    {
+      "DestinationAddress": "Contract",
+      "BridgeType": "Asset",
+      "Token": "LocalERC20",
+      "MetaData": "0x",
+      "ForceUpdate": "True",
+      "Amount": "0"
+    },
+    {
+      "DestinationAddress": "Precompile",
+      "BridgeType": "Asset",
+      "Token": "Buggy",
+      "MetaData": "0x",
+      "ForceUpdate": "False",
+      "Amount": "Max"
+    }
+]

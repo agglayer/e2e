@@ -55,11 +55,11 @@ function deploy_buggy_erc20() {
     fi
 }
 
-@test "bridge Buggy ERC20 from l1 to l2" {
+@test "bridge Buggy ERC20 from lx to ly" {
     deploy_buggy_erc20 "$l1_rpc_url" "$l1_private_key" "$l1_eth_address" "$l1_bridge_addr"
     deploy_buggy_erc20 "$l2_rpc_url" "$l2_private_key" "$l2_eth_address" "$l2_bridge_addr"
-    
-    echo "Starting bridge test from L1 to L2..." >&3
+
+    echo "Starting bridge test from lx to ly..." >&3
 
     echo "Checking bridge contract allowance..." >&3
     allowance=$(cast call --rpc-url "$l1_rpc_url" "$test_erc20_buggy_addr" 'allowance(address,address)(uint256)' "$l1_eth_address" "$l1_bridge_addr")
@@ -92,7 +92,7 @@ function deploy_buggy_erc20() {
     echo "L1 balance after: $balance_after" >&3
 }
 
-@test "Claiming Buggy ERC20 from l1 to l2" {
+@test "Claiming Buggy ERC20 from lx to ly" {
     # It's possible this command will fail due to the auto claimer
     initial_deposit_count=$(curl -s $bridge_service_url/bridges/$l1_eth_address | jq '.deposits | map(select(.claim_tx_hash == "")) | min_by(.deposit_cnt) | .deposit_cnt')
     echo "Attempting to make bridge claim on $initial_deposit_count..." >&3
