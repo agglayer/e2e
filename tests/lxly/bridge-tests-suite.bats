@@ -40,7 +40,7 @@ setup() {
 }
 
 @test "Initial setup" {
-    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || skip "Bridge Tests Suite file not found"
+    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || { echo "Bridge Tests Suite file not found" >&3; skip "Bridge Tests Suite file not found"; }
 
     load "./assets/bridge-tests-helper.bash"
     # Deploy to L1
@@ -57,104 +57,110 @@ setup() {
 }
 
 @test "Process bridge scenarios" {
+    echo "Starting Process bridge scenarios test" >&3
+    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || { echo "Bridge Tests Suite file not found" >&3; skip "Bridge Tests Suite file not found"; }
+
+    index=0
     while read -r scenario; do
-        testBridgeType=$(echo "$scenario" | jq -r '.BridgeType')
-        testDestinationAddress=$(echo "$scenario" | jq -r '.DestinationAddress')
-        testToken=$(echo "$scenario" | jq -r '.Token')
-        testMetaData=$(echo "$scenario" | jq -r '.MetaData')
-        testForceUpdate=$(echo "$scenario" | jq -r '.ForceUpdate')
-        testAmount=$(echo "$scenario" | jq -r '.Amount')
-        expectedResultProcess=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
-        # expectedResultClaim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
+        echo "Processing scenario $index: $scenario" >&3
+        test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
+        test_destination_adress=$(echo "$scenario" | jq -r '.DestinationAddress')
+        test_token=$(echo "$scenario" | jq -r '.Token')
+        test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
+        test_force_update=$(echo "$scenario" | jq -r '.ForceUpdate')
+        test_amount=$(echo "$scenario" | jq -r '.Amount')
+        expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
 
-
-        # l1_rpc_url refers to one network - not necessarily an L1. This can be changed to allow LxLy bridging.
-        testCommand="polycli ulxly bridge"
+        test_command="polycli ulxly bridge"
 
         # Bridge Type
-        case "$testBridgeType" in
-        "Asset") testCommand="$testCommand asset" ;;
-        "Message") testCommand="$testCommand message" ;;
-        "Weth") testCommand="$testCommand weth" ;;
-        *) echo "Unrecognized Bridge Type: $testBridgeType"; return 1 ;;
+        case "$test_bridge_type" in
+        "Asset") test_command="$test_command asset" ;;
+        "Message") test_command="$test_command message" ;;
+        "Weth") test_command="$test_command weth" ;;
+        *) echo "Unrecognized Bridge Type: $test_bridge_type" >&3; return 1 ;;
         esac
         
         fixedTestCommandFlags="--rpc-url $l1_rpc_url --destination-network $l2_network_id"
-        testCommand="$testCommand $fixedTestCommandFlags"
+        test_command="$test_command $fixedTestCommandFlags"
 
         # Destination Address
-        case "$testDestinationAddress" in
-        "Contract") testCommand="$testCommand --destination-address $l1_bridge_addr" ;;
-        "Precompile") testCommand="$testCommand --destination-address 0x0000000000000000000000000000000000000004" ;;
-        "EOA") testCommand="$testCommand --destination-address $l1_eth_address" ;;
-        *) echo "Unrecognized Destination Address: $testDestinationAddress"; return 1 ;;
+        case "$test_destination_adress" in
+        "Contract") test_command="$test_command --destination-address $l1_bridge_addr" ;;
+        "Precompile") test_command="$test_command --destination-address 0x0000000000000000000000000000000000000004" ;;
+        "EOA") test_command="$test_command --destination-address $l1_eth_address" ;;
+        *) echo "Unrecognized Destination Address: $test_destination_adress" >&3; return 1 ;;
         esac
 
         # Token
-        case "$testToken" in
-        "POL") testCommand="$testCommand --token-address $pol_address" ;;
-        "LocalERC20") testCommand="$testCommand --token-address $test_erc20_addr" ;;
-        "WETH") testCommand="$testCommand --token-address $pp_weth_address" ;;
-        "Buggy") testCommand="$testCommand --token-address $test_erc20_buggy_addr" ;;
-        "GasToken") testCommand="$testCommand --token-address $gas_token_address" ;;
-        "NativeEther") testCommand="$testCommand --token-address 0x0000000000000000000000000000000000000000" ;;
-        *) echo "Unrecognized Test Token: $testToken"; return 1 ;;
+        case "$test_token" in
+        "POL") test_command="$test_command --token-address $pol_address" ;;
+        "LocalERC20") test_command="$test_command --token-address $test_erc20_addr" ;;
+        "WETH") test_command="$test_command --token-address $pp_weth_address" ;;
+        "Buggy") test_command="$test_command --token-address $test_erc20_buggy_addr" ;;
+        "GasToken") test_command="$test_command --token-address $gas_token_address" ;;
+        "NativeEther") test_command="$test_command --token-address 0x0000000000000000000000000000000000000000" ;;
+        *) echo "Unrecognized Test Token: $test_token" >&3; return 1 ;;
         esac
 
         # Metadata
-        case "$testMetaData" in
-        "Random") testCommand="$testCommand --call-data $(date +%s | xxd -p)" ;;
-        "0x") testCommand="$testCommand --call-data 0x" ;;
+        case "$test_meta_data" in
+        "Random") test_command="$test_command --call-data $(date +%s | xxd -p)" ;;
+        "0x") test_command="$test_command --call-data 0x" ;;
         "Huge")
             temp_file=$(mktemp)
             xxd -p /dev/zero | tr -d "\n" | head -c 97000 > "$temp_file"
-            testCommand="$testCommand --call-data-file $temp_file" ;;
+            test_command="$test_command --call-data-file $temp_file" ;;
         "Max")
             temp_file=$(mktemp)
             xxd -p /dev/zero | tr -d "\n" | head -c 261569 > "$temp_file"
-            testCommand="$testCommand --call-data-file $temp_file" ;;
-        *) echo "Unrecognized Metadata: $testMetaData"; return 1 ;;
+            test_command="$test_command --call-data-file $temp_file" ;;
+        *) echo "Unrecognized Metadata: $test_meta_data" >&3; return 1 ;;
         esac
 
         # Force Update
-        case "$testForceUpdate" in
-        "True") testCommand="$testCommand --force-update-root=true" ;;
-        "False") testCommand="$testCommand --force-update-root=false" ;;
-        *) echo "Unrecognized Force Update: $testForceUpdate"; return 1 ;;
+        case "$test_force_update" in
+        "True") test_command="$test_command --force-update-root=true" ;;
+        "False") test_command="$test_command --force-update-root=false" ;;
+        *) echo "Unrecognized Force Update: $test_force_update" >&3; return 1 ;;
         esac
 
         # Amount
-        case "$testAmount" in
-        "0") testCommand="$testCommand --value 0" ;;
-        "1") testCommand="$testCommand --value 1" ;;
+        case "$test_amount" in
+        "0") test_command="$test_command --value 0" ;;
+        "1") test_command="$test_command --value 1" ;;
         "Max")
             cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$l1_private_key" "$test_erc20_buggy_addr" 'mint(address,uint256)' "$l1_eth_address" "$(cast max-uint)"
             cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$l1_private_key" "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0
-            testCommand="$testCommand --value $(cast max-uint)" ;;
-        "Random") testCommand="$testCommand --value $(date +%s)" ;;
-        *) echo "Unrecognized Amount: $testAmount"; return 1 ;;
+            test_command="$test_command --value $(cast max-uint)" ;;
+        "Random") test_command="$test_command --value $(date +%s)" ;;
+        *) echo "Unrecognized Amount: $test_amount" >&3; return 1 ;;
         esac
 
-        testCommand="$testCommand --bridge-address $l1_bridge_addr --private-key $l1_private_key"
-        echo "Running command: $testCommand" >&3
-        run $testCommand
-        if [[ "$expectedResultProcess" == "Success" ]]; then
-            [[ "$status" -eq 0 ]] || { echo "Test $index expected Success but failed: $testCommand"; return 1; }
+        test_command="$test_command --bridge-address $l1_bridge_addr --private-key $l1_private_key"
+        echo "Running command: $test_command" >&3
+        run $test_command
+        if [[ "$expected_result_process" == "Success" ]]; then
+            [[ "$status" -eq 0 ]] || { echo "Test $index expected Success but failed: $test_command" >&3; return 1; }
         else
-            [[ "$status" -ne 0 ]] || { echo "Test $index expected failure with '$expectedResultProcess' but succeeded: $testCommand"; return 1; }
-            # Optionally, check if error matches expectedResultProcess
-            # error_message=$(echo "$output" | parse_error_message) # Implement based on polycli output
-            # [[ "$error_message" =~ "$expectedResultProcess" ]] || { echo "Test $index expected error '$expectedResultProcess' but got '$error_message'"; return 1; }
+            [[ "$status" -ne 0 ]] || { echo "Test $index expected failure with '$expected_result_process' but succeeded: $test_command" >&3; return 1; }
         fi
 
         # Store test command and expected results for claim test
-        test_results[$index]="$testCommand|$expectedResultProcess|$(echo "$scenario" | jq -r '.ExpectedResultClaim')"
+        test_results[$index]="$test_command|$expected_result_process|$(echo "$scenario" | jq -r '.ExpectedResultClaim')"
+        echo "test_results[$index]=${test_results[$index]}"
+        echo "Wrote test_results[$index]=${test_results[$index]}" >&3
         
-        if [[ "$testAmount" = "Max" ]]; then
+        if [[ "$test_amount" = "Max" ]]; then
             cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$l1_private_key" "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0
         fi
         index=$((index + 1))
     done < <(echo "$scenarios" | jq -c '.[]')
+    
+    echo "Final test_results contents:" >&3
+    for key in "${!test_results[@]}"; do
+        echo "test_results[$key]=${test_results[$key]}" >&3
+    done
 }
 
 @test "Run address tester actions" {
@@ -181,44 +187,40 @@ setup() {
         testBridgeType=$(echo "$scenario" | jq -r '.BridgeType')
         testToken=$(echo "$scenario" | jq -r '.Token')
 
-        # Determine the destination network and corresponding RPC URL, private key, and bridge address
         dest_rpc_url="$l2_rpc_url"
         dest_private_key="$l2_private_key"
         dest_bridge_addr="$l2_bridge_addr"
-        dest_network_id="$l1_network_id" # Claiming on L2 for deposits from L1
+        dest_network_id="$l1_network_id"
 
-        # Fetch the deposit count for the address
-        initial_deposit_count=$(curl -s "$bridge_service_url/bridges/$l1_eth_address" | jq '.deposits | map(select(.claim_tx_hash == "")) | min_by(.deposit_cnt) | .deposit_cnt')
+        initial_deposit_count=$(curl -s "$bridge_service_url/bridges/$l1_eth_address" | jq '.deposits | map(select(.claim_tx_hash == "")) | min_by(.deposit_cnt) | .deposit_cnt // empty')
+        echo "Fetched initial_deposit_count: $initial_deposit_count" >&3
+        if [[ -z "$initial_deposit_count" ]]; then
+            echo "No unclaimed deposits found for address $l1_eth_address at index $index" >&3
+            [[ "$expected_result_claim" == "N/A" ]] || { echo "Test $index expected a claim but no unclaimed deposits found" >&3; return 1; }
+            index=$((index + 1))
+            continue
+        fi
         echo "Attempting to make bridge claim for deposit $initial_deposit_count on index $index..." >&3
 
-        # Construct the claim command based on BridgeType
         case "$testBridgeType" in
-            "Asset"|"Weth")
-                claim_command="polycli ulxly claim asset"
-                ;;
-            "Message")
-                claim_command="polycli ulxly claim message"
-                ;;
-            *)
-                echo "Unrecognized Bridge Type for claim: $testBridgeType"; return 1
-                ;;
+            "Asset"|"Weth") claim_command="polycli ulxly claim asset" ;;
+            "Message") claim_command="polycli ulxly claim message" ;;
+            *) echo "Unrecognized Bridge Type for claim: $testBridgeType" >&3; return 1 ;;
         esac
 
-        # Add common flags to the claim command
         claim_command="$claim_command --bridge-address $dest_bridge_addr --private-key $dest_private_key --rpc-url $dest_rpc_url --deposit-count $initial_deposit_count --deposit-network $dest_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
-
-        # Execute the claim command
         output_file=$(mktemp)
-        run $claim_command > "$output_file" 2>&1
+        echo "Running command: $claim_command" >&3
+        run $claim_command > "$output_file" 2>&3
+        echo "Command output:" >&3
+        cat "$output_file" >&3
 
-        # Check the claim result against expected_result_claim
         if [[ "$expected_result_claim" == "Success" ]]; then
-            [[ "$status" -eq 0 ]] || { echo "Test $index expected Claim Success but failed: $claim_command"; cat "$output_file"; rm "$output_file"; return 1; }
+            [[ "$status" -eq 0 ]] || { echo "Test $index expected Claim Success but failed: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
         else
-            [[ "$status" -ne 0 ]] || { echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded: $claim_command"; cat "$output_file"; rm "$output_file"; return 1; }
-            # Check if the error message matches the expected error
+            [[ "$status" -ne 0 ]] || { echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
             if [[ "$expected_result_claim" != "N/A" ]]; then
-                echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output: $output"; cat "$output_file"; rm "$output_file"; return 1; }
+                echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output: $output" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
             fi
         fi
 
