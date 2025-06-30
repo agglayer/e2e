@@ -148,8 +148,7 @@ setup() {
 
         # Store test command and expected results for claim test
         test_results[$index]="$test_command|$expected_result_process|$(echo "$scenario" | jq -r '.ExpectedResultClaim')"
-        echo "test_results[$index]=${test_results[$index]}"
-        echo "Wrote test_results[$index]=${test_results[$index]}" >&3
+        echo "test_results[$index]=${test_results[$index]}" >&3
         
         if [[ "$test_amount" = "Max" ]]; then
             cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$l1_private_key" "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0
@@ -180,51 +179,90 @@ setup() {
 }
 
 @test "Claim individual deposits on bridged network" {
+    echo "Starting Claim individual deposits test" >&3
+    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || { echo "Bridge Tests Suite file not found" >&3; skip "Bridge Tests Suite file not found"; }
+
     index=0
-    for key in "${!test_results[@]}"; do
-        IFS='|' read -r cmd expected_result_process expected_result_claim <<< "${test_results[$key]}"
-        scenario=$(echo "$scenarios" | jq -c ".[$index]")
-        testBridgeType=$(echo "$scenario" | jq -r '.BridgeType')
-        testToken=$(echo "$scenario" | jq -r '.Token')
+    while read -r scenario; do
+        echo "Processing claim for scenario $index: $scenario" >&3
+        test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
+        test_token=$(echo "$scenario" | jq -r '.Token')
+        expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
 
         dest_rpc_url="$l2_rpc_url"
         dest_private_key="$l2_private_key"
         dest_bridge_addr="$l2_bridge_addr"
         dest_network_id="$l1_network_id"
 
-        initial_deposit_count=$(curl -s "$bridge_service_url/bridges/$l1_eth_address" | jq '.deposits | map(select(.claim_tx_hash == "")) | min_by(.deposit_cnt) | .deposit_cnt // empty')
-        echo "Fetched initial_deposit_count: $initial_deposit_count" >&3
-        if [[ -z "$initial_deposit_count" ]]; then
-            echo "No unclaimed deposits found for address $l1_eth_address at index $index" >&3
+        # Retry fetching all unclaimed deposit counts to handle auto-claimer race conditions
+        unclaimed_deposits=""
+        for attempt in {1..5}; do
+            echo "Attempt $attempt to fetch unclaimed deposit counts..." >&3
+            deposits_response=$(curl -s "$bridge_service_url/bridges/$l1_eth_address")
+            echo "Bridge service response: $deposits_response" >&3
+            unclaimed_deposits=$(echo "$deposits_response" | jq -r '.deposits | map(select(.claim_tx_hash == "")) | map(.deposit_cnt) | join(" ")')
+            echo "Fetched unclaimed deposit counts: $unclaimed_deposits" >&3
+            [[ -n "$unclaimed_deposits" ]] && break
+            echo "No unclaimed deposits found, retrying in 10 seconds..." >&3
+            sleep 10
+        done
+
+        if [[ -z "$unclaimed_deposits" ]]; then
+            echo "No unclaimed deposits found for address $l1_eth_address at index $index after retries" >&3
             [[ "$expected_result_claim" == "N/A" ]] || { echo "Test $index expected a claim but no unclaimed deposits found" >&3; return 1; }
             index=$((index + 1))
             continue
         fi
-        echo "Attempting to make bridge claim for deposit $initial_deposit_count on index $index..." >&3
 
-        case "$testBridgeType" in
-            "Asset"|"Weth") claim_command="polycli ulxly claim asset" ;;
-            "Message") claim_command="polycli ulxly claim message" ;;
-            *) echo "Unrecognized Bridge Type for claim: $testBridgeType" >&3; return 1 ;;
-        esac
-
-        claim_command="$claim_command --bridge-address $dest_bridge_addr --private-key $dest_private_key --rpc-url $dest_rpc_url --deposit-count $initial_deposit_count --deposit-network $dest_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
-        output_file=$(mktemp)
-        echo "Running command: $claim_command" >&3
-        run $claim_command > "$output_file" 2>&3
-        echo "Command output:" >&3
-        cat "$output_file" >&3
-
-        if [[ "$expected_result_claim" == "Success" ]]; then
-            [[ "$status" -eq 0 ]] || { echo "Test $index expected Claim Success but failed: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
-        else
-            [[ "$status" -ne 0 ]] || { echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
-            if [[ "$expected_result_claim" != "N/A" ]]; then
-                echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output: $output" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
+        # Iterate through unclaimed deposits
+        claim_attempted=false
+        for deposit_count in $unclaimed_deposits; do
+            echo "Validating deposit $deposit_count is unclaimed..." >&3
+            claim_tx_hash=$(curl -s toman"$bridge_service_url/bridges/$l1_eth_address" | jq -r ".deposits | map(select(.deposit_cnt == $deposit_count)) | .[0].claim_tx_hash")
+            echo "Claim transaction hash for deposit $deposit_count: $claim_tx_hash" >&3
+            if [[ -n "$claim_tx_hash" ]]; then
+                echo "Deposit $deposit_count is already claimed with tx hash: $claim_tx_hash" >&3
+                continue
             fi
+
+            echo "Attempting to make bridge claim for deposit $deposit_count on index $index..." >&3
+
+            # Determine claim command based on BridgeType
+            case "$test_bridge_type" in
+                "Asset"|"Weth") claim_command="polycli ulxly claim asset" ;;
+                "Message") claim_command="polycli ulxly claim message" ;;
+                *) echo "Unrecognized Bridge Type for claim: $test_bridge_type" >&3; return 1 ;;
+            esac
+
+            # Construct the claim command
+            claim_command="$claim_command --bridge-address $dest_bridge_addr --private-key $dest_private_key --rpc-url $dest_rpc_url --deposit-count $deposit_count --deposit-network $dest_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
+            output_file=$(mktemp)
+            echo "Running command: $claim_command" >&3
+            run $claim_command > "$output_file" 2>&3
+            echo "Command output:" >&3
+            cat "$output_file" >&3
+
+            # Validate the claim result
+            if [[ "$expected_result_claim" == "Success" ]]; then
+                [[ "$status" -eq 0 ]] || { echo "Test $index expected Claim Success but failed for deposit $deposit_count: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
+            else
+                [[ "$status" -ne 0 ]] || { echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded for deposit $deposit_count: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
+                if [[ "$expected_result_claim" != "N/A" ]]; then
+                    echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output for deposit $deposit_count: $output" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
+                fi
+            fi
+
+            rm "$output_file"
+            claim_attempted=true
+            break # Exit loop after attempting a claim
+        done
+
+        if [[ "$claim_attempted" == false && "$expected_result_claim" != "N/A" ]]; then
+            echo "Test $index expected a claim but no unclaimed deposits were available after validation" >&3
+            return 1
         fi
 
         rm "$output_file"
         index=$((index + 1))
-    done
+    done < <(echo "$scenarios" | jq -c '.[]')
 }
