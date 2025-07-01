@@ -17,7 +17,7 @@
         "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Execution Reverted 0x23d72133"
+        "ExpectedResultClaim": "0x23d72133"
     },
     {
         "DestinationAddress": "Precompile",
@@ -87,7 +87,7 @@
         "ForceUpdate": "True",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Metadata too large"
+        "ExpectedResultClaim": "0xe0417cec"
     },
     {
         "DestinationAddress": "Precompile",

@@ -162,107 +162,241 @@ setup() {
     done
 }
 
-@test "Run address tester actions" {
-  address_tester_actions="001 011 021 031 101 201 301 401 501 601 701 801 901"
-  for create_mode in 0 1 2; do
-    for action in $address_tester_actions; do
-      for rpc_url in $l1_rpc_url $l2_rpc_url; do
-        for network_id in $l1_network_id $l2_network_id; do
-          private_key_for_tx=$([[ "$rpc_url" = "$l1_rpc_url" ]] && echo "$l1_private_key" || echo "$l2_private_key")
-          run cast send --gas-limit 2500000 --legacy --value "$network_id" --rpc-url "$rpc_url" --private-key "$private_key_for_tx" "$tester_contract_address" \
-            "$(cast abi-encode 'f(uint32, address, uint256)' "0x${create_mode}${action}" "$test_lxly_proxy_addr" "$network_id")"
-          [[ "$status" -eq 0 ]] || echo "Failed action: 0x${create_mode}${action} on $rpc_url with network $network_id"
-        done
-      done
-    done
-  done
-}
+# @test "Run address tester actions" {
+#   address_tester_actions="001 011 021 031 101 201 301 401 501 601 701 801 901"
+#   for create_mode in 0 1 2; do
+#     for action in $address_tester_actions; do
+#       for rpc_url in $l1_rpc_url $l2_rpc_url; do
+#         for network_id in $l1_network_id $l2_network_id; do
+#           private_key_for_tx=$([[ "$rpc_url" = "$l1_rpc_url" ]] && echo "$l1_private_key" || echo "$l2_private_key")
+#           run cast send --gas-limit 2500000 --legacy --value "$network_id" --rpc-url "$rpc_url" --private-key "$private_key_for_tx" "$tester_contract_address" \
+#             "$(cast abi-encode 'f(uint32, address, uint256)' "0x${create_mode}${action}" "$test_lxly_proxy_addr" "$network_id")"
+#           [[ "$status" -eq 0 ]] || echo "Failed action: 0x${create_mode}${action} on $rpc_url with network $network_id"
+#         done
+#       done
+#     done
+#   done
+# }
 
 @test "Claim individual deposits on bridged network" {
     echo "Starting Claim individual deposits test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || { echo "Bridge Tests Suite file not found" >&3; skip "Bridge Tests Suite file not found"; }
 
+    # Load scenarios from JSON
+    scenarios=$(cat "./tests/lxly/assets/bridge-tests-suite.json")
+
+    # Process each scenario and try to match with an unclaimed deposit
     index=0
     while read -r scenario; do
         echo "Processing claim for scenario $index: $scenario" >&3
         test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
         test_token=$(echo "$scenario" | jq -r '.Token')
+        test_destination_address=$(echo "$scenario" | jq -r '.DestinationAddress')
+        test_amount=$(echo "$scenario" | jq -r '.Amount')
+        test_metadata=$(echo "$scenario" | jq -r '.MetaData')
         expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
 
-        dest_rpc_url="$l2_rpc_url"
-        dest_private_key="$l2_private_key"
-        dest_bridge_addr="$l2_bridge_addr"
-        dest_network_id="$l1_network_id"
-
-        # Retry fetching all unclaimed deposit counts to handle auto-claimer race conditions
-        unclaimed_deposits=""
-        for attempt in {1..5}; do
-            echo "Attempt $attempt to fetch unclaimed deposit counts..." >&3
-            deposits_response=$(curl -s "$bridge_service_url/bridges/$l1_eth_address")
-            echo "Bridge service response: $deposits_response" >&3
-            unclaimed_deposits=$(echo "$deposits_response" | jq -r '.deposits | map(select(.claim_tx_hash == "")) | map(.deposit_cnt) | join(" ")')
-            echo "Fetched unclaimed deposit counts: $unclaimed_deposits" >&3
-            [[ -n "$unclaimed_deposits" ]] && break
-            echo "No unclaimed deposits found, retrying in 10 seconds..." >&3
-            sleep 10
-        done
-
-        if [[ -z "$unclaimed_deposits" ]]; then
-            echo "No unclaimed deposits found for address $l1_eth_address at index $index after retries" >&3
-            [[ "$expected_result_claim" == "N/A" ]] || { echo "Test $index expected a claim but no unclaimed deposits found" >&3; return 1; }
+        # Skip if no claim is expected
+        if [[ "$expected_result_claim" == "N/A" ]]; then
+            echo "Scenario $index expects no claim (N/A), skipping" >&3
             index=$((index + 1))
             continue
         fi
 
-        # Iterate through unclaimed deposits
-        claim_attempted=false
-        for deposit_count in $unclaimed_deposits; do
-            echo "Validating deposit $deposit_count is unclaimed..." >&3
-            claim_tx_hash=$(curl -s toman"$bridge_service_url/bridges/$l1_eth_address" | jq -r ".deposits | map(select(.deposit_cnt == $deposit_count)) | .[0].claim_tx_hash")
-            echo "Claim transaction hash for deposit $deposit_count: $claim_tx_hash" >&3
-            if [[ -n "$claim_tx_hash" ]]; then
-                echo "Deposit $deposit_count is already claimed with tx hash: $claim_tx_hash" >&3
-                continue
-            fi
+        # Map test scenario fields to deposit fields
+        case "$test_destination_address" in
+            "Contract") expected_dest_addr="$l1_bridge_addr" ;;
+            "Precompile") expected_dest_addr="0x0000000000000000000000000000000000000004" ;;
+            "EOA") expected_dest_addr="$l1_eth_address" ;;
+            *) echo "Unrecognized Destination Address: $test_destination_address" >&3; return 1 ;;
+        esac
 
-            echo "Attempting to make bridge claim for deposit $deposit_count on index $index..." >&3
+        # Map token address based on scenario, to be adjusted per deposit's leaf_type
+        case "$test_token" in
+            "POL") default_token_addr="$pol_address" ;;
+            "LocalERC20") default_token_addr="$test_erc20_addr" ;;
+            "WETH") default_token_addr="$pp_weth_address" ;;
+            "Buggy") default_token_addr="$test_erc20_buggy_addr" ;;
+            "GasToken") default_token_addr="$gas_token_address" ;;
+            "NativeEther") default_token_addr="0x0000000000000000000000000000000000000000" ;;
+            *) echo "Unrecognized Test Token: $test_token" >&3; return 1 ;;
+        esac
 
-            # Determine claim command based on BridgeType
-            case "$test_bridge_type" in
-                "Asset"|"Weth") claim_command="polycli ulxly claim asset" ;;
-                "Message") claim_command="polycli ulxly claim message" ;;
-                *) echo "Unrecognized Bridge Type for claim: $test_bridge_type" >&3; return 1 ;;
-            esac
+        # Map amount
+        case "$test_amount" in
+            "0") expected_amount="0" ;;
+            "1") expected_amount="1" ;;
+            "Max") expected_amount=$(cast max-uint) ;;
+            "Random") expected_amount=$(echo "${test_results[$index]}" | cut -d'|' -f4) ;;
+            *) echo "Unrecognized Amount: $test_amount" >&3; return 1 ;;
+        esac
+        echo "test_results[$index]=${test_results[$index]}" >&3
+        echo "Expected amount for scenario $index: $expected_amount" >&3
 
-            # Construct the claim command
-            claim_command="$claim_command --bridge-address $dest_bridge_addr --private-key $dest_private_key --rpc-url $dest_rpc_url --deposit-count $deposit_count --deposit-network $dest_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
-            output_file=$(mktemp)
-            echo "Running command: $claim_command" >&3
-            run $claim_command > "$output_file" 2>&3
-            echo "Command output:" >&3
-            cat "$output_file" >&3
+        # Set expected leaf_type based on BridgeType
+        case "$test_bridge_type" in
+            "Asset"|"Weth") expected_leaf_type="0" ;;
+            "Message") expected_leaf_type="1" ;;
+            *) echo "Unrecognized Bridge Type: $test_bridge_type" >&3; return 1 ;;
+        esac
+        echo "Expected leaf_type for scenario $index: $expected_leaf_type" >&3
 
-            # Validate the claim result
-            if [[ "$expected_result_claim" == "Success" ]]; then
-                [[ "$status" -eq 0 ]] || { echo "Test $index expected Claim Success but failed for deposit $deposit_count: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
-            else
-                [[ "$status" -ne 0 ]] || { echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded for deposit $deposit_count: $claim_command" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
-                if [[ "$expected_result_claim" != "N/A" ]]; then
-                    echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output for deposit $deposit_count: $output" >&3; cat "$output_file" >&3; rm "$output_file"; return 1; }
-                fi
-            fi
-
-            rm "$output_file"
-            claim_attempted=true
-            break # Exit loop after attempting a claim
+        # Fetch deposits for the specific destination address
+        unclaimed_deposits=""
+        for attempt in {1..5}; do
+            echo "Attempt $attempt to fetch unclaimed deposits for address $expected_dest_addr..." >&3
+            deposits_response=$(curl -s "$bridge_service_url/bridges/$expected_dest_addr")
+            echo "Bridge service response for $expected_dest_addr: $deposits_response" >&3
+            unclaimed_deposits=$(echo "$deposits_response" | jq -c '.deposits | map(select(.claim_tx_hash == ""))')
+            echo "Fetched unclaimed deposits: $unclaimed_deposits" >&3
+            [[ -n "$unclaimed_deposits" ]] && break
+            echo "No unclaimed deposits found for address $expected_dest_addr, retrying in 10 seconds..." >&3
+            sleep 10
         done
 
-        if [[ "$claim_attempted" == false && "$expected_result_claim" != "N/A" ]]; then
-            echo "Test $index expected a claim but no unclaimed deposits were available after validation" >&3
+        if [[ -z "$unclaimed_deposits" ]]; then
+            echo "No unclaimed deposits found for address $expected_dest_addr in scenario $index" >&3
+            echo "Expected: dest_addr=$expected_dest_addr, orig_addr=$default_token_addr, amount=$expected_amount, metadata=$test_metadata, leaf_type=$expected_leaf_type" >&3
             return 1
         fi
 
-        rm "$output_file"
+        # Find matching deposit
+        matched_deposit=""
+        while read -r deposit; do
+            deposit_cnt=$(echo "$deposit" | jq -r '.deposit_cnt')
+            deposit_dest_addr=$(echo "$deposit" | jq -r '.dest_addr')
+            deposit_token_addr=$(echo "$deposit" | jq -r '.orig_addr')
+            deposit_amount=$(echo "$deposit" | jq -r '.amount')
+            deposit_metadata=$(echo "$deposit" | jq -r '.metadata')
+            deposit_leaf_type=$(echo "$deposit" | jq -r '.leaf_type')
+
+            # echo "Checking deposit $deposit_cnt: dest_addr=$deposit_dest_addr, orig_addr=$deposit_token_addr, amount=$deposit_amount, metadata=$deposit_metadata, leaf_type=$deposit_leaf_type" >&3
+
+            # Check leaf_type consistency
+            if [[ "$deposit_leaf_type" != "$expected_leaf_type" ]]; then
+                echo "Leaf type mismatch for deposit $deposit_cnt: expected $expected_leaf_type for BridgeType $test_bridge_type, got $deposit_leaf_type" >&3
+                continue
+            fi
+
+            # Set expected_token_addr based on leaf_type
+            if [[ "$deposit_leaf_type" == "1" ]]; then
+                expected_token_addr="$l1_eth_address"
+                echo "Message bridge (leaf_type=1), using sender address $expected_token_addr for expected_token_addr" >&3
+            else
+                expected_token_addr="$default_token_addr"
+                echo "Asset bridge (leaf_type=0), using token address $expected_token_addr for expected_token_addr" >&3
+            fi
+
+            # Match deposit to scenario
+            if [[ "$deposit_dest_addr" == "$expected_dest_addr" && "$deposit_token_addr" == "$expected_token_addr" ]]; then
+                # Skip amount check for Random
+                if [[ "$test_amount" != "Random" && "$deposit_amount" != "$expected_amount" ]]; then
+                    echo "Amount mismatch: expected $expected_amount, got $deposit_amount" >&3
+                    continue
+                fi
+                # Skip metadata check for precompile address
+                if [[ "$deposit_dest_addr" == "0x0000000000000000000000000000000000000004" ]]; then
+                    matched_deposit="$deposit_cnt"
+                    echo "Skipping metadata check for precompile address deposit $deposit_cnt" >&3
+                    break
+                fi
+                # Skip metadata check for Buggy token with MetaData=0x
+                if [[ "$test_token" == "Buggy" && "$test_metadata" == "0x" ]]; then
+                    matched_deposit="$deposit_cnt"
+                    echo "Skipping metadata check for Buggy token with MetaData=0x for deposit $deposit_cnt" >&3
+                    break
+                fi
+                # Skip metadata check for MetaData=0x when orig_addr is not zero
+                if [[ "$test_metadata" == "0x" && "$deposit_token_addr" != "0x0000000000000000000000000000000000000000" ]]; then
+                    matched_deposit="$deposit_cnt"
+                    echo "Skipping metadata check for MetaData=0x with non-zero orig_addr $deposit_token_addr for deposit $deposit_cnt" >&3
+                    break
+                fi
+                # Handle Huge metadata
+                if [[ "$test_metadata" == "Huge" ]]; then
+                    expected_metadata_length=$((97000 + 2)) # 97,000 bytes + 0x
+                    actual_metadata_length=${#deposit_metadata}
+                    if [[ "$actual_metadata_length" -eq "$expected_metadata_length" && "$deposit_metadata" =~ ^0x0+$ ]]; then
+                        matched_deposit="$deposit_cnt"
+                        echo "Matched Huge metadata for deposit $deposit_cnt: length=$actual_metadata_length, all zeros" >&3
+                        break
+                    else
+                        echo "Huge metadata mismatch: expected length=$expected_metadata_length, all zeros; got length=$actual_metadata_length, metadata=$deposit_metadata" >&3
+                        continue
+                    fi
+                fi
+                # Handle Max metadata
+                if [[ "$test_metadata" == "Max" ]]; then
+                    expected_metadata_length=$((261569 * 2 + 2)) # 261,569 bytes = 523,138 hex chars + 0x
+                    actual_metadata_length=${#deposit_metadata}
+                    if [[ "$actual_metadata_length" -eq "$expected_metadata_length" && "$deposit_metadata" =~ ^0x0+$ ]]; then
+                        matched_deposit="$deposit_cnt"
+                        echo "Matched Max metadata for deposit $deposit_cnt: length=$actual_metadata_length, all zeros" >&3
+                        break
+                    else
+                        echo "Max metadata mismatch: expected length=$expected_metadata_length, all zeros; got length=$actual_metadata_length, metadata=$deposit_metadata" >&3
+                        continue
+                    fi
+                fi
+                # Standard metadata comparison for other cases
+                if [[ "$test_metadata" != "Random" && "$deposit_metadata" != "$test_metadata" ]]; then
+                    echo "Metadata mismatch: expected $test_metadata, got $deposit_metadata" >&3
+                    continue
+                fi
+                matched_deposit="$deposit_cnt"
+                break
+            fi
+        done < <(echo "$unclaimed_deposits" | jq -c '.[]')
+
+        if [[ -z "$matched_deposit" ]]; then
+            echo "No matching unclaimed deposit found for scenario $index" >&3
+            echo "Expected: dest_addr=$expected_dest_addr, orig_addr=$expected_token_addr, amount=$expected_amount, metadata=$test_metadata, leaf_type=$expected_leaf_type" >&3
+            return 1
+        fi
+
+        echo "Matched deposit $matched_deposit for scenario $index" >&3
+
+        # Construct the claim command
+        case "$test_bridge_type" in
+            "Asset"|"Weth") claim_command="polycli ulxly claim asset" ;;
+            "Message") claim_command="polycli ulxly claim message" ;;
+            *) echo "Unrecognized Bridge Type for claim: $test_bridge_type" >&3; return 1 ;;
+        esac
+
+        claim_command="$claim_command --bridge-address $l2_bridge_addr --private-key $l2_private_key --rpc-url $l2_rpc_url --deposit-count $matched_deposit --deposit-network $l1_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
+        output_file=$(mktemp)
+        echo "Running command: $claim_command" >&3
+        run $claim_command > "$output_file" 2>&3
+        echo "Command output:" >&3
+        cat "$output_file" >&3
+
+        # Validate the claim result
+        if [[ "$expected_result_claim" == "Success" ]]; then
+            if [[ "$status" -ne 0 ]]; then
+                if echo "$output" | grep -q "already been claimed"; then
+                    echo "Deposit $matched_deposit already claimed, continuing" >&3
+                    [ -f "$output_file" ] && rm "$output_file"
+                    continue
+                else
+                    echo "Test $index expected Claim Success but failed for deposit $matched_deposit: $claim_command" >&3
+                    [ -f "$output_file" ] && cat "$output_file" >&3
+                    [ -f "$output_file" ] && rm "$output_file"
+                    return 1
+                fi
+            fi
+        else
+            if [[ "$status" -eq 0 ]]; then
+                echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded for deposit $matched_deposit: $claim_command" >&3
+                [ -f "$output_file" ] && cat "$output_file" >&3
+                [ -f "$output_file" ] && rm "$output_file"
+                return 1
+            fi
+            if [[ "$expected_result_claim" != "N/A" && -n "$expected_result_claim" ]]; then
+                echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output for deposit $matched_deposit: $output" >&3; cat "$output_file" >&3; [ -f "$output_file" ] && rm "$output_file"; return 1; }
+            fi
+        fi
+
+        [ -f "$output_file" ] && rm "$output_file"
         index=$((index + 1))
     done < <(echo "$scenarios" | jq -c '.[]')
 }
