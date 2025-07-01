@@ -16,7 +16,6 @@ setup() {
     bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
     l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
     l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    claimtxmanager_addr="${CLAIMTXMANAGER_ADDR:-0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8}"
     claim_wait_duration="${CLAIM_WAIT_DURATION:-10m}"
 
     # Define constants
@@ -28,9 +27,6 @@ setup() {
 
     pol_address="0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E"
     gas_token_address="0x0000000000000000000000000000000000000000"
-
-    token_hash=$(cast keccak $(cast abi-encode --packed 'f(uint32,address)' 0 $gas_token_address))
-    l2_gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
 
     # Load test scenarios from file
     scenarios=$(cat "./tests/lxly/assets/bridge-tests-suite.json")
@@ -81,8 +77,8 @@ setup() {
         *) echo "Unrecognized Bridge Type: $test_bridge_type" >&3; return 1 ;;
         esac
         
-        fixedTestCommandFlags="--rpc-url $l1_rpc_url --destination-network $l2_network_id"
-        test_command="$test_command $fixedTestCommandFlags"
+        fixed_test_command_flags="--rpc-url $l1_rpc_url --destination-network $l2_network_id"
+        test_command="$test_command $fixed_test_command_flags"
 
         # Destination Address
         case "$test_destination_adress" in
@@ -161,22 +157,6 @@ setup() {
         echo "test_results[$key]=${test_results[$key]}" >&3
     done
 }
-
-# @test "Run address tester actions" {
-#   address_tester_actions="001 011 021 031 101 201 301 401 501 601 701 801 901"
-#   for create_mode in 0 1 2; do
-#     for action in $address_tester_actions; do
-#       for rpc_url in $l1_rpc_url $l2_rpc_url; do
-#         for network_id in $l1_network_id $l2_network_id; do
-#           private_key_for_tx=$([[ "$rpc_url" = "$l1_rpc_url" ]] && echo "$l1_private_key" || echo "$l2_private_key")
-#           run cast send --gas-limit 2500000 --legacy --value "$network_id" --rpc-url "$rpc_url" --private-key "$private_key_for_tx" "$tester_contract_address" \
-#             "$(cast abi-encode 'f(uint32, address, uint256)' "0x${create_mode}${action}" "$test_lxly_proxy_addr" "$network_id")"
-#           [[ "$status" -eq 0 ]] || echo "Failed action: 0x${create_mode}${action} on $rpc_url with network $network_id"
-#         done
-#       done
-#     done
-#   done
-# }
 
 @test "Claim individual deposits on bridged network" {
     echo "Starting Claim individual deposits test" >&3
@@ -413,4 +393,20 @@ setup() {
         [ -f "$output_file" ] && rm "$output_file"
         index=$((index + 1))
     done < <(echo "$scenarios" | jq -c '.[]')
+}
+
+@test "Run address tester actions" {
+  address_tester_actions="001 011 021 031 101 201 301 401 501 601 701 801 901"
+  for create_mode in 0 1 2; do
+    for action in $address_tester_actions; do
+      for rpc_url in $l1_rpc_url $l2_rpc_url; do
+        for network_id in $l1_network_id $l2_network_id; do
+          private_key_for_tx=$([[ "$rpc_url" = "$l1_rpc_url" ]] && echo "$l1_private_key" || echo "$l2_private_key")
+          run cast send --gas-limit 2500000 --legacy --value "$network_id" --rpc-url "$rpc_url" --private-key "$private_key_for_tx" "$tester_contract_address" \
+            "$(cast abi-encode 'f(uint32, address, uint256)' "0x${create_mode}${action}" "$test_lxly_proxy_addr" "$network_id")"
+          [[ "$status" -eq 0 ]] || echo "Failed action: 0x${create_mode}${action} on $rpc_url with network $network_id"
+        done
+      done
+    done
+  done
 }
