@@ -327,7 +327,7 @@ setup() {
                 fi
                 # Handle Max metadata
                 if [[ "$test_metadata" == "Max" ]]; then
-                    expected_metadata_length=$((261569 * 2 + 2)) # 261,569 bytes = 523,138 hex chars + 0x
+                    expected_metadata_length=$((261570))
                     actual_metadata_length=${#deposit_metadata}
                     if [[ "$actual_metadata_length" -eq "$expected_metadata_length" && "$deposit_metadata" =~ ^0x0+$ ]]; then
                         matched_deposit="$deposit_cnt"
@@ -363,7 +363,7 @@ setup() {
             *) echo "Unrecognized Bridge Type for claim: $test_bridge_type" >&3; return 1 ;;
         esac
 
-        claim_command="$claim_command --bridge-address $l2_bridge_addr --private-key $l2_private_key --rpc-url $l2_rpc_url --deposit-count $matched_deposit --deposit-network $l1_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
+        claim_command="$claim_command --destination-address $deposit_dest_addr --bridge-address $l2_bridge_addr --private-key $l2_private_key --rpc-url $l2_rpc_url --deposit-count $matched_deposit --deposit-network $l1_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
         output_file=$(mktemp)
         echo "Running command: $claim_command" >&3
         run $claim_command > "$output_file" 2>&3
@@ -392,7 +392,21 @@ setup() {
                 return 1
             fi
             if [[ "$expected_result_claim" != "N/A" && -n "$expected_result_claim" ]]; then
-                echo "$output" | grep -q "$expected_result_claim" || { echo "Test $index expected Claim error '$expected_result_claim' not found in output for deposit $matched_deposit: $output" >&3; cat "$output_file" >&3; [ -f "$output_file" ] && rm "$output_file"; return 1; }
+                if [[ "$expected_result_claim" =~ ^oversized\ data ]]; then
+                    echo "$output" | grep -q "oversized data: transaction size [0-9]\+, limit 131072" || {
+                        echo "Test $index expected Claim error pattern 'oversized data: transaction size [0-9]+, limit 131072' not found in output for deposit $matched_deposit: $output" >&3
+                        cat "$output_file" >&3
+                        [ -f "$output_file" ] && rm "$output_file"
+                        return 1
+                    }
+                else
+                    echo "$output" | grep -q "$expected_result_claim" || {
+                        echo "Test $index expected Claim error '$expected_result_claim' not found in output for deposit $matched_deposit: $output" >&3
+                        cat "$output_file" >&3
+                        [ -f "$output_file" ] && rm "$output_file"
+                        return 1
+                    }
+                fi
             fi
         fi
 

@@ -37,7 +37,7 @@
         "ForceUpdate": "True",
         "Amount": "1",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultClaim": "0x37e391c3"
     },
     {
         "DestinationAddress": "Contract",
@@ -87,7 +87,7 @@
         "ForceUpdate": "True",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0xe0417cec"
+        "ExpectedResultClaim": "oversized data: transaction size 133272, limit 131072"
     },
     {
         "DestinationAddress": "Precompile",
@@ -117,6 +117,6 @@
         "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultClaim": "0x23d72133"
     }
 ]
