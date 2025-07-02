@@ -17,7 +17,8 @@
         "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x23d72133"
+        "ExpectedResultClaim": "0x23d72133",
+        "_comments": "Expected to pass in the first run, but fail from the second run onwards"
     },
     {
         "DestinationAddress": "Precompile",
@@ -117,6 +118,7 @@
         "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x23d72133"
+        "ExpectedResultClaim": "0x23d72133",
+        "_comments": "Expected to pass in the first run, but fail from the second run onwards"
     }
 ]
