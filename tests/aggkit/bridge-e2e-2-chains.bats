@@ -77,4 +77,13 @@ setup() {
 
     echo "====== claimMessage (L2 pp2)" >&3
     process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
+    claim_global_index=$output
+    log "Claim global index: $claim_global_index"
+
+    # verify the message is bridged correctly
+    run get_claim "$l2_pp2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
+    assert_success
+    local claim_metadata=$(echo "$output" | jq -r '.metadata')
+    log "Claim metadata: $claim_metadata"
+    assert_equal "$claim_metadata" "$meta_bytes"
 }
