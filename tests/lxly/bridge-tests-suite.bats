@@ -2,7 +2,7 @@
 
 setup() {
     # Define environment variables with defaults
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
+    kurtosis_enclave_name="${ENCLAVE_NAME:-cdk}"
     l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
     l1_rpc_url="${L1_RPC_URL:-http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)}"
@@ -10,7 +10,7 @@ setup() {
 
     l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url="${L2_RPC_URL:-$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)}"
+    l2_rpc_url="${L2_RPC_URL:-$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc)}"
     l2_bridge_addr="${L2_BRIDGE_ADDR:-0x927aa8656B3a541617Ef3fBa4A2AB71320dc7fD7}"
 
     bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
@@ -251,10 +251,10 @@ invalidate_deposits_cache() {
         test_destination_address=$(echo "$scenario" | jq -r '.DestinationAddress')
         test_amount=$(echo "$scenario" | jq -r '.Amount')
         test_metadata=$(echo "$scenario" | jq -r '.MetaData')
-        expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
+        expected_result_claim=$(echo "$scenario" | jq -c '.ExpectedResultClaim')
 
         # Skip if no claim is expected
-        if [[ "$expected_result_claim" == "N/A" ]]; then
+        if [[ "$expected_result_claim" == '"N/A"' ]]; then
             echo "Scenario $index expects no claim (N/A), skipping" >&3
             index=$((index + 1))
             continue
@@ -416,7 +416,7 @@ invalidate_deposits_cache() {
         cat "$output_file" >&3
 
         # Validate the claim result
-        if [[ "$expected_result_claim" == "Success" ]]; then
+        if [[ "$expected_result_claim" == '"Success"' ]]; then
             if [[ "$status" -ne 0 ]]; then
                 if echo "$output" | grep -q "already been claimed"; then
                     echo "Deposit $matched_deposit already claimed, continuing" >&3
@@ -435,15 +435,41 @@ invalidate_deposits_cache() {
             fi
         else
             if [[ "$status" -eq 0 ]]; then
-                echo "Test $index expected Claim failure with '$expected_result_claim' but succeeded for deposit $matched_deposit: $claim_command" >&3
+                echo "Test $index expected Claim failure but succeeded for deposit $matched_deposit: $claim_command" >&3
                 [[ -f "$output_file" ]] && cat "$output_file" >&3
                 [[ -f "$output_file" ]] && rm "$output_file"
                 return 1
             fi
             
-            # Check for specific error patterns
-            if [[ "$expected_result_claim" != "N/A" && -n "$expected_result_claim" ]]; then
-                if [[ "$expected_result_claim" =~ ^oversized\ data ]]; then
+            # Check if expected_result_claim is an array or a single string
+            if [[ "$expected_result_claim" =~ ^\[.*\]$ ]]; then
+                # Handle array of expected results
+                match_found=false
+                while read -r expected_error; do
+                    expected_error=$(echo "$expected_error" | jq -r '.') # Remove quotes
+                    if [[ "$expected_error" =~ ^oversized\ data ]]; then
+                        if echo "$output" | grep -q "oversized data: transaction size [0-9]\+, limit 131072"; then
+                            match_found=true
+                            break
+                        fi
+                    else
+                        if echo "$output" | grep -q "$expected_error"; then
+                            match_found=true
+                            break
+                        fi
+                    fi
+                done < <(echo "$expected_result_claim" | jq -c '.[]')
+                
+                if ! $match_found; then
+                    echo "Test $index expected one of Claim errors $expected_result_claim not found in output for deposit $matched_deposit: $output" >&3
+                    cat "$output_file" >&3
+                    [[ -f "$output_file" ]] && rm "$output_file"
+                    return 1
+                fi
+            else
+                # Handle single expected error
+                expected_error=$(echo "$expected_result_claim" | jq -r '.') # Remove quotes
+                if [[ "$expected_error" =~ ^oversized\ data ]]; then
                     echo "$output" | grep -q "oversized data: transaction size [0-9]\+, limit 131072" || {
                         echo "Test $index expected Claim error pattern 'oversized data: transaction size [0-9]+, limit 131072' not found in output for deposit $matched_deposit: $output" >&3
                         cat "$output_file" >&3
@@ -451,8 +477,8 @@ invalidate_deposits_cache() {
                         return 1
                     }
                 else
-                    echo "$output" | grep -q "$expected_result_claim" || {
-                        echo "Test $index expected Claim error '$expected_result_claim' not found in output for deposit $matched_deposit: $output" >&3
+                    echo "$output" | grep -q "$expected_error" || {
+                        echo "Test $index expected Claim error '$expected_error' not found in output for deposit $matched_deposit: $output" >&3
                         cat "$output_file" >&3
                         [[ -f "$output_file" ]] && rm "$output_file"
                         return 1
