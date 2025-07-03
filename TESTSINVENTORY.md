@@ -83,21 +83,21 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
-| Fork 9 validium w/ legacy stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.2.31/.github/tests/combinations/fork9-legacy-zkevm-validium.yml) | Although this is testable using an older Kurtosis tag, it is not actively maintained and tested in the Kurtosis CDK CI anymore. |
-| Fork 9 rollup w/ legacy stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.2.31/.github/tests/combinations/fork9-legacy-zkevm-rollup.yml) | Although this is testable using an older Kurtosis tag, it is not actively maintained and tested in the Kurtosis CDK CI anymore. |
-| Fork 9 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork9-cdk-erigon-rollup.yml) | |
-| Fork 9 validium w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork9-cdk-erigon-validium.yml) | |
-| Fork 11 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork11-cdk-erigon-rollup.yml) | |
-| Fork 11 validium w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork11-cdk-erigon-validium.yml) | |
-| Fork 11 validium w/ legacy stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.2.31/.github/tests/combinations/fork11-legacy-zkevm-rollup.yml) | Although this is testable using an older Kurtosis tag, it is not actively maintained and tested in the Kurtosis CDK CI anymore. |
-| Fork 12 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork12-cdk-erigon-rollup.yml) | |
-| Fork 12 validium w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork11-cdk-erigon-validium.yml) | |
-| Fork 12 soverign w/ erigon stack and SP1 | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork12-cdk-erigon-sovereign.yml) | |
-| Fork 13 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork13-cdk-erigon-rollup.yml) | |
-| Fork 13 validium w/ erigon stack and mock prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork13-cdk-erigon-validium.yml) | |
-| CDK-OP-Stack wit network SP1 prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/chains/op-succinct-real-prover.yml) | |
-| CDK-OP-Stack with mock SP1 prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/chains/op-succinct.yml) | |
-| CDK-OP-Stack without SP1 prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/nightly/op-rollup/op-default.yml) | |
+| Fork 9 validium w/ legacy stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.2.31/.github/tests/combinations/fork9-legacy-zkevm-validium.yml) | Although this is testable using an older Kurtosis tag, it is not actively maintained and tested in the Kurtosis CDK CI anymore. |
+| Fork 9 rollup w/ legacy stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.2.31/.github/tests/combinations/fork9-legacy-zkevm-rollup.yml) | Although this is testable using an older Kurtosis tag, it is not actively maintained and tested in the Kurtosis CDK CI anymore. |
+| Fork 9 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork9-cdk-erigon-rollup.yml) | |
+| Fork 9 validium w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork9-cdk-erigon-validium.yml) | |
+| Fork 11 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork11-cdk-erigon-rollup.yml) | |
+| Fork 11 validium w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork11-cdk-erigon-validium.yml) | |
+| Fork 11 validium w/ legacy stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.2.31/.github/tests/combinations/fork11-legacy-zkevm-rollup.yml) | Although this is testable using an older Kurtosis tag, it is not actively maintained and tested in the Kurtosis CDK CI anymore. |
+| Fork 12 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork12-cdk-erigon-rollup.yml) | |
+| Fork 12 validium w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork11-cdk-erigon-validium.yml) | |
+| Fork 12 soverign w/ erigon stack and SP1 | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork12-cdk-erigon-sovereign.yml) | |
+| Fork 13 rollup w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork13-cdk-erigon-rollup.yml) | |
+| Fork 13 validium w/ erigon stack and mock prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/combinations/fork13-cdk-erigon-validium.yml) | |
+| CDK-OP-Stack wit network SP1 prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/chains/op-succinct-real-prover.yml) | |
+| CDK-OP-Stack with mock SP1 prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/chains/op-succinct.yml) | |
+| CDK-OP-Stack without SP1 prover | Kurtosis | ✅ | N/A | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/nightly/op-rollup/op-default.yml) | |
 
 
 ## Execution Layer Tests
