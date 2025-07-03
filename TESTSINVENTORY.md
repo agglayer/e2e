@@ -100,7 +100,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | CDK-OP-Stack without SP1 prover | Kurtosis | ✅ | 🚧 | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/nightly/op-rollup/op-default.yml) | |
 
 
-# Execution Layer Tests
+## Execution Layer Tests
 
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
@@ -118,7 +118,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Smooth crypto test cases | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/smoothcrypto/tasks/main.yml) | |
 
 
-# Full System Tests
+## Full System Tests
 
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
@@ -128,7 +128,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Ethereum test suite stress tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/run-retest-with-cast.sh) | |
 
 
-# CDK OP Geth Tests
+## CDK OP Geth Tests
 
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
