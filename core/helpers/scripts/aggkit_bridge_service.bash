@@ -281,7 +281,7 @@ function get_claim() {
         ((attempt++))
         log "🔍 Attempt $attempt"
         log "get claim global index: $expected_global_index"
-        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id&populate_proofs=true")
+        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true")
 
         log "------ claims_result ------"
         log "$claims_result"
