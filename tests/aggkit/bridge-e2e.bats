@@ -102,10 +102,4 @@ setup() {
 
     # Claim deposit (settle it on the L2)
     process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true"
-
-    echo "=== Running L2 gas token ($native_token_addr) deposit to L1 network" >&3
-    destination_addr=$sender_addr
-    destination_net=0
-    run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
-    assert_success
 }

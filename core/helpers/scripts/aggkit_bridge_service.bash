@@ -109,6 +109,12 @@ function check_claim_revert_code() {
         return 2
     fi
 
+    # 0x93be706b -> InvalidGlobalIndex(), meaning that the global index is invalid
+    if grep -q "0x93be706b" <<<"$response_content"; then
+        log "⏳ InvalidGlobalIndex() (revert code 0x93be706b)"
+        return 3
+    fi
+
     log "❌ Claim failed. response: $response_content"
     return 1
 }
@@ -135,6 +141,11 @@ function claim_bridge() {
             log "🎉 Claim successful"
             run generate_global_index "$bridge_info" "$source_network_id" "$manipulated_global_index"
             echo $output
+            return 0
+        fi
+
+        if [ "$request_result" -eq 3 ] && [ "$manipulated_global_index" == "true" ]; then
+            log "🎉 Test success: InvalidGlobalIndex() (revert code 0x93be706b)"
             return 0
         fi
 
