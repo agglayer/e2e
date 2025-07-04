@@ -62,3 +62,28 @@ function fund() {
 
     echo "✅ Successfully funded $receiver_addr with $amount of native tokens" >&2
 }
+
+# Function is used to fund a receiver address with native tokens up to specified amount.
+# It takes four arguments:
+# 1. sender_private_key: The private key of the sender
+# 2. receiver_addr: The address of the receiver
+# 3. amount: The amount of native tokens desired on receiver (in wei)
+# 4. rpc_url: The RPC URL of the Ethereum network
+function fund_up_to() {
+    local sender_private_key=$1
+    local receiver_addr=$2
+    local amount=$3
+    local rpc_url=$4
+
+    local balance
+    balance=$(cast balance --rpc-url "$rpc_url" "$receiver_addr")
+    gap=$(echo "$amount - $balance" | bc -l | cut -f 1 -d '.')
+
+    if [[ $gap -le 0 ]]; then
+        echo "✅ No need to fund $receiver_addr, current balance is sufficient. ($balance)" >&2
+        return 0
+    else
+        echo "⚠️ Funding $receiver_addr with additional $gap wei to reach desired amount of $amount wei." >&2
+        fund "$sender_private_key" "$receiver_addr" "$gap" "$rpc_url"
+    fi
+}

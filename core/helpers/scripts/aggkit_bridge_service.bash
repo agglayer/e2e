@@ -280,7 +280,8 @@ function get_claim() {
     while true; do
         ((attempt++))
         log "🔍 Attempt $attempt"
-        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id")
+        log "get claim global index: $expected_global_index"
+        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true")
 
         log "------ claims_result ------"
         log "$claims_result"
@@ -302,6 +303,12 @@ function get_claim() {
                     "destination_network"
                     "amount"
                     "from_address"
+                    "global_exit_root"
+                    "rollup_exit_root"
+                    "mainnet_exit_root"
+                    "metadata"
+                    "proof_local_exit_root"
+                    "proof_rollup_exit_root"
                 )
                 # Check that all required fields exist (and are not null) in claims[0]
                 for field in "${required_fields[@]}"; do
