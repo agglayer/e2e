@@ -140,14 +140,14 @@ jobs:
       - name: Dump enclave logs
         if: ${{ failure() }}
         run: kurtosis dump ./dump
-    
+
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
           archive_name="dump_run_with_args_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
-  
+
       - name: Upload logs
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
@@ -160,3 +160,17 @@ jobs:
         run: |
           kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
+
+      - name: Record test run in Datadog
+        if: always()
+        uses: agglayer/gha-record-e2e-test-run@v1
+        with:
+          enable_ai_analysis: "true"
+          host: "github-actions-runners"
+          status: ${{ job.status }}
+          ref_agglayer: "${{ inputs.docker-image-override == 'agglayer_image' && inputs.docker-tag || '' }}"
+          ref_kurtosis: "${{ inputs.kurtosis-cdk-ref }}"
+          ref_e2e: "${{ inputs.agglayer-e2e-ref }}"
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

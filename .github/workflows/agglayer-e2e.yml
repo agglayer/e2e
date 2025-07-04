@@ -186,3 +186,17 @@ jobs:
         run: |
           kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
+
+      - name: Record test run in Datadog
+        if: always()
+        uses: agglayer/gha-record-e2e-test-run@v1
+        with:
+          enable_ai_analysis: "true"
+          host: "github-actions-runners"
+          status: ${{ job.status }}
+          ref_agglayer: "${{ inputs.docker-image-override == 'agglayer_image' && inputs.docker-tag || '' }}"
+          ref_kurtosis: "${{ inputs.kurtosis-cdk-ref }}"
+          ref_e2e: "${{ inputs.agglayer-e2e-ref }}"
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
