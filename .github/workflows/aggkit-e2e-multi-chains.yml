@@ -193,6 +193,7 @@ jobs:
 
       - name: Record test run in Datadog
         if: always()
+        continue-on-error: true
         uses: agglayer/gha-record-e2e-test-run@v1
         with:
           enable_ai_analysis: "true"
