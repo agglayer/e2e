@@ -1,0 +1,17 @@
+{
+    "unsafeSkipStorageCheck": true,
+    "tagSCPreviousVersion": "v9.0.0-rc.2-pp",
+    "rollupManagerAddress": "0x2F50ef6b8e8Ee4E579B17619A92dE3E2ffbD8AD2",
+    "aggLayerGatewayAddress":"0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+    "timelockDelay": 60,
+    "timelockSalt": "",
+    "deployerPvtKey": "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625",
+    "maxFeePerGas": "",
+    "maxPriorityFeePerGas": "",
+    "multiplierGas": "",
+    "timelockAdminAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+    "forkParams": {
+        "rpc": "",
+        "network": "localhost"
+    }
+}

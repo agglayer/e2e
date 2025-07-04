@@ -53,7 +53,7 @@ setup() {
     echo "=== Running LxLy claim L2(PP1) to L1 for $bridge_tx_hash" >&3
     process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
 
-    if [[ "$ENCLAVE" == "aggkit" ]]; then
+    if [[ "$ENCLAVE_NAME" == "aggkit" ]]; then
         echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1 (PP1 network: $aggkit_pp1_rpc_url)"
         wait_to_settled_certificate_containing_global_index $aggkit_pp1_rpc_url $global_index_pp2_to_pp1
     else
@@ -61,4 +61,29 @@ setup() {
         run $PROJECT_ROOT/core/helpers/scripts/batch_verification_monitor.sh 0 600
         assert_success
     fi
+}
+
+@test "Transfer message L2 to L2" {
+    echo "====== bridgeMessage L2(pp1) -> L2(pp2)" >&3
+    destination_addr=$sender_addr
+    destination_net=$l2_pp2_network_id
+
+    # amount is 0 for now since we only want to bridge message
+    amount=0
+    run bridge_message "$native_token_addr" "$l2_pp1_url" "$l2_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+    log "Bridge transaction hash: $bridge_tx_hash"
+
+    echo "====== claimMessage (L2 pp2)" >&3
+    process_bridge_claim "$l2_pp1_network_id" "$bridge_tx_hash" "$l2_pp2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_pp2_url"
+    claim_global_index=$output
+    log "Claim global index: $claim_global_index"
+
+    # verify the message is bridged correctly
+    run get_claim "$l2_pp2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
+    assert_success
+    local claim_metadata=$(echo "$output" | jq -r '.metadata')
+    log "Claim metadata: $claim_metadata"
+    assert_equal "$claim_metadata" "$meta_bytes"
 }

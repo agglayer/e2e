@@ -80,18 +80,17 @@ jobs:
               docker images
           fi
 
-      - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+      - name: Install Kurtosis CLI and Foundry
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        with:
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
-
-      - name: Install kurtosis cli and jq
-        run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install -y kurtosis-cli jq
-          kurtosis analytics disable
 
       - name: Write args input to a file
         run: |
@@ -111,17 +110,25 @@ jobs:
 
       - name: Run e2e tests
         run: |
+          set -eo pipefail
           pushd agglayer-e2e || exit 1
           set -a
           source ./tests/.env
           set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
-          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          if [[ $ENCLAVE == "op" ]]; then
-            bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/e2e-pp.bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats
+          export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
+          if [[ $ENCLAVE_NAME == "op" ]]; then
+          bats ./tests/aggkit/bridge-e2e.bats \
+               ./tests/aggkit/e2e-pp.bats \
+               ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+               ./tests/op/optimistic-mode.bats \
+                 || exit 1
           else
-            bats ./tests/aggkit/bridge-e2e-custom-gas.bats ./tests/aggkit/bridge-e2e.bats ./tests/aggkit/e2e-pp.bats
+            bats ./tests/aggkit/bridge-e2e.bats \
+                 ./tests/aggkit/e2e-pp.bats \
+                 ./tests/aggkit/bridge-e2e-custom-gas.bats \
+                 || exit 1
           fi
           popd
 
