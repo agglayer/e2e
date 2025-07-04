@@ -13,7 +13,7 @@ export_env_var() {
 PACKAGE=${1:-"kurtosis-cdk"}
 VERSION=${2:-"v0.3.2"}
 ARGS_FILE=${3:-".github/tests/combinations/fork12-cdk-erigon-validium.yml"}
-ENCLAVE=${4:-"cdk"}
+ENCLAVE_NAME=${4:-"cdk"}
 CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE:-""} # Allow optional override.
 echo "PACKAGE=${PACKAGE}"
 echo "VERSION=${VERSION}"
@@ -22,7 +22,7 @@ echo "CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE}"
 
 if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/tags/${VERSION}/${ARGS_FILE}"
-    echo "ENCLAVE=${ENCLAVE}"
+    echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
     # If provided, add custom agglayer image to the args file.
@@ -45,23 +45,23 @@ if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     cat "${CONFIG_FILE}"
 
     # Deploy the package.
-    kurtosis run --enclave "${ENCLAVE}" --args-file="${CONFIG_FILE}" "github.com/0xPolygon/kurtosis-cdk@${VERSION}"
+    kurtosis run --enclave "${ENCLAVE_NAME}" --args-file="${CONFIG_FILE}" "github.com/0xPolygon/kurtosis-cdk@${VERSION}"
 
     # Export environment variables.
-    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" cdk-erigon-rpc-001 rpc)"
-    export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE}" cdk-erigon-sequencer-001 rpc)"
+    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE_NAME}" cdk-erigon-rpc-001 rpc)"
+    export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE_NAME}" cdk-erigon-sequencer-001 rpc)"
 
 elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
-    ENCLAVE="pos"
+    ENCLAVE_NAME="pos"
     ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/${ARGS_FILE}"
-    echo "ENCLAVE=${ENCLAVE}"
+    echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
     # Deploy the package.
-    kurtosis run --enclave "${ENCLAVE}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
+    kurtosis run --enclave "${ENCLAVE_NAME}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
 
     # Determine the L2 CL node type.
-    export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"
+    export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc)"
     if [[ "${ARGS_FILE}" =~ "heimdall-v2" ]]; then
         L2_CL_NODE_TYPE="heimdall-v2"
     else
@@ -70,20 +70,20 @@ elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
     export_env_var "L2_CL_NODE_TYPE" "${L2_CL_NODE_TYPE}"
 
 elif [[ "${PACKAGE}" == "optimism-package" ]]; then
-    ENCLAVE="op"
+    ENCLAVE_NAME="op"
     ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/${ARGS_FILE}"
-    echo "ENCLAVE=${ENCLAVE}"
+    echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
     echo "ARGS_FILE=${ARGS_FILE}"
 
     # Deploy the package.
-    kurtosis run --enclave "${ENCLAVE}" --args-file="${ARGS_FILE}" "github.com/ethpandaops/optimism-package@${VERSION}"
+    kurtosis run --enclave "${ENCLAVE_NAME}" --args-file="${ARGS_FILE}" "github.com/ethpandaops/optimism-package@${VERSION}"
 
     # Export environment variables.
-    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-el-1-op-geth-op-node-op-kurtosis rpc)"
-    export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE}" op-batcher-op-kurtosis http)"
+    export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE_NAME}" op-el-1-op-geth-op-node-op-kurtosis rpc)"
+    export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE_NAME}" op-batcher-op-kurtosis http)"
 else
     echo "❌ Unsupported package: ${PACKAGE}"
     exit 1
 fi
 
-export_env_var "ENCLAVE" "${ENCLAVE}"
+export_env_var "ENCLAVE_NAME" "${ENCLAVE_NAME}"

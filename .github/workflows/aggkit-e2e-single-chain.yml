@@ -117,8 +117,8 @@ jobs:
           set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
-          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
-          if [[ $ENCLAVE == "op" ]]; then
+          export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
+          if [[ $ENCLAVE_NAME == "op" ]]; then
           bats ./tests/aggkit/bridge-e2e.bats \
                ./tests/aggkit/e2e-pp.bats \
                ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
