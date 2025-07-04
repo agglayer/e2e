@@ -14,18 +14,18 @@ pos_setup() {
   echo "L2_CL_NODE_TYPE=${L2_CL_NODE_TYPE}"
 
   # The name of the Kurtosis enclave (used for default values).
-  export ENCLAVE=${ENCLAVE:-"pos"}
-  echo "ENCLAVE=${ENCLAVE}"
+  export ENCLAVE_NAME=${ENCLAVE_NAME:-"pos"}
+  echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
 
   # L1 and L2 RPC and API URLs.
-  export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print "${ENCLAVE}" el-1-geth-lighthouse rpc)"}
+  export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc)"}
   echo "L1_RPC_URL=${L1_RPC_URL}"
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-heimdall-validator" rpc)}
-    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE}" "l2-cl-1-heimdall-bor-validator" http)}
+    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-heimdall-validator" rpc)}
+    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-1-heimdall-bor-validator" http)}
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE}" "l2-el-1-bor-modified-for-heimdall-v2-heimdall-v2-validator" rpc)}
-    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE}" "l2-cl-1-heimdall-v2-bor-modified-for-heimdall-v2-validator" http)}
+    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-modified-for-heimdall-v2-heimdall-v2-validator" rpc)}
+    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-1-heimdall-v2-bor-modified-for-heimdall-v2-validator" http)}
   fi
   echo "L2_RPC_URL=${L2_RPC_URL}"
   echo "L2_CL_API_URL=${L2_CL_API_URL}"
@@ -38,7 +38,7 @@ pos_setup() {
    [[ -z "${L2_STATE_RECEIVER_ADDRESS:-}" ]] ||
    [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
    [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
-    matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE}" matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
+    matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
 
     # L1 contract addresses.
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
@@ -57,7 +57,7 @@ pos_setup() {
     echo "L1_ERC721_TOKEN_ADDRESS=${L1_ERC721_TOKEN_ADDRESS}"
 
     # L2 contract addresses.
-    export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
+    export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE_NAME}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
     echo "L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS}"
 
     export L2_ERC20_TOKEN_ADDRESS=${L2_ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.TestToken')}
