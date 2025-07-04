@@ -43,21 +43,20 @@ manage_bridge_spammer() {
 
 # Helper function to toggle optimistic mode
 toggle_optimistic_mode() {
-    local action="$1"  # enable or disable
-    local expected_state="$2"  # true or false
+    local enabled=$1  # true or false
 
     local method="enableOptimisticMode"
-    [[ "$action" == "disable" ]] && method="disableOptimisticMode"
+    [[ "$enabled" == "false" ]] && method="disableOptimisticMode"
 
     echo "Executing $method..." >&3
     cast send "$rollup_address" "$method()" --rpc-url "$l1_rpc_url" --private-key "$optimistic_mode_manager_pvk" >&3
 
     local result
     result=$(cast call "$rollup_address" "optimisticMode()(bool)" --rpc-url "$l1_rpc_url")
-    if [[ "$result" == "$expected_state" ]]; then
-        echo "Success: optimisticMode() returned $expected_state" >&3
+    if [[ "$result" == $enabled ]]; then
+        echo "Success: optimisticMode() returned $enabled" >&3
     else
-        echo "Error: optimisticMode() did not return $expected_state, got $result" >&3
+        echo "Error: optimisticMode() did not return $enabled, got $result" >&3
         return 1
     fi
 }
@@ -99,7 +98,7 @@ check_fep_consensus_version() {
     cast rpc --rpc-url "$l2_node_url" admin_stopSequencer >stop.out
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001 >&3
 
-    toggle_optimistic_mode "enable" "true"
+    toggle_optimistic_mode "true"
 
     # Restart sequencer with the same configuration used to stop it
     cast rpc --rpc-url "$l2_node_url" admin_startSequencer "$(cat stop.out)" >&3
@@ -115,7 +114,7 @@ check_fep_consensus_version() {
 
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001 >&3
 
-    toggle_optimistic_mode "disable" "false"
+    toggle_optimistic_mode "false"
 
     manage_bridge_spammer "start"
     kurtosis service start "$kurtosis_enclave_name" aggkit-001 >&3
