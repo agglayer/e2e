@@ -1982,8 +1982,8 @@ setup() {
     # STEP 6: Update contract with all four sets of claim parameters
     # ========================================
     log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
-    log "📝 First claim will use global_index_1: $global_index_1 (malformed - will fail)"
-    log "📝 Second claim will use global_index_1: $global_index_1 (correct - will succeed)"
+    log "📝 First claim will use global_index_2: $global_index_2 (malformed - will fail)"
+    log "📝 Second claim will use global_index_2: $global_index_2 (correct - will succeed)"
     log "📝 Third claim will use global_index_3: $global_index_3 (malformed - will fail)"
     log "📝 Fourth claim will use global_index_4: $global_index_4 (correct - will succeed)"
 
@@ -2069,7 +2069,7 @@ setup() {
         local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
-        log "🔍 Validating second asset claim was processed (should succeed with same global index as first)"
+        log "🔍 Validating second asset claim was processed (should succeed with global_index_2)"
         run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_2="$output"
@@ -2170,7 +2170,7 @@ setup() {
         local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
         log "📝 All claims response: $all_claims_result"
 
-        # Check if first claim (failed) is present in the API response
+        # Check if first claim (failed) with global_index_1 is present in the API response
         log "🔍 Checking if first claim (failed) with global_index $global_index_1 is present in API response"
         local first_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
@@ -2221,8 +2221,8 @@ setup() {
     log "🎉 Triple claim test with same global index completed successfully"
     log "📊 Summary:"
     log "   ✅ Contract deployed successfully"
-    log "   ✅ First asset bridge created and malformed parameters prepared (global_index: $global_index_1)"
-    log "   ✅ Second asset bridge created and parameters extracted (global_index: $global_index_1 - same as first)"
+    log "   ✅ First asset bridge created and malformed parameters prepared (global_index: $global_index_2 - same as second)"
+    log "   ✅ Second asset bridge created and parameters extracted (global_index: $global_index_2)"
     log "   ✅ Third asset bridge created and malformed parameters prepared (global_index: $global_index_3)"
     log "   ✅ Fourth asset bridge created and parameters extracted (global_index: $global_index_4)"
     log "   ✅ All four sets of parameters configured in contract"
