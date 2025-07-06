@@ -62,7 +62,7 @@ _agglayer_cdk_common_setup() {
 
     # Resolve ZKEVM Bridge URL
     local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
-    zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
+    zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isn't running" "Successfully resolved zkevm bridge url" false | tail -1)
     readonly zkevm_bridge_url
     echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
 
