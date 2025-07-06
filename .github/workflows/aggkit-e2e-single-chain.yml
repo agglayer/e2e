@@ -110,7 +110,6 @@ jobs:
 
       - name: Run e2e tests
         run: |
-          set -eo pipefail
           pushd agglayer-e2e || exit 1
           set -a
           source ./tests/.env
