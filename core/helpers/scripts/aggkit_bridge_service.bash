@@ -94,10 +94,10 @@ function check_claim_revert_code() {
     local response_content
     response_content=$(<"$file_curl_response")
 
-    # 0x646cf558 -> AlreadyClaimed()
     log "💡 Check claim revert code"
     log "$response_content"
 
+    # 0x646cf558 -> AlreadyClaimed()
     if grep -q "0x646cf558" <<<"$response_content"; then
         log "🎉 Deposit is already claimed (revert code 0x646cf558)"
         return 0
@@ -109,9 +109,9 @@ function check_claim_revert_code() {
         return 2
     fi
 
-    # 0x93be706b -> InvalidGlobalIndex(), meaning that the global index is invalid
-    if grep -q "0x93be706b" <<<"$response_content"; then
-        log "⏳ InvalidGlobalIndex() (revert code 0x93be706b)"
+    # 0x071389e9 -> InvalidGlobalIndex(), meaning that the global index is invalid
+    if grep -q "0x071389e9" <<<"$response_content"; then
+        log "⏳ InvalidGlobalIndex() (revert code 0x071389e9)"
         return 3
     fi
 
@@ -145,7 +145,7 @@ function claim_bridge() {
         fi
 
         if [ "$request_result" -eq 3 ] && [ "$manipulated_global_index" == "true" ]; then
-            log "🎉 Test success: InvalidGlobalIndex() (revert code 0x93be706b)"
+            log "🎉 Test success: InvalidGlobalIndex() (revert code 0x071389e9)"
             return 0
         fi
 
