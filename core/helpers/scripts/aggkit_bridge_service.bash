@@ -227,8 +227,9 @@ function generate_global_index() {
         final_value=$(echo "$final_value + 2^64" | bc)
         if [ "$manipulated_global_index" == "true" ]; then
             log "🔍 -------------------------- Manipulated global index: true"
-            dest_shifted=$(echo "10 * 2^128" | bc)
-            final_value=$(echo "$final_value + $dest_shifted" | bc)
+            # Offset for manipulated global index on mainnet (10 * 2^128)
+            MAINNET_GLOBAL_INDEX_OFFSET=$(echo "10 * 2^128" | bc)
+            final_value=$(echo "$final_value + $MAINNET_GLOBAL_INDEX_OFFSET" | bc)
         fi
     fi
 
