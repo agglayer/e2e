@@ -4,8 +4,6 @@ setup() {
 }
 
 @test "Test triple claim internal calls -> 3 success" {
-    log "🧪 Testing triple claim internal calls: 3 success"
-
     # Deploy the InternalClaims contract
     local mock_artifact_path="$PROJECT_ROOT/compiled-contracts/InternalClaims.sol/InternalClaims.json"
 
