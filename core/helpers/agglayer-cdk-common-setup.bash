@@ -141,7 +141,7 @@ _agglayer_cdk_common_setup() {
     meta_bytes=${META_BYTES:-"0x1234"}
 
     local combined_json_file="/opt/zkevm/combined.json"
-    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
+    kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
     local combined_json_output=$(cat combined.json)
     if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
         l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
@@ -170,7 +170,7 @@ _agglayer_cdk_common_setup() {
     destination_net=${DESTINATION_NET:-"1"}
     destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
-    readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE el-1-geth-lighthouse rpc)"}
+    readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
     readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
@@ -194,12 +194,12 @@ _resolve_url_from_nodes() {
         local node_name="${nodes[i]}"
         local node_port_type="${nodes[i+1]}"
 
-        kurtosis service inspect "$ENCLAVE" "$node_name" || {
-            echo "⚠️  Node $node_name is not running in the $ENCLAVE enclave, trying next one..." >&3
+        kurtosis service inspect "$ENCLAVE_NAME" "$node_name" || {
+            echo "⚠️  Node $node_name is not running in the $ENCLAVE_NAME enclave, trying next one..." >&3
             continue
         }
 
-        resolved_url=$(kurtosis port print "$ENCLAVE" "$node_name" "$node_port_type")
+        resolved_url=$(kurtosis port print "$ENCLAVE_NAME" "$node_name" "$node_port_type")
         if [[ "$resolved_url" != "" ]]; then
             echo "$resolved_url"
             break
@@ -217,7 +217,7 @@ _resolve_url_from_nodes() {
 _get_gas_token_address() {
     local chain_number=$1
     local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
-    kurtosis_download_file_exec_method $ENCLAVE $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+    kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
     local combined_json_output=$(cat "combined-${chain_number}.json")
     if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
         echo "$(echo "$combined_json_output" | jq -r .gasTokenAddress)"
@@ -231,10 +231,10 @@ _agglayer_cdk_common_multi_setup() {
 
     readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
     readonly eth_address=$(cast wallet address --private-key $private_key)
-    readonly l2_pp1_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-001 rpc)
-    readonly l2_pp2_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-002 rpc)
+    readonly l2_pp1_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-001 rpc)
+    readonly l2_pp2_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-002 rpc)
     if [[ $number_of_chains -eq 3 ]]; then
-        readonly l2_pp3_url=$(kurtosis port print $ENCLAVE cdk-erigon-rpc-003 rpc)
+        readonly l2_pp3_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-003 rpc)
     fi
 
     # Resolve Aggkit RPC URL

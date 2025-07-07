@@ -133,7 +133,7 @@ jobs:
           set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
-          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
+          export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
           bats ./tests/aggkit/bridge-e2e-2-chains.bats
           popd
 
