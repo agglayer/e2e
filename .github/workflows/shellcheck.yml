@@ -1,0 +1,41 @@
+name: ShellCheck
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  shellcheck:
+    name: Run ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cabal-install ghc
+
+      - name: Clone ShellCheck source
+        run: git clone https://github.com/koalaman/shellcheck.git
+
+      - name: Checkout latest stable release
+        working-directory: shellcheck
+        run: |
+          git checkout $(git describe --tags --abbrev=0)
+
+      - name: Build and install ShellCheck
+        working-directory: shellcheck
+        run: |
+          cabal update
+          cabal install --install-method=copy --installdir=/usr/local/bin
+
+      - name: Run ShellCheck
+        run: |
+          find . -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck -s bash -S warning {} +
