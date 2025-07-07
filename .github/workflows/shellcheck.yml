@@ -23,31 +23,17 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Install dependencies
+      - name: Install ShellCheck
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cabal-install ghc
-
-      - name: Clone ShellCheck source
-        run: git clone https://github.com/koalaman/shellcheck.git
-
-      - name: Checkout latest stable release
-        working-directory: shellcheck
-        run: |
-          git checkout $(git describe --tags --abbrev=0)
-
-      - name: Build and install ShellCheck
-        working-directory: shellcheck
-        run: |
-          cabal update
-          cabal install --install-method=copy --installdir=/usr/local/bin
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
 
       - name: Run ShellCheck on changed files
         run: |
-          CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep -E '\.(sh|bash)$' || true)
-          if [[ -n "$CHANGED_FILES" ]]; then
+            CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep -E '\.(sh|bash)$' || true)
+            if [[ -n "$CHANGED_FILES" ]]; then
             echo "Checking files: $CHANGED_FILES"
             echo "$CHANGED_FILES" | xargs -r shellcheck -s bash -S warning
-          else
+            else
             echo "No .sh or .bash files changed in this commit or PR."
-          fi
+            fi
