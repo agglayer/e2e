@@ -57,12 +57,12 @@ setup() {
 
     echo "----------- Check for settled certificates for all global indexes -----------" >&3
 
-    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_1 (L2 network: $aggkit_bridge_url)"
-    wait_to_settled_certificate_containing_global_index $aggkit_bridge_url $global_index_1
+    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_1 (L2 network: $aggkit_rpc_url)"
+    wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_1
 
-    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_2 (L2 network: $aggkit_bridge_url)"
-    wait_to_settled_certificate_containing_global_index $aggkit_bridge_url $global_index_2
+    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_2 (L2 network: $aggkit_rpc_url)"
+    wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_2
 
-    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_3 (L2 network: $aggkit_bridge_url)"
-    wait_to_settled_certificate_containing_global_index $aggkit_bridge_url $global_index_3
+    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_3 (L2 network: $aggkit_rpc_url)"
+    wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_3
 }
