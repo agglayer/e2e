@@ -1,0 +1,39 @@
+name: ShellCheck
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  shellcheck:
+    name: Run ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install ShellCheck
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on changed files
+        run: |
+            CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep -E '\.(sh|bash|bats)$' || true)
+            if [[ -n "$CHANGED_FILES" ]]; then
+            echo "Checking files: $CHANGED_FILES"
+            echo "$CHANGED_FILES" | xargs -r shellcheck -s bash -S warning
+            else
+            echo "No .sh or .bash files changed in this commit or PR."
+            fi
