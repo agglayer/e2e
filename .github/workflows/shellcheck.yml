@@ -30,7 +30,7 @@ jobs:
 
       - name: Run ShellCheck on changed files
         run: |
-            CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep -E '\.(sh|bash)$' || true)
+            CHANGED_FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD | grep -E '\.(sh|bash|bats)$' || true)
             if [[ -n "$CHANGED_FILES" ]]; then
             echo "Checking files: $CHANGED_FILES"
             echo "$CHANGED_FILES" | xargs -r shellcheck -s bash -S warning
