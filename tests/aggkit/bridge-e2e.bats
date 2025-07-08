@@ -100,7 +100,7 @@ setup() {
     assert_success
     local bridge_tx_hash=$output
 
-    # Claim deposit (it wont settle on the L2)
+    # Claim deposit (claim will fail because global index is manipulated)
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true"
     assert_success
 }
