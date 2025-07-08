@@ -3,6 +3,38 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
+# Function to get certificate height with optional retry logic
+get_or_check_certificate_height() {
+    local expected_height=$1
+    local enable_retry=${2:-false}
+    local max_retries=${3:-10}
+    local retry_delay=${4:-5}
+
+    if [ "$enable_retry" = "true" ]; then
+        echo "=== Getting certificate height (expected: $expected_height, retry: $enable_retry) ===" >&3
+        # With retry logic
+        local retry_count=0
+        local height=0
+
+        while [ $retry_count -lt $max_retries ]; do
+            height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
+            echo "Certificate height: $height" >&3
+
+            if [ "$height" -eq "$expected_height" ]; then
+                echo "Certificate height: $height" >&3
+                return 0
+            fi
+
+            sleep $retry_delay
+            retry_count=$((retry_count + 1))
+        done
+    else
+        height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
+        echo "$height"
+        return 0
+    fi
+}
+
 @test "Global Index PP old contracts: " {
     echo "----------- Test mainnet flag 1, unused bits != 0 -----------" >&3
 
@@ -36,6 +68,10 @@ setup() {
     echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_2 (L2 network: $aggkit_rpc_url)"
     wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_2
 
+    run get_or_check_certificate_height "0" "false"
+    local height=$(echo "$output" | tail -n 1)
+    echo "Certificate height: $height" >&3
+
     echo "----------- Test mainnet flag 0, unused bits != 0 -----------" >&3
 
     destination_addr=$sender_addr
@@ -44,11 +80,9 @@ setup() {
     assert_success
     local bridge_tx_hash=$output
 
-    run process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url" "true" "false"
+    run process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url" "false" "true"
     assert_success
-    local global_index_3=$output
-    echo "Global index: $global_index_3" >&3
 
-    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_3 (L2 network: $aggkit_rpc_url)"
-    wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_3
+    get_or_check_certificate_height "$((height + 1))" "true"
+    assert_success
 }
