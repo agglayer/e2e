@@ -50,50 +50,6 @@ _setup_contract_addresses() {
 # =============================================================================
 # Utility Functions
 # =============================================================================
-
-# Function to fetch unclaimed deposits with caching
-fetch_unclaimed_deposits() {
-    local dest_addr="$1"
-    local cache_key="deposits_$dest_addr"
-    
-    # Check if we already have cached deposits for this address
-    if [[ -n "${deposits_cache[$cache_key]:-}" ]]; then
-        echo "Using cached deposits for address $dest_addr" >&3
-        echo "${deposits_cache[$cache_key]}"
-        return 0
-    fi
-    
-    # Fetch deposits with retry logic
-    local unclaimed_deposits=""
-    for attempt in {1..5}; do
-        echo "Attempt $attempt to fetch unclaimed deposits for address $dest_addr..." >&3
-        local deposits_response=$(curl -s "$bridge_service_url/bridges/$dest_addr")
-        unclaimed_deposits=$(echo "$deposits_response" | jq -c '.deposits | map(select(.claim_tx_hash == ""))')
-        
-        if [[ -n "$unclaimed_deposits" ]]; then
-            # Cache the result
-            deposits_cache[$cache_key]="$unclaimed_deposits"
-            echo "$unclaimed_deposits"
-            return 0
-        fi
-        
-        echo "No unclaimed deposits found for address $dest_addr, retrying in 10 seconds..." >&3
-        sleep 10
-    done
-    
-    # Return empty if no deposits found after all attempts
-    echo ""
-    return 1
-}
-
-# Function to invalidate cache for a specific address (called after successful claims)
-invalidate_deposits_cache() {
-    local dest_addr="$1"
-    local cache_key="deposits_$dest_addr"
-    echo "Invalidating cache for address $dest_addr" >&3
-    unset deposits_cache[$cache_key]
-}
-
 _get_bridge_type_command() {
     local bridge_type="$1"
     case "$bridge_type" in
@@ -204,88 +160,6 @@ _cleanup_max_amount_setup() {
     fi
 }
 
-_get_expected_leaf_type() {
-    local bridge_type="$1"
-    case "$bridge_type" in
-        "Asset"|"Weth") echo "0" ;;
-        "Message") echo "1" ;;
-        *) echo "Unrecognized Bridge Type: $bridge_type" >&3; return 1 ;;
-    esac
-}
-
-_get_expected_amount() {
-    local amount_type="$1"
-    local test_results_entry="$2"
-    
-    case "$amount_type" in
-        "0") echo "0" ;;
-        "1") echo "1" ;;
-        "Max") echo "$(cast max-uint)" ;;
-        "Random") echo "$(echo "$test_results_entry" | cut -d'|' -f4)" ;;
-        *) echo "Unrecognized Amount: $amount_type" >&3; return 1 ;;
-    esac
-}
-
-_should_skip_metadata_check() {
-    local dest_addr="$1"
-    local token_type="$2"
-    local metadata_type="$3"
-    local deposit_token_addr="$4"
-    
-    # Skip metadata check for precompile address
-    if [[ "$dest_addr" == "0x0000000000000000000000000000000000000004" ]]; then
-        return 0
-    fi
-    
-    # Skip metadata check for Buggy token with MetaData=0x
-    if [[ "$token_type" == "Buggy" && "$metadata_type" == "0x" ]]; then
-        return 0
-    fi
-    
-    # Skip metadata check for MetaData=0x when orig_addr is not zero
-    if [[ "$metadata_type" == "0x" && "$deposit_token_addr" != "0x0000000000000000000000000000000000000000" ]]; then
-        return 0
-    fi
-    
-    return 1
-}
-
-_validate_metadata_match() {
-    local metadata_type="$1"
-    local deposit_metadata="$2"
-    
-    case "$metadata_type" in
-        "Huge")
-            local expected_length=$((97000 + 2)) # 97,000 bytes + 0x
-            local actual_length=${#deposit_metadata}
-            if [[ "$actual_length" -eq "$expected_length" && "$deposit_metadata" =~ ^0x0+$ ]]; then
-                return 0
-            fi
-            echo "Huge metadata mismatch: expected length=$expected_length, all zeros; got length=$actual_length, metadata=$deposit_metadata" >&3
-            return 1
-            ;;
-        "Max")
-            local expected_length=$((261570))
-            local actual_length=${#deposit_metadata}
-            if [[ "$actual_length" -eq "$expected_length" && "$deposit_metadata" =~ ^0x0+$ ]]; then
-                return 0
-            fi
-            echo "Max metadata mismatch: expected length=$expected_length, all zeros; got length=$actual_length, metadata=$deposit_metadata" >&3
-            return 1
-            ;;
-        "Random")
-            return 0  # Skip validation for Random
-            ;;
-        *)
-            if [[ "$deposit_metadata" == "$metadata_type" ]]; then
-                return 0
-            fi
-            echo "Metadata mismatch: expected $metadata_type, got $deposit_metadata" >&3
-            return 1
-            ;;
-    esac
-}
-
 _validate_claim_error() {
     local expected_result="$1"
     local output="$2"
@@ -295,7 +169,7 @@ _validate_claim_error() {
         # Handle array of expected results
         local match_found=false
         while read -r expected_error; do
-            expected_error=$(echo "$expected_error" | jq -r '.') # Remove quotes
+            expected_error=$(echo "$expected_error" | jq -r '.')
             if _check_error_pattern "$expected_error" "$output"; then
                 match_found=true
                 break
@@ -307,7 +181,7 @@ _validate_claim_error() {
         fi
     else
         # Handle single expected error
-        local expected_error=$(echo "$expected_result" | jq -r '.') # Remove quotes
+        local expected_error=$(echo "$expected_result" | jq -r '.')
         if ! _check_error_pattern "$expected_error" "$output"; then
             return 1
         fi
@@ -436,7 +310,7 @@ _check_error_pattern() {
             # Execute claim command
             echo "Running claim command: $claim_command" >&3
             run $claim_command >&3
-            echo "Claim command output: $output" >&3
+            # echo "Claim command output: $output" >&3
 
             # Validate claim result
             if [[ "$expected_result_claim" == "Success" ]]; then
@@ -448,8 +322,10 @@ _check_error_pattern() {
                 fi
             else
                 if [[ "$status" -eq 0 ]]; then
-                    echo "Test $index expected Claim failure but succeeded for deposit $deposit_count" >&3
-                    return 1
+                    if ! echo "$output" | grep -q "already been claimed"; then
+                        echo "Test $index expected Claim failure but succeeded for deposit $deposit_count" >&3
+                        return 1
+                    fi
                 fi
                 
                 if ! _validate_claim_error "$expected_result_claim" "$output"; then

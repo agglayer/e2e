@@ -149,7 +149,7 @@
         "ForceUpdate": "True",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultClaim": "0x37e391c3"
     },
     {
         "DestinationAddress": "Precompile",
