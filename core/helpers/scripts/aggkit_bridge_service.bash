@@ -246,11 +246,11 @@ function generate_global_index() {
     if [ "$source_network_id" -ne 0 ]; then
         dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
         final_value=$(echo "$final_value + $dest_shifted" | bc)
-        if [ "$manipulated_rollup_id" == "true" ]; then
-            log "🔍 -------------------------- Manipulated rollup id: true"
-            # Offset for manipulated rollup id on mainnet (10 * 2^32)
-            MAINNET_ROLLUP_ID_OFFSET=$(echo "10 * 2^32" | bc)
-            final_value=$(echo "$final_value + $MAINNET_ROLLUP_ID_OFFSET" | bc)
+        if [ "$manipulated_unused_bits" == "true" ]; then
+            log "🔍 -------------------------- Manipulated unused bits: true"
+            # Offset for manipulated unused bits on mainnet (10 * 2^128)
+            MAINNET_UNUSED_BITS_OFFSET=$(echo "10 * 2^128" | bc)
+            final_value=$(echo "$final_value + $MAINNET_UNUSED_BITS_OFFSET" | bc)
         fi
     fi
 
