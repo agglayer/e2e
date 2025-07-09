@@ -60,6 +60,12 @@ _agglayer_cdk_common_setup() {
     readonly aggkit_bridge_url
     echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
 
+    # Resolve Aggkit RPC URL
+    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
+    aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+    readonly aggkit_rpc_url
+    echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
+
     # Resolve ZKEVM Bridge URL
     local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
     zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
