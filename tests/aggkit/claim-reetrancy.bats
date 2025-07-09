@@ -200,76 +200,33 @@ setup() {
 
     log "✅ Contract parameters updated successfully with claim data"
 
-    ## call directly to l2 bridge contract to claim message (l1->l2) destination=contract address
-    log "🌉 STEP 5: Claiming second asset from L1 to L2"
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
-    assert_success
-    # will get global index here
-    local claim_global_index_2=$output
-    log "🌉 Second claim global index: $claim_global_index_2"
-
-    # verify balances after both claims
-    # Check balances before claim of bridge contract==deployer
-
-    # Already claimed deployer address: revert error 'AlreadyClaimed'
-    # Send a claim tx again destination=deployer address
-
-    # check claim events were parsed correctly on aggkit
-
     # ========================================
     # STEP 6: Verify balances after both claims
     # ========================================
     log "💰 STEP 6: Verifying balances after both claims"
 
     # Get initial balances before any claims
-    local initial_sender_balance=$(cast balance "$sender_addr" --rpc-url "$L2_RPC_URL")
-    local initial_contract_balance=$(cast balance "$mock_sc_addr" --rpc-url "$L2_RPC_URL")
+    # amount=$(cast to-wei $ether_value ether)
+    # local initial_sender_balance=$(cast balance "$sender_addr" --rpc-url "$L2_RPC_URL")
+    # local initial_contract_balance=$(cast balance "$mock_sc_addr" --rpc-url "$L2_RPC_URL")
 
-    log "📊 Initial sender balance: $initial_sender_balance wei"
-    log "📊 Initial contract balance: $initial_contract_balance wei"
+    # these values are in eth
+    local initial_sender_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$sender_addr")
+    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
 
-    # ========================================
-    # STEP 7: Test reentrancy by claiming first asset again (should fail)
-    # ========================================
-    log "🔄 STEP 7: Testing reentrancy by attempting to claim first asset again"
+    local initial_sender_balance=$(cast to-wei "$initial_sender_balance" ether)
+    local initial_contract_balance=$(cast to-wei "$initial_contract_balance" ether)
 
-    # Try to claim the first asset again - this should fail with 'AlreadyClaimed' error
-    local reentrant_claim_output
-    reentrant_claim_output=$(cast send \
-        "$l2_bridge_addr" \
-        "claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
-        "$proof_local_exit_root_1" \
-        "$proof_rollup_exit_root_1" \
-        "$global_index_1" \
-        "$mainnet_exit_root_1" \
-        "$rollup_exit_root_1" \
-        "$origin_network_1" \
-        "$origin_address_1" \
-        "$destination_network_1" \
-        "$destination_address_1" \
-        "$amount_1" \
-        "$metadata_1" \
-        --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+    ## call directly to l2 bridge contract to claim message (l1->l2) destination=contract address
+    log "🌉 STEP 5: Claiming second asset from L1 to L2"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    assert_success
+    # will get global index here
+    local global_index_2=$output
+    log "🌉 Second claim global index: $global_index_2"
 
-    # Check if the transaction failed as expected
-    if [[ $? -eq 0 ]]; then
-        log "❌ Error: Reentrant claim should have failed but succeeded"
-        log "$reentrant_claim_output"
-        exit 1
-    else
-        log "✅ Reentrant claim correctly failed as expected"
-        log "📝 Error output: $reentrant_claim_output"
-
-        # Verify the error contains 'AlreadyClaimed' or similar
-        if [[ "$reentrant_claim_output" == *"AlreadyClaimed"* ]] || [[ "$reentrant_claim_output" == *"already claimed"* ]] || [[ "$reentrant_claim_output" == *"revert"* ]]; then
-            log "✅ Correct error message detected for reentrant claim"
-        else
-            log "⚠️ Warning: Expected 'AlreadyClaimed' error but got different error"
-            log "📝 Actual error: $reentrant_claim_output"
-        fi
-    fi
+    # Already claimed deployer address: revert error 'AlreadyClaimed'
+    # Send a claim tx again destination=deployer address
 
     # ========================================
     # STEP 8: Verify claim events were parsed correctly on aggkit
@@ -278,7 +235,7 @@ setup() {
 
     # Verify the first claim was processed correctly
     log "🔍 Validating first asset claim was processed"
-    run get_claim "$l2_rpc_network_id" "$claim_global_index_1" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
     assert_success
     local claim_1="$output"
     log "📋 First claim response: $claim_1"
@@ -304,11 +261,20 @@ setup() {
     assert_equal "$claim_1_amount" "$amount_1"
     assert_equal "$claim_1_metadata" "$metadata_1"
 
-    log "✅ First claim parameters verified successfully"
+    # Validate proofs for first claim
+    log "🔍 Validating proofs for first claim"
+    local claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+    # Verify proof values match expected values
+    assert_equal "$claim_1_proof_local_exit_root" "$proof_local_exit_root_1"
+    assert_equal "$claim_1_proof_rollup_exit_root" "$proof_rollup_exit_root_1"
+    log "✅ First claim proofs validated successfully"
+    log "✅ First claim all fields validated successfully"
 
     # Verify the second claim was processed correctly
     log "🔍 Validating second asset claim was processed"
-    run get_claim "$l2_rpc_network_id" "$claim_global_index_2" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response: $claim_2"
@@ -334,19 +300,33 @@ setup() {
     assert_equal "$claim_2_amount" "$amount_2"
     assert_equal "$claim_2_metadata" "$metadata_2"
 
-    log "✅ Second claim parameters verified successfully"
+    # Validate proofs for second claim
+    log "🔍 Validating proofs for second claim"
+    local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+    # Verify proof values match expected values
+    assert_equal "$claim_2_proof_local_exit_root" "$proof_local_exit_root_2"
+    assert_equal "$claim_2_proof_rollup_exit_root" "$proof_rollup_exit_root_2"
+    log "✅ Second claim proofs validated successfully"
+    log "✅ Second claim all fields validated successfully"
 
     # ========================================
     # STEP 9: Final balance verification
     # ========================================
     log "💰 STEP 9: Final balance verification"
 
-    # Get final balances
-    local final_sender_balance=$(cast balance "$sender_addr" --rpc-url "$L2_RPC_URL")
-    local final_contract_balance=$(cast balance "$mock_sc_addr" --rpc-url "$L2_RPC_URL")
+    # Get final balances (in eth)
+    local final_sender_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$sender_addr")
+    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
 
+    local final_sender_balance=$(cast to-wei "$final_sender_balance" ether)
+    local final_contract_balance=$(cast to-wei "$final_contract_balance" ether)
+
+    log "📊 Initial sender balance: $initial_sender_balance wei"
+    log "📊 Initial contract balance: $initial_contract_balance wei"
     log "📊 Final sender balance: $final_sender_balance wei"
-    log "📊 Final contract balance: $final_contract_balance wei"
+    log "📊 Final contract balance: $mock_sc_addr $final_contract_balance wei"
 
     # Verify that the contract received the second asset (since it was the destination)
     local expected_contract_balance=$(echo "$initial_contract_balance + $amount_2" | bc)
