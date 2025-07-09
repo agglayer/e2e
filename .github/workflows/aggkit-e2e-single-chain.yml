@@ -122,11 +122,13 @@ jobs:
           bats ./tests/aggkit/bridge-e2e.bats \
                ./tests/aggkit/e2e-pp.bats \
                ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+               ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
                  ./tests/aggkit/bridge-e2e-custom-gas.bats \
+                 ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
           fi
           popd
@@ -134,14 +136,14 @@ jobs:
       - name: Dump enclave logs
         if: ${{ failure() }}
         run: kurtosis dump ./dump
-    
+
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
           archive_name="dump_run_with_args_${{inputs.test-name}}_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
-  
+
       - name: Upload logs
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
