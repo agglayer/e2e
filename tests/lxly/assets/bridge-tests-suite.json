@@ -238,8 +238,9 @@
         "MetaData": "Huge",
         "ForceUpdate": "False",
         "Amount": "Max",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": "bridge transaction failed",
+        "ExpectedResultClaim": "N/A",
+        "_comments": "The gas required for this transaction is too large to fit into a single block"
     },
     {
         "DestinationAddress": "Contract",
