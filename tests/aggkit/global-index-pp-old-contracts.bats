@@ -3,7 +3,6 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
-# Function to get certificate height
 get_certificate_height() {
     local aggkit_rpc_url=$1
     height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
@@ -11,15 +10,12 @@ get_certificate_height() {
     return 0
 }
 
-# Function to check certificate height with retry logic
 check_certificate_height() {
     local expected_height=$1
-    local enable_retry=${2:-false}
-    local max_retries=${3:-10}
-    local retry_delay=${4:-5}
+    local max_retries=${2:-10}
+    local retry_delay=${3:-5}
 
-    echo "=== Getting certificate height (expected: $expected_height, retry: $enable_retry) ===" >&3
-    # With retry logic
+    echo "=== Getting certificate height (expected: $expected_height, retry: $max_retries) ===" >&3
     local retry_count=0
     local height=0
 
@@ -46,9 +42,27 @@ check_certificate_height() {
     assert_success
     local bridge_tx_hash=$output
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url"
     assert_success
-    local global_index_1=$output
+    local bridge="$output"
+
+    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 100 5 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index="$output"
+
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 100 5 "$aggkit_bridge_url"
+    assert_success
+    local injected_info="$output"
+
+    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$aggkit_bridge_url"
+    assert_success
+    local proof="$output"
+
+    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 10 3 "$l1_rpc_network_id" "$l2_bridge_addr" "true"
+    assert_success
+    local global_index_1="$output"
     echo "Global index: $global_index_1" >&3
 
     echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_1 (L2 network: $aggkit_rpc_url)"
@@ -62,9 +76,27 @@ check_certificate_height() {
     assert_success
     local bridge_tx_hash=$output
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "false" "true"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url"
     assert_success
-    local global_index_2=$output
+    local bridge="$output"
+
+    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 100 5 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index="$output"
+
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 100 5 "$aggkit_bridge_url"
+    assert_success
+    local injected_info="$output"
+
+    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$aggkit_bridge_url"
+    assert_success
+    local proof="$output"
+
+    run claim_bridge "$bridge" "$proof" "$L2_RPC_URL" 10 3 "$l1_rpc_network_id" "$l2_bridge_addr" "false" "true"
+    assert_success
+    local global_index_2="$output"
     echo "Global index: $global_index_2" >&3
 
     echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_2 (L2 network: $aggkit_rpc_url)"
@@ -82,9 +114,29 @@ check_certificate_height() {
     assert_success
     local bridge_tx_hash=$output
 
-    run process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url" "false" "true"
+    run get_bridge "$l2_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url"
     assert_success
+    local bridge="$output"
 
-    check_certificate_height "$((height + 1))" "true"
+    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    run find_l1_info_tree_index_for_bridge "$l2_rpc_network_id" "$deposit_count" 100 5 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index="$output"
+
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 100 5 "$aggkit_bridge_url"
+    assert_success
+    local injected_info="$output"
+
+    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    run generate_claim_proof "$l2_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$aggkit_bridge_url"
+    assert_success
+    local proof="$output"
+
+    run claim_bridge "$bridge" "$proof" "$l1_rpc_url" 10 3 "$l2_rpc_network_id" "$l1_bridge_addr" "true"
+    assert_success
+    local global_index_3="$output"
+    echo "Global index: $global_index_3" >&3
+
+    check_certificate_height "$((height + 1))" 10 5
     assert_success
 }
