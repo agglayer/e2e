@@ -16,7 +16,6 @@ setup() {
     
     # Initialize arrays to store test results
     declare -A test_results
-    declare -A deposits_cache
 }
 
 _setup_environment_variables() {
