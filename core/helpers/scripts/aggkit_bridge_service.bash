@@ -691,6 +691,8 @@ function claim_bridge_claimSponsor() {
 #   $5 - origin_aggkit_bridge_url: The base URL of the bridge service of origin network.
 #   $6 - destination_aggkit_bridge_url: The base URL of the bridge service of destination network.
 #   $7 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
+#   $8 - manipulated_unused_bits: Whether to manipulate the unused bits of the global index.
+#   $9 - manipulated_rollup_id: Whether to manipulate the rollup ID of the global index.
 function process_bridge_claim() {
     local origin_network_id="$1"
     local bridge_tx_hash="$2"
