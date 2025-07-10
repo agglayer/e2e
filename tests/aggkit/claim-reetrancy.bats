@@ -9,7 +9,7 @@ setup() {
     # ========================================
     log "🔧 STEP 1: Deploying reentrancy testing contract"
 
-    local mock_artifact_path="$PROJECT_ROOT/compiled-contracts/BridgeMessageReceiverMock.sol/BridgeMessageReceiverMock.json"
+    local mock_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/BridgeMessageReceiverMock.json"
 
     # Validate artifact exists
     if [[ ! -f "$mock_artifact_path" ]]; then
