@@ -94,10 +94,10 @@ function check_claim_revert_code() {
     local response_content
     response_content=$(<"$file_curl_response")
 
-    # 0x646cf558 -> AlreadyClaimed()
     log "💡 Check claim revert code"
     log "$response_content"
 
+    # 0x646cf558 -> AlreadyClaimed()
     if grep -q "0x646cf558" <<<"$response_content"; then
         log "🎉 Deposit is already claimed (revert code 0x646cf558)"
         return 0
@@ -107,6 +107,12 @@ function check_claim_revert_code() {
     if grep -q "0x002f6fad" <<<"$response_content"; then
         log "⏳ GlobalExitRootInvalid() (revert code 0x002f6fad)"
         return 2
+    fi
+
+    # 0x071389e9 -> InvalidGlobalIndex(), meaning that the global index is invalid
+    if grep -q "0x071389e9" <<<"$response_content"; then
+        log "⏳ InvalidGlobalIndex() (revert code 0x071389e9)"
+        return 3
     fi
 
     log "❌ Claim failed. response: $response_content"
@@ -121,20 +127,28 @@ function claim_bridge() {
     local poll_frequency="$5"
     local source_network_id="$6"
     local bridge_addr="$7"
-
+    local manipulated_unused_bits="${8:-false}"
+    local manipulated_rollup_id="${9:-false}"
     local attempt=0
 
     while true; do
         ((attempt++))
         log "🔍 Attempt "$attempt"/"$max_attempts""
 
-        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$source_network_id" "$bridge_addr"
+        local global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
+        log "🔍 Global index: $global_index"
+
+        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
         local request_result="$status"
         log "💡 claim_call returns $request_result"
         if [ "$request_result" -eq 0 ]; then
             log "🎉 Claim successful"
-            run generate_global_index "$bridge_info" "$source_network_id"
-            echo $output
+            echo $global_index
+            return 0
+        fi
+
+        if [ "$request_result" -eq 3 ] && [ "$manipulated_unused_bits" == "true" ]; then
+            log "🎉 Test success: InvalidGlobalIndex() (revert code 0x071389e9)"
             return 0
         fi
 
@@ -154,8 +168,8 @@ function claim_call() {
     local bridge_info="$1"
     local proof="$2"
     local destination_rpc_url="$3"
-    local source_network_id="$4"
-    local bridge_addr="$5"
+    local bridge_addr="$4"
+    local global_index="$5"
 
     local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
@@ -165,8 +179,7 @@ function claim_call() {
 
     local in_merkle_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
     local in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_info" "$source_network_id"
-    local in_global_index=$output
+    local in_global_index=$global_index
     local in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     local in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
     local in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
@@ -199,7 +212,8 @@ function claim_call() {
 function generate_global_index() {
     local bridge_info="$1"
     local source_network_id="$2"
-
+    local manipulated_unused_bits="${3:-false}"
+    local manipulated_rollup_id="${4:-false}"
     # Extract values from JSON
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
@@ -213,12 +227,30 @@ function generate_global_index() {
     # 192nd bit: (if mainnet is 0, then 1, otherwise 0)
     if [ "$source_network_id" -eq 0 ]; then
         final_value=$(echo "$final_value + 2^64" | bc)
+        if [ "$manipulated_unused_bits" == "true" ]; then
+            log "🔍 -------------------------- Manipulated unused bits: true"
+            # Offset for manipulated unused bits on mainnet (10 * 2^128)
+            MAINNET_UNUSED_BITS_OFFSET=$(echo "10 * 2^128" | bc)
+            final_value=$(echo "$final_value + $MAINNET_UNUSED_BITS_OFFSET" | bc)
+        fi
+        if [ "$manipulated_rollup_id" == "true" ]; then
+            log "🔍 -------------------------- Manipulated rollup id: true"
+            # Offset for manipulated rollup id on mainnet (10 * 2^32)
+            MAINNET_ROLLUP_ID_OFFSET=$(echo "10 * 2^32" | bc)
+            final_value=$(echo "$final_value + $MAINNET_ROLLUP_ID_OFFSET" | bc)
+        fi
     fi
 
     # 193-224 bits: (if mainnet is 0, 0; otherwise source_network_id - 1)
     if [ "$source_network_id" -ne 0 ]; then
         dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
         final_value=$(echo "$final_value + $dest_shifted" | bc)
+        if [ "$manipulated_unused_bits" == "true" ]; then
+            log "🔍 -------------------------- Manipulated unused bits: true"
+            # Offset for manipulated unused bits on mainnet (10 * 2^128)
+            MAINNET_UNUSED_BITS_OFFSET=$(echo "10 * 2^128" | bc)
+            final_value=$(echo "$final_value + $MAINNET_UNUSED_BITS_OFFSET" | bc)
+        fi
     fi
 
     # 225-256 bits: deposit_count (32 bits)

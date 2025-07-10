@@ -47,6 +47,12 @@ on:
         required: true
         type: string
 
+      aggsender-find-imported-bridge-artifact:
+        description: "Path for aggsender to find the imported bridge"
+        required: false
+        type: string
+        default: ""
+
 jobs:
   test-single-e2e:
     name: Single chain E2E test
@@ -65,6 +71,13 @@ jobs:
           repository: 0xPolygon/kurtosis-cdk
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
+
+      - name: Download binary
+        if: inputs.aggsender-find-imported-bridge-artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.aggsender-find-imported-bridge-artifact }}
+          path: "/tmp"
 
       - name: Download artifact
         if: inputs.docker-artifact-name != ''
@@ -118,7 +131,12 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          if [[ $ENCLAVE_NAME == "op" ]]; then
+          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-fork12-global-index-pp-old-contracts" ]]; then
+            chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
+            export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
+            bats ./tests/aggkit/global-index-pp-old-contracts.bats \
+                 || exit 1
+          elif [[ $ENCLAVE_NAME == "op" ]]; then
           bats ./tests/aggkit/bridge-e2e.bats \
                ./tests/aggkit/e2e-pp.bats \
                ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
