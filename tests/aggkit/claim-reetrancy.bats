@@ -438,24 +438,12 @@ setup() {
     # ========================================
     log "🔍 Checking isClaimed for first claim (deposit_count: $deposit_count_1, source_network: $origin_network_1)"
 
-    local is_claimed_1_output
-    is_claimed_1_output=$(cast call \
-        "$l2_bridge_addr" \
-        "isClaimed(uint32,uint32)" \
-        "$deposit_count_1" \
-        "$origin_network_1" \
-        --rpc-url "$L2_RPC_URL" 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to check isClaimed for first claim"
-        log "$is_claimed_1_output"
-        exit 1
-    fi
-
-    local is_claimed_1=$(echo "$is_claimed_1_output" | tr -d '\n')
+    run isClaimed "$deposit_count_1" "$origin_network_1" "$l2_bridge_addr" "$L2_RPC_URL"
+    assert_success
+    local is_claimed_1=$output
     log "📋 First claim isClaimed result: $is_claimed_1"
 
-    if [[ "$is_claimed_1" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+    if [[ "$is_claimed_1" == "true" ]]; then
         log "✅ First claim correctly marked as claimed"
     else
         log "❌ First claim not marked as claimed - expected true, got $is_claimed_1"
@@ -467,27 +455,15 @@ setup() {
     # ========================================
     log "🔍 Checking isClaimed for second claim (deposit_count: $deposit_count_2, source_network: $origin_network_2)"
 
-    local is_claimed_2_output
-    is_claimed_2_output=$(cast call \
-        "$l2_bridge_addr" \
-        "isClaimed(uint32,uint32)" \
-        "$deposit_count_2" \
-        "$origin_network_2" \
-        --rpc-url "$L2_RPC_URL" 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to check isClaimed for second claim"
-        log "$is_claimed_2_output"
-        exit 1
-    fi
-
-    local is_claimed_2=$(echo "$is_claimed_2_output" | tr -d '\n')
+    run isClaimed "$deposit_count_2" "$origin_network_2" "$l2_bridge_addr" "$L2_RPC_URL"
+    assert_success
+    local is_claimed_2=$output
     log "📋 Second claim isClaimed result: $is_claimed_2"
 
-    if [[ "$is_claimed_2" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+    if [[ "$is_claimed_2" == "true" ]]; then
         log "✅ Second claim correctly marked as claimed (as expected)"
     else
-        log "❌ Second claim incorrectly marked as NOT claimed - expected false, got $is_claimed_2"
+        log "❌ Second claim incorrectly marked as NOT claimed - expected true, got $is_claimed_2"
         exit 1
     fi
 
