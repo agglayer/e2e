@@ -413,7 +413,7 @@ setup() {
         log "✅ Sender balance correctly increased by first asset amount"
     else
         log "❌ Sender balance verification failed"
-        log "Expected: $expected_sender_balance, Got: $final_sender_balance"
+        log "Expected: $expected_sender_balance_wei, Got: $final_sender_balance_wei"
         exit 1
     fi
 
