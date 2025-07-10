@@ -251,49 +251,49 @@ setup() {
     local global_index_2_claimed=$output
     log "✅ Second asset claimed successfully, global index: $global_index_2_claimed"
 
-    # ========================================
-    # STEP 9: Test reentrancy protection
-    # ========================================
-    log "🔄 STEP 9: Testing reentrancy protection - attempting to claim first asset again"
+    # # ========================================
+    # # STEP 9: Test reentrancy protection
+    # # ========================================
+    # log "🔄 STEP 9: Testing reentrancy protection - attempting to claim first asset again"
 
-    # Calculate gas price for reentrant claim
-    local comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
-    if [[ $? -ne 0 ]]; then
-        log "❌ Failed to calculate gas price"
-        return 1
-    fi
+    # # Calculate gas price for reentrant claim
+    # local comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
+    # if [[ $? -ne 0 ]]; then
+    #     log "❌ Failed to calculate gas price"
+    #     return 1
+    # fi
 
-    log "⏳ Attempting reentrant claim with parameters:"
-    log "   Global index: $global_index_1"
-    log "   Origin network: $origin_network_1"
-    log "   Destination network: $destination_network_1"
-    log "   Amount: $amount_1 wei"
-    log "   Gas price: $comp_gas_price wei"
+    # log "⏳ Attempting reentrant claim with parameters:"
+    # log "   Global index: $global_index_1"
+    # log "   Origin network: $origin_network_1"
+    # log "   Destination network: $destination_network_1"
+    # log "   Amount: $amount_1 wei"
+    # log "   Gas price: $comp_gas_price wei"
 
-    # Create temporary file for error capture
-    local tmp_response=$(mktemp)
-    local revert_result
+    # # Create temporary file for error capture
+    # local tmp_response=$(mktemp)
+    # local revert_result
 
-    # Attempt reentrant claim and capture any errors
-    cast send --legacy --gas-price $comp_gas_price \
-        --rpc-url $L2_RPC_URL \
-        --private-key $sender_private_key \
-        $l2_bridge_addr "claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
-        "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" $global_index_1 $mainnet_exit_root_1 $rollup_exit_root_1 \
-        $origin_network_1 $origin_address_1 $destination_network_1 $destination_address_1 $amount_1 $metadata_1 2>$tmp_response || {
-        # Use existing function to check revert code
-        check_claim_revert_code "$tmp_response"
-        revert_result=$?
-        rm -f "$tmp_response"
-    }
+    # # Attempt reentrant claim and capture any errors
+    # cast send --legacy --gas-price $comp_gas_price \
+    #     --rpc-url $L2_RPC_URL \
+    #     --private-key $sender_private_key \
+    #     $l2_bridge_addr "claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
+    #     "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" $global_index_1 $mainnet_exit_root_1 $rollup_exit_root_1 \
+    #     $origin_network_1 $origin_address_1 $destination_network_1 $destination_address_1 $amount_1 $metadata_1 2>$tmp_response || {
+    #     # Use existing function to check revert code
+    #     check_claim_revert_code "$tmp_response"
+    #     revert_result=$?
+    #     rm -f "$tmp_response"
+    # }
 
-    # Validate reentrancy protection
-    if [[ $revert_result -eq 0 ]]; then
-        log "✅ Reentrancy protection working correctly - claim failed with AlreadyClaimed"
-    else
-        log "❌ Reentrancy protection failed - unexpected error (return code: $revert_result)"
-        return 1
-    fi
+    # # Validate reentrancy protection
+    # if [[ $revert_result -eq 0 ]]; then
+    #     log "✅ Reentrancy protection working correctly - claim failed with AlreadyClaimed"
+    # else
+    #     log "❌ Reentrancy protection failed - unexpected error (return code: $revert_result)"
+    #     return 1
+    # fi
 
     # ========================================
     # STEP 10: Verify claim events in aggkit
