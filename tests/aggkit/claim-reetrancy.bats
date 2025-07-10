@@ -67,7 +67,8 @@ setup() {
     log "🌉 STEP 2: Bridging first asset from L1 to L2 (destination: deployer)"
 
     # Set destination for first bridge
-    destination_addr=$sender_addr
+    receiver_addr='0x15E13226E42ebB16fAD9E9A42B149954c5bD00e0'
+    destination_addr=$receiver_addr
     destination_net=$l2_rpc_network_id
 
     # Execute bridge transaction
@@ -237,14 +238,14 @@ setup() {
     log "💰 STEP 7: Recording initial balances for verification"
 
     # Get initial token balances (in ETH units)
-    local initial_sender_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$sender_addr")
+    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
     local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
 
     # Convert to wei for precise comparison
-    local initial_sender_balance_wei=$(cast to-wei "$initial_sender_balance" ether)
+    local initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
     local initial_contract_balance_wei=$(cast to-wei "$initial_contract_balance" ether)
 
-    log "📊 Initial sender balance: $initial_sender_balance ETH ($initial_sender_balance_wei wei)"
+    log "📊 Initial receiver balance: $initial_receiver_balance ETH ($initial_receiver_balance_wei wei)"
     log "📊 Initial contract balance: $initial_contract_balance ETH ($initial_contract_balance_wei wei)"
 
     # ========================================
@@ -386,15 +387,15 @@ setup() {
     log "💰 STEP 11: Verifying final balances"
 
     # Get final balances (in eth)
-    local final_sender_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$sender_addr")
+    local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
     local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
 
-    local final_sender_balance_wei=$(cast to-wei "$final_sender_balance" ether)
+    local final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
     local final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
 
-    log "📊 Initial sender balance(wei): $initial_sender_balance_wei"
+    log "📊 Initial receiver balance(wei): $initial_receiver_balance_wei"
     log "📊 Initial contract balance(wei): $initial_contract_balance_wei"
-    log "📊 Final sender balance(wei): $final_sender_balance_wei"
+    log "📊 Final receiver balance(wei): $final_receiver_balance_wei"
     log "📊 Final contract balance(wei): $mock_sc_addr $final_contract_balance_wei"
 
     # Verify contract received second asset
@@ -407,15 +408,88 @@ setup() {
         exit 1
     fi
 
-    # Verify sender received first asset
-    local expected_sender_balance_wei=$(echo "$initial_sender_balance_wei + $amount_1" | bc)
-    if [[ "$final_sender_balance_wei" == "$expected_sender_balance_wei" ]]; then
-        log "✅ Sender balance correctly increased by first asset amount"
+    # Verify receiver received first asset
+    local expected_receiver_balance_wei=$(echo "$initial_receiver_balance_wei + $amount_1" | bc)
+    if [[ "$final_receiver_balance_wei" == "$expected_receiver_balance_wei" ]]; then
+        log "✅ Receiver balance correctly increased by first asset amount"
     else
-        log "❌ Sender balance verification failed"
-        log "Expected: $expected_sender_balance_wei, Got: $final_sender_balance_wei"
+        log "❌ receiver balance verification failed"
+        log "initial_receiver_balance_wei: $initial_receiver_balance_wei"
+        log "amount_1: $amount_1"
+        log "final_receiver_balance_wei: $final_receiver_balance_wei"
+        log "expected_receiver_balance_wei: $expected_receiver_balance_wei"
+        log "Expected: $expected_receiver_balance_wei, Got: $final_receiver_balance_wei"
         exit 1
     fi
 
     log "🎉 Test completed successfully! Reentrancy protection is working correctly."
+
+    # ========================================
+    # STEP 11: Verify claims using isClaimed function
+    # ========================================
+    log "🔍 STEP 11: Verifying claims using isClaimed function"
+
+    # Get deposit counts for all claims
+    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
+    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
+
+    # ========================================
+    # Check first claim (should be claimed)
+    # ========================================
+    log "🔍 Checking isClaimed for first claim (deposit_count: $deposit_count_1, source_network: $origin_network_1)"
+
+    local is_claimed_1_output
+    is_claimed_1_output=$(cast call \
+        "$l2_bridge_addr" \
+        "isClaimed(uint32,uint32)" \
+        "$deposit_count_1" \
+        "$origin_network_1" \
+        --rpc-url "$L2_RPC_URL" 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log "❌ Error: Failed to check isClaimed for first claim"
+        log "$is_claimed_1_output"
+        exit 1
+    fi
+
+    local is_claimed_1=$(echo "$is_claimed_1_output" | tr -d '\n')
+    log "📋 First claim isClaimed result: $is_claimed_1"
+
+    if [[ "$is_claimed_1" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+        log "✅ First claim correctly marked as claimed"
+    else
+        log "❌ First claim not marked as claimed - expected true, got $is_claimed_1"
+        exit 1
+    fi
+
+    # ========================================
+    # Check second claim (should be claimed)
+    # ========================================
+    log "🔍 Checking isClaimed for second claim (deposit_count: $deposit_count_2, source_network: $origin_network_2)"
+
+    local is_claimed_2_output
+    is_claimed_2_output=$(cast call \
+        "$l2_bridge_addr" \
+        "isClaimed(uint32,uint32)" \
+        "$deposit_count_2" \
+        "$origin_network_2" \
+        --rpc-url "$L2_RPC_URL" 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log "❌ Error: Failed to check isClaimed for second claim"
+        log "$is_claimed_2_output"
+        exit 1
+    fi
+
+    local is_claimed_2=$(echo "$is_claimed_2_output" | tr -d '\n')
+    log "📋 Second claim isClaimed result: $is_claimed_2"
+
+    if [[ "$is_claimed_2" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+        log "✅ Second claim correctly marked as claimed (as expected)"
+    else
+        log "❌ Second claim incorrectly marked as NOT claimed - expected false, got $is_claimed_2"
+        exit 1
+    fi
+
+    log "🎉 All isClaimed verifications passed successfully!"
 }
