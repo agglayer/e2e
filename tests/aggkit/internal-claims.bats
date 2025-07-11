@@ -5,7 +5,7 @@ setup() {
 
 @test "Test triple claim internal calls -> 3 success" {
     # Deploy the InternalClaims contract
-    local mock_artifact_path="$PROJECT_ROOT/compiled-contracts/InternalClaims.sol/InternalClaims.json"
+    local mock_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/InternalClaims.json"
 
     # Get bytecode from the contract artifact
     local bytecode=$(jq -r '.bytecode.object // .bytecode' "$mock_artifact_path")
@@ -583,7 +583,7 @@ setup() {
     log "🧪 Testing triple claim internal calls: 1 success, 1 fail, 1 success"
 
     # Deploy the InternalClaims contract
-    local internal_claims_artifact_path="$PROJECT_ROOT/compiled-contracts/InternalClaims.sol/InternalClaims.json"
+    local internal_claims_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/InternalClaims.json"
 
     # Get bytecode from the contract artifact
     local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
@@ -1153,7 +1153,7 @@ setup() {
     log "🧪 Testing triple claim internal calls: 1 fail, 1 success, 1 fail, 1 success"
 
     # Deploy the InternalClaims contract
-    local internal_claims_artifact_path="$PROJECT_ROOT/compiled-contracts/InternalClaims.sol/InternalClaims.json"
+    local internal_claims_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/InternalClaims.json"
 
     # Get bytecode from the contract artifact
     local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
@@ -1691,7 +1691,7 @@ setup() {
     log "🧪 Testing triple claim internal calls with 1st and 3rd claim with same global index: 1 fail, 1 success, 1 fail, 1 success"
 
     # Deploy the InternalClaims contract
-    local internal_claims_artifact_path="$PROJECT_ROOT/compiled-contracts/InternalClaims.sol/InternalClaims.json"
+    local internal_claims_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/InternalClaims.json"
 
     # Get bytecode from the contract artifact
     local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
