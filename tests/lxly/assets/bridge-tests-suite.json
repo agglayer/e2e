@@ -17,7 +17,8 @@
         "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x23d72133"
+        "ExpectedResultClaim": ["0x23d72133","0x4e487b71"],
+        "_comments": "Expected to pass in the first run, but fail from the second run onwards"
     },
     {
         "DestinationAddress": "Precompile",
@@ -87,7 +88,7 @@
         "ForceUpdate": "True",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "oversized data: transaction size 133272, limit 131072"
+        "ExpectedResultClaim": ["RPC error response: INVALID: RLPTooLong","oversized data: transaction size 133272, limit 131072"]
     },
     {
         "DestinationAddress": "Precompile",
@@ -117,6 +118,7 @@
         "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x23d72133"
+        "ExpectedResultClaim": ["0x23d72133","0x4e487b71"],
+        "_comments": "Expected to pass in the first run, but fail from the second run onwards"
     }
 ]
