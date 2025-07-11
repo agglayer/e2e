@@ -412,7 +412,8 @@ setup() {
         --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
         --gas-price "$test_claim_gas_price" \
-        --value "$amount_bridge_wei" 2>&1); then
+        --value "$amount_bridge_wei" \
+        --json 2>&1); then
 
         log "❌ testClaim failed"
         log "test_claim_output: $test_claim_output"
@@ -424,6 +425,10 @@ setup() {
 
     log "✅ testClaim executed successfully"
     log "📋 testClaim output: $test_claim_output"
+
+    # extract tx hash from test_claim_output
+    local test_claim_tx_hash=$(echo "$test_claim_output" | jq -r '.transactionHash')
+    log "📝 testClaim tx hash: $test_claim_tx_hash"
 
     # ========================================
     # STEP 11: Verify claim events in aggkit
@@ -636,39 +641,15 @@ setup() {
     fi
     log "🎉 All isClaimed verifications passed successfully!"
 
-    # Fetch bridge events
-    run cast logs \
-        --rpc-url "$l1_rpc_url" \
-        --from-block 0x0 \
-        --to-block latest \
-        --address "$l2_bridge_addr" \
-        "$bridge_event_sig" \
-        --json
+    # Get bridge details
+    run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 50 10 "$aggkit_bridge_url"
     assert_success
-    bridge_events="$output"
-    log "🔍 Fetched Bridge events: $bridge_events"
-
-    # Extract the latest bridge event data
-    local latest_event_data=$(echo "$bridge_events" | jq -r '.[-1].data')
-    log "🔍 Latest bridge event data: $latest_event_data"
-
-    # Extract values from the hex data (removing 0x prefix)
-    local data_without_prefix=${latest_event_data#0x}
-    log "🔍 Data without prefix (first 200 chars): ${data_without_prefix:0:200}"
-
-    # Extract destinationAddress: get the last 40 chars from the 64-char field (position 256-319)
-    local destination_address_hex=${data_without_prefix:280:40}
-    local bridge_event_destination_address="0x${destination_address_hex}"
-    log "🔍 Bridge event destinationAddress: $bridge_event_destination_address"
-
-    # Amount comes at position 320-383
-    local amount_hex=${data_without_prefix:320:64}
-    local bridge_event_amount=$((16#$amount_hex))
-    log "🔍 Bridge event amount: $bridge_event_amount"
-
-    # Verify the extracted values match expected values
-    assert_equal "${bridge_event_destination_address,,}" "${receiver_addr_bridge,,}"
-    assert_equal "$bridge_event_amount" "$amount_bridge_wei"
+    local bridge_test_claim="$output"
+    log "📝 bridge_test_claim: $bridge_test_claim"
+    local amount_test_claim=$(echo "$bridge_test_claim" | jq -r '.amount')
+    local destination_address_test_claim=$(echo "$bridge_test_claim" | jq -r '.destination_address')
+    assert_equal "$amount_test_claim" "$amount_bridge_wei"
+    assert_equal "$destination_address_test_claim" "$receiver_addr_bridge"
 
     log "🎉 Test completed successfully! Multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call is working correctly."
 }
