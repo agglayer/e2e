@@ -784,3 +784,36 @@ function get_legacy_token_migrations() {
     log "❌ Failed to find legacy token migrations after $max_attempts attempts."
     return 1
 }
+
+function is_claimed() {
+    local deposit_count="$1"
+    local origin_network="$2"
+    local bridge_addr="$3"
+    local rpc_url="$4"
+
+    log "🔍 Checking is_claimed for deposit_count: $deposit_count, origin_network: $origin_network"
+
+    local is_claimed_output
+    is_claimed_output=$(cast call \
+        "$bridge_addr" \
+        "isClaimed(uint32,uint32)" \
+        "$deposit_count" \
+        "$origin_network" \
+        --rpc-url "$rpc_url" 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log "❌ Error: Failed to check is_claimed"
+        log "$is_claimed_output"
+        return 1
+    fi
+
+    local is_claimed=$(echo "$is_claimed_output" | tr -d '\n')
+    log "📋 is_claimed hex result: $is_claimed"
+
+    # Convert hex to boolean
+    if [[ "$is_claimed" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
