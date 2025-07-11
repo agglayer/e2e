@@ -796,7 +796,7 @@ function is_claimed() {
     local is_claimed_output
     is_claimed_output=$(cast call \
         "$bridge_addr" \
-        "is_claimed(uint32,uint32)" \
+        "isClaimed(uint32,uint32)" \
         "$deposit_count" \
         "$origin_network" \
         --rpc-url "$rpc_url" 2>&1)
