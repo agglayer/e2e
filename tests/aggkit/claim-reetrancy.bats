@@ -425,9 +425,9 @@ setup() {
     log "🎉 Test completed successfully! Reentrancy protection is working correctly."
 
     # ========================================
-    # STEP 11: Verify claims using isClaimed function
+    # STEP 11: Verify claims using is_claimed function
     # ========================================
-    log "🔍 STEP 11: Verifying claims using isClaimed function"
+    log "🔍 STEP 11: Verifying claims using is_claimed function"
 
     # Get deposit counts for all claims
     local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
@@ -436,12 +436,12 @@ setup() {
     # ========================================
     # Check first claim (should be claimed)
     # ========================================
-    log "🔍 Checking isClaimed for first claim (deposit_count: $deposit_count_1, source_network: $origin_network_1)"
+    log "🔍 Checking is_claimed for first claim (deposit_count: $deposit_count_1, source_network: $origin_network_1)"
 
-    run isClaimed "$deposit_count_1" "$origin_network_1" "$l2_bridge_addr" "$L2_RPC_URL"
+    run is_claimed "$deposit_count_1" "$origin_network_1" "$l2_bridge_addr" "$L2_RPC_URL"
     assert_success
     local is_claimed_1=$output
-    log "📋 First claim isClaimed result: $is_claimed_1"
+    log "📋 First claim is_claimed result: $is_claimed_1"
 
     if [[ "$is_claimed_1" == "true" ]]; then
         log "✅ First claim correctly marked as claimed"
@@ -453,12 +453,12 @@ setup() {
     # ========================================
     # Check second claim (should be claimed)
     # ========================================
-    log "🔍 Checking isClaimed for second claim (deposit_count: $deposit_count_2, source_network: $origin_network_2)"
+    log "🔍 Checking is_claimed for second claim (deposit_count: $deposit_count_2, source_network: $origin_network_2)"
 
-    run isClaimed "$deposit_count_2" "$origin_network_2" "$l2_bridge_addr" "$L2_RPC_URL"
+    run is_claimed "$deposit_count_2" "$origin_network_2" "$l2_bridge_addr" "$L2_RPC_URL"
     assert_success
     local is_claimed_2=$output
-    log "📋 Second claim isClaimed result: $is_claimed_2"
+    log "📋 Second claim is_claimed result: $is_claimed_2"
 
     if [[ "$is_claimed_2" == "true" ]]; then
         log "✅ Second claim correctly marked as claimed (as expected)"
@@ -467,5 +467,5 @@ setup() {
         exit 1
     fi
 
-    log "🎉 All isClaimed verifications passed successfully!"
+    log "🎉 All is_claimed verifications passed successfully!"
 }
