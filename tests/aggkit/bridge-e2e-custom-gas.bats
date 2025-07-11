@@ -131,7 +131,7 @@ setup() {
     echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
     process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
 
-    run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 15 2 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 30 2 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
 

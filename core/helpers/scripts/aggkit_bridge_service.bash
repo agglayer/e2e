@@ -785,7 +785,7 @@ function get_legacy_token_migrations() {
     return 1
 }
 
-function isClaimed() {
+function is_claimed() {
     local deposit_count="$1"
     local origin_network="$2"
     local bridge_addr="$3"
