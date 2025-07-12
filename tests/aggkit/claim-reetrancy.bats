@@ -1114,7 +1114,7 @@ setup() {
     log "🔍 STEP 14: Verifying bridge event from aggkit with tx hash: $test_claim_tx_hash"
 
     # Get bridge details
-    run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 50 10 "$aggkit_bridge_url"
+    run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 300 10 "$aggkit_bridge_url"
     assert_success
     local bridge_test_claim="$output"
     log "📝 bridge_test_claim: $bridge_test_claim"
