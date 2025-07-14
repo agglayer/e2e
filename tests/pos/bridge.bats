@@ -10,9 +10,13 @@ setup() {
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".event_records | length"'
+    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-records/list" | jq ".event_records | length"'
   fi
   BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
+
+  # Define timeout and interval for eventually commands.
+  timeout_seconds=${TIMEOUT_SECONDS:-"180"}
+  interval_seconds=${INTERVAL_SECONDS:-"10"}
 }
 
 function wait_for_heimdall_state_sync() {
@@ -27,9 +31,7 @@ function wait_for_heimdall_state_sync() {
   fi
 
   echo "Monitoring state syncs on Heimdall..."
-  timeout="180" # seconds
-  interval="10" # seconds
-  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout}" "${interval}"
+  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 function wait_for_bor_state_sync() {
@@ -44,9 +46,7 @@ function wait_for_bor_state_sync() {
   fi
 
   echo "Monitoring state syncs on Bor..."
-  timeout="180" # seconds
-  interval="10" # seconds
-  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout}" "${interval}"
+  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,matic,pol
@@ -79,10 +79,10 @@ function wait_for_bor_state_sync() {
 
   # Monitor balances on L1 and L2.
   echo "Monitoring MATIC balance on L1..."
-  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
+  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Monitoring ETH balance on L2..."
-  assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
+  assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,matic,pol
@@ -120,11 +120,11 @@ function wait_for_bor_state_sync() {
 
   # Monitor balances on L1 and L2.
   echo "Monitoring ERC20 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}"
+  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   # TODO: Understand why the balance is not increasing on L2!
   # echo "Monitoring ERC20 balance on L2..."
-  # assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}"
+  # assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,erc20
@@ -168,11 +168,11 @@ function wait_for_bor_state_sync() {
 
   # Monitor balances on L1 and L2.
   echo "Monitoring ERC721 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}"
+  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   # TODO: Understand why the balance is not increasing on L2!
   # echo "Monitoring ERC721 balance on L2..."
-  # assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}"
+  # assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats file_tags=pos,bridge,erc721

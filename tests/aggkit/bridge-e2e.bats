@@ -253,3 +253,18 @@ setup() {
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
     assert_success
 }
+@test "Native token transfer L1 -> L2 - manipulated global index" {
+    destination_addr=$sender_addr
+    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
+    echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
+
+    echo "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)" >&3
+    destination_net=$l2_rpc_network_id
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+
+    # Claim deposit (claim will fail because global index is manipulated)
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true"
+    assert_success
+}

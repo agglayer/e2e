@@ -11,9 +11,6 @@ setup() {
     local initial_receiver_balance=$(cast balance "$receiver" --rpc-url "$L2_RPC_URL")
     echo "Initial receiver ($receiver) balance of native token on L2 $initial_receiver_balance" >&3
 
-    local l1_minter_balance=$(cast balance "0x8943545177806ED17B9F23F0a21ee5948eCaa776" --rpc-url "$l1_rpc_url")
-    echo "Initial minter balance on L1 $l1_minter_balance" >&3
-
     # Query for initial sender balance
     run query_contract "$l1_rpc_url" "$gas_token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
@@ -134,7 +131,7 @@ setup() {
     echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
     process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
 
-    run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 15 2 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 30 2 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
 

@@ -3,7 +3,7 @@ setup() {
     _agglayer_cdk_common_setup
 
     readonly erigon_sequencer_node=${KURTOSIS_ERIGON_SEQUENCER:-cdk-erigon-sequencer-001}
-    readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $ENCLAVE $erigon_sequencer_node"}
+    readonly kurtosis_sequencer_wrapper=${KURTOSIS_SEQUENCER_WRAPPER:-"kurtosis service exec $ENCLAVE_NAME $erigon_sequencer_node"}
     readonly data_dir=${ACL_DATA_DIR:-"/home/erigon/data/dynamic-kurtosis-sequencer/txpool/acls"}
 }
 

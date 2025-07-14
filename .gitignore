@@ -3,3 +3,4 @@ cache
 compiled-contracts
 test-txs.ndjson
 cdk-databases/
+.DS_Store
