@@ -8,12 +8,12 @@ setup() {
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
     l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x927aa8656B3a541617Ef3fBa4A2AB71320dc7fD7"}
+    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x4c1335D41c271beD3eF6a1228a4D0C701Fc87b74"}
 
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x927aa8656B3a541617Ef3fBa4A2AB71320dc7fD7"}
+    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x4c1335D41c271beD3eF6a1228a4D0C701Fc87b74"}
 
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
     l1_network_id=$(cast call  --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
