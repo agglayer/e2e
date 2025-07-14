@@ -157,7 +157,7 @@ jobs:
           set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
-          export ENCLAVE="${{ inputs.kurtosis-cdk-enclave-name }}"
+          export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
           chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           if [[ ${{ inputs.number-of-chains }} -eq 3 ]]; then

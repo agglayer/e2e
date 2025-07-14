@@ -18,7 +18,7 @@ function parse_params() {
     readonly l2_rpc_network_id="$3"
 
     # The agglayer rpc url.
-    readonly agglayer_rpc_url="$(kurtosis port print $ENCLAVE agglayer aglr-readrpc)"
+    readonly agglayer_rpc_url="$(kurtosis port print $ENCLAVE_NAME agglayer aglr-readrpc)"
 }
 
 function check_timeout() {
