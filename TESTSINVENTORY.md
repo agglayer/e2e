@@ -104,13 +104,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
-| Access list tests | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/access-list-tx/tasks/main.yml) | |
+| Access list tests | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/main/tests/berlin/eip2930_access_list) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
 | Same block deployment and execution | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/deploy-and-call-immediately/tasks/main.yml) | |
-| EIP-1559 Implementation | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/eip-1559/tasks/main.yml) | |
-| EIP-6780 Implementation | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/eip-6780/tasks/main.yml) | |
-| Every known opcode | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/every-opcode/tasks/main.yml) | |
+| EIP-1559 Implementation | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests/static/state_tests/stEIP1559) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
+| EIP-6780 Implementation | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests/cancun/eip6780_selfdestruct) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
+| Every known opcode | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests/frontier/opcodes) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
 | Prover stress tests | Execution Layer | ✅ | ✅ | [Link](https://github.com/agglayer/e2e/blob/f1401faa1db21936557a9ba56add7a606719f089/tests/heavy/prover-stress.bats#L9) | The current implementation in e2e is updated |
-| Blob, Accesslist, EIP-1559, EIP-7702 | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/odd-tx-payloads/tasks/main.yml) | |
+| Blob, Accesslist, EIP-1559, EIP-7702 | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
 | All polycli cases | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/polycli-cases/tasks/main.yml) | |
 | Pool race conditions | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/pool-race-conditions/tasks/main.yml) | |
 | Railgun deployment | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/railgun/tasks/main.yml) | Meant to be a complicated deployment |
