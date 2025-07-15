@@ -17,6 +17,7 @@ setup() {
     local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     
+    echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
     _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
     
