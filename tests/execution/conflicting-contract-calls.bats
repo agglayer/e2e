@@ -33,7 +33,7 @@ setup() {
             0x0000000000000000000000000000000000000000
         echo "Command output: $output" >&3
         if [[ "$status" -ne 0 ]]; then
-            echo "Test $index expected Success but failed: $output" >&3
+            echo "Test $index expected success but failed: $output" >&3
             echo "Command status: $status" >&3
             return 1
         fi
@@ -52,7 +52,7 @@ setup() {
         nonce=$(($nonce + 1));
         echo "Command output: $output" >&3
         if [[ "$status" -ne 1 ]]; then
-            echo "Test $index expected Fail but succeed: $output" >&3
+            echo "Test $index expected fail but succeed: $output" >&3
             echo "Command status: $status" >&3
             return 1
         fi
