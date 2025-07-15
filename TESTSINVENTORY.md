@@ -113,7 +113,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Blob, Accesslist, EIP-1559, EIP-7702 | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
 | All polycli cases | Execution Layer | ✅ | ✅ | [Link](./tests/execution/polycli-cases.bats) | |
 | Pool race conditions | Execution Layer | ✅ | ✅ | [Link](./tests/execution) | |
-| Railgun deployment | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/railgun/tasks/main.yml) | Meant to be a complicated deployment |
+| Railgun deployment | Execution Layer | ✅ | ✅ | [Link](./tests/execution/railgun-contracts.bats) | Meant to be a complicated deployment |
 | Special addresses | Execution Layer | ✅ | ✅ | [Link](./tests/execution/special-addresses.bats) | Send funds to all known "special" addresses |
 | Smooth crypto test cases | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/smoothcrypto/tasks/main.yml) | |
 
