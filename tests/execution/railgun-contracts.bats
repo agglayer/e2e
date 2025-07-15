@@ -7,6 +7,8 @@ setup() {
 
     l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+
+    export TEMP_DIR=$(mktemp -d)
 }
 
 teardown_file() {
@@ -14,7 +16,6 @@ teardown_file() {
 }
 
 @test "Setup Railgun" {
-    TEMP_DIR=$(mktemp -d)
     echo "Temp working directory: $TEMP_DIR" >&3
 
     # Clone Railgun contracts
