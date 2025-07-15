@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-setup() {
+setup_file() {
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
 
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
