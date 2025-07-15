@@ -11,7 +11,7 @@ setup() {
 }
 
 
-@test "Call well known addresses" {
+@test "Call special addresses" {
     local ephemeral_data=$(_generate_ephemeral_account "1")
     local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
