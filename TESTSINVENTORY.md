@@ -132,6 +132,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
-| Native bridge is disabled | CDK OP Geth | 🚧 | 🚧 | | |
-| Log Review | CDK OP Geth | 🚧 | 🚧 | | Ensure there are no critical errors in the logs other than known benign issues |
+| Native bridge is disabled | CDK OP Geth | 🚧 | ✅ | [Link](./tests/op/check-op-native-bridge.bats) | |
+| Log Review | CDK OP Geth | 🚧 | N/A | | Ensure there are no critical errors in the logs other than known benign issues |
 | L2 hardfork supports | CDK OP Geth | 🚧 | 🚧 | |  |
