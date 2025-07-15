@@ -7,8 +7,6 @@ setup() {
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
 
-    iteration_count=20
-
     # source existing helper functions for ephemeral account setup
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
