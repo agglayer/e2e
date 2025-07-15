@@ -111,7 +111,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Every known opcode | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests/frontier/opcodes) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
 | Prover stress tests | Execution Layer | ✅ | ✅ | [Link](https://github.com/agglayer/e2e/blob/f1401faa1db21936557a9ba56add7a606719f089/tests/heavy/prover-stress.bats#L9) | The current implementation in e2e is updated |
 | Blob, Accesslist, EIP-1559, EIP-7702 | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth/tests) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
-| All polycli cases | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/polycli-cases/tasks/main.yml) | |
+| All polycli cases | Execution Layer | ✅ | ✅ | [Link](./tests/execution/polycli-cases.bats) | |
 | Pool race conditions | Execution Layer | ✅ | ✅ | [Link](./tests/execution) | |
 | Railgun deployment | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/railgun/tasks/main.yml) | Meant to be a complicated deployment |
 | Special addresses | Execution Layer | ✅ | ✅ | [Link](./tests/execution/special-addresses.bats) | Send funds to all known "special" addresses |
