@@ -55,16 +55,28 @@ _agglayer_cdk_common_setup() {
     echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
 
     # Resolve Aggkit Bridge URL
-    local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
-    readonly aggkit_bridge_url
-    echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
+    if [[ -z "${AGGKIT_BRIDGE_URL:-}" ]]; then
+        local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
+        aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
+        readonly aggkit_bridge_url
+        echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
+    else
+        aggkit_bridge_url="$AGGKIT_BRIDGE_URL"
+        readonly aggkit_bridge_url
+        echo "aggkit_bridge_url: $aggkit_bridge_url (from environment)" >&3
+    fi
 
     # Resolve Aggkit RPC URL
-    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-    aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-    readonly aggkit_rpc_url
-    echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
+    if [[ -z "${AGGKIT_RPC_URL:-}" ]]; then
+        local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
+        aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+        readonly aggkit_rpc_url
+        echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
+    else
+        aggkit_rpc_url="$AGGKIT_RPC_URL"
+        readonly aggkit_rpc_url
+        echo "aggkit_rpc_url: $aggkit_rpc_url (from environment)" >&3
+    fi
 
     # Resolve ZKEVM Bridge URL
     local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
@@ -244,21 +256,39 @@ _agglayer_cdk_common_multi_setup() {
     fi
 
     # Resolve Aggkit RPC URL
-    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-    aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-    readonly aggkit_pp1_rpc_url
-    echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
+    if [[ -z "${AGGKIT_PP1_RPC_URL:-}" ]]; then
+        local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
+        aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+        readonly aggkit_pp1_rpc_url
+        echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
+    else
+        aggkit_pp1_rpc_url="$AGGKIT_PP1_RPC_URL"
+        readonly aggkit_pp1_rpc_url
+        echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url (from environment)" >&3
+    fi
 
-    local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
-    aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-    readonly aggkit_pp2_rpc_url
-    echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
+    if [[ -z "${AGGKIT_PP2_RPC_URL:-}" ]]; then
+        local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
+        aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+        readonly aggkit_pp2_rpc_url
+        echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
+    else
+        aggkit_pp2_rpc_url="$AGGKIT_PP2_RPC_URL"
+        readonly aggkit_pp2_rpc_url
+        echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url (from environment)" >&3
+    fi
 
     if [[ $number_of_chains -eq 3 ]]; then
-        local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
-        aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-        readonly aggkit_pp3_rpc_url
-        echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
+        if [[ -z "${AGGKIT_PP3_RPC_URL:-}" ]]; then
+            local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
+            aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+            readonly aggkit_pp3_rpc_url
+            echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
+        else
+            aggkit_pp3_rpc_url="$AGGKIT_PP3_RPC_URL"
+            readonly aggkit_pp3_rpc_url
+            echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url (from environment)" >&3
+        fi
     fi
 
     readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
@@ -268,21 +298,39 @@ _agglayer_cdk_common_multi_setup() {
     fi
 
     # Resolve Aggkit Bridge URLs for both nodes
-    local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_1" "Successfully resolved aggkit bridge url" true | tail -1)
-    readonly aggkit_bridge_1_url
-    echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
+    if [[ -z "${AGGKIT_PP1_BRIDGE_URL:-}" ]]; then
+        local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
+        aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_1" "Successfully resolved aggkit bridge url" true | tail -1)
+        readonly aggkit_bridge_1_url
+        echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
+    else
+        aggkit_bridge_1_url="$AGGKIT_PP1_BRIDGE_URL"
+        readonly aggkit_bridge_1_url
+        echo "aggkit_bridge_1_url: $aggkit_bridge_1_url (from environment)" >&3
+    fi
 
-    local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
-    aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_2" "Successfully resolved aggkit bridge url" true | tail -1)
-    readonly aggkit_bridge_2_url
-    echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
+    if [[ -z "${AGGKIT_PP2_BRIDGE_URL:-}" ]]; then
+        local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
+        aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_2" "Successfully resolved aggkit bridge url" true | tail -1)
+        readonly aggkit_bridge_2_url
+        echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
+    else
+        aggkit_bridge_2_url="$AGGKIT_PP2_BRIDGE_URL"
+        readonly aggkit_bridge_2_url
+        echo "aggkit_bridge_2_url: $aggkit_bridge_2_url (from environment)" >&3
+    fi
 
     if [[ $number_of_chains -eq 3 ]]; then
-        local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
-        aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_3" "Successfully resolved aggkit bridge url" true | tail -1)
-        readonly aggkit_bridge_3_url
-        echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
+        if [[ -z "${AGGKIT_PP3_BRIDGE_URL:-}" ]]; then
+            local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
+            aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_3" "Successfully resolved aggkit bridge url" true | tail -1)
+            readonly aggkit_bridge_3_url
+            echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
+        else
+            aggkit_bridge_3_url="$AGGKIT_PP3_BRIDGE_URL"
+            readonly aggkit_bridge_3_url
+            echo "aggkit_bridge_3_url: $aggkit_bridge_3_url (from environment)" >&3
+        fi
     fi
 
     readonly weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
