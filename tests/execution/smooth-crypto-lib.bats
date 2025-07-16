@@ -30,10 +30,14 @@ setup_file() {
     cd "$TEMP_DIR/crypto-lib" || exit 1
 
     # Install and compile
-    forge build
+    forge build --use 0.8.28 --force
 
-    find . -type f | grep SCL_ | grep -vi test | grep -vi deploy | grep .json | while read contract ; do
+    find ./out -type f | grep SCL_ | grep -vi test | grep -vi deploy | grep .json | while read contract ; do
         bn="$(basename $contract)"
+        if [[ "$bn" = "SCL_EIP6565_UTILS.json" ]]; then
+            # The SCL_EIP6565_UTILS.json file contains dirty bytecode objects which needs to be cleaned.
+            jq '.bytecode.object |= (sub("[_$]"; ""; "g"))' ./out/libSCL_eddsaUtils.sol/SCL_EIP6565_UTILS.json > temp.json && mv temp.json ./out/libSCL_eddsaUtils.sol/SCL_EIP6565_UTILS.json
+        fi
         echo "Deploying SCL: $bn" >&3
         # echo "Command: cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json --create $(jq -r '.bytecode.object' $contract)" >&3
         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json --create $(jq -r '.bytecode.object' $contract) | tee -a smooth-crypto-lib.out > /"$TEMP_DIR"/crypto-lib/$bn.deploy.json
@@ -137,17 +141,21 @@ setup_file() {
     wait
 }
 
-# TODO: Fix ExpandSecret test
+# # TODO: Fix ExpandSecret test
+# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
+# # error code -32000: invalid jump destination
 # @test "Testing EIP6565 - ExpandSecret" {
 #     echo "Starting EIP6565 ExpandSecret Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
 
+#     sleep 5
 #     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "ExpandSecret(uint256)" 0 >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "ExpandSecret(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
+#     echo "Command: cast send --private-key \"$l2_private_key\" --rpc-url \"$l2_rpc_url\" --json \"$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)\" \"ExpandSecret(uint256)\" 0" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "ExpandSecret(uint256)" 0 >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "ExpandSecret(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
 
 #     # Use ephemeral accounts for parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
 #     for i in {1..256}; do
 #         local ephemeral_data=$(_generate_ephemeral_account "expand_$i")
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -174,17 +182,19 @@ setup_file() {
 #     wait
 # }
 
-# TODO: Fix SetKey test
+# # TODO: Fix SetKey test
+# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
+# # error code -32000: invalid jump destination
 # @test "Testing EIP6565 - SetKey" {
 #     echo "Starting EIP6565 SetKey Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
 
 #     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "SetKey(uint256)" 0 >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "SetKey(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SetKey(uint256)" 0 >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SetKey(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
 
 #     # Use ephemeral accounts for parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
 #     for i in {1..256}; do
 #         local ephemeral_data=$(_generate_ephemeral_account "setkey_$i")
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -264,21 +274,23 @@ setup_file() {
     wait
 }
 
-# TODO: Fix Sign test
+# # TODO: Fix Sign test
+# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
+# # error code -32000: invalid jump destination
 # @test "Testing EIP6565 - Sign" {
 #     echo "Starting EIP6565 Sign Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
 
 #     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "Sign(uint256,uint256[2],string)" 0 "[0,0]" "abc123" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "Sign(uint256,uint256[2],string)" 1 "[0,0]" "abc123" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "Sign(uint256,uint256[2],string)" 0 "[0,0]" "abc123" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "Sign(uint256,uint256[2],string)" 1 "[0,0]" "abc123" >&3
 
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "Sign(uint256,uint256[2],string)" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "Sign(uint256,uint256[2],string)" \
 #         115792089237316195423570985008687907853269984665640564039457584007913129639935 \
 #         "[115792089237316195423570985008687907853269984665640564039457584007913129639935,115792089237316195423570985008687907853269984665640564039457584007913129639935]" \
 #         "abc123" >&3
 
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
     
 #     # Exponential growth tests with main account
 #     hash_value="00112233445566778899AABBCCDDEEFF"
@@ -320,20 +332,22 @@ setup_file() {
 #     wait
 # }
 
-# TODO: Fix SignSlow test
+# # TODO: Fix SignSlow test
+# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
+# # error code -32000: invalid jump destination
 # @test "Testing EIP6565 - SignSlow" {
 #     echo "Starting EIP6565 SignSlow Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
 
 #     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "SignSlow(uint256,string)" 0 "abc123" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "SignSlow(uint256,string)" 1 "abc123" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SignSlow(uint256,string)" 0 "abc123" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SignSlow(uint256,string)" 1 "abc123" >&3
 
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "SignSlow(uint256,string)" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SignSlow(uint256,string)" \
 #         115792089237316195423570985008687907853269984665640564039457584007913129639935 \
 #         "abc123" >&3
 
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
     
 #     # Exponential growth tests with main account
 #     hash_value="00112233445566778899AABBCCDDEEFF"
@@ -524,24 +538,26 @@ setup_file() {
     wait
 }
 
-# TODO: Fix edCompress test
+# # TODO: Fix edCompress test
+# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
+# # error code -32000: invalid jump destination
 # @test "Testing EIP6565 - edCompress" {
 #     echo "Starting EIP6565 edCompress Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
 
 #     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" "[0,0]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" "[1,1]" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" "[0,0]" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" "[1,1]" >&3
 
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" \
 #             "[115792089237316195423570985008687907853269984665640564039457584007913129639935,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" \
 #             "[0,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" \
 #             "[1,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
 
 #     # Use ephemeral accounts for the two sets of 256 parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
     
 #     # First set with 0x00
 #     for i in {1..256}; do
