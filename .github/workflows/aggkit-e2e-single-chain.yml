@@ -140,12 +140,14 @@ jobs:
           bats ./tests/aggkit/bridge-e2e.bats \
                ./tests/aggkit/e2e-pp.bats \
                ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+               ./tests/aggkit/internal-claims.bats \
                ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
                  ./tests/aggkit/bridge-e2e-custom-gas.bats \
+                 ./tests/aggkit/internal-claims.bats \
                  ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
           fi
