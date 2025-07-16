@@ -540,24 +540,24 @@ setup_file() {
 
 # # TODO: Fix edCompress test
 # # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
-# # error code -32000: invalid jump destination
+# # execution reverted: arithmetic underflow or overflow, data: "0x4e487b710000000000000000000000000000000000000000000000000000000000000011"
 # @test "Testing EIP6565 - edCompress" {
 #     echo "Starting EIP6565 edCompress Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
 
 #     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" "[0,0]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" "[1,1]" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" "[0,0]" >&3
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" "[1,1]" >&3
 
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
 #             "[115792089237316195423570985008687907853269984665640564039457584007913129639935,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
 #             "[0,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "edCompress(uint256[2])" \
+#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
 #             "[1,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
 
 #     # Use ephemeral accounts for the two sets of 256 parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
+#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     
 #     # First set with 0x00
 #     for i in {1..256}; do
