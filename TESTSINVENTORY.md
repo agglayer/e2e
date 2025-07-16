@@ -115,7 +115,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Pool race conditions | Execution Layer | ✅ | ✅ | [Link](./tests/execution) | |
 | Railgun deployment | Execution Layer | ✅ | ✅ | [Link](./tests/execution/railgun-contracts.bats) | Meant to be a complicated deployment |
 | Special addresses | Execution Layer | ✅ | ✅ | [Link](./tests/execution/special-addresses.bats) | Send funds to all known "special" addresses |
-| Smooth crypto test cases | Execution Layer | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/smoothcrypto/tasks/main.yml) | |
+| Smooth crypto test cases | Execution Layer | ✅ | ✅ | [Link](https://github.com/0xPolygon/jhilliard/blob/acbb0546f9b5fef82bb3280983305b812b43318c/evm-rpc-tests/roles/smoothcrypto/tasks/main.yml) | Some functions with [libSCL_eddsaUtils.sol](https://github.com/get-smooth/crypto-lib/blob/main/src/lib/libSCL_eddsaUtils.sol) does not work |
 
 
 ## Full System Tests
