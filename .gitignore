@@ -4,3 +4,4 @@ compiled-contracts
 test-txs.ndjson
 cdk-databases/
 .DS_Store
+scenarios/hermez-pp-migration/.env
