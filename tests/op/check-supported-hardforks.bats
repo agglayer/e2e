@@ -48,20 +48,20 @@ setup() {
     
     for fork in "${required_forks[@]}"; do
         if jq -e "has(\"$fork\")" $working_directory/supported-forks-$chain_id.json > /dev/null; then
-            echo "✓ $fork: ACTIVATED" >&3
+            echo "✅ $fork: ACTIVATED" >&3
         else
-            echo "✗ $fork: MISSING" >&3
+            echo "❌ $fork: MISSING" >&3
             missing_forks+=("$fork")
         fi
     done
     
     # Fail the test if any required forks are missing
-    if [ ${#missing_forks[@]} -gt 0 ]; then
+    if [[ ${#missing_forks[@]} -gt 0 ]]; then
         echo "" >&3
         echo "ERROR: Missing required hardforks: ${missing_forks[*]}" >&3
         exit 1
     fi
     
     echo "" >&3
-    echo "✓ All required hardforks are present" >&3
+    echo "✅ All required hardforks are present" >&3
 }
