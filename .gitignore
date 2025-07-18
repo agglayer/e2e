@@ -5,3 +5,6 @@ test-txs.ndjson
 cdk-databases/
 .DS_Store
 scenarios/hermez-pp-migration/.env
+scenarios/hermez-pp-migration/conf/sequencer.keystore
+scenarios/hermez-pp-migration/conf/agglayer.keystore
+scenarios/hermez-pp-migration/conf/okx-migration.org
