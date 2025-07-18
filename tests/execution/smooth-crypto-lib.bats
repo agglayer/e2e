@@ -6,10 +6,12 @@ setup_file() {
     export kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
 
     export l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
+    export l2_eth_address
+    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
 
-    export TEMP_DIR=$(mktemp -d)
+    export TEMP_DIR
+    TEMP_DIR=$(mktemp -d)
     export exponential_growth_limit=12
     
     # Load helper functions from bridge tests
@@ -32,15 +34,15 @@ setup_file() {
     # Install and compile
     forge build --use 0.8.28 --force
 
+    # shellcheck disable=SC2162
     find ./out -type f | grep SCL_ | grep -vi test | grep -vi deploy | grep .json | while read contract ; do
-        bn="$(basename $contract)"
+        bn="$(basename "$contract")"
         if [[ "$bn" = "SCL_EIP6565_UTILS.json" ]]; then
             # The SCL_EIP6565_UTILS.json file contains dirty bytecode objects which needs to be cleaned.
             jq '.bytecode.object |= (sub("[_$]"; ""; "g"))' ./out/libSCL_eddsaUtils.sol/SCL_EIP6565_UTILS.json > temp.json && mv temp.json ./out/libSCL_eddsaUtils.sol/SCL_EIP6565_UTILS.json
         fi
         echo "Deploying SCL: $bn" >&3
-        # echo "Command: cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json --create $(jq -r '.bytecode.object' $contract)" >&3
-        cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json --create $(jq -r '.bytecode.object' $contract) | tee -a smooth-crypto-lib.out > /"$TEMP_DIR"/crypto-lib/$bn.deploy.json
+        cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json --create "$(jq -r '.bytecode.object' "$contract")" | tee -a smooth-crypto-lib.out > /"$TEMP_DIR"/crypto-lib/"$bn".deploy.json
     done
 }
 
@@ -72,12 +74,15 @@ setup_file() {
     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "BasePointMultiply(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
 
     # Use ephemeral accounts for parallel tests
-    local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     for i in {1..256}; do
-        # Generate ephemeral account for this test
-        local ephemeral_data=$(_generate_ephemeral_account "basepoint_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "basepoint_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         # Fund ephemeral account
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
@@ -91,8 +96,10 @@ setup_file() {
     
     # Execute tests with ephemeral accounts
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "basepoint_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "basepoint_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "BasePointMultiply(uint256)" "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3 &
         
@@ -114,12 +121,16 @@ setup_file() {
     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "BasePointMultiply_Edwards(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
 
     # Use ephemeral accounts for parallel tests
-    local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "edwards_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "edwards_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
         if (( i % 20 == 0 )); then
@@ -129,8 +140,10 @@ setup_file() {
     wait
     
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "edwards_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "edwards_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "BasePointMultiply_Edwards(uint256)" "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3 &
         
@@ -233,11 +246,12 @@ setup_file() {
         115792089237316195423570985008687907853269984665640564039457584007913129639935 115792089237316195423570985008687907853269984665640564039457584007913129639935 \
         "00112233445566778899AABBCCDDEEFF" >&3
 
-    local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     
     # Exponential growth tests with main account (sequential for consistency)
     hash_value="00112233445566778899AABBCCDDEEFF"
-    for i in {1.."$exponential_growth_limit"}; do
+    for i in $(seq 1 "$exponential_growth_limit"); do
         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "HashInternal(uint256,uint256,string)" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" \
@@ -247,9 +261,12 @@ setup_file() {
 
     # Use ephemeral accounts for the 256 parallel tests
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "hashint_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "hashint_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
@@ -260,8 +277,10 @@ setup_file() {
     wait
     
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "hashint_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "hashint_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "HashInternal(uint256,uint256,string)" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" \
@@ -399,11 +418,12 @@ setup_file() {
         "john hilliard" 0x392ffe32f4b301dd3f77870c863847a53d394ab17d972e0b01fadc45402ad695 0x6e0dfbdf624e7184286c487907f7a389543d0c43ad9e5f27a5c749d4e5e72f08 \
         "[53319167224459106466702007959349135256467467536905411832330885206999252279614,2284080886966133992729186839123998120798894513958078808115507875162306287204,3246207250587195530816989123778609896848374867114298476970577533647877040319,5104207593475419821130674724844498252015686184978827304375352455858058969127,58862539542128022353275577081232159455015340604490348195085361478951058225917]" >&3
 
-    local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     
     # Exponential growth tests with main account
     hash_value="00112233445566778899AABBCCDDEEFF"
-    for i in {1.."$exponential_growth_limit"}; do
+    for i in $(seq 1 "$exponential_growth_limit"); do
         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "Verify(string,uint256,uint256,uint256[5])" \
             "$hash_value" 0x392ffe32f4b301dd3f77870c863847a53d394ab17d972e0b01fadc45402ad695 0x6e0dfbdf624e7184286c487907f7a389543d0c43ad9e5f27a5c749d4e5e72f08 \
             "[53319167224459106466702007959349135256467467536905411832330885206999252279614,2284080886966133992729186839123998120798894513958078808115507875162306287204,3246207250587195530816989123778609896848374867114298476970577533647877040319,5104207593475419821130674724844498252015686184978827304375352455858058969127,58862539542128022353275577081232159455015340604490348195085361478951058225917]" >&3
@@ -412,9 +432,12 @@ setup_file() {
 
     # Use ephemeral accounts for parallel tests
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "verify_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "verify_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
@@ -425,8 +448,10 @@ setup_file() {
     wait
     
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "verify_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "verify_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "Verify(string,uint256,uint256,uint256[5])" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" 0x392ffe32f4b301dd3f77870c863847a53d394ab17d972e0b01fadc45402ad695 0x6e0dfbdf624e7184286c487907f7a389543d0c43ad9e5f27a5c749d4e5e72f08 \
@@ -451,11 +476,12 @@ setup_file() {
         "john hilliard" 0x392ffe32f4b301dd3f77870c863847a53d394ab17d972e0b01fadc45402ad695 0x6e0dfbdf624e7184286c487907f7a389543d0c43ad9e5f27a5c749d4e5e72f08 \
         "[53319167224459106466702007959349135256467467536905411832330885206999252279614,2284080886966133992729186839123998120798894513958078808115507875162306287204,3246207250587195530816989123778609896848374867114298476970577533647877040319,5104207593475419821130674724844498252015686184978827304375352455858058969127,58862539542128022353275577081232159455015340604490348195085361478951058225917]" >&3
 
-    local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     
     # Exponential growth tests with main account
     hash_value="00112233445566778899AABBCCDDEEFF"
-    for i in {1.."$exponential_growth_limit"}; do
+    for i in $(seq 1 "$exponential_growth_limit"); do
         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "Verify_LE(string,uint256,uint256,uint256[5])" \
             "$hash_value" 0x392ffe32f4b301dd3f77870c863847a53d394ab17d972e0b01fadc45402ad695 0x6e0dfbdf624e7184286c487907f7a389543d0c43ad9e5f27a5c749d4e5e72f08 \
             "[53319167224459106466702007959349135256467467536905411832330885206999252279614,2284080886966133992729186839123998120798894513958078808115507875162306287204,3246207250587195530816989123778609896848374867114298476970577533647877040319,5104207593475419821130674724844498252015686184978827304375352455858058969127,58862539542128022353275577081232159455015340604490348195085361478951058225917]" >&3
@@ -464,9 +490,12 @@ setup_file() {
 
     # Use ephemeral accounts for parallel tests
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "verifyle_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "verifyle_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
@@ -477,8 +506,10 @@ setup_file() {
     wait
     
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "verifyle_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "verifyle_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "Verify_LE(string,uint256,uint256,uint256[5])" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" 0x392ffe32f4b301dd3f77870c863847a53d394ab17d972e0b01fadc45402ad695 0x6e0dfbdf624e7184286c487907f7a389543d0c43ad9e5f27a5c749d4e5e72f08 \
@@ -507,11 +538,15 @@ setup_file() {
            >&3
 
     # Use ephemeral accounts for parallel tests (512 tests)
-    local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
     for i in {1..512}; do
-        local ephemeral_data=$(_generate_ephemeral_account "ecpow_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "ecpow_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
@@ -522,8 +557,10 @@ setup_file() {
     wait
     
     for i in {1..512}; do
-        local ephemeral_data=$(_generate_ephemeral_account "ecpow_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "ecpow_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "ecPow128(uint256,uint256,uint256,uint256)" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" \
@@ -623,11 +660,15 @@ setup_file() {
     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_RIP7212.json.deploy.json)" "verify(bytes32,uint256,uint256,uint256,uint256)" 0x0000000000000000000000000000000000000000000000000000000000000001 1 1 1 1 >&3
 
     # Use ephemeral accounts for parallel tests
-    local contract_addr=$(jq -r '.contractAddress' SCL_RIP7212.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_RIP7212.json.deploy.json)
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "rip7212_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "rip7212_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
@@ -638,8 +679,10 @@ setup_file() {
     wait
     
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "rip7212_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "rip7212_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" \
             "verify(bytes32,uint256,uint256,uint256,uint256)" \
@@ -661,15 +704,21 @@ setup_file() {
     cd "$TEMP_DIR/crypto-lib" || exit 1
 
     # Test basic cases with main account
+    # shellcheck disable=SC2102
     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_ECDSAB4.json.deploy.json)" "verify(bytes32,uint256,uint256,uint256[10],uint256)" 0x0000000000000000000000000000000000000000000000000000000000000000 0 0 [0,0,0,0,0,0,0,0,0,0] 0 >&3
+    # shellcheck disable=SC2102
     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_ECDSAB4.json.deploy.json)" "verify(bytes32,uint256,uint256,uint256[10],uint256)" 0x0000000000000000000000000000000000000000000000000000000000000001 1 1 [1,1,1,1,1,1,1,1,1,1] 1 >&3
 
     # Use ephemeral accounts for parallel tests
-    local contract_addr=$(jq -r '.contractAddress' SCL_ECDSAB4.json.deploy.json)
+    local contract_addr
+    contract_addr=$(jq -r '.contractAddress' SCL_ECDSAB4.json.deploy.json)
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "ecdsab4_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+        local ephemeral_data
+        local ephemeral_private_key
+        local ephemeral_address
+        ephemeral_data=$(_generate_ephemeral_account "ecdsab4_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
         
@@ -680,8 +729,10 @@ setup_file() {
     wait
     
     for i in {1..256}; do
-        local ephemeral_data=$(_generate_ephemeral_account "ecdsab4_$i")
-        local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+        local ephemeral_data
+        local ephemeral_private_key
+        ephemeral_data=$(_generate_ephemeral_account "ecdsab4_$i")
+        ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         
         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" \
             "verify(bytes32,uint256,uint256,uint256[10],uint256)" \
