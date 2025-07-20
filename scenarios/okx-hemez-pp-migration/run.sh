@@ -10,6 +10,47 @@ if [[ -f ".env" ]]; then
   set +a
 fi
 
+
+# 2) patch the aggkit.toml 
+sed -i.bak -E "s|^L2URL[[:space:]]*=.*|L2URL=\"${L2URL}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^L1URL[[:space:]]*=.*|L1URL=\"${L1URL}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^AggLayerURL[[:space:]]*=.*|AggLayerURL=\"$AggLayerURL\"|" conf/aggkit.toml
+sed -i.bak -E "s|^L2Coinbase[[:space:]]*=.*|L2Coinbase=\"$L2Coinbase\"|" conf/aggkit.toml
+sed -i.bak -E "s|^RPCURL[[:space:]]*=.*|RPCURL=\"$RPCURL\"|" conf/aggkit.toml
+sed -i.bak -E "s|^polygonZkEVMGlobalExitRootAddress[[:space:]]*=.*|polygonZkEVMGlobalExitRootAddress=\"$polygonZkEVMGlobalExitRootAddress\"|" conf/aggkit.toml
+sed -i.bak -E "s|^GlobalExitRootAddr[[:space:]]*=.*|GlobalExitRootAddr=\"$GlobalExitRootAddr\"|" conf/aggkit.toml
+sed -i.bak -E "s|^GlobalExitRootL2[[:space:]]*=.*|GlobalExitRootL2=\"$GlobalExitRootL2\"|" conf/aggkit.toml
+sed -i.bak -E "s|^BridgeAddrL2[[:space:]]*=.*|BridgeAddrL2=\"$BridgeAddrL2\"|" conf/aggkit.toml
+sed -i.bak -E "s|^SenderAddr[[:space:]]*=.*|SenderAddr=\"$SenderAddr\"|" conf/aggkit.toml
+
+# update only the password on the AggOracle keystore line
+sed -i.bak -E \
+   "/aggoracle\.keystore/ s|(Password = \")[^\"]*(\")|\1${AGGORACLE_KEYSTORE_PASSWORD}\2|" \
+   conf/aggkit.toml
+
+# update only the password on the ClaimSponsor keystore line
+sed -i.bak -E \
+   "/claimtxmanager\.keystore/ s|(Password = \")[^\"]*(\")|\1${CLAIMSPONSOR_KEYSTORE_PASSWORD}\2|" \
+   conf/aggkit.toml
+
+# update only the password on the sequencer keystore line
+sed -i.bak -E \
+  "/sequencer\.keystore/ s|(Password = \")[^\"]*(\")|\1${SEQUENCER_KEYSTORE_PASSWORD}\2|" \
+  conf/aggkit.toml
+
+
+# update only the password on the agglayer keystore line
+sed -i.bak -E \
+  "/agglayer\.keystore/ s|(password[[:space:]]*=[[:space:]]\")[^\"]*(\")|\1${AGGLAYER_KEYSTORE_PASSWORD}\2|" \
+  conf/agglayer-config.toml
+
+
+# update the global exit‑root contract address
+sed -i.bak -E \
+  "/polygon-zkevm-global-exit-root-v2-contract/ s|(polygon-zkevm-global-exit-root-v2-contract[[:space:]]*=[[:space:]]\")[^\"]*(\")|\1${POLYGON_ZKEVM_GLOBAL_EXIT_ROOT_V2_CONTRACT}\2|" \
+  conf/agglayer-config.toml
+
+  
 # ====================== STEP 1 Create a temporary working directory =========
 echo "Starting STEP 1 Create a temporary working directory "
 # This directory will hold all test components
@@ -164,11 +205,11 @@ sleep 60
 
 echo "Setting next block timestamp to current time"
 echo "L1 RPC URL $L1_RPC_URL"
-cast rpc --rpc-url http://127.0.0.1:3000 evm_setNextBlockTimestamp $(date +%s)
+cast rpc --rpc-url "$L1_RPC_URL" evm_setNextBlockTimestamp $(date +%s)
 
 
 echo "Overriding _minDelay for Timelock"
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_setStorageAt "$TIMELOCK_ADDRESS" $(cast to-uint256 2) $(cast to-uint256 1)
+cast rpc --rpc-url "$L1_RPC_URL" anvil_setStorageAt "$TIMELOCK_ADDRESS" $(cast to-uint256 2) $(cast to-uint256 1)
 echo "_minDelay override complete"
 
 echo "END STEP 5 Configure Fork Environment"
@@ -256,13 +297,13 @@ echo "END STEP 7: Start Agglayer Components"
 echo "Starting STEP 8: Permission Changes"
 # Impersonate OKX admin account to grant permissions
 echo "OKX Admin Account: $OKX_ADMIN_ACCOUNT"
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_impersonateAccount "$OKX_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_impersonateAccount "$OKX_ADMIN_ACCOUNT"
 
 # Set our test account as the trusted sequencer
-cast send --unlocked --from "$OKX_ADMIN_ACCOUNT" --rpc-url http://127.0.0.1:3000 0x2B0ee28D4D51bC9aDde5E58E295873F61F4a0507 'setTrustedSequencer(address)' 0x8Ad44b2b5368a3043901ee373dC6D400c6A2e83F
+cast send --unlocked --from "$OKX_ADMIN_ACCOUNT" --rpc-url "$L1_RPC_URL" 0x2B0ee28D4D51bC9aDde5E58E295873F61F4a0507 'setTrustedSequencer(address)' 0x8Ad44b2b5368a3043901ee373dC6D400c6A2e83F
 
 # Stop impersonation
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_stopImpersonatingAccount "$OKX_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_stopImpersonatingAccount "$OKX_ADMIN_ACCOUNT"
 #+end_src
 
 
@@ -273,16 +314,16 @@ cast rpc --rpc-url http://127.0.0.1:3000 anvil_stopImpersonatingAccount "$OKX_AD
 #+begin_src bash
 # Impersonate Polygon admin to grant aggregator role
 echo "Polygon Admin Account: $POLYGON_ADMIN_ACCOUNT"
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
 
 # Grant TRUSTED_AGGREGATOR_ROLE to our Agglayer account
-cast send --unlocked --from "$POLYGON_ADMIN_ACCOUNT" --rpc-url http://127.0.0.1:3000 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 'grantRole(bytes32 role, address account)' $(cast keccak TRUSTED_AGGREGATOR_ROLE) 0xaff8Ed903d079cD0E7fE29138b37B6AC8fFe4AdF
+cast send --unlocked --from "$POLYGON_ADMIN_ACCOUNT" --rpc-url "$L1_RPC_URL" 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 'grantRole(bytes32 role, address account)' $(cast keccak TRUSTED_AGGREGATOR_ROLE) 0xaff8Ed903d079cD0E7fE29138b37B6AC8fFe4AdF
 
 # Stop impersonation
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
 
 # Fund the Agglayer account for gas fees
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_setBalance 0xaff8Ed903d079cD0E7fE29138b37B6AC8fFe4AdF 1000000000000000000
+cast rpc --rpc-url "$L1_RPC_URL" anvil_setBalance 0xaff8Ed903d079cD0E7fE29138b37B6AC8fFe4AdF 1000000000000000000
 #+end_src
 echo "Finished Permission Changes"
 echo "END STEP 8: Permission Changes"
@@ -315,13 +356,13 @@ echo "END STEP 9: Contract Upgrade Process"
 echo "Starting STEP 10: Execute Timelock Transactions"
 #+begin_src bash
 # Impersonate rollup manager admin
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
 
 # Schedule the new rollup type addition
 cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
-    --rpc-url http://127.0.0.1:3000 \
+    --rpc-url "$L1_RPC_URL" \
     $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
     $(jq -r '.scheduleData' $tdir/agglayer-contracts/tools/addRollupType/add_rollup_type_output.json)
 
@@ -332,7 +373,7 @@ sleep 60
 cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
-    --rpc-url http://127.0.0.1:3000 \
+    --rpc-url "$L1_RPC_URL" \
     $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
     $(jq -r '.executeData' $tdir/agglayer-contracts/tools/addRollupType/add_rollup_type_output.json)
 
@@ -340,7 +381,7 @@ cast send \
 cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
-    --rpc-url http://127.0.0.1:3000 \
+    --rpc-url "$L1_RPC_URL" \
     $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
     $(jq -r '.scheduleData' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json)
 
@@ -351,12 +392,12 @@ sleep 60
 cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
-    --rpc-url http://127.0.0.1:3000 \
+    --rpc-url "$L1_RPC_URL" \
     $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
     $(jq -r '.executeData' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json)
 
 # Stop impersonation
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
 #+end_src
 echo "END STEP 10: Execute Timelock Transactions"
 # =============================  END STEP 10: Execute Timelock Transactions ======================
@@ -368,10 +409,10 @@ echo "END STEP 10: Execute Timelock Transactions"
 echo "Starting STEP 11: Verify Upgrade"
 
 # Check rollup manager version (should be al-v0.3.1)
-cast call --rpc-url http://127.0.0.1:3000 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 "ROLLUP_MANAGER_VERSION()(string)"
+cast call --rpc-url "$L1_RPC_URL" 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 "ROLLUP_MANAGER_VERSION()(string)"
 
 # Check rollup type count (should be 11)
-cast call --rpc-url http://127.0.0.1:3000 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 "rollupTypeCount() external view returns (uint32)"
+cast call --rpc-url "$L1_RPC_URL" 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 "rollupTypeCount() external view returns (uint32)"
 
 echo "END STEP 11: Verify Upgrade"
 # =============================  END STEP 11: Verify Upgrade ==========================================
@@ -382,18 +423,18 @@ echo "END STEP 11: Verify Upgrade"
 # 11 now, we should be good to proceed with the actual update.
 echo "Starting STEP 12: Execute Migration"
 # Impersonate admin for migration
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
 
 # Initialize migration of rollup 3 (OKX) to type 11 (PP)
 cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
-    --rpc-url http://127.0.0.1:3000 \
+    --rpc-url "$L1_RPC_URL" \
     0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 "initMigrationToPP(uint32,uint32)" 3 11
 
 
 # Stop impersonation
-cast rpc --rpc-url http://127.0.0.1:3000 anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
+cast rpc --rpc-url "$L1_RPC_URL" anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
 
 echo "END STEP 12: Execute Migration"
 # =============================  END STEP 12: Execute Migration ==========================================
@@ -430,7 +471,70 @@ echo "==========================================================================
 #        /app/cmd/run.go:119 +0xda5
 
 
-echo "Starting Cleanup - FINAL STEP"
-chmod +x cleanup.sh
 
-. ./cleanup.sh full
+# =============================  END STEP 13: Starting Cleanup - FINAL STEP ==========================================
+echo "Starting Cleanup - FINAL STEP"
+
+
+echo "Select cleanup mode:"
+echo "1) Full Cleanup (stop all services and remove state)"
+echo "2) Soft Reset    (stop nodes, preserve anvil and state)"
+echo "3) Exit"
+
+read -rp "Enter choice [1-3]: " choice
+
+case "$choice" in
+  1)
+    echo "Performing Full Cleanup..."
+    docker stop agglayer-node || true
+    docker stop agglayer-prover || true
+    docker stop anvil || true
+    echo "Optionally remove temporary directory:"
+    read -rp "Remove \$tdir and all contents? [y/N]: " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+      if [[ -n "${tdir:-}" && -d "$tdir" ]]; then
+        sudo rm -rf "$tdir"
+        echo "Removed \$tdir"
+      else
+        echo "No valid \$tdir to remove"
+      fi
+    fi
+    ;;
+
+  2)
+    echo "Performing Soft Reset..."
+    docker stop agglayer-node || true
+    docker stop agglayer-prover || true
+    if [[ -z "${tdir:-}" ]]; then
+      echo "Error: tdir must be set for soft reset." >&2
+      exit 1
+    fi
+    echo "Cleaning agglayer state and SQL data..."
+    sudo rm -rf "$tdir/agglayer"/*
+    sudo rm -f "$tdir/aggkit/aggsender.sql*"
+    sudo rm -f "$tdir/aggkit/reorgdetectorl*"
+    echo "Block-level soft reset SQL statements (manual):"
+    cat << 'EOF'
+-- Connect to SQLite and run:
+delete from l1_info_root where block_num > 22688021;
+delete from block where num > 22688021;
+delete from l1info_leaf where block_num > 22688021;
+delete from verify_batches where block_num > 22688021;
+delete from l1info_initial where block_num > 22688021;
+EOF
+    ;;
+
+  3)
+    echo "Exiting without changes."
+    exit 0
+    ;;
+
+  *)
+    echo "Invalid choice: $choice" >&2
+    exit 1
+    ;;
+esac
+
+echo "Cleanup complete."
+
+# =============================  END STEP 13: Starting Cleanup - FINAL STEP ==========================================
