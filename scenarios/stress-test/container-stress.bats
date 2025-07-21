@@ -2,7 +2,7 @@
 
 setup() {
     # Set default values if not provided via environment variables
-    DURATION="${STRESS_DURATION:-5s}"
+    DURATION="${STRESS_DURATION:-30s}"
     MATRIX_FILE="${CONTAINER_MAPPINGS_FILE:-./assets/container_mappings.json}"
     
     # Create timestamped log directory

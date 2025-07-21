@@ -16,7 +16,7 @@ All stress tests run within the container's cgroup boundaries, respecting Docker
 ## Files Structure
 
 ```
-tests/stress-test/
+scenarios/stress-test/
 ├── container-stress.bats           # Main BATS test file
 ├── env.example                     # Example environment configuration
 ├── assets/

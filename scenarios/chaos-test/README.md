@@ -17,7 +17,7 @@ The chaos testing framework allows you to inject network faults into running Doc
 ## Files Structure
 
 ```
-tests/chaos/
+scenarios/chaos/
 ├── network-chaos.bash          # Main chaos testing script
 ├── assets/
 │   ├── chaos_test_model.pict   # PICT model file for test combinations
