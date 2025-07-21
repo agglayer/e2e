@@ -6,6 +6,7 @@ if [[ -f ".env" ]]; then
   echo "Loading environment from .env"
   # Export all variables defined in .env
   set -a
+  # shellcheck source=./.env.example
   source ".env"
   set +a
 fi
@@ -14,14 +15,14 @@ fi
 # 2) patch the aggkit.toml 
 sed -i.bak -E "s|^L2URL[[:space:]]*=.*|L2URL=\"${L2URL}\"|" conf/aggkit.toml
 sed -i.bak -E "s|^L1URL[[:space:]]*=.*|L1URL=\"${L1URL}\"|" conf/aggkit.toml
-sed -i.bak -E "s|^AggLayerURL[[:space:]]*=.*|AggLayerURL=\"$AggLayerURL\"|" conf/aggkit.toml
-sed -i.bak -E "s|^L2Coinbase[[:space:]]*=.*|L2Coinbase=\"$L2Coinbase\"|" conf/aggkit.toml
-sed -i.bak -E "s|^RPCURL[[:space:]]*=.*|RPCURL=\"$RPCURL\"|" conf/aggkit.toml
-sed -i.bak -E "s|^polygonZkEVMGlobalExitRootAddress[[:space:]]*=.*|polygonZkEVMGlobalExitRootAddress=\"$polygonZkEVMGlobalExitRootAddress\"|" conf/aggkit.toml
-sed -i.bak -E "s|^GlobalExitRootAddr[[:space:]]*=.*|GlobalExitRootAddr=\"$GlobalExitRootAddr\"|" conf/aggkit.toml
-sed -i.bak -E "s|^GlobalExitRootL2[[:space:]]*=.*|GlobalExitRootL2=\"$GlobalExitRootL2\"|" conf/aggkit.toml
-sed -i.bak -E "s|^BridgeAddrL2[[:space:]]*=.*|BridgeAddrL2=\"$BridgeAddrL2\"|" conf/aggkit.toml
-sed -i.bak -E "s|^SenderAddr[[:space:]]*=.*|SenderAddr=\"$SenderAddr\"|" conf/aggkit.toml
+sed -i.bak -E "s|^AggLayerURL[[:space:]]*=.*|AggLayerURL=\"${AggLayerURL}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^L2Coinbase[[:space:]]*=.*|L2Coinbase=\"${L2Coinbase}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^RPCURL[[:space:]]*=.*|RPCURL=\"${RPCURL}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^polygonZkEVMGlobalExitRootAddress[[:space:]]*=.*|polygonZkEVMGlobalExitRootAddress=\"${polygonZkEVMGlobalExitRootAddress}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^GlobalExitRootAddr[[:space:]]*=.*|GlobalExitRootAddr=\"${GlobalExitRootAddr}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^GlobalExitRootL2[[:space:]]*=.*|GlobalExitRootL2=\"${GlobalExitRootL2}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^BridgeAddrL2[[:space:]]*=.*|BridgeAddrL2=\"${BridgeAddrL2}\"|" conf/aggkit.toml
+sed -i.bak -E "s|^SenderAddr[[:space:]]*=.*|SenderAddr=\"${SenderAddr}\"|" conf/aggkit.toml
 
 # update only the password on the AggOracle keystore line
 sed -i.bak -E \
@@ -205,11 +206,11 @@ sleep 60
 
 echo "Setting next block timestamp to current time"
 echo "L1 RPC URL $L1_RPC_URL"
-cast rpc --rpc-url "$L1_RPC_URL" evm_setNextBlockTimestamp $(date +%s)
+cast rpc --rpc-url "$L1_RPC_URL" evm_setNextBlockTimestamp "$(date +%s)"
 
 
 echo "Overriding _minDelay for Timelock"
-cast rpc --rpc-url "$L1_RPC_URL" anvil_setStorageAt "$TIMELOCK_ADDRESS" $(cast to-uint256 2) $(cast to-uint256 1)
+cast rpc --rpc-url "$L1_RPC_URL" anvil_setStorageAt "$TIMELOCK_ADDRESS" "$(cast to-uint256 2)" "$(cast to-uint256 1)"
 echo "_minDelay override complete"
 
 echo "END STEP 5 Configure Fork Environment"
@@ -317,7 +318,7 @@ echo "Polygon Admin Account: $POLYGON_ADMIN_ACCOUNT"
 cast rpc --rpc-url "$L1_RPC_URL" anvil_impersonateAccount "$POLYGON_ADMIN_ACCOUNT"
 
 # Grant TRUSTED_AGGREGATOR_ROLE to our Agglayer account
-cast send --unlocked --from "$POLYGON_ADMIN_ACCOUNT" --rpc-url "$L1_RPC_URL" 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 'grantRole(bytes32 role, address account)' $(cast keccak TRUSTED_AGGREGATOR_ROLE) 0xaff8Ed903d079cD0E7fE29138b37B6AC8fFe4AdF
+cast send --unlocked --from "$POLYGON_ADMIN_ACCOUNT" --rpc-url "$L1_RPC_URL" 0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2 'grantRole(bytes32 role, address account)' "$(cast keccak TRUSTED_AGGREGATOR_ROLE)" 0xaff8Ed903d079cD0E7fE29138b37B6AC8fFe4AdF
 
 # Stop impersonation
 cast rpc --rpc-url "$L1_RPC_URL" anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
@@ -363,8 +364,8 @@ cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
     --rpc-url "$L1_RPC_URL" \
-    $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
-    $(jq -r '.scheduleData' $tdir/agglayer-contracts/tools/addRollupType/add_rollup_type_output.json)
+    "$(jq -r '.timelockContractAddress' "$tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json")" \
+    "$(jq -r '.scheduleData' "$tdir/agglayer-contracts/tools/addRollupType/add_rollup_type_output.json")"
 
 # Wait at least 60 seconds
 sleep 60
@@ -374,16 +375,16 @@ cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
     --rpc-url "$L1_RPC_URL" \
-    $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
-    $(jq -r '.executeData' $tdir/agglayer-contracts/tools/addRollupType/add_rollup_type_output.json)
+    "$(jq -r '.timelockContractAddress' "$tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json")" \
+    "$(jq -r '.executeData' "$tdir/agglayer-contracts/tools/addRollupType/add_rollup_type_output.json")"
 
 # Schedule the rollup manager upgrade
 cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
     --rpc-url "$L1_RPC_URL" \
-    $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
-    $(jq -r '.scheduleData' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json)
+    "$(jq -r '.timelockContractAddress' "$tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json")" \
+    "$(jq -r '.scheduleData' "$tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json")"
 
 # Wait at least 60 seconds
 sleep 60
@@ -393,8 +394,8 @@ cast send \
     --unlocked \
     --from "$POLYGON_ADMIN_ACCOUNT" \
     --rpc-url "$L1_RPC_URL" \
-    $(jq -r '.timelockContractAddress' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json) \
-    $(jq -r '.executeData' $tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json)
+    "$(jq -r '.timelockContractAddress' "$tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json")" \
+    "$(jq -r '.executeData' "$tdir/agglayer-contracts/upgrade/upgrade-rollupManager-v0.3.1/upgrade_output.json")"
 
 # Stop impersonation
 cast rpc --rpc-url "$L1_RPC_URL" anvil_stopImpersonatingAccount "$POLYGON_ADMIN_ACCOUNT"
