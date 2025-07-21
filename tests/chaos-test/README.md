@@ -1,6 +1,7 @@
 # Chaos Testing Documentation
 
 This directory contains network chaos testing tools for Docker containers using [Pumba](https://github.com/alexei-led/pumba) to simulate various network conditions and failures.
+We are using a bash script instead of BATS scripts, because these tests were written with the intention to run simultaneously, so there was no additional benefit for the overhead of using the BATS library.
 
 ## Overview
 
