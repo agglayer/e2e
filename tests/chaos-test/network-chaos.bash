@@ -29,14 +29,14 @@ mkdir -p "$LOG_DIR"
 
 
 # Get list of running container names
-RUNNING_CONTAINERS=($(docker ps --format '{{.Names}}'))
+RUNNING_CONTAINERS=("$(docker ps --format '{{.Names}}')")
 if [[ ${#RUNNING_CONTAINERS[@]} -eq 0 ]]; then
     echo "No running containers found!" | tee -a "$LOG_DIR/test_parameters.log"
     exit 1
 fi
 
 # Extract unique container names from JSON matrix
-UNIQUE_CONTAINERS=($(jq -r '.[] | .container' "$MATRIX_FILE" | sort -u))
+UNIQUE_CONTAINERS=("$(jq -r '.[] | .container' "$MATRIX_FILE" | sort -u)")
 if [[ ${#UNIQUE_CONTAINERS[@]} -eq 0 ]]; then
     echo "No containers found in JSON matrix!" | tee -a "$LOG_DIR/test_parameters.log"
     exit 1
@@ -102,6 +102,7 @@ while IFS= read -r test_case; do
     pumba --log-level debug netem \
       --duration "$DURATION" \
       --interface eth0 \
+      --tc-image "$NETTOOLS_IMAGE" \
       delay \
       --time 500 \
       --jitter "$JITTER" \
@@ -112,6 +113,7 @@ while IFS= read -r test_case; do
     pumba --log-level debug netem \
       --duration "$DURATION" \
       --interface eth0 \
+      --tc-image "$NETTOOLS_IMAGE" \
       loss \
       --percent "$PERCENT" \
       "$CONTAINER" > "$TEST_LOG_DIR/loss_test.log" 2>&1 &
@@ -121,6 +123,7 @@ while IFS= read -r test_case; do
     pumba --log-level debug netem \
       --duration "$DURATION" \
       --interface eth0 \
+      --tc-image "$NETTOOLS_IMAGE" \
       rate \
       --rate "$RATE" \
       --packetoverhead 0 \
@@ -133,6 +136,7 @@ while IFS= read -r test_case; do
     pumba --log-level debug net:em \
       --duration "$DURATION" \
       --interface eth0 \
+      --tc-image "$NETTOOLS_IMAGE" \
       duplicate \
       --percent "$PERCENT" \
       "$CONTAINER" > "$TEST_LOG_DIR/duplicate_test.log" 2>&1 &
@@ -142,6 +146,7 @@ while IFS= read -r test_case; do
     pumba --log-level debug netem \
       --duration "$DURATION" \
       --interface eth0 \
+      --tc-image "$NETTOOLS_IMAGE" \
       corrupt \
       --percent "$PERCENT" \
       "$CONTAINER" > "$TEST_LOG_DIR/corrupt_test.log" 2>&1 &
@@ -152,6 +157,7 @@ while IFS= read -r test_case; do
       --duration "$DURATION" \
       --protocol tcp \
       --dst-port 80 \
+      --iptables-image "$NETTOOLS_IMAGE" \
       loss \
       --probability "$PROBABILITY" \
       "$CONTAINER" > "$TEST_LOG_DIR/iptables_test.log" 2>&1 &

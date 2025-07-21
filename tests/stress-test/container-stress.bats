@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-# filepath: /home/jihwankim/e2e/tests/stress-test/container-stress.bats
 
 setup() {
     # Set default values if not provided via environment variables
@@ -22,7 +21,8 @@ teardown() {
         # Find and kill any remaining docker logs processes
         for pid_file in "$LOG_DIR"/*/log_pid; do
             if [[ -f "$pid_file" ]]; then
-                local pid=$(cat "$pid_file")
+                local pid
+                pid=$(cat "$pid_file")
                 if kill -0 "$pid" 2>/dev/null; then
                     kill "$pid" 2>/dev/null
                 fi
@@ -44,7 +44,7 @@ _load_containers_to_target(){
     fi
 
     # Read container IDs from the JSON file
-    CONTAINER_IDS=($(jq -r '.[].id' "$MATRIX_FILE"))
+    CONTAINER_IDS=("$(jq -r '.[].id' "$MATRIX_FILE")")
 
     if [[ ${#CONTAINER_IDS[@]} -eq 0 ]]; then
         echo "No container IDs found in mapping file: $MATRIX_FILE" >&3
@@ -76,7 +76,8 @@ _start_container_logging() {
     mkdir -p "$container_log_dir"
     
     # Get container name for readability
-    local container_name=$(jq -r ".[] | select(.id==\"$container_id\") | .name" "$MATRIX_FILE")
+    local container_name
+    container_name=$(jq -r ".[] | select(.id==\"$container_id\") | .name" "$MATRIX_FILE")
     
     # Save container info
     cat > "$container_log_dir/container_info.log" << EOF
@@ -105,7 +106,8 @@ _stop_container_logging() {
     local container_log_dir="$LOG_DIR/container_${container_id}_${test_type}"
     
     if [[ -f "$container_log_dir/log_pid" ]]; then
-        local log_pid=$(cat "$container_log_dir/log_pid")
+        local log_pid
+        log_pid=$(cat "$container_log_dir/log_pid")
         if kill -0 "$log_pid" 2>/dev/null; then
             kill "$log_pid" 2>/dev/null
             echo "Stopped log capture for container: $container_id" >&3
@@ -124,10 +126,12 @@ _run_stress_with_logging() {
     local container_log_dir="$LOG_DIR/container_${container_id}_${test_type}"
     
     # Start container logging
-    local log_pid=$(_start_container_logging "$container_id" "$test_type")
+    local log_pid
+    log_pid=$(_start_container_logging "$container_id" "$test_type")
     
     # Get container name for display
-    local container_name=$(jq -r ".[] | select(.id==\"$container_id\") | .name" "$MATRIX_FILE")
+    local container_name
+    container_name=$(jq -r ".[] | select(.id==\"$container_id\") | .name" "$MATRIX_FILE")
     
     echo "Starting $test_type for container: $container_name ($container_id)" >&3
     

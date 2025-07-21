@@ -42,7 +42,7 @@ fi
 echo "[" > "$CONTAINER_MAP_FILE"
 for i in "${!CONTAINER_MAPPINGS[@]}"; do
     echo "  ${CONTAINER_MAPPINGS[$i]}" >> "$CONTAINER_MAP_FILE"
-    if [ $i -lt $((${#CONTAINER_MAPPINGS[@]} - 1)) ]; then
+    if [[ $i -lt $((${#CONTAINER_MAPPINGS[@]} - 1)) ]]; then
         echo "," >> "$CONTAINER_MAP_FILE"
     else
         echo "" >> "$CONTAINER_MAP_FILE"

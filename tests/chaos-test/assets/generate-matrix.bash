@@ -14,7 +14,7 @@ fi
 EXCLUDE_CONTAINERS=("kurtosis-" "validator-key-generation-cl-validator-keystore" "test-runner" "contracts-001")
 
 # Get list of running container names, excluding specified ones
-CONTAINERS=($(docker ps --format '{{.Names}}' | grep -v -E "$(IFS="|"; echo "${EXCLUDE_CONTAINERS[*]}")"))
+mapfile -t CONTAINERS < <(docker ps --format '{{.Names}}' | grep -v -E "$(IFS="|"; echo "${EXCLUDE_CONTAINERS[*]}")")
 if [ ${#CONTAINERS[@]} -eq 0 ]; then
     echo "No running containers found after filtering!"
     exit 1
