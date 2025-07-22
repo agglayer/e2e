@@ -15,6 +15,15 @@ if [[ -f ".env" ]]; then
 fi
 
 
+# Assign fallback to silence ShellCheck (SC2154)
+: "${AggLayerURL:=}"
+: "${L2Coinbase:=}"
+: "${polygonZkEVMGlobalExitRootAddress:=}"
+: "${GlobalExitRootAddr:=}"
+: "${GlobalExitRootL2:=}"
+: "${BridgeAddrL2:=}"
+: "${SenderAddr:=}"
+
 # 2) patch the aggkit.toml 
 sed -i.bak -E "s|^L2URL[[:space:]]*=.*|L2URL=\"${L2URL}\"|" conf/aggkit.toml
 sed -i.bak -E "s|^L1URL[[:space:]]*=.*|L1URL=\"${L1URL}\"|" conf/aggkit.toml
