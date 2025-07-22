@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load defaults from .env.example
+# shellcheck source=.env.example
+source ".env.example"
+
 # Load environment variables from .env if present
 if [[ -f ".env" ]]; then
   echo "Loading environment from .env"
   # Export all variables defined in .env
   set -a
-  # shellcheck source=.env.example
   source ".env"
   set +a
 fi
