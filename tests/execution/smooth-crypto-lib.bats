@@ -10,12 +10,15 @@ setup_file() {
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
 
+    export exponential_growth_limit=12
     export TEMP_DIR
     TEMP_DIR=$(mktemp -d)
-    export exponential_growth_limit=12
-    
-    # Load helper functions from bridge tests
-    load "../lxly/assets/bridge-tests-helper.bash"
+}
+
+setup() {
+    # source existing helper functions for ephemeral account setup
+    # shellcheck disable=SC1091
+    source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
 # teardown_file() {
