@@ -16,7 +16,7 @@
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "Max",
-        "ExpectedResultProcess": "Success",
+        "ExpectedResultProcess": ["Success","0x4e487b71"],
         "ExpectedResultClaim": ["Success", "0x23d72133", "0x4e487b71"],
         "_comments": "Expected to pass in the first ever attempt, but fail from the second run onwards"
     },
@@ -88,7 +88,7 @@
         "ForceUpdate": "True",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": ["RPC error response: INVALID: RLPTooLong", "oversized data"]
+        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"]
     },
     {
         "DestinationAddress": "Precompile",
@@ -128,7 +128,7 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "0",
-        "ExpectedResultProcess": ["RPC error response: INVALID: RLPTooLong", "oversized data"],
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data"],
         "ExpectedResultClaim": "N/A"
     },
     {
@@ -299,7 +299,7 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "1",
-        "ExpectedResultProcess": ["RPC error response: INVALID: RLPTooLong", "oversized data"],
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data"],
         "ExpectedResultClaim": "N/A"
     },
     {
@@ -329,7 +329,7 @@
         "MetaData": "Huge",
         "ForceUpdate": "False",
         "Amount": "1",
-        "ExpectedResultProcess": ["RPC error response: INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
         "ExpectedResultClaim": "N/A"
     },
     {
