@@ -123,8 +123,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
 | Manual acceptance criterial | Full System | 🚧 | 🚧 | [Link](https://www.notion.so/polygontechnology/9dc3c0e78e7940a39c7cfda5fd3ede8f?v=4dfc351d725c4792adb989a4aad8b69e) | |
-| Fuzz tests / Stress Tests / Load Tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/fuzzing.sh) | |
-| Reliability / Chaos Tests | Full System | ✅ | 🚧 | | |
+| Fuzz tests / Stress Tests / Load Tests | Full System | ✅ | ✅ | [Chaos Tests](./scenarios/chaos-test) [Stress Tests](./scenarios/stress-test)| |
+| Reliability / Chaos Tests | Full System | ✅ | ✅ | | [Link](./scenarios/chaos-test) |
 | Ethereum test suite stress tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/run-retest-with-cast.sh) | |
 
 
