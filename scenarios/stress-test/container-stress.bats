@@ -1,22 +1,40 @@
 #!/usr/bin/env bats
 
+# Array to track all PIDs for cleanup
+declare -a ALL_PIDS=()
+
 setup() {
     # Set default values if not provided via environment variables
-    DURATION="${STRESS_DURATION:-30s}"
-    MATRIX_FILE="${CONTAINER_MAPPINGS_FILE:-./assets/container_mappings.json}"
+    DURATION="${TEST_DURATION:-30s}"
+    MATRIX_FILE="${STRESS_TEST_INPUT:-./assets/container_mappings.json}"
     
+    # Set ROOT_DIR to current working directory if not already set
+    LOG_ROOT_DIR="${LOG_ROOT_DIR:-$PWD}"
+
     # Create timestamped log directory
-    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-    LOG_DIR="./stress_logs_${TIMESTAMP}"
+    LOG_DIR="${LOG_ROOT_DIR}/stress_logs_$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$LOG_DIR"
     
     echo "Stress test logs will be saved to: $LOG_DIR" >&3
     
+    # Trap SIGINT to handle Ctrl+C
+    trap 'handle_interrupt' SIGINT
+
     _load_containers_to_target
 }
 
 teardown() {
-    # Cleanup any remaining log processes
+    # Cleanup any remaining processes
+    if [[ ${#ALL_PIDS[@]} -gt 0 ]]; then
+        for pid in "${ALL_PIDS[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                echo "Terminating process $pid" >&3
+                kill "$pid" 2>/dev/null
+            fi
+        done
+    fi
+
+    # Cleanup any remaining log processes and PID files
     if [[ -d "$LOG_DIR" ]]; then
         # Find and kill any remaining docker logs processes
         for pid_file in "$LOG_DIR"/*/log_pid; do
@@ -24,6 +42,7 @@ teardown() {
                 local pid
                 pid=$(cat "$pid_file")
                 if kill -0 "$pid" 2>/dev/null; then
+                    echo "Terminating log process $pid" >&3
                     kill "$pid" 2>/dev/null
                 fi
                 rm -f "$pid_file"
@@ -35,7 +54,14 @@ teardown() {
     fi
 }
 
-_load_containers_to_target(){
+handle_interrupt() {
+    echo "Received Ctrl+C, cleaning up..." >&3
+    # Call teardown to handle cleanup
+    teardown
+    exit 1
+}
+
+_load_containers_to_target() {
     # Check if the container mappings file exists
     if [[ ! -f "$MATRIX_FILE" ]]; then
         echo "Container mappings file not found: $MATRIX_FILE" >&3
@@ -43,8 +69,8 @@ _load_containers_to_target(){
         exit 1
     fi
 
-    # Read container IDs from the JSON file
-    CONTAINER_IDS=("$(jq -r '.[].id' "$MATRIX_FILE")")
+    # Read container IDs from the JSON file into an array
+    mapfile -t CONTAINER_IDS < <(jq -r '.[].id' "$MATRIX_FILE")
 
     if [[ ${#CONTAINER_IDS[@]} -eq 0 ]]; then
         echo "No container IDs found in mapping file: $MATRIX_FILE" >&3
@@ -96,6 +122,7 @@ EOF
     
     # Save the PID for later cleanup
     echo "$log_pid" > "$container_log_dir/log_pid"
+    ALL_PIDS+=("$log_pid")
     
     echo "$log_pid"
 }
@@ -136,7 +163,13 @@ _run_stress_with_logging() {
     echo "Starting $test_type for container: $container_name ($container_id)" >&3
     
     # Run the stress test and capture its output
-    run bash -c "sudo cgexec -g '*:system.slice/docker-${container_id}.scope' $stress_command"
+    run bash -c "sudo cgexec -g '*:system.slice/docker-${container_id}.scope' $stress_command" &
+    local stress_pid=$!
+    ALL_PIDS+=("$stress_pid")
+    
+    # Wait for the stress test to complete
+    wait "$stress_pid"
+    local status=$?
     
     # Save stress test output
     cat > "$container_log_dir/stress_test_output.log" << EOF
