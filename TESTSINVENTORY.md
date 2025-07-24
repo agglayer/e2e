@@ -102,6 +102,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 ## Execution Layer Tests
 
+A lot of the tests in this section rely on the [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth).
+Refer to the [Quickstart](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth?tab=readme-ov-file#quickstart) to get up and running quickly.
+
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
 | Access list tests | Execution Layer | ✅ | N/A | [Link](https://github.com/jhkimqd/execution-spec-tests/tree/main/tests/berlin/eip2930_access_list) | Testable using [Execution Spec Tests](https://github.com/jhkimqd/execution-spec-tests/tree/jihwan/cdk-op-geth) |
@@ -123,8 +126,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Target | Is Automated | Is in E2E | Reference | Notes |
 |-----------|--------|--------------|-----------|-----------|-------|
 | Manual acceptance criterial | Full System | 🚧 | 🚧 | [Link](https://www.notion.so/polygontechnology/9dc3c0e78e7940a39c7cfda5fd3ede8f?v=4dfc351d725c4792adb989a4aad8b69e) | |
-| Fuzz tests / Stress Tests / Load Tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/fuzzing.sh) | |
-| Reliability / Chaos Tests | Full System | ✅ | 🚧 | | |
+| Fuzz tests / Stress Tests / Load Tests | Full System | ✅ | ✅ | [Chaos Tests](./scenarios/chaos-test) [Stress Tests](./scenarios/stress-test)| |
+| Reliability / Chaos Tests | Full System | ✅ | ✅ | [Link](./scenarios/chaos-test) | |
 | Ethereum test suite stress tests | Full System | ✅ | 🚧 | [Link](https://github.com/0xPolygon/jhilliard/blob/main/evm-rpc-tests/misc/run-retest-with-cast.sh) | |
 
 
