@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Set ROOT_DIR to current working directory if not already set
+LOG_ROOT_DIR="${LOG_ROOT_DIR:-$PWD}"
+
+# Create main log directory
+LOG_DIR="${LOG_ROOT_DIR}/chaos_logs_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$LOG_DIR"
+
 # Default common image for all commands
 NETTOOLS_IMAGE="ghcr.io/alexei-led/pumba-alpine-nettools:latest"
 
@@ -22,11 +29,6 @@ if [[ ! -f "$MATRIX_FILE" ]]; then
     echo "Error: JSON matrix file $MATRIX_FILE does not exist."
     exit 1
 fi
-
-# Create main log directory
-LOG_DIR="chaos_logs_$(date +%Y%m%d_%H%M%S)"
-mkdir -p "$LOG_DIR"
-
 
 # Get list of running container names
 RUNNING_CONTAINERS=("$(docker ps --format '{{.Names}}')")
