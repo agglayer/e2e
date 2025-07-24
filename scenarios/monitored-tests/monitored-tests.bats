@@ -48,7 +48,7 @@ _handle_interrupt() {
 }
 
 _check_docker_network_exists() {
-    if docker network ls --filter name=^kt-${ENCLAVE_NAME}$ --format '{{.Name}}' | grep -q "^kt-${ENCLAVE_NAME}$"; then
+    if docker network ls --filter name=^kt-"${ENCLAVE_NAME}"$ --format '{{.Name}}' | grep -q "^kt-${ENCLAVE_NAME}$"; then
         echo "Network 'kt-${ENCLAVE_NAME}' exists." >&3
     else
         echo "Network 'kt-${ENCLAVE_NAME}' does not exist." >&3
@@ -58,21 +58,21 @@ _check_docker_network_exists() {
 
 _parse_pre_state_input() {
     # parse chaos-test input matrix
-    cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."chaos_test"' > $TMP_DIR/chaos_test_input.json
+    cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."chaos_test"' > "$TMP_DIR"/chaos_test_input.json
     echo "chaos_test_input created at: $TMP_DIR/chaos_test_input.json" >&3
 
     # parse stress-test input matrix
-    cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."stress_test"' > $TMP_DIR/stress_test_input.json
+    cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."stress_test"' > "$TMP_DIR"/stress_test_input.json
     echo "stress_test_input created at: $TMP_DIR/stress_test_input.json" >&3
 
     # parse e2e-tests to run
-    cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."e2e_tests"' > $TMP_DIR/e2e_tests.json
+    cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."e2e_tests"' > "$TMP_DIR"/e2e_tests.json
     echo "e2e_tests to run created at: $TMP_DIR/e2e_tests.json" >&3 
 }
 
 @test "Run tests combinations" {
     # Run network-chaos test
-    bash ./scenarios/chaos-test/network-chaos.bash $TEST_DURATION $TMP_DIR/chaos_test_input.json &
+    bash ./scenarios/chaos-test/network-chaos.bash "$TEST_DURATION" "$TMP_DIR"/chaos_test_input.json &
     CHAOS_TEST_PID=$!
     ALL_PIDS+=("$CHAOS_TEST_PID")
     echo "Chaos test PID: $CHAOS_TEST_PID" >&3
@@ -119,13 +119,14 @@ _parse_pre_state_input() {
     failed=false
     for pid in "${ALL_PIDS[@]}"; do
         wait "$pid" || {
-            if [[ $? -eq 124 ]]; then
+            local exit_code=$?
+            if [[ $exit_code -eq 124 ]]; then
                 echo "Test (PID $pid) timed out after $TEST_TIMEOUT" >&3
             else
-                echo "Test (PID $pid) failed with exit code $?" >&3
+                echo "Test (PID $pid) failed with exit code $exit_code" >&3
             fi
             failed=true
-        }
+}
     done
 
     # Check if any test failed
