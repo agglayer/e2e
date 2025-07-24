@@ -22,6 +22,8 @@ setup() {
 
     # Clean up any previous result files
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
+
+    log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
 }
 
 teardown() {
@@ -34,7 +36,7 @@ teardown() {
 
 
 _setup_environment_variables() {
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
+    kurtosis_enclave_name="${ENCLAVE_NAME:-cdk}"
     l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
     l1_rpc_url="${L1_RPC_URL:-http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)}"
@@ -42,7 +44,7 @@ _setup_environment_variables() {
 
     l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url="${L2_RPC_URL:-$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)}"
+    l2_rpc_url="${L2_RPC_URL:-$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-sequencer-001 rpc)}"
     l2_bridge_addr="${L2_BRIDGE_ADDR:-0x4c1335D41c271beD3eF6a1228a4D0C701Fc87b74}"
 
     bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
@@ -96,7 +98,7 @@ _setup_contract_addresses() {
 
     # Create output directory with timestamp
     local timestamp=$(date +%Y%m%d_%H%M%S)
-    local output_dir="/tmp/bridge_test_results_${timestamp}"
+    local output_dir="$log_root_dir/bridge_test_results_${timestamp}"
     mkdir -p "$output_dir"
     
     echo "Test results will be saved to: $output_dir" >&3
