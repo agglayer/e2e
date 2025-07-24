@@ -16,7 +16,7 @@ setup() {
     local ephemeral_data
     local ephemeral_private_key
     local ephemeral_address
-    ephemeral_data=$(_generate_ephemeral_account "1")
+    ephemeral_data=$(_generate_ephemeral_account "conflicting-transactions-to-pool")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     

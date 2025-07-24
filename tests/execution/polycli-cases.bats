@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 setup_file() {
+    log_root_dir="${LOG_ROOT_DIR:-$PWD}"
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
 
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
@@ -9,7 +10,7 @@ setup_file() {
     # source existing helper functions for ephemeral account setup
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 
-    ephemeral_data=$(_generate_ephemeral_account "1")
+    ephemeral_data=$(_generate_ephemeral_account "polycli-cases")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
 
