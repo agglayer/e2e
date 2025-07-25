@@ -45,7 +45,7 @@ FUZZ_PROB=0.05  # 5% chance to fuzz each parameter
 
 # Get agglayer configs
 agglayer_container_uuid=$(docker ps --format '{{.Names}} {{.ID}}' --no-trunc | grep "agglayer--" | awk '{print $2}')
-docker cp $agglayer_container_uuid:/etc/zkevm/agglayer-config.toml $LOG_DIR/initial-agglayer-config.toml
+docker cp "$agglayer_container_uuid":/etc/zkevm/agglayer-config.toml "$LOG_DIR"/initial-agglayer-config.toml
 
 # Helper functions to generate random values
 _rand_int() {
@@ -58,8 +58,10 @@ _rand_float() {
     local min=$1
     local max=$2
     local scale=$3
-    local range=$(echo "($max - $min) * $scale" | bc)
-    local random_val=$(echo "$min * $scale + ($RANDOM % $range)" | bc)
+    local range
+    range=$(echo "($max - $min) * $scale" | bc)
+    local random_val
+    random_val=$(echo "$min * $scale + ($RANDOM % $range)" | bc)
     echo "scale=$scale; $random_val / $scale" | bc
 }
 
@@ -73,7 +75,8 @@ _rand_bool() {
 
 # Function to decide whether to fuzz a parameter based on FUZZ_PROB
 _should_fuzz() {
-    local prob_int=$(echo "$FUZZ_PROB * 100" | bc | cut -d. -f1)
+    local prob_int
+    prob_int=$(echo "$FUZZ_PROB * 100" | bc | cut -d. -f1)
     [[ -z "$prob_int" ]] && prob_int=0
     local rand=$((RANDOM % 100))
     if [[ $rand -lt $prob_int ]]; then
@@ -164,8 +167,8 @@ _generate_fuzzed_agglayer_configs() {
 _generate_fuzzed_agglayer_configs
 
 # Replace the initial configs with fuzzed configs in the agglayer container
-docker cp $LOG_DIR/fuzzed-agglayer-config.toml $agglayer_container_uuid:/etc/zkevm/agglayer-config.toml
+docker cp "$LOG_DIR"/fuzzed-agglayer-config.toml "$agglayer_container_uuid":/etc/zkevm/agglayer-config.toml
 
 # Restart the container
-docker stop $agglayer_container_uuid
-docker start $agglayer_container_uuid
+docker stop "$agglayer_container_uuid"
+docker start "$agglayer_container_uuid"
