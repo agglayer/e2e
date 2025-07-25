@@ -42,6 +42,18 @@ Edit `pre-state/test_input_template.json` to define:
 - Stress test parameters
 - List of E2E test files to run
 
+To automatically generate new valid stress and chaos test inputs, run `./pre-state/generate_test_input.bash` file.
+You will still have to manually fill out the E2E tests array to run.
+
+```
+  "e2e_tests": [
+    "./tests/execution/polycli-cases.bats",
+    "./tests/execution/conflicting-contract-calls.bats",
+    "./tests/execution/special-addresses.bats",
+    "./tests/execution/conflicting-transactions-to-pool.bats"
+  ],
+```
+
 ## Notes
 
 - Ensure all referenced E2E test files exist and are executable, and compatible with the monitored-tests orchestrator.
