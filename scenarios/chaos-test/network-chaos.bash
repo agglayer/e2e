@@ -66,7 +66,10 @@ echo "Valid containers: ${VALID_CONTAINERS[*]}" | tee -a "$LOG_DIR/test_paramete
 TEST_CASES=$(jq -c '.[]' "$MATRIX_FILE")
 TEST_INDEX=1
 
+PIDS=()  # Array to track background PIDs
+
 while IFS= read -r test_case; do
+  (
     # Create test-specific log directory
     TEST_LOG_DIR="$LOG_DIR/test_$TEST_INDEX"
     mkdir -p "$TEST_LOG_DIR"
@@ -80,21 +83,22 @@ while IFS= read -r test_case; do
 
     # Skip if container is not valid
     if ! echo "${VALID_CONTAINERS[@]}" | grep -qw "$CONTAINER"; then
-        echo "Skipping test case $TEST_INDEX: Container $CONTAINER is invalid or excluded" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-        ((TEST_INDEX++))
-        continue
+        echo "Skipping test case $TEST_INDEX: Container $CONTAINER is invalid or excluded" >> "$TEST_LOG_DIR/test_parameters.log"
+        exit 0
     fi
 
-    echo "Running test case $TEST_INDEX" | tee -a "$TEST_LOG_DIR/test_parameters.log"
+    echo "Started test case $TEST_INDEX for container $CONTAINER"
 
-    # Log test parameters
-    echo "Test Case $TEST_INDEX Parameters:" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    echo "Container: $CONTAINER" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    echo "Duration: $DURATION" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    echo "Percent: $PERCENT%" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    echo "Probability: $PROBABILITY" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    echo "Rate: $RATE" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    echo "Jitter: $JITTER ms" | tee -a "$TEST_LOG_DIR/test_parameters.log"
+    # All detailed logs go to the test log file only
+    {
+      echo "Test Case $TEST_INDEX Parameters:"
+      echo "Container: $CONTAINER"
+      echo "Duration: $DURATION"
+      echo "Percent: $PERCENT%"
+      echo "Probability: $PROBABILITY"
+      echo "Rate: $RATE"
+      echo "Jitter: $JITTER ms"
+    } >> "$TEST_LOG_DIR/test_parameters.log"
 
     # Start collecting container logs in background
     docker logs "$CONTAINER" --follow > "$TEST_LOG_DIR/container_${CONTAINER}_logs.log" 2>&1 &
@@ -135,7 +139,7 @@ while IFS= read -r test_case; do
     RATELIMIT_PID=$!
 
     # Adds packet duplication
-    pumba --log-level debug net:em \
+    pumba --log-level debug netem \
       --duration "$DURATION" \
       --interface eth0 \
       --tc-image "$NETTOOLS_IMAGE" \
@@ -158,7 +162,7 @@ while IFS= read -r test_case; do
     pumba --log-level debug iptables \
       --duration "$DURATION" \
       --protocol tcp \
-      --dst-port 80 \
+      --dst-port 4443,4444,8545,8546,5567,5577,4445,4000,9000,8547,8548,8560 \
       --iptables-image "$NETTOOLS_IMAGE" \
       loss \
       --probability "$PROBABILITY" \
@@ -178,7 +182,14 @@ while IFS= read -r test_case; do
     wait $CONTAINER_LOG_PID 2>/dev/null
 
     echo "Test case $TEST_INDEX complete!" | tee -a "$TEST_LOG_DIR/test_parameters.log"
-    ((TEST_INDEX++))
+  ) &
+  PIDS+=($!)
+  ((TEST_INDEX++))
 done <<< "$TEST_CASES"
+
+# Wait for all parallel test cases to finish
+for pid in "${PIDS[@]}"; do
+    wait $pid
+done
 
 echo "Network chaos complete! Logs saved in $LOG_DIR"

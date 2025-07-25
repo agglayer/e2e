@@ -68,6 +68,8 @@ _parse_pre_state_input() {
     # parse e2e-tests to run
     cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."e2e_tests"' > "$TMP_DIR"/e2e_tests.json
     echo "e2e_tests to run created at: $TMP_DIR/e2e_tests.json" >&3 
+
+    echo "====================================================" >&3
 }
 
 @test "Run tests combinations" {
