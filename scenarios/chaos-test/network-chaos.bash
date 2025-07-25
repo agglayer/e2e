@@ -135,7 +135,7 @@ while IFS= read -r test_case; do
     RATELIMIT_PID=$!
 
     # Adds packet duplication
-    pumba --log-level debug net:em \
+    pumba --log-level debug netem \
       --duration "$DURATION" \
       --interface eth0 \
       --tc-image "$NETTOOLS_IMAGE" \
@@ -157,8 +157,8 @@ while IFS= read -r test_case; do
     # Drop incoming packets
     pumba --log-level debug iptables \
       --duration "$DURATION" \
-      --protocol tcp \
-      --dst-port 80 \
+      --protocol any \
+      --dst-port 4443,4444,8545,8546,5567,5577,4445,4000,9000,8547,8548,8560 \
       --iptables-image "$NETTOOLS_IMAGE" \
       loss \
       --probability "$PROBABILITY" \
