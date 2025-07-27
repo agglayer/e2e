@@ -43,7 +43,7 @@ _agglayer_cdk_common_setup() {
     if [[ -z "${L2_RPC_URL:-}" ]]; then
         # Resolve L2 RPC URL
         local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
-        L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL" true | tail -1)
+        L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" true | tail -1)
         echo "L2_RPC_URL: $L2_RPC_URL" >&3
     else
         L2_RPC_URL="$L2_RPC_URL"
@@ -54,7 +54,7 @@ _agglayer_cdk_common_setup() {
     if [[ -z "${L2_SEQUENCER_RPC_URL:-}" ]]; then
         # Resolve L2 Sequencer RPC URL
         local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
-        L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL" true | tail -1)
+        L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true | tail -1)
         echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
     else
         L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
@@ -65,7 +65,7 @@ _agglayer_cdk_common_setup() {
     if [[ -z "${AGGKIT_BRIDGE_URL:-}" ]]; then
         # Resolve Aggkit Bridge URL
         local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
-        aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
+        aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" true | tail -1)
         echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
     else
         aggkit_bridge_url="$AGGKIT_BRIDGE_URL"
@@ -76,7 +76,7 @@ _agglayer_cdk_common_setup() {
     if [[ -z "${AGGKIT_RPC_URL:-}" ]]; then
         # Resolve Aggkit RPC URL
         local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-        aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
+        aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" true | tail -1)
         echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
     else
         aggkit_rpc_url="$AGGKIT_RPC_URL"
@@ -87,7 +87,7 @@ _agglayer_cdk_common_setup() {
     if [[ -z "${ZKEVM_BRIDGE_URL:-}" ]]; then
         # Resolve ZKEVM Bridge URL
         local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
-        zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
+        zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isn't running" false | tail -1)
         echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
     else
         zkevm_bridge_url="$ZKEVM_BRIDGE_URL"
@@ -166,8 +166,10 @@ _agglayer_cdk_common_setup() {
         exit 1
     fi
 
-    readonly is_forced=${IS_FORCED:-"true"}
+    is_forced=${IS_FORCED:-"true"}
+    export is_forced
     meta_bytes=${META_BYTES:-"0x1234"}
+    export meta_bytes
 
     # TODO: Skip resolving addresses from kurtosis if provided through ENV
 
@@ -175,7 +177,8 @@ _agglayer_cdk_common_setup() {
     export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
     local combined_json_file="/opt/zkevm/combined.json"
     kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
-    local combined_json_output=$(cat combined.json)
+    combined_json_output=$(cat combined.json)
+    readonly combined_json_output
     if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
         l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
         l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
@@ -196,29 +199,58 @@ _agglayer_cdk_common_setup() {
     echo "Gas token address=$gas_token_addr" >&3
 
     sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    export sender_private_key
     sender_addr="$(cast wallet address --private-key $sender_private_key)"
-    readonly dry_run=${DRY_RUN:-"false"}
+    export sender_addr
+    dry_run=${DRY_RUN:-"false"}
+    export dry_run
     ether_value=${ETHER_VALUE:-"0.0200000054"}
     amount=$(cast to-wei $ether_value ether)
+    export amount
     destination_net=${DESTINATION_NET:-"1"}
+    export destination_net
     destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
-    readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
-    readonly l1_rpc_url=${L1_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
-    readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
-    readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
+    export destination_addr
+    native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
+    export native_token_addr
+    l1_rpc_url=${L1_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
+    export l1_rpc_url
+    l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
+    export l1_rpc_network_id
+    l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
+    export l2_rpc_network_id
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
-    readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
-    readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
-    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+    export gas_price
+    erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
+    export erc20_artifact_path
+    weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
+    export weth_token_addr
+    receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+    export receiver
 }
 
+# _resolve_url_from_nodes
+# Attempts to resolve a reachable URL from a list of node/port pairs using Kurtosis.
+# 
+# Arguments:
+#   node1 port1 node2 port2 ... error_msg required
+#   - node/port pairs (alternating)
+#   - error_msg: string to print to stderr if resolution fails
+#   - required: "true" to exit 1 on failure, anything else to continue
+#
+# Outputs:
+#   - Prints the resolved URL to stdout if successful
+#   - Prints errors to stderr
+#   - Exits with code 1 if requirrequireded_flag is "true" and no URL is found
+#
+# Example:
+#   _resolve_url_from_nodes "node1" "rpc" "node2" "rest" "Could not resolve URL" true
+#
 _resolve_url_from_nodes() {
-    local error_msg="${@: -3:1}"
-    local success_msg="${@: -2:1}"
-    local required="${@: -1}"
-
-    # --- everything before them are the node/port pairs ---
-    local -a nodes=("${@:1:$#-3}")
+    local -a args=("$@")
+    local -a nodes=("${args[@]:0:$#-2}")  # All args except last two
+    local error_msg="${args[$#-2]}"       # Second-to-last
+    local required="${args[$#-1]}"        # Last
 
     local resolved_url=""
     local num_nodes=${#nodes[@]}
@@ -233,13 +265,13 @@ _resolve_url_from_nodes() {
         }
 
         resolved_url=$(kurtosis port print "$ENCLAVE_NAME" "$node_name" "$node_port_type")
-        if [[ "$resolved_url" != "" ]]; then
+        if [[ -n "$resolved_url" ]]; then
             echo "$resolved_url"
             break
         fi
     done
 
-    if [[ "$resolved_url" == "" ]]; then
+    if [[ -z "$resolved_url" ]]; then
         echo "❌ $error_msg" >&2
         if [[ "$required" == "true" ]]; then
             exit 1
@@ -251,7 +283,7 @@ _get_gas_token_address() {
     local chain_number=$1
     local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
     kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
-    local combined_json_output=$(cat "combined-${chain_number}.json")
+    combined_json_output=$(cat "combined-${chain_number}.json")
     if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
         echo "$(echo "$combined_json_output" | jq -r .gasTokenAddress)"
     else
@@ -262,60 +294,65 @@ _get_gas_token_address() {
 _agglayer_cdk_common_multi_setup() {
     local number_of_chains=$1
 
-    readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
-    readonly eth_address=$(cast wallet address --private-key $private_key)
-    readonly l2_pp1_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-001 rpc)
-    readonly l2_pp2_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-002 rpc)
+    private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+    readonly private_key
+    eth_address=$(cast wallet address --private-key $private_key)
+    export eth_address
+    l2_pp1_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-001 rpc)
+    readonly l2_pp1_url
+    l2_pp2_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-002 rpc)
+    readonly l2_pp2_url
     if [[ $number_of_chains -eq 3 ]]; then
-        readonly l2_pp3_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-003 rpc)
+        l2_pp3_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-003 rpc)
+        readonly l2_pp3_url
     fi
 
     # Resolve Aggkit RPC URL
     if [[ -z "${AGGKIT_PP1_RPC_URL:-}" ]]; then
         local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-        aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-        readonly aggkit_pp1_rpc_url
+        aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve PP1 aggkit rpc url from all fallback nodes" true | tail -1)
         echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
     else
         aggkit_pp1_rpc_url="$AGGKIT_PP1_RPC_URL"
-        readonly aggkit_pp1_rpc_url
         echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url (from environment)" >&3
     fi
+    readonly aggkit_pp1_rpc_url
 
     if [[ -z "${AGGKIT_PP2_RPC_URL:-}" ]]; then
         local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
-        aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-        readonly aggkit_pp2_rpc_url
+        aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve PP2 aggkit rpc url from all fallback nodes" true | tail -1)
         echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
     else
         aggkit_pp2_rpc_url="$AGGKIT_PP2_RPC_URL"
-        readonly aggkit_pp2_rpc_url
         echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url (from environment)" >&3
     fi
+    readonly aggkit_pp2_rpc_url
 
     if [[ $number_of_chains -eq 3 ]]; then
         if [[ -z "${AGGKIT_PP3_RPC_URL:-}" ]]; then
             local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
-            aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-            readonly aggkit_pp3_rpc_url
+            aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve PP3 aggkit rpc url from all fallback nodes" true | tail -1)
             echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
         else
             aggkit_pp3_rpc_url="$AGGKIT_PP3_RPC_URL"
-            readonly aggkit_pp3_rpc_url
             echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url (from environment)" >&3
         fi
+        readonly aggkit_pp3_rpc_url
     fi
 
-    readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
-    readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
+    l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
+    readonly l2_pp1_network_id
+    l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
+    readonly l2_pp2_network_id
     if [[ $number_of_chains -eq 3 ]]; then
-        readonly l2_pp3_network_id=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'networkID() (uint32)')
+        l2_pp3_network_id=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'networkID() (uint32)')
+        readonly l2_pp3_network_id
     fi
 
     # Resolve Aggkit Bridge URLs for both nodes
     if [[ -z "${AGGKIT_PP1_BRIDGE_URL:-}" ]]; then
         local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
-        aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_1" "Successfully resolved aggkit bridge url" true | tail -1)
+        aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve PP1 aggkit bridge url from all fallback nodes" true | tail -1)
         readonly aggkit_bridge_1_url
         echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
     else
@@ -326,7 +363,7 @@ _agglayer_cdk_common_multi_setup() {
 
     if [[ -z "${AGGKIT_PP2_BRIDGE_URL:-}" ]]; then
         local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
-        aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_2" "Successfully resolved aggkit bridge url" true | tail -1)
+        aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve PP2 aggkit bridge url from all fallback nodes" true | tail -1)
         readonly aggkit_bridge_2_url
         echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
     else
@@ -338,7 +375,7 @@ _agglayer_cdk_common_multi_setup() {
     if [[ $number_of_chains -eq 3 ]]; then
         if [[ -z "${AGGKIT_PP3_BRIDGE_URL:-}" ]]; then
             local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
-            aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_3" "Successfully resolved aggkit bridge url" true | tail -1)
+            aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve PP3 aggkit bridge url from all fallback nodes" true | tail -1)
             readonly aggkit_bridge_3_url
             echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
         else
@@ -348,10 +385,13 @@ _agglayer_cdk_common_multi_setup() {
         fi
     fi
 
-    readonly weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
-    readonly weth_token_addr_pp2=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'WETHToken() (address)')
+    weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_addr_pp1
+    weth_token_addr_pp2=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_addr_pp2
     if [[ $number_of_chains -eq 3 ]]; then
-        readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
+        weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
+        readonly weth_token_addr_pp3
     fi
     echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
     echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
@@ -382,6 +422,8 @@ _agglayer_cdk_common_multi_setup() {
         echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
     fi
 
-    readonly receiver1_private_key="0x9eece9566497455837334ad4d2cc1f81e24ea4fc532c5d9ac2c471df8560f5dd"
-    readonly receiver1_addr="$(cast wallet address --private-key $receiver1_private_key)"
+    receiver1_private_key="0x9eece9566497455837334ad4d2cc1f81e24ea4fc532c5d9ac2c471df8560f5dd"
+    readonly receiver1_private_key
+    receiver1_addr="$(cast wallet address --private-key $receiver1_private_key)"
+    export receiver1_addr
 }
