@@ -40,49 +40,60 @@ _agglayer_cdk_common_setup() {
     export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
-    # ✅ Kurtosis service setup
-    export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
+    if [[ -z "${L2_RPC_URL:-}" ]]; then
+        # Resolve L2 RPC URL
+        local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
+        L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL" true | tail -1)
+        echo "L2_RPC_URL: $L2_RPC_URL" >&3
+    else
+        L2_RPC_URL="$L2_RPC_URL"
+        echo "L2_RPC_URL: $L2_RPC_URL (from environment)" >&3
+    fi
+    export L2_RPC_URL
 
-    # Resolve L2 RPC URL
-    local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
-    export L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL" true | tail -1)
-    echo "L2_RPC_URL: $L2_RPC_URL" >&3
-
-    # Resolve L2 Sequencer RPC URL
-    local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
-    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL" true | tail -1)
+    if [[ -z "${L2_SEQUENCER_RPC_URL:-}" ]]; then
+        # Resolve L2 Sequencer RPC URL
+        local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
+        L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL" true | tail -1)
+        echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
+    else
+        L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
+        echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL (from environment)"
+    fi
     export L2_SEQUENCER_RPC_URL
-    echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
 
-    # Resolve Aggkit Bridge URL
     if [[ -z "${AGGKIT_BRIDGE_URL:-}" ]]; then
+        # Resolve Aggkit Bridge URL
         local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
         aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
-        readonly aggkit_bridge_url
         echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
     else
         aggkit_bridge_url="$AGGKIT_BRIDGE_URL"
-        readonly aggkit_bridge_url
         echo "aggkit_bridge_url: $aggkit_bridge_url (from environment)" >&3
     fi
+    readonly aggkit_bridge_url
 
-    # Resolve Aggkit RPC URL
     if [[ -z "${AGGKIT_RPC_URL:-}" ]]; then
+        # Resolve Aggkit RPC URL
         local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
         aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-        readonly aggkit_rpc_url
         echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
     else
         aggkit_rpc_url="$AGGKIT_RPC_URL"
-        readonly aggkit_rpc_url
         echo "aggkit_rpc_url: $aggkit_rpc_url (from environment)" >&3
     fi
+    readonly aggkit_rpc_url
 
-    # Resolve ZKEVM Bridge URL
-    local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
-    zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
+    if [[ -z "${ZKEVM_BRIDGE_URL:-}" ]]; then
+        # Resolve ZKEVM Bridge URL
+        local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
+        zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
+        echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
+    else
+        zkevm_bridge_url="$ZKEVM_BRIDGE_URL"
+        echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
+    fi
     readonly zkevm_bridge_url
-    echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
@@ -158,6 +169,10 @@ _agglayer_cdk_common_setup() {
     readonly is_forced=${IS_FORCED:-"true"}
     meta_bytes=${META_BYTES:-"0x1234"}
 
+    # TODO: Skip resolving addresses from kurtosis if provided through ENV
+
+    # ✅ Kurtosis service setup
+    export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
     local combined_json_file="/opt/zkevm/combined.json"
     kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
     local combined_json_output=$(cat combined.json)
@@ -188,7 +203,7 @@ _agglayer_cdk_common_setup() {
     destination_net=${DESTINATION_NET:-"1"}
     destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
     readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
-    readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
+    readonly l1_rpc_url=${L1_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
     readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
     readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
@@ -213,7 +228,7 @@ _resolve_url_from_nodes() {
         local node_port_type="${nodes[i+1]}"
 
         kurtosis service inspect "$ENCLAVE_NAME" "$node_name" || {
-            echo "⚠️  Node $node_name is not running in the $ENCLAVE_NAME enclave, trying next one..." >&3
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE_NAME enclave, trying next one..." >&3
             continue
         }
 
