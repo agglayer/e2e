@@ -141,32 +141,8 @@ _agglayer_cdk_common_setup() {
     meta_bytes=${META_BYTES:-"0x1234"}
     export meta_bytes
 
-    # TODO: Skip resolving addresses from kurtosis if provided through ENV
-
-    # ✅ Kurtosis service setup
-    export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
-    local combined_json_file="/opt/zkevm/combined.json"
-    kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
-    combined_json_output=$(cat combined.json)
-    readonly combined_json_output
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
-        l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
-        pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
-        l2_ger_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
-        gas_token_addr=$(echo "$combined_json_output" | jq -r .gasTokenAddress)
-    else
-        l1_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
-        l2_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVML2BridgeAddress)
-        pol_address=$(echo "$combined_json_output" | tail -n +2 | jq -r .polTokenAddress)
-        l2_ger_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMGlobalExitRootL2Address)
-        gas_token_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "L1 Bridge address=$l1_bridge_addr" >&3
-    echo "L2 Bridge address=$l2_bridge_addr" >&3
-    echo "POL address=$pol_address" >&3
-    echo "L2 GER address=$l2_ger_addr" >&3
-    echo "Gas token address=$gas_token_addr" >&3
+    # ✅ Resolve smart contract addresses
+    _resolve_contract_addresses
 
     sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     export sender_private_key
@@ -277,6 +253,65 @@ _resolve_url_or_use_env() {
     fi
 
     declare -gx "$target_var_name=${!target_var_name}"
+}
+
+# _resolve_contract_addresses <enclave_name>
+# Exports the following lowercase readonly vars:
+#   l1_bridge_addr, l2_bridge_addr, pol_address, l2_ger_addr, gas_token_addr
+# If any are set via env, all must be set. Otherwise fetches from combined.json.
+_resolve_contract_addresses() {
+    export contracts_container="${KURTOSIS_CONTRACTS:-contracts-001}"
+
+    local l1="${L1_BRIDGE_ADDRESS:-}"
+    local l2="${L2_BRIDGE_ADDRESS:-}"
+    local pol="${POL_TOKEN_ADDRESS:-}"
+    local ger="${L2_GER_ADDRESS:-}"
+    local gas="${GAS_TOKEN_ADDRESS:-}"
+
+    if [[ -n "$l1" || -n "$l2" || -n "$pol" || -n "$ger" || -n "$gas" ]]; then
+        [[ -z "$l1" ]] && { echo "Error: L1_BRIDGE_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$l2" ]] && { echo "Error: L2_BRIDGE_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$pol" ]] && { echo "Error: POL_TOKEN_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$ger" ]] && { echo "Error: L2_GER_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$gas" ]] && { echo "Error: GAS_TOKEN_ADDRESS is required but not set." >&2; exit 1; }
+
+        echo "Using contract addresses from environment."
+    else
+        echo "Downloading combined.json to extract contract addresses..."
+        local combined_json_file="/opt/zkevm/combined.json"
+        kurtosis_download_file_exec_method "$ENCLAVE_NAME" "$contracts_container" "$combined_json_file" | jq '.' > combined.json
+
+        local json_output
+        json_output=$(<combined.json)
+        readonly json_output
+
+        if ! echo "$json_output" | jq empty >/dev/null 2>&1; then
+            json_output=$(echo "$json_output" | tail -n +2)
+        fi
+
+        l1=$(echo "$json_output" | jq -r .polygonZkEVMBridgeAddress)
+        l2=$(echo "$json_output" | jq -r .polygonZkEVML2BridgeAddress)
+        pol=$(echo "$json_output" | jq -r .polTokenAddress)
+        ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+        gas=$(echo "$json_output" | jq -r .gasTokenAddress)
+    fi
+
+    # Export and mark as readonly
+    export l1_bridge_addr="$l1"; readonly l1_bridge_addr
+    export l2_bridge_addr="$l2"; readonly l2_bridge_addr
+    export pol_address="$pol"; readonly pol_address
+    export l2_ger_addr="$ger"; readonly l2_ger_addr
+    export gas_token_addr="$gas"; readonly gas_token_addr
+
+    # Debug output
+    {
+        echo "Resolved contract addresses:"
+        echo "  l1_bridge_addr = $l1_bridge_addr"
+        echo "  l2_bridge_addr = $l2_bridge_addr"
+        echo "  pol_address     = $pol_address"
+        echo "  l2_ger_addr     = $l2_ger_addr"
+        echo "  gas_token_addr  = $gas_token_addr"
+    } >&3
 }
 
 _get_gas_token_address() {
