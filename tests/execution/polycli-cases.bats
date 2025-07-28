@@ -16,7 +16,7 @@ setup_file() {
 
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "100000000000000000000"
 
     # Export variables for use in tests
     export ephemeral_private_key

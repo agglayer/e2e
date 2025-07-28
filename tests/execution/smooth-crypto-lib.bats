@@ -256,7 +256,7 @@ setup() {
     # Exponential growth tests with main account (sequential for consistency)
     hash_value="00112233445566778899AABBCCDDEEFF"
     for i in $(seq 1 "$exponential_growth_limit"); do
-        cast send --gas-limit 1500000 --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "HashInternal(uint256,uint256,string)" \
+        cast send --gas-limit 3000000 --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "HashInternal(uint256,uint256,string)" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" \
             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" \
             "$hash_value" >&3
