@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=standard
 
 # This file tests the deployment of Railgun - https://docs.railgun.org/developer-guide/wallet/getting-started and interacting with its contracts.
 
