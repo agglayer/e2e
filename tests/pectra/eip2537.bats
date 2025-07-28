@@ -1,5 +1,10 @@
 #!/usr/bin/env bats
 
+#
+# This file implements tests for EIP-2537: Precompile for BLS12-381 curve operations
+# https://eips.ethereum.org/EIPS/eip-2537
+#
+
 setup() {
     true
 }
@@ -7,67 +12,46 @@ setup() {
 
 setup_file() {
     export kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"pectra"}
-
-    export l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    export l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    export l1_bridge_addr=${L1_BRIDGE_ADDR:-"$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined-001.json | jq -r .polygonZkEVMBridgeAddress')"}
-
-    export l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    export l2_bridge_addr=${L2_BRIDGE_ADDR:-"$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined-001.json | jq -r .polygonZkEVML2BridgeAddress')"}
 
-    export bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
-    export network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
-    export autoclaim_timeout_seconds=${AUTCLAIM_TIMEOUT_SECONDS:-"300"}
-    export l1_claim_timeout_seconds=${L1_CLAIM_TIMEOUT_SECONDS:-"900"}
-
-    export zero_address=$(cast address-zero)
-
-    # Random wallet
-    random_wallet=$(cast wallet new --json)
-    export random_address=$(echo "$random_wallet" | jq -r '.[0].address')
-    export random_private_key=$(echo "$random_wallet" | jq -r '.[0].privateKey')
-
+    test_vectors_dir="./eip2537_test_vectors"
 
     # G1ADD
     export BLS12_G1ADD_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000b"
-    export g1add_test_vectors_ok="./test_vectors/add_G1_bls.json"
-    export g1add_test_vectors_ko="./test_vectors/fail-add_G1_bls.json"
+    export g1add_test_vectors_ok="$test_vectors_dir/add_G1_bls.json"
+    export g1add_test_vectors_ko="$test_vectors_dir/fail-add_G1_bls.json"
     # G2ADD
     export BLS12_G2ADD_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000d"
-    export g2add_test_vectors_ok="./test_vectors/add_G2_bls.json"
-    export g2add_test_vectors_ko="./test_vectors/fail-add_G2_bls.json"
+    export g2add_test_vectors_ok="$test_vectors_dir/add_G2_bls.json"
+    export g2add_test_vectors_ko="$test_vectors_dir/fail-add_G2_bls.json"
     # G1MUL
     export BLS12_G1MUL_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000c"
-    export g1mul_test_vectors_ok="./test_vectors/mul_G1_bls.json"
-    export g1mul_test_vectors_ko="./test_vectors/fail-mul_G1_bls.json"
+    export g1mul_test_vectors_ok="$test_vectors_dir/mul_G1_bls.json"
+    export g1mul_test_vectors_ko="$test_vectors_dir/fail-mul_G1_bls.json"
     # G2MUL
     export BLS12_G2MUL_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000e"
-    export g2mul_test_vectors_ok="./test_vectors/mul_G2_bls.json"
-    export g2mul_test_vectors_ko="./test_vectors/fail-mul_G2_bls.json"
+    export g2mul_test_vectors_ok="$test_vectors_dir/mul_G2_bls.json"
+    export g2mul_test_vectors_ko="$test_vectors_dir/fail-mul_G2_bls.json"
     # G1MSM
     export BLS12_G1MSM_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000c"
-    export g1msm_test_vectors_ok="./test_vectors/msm_G1_bls.json"
-    export g1msm_test_vectors_ko="./test_vectors/fail-msm_G1_bls.json"
+    export g1msm_test_vectors_ok="$test_vectors_dir/msm_G1_bls.json"
+    export g1msm_test_vectors_ko="$test_vectors_dir/fail-msm_G1_bls.json"
     # G2MSM
     export BLS12_G2MSM_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000e"
-    export g2msm_test_vectors_ok="./test_vectors/msm_G2_bls.json"
-    export g2msm_test_vectors_ko="./test_vectors/fail-msm_G2_bls.json"
+    export g2msm_test_vectors_ok="$test_vectors_dir/msm_G2_bls.json"
+    export g2msm_test_vectors_ko="$test_vectors_dir/fail-msm_G2_bls.json"
     # PAIRING_CHECK
     export BLS12_PAIRING_CHECK_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000f"
-    export pairing_check_test_vectors_ok="./test_vectors/pairing_check_bls.json"
-    export pairing_check_test_vectors_ko="./test_vectors/fail-pairing_check_bls.json"
+    export pairing_check_test_vectors_ok="$test_vectors_dir/pairing_check_bls.json"
+    export pairing_check_test_vectors_ko="$test_vectors_dir/fail-pairing_check_bls.json"
     # MAP_FP_TO_G1
     export BLS12_MAP_FP_TO_G1_PRECOMPILE_ADDR="0x0000000000000000000000000000000000000010"
-    export map_fp_to_g1_test_vectors_ok="./test_vectors/map_fp_to_G1_bls.json"
-    export map_fp_to_g1_test_vectors_ko="./test_vectors/fail-map_fp_to_G1_bls.json"
+    export map_fp_to_g1_test_vectors_ok="$test_vectors_dir/map_fp_to_G1_bls.json"
+    export map_fp_to_g1_test_vectors_ko="$test_vectors_dir/fail-map_fp_to_G1_bls.json"
     # MAP_FP2_TO_G2
     export BLS12_MAP_FP2_TO_G2_PRECOMPILE_ADDR="0x0000000000000000000000000000000000000011"
-    export map_fp2_to_g2_test_vectors_ok="./test_vectors/map_fp2_to_G2_bls.json"
-    export map_fp2_to_g2_test_vectors_ko="./test_vectors/fail-map_fp2_to_G2_bls.json"
+    export map_fp2_to_g2_test_vectors_ok="$test_vectors_dir/map_fp2_to_G2_bls.json"
+    export map_fp2_to_g2_test_vectors_ko="$test_vectors_dir/fail-map_fp2_to_G2_bls.json"
 }
 
 # These function is for tests that are expected to be working. Output is also checked against expected result.
@@ -183,7 +167,7 @@ function eip2537_test_ko() {
     eip2537_test_ko "G2MUL" "$g2mul_test_vectors_ko" "$BLS12_G2MUL_PRECOMPILE_ADDR"
 }
 
-@test "G1MSM test vectors OK" {
+@test "G1MSM test vectors OK (long test)" {
     eip2537_test_ok "G1MSM" "$g1msm_test_vectors_ok" "$BLS12_G1MSM_PRECOMPILE_ADDR"
 }
 
@@ -191,7 +175,7 @@ function eip2537_test_ko() {
     eip2537_test_ko "G1MSM" "$g1msm_test_vectors_ko" "$BLS12_G1MSM_PRECOMPILE_ADDR"
 }
 
-@test "G2MSM test vectors OK" {
+@test "G2MSM test vectors OK (long test)" {
     eip2537_test_ok "G2MSM" "$g2msm_test_vectors_ok" "$BLS12_G2MSM_PRECOMPILE_ADDR"
 }
 

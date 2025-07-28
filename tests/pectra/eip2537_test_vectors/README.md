@@ -1,12 +1,8 @@
 # Source
-
 These test vectors were collected from official EIP site:
-
 - https://eips.ethereum.org/assets/eip-2537/test-vectors
 
-
-
-## Modifications
+## Modifications
 
 In order to pass the tests, all test vectors for fails had been to be modified.
 All expected errors in the format:
