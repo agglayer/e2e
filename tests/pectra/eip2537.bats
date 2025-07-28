@@ -36,22 +36,38 @@ setup_file() {
     export BLS12_G1ADD_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000b"
     export g1add_test_vectors_ok="./test_vectors/add_G1_bls.json"
     export g1add_test_vectors_ko="./test_vectors/fail-add_G1_bls.json"
-
     # G2ADD
     export BLS12_G2ADD_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000d"
     export g2add_test_vectors_ok="./test_vectors/add_G2_bls.json"
     export g2add_test_vectors_ko="./test_vectors/fail-add_G2_bls.json"
-
     # G1MUL
     export BLS12_G1MUL_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000c"
     export g1mul_test_vectors_ok="./test_vectors/mul_G1_bls.json"
     export g1mul_test_vectors_ko="./test_vectors/fail-mul_G1_bls.json"
-
     # G2MUL
     export BLS12_G2MUL_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000e"
     export g2mul_test_vectors_ok="./test_vectors/mul_G2_bls.json"
     export g2mul_test_vectors_ko="./test_vectors/fail-mul_G2_bls.json"
-
+    # G1MSM
+    export BLS12_G1MSM_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000c"
+    export g1msm_test_vectors_ok="./test_vectors/msm_G1_bls.json"
+    export g1msm_test_vectors_ko="./test_vectors/fail-msm_G1_bls.json"
+    # G2MSM
+    export BLS12_G2MSM_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000e"
+    export g2msm_test_vectors_ok="./test_vectors/msm_G2_bls.json"
+    export g2msm_test_vectors_ko="./test_vectors/fail-msm_G2_bls.json"
+    # PAIRING_CHECK
+    export BLS12_PAIRING_CHECK_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000f"
+    export pairing_check_test_vectors_ok="./test_vectors/pairing_check_bls.json"
+    export pairing_check_test_vectors_ko="./test_vectors/fail-pairing_check_bls.json"
+    # MAP_FP_TO_G1
+    export BLS12_MAP_FP_TO_G1_PRECOMPILE_ADDR="0x0000000000000000000000000000000000000010"
+    export map_fp_to_g1_test_vectors_ok="./test_vectors/map_fp_to_G1_bls.json"
+    export map_fp_to_g1_test_vectors_ko="./test_vectors/fail-map_fp_to_G1_bls.json"
+    # MAP_FP2_TO_G2
+    export BLS12_MAP_FP2_TO_G2_PRECOMPILE_ADDR="0x0000000000000000000000000000000000000011"
+    export map_fp2_to_g2_test_vectors_ok="./test_vectors/map_fp2_to_G2_bls.json"
+    export map_fp2_to_g2_test_vectors_ko="./test_vectors/fail-map_fp2_to_G2_bls.json"
 }
 
 # These function is for tests that are expected to be working. Output is also checked against expected result.
@@ -165,4 +181,44 @@ function eip2537_test_ko() {
 
 @test "G2MUL test vectors KO" {
     eip2537_test_ko "G2MUL" "$g2mul_test_vectors_ko" "$BLS12_G2MUL_PRECOMPILE_ADDR"
+}
+
+@test "G1MSM test vectors OK" {
+    eip2537_test_ok "G1MSM" "$g1msm_test_vectors_ok" "$BLS12_G1MSM_PRECOMPILE_ADDR"
+}
+
+@test "G1MSM test vectors KO" {
+    eip2537_test_ko "G1MSM" "$g1msm_test_vectors_ko" "$BLS12_G1MSM_PRECOMPILE_ADDR"
+}
+
+@test "G2MSM test vectors OK" {
+    eip2537_test_ok "G2MSM" "$g2msm_test_vectors_ok" "$BLS12_G2MSM_PRECOMPILE_ADDR"
+}
+
+@test "G2MSM test vectors KO" {
+    eip2537_test_ko "G2MSM" "$g2msm_test_vectors_ko" "$BLS12_G2MSM_PRECOMPILE_ADDR"
+}
+
+@test "PAIRING_CHECK test vectors OK" {
+    eip2537_test_ok "PAIRING_CHECK" "$pairing_check_test_vectors_ok" "$BLS12_PAIRING_CHECK_PRECOMPILE_ADDR"
+}
+
+@test "PAIRING_CHECK test vectors KO" {
+    eip2537_test_ko "PAIRING_CHECK" "$pairing_check_test_vectors_ko" "$BLS12_PAIRING_CHECK_PRECOMPILE_ADDR"
+}
+
+@test "MAP_FP_TO_G1 test vectors OK" {
+    eip2537_test_ok "MAP_FP_TO_G1" "$map_fp_to_g1_test_vectors_ok" "$BLS12_MAP_FP_TO_G1_PRECOMPILE_ADDR"
+}
+
+@test "MAP_FP_TO_G1 test vectors KO" {
+    eip2537_test_ko "MAP_FP_TO_G1" "$map_fp_to_g1_test_vectors_ko" "$BLS12_MAP_FP_TO_G1_PRECOMPILE_ADDR"
+}
+
+@test "MAP_FP2_TO_G2 test vectors OK" {
+    eip2537_test_ok "MAP_FP2_TO_G2" "$map_fp2_to_g2_test_vectors_ok" "$BLS12_MAP_FP2_TO_G2_PRECOMPILE_ADDR"
+}
+
+@test "MAP_FP2_TO_G2 test vectors KO" {
+    eip2537_test_ko "MAP_FP2_TO_G2" "$map_fp2_to_g2_test_vectors_ko" "$BLS12_MAP_FP2_TO_G2_PRECOMPILE_ADDR"
 }

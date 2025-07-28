@@ -8,11 +8,13 @@ These test vectors were collected from official EIP site:
 
 ## Modifications
 
-In order to pass the tests, these small modifications had been done to test vectors to match exact error response:
+In order to pass the tests, all test vectors for fails had been to be modified.
+All expected errors in the format:
 
-- File fail-mul_G1_bls.json:
-    - Test bls_g1mul_g1_not_in_correct_subgroup:
-        - ExpectedError: "g1 point is not on correct subgroup"
-- File fail-mul_G2_bls.json:
-    - Test bls_g2mul_g2_not_in_correct_subgroup:
-        - ExpectedError: "g2 point is not on correct subgroup"
+    - gX point is not in the correct subgroup
+
+Had been to be reformated to:
+
+    - gX point is not on correct subgroup
+
+To match tha answer given by op-geth
