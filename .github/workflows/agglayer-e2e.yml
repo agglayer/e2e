@@ -102,7 +102,7 @@ on:
         default: ""
 
 env:
-  POLYCLI_VERSION: v0.1.78
+  POLYCLI_VERSION: v0.1.83
 
 jobs:
   run-kurtosis-image:
