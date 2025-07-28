@@ -174,6 +174,8 @@ contract BridgeMessageReceiverMock is IBridgeMessageReceiver {
 
         require(success2 == true);
 
+        address callInfo = bridgeAddress.getProxiedTokensManager();
+
         // claimMessage destinationAddress == EOA
         (
             bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] memory smtProofLocalExitRoot2,
