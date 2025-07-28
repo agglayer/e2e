@@ -1,0 +1,6 @@
+DestinationAddress: EOA, Contract, Precompile
+BridgeType: Asset, Message, Weth
+Token: Buggy, WETH, POL, LocalERC20, GasToken, NativeEther
+MetaData: 0x, Random, Huge, Max
+ForceUpdate: False, True
+Amount: 0, 1, Max, Random

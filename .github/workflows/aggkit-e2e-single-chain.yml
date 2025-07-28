@@ -141,12 +141,14 @@ jobs:
                ./tests/aggkit/e2e-pp.bats \
                ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
                ./tests/aggkit/internal-claims.bats \
+               ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
                  ./tests/aggkit/bridge-e2e-custom-gas.bats \
                  ./tests/aggkit/internal-claims.bats \
+                 ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
           fi
           popd
@@ -174,3 +176,17 @@ jobs:
         run: |
           kurtosis enclave stop '${{ inputs.kurtosis-cdk-enclave-name }}'
           kurtosis clean
+
+      - name: Record test run in Datadog
+        if: always()
+        continue-on-error: true
+        uses: agglayer/gha-record-e2e-test-run@v1
+        with:
+          enable_ai_analysis: "true"
+          host: "github-actions-runners"
+          status: ${{ job.status }}
+          ref_kurtosis: "${{ inputs.kurtosis-cdk-ref }}"
+          ref_e2e: "${{ inputs.agglayer-e2e-ref }}"
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

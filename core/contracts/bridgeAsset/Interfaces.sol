@@ -264,3 +264,14 @@ interface IInternalClaims {
         bytes memory data
     ) external payable;
 }
+
+/**
+ * @dev Define interface for PolygonZkEVM Bridge message receiver
+ */
+interface IBridgeMessageReceiver {
+    function onMessageReceived(
+        address originAddress,
+        uint32 originNetwork,
+        bytes memory data
+    ) external payable;
+}

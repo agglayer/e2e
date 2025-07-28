@@ -1,0 +1,83 @@
+{
+    "kurtosis_cdk": {
+        "ref": "2e362b24180fe389da5663a1f0d155b466fa0c57",
+        "args_file": "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/erigon-type1/.github/tests/combinations/fork12-cdk-erigon-sovereign.yml"
+    },
+    "e2e_tests": [
+        "./tests/execution/polycli-cases.bats",
+        "./tests/execution/conflicting-contract-calls.bats",
+        "./tests/execution/special-addresses.bats",
+        "./tests/execution/conflicting-transactions-to-pool.bats"
+    ],
+    "chaos_test": [
+            {
+            "container": "cdk-erigon-rpc-001--2d66c32c51534ce9a4f2a8464ae8dea4",
+            "percent": 15,
+            "probability": 0.5,
+            "rate": "750kbit",
+            "jitter": 5
+            }
+        ,
+            {
+            "container": "cl-1-lighthouse-geth--f1b76fee3a2640c6a6a3141889d17cd0",
+            "percent": 75,
+            "probability": 0.65,
+            "rate": "50kbit",
+            "jitter": 120
+            }
+        ,
+            {
+            "container": "aggkit-001--86ab3fcef5414ceb86ba2fefc93d84cd",
+            "percent": 20,
+            "probability": 0.45,
+            "rate": "350kbit",
+            "jitter": 40
+            }
+        ,
+            {
+            "container": "cdk-erigon-sequencer-001--295ed75ccf6f4fecaf8f20975d9f4bc7",
+            "percent": 70,
+            "probability": 0.15,
+            "rate": "900kbit",
+            "jitter": 100
+            }
+        ,
+            {
+            "container": "postgres-001--b039e7862c0b4bda8f6b6d46bddabdf4",
+            "percent": 40,
+            "probability": 0.75,
+            "rate": "600kbit",
+            "jitter": 60
+            }
+    ],
+    "stress_test": [
+        {
+        "name": "bridge-spammer-001--2af3cffe5a5a4e09a9fe4a47061ac648",
+        "id": "62dc208d7446d6b3de5ddc91cae929115912819e180fa726d7ebf3f42e4ca9d7"
+        },
+        {
+        "name": "zkevm-bridge-service-001--da5475e3b38047769567e250c81c64cc",
+        "id": "c2640ff6b981ba34974c5f48cee1c891e8655c81848b85eb5510a0fad9af7f29"
+        },
+        {
+        "name": "aggkit-001--86ab3fcef5414ceb86ba2fefc93d84cd",
+        "id": "26a42c8ac0289308a8bca5cf6d1a1dd27ce25644470479f7bb0ade0f06abc671"
+        },
+        {
+        "name": "cdk-erigon-rpc-001--2d66c32c51534ce9a4f2a8464ae8dea4",
+        "id": "8efbe4e464a95cb9a08cd683c76a6dfc08a46e813682fbe919d336d2c125a891"
+        },
+        {
+        "name": "zkevm-pool-manager-001--e9caaae15b654560845e436fac3a19de",
+        "id": "2561155951add88a16b5d512fe84b55e277a4ab12880b8d39887f0540725abde"
+        },
+        {
+        "name": "cdk-erigon-sequencer-001--295ed75ccf6f4fecaf8f20975d9f4bc7",
+        "id": "861668cb779bb0339d6b981589804c44f8b184396758b96afd43fe781383bd68"
+        },
+        {
+        "name": "agglayer--4c83701a502f4bbdb04ff3e5e8197c1c",
+        "id": "a0b23f9846fce52f5ce7f59ba3abf7d0df60f02c81d7d12eb99c6d0c0fb65f85"
+        }
+    ]
+}
