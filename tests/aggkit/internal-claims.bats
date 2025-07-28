@@ -42,14 +42,14 @@ setup() {
     fi
 
     # Extract contract address from output
-    readonly mock_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
-    if [[ -z "$mock_sc_addr" ]]; then
+    readonly internal_claim_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
+    if [[ -z "$internal_claim_sc_addr" ]]; then
         log "❌ Failed to extract deployed contract address"
         log "$deploy_output"
         exit 1
     fi
 
-    log "✅ InternalClaims contract deployed at: $mock_sc_addr"
+    log "✅ InternalClaims contract deployed at: $internal_claim_sc_addr"
 }
 
 # Helper function to extract claim parameters for a bridge transaction
@@ -103,7 +103,6 @@ extract_claim_parameters_json() {
 
     # Return all parameters as a JSON object
     echo "{\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
-
     log "✅ ${asset_number} asset claim parameters extracted successfully"
 }
 
@@ -217,7 +216,7 @@ extract_claim_parameters_json() {
     log "⚙️ STEP 5: Updating contract parameters with all four sets of claim data"
     local update_output
     update_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -281,7 +280,7 @@ extract_claim_parameters_json() {
     log "🧪 STEP 6: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
@@ -468,15 +467,15 @@ extract_claim_parameters_json() {
         exit 1
     fi
 
-    log "🎉 Bridge reentrancy test completed successfully"
+    log "🎉 Test triple claim internal calls -> 3 success completed successfully"
     log "📊 Summary:"
     log "   ✅ First asset bridge created and parameters extracted"
     log "   ✅ Second asset bridge created and parameters extracted"
     log "   ✅ Third asset bridge created and parameters extracted"
     log "   ✅ Fourth asset bridge created and parameters extracted"
     log "   ✅ All four sets of parameters configured in contract"
-    log "   ✅ All four asset claims processed successfully"
-    log "   ✅ All parameters validated successfully for all four claims"
+    log "   ✅ All asset claims processed successfully"
+    log "   ✅ All parameters validated successfully for all claims"
 }
 
 @test "Test triple claim internal calls -> 1 success, 1 fail and 1 success" {
@@ -591,7 +590,7 @@ extract_claim_parameters_json() {
     # ========================================
     log "🔧 STEP 5: Creating malformed parameters for second claim (to make it fail)"
 
-    # Create malformed proof for second claim (inspired from claim-call.bats)
+    # Create malformed proof for second claim
     local malformed_proof_local_exit_root_2=$(echo "$proof_local_exit_root_2" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_2=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
@@ -604,7 +603,7 @@ extract_claim_parameters_json() {
     log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
     local update_output
     update_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -668,7 +667,7 @@ extract_claim_parameters_json() {
     log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
@@ -832,7 +831,7 @@ extract_claim_parameters_json() {
         exit 1
     fi
 
-    log "🎉 Quadruple claim test completed successfully"
+    log "🎉 Test triple claim internal calls -> 1 success, 1 fail and 1 success completed successfully"
     log "📊 Summary:"
     log "   ✅ First asset bridge created and parameters extracted"
     log "   ✅ Second asset bridge created and malformed parameters prepared"
@@ -842,7 +841,6 @@ extract_claim_parameters_json() {
     log "   ✅ First claim processed successfully"
     log "   ✅ Second claim failed as expected (malformed parameters)"
     log "   ✅ Third claim processed successfully"
-    log "   ✅ Fourth claim processed successfully"
 }
 
 @test "Test triple claim internal calls -> 1 fail, 1 success and 1 fail" {
@@ -976,7 +974,7 @@ extract_claim_parameters_json() {
     log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
     local update_output
     update_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$malformed_proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -1040,7 +1038,7 @@ extract_claim_parameters_json() {
     log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
@@ -1168,7 +1166,7 @@ extract_claim_parameters_json() {
         exit 1
     fi
 
-    log "🎉 Triple claim test completed successfully"
+    log "🎉 Test Triple claim internal calls -> 1 fail, 1 success and 1 fail completed successfully"
     log "📊 Summary:"
     log "   ✅ First asset bridge created and malformed parameters prepared"
     log "   ✅ Second asset bridge created and parameters extracted"
@@ -1178,7 +1176,6 @@ extract_claim_parameters_json() {
     log "   ✅ First claim failed as expected (malformed parameters)"
     log "   ✅ Second claim processed successfully"
     log "   ✅ Third claim failed as expected (malformed parameters)"
-    log "   ✅ Fourth claim processed successfully"
 }
 
 @test "Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index)" {
@@ -1317,7 +1314,7 @@ extract_claim_parameters_json() {
 
     local update_output
     update_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$malformed_proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -1381,7 +1378,7 @@ extract_claim_parameters_json() {
     log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$mock_sc_addr" \
+        "$internal_claim_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
@@ -1509,7 +1506,7 @@ extract_claim_parameters_json() {
         exit 1
     fi
 
-    log "🎉 Triple claim test with same global index completed successfully"
+    log "🎉 Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) completed successfully"
     log "📊 Summary:"
     log "   ✅ First asset bridge created and malformed parameters prepared (global_index: $global_index_2 - same as second)"
     log "   ✅ Second asset bridge created and parameters extracted (global_index: $global_index_2)"
@@ -1519,5 +1516,4 @@ extract_claim_parameters_json() {
     log "   ✅ First claim failed as expected (malformed parameters, global_index: $global_index_2)"
     log "   ✅ Second claim processed successfully (correct parameters, global_index: $global_index_2)"
     log "   ✅ Third claim failed as expected (malformed parameters, global_index: $global_index_3)"
-    log "   ✅ Fourth claim processed successfully (correct parameters, global_index: $global_index_4)"
 }
