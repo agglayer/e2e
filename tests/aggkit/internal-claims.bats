@@ -52,6 +52,61 @@ setup() {
     log "✅ InternalClaims contract deployed at: $mock_sc_addr"
 }
 
+# Helper function to extract claim parameters for a bridge transaction
+# This function extracts all the claim parameters and returns them as a JSON object
+# Usage: claim_params=$(extract_claim_parameters_json <bridge_tx_hash> <asset_number>)
+extract_claim_parameters_json() {
+    local bridge_tx_hash="$1"
+    local asset_number="$2"
+
+    log "📋 Getting ${asset_number} bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local bridge_response="$output"
+    log "📝 ${asset_number} bridge response: $bridge_response"
+    local deposit_count=$(echo "$bridge_response" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for ${asset_number} bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index="$output"
+    log "📝 ${asset_number} L1 info tree index: $l1_info_tree_index"
+
+    log "Getting injected L1 info leaf for ${asset_number} bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info="$output"
+    log "📝 ${asset_number} injected info: $injected_info"
+
+    log "🔐 Getting ${asset_number} claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof="$output"
+    log "📝 ${asset_number} proof: $proof"
+
+    # Extract all claim parameters for the asset
+    log "🎯 Extracting claim parameters for ${asset_number} asset"
+    local proof_local_exit_root=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_response" "$l1_rpc_network_id"
+    assert_success
+    local global_index=$output
+    log "📝 ${asset_number} global index: $global_index"
+    local mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network=$(echo "$bridge_response" | jq -r '.origin_network')
+    local origin_address=$(echo "$bridge_response" | jq -r '.origin_address')
+    local destination_network=$(echo "$bridge_response" | jq -r '.destination_network')
+    local destination_address=$(echo "$bridge_response" | jq -r '.destination_address')
+    local amount=$(echo "$bridge_response" | jq -r '.amount')
+    local metadata=$(echo "$bridge_response" | jq -r '.metadata')
+
+    # Return all parameters as a JSON object
+    echo "{\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
+
+    log "✅ ${asset_number} asset claim parameters extracted successfully"
+}
+
 @test "Test triple claim internal calls -> 3 success" {
     # STEP 1: Bridge first asset and get all claim parameters
     # ========================================
@@ -65,48 +120,19 @@ setup() {
     local bridge_tx_hash_1=$output
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
-    # Get all claim parameters for first asset
-    log "📋 Getting first bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_1="$output"
-    log "📝 First bridge response: $bridge_1"
-    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for first bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_1="$output"
-    log "📝 First L1 info tree index: $l1_info_tree_index_1"
-
-    log "Getting injected L1 info leaf for first bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_1="$output"
-    log "📝 First injected info: $injected_info_1"
-
-    log "🔐 Getting first claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_1" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_1="$output"
-    log "📝 First proof: $proof_1"
-
-    # Extract all claim parameters for first asset
-    log "🎯 Extracting claim parameters for first asset"
-    local proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_1=$(echo "$proof_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_1" "$l1_rpc_network_id"
-    assert_success
-    local global_index_1=$output
-    log "📝 First global index: $global_index_1"
-    local mainnet_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_1=$(echo "$bridge_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$bridge_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$bridge_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$bridge_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$bridge_1" | jq -r '.amount')
-    local metadata_1=$(echo "$bridge_1" | jq -r '.metadata')
+    # Extract claim parameters for first asset
+    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -119,48 +145,19 @@ setup() {
     local bridge_tx_hash_2=$output
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
-    # Get all claim parameters for second asset
-    log "📋 Getting second bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_2="$output"
-    log "📝 Second bridge response: $bridge_2"
-    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for second bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_2="$output"
-    log "📝 Second L1 info tree index: $l1_info_tree_index_2"
-
-    log "Getting injected L1 info leaf for second bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_2="$output"
-    log "📝 Second injected info: $injected_info_2"
-
-    log "🔐 Getting second claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_2" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_2="$output"
-    log "📝 Second proof: $proof_2"
-
-    # Extract all claim parameters for second asset
-    log "🎯 Extracting claim parameters for second asset"
-    local proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_2=$(echo "$proof_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_2" "$l1_rpc_network_id"
-    assert_success
-    local global_index_2=$output
-    log "📝 Second global index: $global_index_2"
-    local mainnet_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_2=$(echo "$bridge_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$bridge_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$bridge_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$bridge_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$bridge_2" | jq -r '.amount')
-    local metadata_2=$(echo "$bridge_2" | jq -r '.metadata')
+    # Extract claim parameters for second asset
+    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -173,48 +170,19 @@ setup() {
     local bridge_tx_hash_3=$output
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
-    # Get all claim parameters for third asset
-    log "📋 Getting third bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_3="$output"
-    log "📝 Third bridge response: $bridge_3"
-    local deposit_count_3=$(echo "$bridge_3" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for third bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_3="$output"
-    log "📝 Third L1 info tree index: $l1_info_tree_index_3"
-
-    log "Getting injected L1 info leaf for third bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_3="$output"
-    log "📝 Third injected info: $injected_info_3"
-
-    log "🔐 Getting third claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_3" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_3="$output"
-    log "📝 Third proof: $proof_3"
-
-    # Extract all claim parameters for third asset
-    log "🎯 Extracting claim parameters for third asset"
-    local proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_3=$(echo "$proof_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_3" "$l1_rpc_network_id"
-    assert_success
-    local global_index_3=$output
-    log "📝 Third global index: $global_index_3"
-    local mainnet_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_3=$(echo "$bridge_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$bridge_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$bridge_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$bridge_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$bridge_3" | jq -r '.amount')
-    local metadata_3=$(echo "$bridge_3" | jq -r '.metadata')
+    # Extract claim parameters for third asset
+    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -227,12 +195,21 @@ setup() {
     local bridge_tx_hash_4=$output
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
-    # Get the fourth bridge
-    log "📋 Getting fourth bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_4" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_4="$output"
-    log "📝 Fourth bridge response: $bridge_4"
+    # Extract claim parameters for fourth asset
+    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+
+    log "✅ Fourth asset claim parameters extracted successfully"
 
     # ========================================
     # STEP 5: Update contract with all four sets of claim parameters
@@ -518,48 +495,19 @@ setup() {
     local bridge_tx_hash_1=$output
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
-    # Get all claim parameters for first asset
-    log "📋 Getting first bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_1="$output"
-    log "📝 First bridge response: $bridge_1"
-    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for first bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_1="$output"
-    log "📝 First L1 info tree index: $l1_info_tree_index_1"
-
-    log "Getting injected L1 info leaf for first bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_1="$output"
-    log "📝 First injected info: $injected_info_1"
-
-    log "🔐 Getting first claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_1" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_1="$output"
-    log "📝 First proof: $proof_1"
-
-    # Extract all claim parameters for first asset
-    log "🎯 Extracting claim parameters for first asset"
-    local proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_1=$(echo "$proof_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_1" "$l1_rpc_network_id"
-    assert_success
-    local global_index_1=$output
-    log "📝 First global index: $global_index_1"
-    local mainnet_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_1=$(echo "$bridge_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$bridge_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$bridge_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$bridge_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$bridge_1" | jq -r '.amount')
-    local metadata_1=$(echo "$bridge_1" | jq -r '.metadata')
+    # Extract claim parameters for first asset
+    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -572,48 +520,19 @@ setup() {
     local bridge_tx_hash_2=$output
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
-    # Get all claim parameters for second asset
-    log "📋 Getting second bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_2="$output"
-    log "📝 Second bridge response: $bridge_2"
-    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for second bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_2="$output"
-    log "📝 Second L1 info tree index: $l1_info_tree_index_2"
-
-    log "Getting injected L1 info leaf for second bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_2="$output"
-    log "📝 Second injected info: $injected_info_2"
-
-    log "🔐 Getting second claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_2" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_2="$output"
-    log "📝 Second proof: $proof_2"
-
-    # Extract all claim parameters for second asset
-    log "🎯 Extracting claim parameters for second asset"
-    local proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_2=$(echo "$proof_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_2" "$l1_rpc_network_id"
-    assert_success
-    local global_index_2=$output
-    log "📝 Second global index: $global_index_2"
-    local mainnet_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_2=$(echo "$bridge_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$bridge_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$bridge_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$bridge_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$bridge_2" | jq -r '.amount')
-    local metadata_2=$(echo "$bridge_2" | jq -r '.metadata')
+    # Extract claim parameters for second asset
+    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -626,48 +545,19 @@ setup() {
     local bridge_tx_hash_3=$output
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
-    # Get all claim parameters for third asset
-    log "📋 Getting third bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_3="$output"
-    log "📝 Third bridge response: $bridge_3"
-    local deposit_count_3=$(echo "$bridge_3" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for third bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_3="$output"
-    log "📝 Third L1 info tree index: $l1_info_tree_index_3"
-
-    log "Getting injected L1 info leaf for third bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_3="$output"
-    log "📝 Third injected info: $injected_info_3"
-
-    log "🔐 Getting third claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_3" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_3="$output"
-    log "📝 Third proof: $proof_3"
-
-    # Extract all claim parameters for third asset
-    log "🎯 Extracting claim parameters for third asset"
-    local proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_3=$(echo "$proof_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_3" "$l1_rpc_network_id"
-    assert_success
-    local global_index_3=$output
-    log "📝 Third global index: $global_index_3"
-    local mainnet_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_3=$(echo "$bridge_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$bridge_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$bridge_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$bridge_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$bridge_3" | jq -r '.amount')
-    local metadata_3=$(echo "$bridge_3" | jq -r '.metadata')
+    # Extract claim parameters for third asset
+    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -680,12 +570,21 @@ setup() {
     local bridge_tx_hash_4=$output
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
-    # Get the fourth bridge
-    log "📋 Getting fourth bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_4" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_4="$output"
-    log "📝 Fourth bridge response: $bridge_4"
+    # Extract claim parameters for fourth asset
+    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+
+    log "✅ Fourth asset claim parameters extracted successfully"
 
     # ========================================
     # STEP 5: Create malformed parameters for second claim (to make it fail)
@@ -693,7 +592,7 @@ setup() {
     log "🔧 STEP 5: Creating malformed parameters for second claim (to make it fail)"
 
     # Create malformed proof for second claim (inspired from claim-call.bats)
-    local malformed_proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root[1] = "0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_proof_local_exit_root_2=$(echo "$proof_local_exit_root_2" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_2=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
     log "🔧 Malformed proof for second claim: $malformed_proof_local_exit_root_2"
@@ -705,7 +604,7 @@ setup() {
     log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
     local update_output
     update_output=$(cast send \
-        "$internal_claims_sc_addr" \
+        "$mock_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -769,7 +668,7 @@ setup() {
     log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$internal_claims_sc_addr" \
+        "$mock_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
@@ -962,48 +861,19 @@ setup() {
     local bridge_tx_hash_1=$output
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
-    # Get all claim parameters for first asset
-    log "📋 Getting first bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_1="$output"
-    log "📝 First bridge response: $bridge_1"
-    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for first bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_1="$output"
-    log "📝 First L1 info tree index: $l1_info_tree_index_1"
-
-    log "Getting injected L1 info leaf for first bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_1="$output"
-    log "📝 First injected info: $injected_info_1"
-
-    log "🔐 Getting first claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_1" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_1="$output"
-    log "📝 First proof: $proof_1"
-
-    # Extract all claim parameters for first asset
-    log "🎯 Extracting claim parameters for first asset"
-    local proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_1=$(echo "$proof_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_1" "$l1_rpc_network_id"
-    assert_success
-    local global_index_1=$output
-    log "📝 First global index: $global_index_1"
-    local mainnet_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_1=$(echo "$bridge_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$bridge_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$bridge_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$bridge_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$bridge_1" | jq -r '.amount')
-    local metadata_1=$(echo "$bridge_1" | jq -r '.metadata')
+    # Extract claim parameters for first asset
+    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -1016,48 +886,19 @@ setup() {
     local bridge_tx_hash_2=$output
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
-    # Get all claim parameters for second asset
-    log "📋 Getting second bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_2="$output"
-    log "📝 Second bridge response: $bridge_2"
-    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for second bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_2="$output"
-    log "📝 Second L1 info tree index: $l1_info_tree_index_2"
-
-    log "Getting injected L1 info leaf for second bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_2="$output"
-    log "📝 Second injected info: $injected_info_2"
-
-    log "🔐 Getting second claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_2" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_2="$output"
-    log "📝 Second proof: $proof_2"
-
-    # Extract all claim parameters for second asset
-    log "🎯 Extracting claim parameters for second asset"
-    local proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_2=$(echo "$proof_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_2" "$l1_rpc_network_id"
-    assert_success
-    local global_index_2=$output
-    log "📝 Second global index: $global_index_2"
-    local mainnet_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_2=$(echo "$bridge_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$bridge_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$bridge_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$bridge_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$bridge_2" | jq -r '.amount')
-    local metadata_2=$(echo "$bridge_2" | jq -r '.metadata')
+    # Extract claim parameters for second asset
+    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -1070,48 +911,19 @@ setup() {
     local bridge_tx_hash_3=$output
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
-    # Get all claim parameters for third asset
-    log "📋 Getting third bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_3="$output"
-    log "📝 Third bridge response: $bridge_3"
-    local deposit_count_3=$(echo "$bridge_3" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for third bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_3="$output"
-    log "📝 Third L1 info tree index: $l1_info_tree_index_3"
-
-    log "Getting injected L1 info leaf for third bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_3="$output"
-    log "📝 Third injected info: $injected_info_3"
-
-    log "🔐 Getting third claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_3" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_3="$output"
-    log "📝 Third proof: $proof_3"
-
-    # Extract all claim parameters for third asset
-    log "🎯 Extracting claim parameters for third asset"
-    local proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_3=$(echo "$proof_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_3" "$l1_rpc_network_id"
-    assert_success
-    local global_index_3=$output
-    log "📝 Third global index: $global_index_3"
-    local mainnet_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_3=$(echo "$bridge_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$bridge_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$bridge_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$bridge_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$bridge_3" | jq -r '.amount')
-    local metadata_3=$(echo "$bridge_3" | jq -r '.metadata')
+    # Extract claim parameters for third asset
+    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -1124,12 +936,21 @@ setup() {
     local bridge_tx_hash_4=$output
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
-    # Get the fourth bridge
-    log "📋 Getting fourth bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_4" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_4="$output"
-    log "📝 Fourth bridge response: $bridge_4"
+    # Extract claim parameters for fourth asset
+    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+
+    log "✅ Fourth asset claim parameters extracted successfully"
 
     # ========================================
     # STEP 5: Create malformed parameters for first and third claims (to make them fail)
@@ -1137,11 +958,11 @@ setup() {
     log "🔧 STEP 5: Creating malformed parameters for first and third claims (to make them fail)"
 
     # Create malformed proof for first claim (to make it fail)
-    local malformed_proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root[1] = "0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_1=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
     # Create malformed proof for third claim (to make it fail)
-    local malformed_proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root[2] = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | sed 's/0x[0-9a-fA-F]\{64\}/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef/2')
     local malformed_mainnet_exit_root_3=0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
 
     log "🔧 Malformed proof for first claim: $malformed_proof_local_exit_root_1"
@@ -1155,7 +976,7 @@ setup() {
     log "⚙️ STEP 6: Updating contract parameters with all four sets of claim data"
     local update_output
     update_output=$(cast send \
-        "$internal_claims_sc_addr" \
+        "$mock_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$malformed_proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -1219,7 +1040,7 @@ setup() {
     log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$internal_claims_sc_addr" \
+        "$mock_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
@@ -1299,7 +1120,7 @@ setup() {
         local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
         log "📝 All claims response: $all_claims_result"
 
-        # Check if first claim (failed) is present in the API response
+        # Check if first claim (failed) with global_index_1 is present in the API response
         log "🔍 Checking if first claim (failed) with global_index $global_index_1 is present in API response"
         local first_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
@@ -1376,48 +1197,19 @@ setup() {
     local bridge_tx_hash_1=$output
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
-    # Get all claim parameters for first asset
-    log "📋 Getting first bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_1="$output"
-    log "📝 First bridge response: $bridge_1"
-    local deposit_count_1=$(echo "$bridge_1" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for first bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_1="$output"
-    log "📝 First L1 info tree index: $l1_info_tree_index_1"
-
-    log "Getting injected L1 info leaf for first bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_1="$output"
-    log "📝 First injected info: $injected_info_1"
-
-    log "🔐 Getting first claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_1" "$l1_info_tree_index_1" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_1="$output"
-    log "📝 First proof: $proof_1"
-
-    # Extract all claim parameters for first asset
-    log "🎯 Extracting claim parameters for first asset"
-    local proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_1=$(echo "$proof_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_1" "$l1_rpc_network_id"
-    assert_success
-    local global_index_1=$output
-    log "📝 First global index: $global_index_1"
-    local mainnet_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$proof_1" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_1=$(echo "$bridge_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$bridge_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$bridge_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$bridge_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$bridge_1" | jq -r '.amount')
-    local metadata_1=$(echo "$bridge_1" | jq -r '.metadata')
+    # Extract claim parameters for first asset
+    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -1430,48 +1222,19 @@ setup() {
     local bridge_tx_hash_2=$output
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
-    # Get all claim parameters for second asset
-    log "📋 Getting second bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_2="$output"
-    log "📝 Second bridge response: $bridge_2"
-    local deposit_count_2=$(echo "$bridge_2" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for second bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_2="$output"
-    log "📝 Second L1 info tree index: $l1_info_tree_index_2"
-
-    log "Getting injected L1 info leaf for second bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_2="$output"
-    log "📝 Second injected info: $injected_info_2"
-
-    log "🔐 Getting second claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_2" "$l1_info_tree_index_2" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_2="$output"
-    log "📝 Second proof: $proof_2"
-
-    # Extract all claim parameters for second asset
-    log "🎯 Extracting claim parameters for second asset"
-    local proof_local_exit_root_2=$(echo "$proof_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_2=$(echo "$proof_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_2" "$l1_rpc_network_id"
-    assert_success
-    local global_index_2=$output
-    log "📝 Second global index: $global_index_2"
-    local mainnet_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$proof_2" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_2=$(echo "$bridge_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$bridge_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$bridge_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$bridge_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$bridge_2" | jq -r '.amount')
-    local metadata_2=$(echo "$bridge_2" | jq -r '.metadata')
+    # Extract claim parameters for second asset
+    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -1484,48 +1247,19 @@ setup() {
     local bridge_tx_hash_3=$output
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
-    # Get all claim parameters for third asset
-    log "📋 Getting third bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_3="$output"
-    log "📝 Third bridge response: $bridge_3"
-    local deposit_count_3=$(echo "$bridge_3" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for third bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index_3="$output"
-    log "📝 Third L1 info tree index: $l1_info_tree_index_3"
-
-    log "Getting injected L1 info leaf for third bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info_3="$output"
-    log "📝 Third injected info: $injected_info_3"
-
-    log "🔐 Getting third claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count_3" "$l1_info_tree_index_3" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof_3="$output"
-    log "📝 Third proof: $proof_3"
-
-    # Extract all claim parameters for third asset
-    log "🎯 Extracting claim parameters for third asset"
-    local proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root_3=$(echo "$proof_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_3" "$l1_rpc_network_id"
-    assert_success
-    local global_index_3=$output
-    log "📝 Third global index: $global_index_3"
-    local mainnet_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$proof_3" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network_3=$(echo "$bridge_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$bridge_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$bridge_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$bridge_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$bridge_3" | jq -r '.amount')
-    local metadata_3=$(echo "$bridge_3" | jq -r '.metadata')
+    # Extract claim parameters for third asset
+    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -1538,12 +1272,21 @@ setup() {
     local bridge_tx_hash_4=$output
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
-    # Get all claim parameters for fourth asset
-    log "📋 Getting fourth bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_4" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_4="$output"
-    log "📝 Fourth bridge response: $bridge_4"
+    # Extract claim parameters for fourth asset
+    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+
+    log "✅ Fourth asset claim parameters extracted successfully"
 
     # ========================================
     # STEP 5: Create malformed parameters for first and third claims (to make them fail)
@@ -1551,11 +1294,11 @@ setup() {
     log "🔧 STEP 5: Creating malformed parameters for first and third claims (to make them fail)"
 
     # Create malformed proof for first claim (to make it fail)
-    local malformed_proof_local_exit_root_1=$(echo "$proof_1" | jq -r '.proof_local_exit_root[1] = "0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_1=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
     # Create malformed proof for third claim (to make it fail)
-    local malformed_proof_local_exit_root_3=$(echo "$proof_3" | jq -r '.proof_local_exit_root[2] = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" | .proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local malformed_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | sed 's/0x[0-9a-fA-F]\{64\}/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef/2')
     local malformed_mainnet_exit_root_3=0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
 
     log "🔧 Malformed proof for first claim: $malformed_proof_local_exit_root_1"
@@ -1574,7 +1317,7 @@ setup() {
 
     local update_output
     update_output=$(cast send \
-        "$internal_claims_sc_addr" \
+        "$mock_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes,bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$malformed_proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -1638,7 +1381,7 @@ setup() {
     log "🧪 STEP 7: Testing onMessageReceived with valid parameters (will attempt all four asset claims)"
     local on_message_output
     on_message_output=$(cast send \
-        "$internal_claims_sc_addr" \
+        "$mock_sc_addr" \
         "onMessageReceived(address,uint32,bytes)" \
         "$origin_address_1" \
         "$origin_network_1" \
