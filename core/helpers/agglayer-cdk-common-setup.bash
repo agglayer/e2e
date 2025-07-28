@@ -40,60 +40,30 @@ _agglayer_cdk_common_setup() {
     export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
-    if [[ -z "${L2_RPC_URL:-}" ]]; then
-        # Resolve L2 RPC URL
-        local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
-        L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" true | tail -1)
-        echo "L2_RPC_URL: $L2_RPC_URL" >&3
-    else
-        L2_RPC_URL="$L2_RPC_URL"
-        echo "L2_RPC_URL: $L2_RPC_URL (from environment)" >&3
-    fi
-    export L2_RPC_URL
+    # Resolve L2 RPC URL
+    _resolve_url_or_use_env L2_RPC_URL \
+        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL" true
 
-    if [[ -z "${L2_SEQUENCER_RPC_URL:-}" ]]; then
-        # Resolve L2 Sequencer RPC URL
-        local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
-        L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true | tail -1)
-        echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
-    else
-        L2_SEQUENCER_RPC_URL="$L2_SEQUENCER_RPC_URL"
-        echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL (from environment)"
-    fi
-    export L2_SEQUENCER_RPC_URL
+    # Resolve L2_SEQUENCER_RPC_URL
+    _resolve_url_or_use_env L2_SEQUENCER_RPC_URL \
+        "op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc" \
+        "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true
 
-    if [[ -z "${AGGKIT_BRIDGE_URL:-}" ]]; then
-        # Resolve Aggkit Bridge URL
-        local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
-        aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" true | tail -1)
-        echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
-    else
-        aggkit_bridge_url="$AGGKIT_BRIDGE_URL"
-        echo "aggkit_bridge_url: $aggkit_bridge_url (from environment)" >&3
-    fi
-    readonly aggkit_bridge_url
+    # Resolve Aggkit bridge URL
+    _resolve_url_or_use_env aggkit_bridge_url \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve aggkit bridge url from all fallback nodes" true
 
-    if [[ -z "${AGGKIT_RPC_URL:-}" ]]; then
-        # Resolve Aggkit RPC URL
-        local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-        aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" true | tail -1)
-        echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
-    else
-        aggkit_rpc_url="$AGGKIT_RPC_URL"
-        echo "aggkit_rpc_url: $aggkit_rpc_url (from environment)" >&3
-    fi
-    readonly aggkit_rpc_url
+    # Resolve Aggkit RPC URL
+    _resolve_url_or_use_env aggkit_rpc_url \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true
 
-    if [[ -z "${ZKEVM_BRIDGE_URL:-}" ]]; then
-        # Resolve ZKEVM Bridge URL
-        local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
-        zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isn't running" false | tail -1)
-        echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
-    else
-        zkevm_bridge_url="$ZKEVM_BRIDGE_URL"
-        echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
-    fi
-    readonly zkevm_bridge_url
+    # Resolve zkevm_bridge_url
+    _resolve_url_or_use_env zkevm_bridge_url \
+        "zkevm-bridge-service-001" "rpc" \
+        "Zk EVM Bridge service is not running" false
 
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
@@ -277,6 +247,36 @@ _resolve_url_from_nodes() {
             exit 1
         fi
     fi
+}
+
+# _resolve_url_or_use_env <target_var_name> <node1> <port1> ... <error_msg> <required>
+# - If the env var with name <target_var_name> is set, use it
+# - Otherwise, resolve via fallback nodes using _resolve_url_from_nodes
+# - Sets and exports the result to a variable named <target_var_name>
+_resolve_url_or_use_env() {
+    local target_var_name="$1"
+    shift
+
+    local -a args=("$@")
+    local num_args=$#
+    local error_msg="${args[num_args-2]}"
+    local required="${args[num_args-1]}"
+    local -a nodes=("${args[@]:0:$num_args-2}")
+
+    # Get value of env var if it exists
+    local env_val="${!target_var_name:-}"
+
+    if [[ -n "$env_val" ]]; then
+        printf -v "$target_var_name" '%s' "$env_val"
+        echo "$target_var_name: ${!target_var_name} (from environment)" >&3
+    else
+        local resolved
+        resolved=$(_resolve_url_from_nodes "${nodes[@]}" "$error_msg" "$required" | tail -1)
+        printf -v "$target_var_name" '%s' "$resolved"
+        echo "$target_var_name: ${!target_var_name}" >&3
+    fi
+
+    declare -gx "$target_var_name=${!target_var_name}"
 }
 
 _get_gas_token_address() {
