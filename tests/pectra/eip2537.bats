@@ -36,76 +36,112 @@ setup_file() {
     export BLS12_G1ADD_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000b"
     export g1add_test_vectors_ok="./test_vectors/add_G1_bls.json"
     export g1add_test_vectors_ko="./test_vectors/fail-add_G1_bls.json"
+
+    # G2ADD
+    export BLS12_G2ADD_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000d"
+    export g2add_test_vectors_ok="./test_vectors/add_G2_bls.json"
+    export g2add_test_vectors_ko="./test_vectors/fail-add_G2_bls.json"
+
 }
 
-# These are working test vectors for G1ADD that need to success and return the expected output.
-@test "G1ADD test vectors OK" {
-    echo "Running G1ADD test vectors from path $BATS_TEST_DIRNAME/$g1add_test_vectors_ok"
+# These function is for tests that are expected to be working. Output is also checked against expected result.
+function eip2537_test_ok() {
+    local test_name=$1
+    local test_vectors_ok=$2
+    local bls12_precompile_addr=$3
 
-    count=$(jq length "$BATS_TEST_DIRNAME/$g1add_test_vectors_ok")
-    echo "Running $count G1ADD test vectors..."
+    echo "Running EIP-2537 test vectors from path $BATS_TEST_DIRNAME/$test_vectors_ok for $test_name"
+
+    count=$(jq length "$BATS_TEST_DIRNAME/$test_vectors_ok")
+    echo "Running $count EIP-2537 $test_name test vectors..."
 
     for i in $(seq 0 $((count - 1))); do
-        input=$(jq -r ".[$i].Input" "$BATS_TEST_DIRNAME/$g1add_test_vectors_ok")
-        expected_output=$(jq -r ".[$i].Expected" "$BATS_TEST_DIRNAME/$g1add_test_vectors_ok")
+        input=$(jq -r ".[$i].Input" "$BATS_TEST_DIRNAME/$test_vectors_ok")
+        expected_output=$(jq -r ".[$i].Expected" "$BATS_TEST_DIRNAME/$test_vectors_ok")
+        name=$(jq -r ".[$i].Name" "$BATS_TEST_DIRNAME/$test_vectors_ok")
 
         # strip 0x if present
         input=${input#0x}
         expected_output=${expected_output#0x}
 
-        run cast call "$BLS12_G1ADD_PRECOMPILE_ADDR" "0x$input" --rpc-url "$l2_rpc_url"
+        run cast call "$bls12_precompile_addr" "0x$input" --rpc-url "$l2_rpc_url"
         # strip 0x from output
         output=${output#0x}
 
         if [ "$status" -ne 0 ]; then
-            echo "❌ Test #$i failed to execute"
+            echo "❌ Test #$i ($name) failed to execute"
             echo "Input: $input"
             echo "Error: $output"
             false
         elif [ "$output" != "$expected_output" ]; then
-            echo "❌ Test #$i failed"
+            echo "❌ Test #$i ($name) failed"
             echo "Input: $input"
             echo "Expected: $expected_output"
             echo "Got:      $output"
             false
         else
-            echo "✅ Test #$i passed"
+            echo "✅ Test #$i ($name) passed"
         fi
     done
 }
 
-# These are test vectors for G1ADD that are expected to fail and return a specific error.
-@test "G1ADD test vectors KO" {
-    echo "Running G1ADD test vectors from path $BATS_TEST_DIRNAME/$g1add_test_vectors_ko"
+# These functions are for tests that are expected to fail. Output is also checked against expected error.
+function eip2537_test_ko() {
+    local test_name=$1
+    local test_vectors_ko=$2
+    local bls12_precompile_addr=$3
 
-    count=$(jq length "$BATS_TEST_DIRNAME/$g1add_test_vectors_ko")
-    echo "Running $count G1ADD test vectors..."
+    echo "Running EIP-2537 test vectors from path $BATS_TEST_DIRNAME/$test_vectors_ko for $test_name"
+
+    count=$(jq length "$BATS_TEST_DIRNAME/$test_vectors_ko")
+    echo "Running $count $test_name test vectors..."
 
     for i in $(seq 0 $((count - 1))); do
-        input=$(jq -r ".[$i].Input" "$BATS_TEST_DIRNAME/$g1add_test_vectors_ko")
-        expected_error=$(jq -r ".[$i].ExpectedError" "$BATS_TEST_DIRNAME/$g1add_test_vectors_ko")
+        input=$(jq -r ".[$i].Input" "$BATS_TEST_DIRNAME/$test_vectors_ko")
+        expected_error=$(jq -r ".[$i].ExpectedError" "$BATS_TEST_DIRNAME/$test_vectors_ko")
+        name=$(jq -r ".[$i].Name" "$BATS_TEST_DIRNAME/$test_vectors_ko")
 
         # strip 0x if present
         input=${input#0x}
 
-        run cast call "$BLS12_G1ADD_PRECOMPILE_ADDR" "0x$input" --rpc-url "$l2_rpc_url"
+        run cast call "$bls12_precompile_addr" "0x$input" --rpc-url "$l2_rpc_url"
         # strip 0x from output
         output=${output#0x}
 
         if [ "$status" -ne 1 ]; then
-            echo "❌ Test #$i was expected to fail, but it did not"
+            echo "❌ Test #$i ($name) was expected to fail, but it did not"
             echo "Input: $input"
             echo "Output: $output"
             false
         elif [[ "$output" != *"$expected_error"* ]]; then
-            echo "❌ Test #$i failed"
+            echo "❌ Test #$i ($name) failed"
             echo "Input: $input"
             echo "Expected: $expected_error"
             echo "Got:      $output"
             false
         else
-            echo "✅ Test #$i passed"
+            echo "✅ Test #$i ($name) passed"
         fi
     done
+}
+
+# These are working test vectors for G1ADD that need to success and return the expected output.
+@test "G1ADD test vectors OK" {
+    eip2537_test_ok "G1ADD" "$g1add_test_vectors_ok" "$BLS12_G1ADD_PRECOMPILE_ADDR"
+}
+
+# These are test vectors for G1ADD that are expected to fail and return a specific error.
+@test "G1ADD test vectors KO" {
+    eip2537_test_ko "G1ADD" "$g1add_test_vectors_ko" "$BLS12_G1ADD_PRECOMPILE_ADDR"
+}
+
+# These are working test vectors for G2ADD that need to success and return the expected output.
+@test "G2ADD test vectors OK" {
+    eip2537_test_ok "G2ADD" "$g2add_test_vectors_ok" "$BLS12_G2ADD_PRECOMPILE_ADDR"
+}
+
+# These are test vectors for G2ADD that are expected to fail and return a specific error.
+@test "G2ADD test vectors KO" {
+    eip2537_test_ko "G2ADD" "$g2add_test_vectors_ko" "$BLS12_G2ADD_PRECOMPILE_ADDR"
 }
 
