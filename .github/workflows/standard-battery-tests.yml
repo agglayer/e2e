@@ -1,5 +1,6 @@
 name: Standard Battery Tests
 
+
 on:
   workflow_dispatch:
     inputs:
@@ -16,6 +17,10 @@ on:
         default: "cdk"
         required: false
         type: string
+
+  pull_request:
+    branches:
+      - main
 
 jobs:
   run-standard-battery-tests:
