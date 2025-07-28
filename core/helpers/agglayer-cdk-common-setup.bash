@@ -4,25 +4,16 @@ _agglayer_cdk_common_setup() {
     bats_load_library 'bats-assert'
     if [ $? -ne 0 ]; then return 1; fi
 
-    load '../../core/helpers/scripts/agglayer_network_setup'
-    load '../../core/helpers/scripts/aggkit_bridge_service'
-    load '../../core/helpers/scripts/fund'
-    load '../../core/helpers/scripts/get_token_balance'
-    load '../../core/helpers/scripts/mint_token_helpers'
-    load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/send_tx'
-    load '../../core/helpers/scripts/verify_balance'
-    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
-
-    load '../../core/helpers/scripts/assert_block_production'
-    load '../../core/helpers/scripts/check_balances'
-    load '../../core/helpers/scripts/deploy_contract'
-    load '../../core/helpers/scripts/deploy_test_contracts'
-    load '../../core/helpers/scripts/send_eoa_tx'
-    load '../../core/helpers/scripts/send_smart_contract_tx'
-    load '../../core/helpers/scripts/zkevm_bridge_service'
-
-    load '../../core/helpers/scripts/kurtosis-helpers'
+    # Load core helpers
+    local scripts=(
+        agglayer_network_setup aggkit_bridge_service fund get_token_balance mint_token_helpers
+        query_contract send_tx verify_balance wait_to_settled_certificate_containing_global_index
+        assert_block_production check_balances deploy_contract deploy_test_contracts
+        send_eoa_tx send_smart_contract_tx zkevm_bridge_service kurtosis-helpers
+    )
+    for script in "${scripts[@]}"; do
+        load "../../core/helpers/scripts/$script"
+    done
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
