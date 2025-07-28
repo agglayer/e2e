@@ -31,9 +31,14 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   run-standard-battery-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 100
     env:
       POLYCLI_VERSION: v0.1.83
     #   AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
