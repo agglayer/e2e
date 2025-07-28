@@ -209,7 +209,17 @@ Refer to the [TESTSINVENTORY.md](./TESTSINVENTORY.md) file for a list of integra
 
 ## Standard Battery Test Tags
 
-The Standard Battery Tests workflow runs all Bats tests with the `standard` tag.  
+The Standard Battery Tests workflow runs all Bats tests with the `standard` tag. The below tests are currently included:
+
+- [conflicting-contracts-calls](./tests/execution/conflicting-contract-calls.bats)
+- [conflicting-transactions-to-pool](./tests/execution/conflicting-transactions-to-pool.bats)
+- [polycli-cases](./tests/execution/polycli-cases.bats)
+- [railgun-contracts](./tests/execution/railgun-contracts.bats)
+- [smooth-crypto-lib](./tests/execution/smooth-crypto-lib.bats)
+- [special-addresses](./tests/execution/special-addresses.bats)
+- [bridge-tests-suite](./tests/lxly/bridge-tests-suite.bats)
+- [polycli-loadtests](./tests/polycli-loadtests/polycli-loadtests.bats)
+
 To include your test, add `# bats test_tags=standard` above your test in the `.bats` file.
 
 You can use multiple tags for more granular control, e.g.:
