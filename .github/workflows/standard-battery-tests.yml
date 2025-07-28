@@ -44,7 +44,7 @@ jobs:
     #   KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
     #   KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.default-l2-client }}
-      AGGLAYER_E2E_REF: 88668ea89c273e583e9816e55ee0aa37c22e47d3
+      AGGLAYER_E2E_REF: 29ae20b04fbf49f83d4527939734b446ff6254ff
       KURTOSIS_CDK_REF: main
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
@@ -61,7 +61,8 @@ jobs:
       - name: Find standard-tagged bats files
         id: set-matrix
         run: |
-            files=$(grep -rl '# bats file_tags=standard' agglayer-e2e/tests | grep '\.bats$' || true)
+            pushd agglayer-e2e || exit 1
+            files=$(grep -rl '# bats file_tags=standard' ./tests | grep '\.bats$' || true)
             echo "Found files:"
             echo "$files"
             # Remove empty lines and ensure valid JSON array without trailing empty string
@@ -69,12 +70,14 @@ jobs:
             echo "Files array:"
             echo "$files_json"
             echo "testfiles=$files_json" >> $GITHUB_OUTPUT
+            popd
 
   run-standard-battery-tests:
     runs-on: ubuntu-latest
     needs: discover-standard-tests
     timeout-minutes: 60
     strategy:
+      fail-fast: false
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
@@ -83,7 +86,7 @@ jobs:
     #   KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
     #   KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.default-l2-client }}
-      AGGLAYER_E2E_REF: cd970e6851e7d0539fe1a5a999d5ad21a6497a02
+      AGGLAYER_E2E_REF: 29ae20b04fbf49f83d4527939734b446ff6254ff
       KURTOSIS_CDK_REF: main
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
