@@ -317,7 +317,7 @@ _resolve_contract_addresses() {
 _get_gas_token_address() {
     local chain_number=$1
     local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
-    kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+    kurtosis_download_file_exec_method $ENCLAVE_NAME $contracts_container "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
     local chain_combined_output
     chain_combined_output=$(cat "combined-${chain_number}.json")
     if echo "$chain_combined_output" | jq empty >/dev/null 2>&1; then
