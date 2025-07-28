@@ -38,7 +38,18 @@ permissions:
 jobs:
   run-standard-battery-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 100
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        testfile:
+          - tests/execution/conflicting-contract-calls.bats
+          - tests/execution/conflicting-transactions-to-pool.bats
+          - tests/execution/polycli-cases.bats
+          - tests/execution/railgun-contracts.bats
+          - tests/execution/smooth-crypto-lib.bats
+          - tests/execution/special-addresses.bats
+          - tests/lxly/bridge-tests-suite.bats
+          - tests/polycli-loadtests/polycli-loadtests.bats
     env:
       POLYCLI_VERSION: v0.1.83
     #   AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
@@ -50,6 +61,10 @@ jobs:
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
     steps:
+      - name: Debug environment variables
+        run: |
+          env | grep -E 'AGGLAYER_E2E_REF|KURTOSIS_CDK_REF|KURTOSIS_ENCLAVE_NAME|DEFAULT_L2_CLIENT'
+
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
         with:
@@ -90,25 +105,33 @@ jobs:
             popd
 
       - name: Inspect Kurtosis enclave
-        run : |
-            kurtosis enclave inspect ${{ env.KURTOSIS_ENCLAVE_NAME }}
+        run: |
+          kurtosis enclave inspect ${{ env.KURTOSIS_ENCLAVE_NAME }}
+
+      - name: Validate test file existence
+        run: |
+          testfile="agglayer-e2e/${{ matrix.testfile }}"
+          if [[ ! -f "$testfile" ]]; then
+            echo "Test file $testfile does not exist"
+            exit 1
+          fi
 
       - name: Run e2e tests
         run: |
           set -eo pipefail
           pushd agglayer-e2e || exit 1
           
-          if [[ "${DEFAULT_L2_CLIENT}" == "cdk-op-geth" ]]; then
-            export L2_RPC_URL=$(kurtosis port print "${KURTOSIS_ENCLAVE_NAME}" op-el-1-op-geth-op-node-001 rpc)
-          elif [[ "${DEFAULT_L2_CLIENT}" == "cdk-erigon" ]]; then
-            export L2_RPC_URL=$(kurtosis port print "${KURTOSIS_ENCLAVE_NAME}" cdk-erigon-rpc-001 rpc)
+          if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
+            export L2_RPC_URL=$(kurtosis port print "${{ env.KURTOSIS_ENCLAVE_NAME }}" op-el-1-op-geth-op-node-001 rpc)
+          elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
+            export L2_RPC_URL=$(kurtosis port print "${{ env.KURTOSIS_ENCLAVE_NAME }}" cdk-erigon-rpc-001 rpc)
           else
-            echo "invalid l2 client detected"
+            echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
             exit 1
           fi
           
           export ENCLAVE_NAME="${{ env.KURTOSIS_ENCLAVE_NAME }}"
           export L2_PRIVATE_KEY="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
 
-          bats --filter-tags standard $(find tests -name '*.bats')
+          bats --filter-tags standard ${{ matrix.testfile }}
           popd
