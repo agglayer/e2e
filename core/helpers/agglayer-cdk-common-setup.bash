@@ -283,11 +283,12 @@ _get_gas_token_address() {
     local chain_number=$1
     local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
     kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
-    combined_json_output=$(cat "combined-${chain_number}.json")
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        echo "$(echo "$combined_json_output" | jq -r .gasTokenAddress)"
+    local chain_combined_output
+    chain_combined_output=$(cat "combined-${chain_number}.json")
+    if echo "$chain_combined_output" | jq empty >/dev/null 2>&1; then
+        echo "$(echo "$chain_combined_output" | jq -r .gasTokenAddress)"
     else
-        echo "$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)"
+        echo "$(echo "$chain_combined_output" | tail -n +2 | jq -r .gasTokenAddress)"
     fi
 }
 
