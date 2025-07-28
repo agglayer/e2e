@@ -844,7 +844,7 @@ extract_claim_parameters_json() {
 }
 
 @test "Test triple claim internal calls -> 1 fail, 1 success and 1 fail" {
-    log "🧪 Testing triple claim internal calls: 1 fail, 1 success, 1 fail, 1 success"
+    log "🧪 Testing triple claim internal calls: 1 fail, 1 success, 1 fail"
 
     # ========================================
     # STEP 1: Bridge first asset and get all claim parameters
