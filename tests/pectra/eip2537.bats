@@ -42,6 +42,16 @@ setup_file() {
     export g2add_test_vectors_ok="./test_vectors/add_G2_bls.json"
     export g2add_test_vectors_ko="./test_vectors/fail-add_G2_bls.json"
 
+    # G1MUL
+    export BLS12_G1MUL_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000c"
+    export g1mul_test_vectors_ok="./test_vectors/mul_G1_bls.json"
+    export g1mul_test_vectors_ko="./test_vectors/fail-mul_G1_bls.json"
+
+    # G2MUL
+    export BLS12_G2MUL_PRECOMPILE_ADDR="0x000000000000000000000000000000000000000e"
+    export g2mul_test_vectors_ok="./test_vectors/mul_G2_bls.json"
+    export g2mul_test_vectors_ko="./test_vectors/fail-mul_G2_bls.json"
+
 }
 
 # These function is for tests that are expected to be working. Output is also checked against expected result.
@@ -125,23 +135,34 @@ function eip2537_test_ko() {
     done
 }
 
-# These are working test vectors for G1ADD that need to success and return the expected output.
 @test "G1ADD test vectors OK" {
     eip2537_test_ok "G1ADD" "$g1add_test_vectors_ok" "$BLS12_G1ADD_PRECOMPILE_ADDR"
 }
 
-# These are test vectors for G1ADD that are expected to fail and return a specific error.
 @test "G1ADD test vectors KO" {
     eip2537_test_ko "G1ADD" "$g1add_test_vectors_ko" "$BLS12_G1ADD_PRECOMPILE_ADDR"
 }
 
-# These are working test vectors for G2ADD that need to success and return the expected output.
 @test "G2ADD test vectors OK" {
     eip2537_test_ok "G2ADD" "$g2add_test_vectors_ok" "$BLS12_G2ADD_PRECOMPILE_ADDR"
 }
 
-# These are test vectors for G2ADD that are expected to fail and return a specific error.
 @test "G2ADD test vectors KO" {
     eip2537_test_ko "G2ADD" "$g2add_test_vectors_ko" "$BLS12_G2ADD_PRECOMPILE_ADDR"
 }
 
+@test "G1MUL test vectors OK" {
+    eip2537_test_ok "G1MUL" "$g1mul_test_vectors_ok" "$BLS12_G1MUL_PRECOMPILE_ADDR"
+}
+
+@test "G1MUL test vectors KO" {
+    eip2537_test_ko "G1MUL" "$g1mul_test_vectors_ko" "$BLS12_G1MUL_PRECOMPILE_ADDR"
+}
+
+@test "G2MUL test vectors OK" {
+    eip2537_test_ok "G2MUL" "$g2mul_test_vectors_ok" "$BLS12_G2MUL_PRECOMPILE_ADDR"
+}
+
+@test "G2MUL test vectors KO" {
+    eip2537_test_ko "G2MUL" "$g2mul_test_vectors_ko" "$BLS12_G2MUL_PRECOMPILE_ADDR"
+}
