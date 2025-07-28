@@ -44,7 +44,7 @@ jobs:
     #   KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
     #   KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.default-l2-client }}
-      AGGLAYER_E2E_REF: 29ae20b04fbf49f83d4527939734b446ff6254ff
+      AGGLAYER_E2E_REF: jihwan/standard-battery-tests
       KURTOSIS_CDK_REF: main
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
@@ -86,7 +86,7 @@ jobs:
     #   KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
     #   KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.default-l2-client }}
-      AGGLAYER_E2E_REF: 29ae20b04fbf49f83d4527939734b446ff6254ff
+      AGGLAYER_E2E_REF: jihwan/standard-battery-tests
       KURTOSIS_CDK_REF: main
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
