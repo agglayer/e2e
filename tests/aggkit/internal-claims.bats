@@ -5,7 +5,7 @@ setup() {
     readonly internal_claims_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/InternalClaims.json"
 
     # Deploy the InternalClaims contract once for all tests
-    log "📝 Deploying InternalClaims contract in setup"
+    log "🔧 Deploying InternalClaims contract for all tests"
 
     # Get bytecode from the contract artifact
     local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
@@ -49,7 +49,7 @@ setup() {
         exit 1
     fi
 
-    log "🎉 Deployed InternalClaims at: $mock_sc_addr"
+    log "✅ InternalClaims contract deployed at: $mock_sc_addr"
 }
 
 @test "Test triple claim internal calls -> 3 success" {
@@ -219,7 +219,7 @@ setup() {
     log "✅ Third asset claim parameters extracted successfully"
 
     # ========================================
-    # STEP 4: Bridge fourth asset and get all claim parameters
+    # STEP 4: Bridge fourth asset
     # ========================================
     log "🌉 STEP 4: Bridging fourth asset from L1 to L2"
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
@@ -493,7 +493,6 @@ setup() {
 
     log "🎉 Bridge reentrancy test completed successfully"
     log "📊 Summary:"
-    log "   ✅ Contract deployed successfully"
     log "   ✅ First asset bridge created and parameters extracted"
     log "   ✅ Second asset bridge created and parameters extracted"
     log "   ✅ Third asset bridge created and parameters extracted"
@@ -936,7 +935,6 @@ setup() {
 
     log "🎉 Quadruple claim test completed successfully"
     log "📊 Summary:"
-    log "   ✅ Contract deployed successfully"
     log "   ✅ First asset bridge created and parameters extracted"
     log "   ✅ Second asset bridge created and malformed parameters prepared"
     log "   ✅ Third asset bridge created and parameters extracted"
@@ -1351,7 +1349,6 @@ setup() {
 
     log "🎉 Triple claim test completed successfully"
     log "📊 Summary:"
-    log "   ✅ Contract deployed successfully"
     log "   ✅ First asset bridge created and malformed parameters prepared"
     log "   ✅ Second asset bridge created and parameters extracted"
     log "   ✅ Third asset bridge created and malformed parameters prepared"
@@ -1771,7 +1768,6 @@ setup() {
 
     log "🎉 Triple claim test with same global index completed successfully"
     log "📊 Summary:"
-    log "   ✅ Contract deployed successfully"
     log "   ✅ First asset bridge created and malformed parameters prepared (global_index: $global_index_2 - same as second)"
     log "   ✅ Second asset bridge created and parameters extracted (global_index: $global_index_2)"
     log "   ✅ Third asset bridge created and malformed parameters prepared (global_index: $global_index_3)"
