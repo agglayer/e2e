@@ -3,9 +3,10 @@ setup() {
     _agglayer_cdk_common_setup
 
     readonly internal_claims_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/InternalClaims.json"
-}
 
-@test "Test triple claim internal calls -> 3 success" {
+    # Deploy the InternalClaims contract once for all tests
+    log "📝 Deploying InternalClaims contract in setup"
+
     # Get bytecode from the contract artifact
     local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
@@ -27,7 +28,6 @@ setup() {
     local gas_price=1000000000
 
     # Deploy the contract
-    log "📝 Deploying InternalClaims contract"
     local deploy_output
     deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
@@ -42,7 +42,7 @@ setup() {
     fi
 
     # Extract contract address from output
-    local mock_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
+    readonly mock_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
     if [[ -z "$mock_sc_addr" ]]; then
         log "❌ Failed to extract deployed contract address"
         log "$deploy_output"
@@ -50,8 +50,9 @@ setup() {
     fi
 
     log "🎉 Deployed InternalClaims at: $mock_sc_addr"
+}
 
-    # ========================================
+@test "Test triple claim internal calls -> 3 success" {
     # STEP 1: Bridge first asset and get all claim parameters
     # ========================================
     log "🌉 STEP 1: Bridging first asset from L1 to L2"
@@ -543,51 +544,6 @@ setup() {
 @test "Test triple claim internal calls -> 1 success, 1 fail and 1 success" {
     log "🧪 Testing triple claim internal calls: 1 success, 1 fail, 1 success"
 
-    # Get bytecode from the contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
-    if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        log "❌ Error: Failed to read bytecode from $internal_claims_artifact_path"
-        exit 1
-    fi
-
-    # ABI-encode the constructor argument (bridge address)
-    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
-    if [[ -z "$encoded_args" ]]; then
-        log "❌ Failed to ABI-encode constructor argument"
-        exit 1
-    fi
-
-    # Concatenate bytecode and encoded constructor args
-    local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
-
-    # Set a fixed gas price (1 gwei)
-    local gas_price=1000000000
-
-    # Deploy the contract
-    log "📝 Deploying InternalClaims contract"
-    local deploy_output
-    deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
-        --create "$deploy_bytecode" 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to deploy contract"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    # Extract contract address from output
-    local internal_claims_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
-    if [[ -z "$internal_claims_sc_addr" ]]; then
-        log "❌ Failed to extract deployed contract address"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    log "🎉 Deployed InternalClaims at: $internal_claims_sc_addr"
-
     # ========================================
     # STEP 1: Bridge first asset and get all claim parameters
     # ========================================
@@ -1015,7 +971,6 @@ setup() {
         assert_equal "$claim_3_proof_rollup_exit_root" "$proof_rollup_exit_root_3"
         log "✅ Third claim proofs validated successfully"
         log "✅ Third claim all fields validated successfully"
-        log "✅ First and third asset claims were successfully processed through onMessageReceived"
 
         # ========================================
         # STEP 8: Validate that failed claims are not returned by the claims API
@@ -1071,51 +1026,6 @@ setup() {
 
 @test "Test triple claim internal calls -> 1 fail, 1 success and 1 fail" {
     log "🧪 Testing triple claim internal calls: 1 fail, 1 success, 1 fail, 1 success"
-
-    # Get bytecode from the contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
-    if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        log "❌ Error: Failed to read bytecode from $internal_claims_artifact_path"
-        exit 1
-    fi
-
-    # ABI-encode the constructor argument (bridge address)
-    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
-    if [[ -z "$encoded_args" ]]; then
-        log "❌ Failed to ABI-encode constructor argument"
-        exit 1
-    fi
-
-    # Concatenate bytecode and encoded constructor args
-    local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
-
-    # Set a fixed gas price (1 gwei)
-    local gas_price=1000000000
-
-    # Deploy the contract
-    log "📝 Deploying InternalClaims contract"
-    local deploy_output
-    deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
-        --create "$deploy_bytecode" 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to deploy contract"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    # Extract contract address from output
-    local internal_claims_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
-    if [[ -z "$internal_claims_sc_addr" ]]; then
-        log "❌ Failed to extract deployed contract address"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    log "🎉 Deployed InternalClaims at: $internal_claims_sc_addr"
 
     # ========================================
     # STEP 1: Bridge first asset and get all claim parameters
@@ -1569,51 +1479,6 @@ setup() {
 
 @test "Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index)" {
     log "🧪 Testing triple claim internal calls with 1st and 3rd claim with same global index: 1 fail, 1 success, 1 fail, 1 success"
-
-    # Get bytecode from the contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
-    if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        log "❌ Error: Failed to read bytecode from $internal_claims_artifact_path"
-        exit 1
-    fi
-
-    # ABI-encode the constructor argument (bridge address)
-    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
-    if [[ -z "$encoded_args" ]]; then
-        log "❌ Failed to ABI-encode constructor argument"
-        exit 1
-    fi
-
-    # Concatenate bytecode and encoded constructor args
-    local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
-
-    # Set a fixed gas price (1 gwei)
-    local gas_price=1000000000
-
-    # Deploy the contract
-    log "📝 Deploying InternalClaims contract"
-    local deploy_output
-    deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
-        --create "$deploy_bytecode" 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to deploy contract"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    # Extract contract address from output
-    local internal_claims_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
-    if [[ -z "$internal_claims_sc_addr" ]]; then
-        log "❌ Failed to extract deployed contract address"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    log "🎉 Deployed InternalClaims at: $internal_claims_sc_addr"
 
     # ========================================
     # STEP 1: Bridge first asset and get all claim parameters
