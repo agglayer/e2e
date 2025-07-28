@@ -1,15 +1,16 @@
 name: Standard Battery Tests
 
-
 on:
   workflow_dispatch:
     inputs:
       agglayer-e2e-ref:
-        description: "agglayer/e2e repo ref (branch, tag, or commit)"
+        description: "agglayer/e2e repo ref (commit hash)"
+        default: "main"
         required: true
         type: string
       kurtosis-cdk-ref:
-        description: "kurtosis-cdk repo ref (branch, tag, or commit)"
+        description: "kurtosis-cdk repo ref (commit hash)"
+        default: "main"
         required: true
         type: string
       kurtosis-enclave-name:
@@ -27,49 +28,26 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POLYCLI_VERSION: v0.1.83
+    #   AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+    #   KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
+    #   KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
+      AGGLAYER_E2E_REF: 88668ea89c273e583e9816e55ee0aa37c22e47d3
+      KURTOSIS_CDK_REF: main
+      KURTOSIS_ENCLAVE_NAME: cdk
     steps:
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
         with:
             repository: agglayer/e2e
-            ref: ${{ inputs.agglayer-e2e-ref }}
+            ref: ${{ env.AGGLAYER_E2E_REF }}
             path: agglayer-e2e
 
       - name: Checkout kurtosis-cdk
         uses: actions/checkout@v4
         with:
             repository: 0xPolygon/kurtosis-cdk
-            ref: ${{ inputs.kurtosis-cdk-ref }}
+            ref: ${{ env.KURTOSIS_CDK_REF }}
             path: kurtosis-cdk
-
-      - name: Install kurtosis
-        shell: bash
-        run: |
-            echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-            sudo apt update
-            sudo apt install -y kurtosis-cli=1.7.2
-            kurtosis analytics disable
-            kurtosis version
-
-      - name: Install jq
-        shell: bash
-        run: |
-            sudo apt update
-            sudo apt install -y jq
-
-      - name: Install yq
-        shell: bash
-        run: |
-            pip3 install yq
-            yq --version
-    
-      - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c # v1.3.1
-        with:
-            version: v1.0.0
-
-      - name: Install bats
-        uses: bats-core/bats-action@3.0.0
 
       - name: Install polycli
         run: |
@@ -81,18 +59,24 @@ jobs:
             polycli version
             popd
 
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Install Kurtosis CLI and Foundry
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        with:
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}
+
       - name: Run Kurtosis CDK
         run: |
             pushd kurtosis-cdk || exit 1
-            kurtosis run --enclave ${{ inputs.agglayer-e2e-ref }} .
-            popd
-            pushd agglayer-e2e || exit 1
-            bats tests/cdk/e2e.bats
+            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
             popd
 
       - name: Inspect Kurtosis enclave
         run : |
-            kurtosis enclave inspect ${{ inputs.agglayer-e2e-ref }}
+            kurtosis enclave inspect ${{ env.KURTOSIS_ENCLAVE_NAME }}
 
       - name: Run e2e tests
         run: |
