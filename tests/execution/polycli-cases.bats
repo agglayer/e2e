@@ -101,6 +101,6 @@ setup_file() {
 }
 
 @test "Using polycli to do some inscriptions" {
-    polycli loadtest --private-key "$ephemeral_private_key" --mode inscription --rate-limit 1000 --requests 10 --concurrency 50 --eth-amount 0 \
+    polycli loadtest --private-key "$ephemeral_private_key" --mode inscription --rate-limit 1000 --requests 10 --concurrency 50 --eth-amount-in-wei 0 \
         --inscription-content 'data:,{"p":"prc-20","op":"mint","tick":"hava","amt":"100"}' --to-address "$ephemeral_address" --rpc-url "$l2_rpc_url"
 }

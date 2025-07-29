@@ -128,9 +128,10 @@ jobs:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_token: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Run Kurtosis CDK
+      - name: Run Kurtosis CDK (bridge claimer disabled)
         run: |
             pushd kurtosis-cdk || exit 1
+            sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
             kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
             popd
 
