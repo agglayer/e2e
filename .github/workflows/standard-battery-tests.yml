@@ -166,8 +166,8 @@ jobs:
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
 
-      - name: Conditionally upload artifacts
-        if: always()
+      - name: Upload bridge tests suite artifacts
+        if: always() && contains(matrix.testfile, 'bridge-tests-suite.bats')
         uses: actions/upload-artifact@v4
         with:
           name: bridge_test_artifacts
