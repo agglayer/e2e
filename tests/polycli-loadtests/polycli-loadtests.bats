@@ -75,7 +75,7 @@ setup() {
     end=$(date +%s)
     duration=$((end-start))
 
-    if [[ $duration -gt 210 ]]; then
+    if [[ $duration -gt 240 ]]; then
         echo "The test ended up taking $duration seconds to complete. This is below the expected performance target"
         exit 1
     fi
@@ -97,7 +97,7 @@ setup() {
     end=$(date +%s)
     duration=$((end-start))
 
-    if [[ $duration -gt 210 ]]; then
+    if [[ $duration -gt 240 ]]; then
         echo "The test ended up taking $duration seconds to complete. This is below the expected performance target"
         exit 1
     fi

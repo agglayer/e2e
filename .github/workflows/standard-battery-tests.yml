@@ -109,6 +109,9 @@ jobs:
           ref: ${{ env.KURTOSIS_CDK_REF }}
           path: kurtosis-cdk
 
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+
       - name: Install polycli
         run: |
             polycli_version="${{ env.POLYCLI_VERSION }}"
@@ -118,9 +121,6 @@ jobs:
             mv polycli_* /usr/local/bin/polycli
             polycli version
             popd
-
-      - name: Install bats
-        uses: bats-core/bats-action@3.0.0
 
       - name: Install Kurtosis CLI and Foundry
         uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
@@ -164,3 +164,11 @@ jobs:
 
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
+
+      - name: Conditionally upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge_test_artifacts
+          path: /tmp/bridge_test_results_*
+          retention-days: 1

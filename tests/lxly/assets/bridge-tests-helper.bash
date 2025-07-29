@@ -811,6 +811,7 @@ _run_single_bridge_test() {
     
     local deposit_count=""
     if [[ $bridge_status -eq 0 ]]; then
+        echo "DEBUG: Bridge output: $bridge_output" >&2
         deposit_count=$(echo "$bridge_output" | awk '/depositCount=/ {gsub(/.*depositCount=/, ""); gsub(/\x1b\[[0-9;]*m/, ""); print}')
         echo "DEBUG: Extracted deposit count: $deposit_count" >&2
     fi
