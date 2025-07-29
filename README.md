@@ -13,7 +13,7 @@ The TLDR for getting started is that these tests are based on a [TAP](https://en
 The tests in this repository depend on an external RPC which can be specified via environment variables. If you're testing locally, using the [kurtosis-cdk](https://github.com/0xPolygon/kurtosis-cdk/releases/tag/v0.3.4) is probably the easiest way to get started.
 
 ```bash
-# from within the kurtosis cdk-repo
+# from within the kurtosis-cdk repo
 kurtosis run --enclave cdk --args-file .github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
 ```
 
