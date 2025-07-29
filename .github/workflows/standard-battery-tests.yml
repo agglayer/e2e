@@ -18,7 +18,7 @@ on:
         default: "cdk"
         required: false
         type: string
-      default-l2-client:
+      stack:
         description: "name of the l2 cdk client"
         default: "cdk-op-geth"
         required: true
@@ -83,7 +83,7 @@ jobs:
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
       KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
       KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
-      DEFAULT_L2_CLIENT: ${{ inputs.default-l2-client }}
+      DEFAULT_L2_CLIENT: ${{ inputs.stack }}
       FUNDED_PRIVATE_KEY: ${{ inputs.funded-private-key }}
       # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
       # KURTOSIS_CDK_REF: main
@@ -132,7 +132,7 @@ jobs:
         run: |
             pushd kurtosis-cdk || exit 1
             sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
-            # The default-l2-client value will decided which client will be spun up.
+            # The stack value will decided which client will be spun up.
             if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
               kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
             elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
