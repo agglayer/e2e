@@ -76,7 +76,7 @@ function eip2935_check_block_fail() {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
 
-    for i in $(seq 1 "$num_random_blocks_to_check"); do
+    for _ in $(seq 1 "$num_random_blocks_to_check"); do
         # pick random offset within window
         offset=$((RANDOM % HISTORY_SERVE_WINDOW))
         block_to_check=$((oldest_block + offset))
@@ -98,7 +98,7 @@ function eip2935_check_block_fail() {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
 
-    for i in $(seq 1 "$num_random_blocks_to_check_fail"); do
+    for _ in $(seq 1 "$num_random_blocks_to_check_fail"); do
         # pick random offset within window
         offset=$((RANDOM % HISTORY_SERVE_WINDOW))
         block_to_check=$((oldest_block - offset))
