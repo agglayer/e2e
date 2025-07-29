@@ -22,8 +22,8 @@ setup_file() {
 }
 
 function eip2935_check_block() {
-    local block_number=$1
-    local padded_block=$(printf "%064x" "$block_number")
+    block_number=$1
+    padded_block=$(printf "%064x" "$block_number")
 
     echo "🔍 Running EIP-2935 check block for block number $block_number"
 
@@ -55,8 +55,8 @@ function eip2935_check_block() {
 }
 
 function eip2935_check_block_fail() {
-    local block_number=$1
-    local padded_block=$(printf "%064x" "$block_number")
+    block_number=$1
+    padded_block=$(printf "%064x" "$block_number")
 
     echo "🔍 Running EIP-2935 check block for block number $block_number (expected to fail)"
 
@@ -73,8 +73,8 @@ function eip2935_check_block_fail() {
 }
 
 @test "EIP-2935: Random historical block hashes from state" {
-    local current_block=$(cast block-number --rpc-url "$l2_rpc_url")
-    local oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
+    current_block=$(cast block-number --rpc-url "$l2_rpc_url")
+    oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
 
     for i in $(seq 1 "$num_random_blocks_to_check"); do
         # pick random offset within window
@@ -86,17 +86,17 @@ function eip2935_check_block_fail() {
 }
 
 @test "EIP-2935: Oldest possible historical block hash from state" {
-    local current_block=$(cast block-number --rpc-url "$l2_rpc_url")
+    current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     echo "Current block: $current_block"
 
     # Adding one to avoid race condition with the current block number
-    local block_to_check=$((current_block - HISTORY_SERVE_WINDOW + 1))
+    block_to_check=$((current_block - HISTORY_SERVE_WINDOW + 1))
     eip2935_check_block "$block_to_check"
 }
 
 @test "EIP-2935: Checking blocks outside historical serve window" {
-    local current_block=$(cast block-number --rpc-url "$l2_rpc_url")
-    local oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
+    current_block=$(cast block-number --rpc-url "$l2_rpc_url")
+    oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
 
     for i in $(seq 1 "$num_random_blocks_to_check_fail"); do
         # pick random offset within window

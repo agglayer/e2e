@@ -56,9 +56,9 @@ setup_file() {
 
 # These function is for tests that are expected to be working. Output is also checked against expected result.
 function eip2537_test_ok() {
-    local test_name=$1
-    local test_vectors_ok=$2
-    local bls12_precompile_addr=$3
+    test_name=$1
+    test_vectors_ok=$2
+    bls12_precompile_addr=$3
 
     echo "Running EIP-2537 test vectors from path $BATS_TEST_DIRNAME/$test_vectors_ok for $test_name"
 
@@ -97,9 +97,9 @@ function eip2537_test_ok() {
 
 # These functions are for tests that are expected to fail. Output is also checked against expected error.
 function eip2537_test_ko() {
-    local test_name=$1
-    local test_vectors_ko=$2
-    local bls12_precompile_addr=$3
+    test_name=$1
+    test_vectors_ko=$2
+    bls12_precompile_addr=$3
 
     echo "Running EIP-2537 test vectors from path $BATS_TEST_DIRNAME/$test_vectors_ko for $test_name"
 

@@ -27,8 +27,8 @@ setup_file() {
 
 
 function tokens_from_calldata() {
-    local hex_input=$1
-    local tokens=0
+    hex_input=$1
+    tokens=0
 
     # Strip the 0x prefix
     hex=${hex_input#0x}
@@ -60,8 +60,8 @@ function tokens_from_calldata() {
 
 # These function is for tests that are expected to be working. Output is also checked against expected result.
 function eip7623_check_gas() {
-    local bytes=$1
-    local expected_tokens=$(tokens_from_calldata "$bytes")
+    bytes=$1
+    expected_tokens=$(tokens_from_calldata "$bytes")
 
     # cost has to be 21000 + tokens * TOTAL_COST_FLOOR_PER_TOKEN (if no execution, so we start with 0x00 just in case)
     pectra_expected_cost=$((21000 + expected_tokens * TOTAL_COST_FLOOR_PER_TOKEN))
