@@ -305,6 +305,7 @@ function get_claim() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
+    local from_address="${6:-}"
     local attempt=0
 
     log "🔍 Searching for claim with global_index: "$expected_global_index" (bridge indexer RPC: "$aggkit_url")..."
@@ -313,8 +314,14 @@ function get_claim() {
         ((attempt++))
         log "🔍 Attempt $attempt"
         log "get claim global index: $expected_global_index"
-        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true")
 
+        # Build the query URL with optional from_address parameter
+        local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true"
+        if [[ -n "$from_address" ]]; then
+            query_url="$query_url&from_address=$from_address"
+        fi
+
+        claims_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "------ claims_result ------"
         log "$claims_result"
         log "------ claims_result ------"
@@ -705,9 +712,10 @@ function process_bridge_claim() {
     local origin_aggkit_bridge_url="$5"
     local destination_aggkit_bridge_url="$6"
     local destination_rpc_url="$7"
+    local from_address="${8:-}"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url" "$from_address"
     assert_success
     local bridge="$output"
 

@@ -12,7 +12,7 @@ setup() {
     local bridge_tx_hash=$output
 
     echo "====== claimMessage (L2)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     echo "====== bridgeMessage L2 -> L1" >&3
@@ -53,7 +53,7 @@ setup() {
 
     # CLAIM (settle deposit on L2)
     echo "==== 🔐 Claiming deposit on L2 ($L2_RPC_URL)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -73,7 +73,7 @@ setup() {
     # Attempt a second “claim” on L2 — this should fail because it’s already been claimed
     # -----------------------------------------------------------------------------
     echo "==== 🔐 Claiming deposit on L2 again (${L2_RPC_URL}) — expected to fail (already claimed)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     log "💡 duplicate process_bridge_claim returns $output"
     assert_success
 
@@ -106,7 +106,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposit (settle it on the L2)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     sender_balance_after_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
@@ -121,7 +121,7 @@ setup() {
 
     # Attempt a second claim on L2 — this should fail because it’s already been claimed
     echo "==== 🔐 Claiming deposit on L2 again (${L2_RPC_URL}) — expected to fail (already claimed)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     log "💡 duplicate process_bridge_claim returns $output"
     assert_success
 
@@ -176,7 +176,7 @@ setup() {
 
     # Step 3: Claim the bridged asset on L2
     echo "==== 🔐 Claiming asset deposit on L2 ($L2_RPC_URL)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     # Verify the ERC20 token was bridged correctly
@@ -195,7 +195,7 @@ setup() {
 
     # Step 4: Claim the bridged message on L2
     echo "====== claimMessage (L2)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 }
 
@@ -233,12 +233,12 @@ setup() {
 
     # Step 3: Claim the bridged message on L2 first
     echo "====== claimMessage (L2)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     # Step 4: Claim the bridged asset on L2
     echo "==== 🔐 Claiming asset deposit on L2 ($L2_RPC_URL)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     # Verify the ERC20 token was bridged correctly
@@ -268,7 +268,7 @@ setup() {
 
     # Step 2: Claim the bridged message on L2
     echo "====== claimMessage (L2)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_message_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     # Step 3: Deploy and bridge ERC20 token L1 -> L2
@@ -295,7 +295,7 @@ setup() {
 
     # Step 4: Claim the bridged asset on L2
     echo "==== 🔐 Claiming asset deposit on L2 ($L2_RPC_URL)" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_asset_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     # Verify the ERC20 token was bridged correctly
@@ -325,6 +325,6 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposit (claim will fail because global index is manipulated)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true" "$sender_addr"
     assert_success
 }
