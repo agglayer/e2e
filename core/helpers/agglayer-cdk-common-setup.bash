@@ -1,19 +1,6 @@
 _agglayer_cdk_common_setup() {
-    bats_load_library 'bats-support'
-    if [ $? -ne 0 ]; then return 1; fi
-    bats_load_library 'bats-assert'
-    if [ $? -ne 0 ]; then return 1; fi
-
-    # Load core helpers
-    local scripts=(
-        agglayer_network_setup aggkit_bridge_service fund get_token_balance mint_token_helpers
-        query_contract send_tx verify_balance wait_to_settled_certificate_containing_global_index
-        assert_block_production check_balances deploy_contract deploy_test_contracts
-        send_eoa_tx send_smart_contract_tx zkevm_bridge_service kurtosis-helpers
-    )
-    for script in "${scripts[@]}"; do
-        load "../../core/helpers/scripts/$script"
-    done
+    _load_bats_libraries || return 1
+    _load_helper_scripts
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
@@ -26,144 +13,103 @@ _agglayer_cdk_common_setup() {
 
     export DEPLOY_SALT="${DEPLOY_SALT:-0x0000000000000000000000000000000000000000000000000000000000000000}"
 
-    # ✅ Standard function signatures
+    # ✅ ERC20 function signatures
     export MINT_FN_SIG="function mint(address,uint256)"
     export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
-    # Resolve L2 RPC URL
-    _resolve_url_or_use_env L2_RPC_URL \
-        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
-        "Failed to resolve L2 RPC URL" true
+    # ✅ Resolve URLs
+    _resolve_required_urls
 
-    # Resolve L2_SEQUENCER_RPC_URL
-    _resolve_url_or_use_env L2_SEQUENCER_RPC_URL \
-        "op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc" \
-        "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true
-
-    # Resolve Aggkit bridge URL
-    _resolve_url_or_use_env aggkit_bridge_url \
-        "aggkit-001" "rest" "cdk-node-001" "rest" \
-        "Failed to resolve aggkit bridge url from all fallback nodes" true
-
-    # Resolve Aggkit RPC URL
-    _resolve_url_or_use_env aggkit_rpc_url \
-        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
-        "Failed to resolve aggkit rpc url from all fallback nodes" true
-
-    # Resolve zkevm_bridge_url
-    _resolve_url_or_use_env zkevm_bridge_url \
-        "zkevm-bridge-service-001" "rpc" \
-        "Zk EVM Bridge service is not running" false
-
-    # ✅ Generate a fresh wallet
-    wallet_json=$(cast wallet new --json)
-
-    echo "🛠 Raw wallet JSON output:"
-    echo "$wallet_json"
-
-    PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '.[0].private_key')
-    PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '.[0].address')
-
-    echo "🛠 Extracted PRIVATE_KEY: $PRIVATE_KEY_VALUE"
-    echo "🛠 Extracted PUBLIC_ADDRESS: $PUBLIC_ADDRESS_VALUE"
-
-    export PRIVATE_KEY="$PRIVATE_KEY_VALUE"
-    export PUBLIC_ADDRESS="$PUBLIC_ADDRESS_VALUE"
-
-    if [[ -z "$PRIVATE_KEY" || -z "$PUBLIC_ADDRESS" ]]; then
-        echo "❌ ERROR: Failed to generate wallet."
-        exit 1
-    fi
-    echo "🆕 Generated wallet: $PUBLIC_ADDRESS"
-
-    # ✅ Wallet Funding Configuration
-    if [[ "${DISABLE_FUNDING:-false}" == "true" ]]; then
-        echo "⚠️ Wallet funding is disabled. Skipping..."
-        return 0
-    fi
-
-    # ✅ Set funding amount dynamically
-    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 10 ETH if not provided
-    FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
-
-    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
-    echo "🛠 Length: ${#L2_SENDER_PRIVATE_KEY} characters"
-
-    # ✅ Check Admin Wallet Balance Before Sending Funds
-    export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
-
-    echo "🛠 ADMIN_ADDRESS: $ADMIN_ADDRESS"
-    admin_balance=$(cast balance "$ADMIN_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
-
-    if (($(echo "$admin_balance < 1" | bc -l))); then
-        echo "❌ ERROR: Admin wallet is out of funds! Current balance: $admin_balance ETH"
-        exit 1
-    fi
-
-    # ✅ Prefund Test Wallet (Retry if Needed)
-    retries=3
-    while [[ "$retries" -gt 0 ]]; do
-        funding_tx_hash=$(cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$ADMIN_PRIVATE_KEY" --value "$FUNDING_AMOUNT_WEI" "$PUBLIC_ADDRESS") && break
-        echo "⚠️ Prefunding failed, retrying..."
-        sleep 5
-        ((retries--))
-    done
-
-    if [[ "$retries" -eq 0 ]]; then
-        echo "❌ ERROR: Failed to fund test wallet after multiple attempts!"
-        exit 1
-    fi
-
-    echo "💰 Sent $FUNDING_AMOUNT_ETH ETH to $PUBLIC_ADDRESS. TX: $funding_tx_hash"
-
-    # ✅ Wait for funds to be available
-    sleep 10
-    sender_balance=$(cast balance "$PUBLIC_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
-
-    if (($(echo "$sender_balance < 1" | bc -l))); then
-        echo "❌ ERROR: Wallet did not receive test funds!"
-        exit 1
-    fi
-
-    is_forced=${IS_FORCED:-"true"}
-    export is_forced
-    meta_bytes=${META_BYTES:-"0x1234"}
-    export meta_bytes
+    # ✅ Generate and fund wallet
+    _generate_and_fund_wallet
 
     # ✅ Resolve smart contract addresses
     _resolve_contract_addresses
 
-    sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export sender_private_key
-    sender_addr="$(cast wallet address --private-key $sender_private_key)"
-    export sender_addr
-    dry_run=${DRY_RUN:-"false"}
-    export dry_run
-    ether_value=${ETHER_VALUE:-"0.0200000054"}
-    amount=$(cast to-wei $ether_value ether)
-    export amount
-    destination_net=${DESTINATION_NET:-"1"}
-    export destination_net
-    destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
-    export destination_addr
-    native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
-    export native_token_addr
-    l1_rpc_url=${L1_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
-    export l1_rpc_url
-    l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
-    export l1_rpc_network_id
-    l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
-    export l2_rpc_network_id
-    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
-    export gas_price
-    erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
-    export erc20_artifact_path
-    weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
-    export weth_token_addr
-    receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
-    export receiver
+    # ✅ Set and export variables
+    _set_and_export_bridge_vars
+}
+
+# Loads required BATS testing libraries, such as bats-support and bats-assert.
+# Returns 1 if any of the libraries fail to load.
+_load_bats_libraries() {
+  for lib in 'bats-support' 'bats-assert'; do
+    bats_load_library "$lib" || return 1
+  done
+}
+
+# Loads all helper script files used across BATS tests.
+# These helpers provide reusable functions for things like funding accounts,
+# deploying contracts, sending transactions, and checking balances.
+_load_helper_scripts() {
+  local scripts=(
+    'agglayer_network_setup'
+    'aggkit_bridge_service'
+    'fund'
+    'get_token_balance'
+    'mint_token_helpers'
+    'query_contract'
+    'send_tx'
+    'verify_balance'
+    'wait_to_settled_certificate_containing_global_index'
+    'assert_block_production'
+    'check_balances'
+    'deploy_contract'
+    'deploy_test_contracts'
+    'send_eoa_tx'
+    'send_smart_contract_tx'
+    'zkevm_bridge_service'
+    'kurtosis-helpers'
+  )
+  for script in "${scripts[@]}"; do
+    load "../../core/helpers/scripts/$script"
+  done
+}
+
+# Resolves and exports required service URLs for the test environment by attempting to 
+# discover them from a set of fallback node names. If the URLs are not found in the environment 
+# variables, this function will attempt to resolve them using the _resolve_url_or_use_env helper.
+# 
+# The function handles:
+# - L1_RPC_URL: L1 execution node RPC endpoint
+# - L2_RPC_URL: L2 execution node RPC endpoint
+# - L2_SEQUENCER_RPC_URL: L2 sequencer endpoint
+# - AGGKIT_BRIDGE_URL: AggKit REST API endpoint for bridge operations
+# - AGGKIT_RPC_URL: AggKit RPC interface
+# - ZKEVM_BRIDGE_URL: zkEVM bridge service endpoint
+#
+# Fallback nodes are tried in order. If a required URL cannot be resolved, the function will fail.
+_resolve_required_urls() {
+    # L1_RPC_URL
+    _resolve_url_or_use_env l1_rpc_url \
+        "el-1-geth-lighthouse rpc" \
+        "Failed to resolve L1 RPC URL" true
+
+    # L2_RPC_URL
+    _resolve_url_or_use_env L2_RPC_URL \
+        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL" true
+
+    # L2_SEQUENCER_RPC_URL
+    _resolve_url_or_use_env L2_SEQUENCER_RPC_URL \
+        "op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc" \
+        "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true
+
+    # AGGKIT_BRIDGE_URL
+    _resolve_url_or_use_env aggkit_bridge_url \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve aggkit bridge url from all fallback nodes" true
+
+    # AGGKIT_RPC_URL
+    _resolve_url_or_use_env aggkit_rpc_url \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true
+
+    #ZKEVM_BRIDGE_URL
+    _resolve_url_or_use_env zkevm_bridge_url \
+        "zkevm-bridge-service-001" "rpc" \
+        "Zk EVM Bridge service is not running" false
 }
 
 # _resolve_url_from_nodes
@@ -246,6 +192,82 @@ _resolve_url_or_use_env() {
     declare -gx "$target_var_name=${!target_var_name}"
 }
 
+# Generates a fresh test wallet using `cast wallet new`, exports the PRIVATE_KEY and PUBLIC_ADDRESS, 
+# and optionally funds it from the configured admin wallet unless funding is disabled.
+# Fails if wallet generation or funding fails after retries.
+_generate_and_fund_wallet() {
+    # ✅ Generate a fresh wallet
+    wallet_json=$(cast wallet new --json)
+
+    echo "🛠 Raw wallet JSON output:"
+    echo "$wallet_json"
+
+    PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '.[0].private_key')
+    PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '.[0].address')
+
+    echo "🛠 Extracted PRIVATE_KEY: $PRIVATE_KEY_VALUE"
+    echo "🛠 Extracted PUBLIC_ADDRESS: $PUBLIC_ADDRESS_VALUE"
+
+    export PRIVATE_KEY="$PRIVATE_KEY_VALUE"
+    export PUBLIC_ADDRESS="$PUBLIC_ADDRESS_VALUE"
+
+    if [[ -z "$PRIVATE_KEY" || -z "$PUBLIC_ADDRESS" ]]; then
+        echo "❌ ERROR: Failed to generate wallet."
+        exit 1
+    fi
+    echo "🆕 Generated wallet: $PUBLIC_ADDRESS"
+
+    # ✅ Wallet Funding Configuration
+    if [[ "${DISABLE_FUNDING:-false}" == "true" ]]; then
+        echo "⚠️ Wallet funding is disabled. Skipping..."
+        return 0
+    fi
+
+    # ✅ Set funding amount dynamically
+    FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 10 ETH if not provided
+    FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
+
+    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
+    echo "🛠 Length: ${#L2_SENDER_PRIVATE_KEY} characters"
+
+    # ✅ Check Admin Wallet Balance Before Sending Funds
+    export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+    ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
+
+    echo "🛠 ADMIN_ADDRESS: $ADMIN_ADDRESS"
+    admin_balance=$(cast balance "$ADMIN_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
+
+    if (($(echo "$admin_balance < 1" | bc -l))); then
+        echo "❌ ERROR: Admin wallet is out of funds! Current balance: $admin_balance ETH"
+        exit 1
+    fi
+
+    # ✅ Prefund Test Wallet (Retry if Needed)
+    retries=3
+    while [[ "$retries" -gt 0 ]]; do
+        funding_tx_hash=$(cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$ADMIN_PRIVATE_KEY" --value "$FUNDING_AMOUNT_WEI" "$PUBLIC_ADDRESS") && break
+        echo "⚠️ Prefunding failed, retrying..."
+        sleep 5
+        ((retries--))
+    done
+
+    if [[ "$retries" -eq 0 ]]; then
+        echo "❌ ERROR: Failed to fund test wallet after multiple attempts!"
+        exit 1
+    fi
+
+    echo "💰 Sent $FUNDING_AMOUNT_ETH ETH to $PUBLIC_ADDRESS. TX: $funding_tx_hash"
+
+    # ✅ Wait for funds to be available
+    sleep 10
+    sender_balance=$(cast balance "$PUBLIC_ADDRESS" --ether --rpc-url "$L2_RPC_URL")
+
+    if (($(echo "$sender_balance < 1" | bc -l))); then
+        echo "❌ ERROR: Wallet did not receive test funds!"
+        exit 1
+    fi
+}
+
 # _resolve_contract_addresses <enclave_name>
 # Exports the following lowercase readonly vars:
 #   l1_bridge_addr, l2_bridge_addr, pol_address, l2_ger_addr, gas_token_addr
@@ -303,6 +325,61 @@ _resolve_contract_addresses() {
         echo "  l2_ger_addr     = $l2_ger_addr"
         echo "  gas_token_addr  = $gas_token_addr"
     } >&3
+}
+
+# _set_and_export_bridge_vars initializes and exports environment variables
+# needed for bridge operations (e.g., sending messages/tokens across L1/L2).
+# It ensures that all required context such as private keys, network IDs, 
+# destination addresses, and token-related values are available as env vars.
+_set_and_export_bridge_vars() {
+    local tmp
+
+    tmp=${IS_FORCED:-"true"}
+    export is_forced="$tmp"
+
+    tmp=${META_BYTES:-"0x1234"}
+    export meta_bytes="$tmp"
+
+    tmp=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    export sender_private_key="$tmp"
+
+    tmp="$(cast wallet address --private-key "$sender_private_key")"
+    export sender_addr="$tmp"
+
+    tmp=${DRY_RUN:-"false"}
+    export dry_run="$tmp"
+
+    tmp=${ETHER_VALUE:-"0.0200000054"}
+    export ether_value="$tmp"
+
+    tmp=$(cast to-wei "$ether_value" ether)
+    export amount="$tmp"
+
+    tmp=${DESTINATION_NET:-"1"}
+    export destination_net="$tmp"
+
+    tmp=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
+    export destination_addr="$tmp"
+
+    tmp=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
+    export native_token_addr="$tmp"
+
+    tmp=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID() (uint32)')
+    export l1_rpc_network_id="$tmp"
+
+    tmp=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" 'networkID() (uint32)')
+    export l2_rpc_network_id="$tmp"
+
+    tmp=$(cast gas-price --rpc-url "$L2_RPC_URL")
+    export gas_price="$tmp"
+
+    export erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
+
+    tmp=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" 'WETHToken() (address)')
+    export weth_token_addr="$tmp"
+
+    tmp=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+    export receiver="$tmp"
 }
 
 _get_gas_token_address() {
