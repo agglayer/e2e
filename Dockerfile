@@ -1,7 +1,7 @@
 FROM golang:1.23-bookworm AS polycli-builder
 
 WORKDIR /opt/polygon-cli
-ARG POLYCLI_VERSION="v0.1.83"
+ARG POLYCLI_VERSION="v0.1.84"
 RUN apt-get update --yes \
   && git clone --branch ${POLYCLI_VERSION} https://github.com/maticnetwork/polygon-cli.git . \
   && make build

@@ -49,7 +49,7 @@ on:
         default: "cdk"
 
 env:
-  POLYCLI_VERSION: v0.1.83
+  POLYCLI_VERSION: v0.1.84
 
 jobs:
   test-multi-cdk-e2e:
