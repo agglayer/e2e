@@ -60,7 +60,7 @@ setup() {
     fi
 }
 
-@test "send 61,200 ERC20 transfers and confirm mined in 60 seconds" {
+@test "send 61,200 ERC20 transfers and confirm mined in 240 seconds" {
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
@@ -81,7 +81,7 @@ setup() {
     fi
 }
 
-@test "send 29,800 ERC721 mints and confirm mined in 60 seconds" {
+@test "send 29,800 ERC721 mints and confirm mined in 240 seconds" {
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
@@ -104,7 +104,7 @@ setup() {
 }
 
 # TODO this one is a little tricky because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful or we should pre deploy the contracts
-@test "send 17,200 Uniswapv3 swaps sent and mined in 150 seconds" {
+@test "send 17,200 Uniswapv3 swaps sent and mined in 300 seconds" {
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
