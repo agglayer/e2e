@@ -22,10 +22,9 @@ setup_file() {
     # Random wallet
     random_wallet=$(cast wallet new --json)
     random_address=$(echo "$random_wallet" | jq -r '.[0].address')
-    random_private_key=$(echo "$random_wallet" | jq -r '.[0].privateKey')
+    # random_private_key=$(echo "$random_wallet" | jq -r '.[0].privateKey')
 
     export random_address
-    export random_private_key
 }
 
 
