@@ -119,9 +119,12 @@ _generate_ephemeral_account() {
     # Generate a deterministic but unique private key based on test index
     # This ensures each test gets the same key on reruns but avoids file conflicts
     # This was chosen specifically instead of "cast wallet new" for deterministic address generation
-    local seed="ephemeral_test_${test_index}_$(date +%Y%m%d)"
-    local private_key="0x$(echo -n "$seed" | sha256sum | cut -d' ' -f1)"
-    local address=$(cast wallet address --private-key "$private_key")
+    local seed
+    seed="ephemeral_test_${test_index}_$(date +%Y%m%d)"
+    local private_key
+    private_key="0x$(echo -n "$seed" | sha256sum | cut -d' ' -f1)"
+    local address
+    address=$(cast wallet address --private-key "$private_key")
     
     echo "$private_key $address"
 }
@@ -141,11 +144,13 @@ _fund_ephemeral_account() {
         return 1
     fi
     
-    local funding_address=$(cast wallet address --private-key "$funding_private_key")
+    local funding_address
+    funding_address=$(cast wallet address --private-key "$funding_private_key")
     echo "DEBUG: Funding from address: $funding_address" >&2
     
     # Check balance of funding account
-    local balance=$(cast balance --rpc-url "$rpc_url" "$funding_address")
+    local balance
+    balance=$(cast balance --rpc-url "$rpc_url" "$funding_address")
     echo "DEBUG: Funding account balance: $balance" >&2
     
     if [[ "$balance" == "0" ]]; then
@@ -177,7 +182,8 @@ _setup_token_for_ephemeral_account() {
     
     case "$token_type" in
         "Buggy"|"LocalERC20")
-            local token_addr=$(_get_token_address "$token_type")
+            local token_addr
+            token_addr=$(_get_token_address "$token_type")
             echo "DEBUG: Token address for $token_type: $token_addr" >&2
             
             # For Max amount with LocalERC20, use a large but safe amount instead of max-uint
@@ -192,6 +198,7 @@ _setup_token_for_ephemeral_account() {
             
             # Mint tokens with timeout (no nonce management needed for sequential execution)
             local mint_output
+            # shellcheck disable=SC2154
             if mint_output=$(timeout 15s cast send --legacy --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
                 echo "DEBUG: Successfully minted $token_type tokens" >&2
@@ -204,13 +211,15 @@ _setup_token_for_ephemeral_account() {
             ;;
         "POL")
             echo "DEBUG: Transferring $amount POL to $target_address" >&2
+            # shellcheck disable=SC2154
             echo "DEBUG: POL address: $pol_address" >&2
             
             # For POL transfers with max amount, use a safe amount instead
             local transfer_amount="$amount"
             if [[ "$amount" == "$(cast max-uint)" ]]; then
                 # Check the available balance and use a reasonable portion
-                local pol_balance=$(cast call --rpc-url "$rpc_url" "$pol_address" 'balanceOf(address)(uint256)' "$(cast wallet address --private-key "$l1_private_key")")
+                local pol_balance
+                pol_balance=$(cast call --rpc-url "$rpc_url" "$pol_address" 'balanceOf(address)(uint256)' "$(cast wallet address --private-key "$l1_private_key")")
                 if [[ -n "$pol_balance" && "$pol_balance" != "0" ]]; then
                     # Use 90% of available balance to avoid transfer amount exceeds balance error
                     transfer_amount=$((pol_balance * 9 / 10))
@@ -260,7 +269,8 @@ _approve_token_for_ephemeral_account() {
         return 0
     fi
     
-    local token_addr=$(_get_token_address "$token_type")
+    local token_addr
+    token_addr=$(_get_token_address "$token_type")
     
     # Validate token address
     if [[ "$token_addr" == "0x0000000000000000000000000000000000000000" ]]; then
@@ -268,13 +278,15 @@ _approve_token_for_ephemeral_account() {
         return 0
     fi
     
-    local ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
+    local ephemeral_address
+    ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
     
     echo "DEBUG: Approving $amount of token $token_addr for bridge $bridge_addr" >&2
     echo "DEBUG: Approval from ephemeral address: $ephemeral_address" >&2
     
     # Check if ephemeral account has native tokens for gas
-    local ephemeral_balance=$(cast balance --rpc-url "$rpc_url" "$ephemeral_address")
+    local ephemeral_balance
+    ephemeral_balance=$(cast balance --rpc-url "$rpc_url" "$ephemeral_address")
     echo "DEBUG: Ephemeral account native balance: $ephemeral_balance" >&2
     
     if [[ "$ephemeral_balance" == "0" ]]; then
@@ -283,7 +295,8 @@ _approve_token_for_ephemeral_account() {
     fi
     
     # Check if token contract exists
-    local code_size=$(cast code --rpc-url "$rpc_url" "$token_addr" | wc -c)
+    local code_size
+    code_size=$(cast code --rpc-url "$rpc_url" "$token_addr" | wc -c)
     if [[ $code_size -le 2 ]]; then  # "0x" is 2 characters
         echo "DEBUG: Token contract $token_addr has no code, skipping approval" >&2
         return 0
@@ -351,6 +364,7 @@ _get_bridge_type_command() {
 _get_destination_address() {
     local dest_type="$1"
     local ephemeral_address="$2"
+    # shellcheck disable=SC2154
     case "$dest_type" in
         "BridgeContract") echo "$l1_bridge_addr" ;;
         "Precompile") echo "0x0000000000000000000000000000000000000004" ;;
@@ -361,6 +375,7 @@ _get_destination_address() {
 
 _get_token_address() {
     local token_type="$1"
+    # shellcheck disable=SC2154
     case "$token_type" in
         "POL") echo "$pol_address" ;;
         "LocalERC20") echo "$test_erc20_addr" ;;
@@ -441,7 +456,9 @@ _setup_amount_and_add_to_command() {
         "Max")
             if [[ "$token_type" == "Buggy" ]]; then
                 # Use ephemeral account to manipulate buggy token
-                local ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
+                local ephemeral_address
+                ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
+                # shellcheck disable=SC2154
                 cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$ephemeral_private_key" \
                     "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0 --quiet 2>/dev/null || true
                 echo "$command --value $(cast max-uint) --gas-limit 15000000"  # Reduced from 30M
@@ -474,14 +491,20 @@ _setup_single_test_account() {
     echo "DEBUG: Setting up account for test $test_index" >&2
     
     # Extract scenario parameters
-    local test_token=$(echo "$scenario" | jq -r '.Token')
-    local test_amount=$(echo "$scenario" | jq -r '.Amount')
-    local test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
+    local test_token
+    test_token=$(echo "$scenario" | jq -r '.Token')
+    local test_amount
+    test_amount=$(echo "$scenario" | jq -r '.Amount')
+    local test_meta_data
+    test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
     
     # Generate ephemeral account
-    local ephemeral_data=$(_generate_ephemeral_account "$test_index")
-    local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-    local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+    local ephemeral_data
+    ephemeral_data=$(_generate_ephemeral_account "$test_index")
+    local ephemeral_private_key
+    ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+    local ephemeral_address
+    ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     
     echo "DEBUG: Generated ephemeral account for test $test_index: $ephemeral_address" >&2
     
@@ -500,6 +523,7 @@ _setup_single_test_account() {
     
     # Fund ephemeral account with native tokens on L2 (if needed for claims later)
     echo "DEBUG: Funding L2 account for test $test_index" >&2
+    # shellcheck disable=SC2154
     if ! _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"; then
         echo "DEBUG: Failed to fund L2 account for test $test_index" >&2
         return 1
@@ -584,7 +608,8 @@ _validate_claim_error() {
         fi
     else
         # Handle single expected error
-        local expected_error=$(echo "$expected_result" | jq -r '.')
+        local expected_error
+        expected_error=$(echo "$expected_result" | jq -r '.')
         echo "DEBUG: Processing single expected result: $expected_error" >&2
         
         if [[ "$expected_error" == "Success" ]]; then
@@ -638,21 +663,32 @@ _run_single_bridge_test() {
     echo "DEBUG: Starting bridge test $test_index" >&2
     
     # Extract scenario parameters
-    local test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
-    local test_destination_address=$(echo "$scenario" | jq -r '.DestinationAddress')
-    local test_token=$(echo "$scenario" | jq -r '.Token')
-    local test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
-    local test_force_update=$(echo "$scenario" | jq -r '.ForceUpdate')
-    local test_amount=$(echo "$scenario" | jq -r '.Amount')
-    local expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
-    local expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
+    local test_bridge_type
+    test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
+    local test_destination_address
+    test_destination_address=$(echo "$scenario" | jq -r '.DestinationAddress')
+    local test_token
+    test_token=$(echo "$scenario" | jq -r '.Token')
+    local test_meta_data
+    test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
+    local test_force_update
+    test_force_update=$(echo "$scenario" | jq -r '.ForceUpdate')
+    local test_amount
+    test_amount=$(echo "$scenario" | jq -r '.Amount')
+    local expected_result_process
+    expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
+    local expected_result_claim
+    expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
     
     echo "DEBUG: Test $test_index - Token: $test_token, Amount: $test_amount, Metadata: $test_meta_data" >&2
     
     # Get ephemeral account (already set up)
-    local ephemeral_data=$(_generate_ephemeral_account "$test_index")
-    local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-    local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+    local ephemeral_data
+    ephemeral_data=$(_generate_ephemeral_account "$test_index")
+    local ephemeral_private_key
+    ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+    local ephemeral_address
+    ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     
     echo "DEBUG: Using ephemeral account for test $test_index: $ephemeral_address" >&2
     
@@ -685,18 +721,22 @@ _run_single_bridge_test() {
     
     # Build bridge command - FIX: Add missing polycli ulxly prefix
     local bridge_command="polycli ulxly bridge"
-    local bridge_type_cmd=$(_get_bridge_type_command "$test_bridge_type")
+    local bridge_type_cmd
+    bridge_type_cmd=$(_get_bridge_type_command "$test_bridge_type")
     bridge_command="$bridge_command $bridge_type_cmd"
     
+    # shellcheck disable=SC2154
     local fixed_flags="--rpc-url $l1_rpc_url --destination-network $l2_network_id"
     bridge_command="$bridge_command $fixed_flags"
 
     # Add destination address
-    local dest_addr=$(_get_destination_address "$test_destination_address" "$ephemeral_address")
+    local dest_addr
+    dest_addr=$(_get_destination_address "$test_destination_address" "$ephemeral_address")
     bridge_command="$bridge_command --destination-address $dest_addr"
 
     # Add token address
-    local token_addr=$(_get_token_address "$test_token")
+    local token_addr
+    token_addr=$(_get_token_address "$test_token")
     bridge_command="$bridge_command --token-address $token_addr"
 
     # Add metadata with test_index and token_type parameters
@@ -768,7 +808,8 @@ _run_single_bridge_test() {
             echo "DEBUG: Gas limit issue detected, removing gas limit to use automatic estimation" >&2
             
             # Remove the gas limit parameter entirely to let the system auto-estimate
-            local retry_command=$(echo "$bridge_command" | sed 's/--gas-limit [0-9]* //g')
+            local retry_command
+            retry_command=$(echo "$bridge_command" | sed 's/--gas-limit [0-9]* //g')
             echo "DEBUG: Retrying without gas limit (auto-estimation): $retry_command" >&2
             
             if bridge_output=$(timeout ${timeout_duration}s bash -c "$retry_command" 2>&1); then
@@ -811,6 +852,7 @@ _run_single_bridge_test() {
     
     local deposit_count=""
     if [[ $bridge_status -eq 0 ]]; then
+        echo "DEBUG: Bridge output: $bridge_output" >&2
         deposit_count=$(echo "$bridge_output" | awk '/depositCount=/ {gsub(/.*depositCount=/, ""); gsub(/\x1b\[[0-9;]*m/, ""); print}')
         echo "DEBUG: Extracted deposit count: $deposit_count" >&2
     fi
@@ -871,6 +913,7 @@ _run_single_bridge_test() {
                         ;;
                 esac
 
+                # shellcheck disable=SC2154
                 claim_command="$claim_command --destination-address $dest_addr --bridge-address $l2_bridge_addr --private-key $ephemeral_private_key --rpc-url $l2_rpc_url --deposit-count $deposit_count --deposit-network $l1_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
                 
                 # Execute claim command
@@ -937,11 +980,11 @@ _run_single_bridge_test() {
                     elif $claim_has_other_expected_errors && _validate_claim_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
                         echo "DEBUG: Claim failed with expected error pattern" >&2
-                    elif $claim_expects_success && !$claim_has_other_expected_errors; then
+                    elif $claim_expects_success && ! $claim_has_other_expected_errors; then
                         # Only expected success, but got failure
                         claim_result="FAIL"
                         error_message="Expected claim success but failed for deposit $deposit_count"
-                    elif !$claim_expects_success && $claim_has_other_expected_errors; then
+                    elif ! $claim_expects_success && $claim_has_other_expected_errors; then
                         # Expected specific errors but didn't match
                         claim_result="FAIL"
                         error_message="Expected claim errors $expected_result_claim not found in output"
@@ -962,11 +1005,11 @@ _run_single_bridge_test() {
         if $bridge_has_other_expected_errors && _validate_claim_error "$expected_result_process" "$bridge_output"; then
             bridge_result="PASS"
             echo "DEBUG: Bridge failed with expected error pattern" >&2
-        elif $bridge_expects_success && !$bridge_has_other_expected_errors; then
+        elif $bridge_expects_success && ! $bridge_has_other_expected_errors; then
             # Only expected success, but got failure
             bridge_result="FAIL"
             error_message="Expected bridge success but failed: $bridge_output"
-        elif !$bridge_expects_success && $bridge_has_other_expected_errors; then
+        elif ! $bridge_expects_success && $bridge_has_other_expected_errors; then
             # Expected specific errors but didn't match
             bridge_result="FAIL"
             error_message="Expected bridge errors $expected_result_process not found in output"
@@ -1016,14 +1059,21 @@ _collect_and_report_results() {
     # Process each test result
     for i in $(seq 0 $((total_scenarios - 1))); do
         local result_file="/tmp/test_result_${i}.txt"
-        local scenario=$(echo "$scenarios" | jq -c ".[$i]")
+        local scenario
+        # shellcheck disable=SC2154
+        scenario=$(echo "$scenarios" | jq -c ".[$i]")
         
         # Extract scenario details for detailed report
-        local test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
-        local test_token=$(echo "$scenario" | jq -r '.Token')
-        local test_amount=$(echo "$scenario" | jq -r '.Amount')
-        local test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
-        local expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
+        local test_bridge_type
+        test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
+        local test_token
+        test_token=$(echo "$scenario" | jq -r '.Token')
+        local test_amount
+        test_amount=$(echo "$scenario" | jq -r '.Amount')
+        local test_meta_data
+        test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
+        local expected_result_process
+        expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
         
         echo "Test $i:" >> "$detailed_results"
         echo "  Bridge Type: $test_bridge_type" >> "$detailed_results"
@@ -1033,7 +1083,8 @@ _collect_and_report_results() {
         echo "  Expected: $expected_result_process" >> "$detailed_results"
         
         if [[ -f "$result_file" ]]; then
-            local result_line=$(cat "$result_file")
+            local result_line
+            result_line=$(cat "$result_file")
             IFS='|' read -r test_id bridge_result claim_result error_msg <<< "$result_line"
             
             printf "%-8s %-8s %-8s %s\n" "$test_id" "$bridge_result" "$claim_result" "$error_msg" | tee -a "$summary_file"
