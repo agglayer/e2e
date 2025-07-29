@@ -95,7 +95,7 @@ setup() {
 }
 
 @test "Native token transfer L1 -> L2" {
-    destination_addr=$sender_addr
+    destination_addr=$receiver
     local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
     echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
 
