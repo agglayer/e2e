@@ -82,34 +82,40 @@ _load_helper_scripts() {
 # Fallback nodes are tried in order. If a required URL cannot be resolved, the function will fail.
 _resolve_required_urls() {
     # L1_RPC_URL
-    _resolve_url_or_use_env l1_rpc_url \
-        "el-1-geth-lighthouse rpc" \
-        "Failed to resolve L1 RPC URL" true
+    l1_rpc_url=$(_resolve_url_or_use_env L1_RPC_URL \
+        "el-1-geth-lighthouse" "rpc" \
+        "Failed to resolve L1 RPC URL" true)
+    export l1_rpc_url
 
     # L2_RPC_URL
-    _resolve_url_or_use_env L2_RPC_URL \
+    L2_RPC_URL=$(_resolve_url_or_use_env L2_RPC_URL \
         "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
-        "Failed to resolve L2 RPC URL" true
+        "Failed to resolve L2 RPC URL" true)
+    export L2_RPC_URL
 
     # L2_SEQUENCER_RPC_URL
-    _resolve_url_or_use_env L2_SEQUENCER_RPC_URL \
+    L2_SEQUENCER_RPC_URL=$(_resolve_url_or_use_env L2_SEQUENCER_RPC_URL \
         "op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc" \
-        "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true
+        "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true)
+    export L2_SEQUENCER_RPC_URL
 
     # AGGKIT_BRIDGE_URL
-    _resolve_url_or_use_env aggkit_bridge_url \
+    aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
         "aggkit-001" "rest" "cdk-node-001" "rest" \
-        "Failed to resolve aggkit bridge url from all fallback nodes" true
+        "Failed to resolve aggkit bridge url from all fallback nodes" true)
+    export aggkit_bridge_url
 
     # AGGKIT_RPC_URL
-    _resolve_url_or_use_env aggkit_rpc_url \
+    aggkit_rpc_url=$(_resolve_url_or_use_env AGGKIT_RPC_URL \
         "aggkit-001" "rpc" "cdk-node-001" "rpc" \
-        "Failed to resolve aggkit rpc url from all fallback nodes" true
+        "Failed to resolve aggkit rpc url from all fallback nodes" true)
+    export aggkit_rpc_url
 
-    #ZKEVM_BRIDGE_URL
-    _resolve_url_or_use_env zkevm_bridge_url \
+    # ZKEVM_BRIDGE_URL
+    zkevm_bridge_url=$(_resolve_url_or_use_env ZKEVM_BRIDGE_URL \
         "zkevm-bridge-service-001" "rpc" \
-        "Zk EVM Bridge service is not running" false
+        "Zk EVM Bridge service is not running" false)
+    export zkevm_bridge_url
 }
 
 # _resolve_url_from_nodes
@@ -167,7 +173,7 @@ _resolve_url_from_nodes() {
 # - Otherwise, resolve via fallback nodes using _resolve_url_from_nodes
 # - Sets and exports the result to a variable named <target_var_name>
 _resolve_url_or_use_env() {
-    local target_var_name="$1"
+    local env_var="$1"
     shift
 
     local -a args=("$@")
@@ -176,20 +182,17 @@ _resolve_url_or_use_env() {
     local required="${args[num_args-1]}"
     local -a nodes=("${args[@]:0:$num_args-2}")
 
-    # Get value of env var if it exists
-    local env_val="${!target_var_name:-}"
+    local env_val="${!env_var:-}"
 
     if [[ -n "$env_val" ]]; then
-        printf -v "$target_var_name" '%s' "$env_val"
-        echo "$target_var_name: ${!target_var_name} (from environment)" >&3
+        echo "$env_val"
+        echo "$env_var: $env_val (from environment)" >&3
     else
         local resolved
         resolved=$(_resolve_url_from_nodes "${nodes[@]}" "$error_msg" "$required" | tail -1)
-        printf -v "$target_var_name" '%s' "$resolved"
-        echo "$target_var_name: ${!target_var_name}" >&3
+        echo "$resolved"
+        echo "$env_var: $resolved" >&3
     fi
-
-    declare -gx "$target_var_name=${!target_var_name}"
 }
 
 # Generates a fresh test wallet using `cast wallet new`, exports the PRIVATE_KEY and PUBLIC_ADDRESS, 
