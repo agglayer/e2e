@@ -379,6 +379,7 @@ function get_bridge() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
+    local from_address="${6:-}"
 
     local attempt=0
     local bridges_result=""
@@ -387,8 +388,14 @@ function get_bridge() {
         ((attempt++))
         log "🔎 Attempt $attempt/$max_attempts: fetching bridge, params: network_id = $network_id, tx_hash = $expected_tx_hash, aggkit_url = $aggkit_url"
 
+        # Build the query URL with optional from_address parameter
+        local query_url="$aggkit_url/bridge/v1/bridges?network_id=$network_id"
+        if [[ -n "$from_address" ]]; then
+            query_url="$query_url&from_address=$from_address"
+        fi
+
         # Capture both stdout (bridge result) and stderr (error message)
-        bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
+        bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "------ bridges_result ------"
         log "$bridges_result"
         log "------ bridges_result ------"

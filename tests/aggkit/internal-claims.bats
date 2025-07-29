@@ -60,7 +60,7 @@ extract_claim_parameters_json() {
     local asset_number="$2"
 
     log "📋 Getting ${asset_number} bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local bridge_response="$output"
     log "📝 ${asset_number} bridge response: $bridge_response"
