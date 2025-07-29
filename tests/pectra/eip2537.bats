@@ -12,7 +12,17 @@ setup() {
 
 setup_file() {
     export kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"pectra"}
-    export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+
+    if [[ -n "$L2_RPC_URL" ]]; then
+        export l2_rpc_url="$L2_RPC_URL"
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
+        export l2_rpc_url
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
+        export l2_rpc_url
+    else
+        echo "❌ Failed to determine L2 RPC URL. Please set L2_RPC_URL" >&2
+        exit 1
+    fi
 
     test_vectors_dir="./eip2537_test_vectors"
 

@@ -12,7 +12,16 @@ setup() {
 
 setup_file() {
     export kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"pectra"}
-    export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    if [[ -n "$L2_RPC_URL" ]]; then
+        export l2_rpc_url="$L2_RPC_URL"
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
+        export l2_rpc_url
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
+        export l2_rpc_url
+    else
+        echo "❌ Failed to determine L2 RPC URL. Please set L2_RPC_URL" >&2
+        exit 1
+    fi
     export l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
 
     # Specific for tx cost calculation

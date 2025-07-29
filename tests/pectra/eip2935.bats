@@ -12,7 +12,16 @@ setup() {
 
 setup_file() {
     export kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"pectra"}
-    export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    if [[ -n "$L2_RPC_URL" ]]; then
+        export l2_rpc_url="$L2_RPC_URL"
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
+        export l2_rpc_url
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
+        export l2_rpc_url
+    else
+        echo "❌ Failed to determine L2 RPC URL. Please set L2_RPC_URL" >&2
+        exit 1
+    fi
 
     export HISTORY_STORAGE_ADDRESS="0x0000F90827F1C53a10cb7A02335B175320002935"
     export HISTORY_SERVE_WINDOW=8191
@@ -23,6 +32,11 @@ setup_file() {
 
 function eip2935_check_block() {
     block_number=$1
+    if (( block_number < 0 )); then
+        echo "❌ Block number cannot be negative: $block_number"
+        false
+    fi
+
     padded_block=$(printf "%064x" "$block_number")
 
     echo "🔍 Running EIP-2935 check block for block number $block_number"
@@ -56,6 +70,11 @@ function eip2935_check_block() {
 
 function eip2935_check_block_fail() {
     block_number=$1
+    if (( block_number < 0 )); then
+        echo "❌ Block number cannot be negative: $block_number"
+        false
+    fi
+
     padded_block=$(printf "%064x" "$block_number")
 
     echo "🔍 Running EIP-2935 check block for block number $block_number (expected to fail)"
@@ -75,10 +94,18 @@ function eip2935_check_block_fail() {
 @test "EIP-2935: Random historical block hashes from state" {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
+    if (( oldest_block < 0 )); then
+        oldest_block=0
+    fi
+
+    range=$((current_block - oldest_block))
+    if (( range > HISTORY_SERVE_WINDOW )); then
+        range=HISTORY_SERVE_WINDOW
+    fi
 
     for _ in $(seq 1 "$num_random_blocks_to_check"); do
         # pick random offset within window
-        offset=$((RANDOM % HISTORY_SERVE_WINDOW))
+        offset=$((RANDOM % range))
         block_to_check=$((oldest_block + offset))
 
         eip2935_check_block "$block_to_check"
@@ -91,16 +118,30 @@ function eip2935_check_block_fail() {
 
     # Adding one to avoid race condition with the current block number
     block_to_check=$((current_block - HISTORY_SERVE_WINDOW + 1))
+    if (( block_to_check < 0 )); then
+        block_to_check=0
+    fi
     eip2935_check_block "$block_to_check"
 }
 
 @test "EIP-2935: Checking blocks outside historical serve window" {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
+    # not enough time has passed to have a block outside the window, let's fail the test
+    if (( oldest_block < 0 )); then
+        echo "❌ Not enough blocks produced to test outside the historical serve window (current block: $current_block, serve_window: $HISTORY_SERVE_WINDOW)"
+        true
+        return
+    fi
+
+    range=oldest_block
+    if (( range > HISTORY_SERVE_WINDOW )); then
+        range=HISTORY_SERVE_WINDOW
+    fi
 
     for _ in $(seq 1 "$num_random_blocks_to_check_fail"); do
         # pick random offset within window
-        offset=$((RANDOM % HISTORY_SERVE_WINDOW))
+        offset=$((RANDOM % range))
         block_to_check=$((oldest_block - offset))
 
         eip2935_check_block_fail "$block_to_check"
