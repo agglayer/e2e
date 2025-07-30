@@ -179,12 +179,18 @@ jobs:
           path: /tmp/bridge_test_results_*
           retention-days: 1
 
+      - name: Extract and sanitize filename
+        id: extract
+        run: |
+          base_filename=$(basename ${{ matrix.testfile }} .bats)
+          echo "filename=$base_filename" >> $GITHUB_OUTPUT
+
       - name: Post kurtosis run
         if: always()
         uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
-          args_filename: ${{ matrix.testfile }}
+          args_filename: ${{ steps.extract.outputs.filename }}-artifacts
 
   run-monitored-chaos-stress-tests:
     runs-on: ubuntu-latest
