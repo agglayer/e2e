@@ -190,7 +190,7 @@ jobs:
   run-monitored-chaos-stress-tests:
     runs-on: ubuntu-latest
     # if: ${{ inputs.enable-monitored-chaos-stress-tests }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       POLYCLI_VERSION: v0.1.84
       # AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
