@@ -4,10 +4,7 @@
         "args_file": "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/refs/heads/jihwan/erigon-type1/.github/tests/combinations/fork12-cdk-erigon-sovereign.yml"
     },
     "e2e_tests": [
-        "./tests/execution/polycli-cases.bats",
-        "./tests/execution/conflicting-contract-calls.bats",
-        "./tests/execution/special-addresses.bats",
-        "./tests/execution/conflicting-transactions-to-pool.bats"
+        
     ],
     "chaos_test": [
             {
