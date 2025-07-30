@@ -701,29 +701,29 @@ function process_bridge_claim() {
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
     run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local bridge="$output"
 
     # Find the L1 info tree index for the given deposit count.
     local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$origin_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local l1_info_tree_index="$output"
 
     # Retrieve the injected L1 info leaf using the L1 info tree index.
     run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$destination_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local injected_info="$output"
 
     # Generate the claim proof based on the network ID, deposit count, and L1 info tree index.
     local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
     run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local proof="$output"
 
     # Submit the claim using the generated proof and bridge details.
     run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
-    assert_success
+    assert_success || return 1
     local global_index="$output"
 
     echo "$global_index"
