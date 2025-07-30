@@ -4,3 +4,6 @@ compiled-contracts
 test-txs.ndjson
 cdk-databases/
 .DS_Store
+stress_logs_*
+chaos_logs_*
+*.out

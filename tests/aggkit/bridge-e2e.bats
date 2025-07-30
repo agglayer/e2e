@@ -68,10 +68,34 @@ setup() {
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
     assert_success
+
+    # -----------------------------------------------------------------------------
+    # Attempt a second “claim” on L2 — this should fail because it’s already been claimed
+    # -----------------------------------------------------------------------------
+    echo "==== 🔐 Claiming deposit on L2 again (${L2_RPC_URL}) — expected to fail (already claimed)" >&3
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    log "💡 duplicate process_bridge_claim returns $output"
+    assert_success
+
+    # verify balance did not changed on L2
+    ether_amount=$(echo "$tokens_amount" | sed 's/ether//')
+    local receiver_balance_after_claim_wei=$(cast --to-wei "$ether_amount")
+    run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" "$receiver_balance_after_claim_wei" "0ether"
+    assert_success
+
+    # check that the sender’s ERC-20 balance on L1 remains unchanged
+    run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
+    assert_success
+    local l1_erc20_token_sender_balance_after_duplicate_claim=$(echo "$output" |
+        tail -n 1 |
+        awk '{print $1}')
+    echo "Sender balance ($sender_addr) (ERC20 token L1) after duplicate claim: $l1_erc20_token_sender_balance_after_duplicate_claim [weis]" >&3
+    # Assert it stayed at zero (because it was already claimed)
+    assert_equal "$l1_erc20_token_sender_balance_after_duplicate_claim" 0
 }
 
 @test "Native token transfer L1 -> L2" {
-    destination_addr=$sender_addr
+    destination_addr=$receiver
     local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
     echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
 
@@ -83,6 +107,32 @@ setup() {
 
     # Claim deposit (settle it on the L2)
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    assert_success
+
+    sender_balance_after_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
+    log "Sender balance of native token on L1 after claim "$sender_balance_after_claim" eth" >&3
+
+    # verify receiver balance changed on L2
+    local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
+    echo "Final receiver balance of native token on L2 "$final_receiver_balance" eth" >&3
+    initial_receiver_balance_wei=$(cast --to-wei "$initial_receiver_balance")
+    run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance_wei" "$ether_value"
+    assert_success
+
+    # Attempt a second claim on L2 — this should fail because it’s already been claimed
+    echo "==== 🔐 Claiming deposit on L2 again (${L2_RPC_URL}) — expected to fail (already claimed)" >&3
+    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    log "💡 duplicate process_bridge_claim returns $output"
+    assert_success
+
+    # verify balance did not changed on L1 after duplicate claim
+    sender_balance_after_duplicate_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
+    log "Sender balance of native token on L1 after duplicate claim "$sender_balance_after_duplicate_claim" eth" >&3
+    assert_equal "$sender_balance_after_claim" "$sender_balance_after_duplicate_claim"
+
+    # verify balance did not changed on L2 after duplicate claim
+    final_receiver_balance_wei=$(cast --to-wei "$final_receiver_balance")
+    run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$final_receiver_balance_wei" "0ether"
     assert_success
 
     echo "=== Running L2 gas token ($native_token_addr) deposit to L1 network" >&3
