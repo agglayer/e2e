@@ -181,7 +181,7 @@ jobs:
 
       - name: Post kurtosis run
         if: always()
-        uses: ./.github/actions/kurtosis-post-run
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
           args_filename: ${{ matrix.testfile }}
@@ -315,7 +315,7 @@ jobs:
 
       - name: Post kurtosis run
         if: always()
-        uses: ./.github/actions/kurtosis-post-run
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
           args_filename: monitored-chaos-stress-tests
