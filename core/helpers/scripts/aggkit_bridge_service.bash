@@ -22,7 +22,7 @@ function bridge_asset() {
 
     # shellcheck disable=SC2154
     log "🚀 Bridge asset $amount wei → $destination_addr [network: $destination_net]"
-    
+
     # shellcheck disable=SC2154
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run bridge asset (showing calldata only)"
@@ -617,7 +617,7 @@ function process_bridge_claim() {
     local destination_rpc_url="$7"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 10 "$origin_aggkit_bridge_url"
     assert_success || return 1
     # shellcheck disable=SC2154
     local bridge="$output"
