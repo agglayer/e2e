@@ -1,3 +1,8 @@
+# Make sure to configure the agglayer/e2e Github Secrets before running this test
+# L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
+# L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
+# L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
+# L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
 name: Standard Battery Tests - RPC
 
 on:
@@ -8,26 +13,26 @@ on:
         default: "main"
         required: true
         type: string
-      l1-rpc-endpoint:
-        description: "valid l1 rpc endpoint to run the tests on"
-        default: "https://<l1-rpc-endpoint>"
-        required: true
-        type: string
-      l2-rpc-endpoint:
-        description: "valid l2 rpc endpoint to run the tests on"
-        default: "https://<l2-rpc-endpoint>"
-        required: true
-        type: string
-      l1-funded-private-key:
-        description: "private key with sufficient L1 funds"
-        default: "0x<l1-funded-private-key>"
-        required: true
-        type: string
-      l2-funded-private-key:
-        description: "private key with sufficient L2 funds"
-        default: "0x<l2-funded-private-key>"
-        required: true
-        type: string
+      # l1-rpc-endpoint:
+      #   description: "valid l1 rpc endpoint to run the tests on"
+      #   default: "https://<l1-rpc-endpoint>"
+      #   required: true
+      #   type: string
+      # l2-rpc-endpoint:
+      #   description: "valid l2 rpc endpoint to run the tests on"
+      #   default: "https://<l2-rpc-endpoint>"
+      #   required: true
+      #   type: string
+      # l1-funded-private-key:
+      #   description: "private key with sufficient L1 funds"
+      #   default: "0x<l1-funded-private-key>"
+      #   required: true
+      #   type: string
+      # l2-funded-private-key:
+      #   description: "private key with sufficient L2 funds"
+      #   default: "0x<l2-funded-private-key>"
+      #   required: true
+      #   type: string
 
   # pull_request:
   #   branches:
@@ -78,10 +83,10 @@ jobs:
     env:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
-      L1_RPC_ENDPOINT: ${{ inputs.l1-rpc-endpoint }}
-      L2_RPC_ENDPOINT: ${{ inputs.l2-rpc-endpoint }}
-      L1_FUNDED_PRIVATE_KEY: ${{ inputs.l1-funded-private-key }}
-      L2_FUNDED_PRIVATE_KEY: ${{ inputs.l2-funded-private-key }}
+      L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
+      L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
+      L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
       # L1_RPC_ENDPOINT: ""
       # L2_RPC_ENDPOINT: ""
