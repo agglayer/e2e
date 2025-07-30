@@ -31,11 +31,6 @@ on:
         default: false
         required: true
         type: boolean
-      funded-private-key:
-        description: "private key with sufficient L1 and L2 funds"
-        default: "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
-        required: true
-        type: string
 
   pull_request:
     branches:
@@ -89,12 +84,10 @@ jobs:
       # KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
       # KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
       # DEFAULT_L2_CLIENT: ${{ inputs.stack }}
-      # FUNDED_PRIVATE_KEY: ${{ inputs.funded-private-key }}
       AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
       KURTOSIS_CDK_REF: main
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
-      FUNDED_PRIVATE_KEY: "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
     steps:
       - name: Debug environment variables
         run: |
@@ -174,7 +167,6 @@ jobs:
           fi
           
           export ENCLAVE_NAME="${{ env.KURTOSIS_ENCLAVE_NAME }}"
-          export L2_PRIVATE_KEY="${{ env.FUNDED_PRIVATE_KEY }}"
 
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
@@ -187,6 +179,13 @@ jobs:
           path: /tmp/bridge_test_results_*
           retention-days: 1
 
+      - name: Post kurtosis run
+        if: always()
+        uses: ./.github/actions/kurtosis-post-run
+        with:
+          enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
+          args_filename: ${{ matrix.testfile }}
+
   run-monitored-chaos-stress-tests:
     runs-on: ubuntu-latest
     # if: ${{ inputs.enable-monitored-chaos-stress-tests }}
@@ -197,13 +196,11 @@ jobs:
       # KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
       # KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
       # DEFAULT_L2_CLIENT: ${{ inputs.stack }}
-      # FUNDED_PRIVATE_KEY: ${{ inputs.funded-private-key }}
       # ENABLE_MONITORED_CHAOS_STRESS_TESTS: ${{ inputs.enable-monitored-chaos-stress-tests }}
       AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
       KURTOSIS_CDK_REF: main
       KURTOSIS_ENCLAVE_NAME: cdk
       DEFAULT_L2_CLIENT: cdk-op-geth
-      FUNDED_PRIVATE_KEY: "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
       ENABLE_MONITORED_CHAOS_STRESS_TESTS: true
     steps:
       - name: Debug environment variables
@@ -315,3 +312,10 @@ jobs:
           name: monitored_test_artifacts
           path: agglayer-e2e/scenarios/monitored-tests/post-state
           retention-days: 1
+
+      - name: Post kurtosis run
+        if: always()
+        uses: ./.github/actions/kurtosis-post-run
+        with:
+          enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
+          args_filename: monitored-chaos-stress-tests
