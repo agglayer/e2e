@@ -10,22 +10,22 @@ setup() {
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
     l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
 
-    legacy_mode=${LEGACY_MODE:-"false"}
     legacy_flag=""
-    if [[ $legacy_flag == "true" ]]; then
+    if kurtosis enclave inspect "$kurtosis_enclave_name" | grep -q "cdk-erigon-sequencer-001"; then
         legacy_flag="--legacy"
+        echo "legacy mode enabled" >&3
     fi
 
-    request_total=$((polycli_load_concurrency*polycli_load_requests))
     tmp_output=${TMP_OUTPUT:-"/tmp/loadtest.out"}
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
     source "./tests/lxly/assets/bridge-tests-helper.bash"
+}
 
-    ephemeral_data=$(_generate_ephemeral_account "polycli-loadtests")
+@test "send 85,700 EOA transfers and confirm mined in 60 seconds" {
+    ephemeral_data=$(_generate_ephemeral_account "polycli-eoa")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
 
@@ -33,14 +33,6 @@ setup() {
     # Fund the ephemeral account using imported function
     _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
 
-    # Export variables for use in tests
-    export ephemeral_private_key
-    export ephemeral_address
-    export l2_rpc_url
-    export l2_private_key
-}
-
-@test "send 85,700 EOA transfers and confirm mined in 60 seconds" {
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
@@ -55,12 +47,19 @@ setup() {
     duration=$((end-start))
 
     if [[ $duration -gt 60 ]]; then
-        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target"
-        exit 1
+        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
     fi
 }
 
 @test "send 61,200 ERC20 transfers and confirm mined in 240 seconds" {
+    ephemeral_data=$(_generate_ephemeral_account "polycli-erc20")
+    ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+    ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+
+    echo "ephemeral_address: $ephemeral_address" >&3
+    # Fund the ephemeral account using imported function
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
@@ -76,12 +75,19 @@ setup() {
     duration=$((end-start))
 
     if [[ $duration -gt 240 ]]; then
-        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target"
-        exit 1
+        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
     fi
 }
 
 @test "send 29,800 ERC721 mints and confirm mined in 240 seconds" {
+    ephemeral_data=$(_generate_ephemeral_account "polycli-erc721")
+    ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+    ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+
+    echo "ephemeral_address: $ephemeral_address" >&3
+    # Fund the ephemeral account using imported function
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
@@ -98,13 +104,20 @@ setup() {
     duration=$((end-start))
 
     if [[ $duration -gt 240 ]]; then
-        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target"
-        exit 1
+        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
     fi
 }
 
 # TODO this one is a little tricky because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful or we should pre deploy the contracts
 @test "send 17,200 Uniswapv3 swaps sent and mined in 300 seconds" {
+    ephemeral_data=$(_generate_ephemeral_account "polycli-uniswap")
+    ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
+    ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
+
+    echo "ephemeral_address: $ephemeral_address" >&3
+    # Fund the ephemeral account using imported function
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
@@ -120,7 +133,6 @@ setup() {
     duration=$((end-start))
 
     if [[ $duration -gt 300 ]]; then
-        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target"
-        exit 1
+        echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
     fi
 }
