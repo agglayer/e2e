@@ -48,6 +48,7 @@ setup() {
 
     if [[ $duration -gt 60 ]]; then
         echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
+        cat $tmp_output >&3
     fi
 }
 
@@ -76,6 +77,7 @@ setup() {
 
     if [[ $duration -gt 240 ]]; then
         echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
+        cat $tmp_output >&3
     fi
 }
 
@@ -105,6 +107,7 @@ setup() {
 
     if [[ $duration -gt 240 ]]; then
         echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
+        cat $tmp_output >&3
     fi
 }
 
@@ -134,5 +137,6 @@ setup() {
 
     if [[ $duration -gt 300 ]]; then
         echo "The test ended up taking $duration seconds to complete. This is below the expected performance target" >&3
+        cat $tmp_output >&3
     fi
 }
