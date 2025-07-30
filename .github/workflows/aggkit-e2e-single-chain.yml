@@ -126,7 +126,7 @@ jobs:
           set -eo pipefail
           pushd agglayer-e2e || exit 1
           set -a
-          source ./tests/aggkit/.env
+          source ./tests/.env
           set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
