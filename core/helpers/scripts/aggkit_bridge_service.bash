@@ -9,6 +9,7 @@ function bridge_asset() {
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
         local eth_balance
+        # shellcheck disable=SC2154
         eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
         log "💰 $sender_addr ETH Balance: $eth_balance wei"
     else
@@ -19,19 +20,24 @@ function bridge_asset() {
         log "💎 $sender_addr Token Balance: $token_balance units [$token_addr]"
     fi
 
+    # shellcheck disable=SC2154
     log "🚀 Bridge asset $amount wei → $destination_addr [network: $destination_net]"
-
+    
+    # shellcheck disable=SC2154
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run bridge asset (showing calldata only)"
+        # shellcheck disable=SC2154
         cast calldata "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes"
     else
         local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
+            # shellcheck disable=SC2154
             response=$(cast send --legacy --private-key "$sender_private_key" \
                 --value "$amount" \
                 --rpc-url "$rpc_url" "$bridge_addr" \
                 "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         else
+            # shellcheck disable=SC2154
             response=$(cast send --legacy --private-key "$sender_private_key" \
                 --rpc-url "$rpc_url" "$bridge_addr" \
                 "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
@@ -145,6 +151,7 @@ function claim_bridge() {
         log "🔍 Global index: $global_index"
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
+        # shellcheck disable=SC2154
         local request_result="$status"
         log "💡 claim_call returns $request_result"
         if [ "$request_result" -eq 0 ]; then
@@ -223,6 +230,7 @@ function claim_call() {
         cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata
     else
         local comp_gas_price
+        # shellcheck disable=SC2154
         comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
         if [[ $? -ne 0 ]]; then
             log "❌ Failed to calculate gas price" >&3
@@ -611,6 +619,7 @@ function process_bridge_claim() {
     # Fetch bridge details using the transaction hash and extract the deposit count.
     run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
     assert_success || return 1
+    # shellcheck disable=SC2154
     local bridge="$output"
 
     # Find the L1 info tree index for the given deposit count.
