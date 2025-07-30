@@ -1,15 +1,15 @@
-name: Standard Battery Tests
+name: Standard Battery Tests - Kurtosis
 
 on:
   workflow_dispatch:
     inputs:
       agglayer-e2e-ref:
-        description: "agglayer/e2e repo ref (commit hash)"
+        description: "agglayer/e2e repo ref (branch, tag, or commit)"
         default: "main"
         required: true
         type: string
       kurtosis-cdk-ref:
-        description: "kurtosis-cdk repo ref (commit hash)"
+        description: "kurtosis-cdk repo ref (branch, tag, or commit)"
         default: "main"
         required: true
         type: string
