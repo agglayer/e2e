@@ -18,7 +18,7 @@ start_time=$(date +%s)
 end_time=$((start_time + timeout))
 
 rpc_url="$L2_RPC_URL"
-private_key="$L2_SENDER_PRIVATE_KEY"
+private_key="$L2_PRIVATE_KEY"
 
 while true; do
   verified_batches="$(cast to-dec "$(cast rpc --rpc-url "$rpc_url" zkevm_verifiedBatchNumber | sed 's/"//g')")"
