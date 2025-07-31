@@ -32,9 +32,9 @@ on:
         required: true
         type: boolean
 
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 permissions:
   contents: read
@@ -44,8 +44,8 @@ jobs:
   discover-standard-tests:
     runs-on: ubuntu-latest
     env:
-      # AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
-      AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+      # AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
     outputs:
       testfiles: ${{ steps.set-matrix.outputs.testfiles }}
     steps:
@@ -80,14 +80,14 @@ jobs:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
       POLYCLI_VERSION: v0.1.84
-      # AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
-      # KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
-      # KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
-      # DEFAULT_L2_CLIENT: ${{ inputs.stack }}
-      AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
-      KURTOSIS_CDK_REF: main
-      KURTOSIS_ENCLAVE_NAME: cdk
-      DEFAULT_L2_CLIENT: cdk-op-geth
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
+      KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
+      DEFAULT_L2_CLIENT: ${{ inputs.stack }}
+      # AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
+      # KURTOSIS_CDK_REF: main
+      # KURTOSIS_ENCLAVE_NAME: cdk
+      # DEFAULT_L2_CLIENT: cdk-op-geth
     steps:
       - name: Debug environment variables
         run: |
@@ -175,7 +175,7 @@ jobs:
         if: always() && contains(matrix.testfile, 'bridge-tests-suite.bats')
         uses: actions/upload-artifact@v4
         with:
-          name: bridge_test_artifacts
+          name: bridge_tests_suite_output_artifacts
           path: /tmp/bridge_test_results_*
           retention-days: 1
 
@@ -191,6 +191,7 @@ jobs:
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
           args_filename: ${{ steps.extract.outputs.filename }}-artifacts
+          retention-days: 1
 
   run-monitored-chaos-stress-tests:
     runs-on: ubuntu-latest
@@ -198,16 +199,16 @@ jobs:
     timeout-minutes: 60
     env:
       POLYCLI_VERSION: v0.1.84
-      # AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
-      # KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
-      # KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
-      # DEFAULT_L2_CLIENT: ${{ inputs.stack }}
-      # ENABLE_MONITORED_CHAOS_STRESS_TESTS: ${{ inputs.enable-monitored-chaos-stress-tests }}
-      AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
-      KURTOSIS_CDK_REF: main
-      KURTOSIS_ENCLAVE_NAME: cdk
-      DEFAULT_L2_CLIENT: cdk-op-geth
-      ENABLE_MONITORED_CHAOS_STRESS_TESTS: true
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref }}
+      KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
+      DEFAULT_L2_CLIENT: ${{ inputs.stack }}
+      ENABLE_MONITORED_CHAOS_STRESS_TESTS: ${{ inputs.enable-monitored-chaos-stress-tests }}
+      # AGGLAYER_E2E_REF: jihwan/battery-tests-rpc
+      # KURTOSIS_CDK_REF: main
+      # KURTOSIS_ENCLAVE_NAME: cdk
+      # DEFAULT_L2_CLIENT: cdk-op-geth
+      # ENABLE_MONITORED_CHAOS_STRESS_TESTS: true
     steps:
       - name: Debug environment variables
         run: |
@@ -324,4 +325,4 @@ jobs:
         uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
-          args_filename: monitored-chaos-stress-tests
+          args_filename: monitored-chaos-stress-tests-artifacts
