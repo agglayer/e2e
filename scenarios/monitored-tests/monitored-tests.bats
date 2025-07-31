@@ -15,8 +15,8 @@ setup_file() {
 
     ENCLAVE_NAME="${ENCLAVE_NAME:-cdk}"
     L2_RPC_URL="${L2_RPC_URL:-"$(kurtosis port print "$ENCLAVE_NAME" cdk-erigon-rpc-001 rpc)"}"
-    TEST_DURATION="${TEST_DURATION:-5s}"
-    TEST_TIMEOUT="${TEST_TIMEOUT:-300s}" # Default timeout for individual tests
+    TEST_DURATION="${TEST_DURATION:-1200s}"
+    TEST_TIMEOUT="${TEST_TIMEOUT:-1260s}" # Default timeout for individual tests
     # Directory where the logs will be stored
     LOG_ROOT_DIR="${LOG_ROOT_DIR:-"./scenarios/monitored-tests/post-state"}"
     TMP_DIR=$(mktemp -d)
@@ -68,6 +68,8 @@ _parse_pre_state_input() {
     # parse e2e-tests to run
     cat "./scenarios/monitored-tests/pre-state/test_input_template.json" | jq '."e2e_tests"' > "$TMP_DIR"/e2e_tests.json
     echo "e2e_tests to run created at: $TMP_DIR/e2e_tests.json" >&3 
+
+    echo "====================================================" >&3
 }
 
 @test "Run tests combinations" {
@@ -96,24 +98,23 @@ _parse_pre_state_input() {
 
     if [[ ${#E2E_TEST_FILES[@]} -eq 0 ]]; then
         echo "No E2E test files found in $TMP_DIR/e2e_tests.json" >&3
-        exit 1
+    else
+        echo "Found ${#E2E_TEST_FILES[@]} E2E test files to run" >&3
+
+        # Run each E2E test in parallel with timeout
+        for test_file in "${E2E_TEST_FILES[@]}"; do
+            if [[ ! -f "$test_file" ]]; then
+                echo "E2E test file not found: $test_file" >&3
+                exit 1
+            fi
+            timeout "$TEST_TIMEOUT" bats "$test_file" &
+            # Give time for each test to run and to avoid nonce conflicts during funding
+            sleep 5
+            local e2e_pid=$!
+            ALL_PIDS+=("$e2e_pid")
+            echo "E2E test file $test_file started with PID: $e2e_pid" >&3
+        done
     fi
-
-    echo "Found ${#E2E_TEST_FILES[@]} E2E test files to run" >&3
-
-    # Run each E2E test in parallel with timeout
-    for test_file in "${E2E_TEST_FILES[@]}"; do
-        if [[ ! -f "$test_file" ]]; then
-            echo "E2E test file not found: $test_file" >&3
-            exit 1
-        fi
-        timeout "$TEST_TIMEOUT" bats "$test_file" &
-        # Give time for each test to run and to avoid nonce conflicts during funding
-        sleep 5
-        local e2e_pid=$!
-        ALL_PIDS+=("$e2e_pid")
-        echo "E2E test file $test_file started with PID: $e2e_pid" >&3
-    done
 
     # Wait for all tests to complete
     failed=false

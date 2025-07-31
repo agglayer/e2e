@@ -217,7 +217,7 @@ EOF
     local test_type="memory_stress"
     
     for container_id in "${CONTAINER_IDS[@]}"; do
-        local stress_command="stress-ng --vm 2 --vm-bytes 128M -t $DURATION"
+        local stress_command="stress-ng --vm 4 --vm-bytes 1024M -t $DURATION"
         
         _run_stress_with_logging "$container_id" "$test_type" "$stress_command"
         local stress_status=$?
