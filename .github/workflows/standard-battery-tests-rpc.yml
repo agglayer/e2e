@@ -95,7 +95,7 @@ jobs:
     steps:
       - name: Debug environment variables
         run: |
-          env | grep -E 'AGGLAYER_E2E_REF|L1_RPC_ENDPOINT|L2_RPC_ENDPOINT'
+          env | grep -E 'AGGLAYER_E2E_REF'
 
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
@@ -136,8 +136,8 @@ jobs:
 
       - name: Validate RPC Endpoint
         run: |
-          cast chain-id --rpc-url ${{ env.L1_RPC_ENDPOINT }}
-          cast chain-id --rpc-url ${{ env.L2_RPC_ENDPOINT }}
+          cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
+          cast chain-id --rpc-url ${{ secrets.L2_RPC_ENDPOINT }}
 
       - name: Validate test file existence
         run: |
@@ -151,11 +151,11 @@ jobs:
         run: |
           pushd agglayer-e2e || exit 1
 
-          export L1_RPC_URL="${{ env.L1_RPC_ENDPOINT }}"
-          export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
+          export L1_RPC_URL="${{ secrets.L1_RPC_ENDPOINT }}"
+          export L1_PRIVATE_KEY="${{ secrets.L1_FUNDED_PRIVATE_KEY }}"
 
-          export L2_RPC_URL="${{ env.L2_RPC_ENDPOINT }}"
-          export L2_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          export L2_RPC_URL="${{ secrets.L2_RPC_ENDPOINT }}"
+          export L2_PRIVATE_KEY="${{ secrets.L2_FUNDED_PRIVATE_KEY }}"
 
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
@@ -164,6 +164,6 @@ jobs:
         if: always() && contains(matrix.testfile, 'bridge-tests-suite.bats')
         uses: actions/upload-artifact@v4
         with:
-          name: bridge_test_artifacts
+          name: bridge_tests_suite_output_artifacts
           path: /tmp/bridge_test_results_*
           retention-days: 1
