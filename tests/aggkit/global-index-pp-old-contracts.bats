@@ -42,7 +42,7 @@ check_certificate_height() {
     assert_success
     local bridge_tx_hash=$output
 
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local bridge="$output"
 
@@ -76,7 +76,7 @@ check_certificate_height() {
     assert_success
     local bridge_tx_hash=$output
 
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local bridge="$output"
 
@@ -114,7 +114,7 @@ check_certificate_height() {
     assert_success
     local bridge_tx_hash=$output
 
-    run get_bridge "$l2_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url"
+    run get_bridge "$l2_rpc_network_id" "$bridge_tx_hash" 100 5 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local bridge="$output"
 

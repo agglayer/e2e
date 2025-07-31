@@ -60,7 +60,7 @@ extract_claim_parameters_json() {
     local asset_number="$2"
 
     log "📋 Getting ${asset_number} bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local bridge_response="$output"
     log "📝 ${asset_number} bridge response: $bridge_response"
@@ -299,7 +299,7 @@ extract_claim_parameters_json() {
         # Validate the bridge_getClaims API to verify all four claims were processed
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
-        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
@@ -353,7 +353,7 @@ extract_claim_parameters_json() {
         log "✅ First claim all fields validated successfully"
 
         log "🔍 Validating second asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -407,7 +407,7 @@ extract_claim_parameters_json() {
         log "✅ Second claim all fields validated successfully"
 
         log "🔍 Validating third asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
@@ -685,7 +685,7 @@ extract_claim_parameters_json() {
 
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
-        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
@@ -740,7 +740,7 @@ extract_claim_parameters_json() {
 
         log "🔍 Validating third asset claim was processed"
         log "Global index: $global_index_3"
-        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
@@ -1055,7 +1055,7 @@ extract_claim_parameters_json() {
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -1395,7 +1395,7 @@ extract_claim_parameters_json() {
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed (should succeed with global_index_2)"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -1446,7 +1446,7 @@ extract_claim_parameters_json() {
         assert_equal "$claim_2_proof_local_exit_root" "$proof_local_exit_root_2"
         assert_equal "$claim_2_proof_rollup_exit_root" "$proof_rollup_exit_root_2"
         log "✅ Second claim proofs validated successfully"
-        log "✅ Second claim all fields validated successfully"
+        log "✅ Second claim global index $global_index_2 all fields validated successfully"
 
         # ========================================
         # STEP 8: Validate that failed claims are not returned by the claims API
