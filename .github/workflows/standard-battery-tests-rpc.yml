@@ -1,0 +1,169 @@
+# Make sure to configure the agglayer/e2e Github Secrets before running this test
+# L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
+# L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
+# L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
+# L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
+name: Standard Battery Tests - RPC
+
+on:
+  workflow_dispatch:
+    inputs:
+      agglayer-e2e-ref:
+        description: "agglayer/e2e repo ref (branch, tag, or commit)"
+        default: "main"
+        required: true
+        type: string
+      # l1-rpc-endpoint:
+      #   description: "valid l1 rpc endpoint to run the tests on"
+      #   default: "https://<l1-rpc-endpoint>"
+      #   required: true
+      #   type: string
+      # l2-rpc-endpoint:
+      #   description: "valid l2 rpc endpoint to run the tests on"
+      #   default: "https://<l2-rpc-endpoint>"
+      #   required: true
+      #   type: string
+      # l1-funded-private-key:
+      #   description: "private key with sufficient L1 funds"
+      #   default: "0x<l1-funded-private-key>"
+      #   required: true
+      #   type: string
+      # l2-funded-private-key:
+      #   description: "private key with sufficient L2 funds"
+      #   default: "0x<l2-funded-private-key>"
+      #   required: true
+      #   type: string
+
+  # pull_request:
+  #   branches:
+  #     - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  discover-standard-tests:
+    runs-on: ubuntu-latest
+    env:
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+      # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
+    outputs:
+      testfiles: ${{ steps.set-matrix.outputs.testfiles }}
+    steps:
+      - name: Checkout agglayer-e2e
+        uses: actions/checkout@v4
+        with:
+          repository: agglayer/e2e
+          ref: ${{ env.AGGLAYER_E2E_REF }}
+          path: agglayer-e2e
+
+      - name: Find standard-tagged bats files
+        id: set-matrix
+        run: |
+            pushd agglayer-e2e || exit 1
+            files=$(grep -rl '# bats file_tags=standard' ./tests | grep '\.bats$' || true)
+            echo "Found files:"
+            echo "$files"
+            # Remove empty lines and ensure valid JSON array without trailing empty string
+            files_json=$(echo "$files" | awk NF | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "Files array:"
+            echo "$files_json"
+            echo "testfiles=$files_json" >> $GITHUB_OUTPUT
+            popd
+
+  run-standard-battery-tests:
+    runs-on: ubuntu-latest
+    needs: discover-standard-tests
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
+    env:
+      POLYCLI_VERSION: v0.1.84
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+      L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
+      L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
+      L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
+      # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
+      # L1_RPC_ENDPOINT: ""
+      # L2_RPC_ENDPOINT: ""
+      # L1_FUNDED_PRIVATE_KEY: ""
+      # L2_FUNDED_PRIVATE_KEY: ""
+    steps:
+      - name: Debug environment variables
+        run: |
+          env | grep -E 'AGGLAYER_E2E_REF'
+
+      - name: Checkout agglayer-e2e
+        uses: actions/checkout@v4
+        with:
+          repository: agglayer/e2e
+          ref: ${{ env.AGGLAYER_E2E_REF }}
+          path: agglayer-e2e
+
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Install polycli
+        run: |
+            polycli_version="${{ env.POLYCLI_VERSION }}"
+            pushd $(mktemp -d) || exit 1
+            curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+            tar xf polycli.tar.gz
+            mv polycli_* /usr/local/bin/polycli
+            polycli version
+            popd
+
+      - name: Install jq
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y jq
+      
+      - name: Install yq
+        shell: bash
+        run: |
+          pip3 install yq
+          yq --version
+  
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c # v1.3.1
+        with:
+          version: v1.0.0
+
+      - name: Validate RPC Endpoint
+        run: |
+          cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
+          cast chain-id --rpc-url ${{ secrets.L2_RPC_ENDPOINT }}
+
+      - name: Validate test file existence
+        run: |
+          testfile="agglayer-e2e/${{ matrix.testfile }}"
+          if [[ ! -f "$testfile" ]]; then
+            echo "Test file $testfile does not exist"
+            exit 1
+          fi
+
+      - name: Run e2e tests
+        run: |
+          pushd agglayer-e2e || exit 1
+
+          export L1_RPC_URL="${{ secrets.L1_RPC_ENDPOINT }}"
+          export L1_PRIVATE_KEY="${{ secrets.L1_FUNDED_PRIVATE_KEY }}"
+
+          export L2_RPC_URL="${{ secrets.L2_RPC_ENDPOINT }}"
+          export L2_PRIVATE_KEY="${{ secrets.L2_FUNDED_PRIVATE_KEY }}"
+
+          bats --filter-tags standard ${{ matrix.testfile }}
+          popd
+
+      - name: Upload bridge tests suite artifacts
+        if: always() && contains(matrix.testfile, 'bridge-tests-suite.bats')
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge_tests_suite_output_artifacts
+          path: /tmp/bridge_test_results_*
+          retention-days: 1

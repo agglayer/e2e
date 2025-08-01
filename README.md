@@ -65,7 +65,7 @@ Another major goal of this project is to have a *simple developer experience*. M
 As a test developer, you can define whatever environment variables you like, but in order for the test cases to be executed via generic automations, it's critical that you're aware of commonly used environment variables and to use them whenever possible.
 
 | Variable              | Purpose                                                            |
-|-----------------------+--------------------------------------------------------------------|
+|-----------------------|--------------------------------------------------------------------|
 | RPC_URL               | A generic JSON RPC URL for tests that do not require L1/L2 context |
 | L1_RPC_URL            | An RPC URL that serves as the L1 for some rollup or validium       |
 | L2_RPC_URL            | An RPC URL for a rollup that's anchored on L1                      |

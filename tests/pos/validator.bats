@@ -23,7 +23,11 @@ function generate_new_keypair() {
   echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
-  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
+  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
+  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
+  fi
   echo "VALIDATOR_POWER_CMD=${VALIDATOR_POWER_CMD}"
 
   validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
@@ -100,7 +104,7 @@ function generate_new_keypair() {
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators.length"'
+    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
   fi
   echo "VALIDATOR_COUNT_CMD=${VALIDATOR_COUNT_CMD}"
 
@@ -150,17 +154,15 @@ function generate_new_keypair() {
   if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
     VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators.length"'
+    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
   fi
 
   initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
   echo "Initial validator count: ${initial_validator_count}"
 
-  # TODO: Find out why the call is reverting
-  # Error: server returned an error response: error code -32000: execution reverted
   echo "Removing the validator from the validator set..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstake(uint)" "${VALIDATOR_ID}"
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${VALIDATOR_ID}"
 
   echo "Monitoring the validator count on Heimdall..."
   assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1))
@@ -173,7 +175,11 @@ function generate_new_keypair() {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
-  VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.signer"'
+  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
+    VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.signer"'
+  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
+    VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.signer"'
+  fi
 
   initial_signer=$(eval "${VALIDATOR_SIGNER_CMD}")
   echo "Initial signer: ${initial_signer}"

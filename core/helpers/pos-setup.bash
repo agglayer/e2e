@@ -24,8 +24,8 @@ pos_setup() {
     export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-heimdall-validator" rpc)}
     export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-1-heimdall-bor-validator" http)}
   elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-modified-for-heimdall-v2-heimdall-v2-validator" rpc)}
-    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-1-heimdall-v2-bor-modified-for-heimdall-v2-validator" http)}
+    export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-heimdall-v2-validator" rpc)}
+    export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-1-heimdall-v2-bor-validator" http)}
   fi
   echo "L2_RPC_URL=${L2_RPC_URL}"
   echo "L2_CL_API_URL=${L2_CL_API_URL}"

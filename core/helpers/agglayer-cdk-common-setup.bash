@@ -230,11 +230,11 @@ _generate_and_fund_wallet() {
     FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 10 ETH if not provided
     FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
 
-    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
-    echo "🛠 Length: ${#L2_SENDER_PRIVATE_KEY} characters"
+    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_PRIVATE_KEY'"
+    echo "🛠 Length: ${#L2_PRIVATE_KEY} characters"
 
     # ✅ Check Admin Wallet Balance Before Sending Funds
-    export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+    export ADMIN_PRIVATE_KEY="${L2_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
     ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
 
     echo "🛠 ADMIN_ADDRESS: $ADMIN_ADDRESS"
