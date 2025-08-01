@@ -386,9 +386,19 @@ _set_and_export_bridge_vars() {
 }
 
 _get_gas_token_address() {
-    local chain_number=$1
+    local chain_number="$1"
+    local env_var_name="GAS_TOKEN_ADDRESS_ROLLUP_${chain_number#0}"  # 001 → 1
+    local env_val="${!env_var_name:-}"
+
+    if [[ -n "$env_val" ]]; then
+        echo "$env_val"
+        echo "$env_var_name: $env_val (from environment)" >&3
+        return
+    fi
+
     local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
-    kurtosis_download_file_exec_method $ENCLAVE_NAME $contracts_container "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+    kurtosis_download_file_exec_method "$ENCLAVE_NAME" "$contracts_container" "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+
     local chain_combined_output
     chain_combined_output=$(cat "combined-${chain_number}.json")
     if echo "$chain_combined_output" | jq empty >/dev/null 2>&1; then
@@ -405,127 +415,96 @@ _agglayer_cdk_common_multi_setup() {
     readonly private_key
     eth_address=$(cast wallet address --private-key $private_key)
     export eth_address
-    l2_pp1_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-001 rpc)
-    readonly l2_pp1_url
-    l2_pp2_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-002 rpc)
-    readonly l2_pp2_url
-    if [[ $number_of_chains -eq 3 ]]; then
-        l2_pp3_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-003 rpc)
-        readonly l2_pp3_url
-    fi
 
-    # Resolve Aggkit RPC URL
-    if [[ -z "${AGGKIT_PP1_RPC_URL:-}" ]]; then
-        local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-        aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve PP1 aggkit rpc url from all fallback nodes" true | tail -1)
-        echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
-    else
-        aggkit_pp1_rpc_url="$AGGKIT_PP1_RPC_URL"
-        echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url (from environment)" >&3
-    fi
-    readonly aggkit_pp1_rpc_url
+    # Resolve L2 RPC URLs
+    l2_rpc_url_1=$(_resolve_url_or_use_env L2_RPC_URL_1 \
+        "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL (rollup 1) " true)
+    readonly l2_rpc_url_1
 
-    if [[ -z "${AGGKIT_PP2_RPC_URL:-}" ]]; then
-        local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
-        aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve PP2 aggkit rpc url from all fallback nodes" true | tail -1)
-        echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
-    else
-        aggkit_pp2_rpc_url="$AGGKIT_PP2_RPC_URL"
-        echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url (from environment)" >&3
-    fi
-    readonly aggkit_pp2_rpc_url
+    l2_rpc_url_2=$(_resolve_url_or_use_env L2_RPC_URL_2 \
+        "cdk-erigon-rpc-002" "rpc" \
+        "Failed to resolve L2 RPC URL (rollup 2) " true)
+    readonly l2_rpc_url_2
 
     if [[ $number_of_chains -eq 3 ]]; then
-        if [[ -z "${AGGKIT_PP3_RPC_URL:-}" ]]; then
-            local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
-            aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve PP3 aggkit rpc url from all fallback nodes" true | tail -1)
-            echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
-        else
-            aggkit_pp3_rpc_url="$AGGKIT_PP3_RPC_URL"
-            echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url (from environment)" >&3
-        fi
-        readonly aggkit_pp3_rpc_url
+        l2_rpc_url_3=$(_resolve_url_or_use_env L2_RPC_URL_3 \
+            "cdk-erigon-rpc-003" "rpc" \
+            "Failed to resolve L2 RPC URL (rollup 3) " true)
+        readonly l2_rpc_url_3
     fi
 
-    l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
-    readonly l2_pp1_network_id
-    l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
-    readonly l2_pp2_network_id
-    if [[ $number_of_chains -eq 3 ]]; then
-        l2_pp3_network_id=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'networkID() (uint32)')
-        readonly l2_pp3_network_id
-    fi
+    # Resolve Aggkit Bridge URLs
+    aggkit_bridge_1_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_1_URL \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve PP1 aggkit bridge url from all fallback nodes" true)
+    readonly aggkit_bridge_1_url
 
-    # Resolve Aggkit Bridge URLs for both nodes
-    if [[ -z "${AGGKIT_PP1_BRIDGE_URL:-}" ]]; then
-        local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
-        aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve PP1 aggkit bridge url from all fallback nodes" true | tail -1)
-        readonly aggkit_bridge_1_url
-        echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
-    else
-        aggkit_bridge_1_url="$AGGKIT_PP1_BRIDGE_URL"
-        readonly aggkit_bridge_1_url
-        echo "aggkit_bridge_1_url: $aggkit_bridge_1_url (from environment)" >&3
-    fi
-
-    if [[ -z "${AGGKIT_PP2_BRIDGE_URL:-}" ]]; then
-        local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
-        aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve PP2 aggkit bridge url from all fallback nodes" true | tail -1)
-        readonly aggkit_bridge_2_url
-        echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
-    else
-        aggkit_bridge_2_url="$AGGKIT_PP2_BRIDGE_URL"
-        readonly aggkit_bridge_2_url
-        echo "aggkit_bridge_2_url: $aggkit_bridge_2_url (from environment)" >&3
-    fi
+    aggkit_bridge_2_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_2_URL \
+        "aggkit-002" "rest" "cdk-node-002" "rest" \
+        "Failed to resolve PP2 aggkit bridge url from all fallback nodes" true)
+    readonly aggkit_bridge_2_url
 
     if [[ $number_of_chains -eq 3 ]]; then
-        if [[ -z "${AGGKIT_PP3_BRIDGE_URL:-}" ]]; then
-            local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
-            aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve PP3 aggkit bridge url from all fallback nodes" true | tail -1)
-            readonly aggkit_bridge_3_url
-            echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
-        else
-            aggkit_bridge_3_url="$AGGKIT_PP3_BRIDGE_URL"
-            readonly aggkit_bridge_3_url
-            echo "aggkit_bridge_3_url: $aggkit_bridge_3_url (from environment)" >&3
-        fi
+        aggkit_bridge_3_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_3_URL \
+            "aggkit-003" "rest" "cdk-node-003" "rest" \
+            "Failed to resolve PP3 aggkit bridge url from all fallback nodes" true)
+        readonly aggkit_bridge_3_url
     fi
 
-    weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
-    readonly weth_token_addr_pp1
-    weth_token_addr_pp2=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'WETHToken() (address)')
-    readonly weth_token_addr_pp2
+    # Rollup network ids
+    rollup_1_network_id=$(cast call --rpc-url $l2_rpc_url_1 $l2_bridge_addr 'networkID() (uint32)')
+    readonly rollup_1_network_id
+
+    rollup_2_network_id=$(cast call --rpc-url $l2_rpc_url_2 $l2_bridge_addr 'networkID() (uint32)')
+    readonly rollup_2_network_id
+
     if [[ $number_of_chains -eq 3 ]]; then
-        weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
-        readonly weth_token_addr_pp3
-    fi
-    echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
-    echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
-    if [[ $number_of_chains -eq 3 ]]; then
-        echo "weth_token_addr_pp3: $weth_token_addr_pp3" >&3
+        rollup_3_network_id=$(cast call --rpc-url $l2_rpc_url_3 $l2_bridge_addr 'networkID() (uint32)')
+        readonly rollup_3_network_id
     fi
 
-    gas_token_addr_pp1=$(_get_gas_token_address "001")
-    echo "Gas token address on PP1=$gas_token_addr_pp1" >&3
-    gas_token_addr_pp2=$(_get_gas_token_address "002")
-    echo "Gas token address on PP2=$gas_token_addr_pp2" >&3
+    # WETH token addresses
+    weth_token_rollup_1=$(cast call --rpc-url $l2_rpc_url_1 $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_rollup_1
+
+    weth_token_rollup_2=$(cast call --rpc-url $l2_rpc_url_2 $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_rollup_2
+
     if [[ $number_of_chains -eq 3 ]]; then
-        gas_token_addr_pp3=$(_get_gas_token_address "003")
-        echo "Gas token address on PP3=$gas_token_addr_pp3" >&3
+        weth_token_rollup_3=$(cast call --rpc-url $l2_rpc_url_3 $l2_bridge_addr 'WETHToken() (address)')
+        readonly weth_token_rollup_3
+    fi
+
+    echo "weth_token_rollup_1: $weth_token_rollup_1" >&3
+    echo "weth_token_rollup_2: $weth_token_rollup_2" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        echo "weth_token_rollup_3: $weth_token_rollup_3" >&3
+    fi
+
+    # Gas token addresses
+    gas_token_rollup_1=$(_get_gas_token_address "001")
+    echo "Gas token address (rollup 1)=$gas_token_rollup_1" >&3
+
+    gas_token_rollup_2=$(_get_gas_token_address "002")
+    echo "Gas token address (rollup 2)=$gas_token_rollup_2" >&3
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        gas_token_rollup_3=$(_get_gas_token_address "003")
+        echo "Gas token address (rollup 3)=$gas_token_rollup_3" >&3
     fi
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
-    echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
-    echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
+    echo "=== L2 rollup 1 network id=$rollup_1_network_id ===" >&3
+    echo "=== L2 rollup 2 network id=$rollup_2_network_id ===" >&3
     echo "=== L1 RPC URL=$l1_rpc_url ===" >&3
-    echo "=== L2 PP1 URL=$l2_pp1_url ===" >&3
-    echo "=== L2 PP2 URL=$l2_pp2_url ===" >&3
+    echo "=== L2 rollup 1 URL=$l2_rpc_url_1 ===" >&3
+    echo "=== L2 rollup 2 URL=$l2_rpc_url_2 ===" >&3
     echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
     echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
     if [[ $number_of_chains -eq 3 ]]; then
-        echo "=== L2 PP3 network id=$l2_pp3_network_id ===" >&3
-        echo "=== L2 PP3 URL=$l2_pp3_url ===" >&3
+        echo "=== L2 rollup 3 network id=$rollup_3_network_id ===" >&3
+        echo "=== L2 rollup 3 URL=$l2_rpc_url_3 ===" >&3
         echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
     fi
 
