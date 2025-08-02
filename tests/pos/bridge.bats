@@ -87,7 +87,7 @@ function wait_for_bor_state_sync() {
 }
 
 # bats file_tags=pos,bridge,matic,pol
-# @test "bridge ETH from L2 to L1 and confirm L1 MATIC/POL balance increased" {
+# @test "bridge MATIC/POL from L2 to L1 and confirm L1 MATIC/POL balance increased" {
 #   echo TODO
 # }
 
@@ -129,7 +129,7 @@ function wait_for_bor_state_sync() {
 }
 
 # bats file_tags=pos,bridge,erc20
-# @test "bridge some ERC20 tokens from L2 to L1 and confirm receipt on L1" {
+# @test "bridge some ERC20 tokens from L2 to L1 and confirm L1 ERC20 balance increased" {
 #   echo TODO
 # }
 
@@ -176,6 +176,6 @@ function wait_for_bor_state_sync() {
 }
 
 # bats file_tags=pos,bridge,erc721
-# @test "bridge an ERC721 token from L2 to L1 and confirm receipt on L1" {
+# @test "bridge an ERC721 token from L2 to L1 and confirm L1 ERC721 balance increased" {
 #   echo TODO
 # }
