@@ -179,3 +179,93 @@ function wait_for_bor_state_sync() {
 # @test "bridge an ERC721 token from L2 to L1 and confirm L1 ERC721 balance increased" {
 #   echo TODO
 # }
+
+# bats file_tags=pos,bridge,l1,l2
+@test "bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get the initial balances.
+  initial_l1_matic_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_MATIC_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  initial_l2_native_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
+  initial_l1_erc20_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  initial_l2_erc20_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+
+  # Mint a new ERC721 token.
+  total_supply=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "totalSupply()(uint)" | jq --raw-output '.[0]')
+  token_id=$((total_supply + 1))
+  echo "Minting ERC721 token (id: ${token_id})..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_ERC721_TOKEN_ADDRESS}" "mint(uint)" "${token_id}"
+
+  initial_l1_erc721_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  initial_l2_erc721_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+
+  echo "Initial balances:"
+  echo "- L1 MATIC/POL: ${initial_l1_matic_balance}"
+  echo "- L2 MATIC/POL: ${initial_l2_native_balance} wei"
+  echo "- L1 ERC20: ${initial_l1_erc20_balance}"
+  echo "- L2 ERC20: ${initial_l2_erc20_balance}"
+  echo "- L1 ERC721: ${initial_l1_erc721_balance}"
+  echo "- L2 ERC721: ${initial_l2_erc721_balance}"
+
+  # Get the initial state sync count.
+  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
+  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+  echo "Initial state sync counts:"
+  echo "- Heimdall: ${heimdall_state_sync_count}"
+  echo "- Bor: ${bor_state_sync_count}"
+
+  # Bridge amount.
+  bridge_amount=$(cast to-unit 10ether wei)
+
+  # Bridge MATIC/POL.
+  echo "Bridging MATIC/POL from L1 to L2..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_MATIC_TOKEN_ADDRESS}" "${bridge_amount}"
+
+  # Bridge ERC20.
+  echo "Bridging ERC20 from L1 to L2..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_ERC20_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_ERC20_TOKEN_ADDRESS}" "${bridge_amount}"
+
+  # Bridge ERC721.
+  echo "Bridging ERC721 from L1 to L2..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_ERC721_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${token_id}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC721(address,uint)" "${L1_ERC721_TOKEN_ADDRESS}" "${token_id}"
+
+  # Wait for Heimdall and Bor to process the bridge events.
+  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((heimdall_state_sync_count + 3)) "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Waiting for Bor to process all bridge events..."
+  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((bor_state_sync_count + 3)) "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Verifying L1 MATIC/POL balance decreased..."
+  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_matic_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Verifying L1 ERC20 balance decreased..."
+  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_erc20_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Verifying L1 ERC721 balance decreased..."
+  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_erc721_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Verifying L2 native balance increased..."
+  assert_ether_balance_eventually_equal "${address}" $((initial_l2_native_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Verifying L2 ERC20 balance increased..."
+  assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc20_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Verifying L2 ERC721 balance increased..."
+  assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc721_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "✅ All bridge operations completed successfully!"
+  echo "Summary:"
+  echo "- 10 MATIC bridged from L1 to L2"
+  echo "- 10 ERC20 tokens bridged from L1 to L2"
+  echo "- 1 ERC721 token (id: ${token_id}) bridged from L1 to L2"
+}
