@@ -263,9 +263,9 @@ function wait_for_bor_state_sync() {
   echo "Verifying L2 ERC721 balance increased..."
   assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc721_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
-  echo "✅ All bridge operations completed successfully!"
+  echo "✅ MATIC/POL, ERC20, and ERC721 bridge operations completed successfully!"
   echo "Summary:"
-  echo "- 10 MATIC bridged from L1 to L2"
+  echo "- 10 MATIC/POL bridged from L1 to L2"
   echo "- 10 ERC20 tokens bridged from L1 to L2"
   echo "- 1 ERC721 token (id: ${token_id}) bridged from L1 to L2"
 }
