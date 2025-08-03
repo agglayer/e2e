@@ -64,8 +64,8 @@ function wait_for_bor_state_sync() {
   bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
 
   # Bridge some MATIC/POL tokens from L1 to L2 to trigger a state sync.
-  # 10 MATIC/POL tokens = 10000000000000000000 wei.
-  bridge_amount=$(cast to-unit 10ether wei)
+  # 1 MATIC/POL token = 1000000000000000000 wei.
+  bridge_amount=$(cast to-unit 1ether wei)
   echo "Approving the DepositManager contract to spend MATIC/POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
@@ -106,8 +106,8 @@ function wait_for_bor_state_sync() {
   bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
 
   # Bridge some ERC20 tokens from L1 to L2.
-  # 10 ERC20 tokens = 10000000000000000000 wei.
-  bridge_amount=$(cast to-unit 10ether wei)
+  # 1 ERC20 token = 1000000000000000000 wei.
+  bridge_amount=$(cast to-unit 1ether wei)
   echo "Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_ERC20_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
@@ -216,7 +216,7 @@ function wait_for_bor_state_sync() {
   echo "- Bor: ${bor_state_sync_count}"
 
   # Bridge amount.
-  bridge_amount=$(cast to-unit 10ether wei)
+  bridge_amount=$(cast to-unit 1ether wei)
 
   # Bridge MATIC/POL.
   echo "Bridging MATIC/POL from L1 to L2..."
@@ -265,7 +265,7 @@ function wait_for_bor_state_sync() {
 
   echo "✅ MATIC/POL, ERC20, and ERC721 bridge operations completed successfully!"
   echo "Summary:"
-  echo "- 10 MATIC/POL bridged from L1 to L2"
-  echo "- 10 ERC20 tokens bridged from L1 to L2"
+  echo "- 1 MATIC/POL bridged from L1 to L2"
+  echo "- 1 ERC20 token bridged from L1 to L2"
   echo "- 1 ERC721 token (id: ${token_id}) bridged from L1 to L2"
 }
