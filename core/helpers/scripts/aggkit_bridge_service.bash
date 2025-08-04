@@ -844,8 +844,11 @@ extract_claim_parameters_json() {
     local injected_info="$output"
     log "📝 ${asset_number} injected info: $injected_info"
 
+    # Extract the actual l1_info_tree_index from the injected info
+    local l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+
     log "🔐 Getting ${asset_number} claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_injected_index" 50 10 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
     log "📝 ${asset_number} proof: $proof"
