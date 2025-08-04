@@ -383,6 +383,9 @@ _set_and_export_bridge_vars() {
 
     tmp=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
     export receiver="$tmp"
+
+    tmp=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
+    export minter_key="$tmp"
 }
 
 _get_gas_token_address() {

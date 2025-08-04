@@ -1,3 +1,5 @@
+# shellcheck disable=SC2154,SC2034
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -194,12 +196,14 @@ setup() {
     # Query for initial sender balance
     run query_contract "$l1_rpc_url" "$gas_token_rollup_1" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
-    local gas_token_init_sender_balance_l1=$(echo "$output" | tail -n 1 | awk '{print $1}')
+    local gas_token_init_sender_balance_l1
+    gas_token_init_sender_balance_l1=$(echo "$output" | tail -n 1 | awk '{print $1}')
     echo "Initial sender balance $gas_token_init_sender_balance_l1 of gas token on L1" >&3
 
     # Mint gas token on L1
     local tokens_amount="1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit $tokens_amount wei)
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$gas_token_rollup_1" "$minter_key" "$sender_addr" "$tokens_amount"
     assert_success
 
@@ -276,8 +280,9 @@ setup() {
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
-    local final_receiver1_balance_pp2=$(cast balance "$receiver1_addr" --rpc-url "$l2_rpc_url_2")
-    echo "Final receiver1 ($receiver1_addr) balance of gas token addr on Rollup 2 $final_receiver1_balance_pp2" >&3
+    local final_receiver1_balance_rollup2
+    final_receiver1_balance_rollup2=$(cast balance "$receiver1_addr" --rpc-url "$l2_rpc_url_2")
+    echo "Final receiver1 ($receiver1_addr) balance of gas token addr on Rollup 2 $final_receiver1_balance_rollup2" >&3
 
     echo "==== 💰 Verifying balance on Rollup 2" >&3
     run verify_balance "$l2_rpc_url_2" "$native_token_addr" "$destination_addr" "$initial_receiver1_balance_rollup2" "$amount"
@@ -319,7 +324,8 @@ setup() {
     origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$gas_token_rollup_1" "$origin_token_addr"
 
-    local rollup3_wrapped_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+    local rollup3_wrapped_token_addr
+    rollup3_wrapped_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     log "🪙 Rollup 3 wrapped token address $rollup3_wrapped_token_addr"
 
     echo "==== 💰 Verifying balance on Rollup 3" >&3
@@ -348,7 +354,8 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    local origin_token_addr
+    origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$gas_token_rollup_1" "$origin_token_addr"
 
     local rollup2_wrapped_token_addr
