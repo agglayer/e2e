@@ -189,8 +189,11 @@ setup() {
     initial_receiver1_balance_rollup1=$(cast balance "$receiver1_addr" --rpc-url "$l2_rpc_url_1")
     echo "Initial receiver1 ($receiver1_addr) balance of native token addr on Rollup 1 $initial_receiver1_balance_rollup1" >&3
 
+    local minter_addr
+    minter_addr=$(cast wallet address "$minter_key")
+
     local l1_minter_balance
-    l1_minter_balance=$(cast balance "$minter_key" --rpc-url "$l1_rpc_url")
+    l1_minter_balance=$(cast balance "$minter_addr" --rpc-url "$l1_rpc_url")
     echo "Initial minter balance on L1 $l1_minter_balance" >&3
 
     # Query for initial sender balance
@@ -242,7 +245,7 @@ setup() {
     echo "Initial receiver1 ($receiver1_addr) balance of native token addr on Rollup 2 $initial_receiver1_balance_rollup2" >&3
 
     local l1_minter_balance
-    l1_minter_balance=$(cast balance "$minter_key" --rpc-url "$l1_rpc_url")
+    l1_minter_balance=$(cast balance "$minter_addr" --rpc-url "$l1_rpc_url")
     echo "Initial minter balance on L1 $l1_minter_balance" >&3
 
     # Query for initial sender balance
