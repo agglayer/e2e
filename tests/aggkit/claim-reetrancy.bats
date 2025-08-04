@@ -3,26 +3,21 @@ setup() {
     _agglayer_cdk_common_setup
 
     readonly bridge_event_sig="event BridgeEvent(uint8, uint32, address, uint32, address, uint256, bytes, uint32)"
-}
+    readonly claim_reentrancy_sc_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/BridgeMessageReceiverMock.json"
 
-@test "Test reentrancy protection for bridge claims - should prevent double claiming" {
-    # ========================================
-    # STEP 1: Deploy the reentrancy testing contract
-    # ========================================
-    log "🔧 STEP 1: Deploying reentrancy testing contract"
-
-    local mock_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/BridgeMessageReceiverMock.json"
+    # Deploy the reentrancy testing contract once for all tests
+    log "🔧 Deploying reentrancy testing contract for all tests"
 
     # Validate artifact exists
-    if [[ ! -f "$mock_artifact_path" ]]; then
-        log "❌ Error: Contract artifact not found at $mock_artifact_path"
+    if [[ ! -f "$claim_reentrancy_sc_artifact_path" ]]; then
+        log "❌ Error: Contract artifact not found at $claim_reentrancy_sc_artifact_path"
         exit 1
     fi
 
     # Extract bytecode from contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$mock_artifact_path")
+    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$claim_reentrancy_sc_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        log "❌ Error: Failed to read bytecode from $mock_artifact_path"
+        log "❌ Error: Failed to read bytecode from $claim_reentrancy_sc_artifact_path"
         exit 1
     fi
 
@@ -54,19 +49,21 @@ setup() {
     fi
 
     # Extract deployed contract address
-    local mock_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
-    if [[ -z "$mock_sc_addr" ]]; then
+    readonly claim_reentrancy_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
+    if [[ -z "$claim_reentrancy_sc_addr" ]]; then
         log "❌ Failed to extract deployed contract address"
         log "$deploy_output"
         exit 1
     fi
 
-    log "✅ Deployed reentrancy testing contract at: $mock_sc_addr"
+    log "✅ Reentrancy testing contract deployed at: $claim_reentrancy_sc_addr"
+}
 
+@test "Test reentrancy protection for bridge claims - should prevent double claiming" {
     # ========================================
-    # STEP 2: Bridge first asset (destination: deployer address)
+    # STEP 1: Bridge first asset (destination: deployer address)
     # ========================================
-    log "🌉 STEP 2: Bridging first asset from L1 to L2 (destination: deployer)"
+    log "🌉 STEP 1: Bridging first asset from L1 to L2 (destination: deployer)"
 
     # Set destination for first bridge
     receiver_addr='0x15E13226E42ebB16fAD9E9A42B149954c5bD00e0'
@@ -80,9 +77,9 @@ setup() {
     log "✅ First bridge transaction hash: $bridge_tx_hash_1"
 
     # ========================================
-    # STEP 3: Get claim parameters for first asset
+    # STEP 2: Get claim parameters for first asset
     # ========================================
-    log "📋 STEP 3: Retrieving claim parameters for first asset"
+    log "📋 STEP 2: Retrieving claim parameters for first asset"
 
     # Get bridge details
     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
@@ -135,12 +132,12 @@ setup() {
     log "📊 Global index: $global_index_1, Amount: $amount_1 wei"
 
     # ========================================
-    # STEP 4: Bridge second asset (destination: contract address)
+    # STEP 3: Bridge second asset (destination: contract address)
     # ========================================
-    log "🌉 STEP 4: Bridging second asset from L1 to L2 (destination: contract)"
+    log "🌉 STEP 3: Bridging second asset from L1 to L2 (destination: contract)"
 
     # Set destination for second bridge
-    destination_addr=$mock_sc_addr
+    destination_addr=$claim_reentrancy_sc_addr
 
     # Execute bridge transaction
     run bridge_message "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
@@ -149,9 +146,9 @@ setup() {
     log "✅ Second bridge transaction hash: $bridge_tx_hash_2"
 
     # ========================================
-    # STEP 5: Get claim parameters for second asset
+    # STEP 4: Get claim parameters for second asset
     # ========================================
-    log "📋 STEP 5: Retrieving claim parameters for second asset"
+    log "📋 STEP 4: Retrieving claim parameters for second asset"
 
     # Get bridge details
     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
@@ -203,13 +200,14 @@ setup() {
     log "📊 Global index: $global_index_2, Amount: $amount_2 wei"
 
     # ========================================
-    # STEP 6: Update contract with first asset claim parameters
+    # STEP 5: Update contract with first asset claim parameters
     # ========================================
-    log "⚙️ STEP 6: Updating contract with first asset claim parameters"
+    log "⚙️ STEP 5: Updating contract with first asset claim parameters"
 
+    local gas_price=1000000000
     local update_output
     update_output=$(cast send \
-        "$mock_sc_addr" \
+        "$claim_reentrancy_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_1" \
         "$proof_rollup_exit_root_1" \
@@ -235,13 +233,13 @@ setup() {
     log "✅ Contract parameters updated successfully"
 
     # ========================================
-    # STEP 7: Get initial balances for verification
+    # STEP 6: Get initial balances for verification
     # ========================================
-    log "💰 STEP 7: Recording initial balances for verification"
+    log "💰 STEP 6: Recording initial balances for verification"
 
     # Get initial token balances (in ETH units)
     local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
+    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
     # Convert to wei for precise comparison
     local initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
@@ -251,9 +249,9 @@ setup() {
     log "📊 Initial contract balance: $initial_contract_balance ETH ($initial_contract_balance_wei wei)"
 
     # ========================================
-    # STEP 8: Claim second asset (should succeed)
+    # STEP 7: Claim second asset (should succeed)
     # ========================================
-    log "🌉 STEP 8: Claiming second asset (should succeed)"
+    log "🌉 STEP 7: Claiming second asset (should succeed)"
 
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
     assert_success
@@ -261,9 +259,9 @@ setup() {
     log "✅ Second asset claimed successfully, global index: $global_index_2_claimed"
 
     # ========================================
-    # STEP 9: Test reentrancy protection
+    # STEP 8: Test reentrancy protection
     # ========================================
-    log "🔄 STEP 9: Testing reentrancy protection - attempting to claim first asset again"
+    log "🔄 STEP 8: Testing reentrancy protection - attempting to claim first asset again"
 
     # Calculate gas price for reentrant claim
     local comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
@@ -305,9 +303,9 @@ setup() {
     fi
 
     # ========================================
-    # STEP 10: Verify claim events in aggkit
+    # STEP 9: Verify claim events in aggkit
     # ========================================
-    log "🔍 STEP 10: Verifying claim events were processed correctly by aggkit"
+    log "🔍 STEP 9: Verifying claim events were processed correctly by aggkit"
 
     # Verify first claim was processed
     log "🔍 Validating first asset claim processing"
@@ -384,13 +382,13 @@ setup() {
     log "✅ Second claim validated successfully"
 
     # ========================================
-    # STEP 11: Final balance verification
+    # STEP 10: Final balance verification
     # ========================================
-    log "💰 STEP 11: Verifying final balances"
+    log "💰 STEP 10: Verifying final balances"
 
     # Get final balances (in eth)
     local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
+    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
     local final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
     local final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
@@ -398,7 +396,7 @@ setup() {
     log "📊 Initial receiver balance(wei): $initial_receiver_balance_wei"
     log "📊 Initial contract balance(wei): $initial_contract_balance_wei"
     log "📊 Final receiver balance(wei): $final_receiver_balance_wei"
-    log "📊 Final contract balance(wei): $mock_sc_addr $final_contract_balance_wei"
+    log "📊 Final contract balance(wei): $claim_reentrancy_sc_addr $final_contract_balance_wei"
 
     # Verify contract received second asset
     local expected_contract_balance_wei=$(echo "$initial_contract_balance_wei + $amount_2" | bc)
@@ -474,71 +472,12 @@ setup() {
 
 @test "Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call" {
     # ========================================
-    # STEP 1: Deploy the reentrancy testing contract
+    # STEP 1: Bridge first asset (destination: contract address)
     # ========================================
-    log "🔧 STEP 1: Deploying reentrancy testing contract"
-
-    local mock_artifact_path="$PROJECT_ROOT/core/contracts/bridgeAsset/BridgeMessageReceiverMock.json"
-
-    # Validate artifact exists
-    if [[ ! -f "$mock_artifact_path" ]]; then
-        log "❌ Error: Contract artifact not found at $mock_artifact_path"
-        exit 1
-    fi
-
-    # Extract bytecode from contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$mock_artifact_path")
-    if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
-        log "❌ Error: Failed to read bytecode from $mock_artifact_path"
-        exit 1
-    fi
-
-    # ABI-encode constructor argument (bridge address)
-    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
-    if [[ -z "$encoded_args" ]]; then
-        log "❌ Failed to ABI-encode constructor argument"
-        exit 1
-    fi
-
-    # Prepare deployment bytecode
-    local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x prefix from encoded args
-
-    # Deploy contract with fixed gas price
-    local gas_price=1000000000
-    log "📝 Deploying contract with gas price: $gas_price wei"
-
-    local deploy_output
-    deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
-        --create "$deploy_bytecode" 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to deploy contract"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    # Extract deployed contract address
-    local mock_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
-    if [[ -z "$mock_sc_addr" ]]; then
-        log "❌ Failed to extract deployed contract address"
-        log "$deploy_output"
-        exit 1
-    fi
-
-    log "✅ Deployed reentrancy testing contract at: $mock_sc_addr"
-
-    receiver_addr='0xBA002167c3a9Ee959EF4c2A62f7Fb026326479DD'
-
-    # ========================================
-    # STEP 2: Bridge first asset (destination: contract address)
-    # ========================================
-    log "🌉 STEP 2: Bridging first asset from L1 to L2 (destination: contract)"
+    log "🌉 STEP 1: Bridging first asset from L1 to L2 (destination: contract)"
 
     # Set destination for first bridge to contract
-    destination_addr=$mock_sc_addr
+    destination_addr=$claim_reentrancy_sc_addr
     destination_net=$l2_rpc_network_id
     amount_1_bridge=0.03
     amount_1_bridge_wei=$(cast to-wei "$amount_1_bridge" ether)
@@ -551,11 +490,12 @@ setup() {
     log "✅ First bridge transaction hash: $bridge_tx_hash_1"
 
     # ========================================
-    # STEP 3: Bridge second asset (destination: deployer address)
+    # STEP 2: Bridge second asset (destination: deployer address)
     # ========================================
-    log "🌉 STEP 3: Bridging second asset from L1 to L2 (destination: deployer)"
+    log "🌉 STEP 2: Bridging second asset from L1 to L2 (destination: deployer)"
 
     # Set destination for second bridge to deployer
+    receiver_addr='0xBA002167c3a9Ee959EF4c2A62f7Fb026326479DD'
     destination_addr=$receiver_addr
     amount_2_bridge=0.02
     amount_2_bridge_wei=$(cast to-wei "$amount_2_bridge" ether)
@@ -568,9 +508,9 @@ setup() {
     log "✅ Second bridge transaction hash: $bridge_tx_hash_2"
 
     # ========================================
-    # STEP 4: Bridge third asset (destination: deployer address)
+    # STEP 3: Bridge third asset (destination: deployer address)
     # ========================================
-    log "🌉 STEP 4: Bridging third asset from L1 to L2 (destination: deployer)"
+    log "🌉 STEP 3: Bridging third asset from L1 to L2 (destination: deployer)"
 
     # Set destination for third bridge to deployer (same as second)
     destination_addr=$receiver_addr
@@ -585,9 +525,9 @@ setup() {
     log "✅ Third bridge transaction hash: $bridge_tx_hash_3"
 
     # ========================================
-    # STEP 5: Get claim parameters for first asset (contract destination)
+    # STEP 4: Get claim parameters for first asset (contract destination)
     # ========================================
-    log "📋 STEP 5: Retrieving claim parameters for first asset (contract destination)"
+    log "📋 STEP 4: Retrieving claim parameters for first asset (contract destination)"
 
     # Get bridge details
     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_1" 50 10 "$aggkit_bridge_url"
@@ -640,9 +580,9 @@ setup() {
     log "📊 Global index: $global_index_1, Amount: $amount_1 wei"
 
     # ========================================
-    # STEP 6: Get claim parameters for second asset (deployer destination)
+    # STEP 5: Get claim parameters for second asset (deployer destination)
     # ========================================
-    log "📋 STEP 6: Retrieving claim parameters for second asset (deployer destination)"
+    log "📋 STEP 5: Retrieving claim parameters for second asset (deployer destination)"
 
     # Get bridge details
     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_2" 50 10 "$aggkit_bridge_url"
@@ -695,9 +635,9 @@ setup() {
     log "📊 Global index: $global_index_2, Amount: $amount_2 wei"
 
     # ========================================
-    # STEP 7: Get claim parameters for third asset (deployer destination)
+    # STEP 6: Get claim parameters for third asset (deployer destination)
     # ========================================
-    log "📋 STEP 7: Retrieving claim parameters for third asset (deployer destination)"
+    log "📋 STEP 6: Retrieving claim parameters for third asset (deployer destination)"
 
     # Get bridge details
     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash_3" 50 10 "$aggkit_bridge_url"
@@ -750,13 +690,14 @@ setup() {
     log "📊 Global index: $global_index_3, Amount: $amount_3 wei"
 
     # ========================================
-    # STEP 8: Update contract with second asset claim parameters (for reentrancy test)
+    # STEP 7: Update contract with second asset claim parameters (for reentrancy test)
     # ========================================
-    log "⚙️ STEP 8: Updating contract with second asset claim parameters"
+    log "⚙️ STEP 7: Updating contract with second asset claim parameters"
 
+    local gas_price=1000000000
     local update_output
     update_output=$(cast send \
-        "$mock_sc_addr" \
+        "$claim_reentrancy_sc_addr" \
         "updateParameters(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_2" \
         "$proof_rollup_exit_root_2" \
@@ -782,13 +723,13 @@ setup() {
     log "✅ Contract parameters updated successfully"
 
     # ========================================
-    # STEP 9: Get initial balances for verification
+    # STEP 8: Get initial balances for verification
     # ========================================
-    log "💰 STEP 9: Recording initial balances for verification"
+    log "💰 STEP 8: Recording initial balances for verification"
 
     # Get initial token balances (in ETH units)
     local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
+    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
     # Convert to wei for precise comparison
     local initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
@@ -798,9 +739,9 @@ setup() {
     log "📊 Initial contract balance: $initial_contract_balance ETH ($initial_contract_balance_wei wei)"
 
     # ========================================
-    # STEP 10: call testClaim from the smart contract with all the required parameters
+    # STEP 9: call testClaim from the smart contract with all the required parameters
     # ========================================
-    log "🔧 STEP 10: Calling testClaim from smart contract with all required parameters"
+    log "🔧 STEP 9: Calling testClaim from smart contract with all required parameters"
 
     # Encode claimData1 (first asset claim parameters - destination: contract)
     log "📦 Encoding claimData1 (first asset - contract destination)"
@@ -871,7 +812,7 @@ setup() {
 
     log "⏳ Calling testClaim..."
     if ! test_claim_output=$(cast send \
-        "$mock_sc_addr" \
+        "$claim_reentrancy_sc_addr" \
         "testClaim(bytes,bytes,bytes)" \
         "$claim_data_1" \
         "$bridge_asset_data" \
@@ -898,9 +839,9 @@ setup() {
     log "📝 testClaim tx hash: $test_claim_tx_hash"
 
     # ========================================
-    # STEP 11: Verify claim events in aggkit
+    # STEP 10: Verify claim events in aggkit
     # ========================================
-    log "🔍 STEP 11: Verifying claim events were processed correctly by aggkit"
+    log "🔍 STEP 10: Verifying claim events were processed correctly by aggkit"
 
     # Verify first claim was processed (contract destination)
     log "🔍 Validating first asset claim processing (contract destination)"
@@ -1014,13 +955,13 @@ setup() {
     log "✅ Third claim validated successfully"
 
     # ========================================
-    # STEP 12: Final balance verification
+    # STEP 11: Final balance verification
     # ========================================
-    log "💰 STEP 12: Verifying final balances"
+    log "💰 STEP 11: Verifying final balances"
 
     # Get final balances (in eth)
     local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$mock_sc_addr")
+    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
     local final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
     local final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
@@ -1052,9 +993,9 @@ setup() {
     fi
 
     # ========================================
-    # STEP 13: Verify claims using is_claimed function
+    # STEP 12: Verify claims using is_claimed function
     # ========================================
-    log "🔍 STEP 13: Verifying claims using is_claimed function"
+    log "🔍 STEP 12: Verifying claims using is_claimed function"
 
     # ========================================
     # Check first claim (should be claimed)
@@ -1109,9 +1050,9 @@ setup() {
     log "🎉 All is_claimed verifications passed successfully!"
 
     # ========================================
-    # STEP 14: Verify bridge event from aggkit
+    # STEP 13: Verify bridge event from aggkit
     # ========================================
-    log "🔍 STEP 14: Verifying bridge event from aggkit with tx hash: $test_claim_tx_hash"
+    log "🔍 STEP 13: Verifying bridge event from aggkit with tx hash: $test_claim_tx_hash"
 
     # Get bridge details
     run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 300 10 "$aggkit_bridge_url"
