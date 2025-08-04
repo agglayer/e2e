@@ -83,7 +83,8 @@ setup() {
     # verify the message is bridged correctly
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
-    local claim_metadata=$(echo "$output" | jq -r '.metadata')
+    local claim_metadata
+    claim_metadata=$(echo "$output" | jq -r '.metadata')
     log "Claim metadata: $claim_metadata"
     assert_equal "$claim_metadata" "$meta_bytes"
 }
