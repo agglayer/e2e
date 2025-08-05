@@ -1,3 +1,5 @@
+# shellcheck disable=SC2154,SC2034
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -764,9 +766,6 @@ setup() {
         return 1
     fi
 
-    # Get the current block number
-    bridge_event_from_block=$(cast block-number --rpc-url "$l1_rpc_url")
-
     log "⏳ Calling testClaim..."
     if ! test_claim_output=$(cast send \
         "$claim_reentrancy_sc_addr" \
@@ -839,8 +838,10 @@ setup() {
 
     # Validate first claim proofs
     log "🔍 Validating first claim proofs"
-    local claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_1_proof_local_exit_root
+    claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_1_proof_rollup_exit_root
+    claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
     assert_equal "$claim_1_proof_local_exit_root" "$proof_local_exit_root_1"
     assert_equal "$claim_1_proof_rollup_exit_root" "$proof_rollup_exit_root_1"
