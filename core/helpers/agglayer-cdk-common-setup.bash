@@ -130,7 +130,7 @@ _resolve_required_urls() {
 # Outputs:
 #   - Prints the resolved URL to stdout if successful
 #   - Prints errors to stderr
-#   - Exits with code 1 if requirrequireded_flag is "true" and no URL is found
+#   - Exits with code 1 if required flag is "true" and no URL is found
 #
 # Example:
 #   _resolve_url_from_nodes "node1" "rpc" "node2" "rest" "Could not resolve URL" true
