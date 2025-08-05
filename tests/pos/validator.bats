@@ -9,7 +9,7 @@ setup() {
 
 function generate_new_keypair() {
   mnemonic=$(cast wallet new-mnemonic --json | jq --raw-output '.mnemonic')
-  polycli wallet inspect --mnemonic "${mnemonic}" --addresses 1 >key.json
+  polycli wallet inspect --mnemonic "${mnemonic}" --addresses 1 > key.json
   address=$(jq --raw-output '.Addresses[0].ETHAddress' key.json)
   public_key=0x$(jq --raw-output '.Addresses[0].HexFullPublicKey' key.json)
   private_key=$(jq --raw-output '.Addresses[0].HexPrivateKey' key.json)
@@ -121,10 +121,11 @@ function generate_new_keypair() {
   echo "Funding the validator account with ETH..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${validator_address}"
 
-  echo "Funding the validator acount with MATIC tokens..."
-  deposit_amount=$(cast to-unit 10ether wei)      # minimal deposit: 1000000000000000000 (1 ether)
-  heimdall_fee_amount=$(cast to-unit 10ether wei) # minimal heimdall fee: 1000000000000000000 (1 ether)
+  echo "Funding the validator account with MATIC tokens..."
+  deposit_amount=$(cast to-unit 1ether wei)      # minimum deposit: 1000000000000000000 (1 ether)
+  heimdall_fee_amount=$(cast to-unit 1ether wei) # minimum heimdall fee: 1000000000000000000 (1 ether)
   funding_amount=$((deposit_amount + heimdall_fee_amount))
+
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${funding_amount}"
 
@@ -132,12 +133,10 @@ function generate_new_keypair() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${funding_amount}"
 
-  # TODO: Find out why the call is reverting
-  # Error: server returned an error response: error code -32000: execution reverted
-  echo "Adding the new validator to the validator set..."
+  echo "Adding new validator to the validator set..."
   accept_delegation=false
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "stakeFor(address,uint,uint,bool,bytes)" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "stakeForPOL(address,uint,uint,bool,bytes)" \
     "${validator_address}" "${deposit_amount}" "${heimdall_fee_amount}" "${accept_delegation}" "${validator_public_key}"
 
   echo "Monitoring the validator count on Heimdall..."

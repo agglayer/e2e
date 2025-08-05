@@ -53,6 +53,12 @@ on:
         type: string
         default: ""
 
+      event-name:
+        description: "Event name to be used for the test"
+        required: false
+        type: string
+        default: ""
+
 jobs:
   test-single-e2e:
     name: Single chain E2E test
@@ -137,19 +143,29 @@ jobs:
             bats ./tests/aggkit/global-index-pp-old-contracts.bats \
                  || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
-          bats ./tests/aggkit/bridge-e2e.bats \
-               ./tests/aggkit/e2e-pp.bats \
-               ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
-               ./tests/aggkit/internal-claims.bats \
-               ./tests/aggkit/claim-reetrancy.bats \
+            bats ./tests/aggkit/bridge-e2e.bats \
+                 ./tests/aggkit/e2e-pp.bats \
+                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
                  || exit 1
+
+            if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
+              bats ./tests/aggkit/bridge-e2e-nightly.bats \
+                   ./tests/aggkit/internal-claims.bats \
+                   ./tests/aggkit/claim-reetrancy.bats \
+                   || exit 1
+            fi
           else
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
                  ./tests/aggkit/bridge-e2e-custom-gas.bats \
-                 ./tests/aggkit/internal-claims.bats \
-                 ./tests/aggkit/claim-reetrancy.bats \
                  || exit 1
+
+            if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
+              bats ./tests/aggkit/bridge-e2e-nightly.bats \
+                   ./tests/aggkit/internal-claims.bats \
+                   ./tests/aggkit/claim-reetrancy.bats \
+                   || exit 1
+            fi
           fi
           popd
 
