@@ -177,12 +177,16 @@ setup() {
     log "💰 STEP 6: Recording initial balances for verification"
 
     # Get initial token balances (in ETH units)
-    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
+    local initial_receiver_balance
+    initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
+    local initial_contract_balance
+    initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
     # Convert to wei for precise comparison
-    local initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
-    local initial_contract_balance_wei=$(cast to-wei "$initial_contract_balance" ether)
+    local initial_receiver_balance_wei
+    initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
+    local initial_contract_balance_wei
+    initial_contract_balance_wei=$(cast to-wei "$initial_contract_balance" ether)
 
     log "📊 Initial receiver balance: $initial_receiver_balance ETH ($initial_receiver_balance_wei wei)"
     log "📊 Initial contract balance: $initial_contract_balance ETH ($initial_contract_balance_wei wei)"
@@ -255,14 +259,22 @@ setup() {
 
     # Validate first claim parameters
     log "🔍 Validating first claim parameters"
-    local claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
-    local claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
-    local claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
-    local claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
-    local claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
-    local claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
-    local claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
-    local claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
+    local claim_1_mainnet_exit_root
+    claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
+    local claim_1_rollup_exit_root
+    claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
+    local claim_1_origin_network
+    claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
+    local claim_1_origin_address
+    claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
+    local claim_1_destination_network
+    claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
+    local claim_1_destination_address
+    claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
+    local claim_1_amount
+    claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
+    local claim_1_metadata
+    claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
 
     # Assert parameter consistency
     assert_equal "$claim_1_mainnet_exit_root" "$mainnet_exit_root_1"
@@ -276,8 +288,10 @@ setup() {
 
     # Validate first claim proofs
     log "🔍 Validating first claim proofs"
-    local claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_1_proof_local_exit_root
+    claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_1_proof_rollup_exit_root
+    claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
     assert_equal "$claim_1_proof_local_exit_root" "$proof_local_exit_root_1"
     assert_equal "$claim_1_proof_rollup_exit_root" "$proof_rollup_exit_root_1"
@@ -292,14 +306,22 @@ setup() {
 
     # Validate second claim parameters
     log "🔍 Validating second claim parameters"
-    local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
-    local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
-    local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
-    local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
-    local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
-    local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
-    local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
-    local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
+    local claim_2_mainnet_exit_root
+    claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+    local claim_2_rollup_exit_root
+    claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+    local claim_2_origin_network
+    claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
+    local claim_2_origin_address
+    claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
+    local claim_2_destination_network
+    claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
+    local claim_2_destination_address
+    claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
+    local claim_2_amount
+    claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+    local claim_2_metadata
+    claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
     # Assert parameter consistency
     assert_equal "$claim_2_mainnet_exit_root" "$mainnet_exit_root_2"
@@ -313,8 +335,10 @@ setup() {
 
     # Validate second claim proofs
     log "🔍 Validating second claim proofs"
-    local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_2_proof_local_exit_root
+    claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_2_proof_rollup_exit_root
+    claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
     assert_equal "$claim_2_proof_local_exit_root" "$proof_local_exit_root_2"
     assert_equal "$claim_2_proof_rollup_exit_root" "$proof_rollup_exit_root_2"
@@ -335,7 +359,7 @@ setup() {
     log "📊 Initial receiver balance(wei): $initial_receiver_balance_wei"
     log "📊 Initial contract balance(wei): $initial_contract_balance_wei"
     log "📊 Final receiver balance(wei): $final_receiver_balance_wei"
-    log "📊 Final contract balance(wei): $claim_reentrancy_sc_addr $final_contract_balance_wei"
+    log "📊 Final contract balance(wei): $final_contract_balance_wei"
 
     # Verify contract received second asset
     local expected_contract_balance_wei=$(echo "$initial_contract_balance_wei + $amount_2" | bc)
@@ -343,7 +367,7 @@ setup() {
         log "✅ Contract balance correctly increased by second asset amount"
     else
         log "❌ Contract balance verification failed"
-        log "Expected: $expected_contract_balance, Got: $final_contract_balance"
+        log "Expected: $expected_contract_balance_wei, Got: $final_contract_balance"
         exit 1
     fi
 
@@ -527,13 +551,20 @@ setup() {
     local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
     local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
     local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
-    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
-    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
-    local deposit_count_3=$(echo "$claim_params_3" | jq -r '.deposit_count')
+    local origin_network_3
+    origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3
+    origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3
+    destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3
+    destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3
+    amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3
+    metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
+    local deposit_count_3
+    deposit_count_3=$(echo "$claim_params_3" | jq -r '.deposit_count')
 
     log "✅ Third asset claim parameters extracted successfully"
     log "📊 Global index: $global_index_3, Amount: $amount_3 wei"
@@ -577,12 +608,16 @@ setup() {
     log "💰 STEP 8: Recording initial balances for verification"
 
     # Get initial token balances (in ETH units)
-    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
+    local initial_receiver_balance
+    initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
+    local initial_contract_balance
+    initial_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
     # Convert to wei for precise comparison
-    local initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
-    local initial_contract_balance_wei=$(cast to-wei "$initial_contract_balance" ether)
+    local initial_receiver_balance_wei
+    initial_receiver_balance_wei=$(cast to-wei "$initial_receiver_balance" ether)
+    local initial_contract_balance_wei
+    initial_contract_balance_wei=$(cast to-wei "$initial_contract_balance" ether)
 
     log "📊 Initial receiver balance: $initial_receiver_balance ETH ($initial_receiver_balance_wei wei)"
     log "📊 Initial contract balance: $initial_contract_balance ETH ($initial_contract_balance_wei wei)"
@@ -599,7 +634,8 @@ setup() {
     log "🔍 Debug - origin_network_1: $origin_network_1"
     log "🔍 Debug - destination_network_1: $destination_network_1"
 
-    local claim_data_1=$(cast abi-encode \
+    local claim_data_1
+    claim_data_1=$(cast abi-encode \
         "tuple(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "${proof_local_exit_root_1[@]}" \
         "${proof_rollup_exit_root_1[@]}" \
@@ -621,7 +657,8 @@ setup() {
     receiver_addr_bridge=0xa9bAE041CE268C90c54F588db794ab9f18686BBD
     destination_network_bridge_tx=2
     amount_bridge_wei=$(cast to-wei "$amount_bridge" ether)
-    local bridge_asset_data=$(cast abi-encode \
+    local bridge_asset_data
+    bridge_asset_data=$(cast abi-encode \
         "tuple(uint32,address,uint256,address,bool,bytes)" \
         "$destination_network_bridge_tx" \
         "$receiver_addr_bridge" \
@@ -633,7 +670,8 @@ setup() {
 
     # Encode claimData2 (third asset claim parameters - destination: deployer)
     log "📦 Encoding claimData2 (third asset - deployer destination)"
-    local claim_data_2=$(cast abi-encode \
+    local claim_data_2
+    claim_data_2=$(cast abi-encode \
         "tuple(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "${proof_local_exit_root_3[@]}" \
         "${proof_rollup_exit_root_3[@]}" \
@@ -650,7 +688,8 @@ setup() {
     log "📦 claim_data_2: $claim_data_2"
 
     # Calculate gas price for testClaim
-    local test_claim_gas_price=$(bc -l <<<"$gas_price * 2" | sed 's/\..*//')
+    local test_claim_gas_price
+    test_claim_gas_price=$(bc -l <<<"$gas_price * 2" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         log "❌ Failed to calculate gas price"
         return 1
@@ -684,7 +723,8 @@ setup() {
     log "📋 testClaim output: $test_claim_output"
 
     # extract tx hash from test_claim_output
-    local test_claim_tx_hash=$(echo "$test_claim_output" | jq -r '.transactionHash')
+    local test_claim_tx_hash
+    test_claim_tx_hash=$(echo "$test_claim_output" | jq -r '.transactionHash')
     log "📝 testClaim tx hash: $test_claim_tx_hash"
 
     # ========================================
@@ -701,14 +741,22 @@ setup() {
 
     # Validate first claim parameters
     log "🔍 Validating first claim parameters"
-    local claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
-    local claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
-    local claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
-    local claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
-    local claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
-    local claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
-    local claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
-    local claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
+    local claim_1_mainnet_exit_root
+    claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
+    local claim_1_rollup_exit_root
+    claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
+    local claim_1_origin_network
+    claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
+    local claim_1_origin_address
+    claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
+    local claim_1_destination_network
+    claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
+    local claim_1_destination_address
+    claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
+    local claim_1_amount
+    claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
+    local claim_1_metadata
+    claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
 
     # Assert parameter consistency
     assert_equal "$claim_1_mainnet_exit_root" "$mainnet_exit_root_1"
@@ -738,14 +786,22 @@ setup() {
 
     # Validate second claim parameters
     log "🔍 Validating second claim parameters"
-    local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
-    local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
-    local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
-    local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
-    local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
-    local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
-    local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
-    local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
+    local claim_2_mainnet_exit_root
+    claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+    local claim_2_rollup_exit_root
+    claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+    local claim_2_origin_network
+    claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
+    local claim_2_origin_address
+    claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
+    local claim_2_destination_network
+    claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
+    local claim_2_destination_address
+    claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
+    local claim_2_amount
+    claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+    local claim_2_metadata
+    claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
     # Assert parameter consistency
     assert_equal "$claim_2_mainnet_exit_root" "$mainnet_exit_root_2"
@@ -759,8 +815,10 @@ setup() {
 
     # Validate second claim proofs
     log "🔍 Validating second claim proofs"
-    local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_2_proof_local_exit_root
+    claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_2_proof_rollup_exit_root
+    claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
     assert_equal "$claim_2_proof_local_exit_root" "$proof_local_exit_root_2"
     assert_equal "$claim_2_proof_rollup_exit_root" "$proof_rollup_exit_root_2"
@@ -775,14 +833,22 @@ setup() {
 
     # Validate third claim parameters
     log "🔍 Validating third claim parameters"
-    local claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
-    local claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
-    local claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
-    local claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
-    local claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
-    local claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
-    local claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
-    local claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
+    local claim_3_mainnet_exit_root
+    claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
+    local claim_3_rollup_exit_root
+    claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
+    local claim_3_origin_network
+    claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
+    local claim_3_origin_address
+    claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
+    local claim_3_destination_network
+    claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
+    local claim_3_destination_address
+    claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
+    local claim_3_amount
+    claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
+    local claim_3_metadata
+    claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
 
     # Assert parameter consistency
     assert_equal "$claim_3_mainnet_exit_root" "$mainnet_exit_root_3"
@@ -796,8 +862,10 @@ setup() {
 
     # Validate third claim proofs
     log "🔍 Validating third claim proofs"
-    local claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_3_proof_local_exit_root
+    claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local claim_3_proof_rollup_exit_root
+    claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
     assert_equal "$claim_3_proof_local_exit_root" "$proof_local_exit_root_3"
     assert_equal "$claim_3_proof_rollup_exit_root" "$proof_rollup_exit_root_3"
