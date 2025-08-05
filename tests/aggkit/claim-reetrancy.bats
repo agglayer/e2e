@@ -15,14 +15,16 @@ setup() {
     fi
 
     # Extract bytecode from contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$claim_reentrancy_sc_artifact_path")
+    local bytecode
+    bytecode=$(jq -r '.bytecode.object // .bytecode' "$claim_reentrancy_sc_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
         log "❌ Error: Failed to read bytecode from $claim_reentrancy_sc_artifact_path"
         exit 1
     fi
 
     # ABI-encode constructor argument (bridge address)
-    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
+    local encoded_args
+    encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
     if [[ -z "$encoded_args" ]]; then
         log "❌ Failed to ABI-encode constructor argument"
         exit 1
@@ -49,7 +51,8 @@ setup() {
     fi
 
     # Extract deployed contract address
-    readonly claim_reentrancy_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
+    readonly claim_reentrancy_sc_addr
+    claim_reentrancy_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
     if [[ -z "$claim_reentrancy_sc_addr" ]]; then
         log "❌ Failed to extract deployed contract address"
         log "$deploy_output"
@@ -82,20 +85,32 @@ setup() {
     log "📋 STEP 2: Retrieving claim parameters for first asset"
 
     # Use the helper function to extract claim parameters
-    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local claim_params_1
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
 
     # Parse the JSON response to extract individual parameters
-    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
-    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
-    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
-    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
-    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
+    local proof_local_exit_root_1
+    proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1
+    proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1
+    global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1
+    mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1
+    rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1
+    origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1
+    origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1
+    destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1
+    destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1
+    amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1
+    metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
     log "📊 Global index: $global_index_1, Amount: $amount_1 wei"
@@ -120,20 +135,32 @@ setup() {
     log "📋 STEP 4: Retrieving claim parameters for second asset"
 
     # Use the helper function to extract claim parameters
-    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local claim_params_2
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
 
     # Parse the JSON response to extract individual parameters
-    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
-    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
-    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
-    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
-    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
+    local proof_local_exit_root_2
+    proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2
+    proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2
+    global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2
+    mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2
+    rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2
+    origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2
+    origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2
+    destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2
+    destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2
+    amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2
+    metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
     log "📊 Global index: $global_index_2, Amount: $amount_2 wei"
@@ -207,7 +234,8 @@ setup() {
     log "🔄 STEP 8: Testing reentrancy protection - attempting to claim first asset again"
 
     # Calculate gas price for reentrant claim
-    local comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
+    local comp_gas_price
+    comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         log "❌ Failed to calculate gas price"
         return 1
@@ -221,7 +249,8 @@ setup() {
     log "   Gas price: $comp_gas_price wei"
 
     # Create temporary file for error capture
-    local tmp_response=$(mktemp)
+    local tmp_response
+    tmp_response=$(mktemp)
     local revert_result
 
     # Attempt reentrant claim and capture any errors
@@ -350,11 +379,15 @@ setup() {
     log "💰 STEP 10: Verifying final balances"
 
     # Get final balances (in eth)
-    local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
+    local final_receiver_balance
+    final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
+    local final_contract_balance
+    final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
-    local final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
-    local final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
+    local final_receiver_balance_wei
+    final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
+    local final_contract_balance_wei
+    final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
 
     log "📊 Initial receiver balance(wei): $initial_receiver_balance_wei"
     log "📊 Initial contract balance(wei): $initial_contract_balance_wei"
@@ -362,17 +395,19 @@ setup() {
     log "📊 Final contract balance(wei): $final_contract_balance_wei"
 
     # Verify contract received second asset
-    local expected_contract_balance_wei=$(echo "$initial_contract_balance_wei + $amount_2" | bc)
+    local expected_contract_balance_wei
+    expected_contract_balance_wei=$(echo "$initial_contract_balance_wei + $amount_2" | bc)
     if [[ "$final_contract_balance_wei" == "$expected_contract_balance_wei" ]]; then
         log "✅ Contract balance correctly increased by second asset amount"
     else
         log "❌ Contract balance verification failed"
-        log "Expected: $expected_contract_balance_wei, Got: $final_contract_balance"
+        log "Expected: $expected_contract_balance_wei, Got: $final_contract_balance_wei"
         exit 1
     fi
 
     # Verify receiver received first asset
-    local expected_receiver_balance_wei=$(echo "$initial_receiver_balance_wei + $amount_1" | bc)
+    local expected_receiver_balance_wei
+    expected_receiver_balance_wei=$(echo "$initial_receiver_balance_wei + $amount_1" | bc)
     if [[ "$final_receiver_balance_wei" == "$expected_receiver_balance_wei" ]]; then
         log "✅ Receiver balance correctly increased by first asset amount"
     else
@@ -393,8 +428,10 @@ setup() {
     log "🔍 STEP 11: Verifying claims using is_claimed function"
 
     # Get deposit counts for all claims
-    local deposit_count_1=$(echo "$claim_params_1" | jq -r '.deposit_count')
-    local deposit_count_2=$(echo "$claim_params_2" | jq -r '.deposit_count')
+    local deposit_count_1
+    deposit_count_1=$(echo "$claim_params_1" | jq -r '.deposit_count')
+    local deposit_count_2
+    deposit_count_2=$(echo "$claim_params_2" | jq -r '.deposit_count')
 
     # ========================================
     # Check first claim (should be claimed)
@@ -493,21 +530,34 @@ setup() {
     log "📋 STEP 4: Retrieving claim parameters for first asset (contract destination)"
 
     # Use the helper function to extract claim parameters
-    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local claim_params_1
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
 
     # Parse the JSON response to extract individual parameters
-    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
-    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
-    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
-    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
-    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
-    local deposit_count_1=$(echo "$claim_params_1" | jq -r '.deposit_count')
+    local proof_local_exit_root_1
+    proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1
+    proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1
+    global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1
+    mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1
+    rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1
+    origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1
+    origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1
+    destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1
+    destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1
+    amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1
+    metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
+    local deposit_count_1
+    deposit_count_1=$(echo "$claim_params_1" | jq -r '.deposit_count')
 
     log "✅ First asset claim parameters extracted successfully"
     log "📊 Global index: $global_index_1, Amount: $amount_1 wei"
@@ -518,21 +568,34 @@ setup() {
     log "📋 STEP 5: Retrieving claim parameters for second asset (deployer destination)"
 
     # Use the helper function to extract claim parameters
-    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local claim_params_2
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
 
     # Parse the JSON response to extract individual parameters
-    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
-    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
-    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
-    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
-    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
-    local deposit_count_2=$(echo "$claim_params_2" | jq -r '.deposit_count')
+    local proof_local_exit_root_2
+    proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2
+    proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2
+    global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2
+    mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2
+    rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2
+    origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2
+    origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2
+    destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2
+    destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2
+    amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2
+    metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
+    local deposit_count_2
+    deposit_count_2=$(echo "$claim_params_2" | jq -r '.deposit_count')
 
     log "✅ Second asset claim parameters extracted successfully"
     log "📊 Global index: $global_index_2, Amount: $amount_2 wei"
@@ -543,14 +606,20 @@ setup() {
     log "📋 STEP 6: Retrieving claim parameters for third asset (deployer destination)"
 
     # Use the helper function to extract claim parameters
-    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local claim_params_3
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
 
     # Parse the JSON response to extract individual parameters
-    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
-    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
-    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local proof_local_exit_root_3
+    proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3
+    proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3
+    global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3
+    mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3
+    rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
     local origin_network_3
     origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
     local origin_address_3
@@ -877,11 +946,15 @@ setup() {
     log "💰 STEP 11: Verifying final balances"
 
     # Get final balances (in eth)
-    local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
-    local final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
+    local final_receiver_balance
+    final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$receiver_addr")
+    local final_contract_balance
+    final_contract_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$claim_reentrancy_sc_addr")
 
-    local final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
-    local final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
+    local final_receiver_balance_wei
+    final_receiver_balance_wei=$(cast to-wei "$final_receiver_balance" ether)
+    local final_contract_balance_wei
+    final_contract_balance_wei=$(cast to-wei "$final_contract_balance" ether)
 
     log "📊 Initial receiver balance(wei): $initial_receiver_balance_wei"
     log "📊 Initial contract balance(wei): $initial_contract_balance_wei"
@@ -889,7 +962,8 @@ setup() {
     log "📊 Final contract balance(wei): $final_contract_balance_wei"
 
     # Verify contract received first asset
-    local expected_contract_balance_wei=$(echo "$initial_contract_balance_wei + $amount_1" | bc)
+    local expected_contract_balance_wei
+    expected_contract_balance_wei=$(echo "$initial_contract_balance_wei + $amount_1" | bc)
     if [[ "$final_contract_balance_wei" == "$expected_contract_balance_wei" ]]; then
         log "✅ Contract balance correctly increased by first asset amount"
     else
@@ -899,8 +973,10 @@ setup() {
     fi
 
     # Verify receiver balance increased by second and third assets
-    local total_received_by_sender=$(echo "$amount_2 + $amount_3" | bc)
-    local expected_receiver_balance_wei=$(echo "$initial_receiver_balance_wei + $total_received_by_sender" | bc)
+    local total_received_by_sender
+    total_received_by_sender=$(echo "$amount_2 + $amount_3" | bc)
+    local expected_receiver_balance_wei
+    expected_receiver_balance_wei=$(echo "$initial_receiver_balance_wei + $total_received_by_sender" | bc)
     if [[ "$final_receiver_balance_wei" == "$expected_receiver_balance_wei" ]]; then
         log "✅ Receiver balance correctly increased by expected amount"
     else
@@ -976,8 +1052,10 @@ setup() {
     assert_success
     local bridge_test_claim="$output"
     log "📝 bridge_test_claim: $bridge_test_claim"
-    local amount_test_claim=$(echo "$bridge_test_claim" | jq -r '.amount')
-    local destination_address_test_claim=$(echo "$bridge_test_claim" | jq -r '.destination_address')
+    local amount_test_claim
+    amount_test_claim=$(echo "$bridge_test_claim" | jq -r '.amount')
+    local destination_address_test_claim
+    destination_address_test_claim=$(echo "$bridge_test_claim" | jq -r '.destination_address')
     assert_equal "$amount_test_claim" "$amount_bridge_wei"
     assert_equal "$destination_address_test_claim" "$receiver_addr_bridge"
 
