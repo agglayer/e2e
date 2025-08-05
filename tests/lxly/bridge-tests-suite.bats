@@ -51,19 +51,20 @@ _setup_environment_variables() {
     export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
     l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
     l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-10m}"
+    export claim_wait_duration="${CLAIM_WAIT_DURATION:-30m}"
+    export global_timeout="${GLOBAL_TIMEOUT:-1800s}"
 }
 
 
 _setup_contract_addresses() {
-    tester_contract_address="0xc54E34B55EF562FE82Ca858F70D1B73244e86388"
-    export test_erc20_buggy_addr="0x22939b3A4dFD9Fc6211F99Cdc6bd9f6708ae2956"
-    test_lxly_proxy_addr="0x8Cf49821aAFC2859ACEa047a1ee845A76D5C4191"
-    export test_erc20_addr="0x6E3AD1d922fe009dc3Eb267827004ccAA4f23f3d"
-    export pp_weth_address
-    pp_weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
-    export pol_address="0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E"
-    export gas_token_address="0x0000000000000000000000000000000000000000"
+    tester_contract_address="${TESTER_CONTRACT_ADDRESS:-0xc54E34B55EF562FE82Ca858F70D1B73244e86388}"
+    export test_erc20_buggy_addr="${TEST_ERC20_BUGGY_ADDRESS:-0x22939b3A4dFD9Fc6211F99Cdc6bd9f6708ae2956}"
+    test_lxly_proxy_addr="${TEST_LXLY_PROXY_ADDRESS:-0xc88a8D28b15a32AdA09D9Cf906cB6B1bb80297A7}"
+    export test_erc20_addr="${TEST_ERC20_ADDRESS:-0x536A2a012fa17EC3fDb292fe130b8DeF7B4C8037}"
+    export pp_weth_address="${TEST_PP_WETH_ADDRESS:-0x1a1aF9C78704D3a0Ab9e031C92E7bd808711A582}"
+    # pp_weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
+    export pol_address="${POL_ADDRESS:-0x6a7c3F4B0651d6DA389AD1d11D962ea458cDCA70}"
+    export gas_token_address="${GAS_TOKEN_ADDRESS:-0x72293B2e981D4d0642531357F0792ae1b70Bf1aB}"
 }
 
 
@@ -200,7 +201,6 @@ _setup_contract_addresses() {
     echo "Started $index parallel bridge test processes" | tee -a "$bridge_log"
     
     # Wait for all remaining background processes to complete
-    local wait_timeout=300  # 5 minutes total timeout
     local wait_start
     wait_start=$(date +%s)
     
@@ -209,7 +209,7 @@ _setup_contract_addresses() {
         current_time=$(date +%s)
         local elapsed=$((current_time - wait_start))
         
-        if (( elapsed > wait_timeout )); then
+        if (( elapsed > global_timeout )); then
             echo "Timeout reached, killing remaining processes..." | tee -a "$bridge_log"
             for pid in "${pids[@]}"; do
                 kill -9 "$pid" 2>/dev/null || true

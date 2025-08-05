@@ -6,6 +6,7 @@ setup() {
 
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    global_timeout="${GLOBAL_TIMEOUT:-1800s}"
 
     iteration_count=20
 
@@ -35,6 +36,7 @@ setup() {
         if [[ $index -gt "$iteration_count" ]]; then
             break;
         fi
+        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&3
         # this should work
         run cast send \
             --nonce "$nonce" \
@@ -53,6 +55,7 @@ setup() {
             return 1
         fi
         index=$((index+1));
+        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&3
         # this should fail
         run cast send \
             --nonce "$nonce" \

@@ -6,6 +6,7 @@ setup_file() {
 
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    global_timeout="${GLOBAL_TIMEOUT:-1800s}"
 
     # source existing helper functions for ephemeral account setup
     source "./tests/lxly/assets/bridge-tests-helper.bash"

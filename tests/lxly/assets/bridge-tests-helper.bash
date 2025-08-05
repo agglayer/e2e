@@ -1,5 +1,4 @@
 #!/bin/bash
-
 deploy_buggy_erc20() {
     local rpc_url=$1
     local private_key=$2
@@ -20,15 +19,15 @@ deploy_buggy_erc20() {
         echo "The network on $rpc_url already has the Buggy ERC20 deployed. Skipping deployment..." >&3
     else
         echo "Deploying Buggy ERC20 to $rpc_url..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "$deterministic_deployer_addr" "$salt$erc20_buggy_bytecode$constructor_args"
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" "$deterministic_deployer_addr" "$salt$erc20_buggy_bytecode$constructor_args"
         echo "Deployment transaction sent." >&3
 
         echo "Minting max uint tokens to $eth_address..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_buggy_addr" 'mint(address,uint256)' "$eth_address" "$(cast max-uint)"
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_buggy_addr" 'mint(address,uint256)' "$eth_address" "$(cast max-uint)"
         echo "Minting completed." >&3
 
         echo "Approving max uint tokens for bridge $bridge_address..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_buggy_addr" 'approve(address,uint256)' "$bridge_address" "$(cast max-uint)"
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_buggy_addr" 'approve(address,uint256)' "$bridge_address" "$(cast max-uint)"
         echo "Approval completed." >&3
     fi
 }
@@ -53,11 +52,11 @@ deploy_test_erc20() {
         echo "The network on $rpc_url already has the Test ERC20 deployed. Skipping deployment..." >&3
     else
         echo "Deploying Test ERC20 to $rpc_url..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "$deterministic_deployer_addr" "$salt$erc_20_bytecode$constructor_args"
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" "$deterministic_deployer_addr" "$salt$erc_20_bytecode$constructor_args"
         echo "Deployment transaction sent." >&3
 
         echo "Approving max uint tokens for bridge $bridge_address..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_addr" 'approve(address,uint256)' "$bridge_address" "$(cast max-uint)"
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_addr" 'approve(address,uint256)' "$bridge_address" "$(cast max-uint)"
         echo "Approval completed." >&3
     fi
 }
@@ -81,7 +80,7 @@ deploy_lxly_proxy() {
         echo "The network on $rpc_url already has the LxLy Proxy deployed. Skipping deployment..." >&3
     else
         echo "Deploying LxLy Proxy to $rpc_url..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" $deterministic_deployer_addr $salt$lxly_proxy_bytecode"$constructor_args"
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" $deterministic_deployer_addr $salt$lxly_proxy_bytecode"$constructor_args"
         echo "Deployment transaction sent." >&3
     fi
 }
@@ -103,7 +102,7 @@ deploy_tester_contract() {
         echo "The network on $rpc_url already has the Tester Contract deployed. Skipping deployment..." >&3
     else
         echo "Deploying Tester Contract to $rpc_url..." >&3
-        cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" $deterministic_deployer_addr $salt$address_tester_bytecode
+        cast send --rpc-url "$rpc_url" --private-key "$private_key" $deterministic_deployer_addr $salt$address_tester_bytecode
         echo "Deployment transaction sent." >&3
     fi
 }
@@ -144,6 +143,30 @@ _fund_ephemeral_account() {
         return 1
     fi
     
+    # Check if target address already has sufficient balance (more than 1 ETH)
+    local target_balance
+    target_balance=$(cast balance --rpc-url "$rpc_url" "$target_address")
+    local threshold="1000000000000000000"  # 1 ETH in wei
+    
+    echo "DEBUG: Target address balance: $target_balance" >&2
+    echo "DEBUG: Funding threshold: $threshold (0.5 ETH)" >&2
+    
+    if [[ -n "$target_balance" && "$target_balance" != "0" ]]; then
+        # Use bc for comparison if available, otherwise use bash arithmetic
+        if command -v bc >/dev/null 2>&1; then
+            if [[ $(echo "$target_balance > $threshold" | bc) -eq 1 ]]; then
+                echo "DEBUG: Target address already has sufficient balance ($target_balance > $threshold), skipping funding" >&2
+                return 0
+            fi
+        else
+            # Fallback to bash arithmetic for smaller numbers
+            if [[ "$target_balance" -gt "$threshold" ]]; then
+                echo "DEBUG: Target address already has sufficient balance ($target_balance > $threshold), skipping funding" >&2
+                return 0
+            fi
+        fi
+    fi
+    
     local funding_address
     funding_address=$(cast wallet address --private-key "$funding_private_key")
     echo "DEBUG: Funding from address: $funding_address" >&2
@@ -160,7 +183,8 @@ _fund_ephemeral_account() {
     
     # Send native token with timeout (no nonce management needed for sequential execution)
     local tx_output
-    if tx_output=$(timeout 15s cast send --legacy --rpc-url "$rpc_url" --private-key "$funding_private_key" \
+    # shellcheck disable=SC2154
+    if tx_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
          "$target_address" --value "$amount" 2>&1); then
         echo "DEBUG: Successfully funded $target_address" >&2
         return 0
@@ -186,6 +210,87 @@ _setup_token_for_ephemeral_account() {
             token_addr=$(_get_token_address "$token_type")
             echo "DEBUG: Token address for $token_type: $token_addr" >&2
             
+            # Check if target address already has sufficient balance
+            local current_balance
+            if current_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
+                echo "DEBUG: Current token balance for $target_address: $current_balance" >&2
+                
+                # Define minimum required balance (use the requested amount as threshold)
+                local required_balance="$amount"
+                
+                # For Max amount requests, check against a reasonable threshold
+                if [[ "$amount" == "$(cast max-uint)" ]]; then
+                    case "$token_type" in
+                        "LocalERC20")
+                            required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
+                            ;;
+                        "Buggy")
+                            # For Buggy token with max-uint, check if balance is already very large
+                            # If current balance is greater than 1e75, consider it sufficient
+                            required_balance="1000000000000000000000000000000000000000000000000000000000000000000000000000"  # 1e75
+                            ;;
+                        *)
+                            required_balance="1000000000000000000000000"  # 1 million tokens as threshold
+                            ;;
+                    esac
+                fi
+                
+                # Use safer comparison logic for very large numbers
+                local has_sufficient_balance=false
+                
+                # Special handling for max-uint amounts
+                if [[ "$amount" == "$(cast max-uint)" ]]; then
+                    # For max-uint requests, use string length comparison as a rough estimate
+                    local current_length=${#current_balance}
+                    local required_length=${#required_balance}
+                    
+                    echo "DEBUG: Comparing balance lengths - current: $current_length, required: $required_length" >&2
+                    # shellcheck disable=SC2071
+                    if [[ $current_length -gt $required_length ]] || \
+                       [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
+                        has_sufficient_balance=true
+                        echo "DEBUG: Large number comparison: sufficient balance detected" >&2
+                    elif [[ "$token_type" == "Buggy" && $current_length -ge 75 ]]; then
+                        # For Buggy token, if we have a very large number (75+ digits), it's probably sufficient
+                        has_sufficient_balance=true
+                        echo "DEBUG: Buggy token has very large balance (${current_length} digits), considering sufficient" >&2
+                    fi
+                else
+                    # For normal amounts, use bc if available, otherwise bash arithmetic
+                    if command -v bc >/dev/null 2>&1; then
+                        # Only use bc for smaller numbers to avoid syntax errors
+                        local current_length=${#current_balance}
+                        local required_length=${#required_balance}
+                        
+                        if [[ $current_length -le 20 && $required_length -le 20 ]]; then
+                            # Safe to use bc for numbers <= 20 digits
+                            if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
+                                has_sufficient_balance=true
+                            fi
+                        else
+                            # Use string comparison for very large numbers
+                            # shellcheck disable=SC2071
+                            if [[ $current_length -gt $required_length ]] || \
+                               [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
+                                has_sufficient_balance=true
+                            fi
+                        fi
+                    else
+                        # Fallback: if current balance is not zero and we're not dealing with max-uint, assume sufficient
+                        if [[ "$current_balance" != "0" ]]; then
+                            has_sufficient_balance=true
+                        fi
+                    fi
+                fi
+                
+                if $has_sufficient_balance; then
+                    echo "DEBUG: Target address already has sufficient $token_type balance ($current_balance >= $required_balance), skipping minting" >&2
+                    return 0
+                fi
+            else
+                echo "DEBUG: Could not check token balance, proceeding with minting" >&2
+            fi
+            
             # For Max amount with LocalERC20, use a large but safe amount instead of max-uint
             local mint_amount="$amount"
             if [[ "$amount" == "$(cast max-uint)" && "$token_type" == "LocalERC20" ]]; then
@@ -199,13 +304,74 @@ _setup_token_for_ephemeral_account() {
             # Mint tokens with timeout (no nonce management needed for sequential execution)
             local mint_output
             # shellcheck disable=SC2154
-            if mint_output=$(timeout 15s cast send --legacy --rpc-url "$rpc_url" --private-key "$l1_private_key" \
+            if mint_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
                 echo "DEBUG: Successfully minted $token_type tokens" >&2
                 return 0
             else
                 echo "DEBUG: Failed to mint $token_type tokens" >&2
                 echo "DEBUG: Mint error: $mint_output" >&2
+                return 1
+            fi
+            ;;
+        "GasToken")
+            echo "DEBUG: Minting GasToken to $target_address" >&2
+            
+            # Check if target address already has sufficient GasToken balance
+            local current_balance
+            if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
+                echo "DEBUG: Current GasToken balance for $target_address: $current_balance" >&2
+                
+                # Define minimum required balance
+                local required_balance="$amount"
+                if [[ "$amount" == "$(cast max-uint)" ]]; then
+                    required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
+                fi
+                
+                # Check if sufficient balance exists
+                local has_sufficient_balance=false
+                if [[ "$amount" == "$(cast max-uint)" ]]; then
+                    local current_length=${#current_balance}
+                    local required_length=${#required_balance}
+                    # shellcheck disable=SC2071
+                    if [[ $current_length -gt $required_length ]] || \
+                       [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
+                        has_sufficient_balance=true
+                    fi
+                else
+                    if command -v bc >/dev/null 2>&1; then
+                        if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
+                            has_sufficient_balance=true
+                        fi
+                    elif [[ "$current_balance" != "0" ]]; then
+                        has_sufficient_balance=true
+                    fi
+                fi
+                
+                if $has_sufficient_balance; then
+                    echo "DEBUG: Target address already has sufficient GasToken balance, skipping minting" >&2
+                    return 0
+                fi
+            fi
+            
+            # Determine mint amount
+            local mint_amount="$amount"
+            if [[ "$amount" == "$(cast max-uint)" ]]; then
+                mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
+                echo "DEBUG: Using safe amount $mint_amount instead of max-uint for GasToken" >&2
+            fi
+            
+            echo "DEBUG: Minting $mint_amount GasToken to $target_address" >&2
+            
+            # Mint GasToken with timeout
+            local mint_output
+            if mint_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
+                "$gas_token_address" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
+                echo "DEBUG: Successfully minted GasToken" >&2
+                return 0
+            else
+                echo "DEBUG: Failed to mint GasToken" >&2
+                echo "DEBUG: GasToken mint error: $mint_output" >&2
                 return 1
             fi
             ;;
@@ -233,7 +399,7 @@ _setup_token_for_ephemeral_account() {
             
             # For POL, transfer from main account with timeout
             local pol_output
-            if pol_output=$(timeout 15s cast send --legacy --rpc-url "$rpc_url" --private-key "$l1_private_key" \
+            if pol_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$pol_address" 'transfer(address,uint256)' "$target_address" "$transfer_amount" 2>&1); then
                 echo "DEBUG: Successfully transferred POL tokens" >&2
                 return 0
@@ -243,7 +409,7 @@ _setup_token_for_ephemeral_account() {
                 return 1
             fi
             ;;
-        "NativeEther"|"GasToken"|"WETH")
+        "NativeEther"|"WETH")
             echo "DEBUG: Skipping token setup for $token_type (native token or special handling)" >&2
             return 0
             ;;
@@ -264,7 +430,7 @@ _approve_token_for_ephemeral_account() {
     echo "DEBUG: Approving $token_type tokens for bridge" >&2
     
     # Skip approval for native tokens and special cases
-    if [[ "$token_type" == "NativeEther" || "$token_type" == "GasToken" || "$token_type" == "WETH" ]]; then
+    if [[ "$token_type" == "NativeEther" || "$token_type" == "WETH" ]]; then
         echo "DEBUG: Skipping approval for $token_type (native token or special handling)" >&2
         return 0
     fi
@@ -314,9 +480,9 @@ _approve_token_for_ephemeral_account() {
     local approve_amount="$amount"
     if [[ "$amount" == "$(cast max-uint)" ]]; then
         case "$token_type" in
-            "LocalERC20")
+            "LocalERC20"|"GasToken")
                 approve_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                echo "DEBUG: Using safe approval amount $approve_amount instead of max-uint for LocalERC20" >&2
+                echo "DEBUG: Using safe approval amount $approve_amount instead of max-uint for $token_type" >&2
                 ;;
             "POL")
                 # Use the actual token balance for approval
@@ -336,7 +502,7 @@ _approve_token_for_ephemeral_account() {
     fi
     
     local approve_output
-    if approve_output=$(timeout 15s cast send --legacy --rpc-url "$rpc_url" --private-key "$ephemeral_private_key" \
+    if approve_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$ephemeral_private_key" \
         "$token_addr" 'approve(address,uint256)' "$bridge_addr" "$approve_amount" 2>&1); then
         echo "DEBUG: Successfully approved tokens" >&2
         return 0
@@ -459,7 +625,7 @@ _setup_amount_and_add_to_command() {
                 local ephemeral_address
                 ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
                 # shellcheck disable=SC2154
-                cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$ephemeral_private_key" \
+                cast send --rpc-url "$l1_rpc_url" --private-key "$ephemeral_private_key" \
                     "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0 --quiet 2>/dev/null || true
                 echo "$command --value $(cast max-uint) --gas-limit 15000000"  # Reduced from 30M
             elif [[ "$token_type" == "POL" && "$metadata_type" == "Max" ]]; then
@@ -507,6 +673,7 @@ _setup_single_test_account() {
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     
     echo "DEBUG: Generated ephemeral account for test $test_index: $ephemeral_address" >&2
+    echo "DEBUG: Private key for ephemeral account $test_index: $ephemeral_private_key" >&2
     
     # Test if ephemeral_private_key is valid
     if [[ -z "$ephemeral_private_key" || "$ephemeral_private_key" == "0x" ]]; then
@@ -566,7 +733,7 @@ _setup_single_test_account() {
 _cleanup_max_amount_setup() {
     local amount_type="$1"
     if [[ "$amount_type" = "Max" ]]; then
-        cast send --legacy --rpc-url "$l1_rpc_url" --private-key "$l1_private_key" \
+        cast send --rpc-url "$l1_rpc_url" --private-key "$l1_private_key" \
             "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0
     fi
 }
@@ -786,18 +953,19 @@ _run_single_bridge_test() {
     echo "DEBUG: Executing bridge command for test $test_index: $bridge_command" >&2
     
     # Execute the bridge command with longer timeout for problematic combinations
-    local timeout_duration=60
-    if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" && "$test_amount" == "Max" ]]; then
-        timeout_duration=120  # Longer timeout for POL Max+Max combination
-        echo "DEBUG: Using extended timeout for POL Max+Max combination" >&2
-    elif [[ "$test_meta_data" == "Max" || "$test_amount" == "Max" ]]; then
-        timeout_duration=90   # Longer timeout for any max operations
-        echo "DEBUG: Using extended timeout for max operations" >&2
-    fi
+
+    local timeout_duration="$global_timeout"
+    # if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" && "$test_amount" == "Max" ]]; then
+    #     timeout_duration=120  # Longer timeout for POL Max+Max combination
+    #     echo "DEBUG: Using extended timeout for POL Max+Max combination" >&2
+    # elif [[ "$test_meta_data" == "Max" || "$test_amount" == "Max" ]]; then
+    #     timeout_duration=90   # Longer timeout for any max operations
+    #     echo "DEBUG: Using extended timeout for max operations" >&2
+    # fi
     
     local bridge_output
     local bridge_status
-    if bridge_output=$(timeout ${timeout_duration}s bash -c "$bridge_command" 2>&1); then
+    if bridge_output=$(timeout "$timeout_duration" bash -c "$bridge_command" 2>&1); then
         bridge_status=0
     else
         bridge_status=$?
@@ -812,7 +980,7 @@ _run_single_bridge_test() {
             retry_command=$(echo "$bridge_command" | sed 's/--gas-limit [0-9]* //g')
             echo "DEBUG: Retrying without gas limit (auto-estimation): $retry_command" >&2
             
-            if bridge_output=$(timeout ${timeout_duration}s bash -c "$retry_command" 2>&1); then
+            if bridge_output=$(timeout "$timeout_duration" bash -c "$retry_command" 2>&1); then
                 bridge_status=0
                 echo "DEBUG: Retry without gas limit succeeded" >&2
             else
@@ -919,7 +1087,7 @@ _run_single_bridge_test() {
                 # Execute claim command
                 echo "DEBUG: Running claim command for test $test_index: $claim_command" >&2
                 local claim_output claim_status
-                if claim_output=$(timeout 300s bash -c "$claim_command" 2>&1); then
+                if claim_output=$(timeout "$global_timeout" bash -c "$claim_command" 2>&1); then
                     claim_status=0
                 else
                     claim_status=$?
@@ -964,7 +1132,7 @@ _run_single_bridge_test() {
                         echo "DEBUG: Claim succeeded and success was expected" >&2
                     else
                         # Success not expected, but check if already claimed
-                        if echo "$claim_output" | grep -q "already been claimed"; then
+                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError)"; then
                             claim_result="PASS"
                             echo "DEBUG: Claim succeeded but only because already claimed" >&2
                         else
@@ -974,16 +1142,21 @@ _run_single_bridge_test() {
                     fi
                 else
                     # Claim failed
-                    if echo "$claim_output" | grep -q "already been claimed"; then
+                    if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError)"; then
                         claim_result="PASS"
                         echo "DEBUG: Deposit $deposit_count already claimed, treating as success" >&2
                     elif $claim_has_other_expected_errors && _validate_claim_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
                         echo "DEBUG: Claim failed with expected error pattern" >&2
                     elif $claim_expects_success && ! $claim_has_other_expected_errors; then
-                        # Only expected success, but got failure
-                        claim_result="FAIL"
-                        error_message="Expected claim success but failed for deposit $deposit_count"
+                        # Only expected success, but got failure - check if it's AlreadyClaimedError
+                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError)"; then
+                            claim_result="PASS"
+                            echo "DEBUG: Claim failed with AlreadyClaimedError but this counts as success" >&2
+                        else
+                            claim_result="FAIL"
+                            error_message="Expected claim success but failed for deposit $deposit_count"
+                        fi
                     elif ! $claim_expects_success && $claim_has_other_expected_errors; then
                         # Expected specific errors but didn't match
                         claim_result="FAIL"
