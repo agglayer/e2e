@@ -13,7 +13,7 @@ on:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
         type: string
-        default: "beda7747972df90b1b7c32d059bc5d5c78f14aaa"
+        default: "3383463a3dda46b0096a37f6f3937fe1bcd0ac7d"
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
