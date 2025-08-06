@@ -59,16 +59,16 @@ jobs:
       - name: Find standard-tagged bats files
         id: set-matrix
         run: |
-            pushd agglayer-e2e || exit 1
-            files=$(grep -rl '# bats file_tags=standard' ./tests | grep '\.bats$' || true)
-            echo "Found files:"
-            echo "$files"
-            # Remove empty lines and ensure valid JSON array without trailing empty string
-            files_json=$(echo "$files" | awk NF | jq -R -s -c 'split("\n") | map(select(length > 0))')
-            echo "Files array:"
-            echo "$files_json"
-            echo "testfiles=$files_json" >> $GITHUB_OUTPUT
-            popd
+          pushd agglayer-e2e || exit 1
+          files=$(grep -rl '# bats file_tags=standard' ./tests | grep '\.bats$' || true)
+          echo "Found files:"
+          echo "$files"
+          # Remove empty lines and ensure valid JSON array without trailing empty string
+          files_json=$(echo "$files" | awk NF | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Files array:"
+          echo "$files_json"
+          echo "testfiles=$files_json" >> $GITHUB_OUTPUT
+          popd
 
   run-standard-battery-tests:
     runs-on: ubuntu-latest
@@ -112,34 +112,34 @@ jobs:
 
       - name: Install polycli
         run: |
-            polycli_version="${{ env.POLYCLI_VERSION }}"
-            pushd $(mktemp -d) || exit 1
-            curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
-            tar xf polycli.tar.gz
-            mv polycli_* /usr/local/bin/polycli
-            polycli version
-            popd
+          polycli_version="${{ env.POLYCLI_VERSION }}"
+          pushd $(mktemp -d) || exit 1
+          curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+          tar xf polycli.tar.gz
+          mv polycli_* /usr/local/bin/polycli
+          polycli version
+          popd
 
       - name: Install Kurtosis CLI and Foundry
-        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        uses: kurtosis-cdk/.github/actions/kurtosis-pre-run
         with:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_token: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Run Kurtosis CDK (bridge claimer disabled)
         run: |
-            pushd kurtosis-cdk || exit 1
-            sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
-            # The stack value will decided which client will be spun up.
-            if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
-              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
-            elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
-              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
-            else
-              echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
-              exit 1
-            fi
-            popd
+          pushd kurtosis-cdk || exit 1
+          sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
+          # The stack value will decided which client will be spun up.
+          if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
+            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
+          elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
+            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+          else
+            echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
+            exit 1
+          fi
+          popd
 
       - name: Inspect Kurtosis enclave
         run: |
@@ -156,7 +156,7 @@ jobs:
       - name: Run e2e tests
         run: |
           pushd agglayer-e2e || exit 1
-          
+
           if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
             export L2_RPC_URL=$(kurtosis port print "${{ env.KURTOSIS_ENCLAVE_NAME }}" op-el-1-op-geth-op-node-001 rpc)
           elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
@@ -165,7 +165,7 @@ jobs:
             echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
             exit 1
           fi
-          
+
           export ENCLAVE_NAME="${{ env.KURTOSIS_ENCLAVE_NAME }}"
 
           bats --filter-tags standard ${{ matrix.testfile }}
@@ -187,7 +187,7 @@ jobs:
 
       - name: Post kurtosis run
         if: always()
-        uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
+        uses: kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
           args_filename: ${{ steps.extract.outputs.filename }}-artifacts
@@ -233,16 +233,16 @@ jobs:
 
       - name: Install polycli
         run: |
-            polycli_version="${{ env.POLYCLI_VERSION }}"
-            pushd $(mktemp -d) || exit 1
-            curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
-            tar xf polycli.tar.gz
-            mv polycli_* /usr/local/bin/polycli
-            polycli version
-            popd
+          polycli_version="${{ env.POLYCLI_VERSION }}"
+          pushd $(mktemp -d) || exit 1
+          curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+          tar xf polycli.tar.gz
+          mv polycli_* /usr/local/bin/polycli
+          polycli version
+          popd
 
       - name: Install Kurtosis CLI and Foundry
-        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        uses: kurtosis-cdk/.github/actions/kurtosis-pre-run
         with:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_token: ${{ secrets.DOCKER_TOKEN }}
@@ -251,15 +251,15 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt install cgroup-tools
-      
+
       - name: Install pumba
         run: |
-            pushd $(mktemp -d) || exit 1
-            curl -s -L "https://github.com/alexei-led/pumba/releases/download/0.11.6/pumba_linux_amd64" > pumba
-            chmod +x pumba
-            mv pumba /usr/local/bin/pumba
-            pumba --version
-            popd
+          pushd $(mktemp -d) || exit 1
+          curl -s -L "https://github.com/alexei-led/pumba/releases/download/0.11.6/pumba_linux_amd64" > pumba
+          chmod +x pumba
+          mv pumba /usr/local/bin/pumba
+          pumba --version
+          popd
 
       - name: Install pict
         run: |
@@ -273,18 +273,18 @@ jobs:
 
       - name: Run Kurtosis CDK (bridge claimer disabled)
         run: |
-            pushd kurtosis-cdk || exit 1
-            sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
-            # The stack value will decided which client will be spun up.
-            if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
-              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
-            elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
-              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
-            else
-              echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
-              exit 1
-            fi
-            popd
+          pushd kurtosis-cdk || exit 1
+          sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
+          # The stack value will decided which client will be spun up.
+          if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
+            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
+          elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
+            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+          else
+            echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
+            exit 1
+          fi
+          popd
 
       - name: Inspect Kurtosis enclave
         run: |
@@ -304,7 +304,7 @@ jobs:
           fi
 
           export ENCLAVE_NAME="${{ env.KURTOSIS_ENCLAVE_NAME }}"
-          
+
           pushd ./scenarios/monitored-tests/pre-state
           bash generate_test_input.bash
           popd
@@ -322,7 +322,7 @@ jobs:
 
       - name: Post kurtosis run
         if: always()
-        uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
+        uses: kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
           args_filename: monitored-chaos-stress-tests-artifacts
