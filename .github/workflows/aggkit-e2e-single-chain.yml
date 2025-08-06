@@ -100,7 +100,7 @@ jobs:
           fi
 
       - name: Install Kurtosis CLI and Foundry
-        uses: kurtosis-cdk/.github/actions/kurtosis-pre-run
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
         with:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_token: ${{ secrets.DOCKER_TOKEN }}
