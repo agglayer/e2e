@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   discover-standard-tests:
-    runs-on: ubuntu-latest
+    runs-on: gke-shared-dev-runners
     env:
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
       # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
@@ -73,7 +73,7 @@ jobs:
             popd
 
   run-standard-battery-tests:
-    runs-on: ubuntu-latest
+    runs-on: gke-shared-dev-runners
     needs: discover-standard-tests
     timeout-minutes: 60
     strategy:
