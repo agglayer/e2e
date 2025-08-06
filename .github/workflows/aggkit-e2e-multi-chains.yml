@@ -65,6 +65,11 @@ on:
         type: number
         default: 2
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   test-multi-aggkit-e2e:
     name: Multi chains E2E test

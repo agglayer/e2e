@@ -4,8 +4,6 @@ run-name: Run Kurtosis CDK E2E test by @${{ github.actor }} using Kurtosis CDK r
 # TODO solve for remote callers setting bats environment variables
 # act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
 
-permissions:
-  contents: read
 on:
   workflow_call:
     inputs:
@@ -100,6 +98,11 @@ on:
         required: false
         type: string
         default: ""
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
 
 env:
   POLYCLI_VERSION: v0.1.84
