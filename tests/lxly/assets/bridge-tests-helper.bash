@@ -146,10 +146,10 @@ _fund_ephemeral_account() {
     # Check if target address already has sufficient balance (more than 1 ETH)
     local target_balance
     target_balance=$(cast balance --rpc-url "$rpc_url" "$target_address")
-    local threshold="1000000000000000000"  # 1 ETH in wei
+    local threshold="500000000000000000"  # 0.5 ETH in wei
     
     echo "DEBUG: Target address balance: $target_balance" >&2
-    echo "DEBUG: Funding threshold: $threshold (0.5 ETH)" >&2
+    echo "DEBUG: Funding threshold: $threshold" >&2
     
     if [[ -n "$target_balance" && "$target_balance" != "0" ]]; then
         # Use bc for comparison if available, otherwise use bash arithmetic

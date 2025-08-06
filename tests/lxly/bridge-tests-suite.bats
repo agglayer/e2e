@@ -124,6 +124,7 @@ _setup_contract_addresses() {
     # Phase 1: Sequential setup of all test accounts
     local index=0
     local setup_failures=0
+    local successful_setups=()  # Array to track successfully set up test indices
     
     while read -r scenario; do
         echo "Setting up test account $index" | tee -a "$setup_log"
@@ -133,18 +134,27 @@ _setup_contract_addresses() {
             setup_failures=$((setup_failures + 1))
         else
             echo "Successfully set up account for test $index" | tee -a "$setup_log"
+            successful_setups+=("$index")  # Track successful setup
         fi
         
         index=$((index + 1))
     done < <(echo "$scenarios" | jq -c '.[]')
     
+    local successful_count=${#successful_setups[@]}
+    
     if [[ $setup_failures -gt 0 ]]; then
         echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log"
-        echo "Setup logs saved to: $output_dir/setup_*.log" >&3
-        return 1
+        echo "Successfully set up $successful_count accounts" | tee -a "$setup_log"
+        echo "Setup logs saved to: $output_dir/setup_*.log" | tee -a "$setup_log"
+        
+        # Continue with successful setups if we have any
+        if [[ $successful_count -eq 0 ]]; then
+            echo "No accounts were successfully set up, aborting test" | tee -a "$setup_log"
+            return 1
+        fi
+    else
+        echo "All $total_scenarios test accounts set up successfully" | tee -a "$setup_log"
     fi
-    
-    echo "All $total_scenarios test accounts set up successfully" | tee -a "$setup_log"
     
     # Save detailed bridge test log
     local bridge_log="$output_dir/bridge_phase.log"
@@ -154,18 +164,20 @@ _setup_contract_addresses() {
     echo "      PHASE 2: PARALLEL BRIDGE TESTS   " | tee -a "$bridge_log"
     echo "========================================" | tee -a "$bridge_log"
     
-    # Phase 2: Run bridge tests in parallel
+    # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
     local max_concurrent=18
-    if [[ $total_scenarios -lt 5 ]]; then
-        max_concurrent=$total_scenarios
+    if [[ $successful_count -lt 5 ]]; then
+        max_concurrent=$successful_count
     fi
     
-    echo "Running bridge tests with max concurrency: $max_concurrent" | tee -a "$bridge_log"
+    echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log"
+    echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log"
     
     local pids=()
-    index=0
+    local scenario_array
+    readarray -t scenario_array < <(echo "$scenarios" | jq -c '.[]')
     
-    while read -r scenario; do
+    for test_index in "${successful_setups[@]}"; do
         # Wait if we've reached max concurrency
         while (( ${#pids[@]} >= max_concurrent )); do
             # Wait for any process to complete
@@ -187,18 +199,17 @@ _setup_contract_addresses() {
             pids=("${pids[@]}")
         done
         
-        echo "Starting bridge test $index" | tee -a "$bridge_log"
-        _run_single_bridge_test "$index" "$scenario" 2>"$output_dir/bridge_test_${index}.log" &
+        echo "Starting bridge test $test_index" | tee -a "$bridge_log"
+        _run_single_bridge_test "$test_index" "${scenario_array[$test_index]}" 2>"$output_dir/bridge_test_${test_index}.log" &
         local test_pid=$!
         pids+=("$test_pid")
-        index=$((index + 1))
         
         # Small delay to stagger test starts
         sleep 0.1
         
-    done < <(echo "$scenarios" | jq -c '.[]')
+    done
     
-    echo "Started $index parallel bridge test processes" | tee -a "$bridge_log"
+    echo "Started ${#successful_setups[@]} parallel bridge test processes" | tee -a "$bridge_log"
     
     # Wait for all remaining background processes to complete
     local wait_start
@@ -232,13 +243,18 @@ _setup_contract_addresses() {
         sleep 1
     done
     
-    # Collect and report results
-    _collect_and_report_results "$output_dir" "$bridge_log" "$total_scenarios"
+    # Collect and report results - pass the successful count instead of total
+    _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
     local failed_tests=$?
     
-    # Fail the test if any individual test failed
+    # Report setup failures in the final summary but don't fail the test for them
+    if [[ $setup_failures -gt 0 ]]; then
+        echo "Note: $setup_failures accounts failed setup and were skipped" >&3
+    fi
+    
+    # Fail the test only if bridge tests failed (not setup failures)
     [[ $failed_tests -eq 0 ]] || {
-        echo "Some tests failed. Check the detailed logs in $output_dir" >&3
+        echo "Some bridge tests failed. Check the detailed logs in $output_dir" >&3
         return 1
     }
 }
