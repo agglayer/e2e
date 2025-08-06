@@ -13,10 +13,10 @@ setup() {
     global_timeout="${GLOBAL_TIMEOUT:-1800s}"
 
     legacy_flag=""
-    if kurtosis enclave inspect "$kurtosis_enclave_name" | grep -q "cdk-erigon-sequencer-001"; then
-        legacy_flag="--legacy"
-        echo "legacy mode enabled" >&3
-    fi
+    # if kurtosis enclave inspect "$kurtosis_enclave_name" | grep -q "cdk-erigon-sequencer-001"; then
+    #     legacy_flag="--legacy"
+    #     echo "legacy mode enabled" >&3
+    # fi
 
     tmp_output=${TMP_OUTPUT:-"/tmp/loadtest.out"}
 

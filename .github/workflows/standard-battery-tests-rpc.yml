@@ -117,11 +117,11 @@ jobs:
             polycli version
             popd
 
-      - name: Install jq
+      - name: Install system utilities
         shell: bash
         run: |
           sudo apt update
-          sudo apt install -y jq
+          sudo apt install -y jq xxd
       
       - name: Install yq
         shell: bash
@@ -129,7 +129,7 @@ jobs:
           sudo curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
           yq --version
-  
+
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c # v1.3.1
         with:
