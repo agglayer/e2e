@@ -1,3 +1,5 @@
+# shellcheck disable=SC2154,SC2034
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -8,14 +10,16 @@ setup() {
     log "🔧 Deploying InternalClaims contract for all tests"
 
     # Get bytecode from the contract artifact
-    local bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
+    local bytecode
+    bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
         log "❌ Error: Failed to read bytecode from $internal_claims_artifact_path"
         exit 1
     fi
 
     # ABI-encode the constructor argument (bridge address)
-    local encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
+    local encoded_args
+    encoded_args=$(cast abi-encode "constructor(address)" "$l2_bridge_addr")
     if [[ -z "$encoded_args" ]]; then
         log "❌ Failed to ABI-encode constructor argument"
         exit 1
@@ -42,7 +46,8 @@ setup() {
     fi
 
     # Extract contract address from output
-    readonly internal_claim_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
+    readonly internal_claim_sc_addr
+    internal_claim_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
     if [[ -z "$internal_claim_sc_addr" ]]; then
         log "❌ Failed to extract deployed contract address"
         log "$deploy_output"
@@ -50,60 +55,6 @@ setup() {
     fi
 
     log "✅ InternalClaims contract deployed at: $internal_claim_sc_addr"
-}
-
-# Helper function to extract claim parameters for a bridge transaction
-# This function extracts all the claim parameters and returns them as a JSON object
-# Usage: claim_params=$(extract_claim_parameters_json <bridge_tx_hash> <asset_number>)
-extract_claim_parameters_json() {
-    local bridge_tx_hash="$1"
-    local asset_number="$2"
-
-    log "📋 Getting ${asset_number} bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local bridge_response="$output"
-    log "📝 ${asset_number} bridge response: $bridge_response"
-    local deposit_count=$(echo "$bridge_response" | jq -r '.deposit_count')
-
-    log "🌳 Getting L1 info tree index for ${asset_number} bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local l1_info_tree_index="$output"
-    log "📝 ${asset_number} L1 info tree index: $l1_info_tree_index"
-
-    log "Getting injected L1 info leaf for ${asset_number} bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    log "📝 ${asset_number} injected info: $injected_info"
-
-    log "🔐 Getting ${asset_number} claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local proof="$output"
-    log "📝 ${asset_number} proof: $proof"
-
-    # Extract all claim parameters for the asset
-    log "🎯 Extracting claim parameters for ${asset_number} asset"
-    local proof_local_exit_root=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local proof_rollup_exit_root=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_response" "$l1_rpc_network_id"
-    assert_success
-    local global_index=$output
-    log "📝 ${asset_number} global index: $global_index"
-    local mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network=$(echo "$bridge_response" | jq -r '.origin_network')
-    local origin_address=$(echo "$bridge_response" | jq -r '.origin_address')
-    local destination_network=$(echo "$bridge_response" | jq -r '.destination_network')
-    local destination_address=$(echo "$bridge_response" | jq -r '.destination_address')
-    local amount=$(echo "$bridge_response" | jq -r '.amount')
-    local metadata=$(echo "$bridge_response" | jq -r '.metadata')
-
-    # Return all parameters as a JSON object
-    echo "{\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
-    log "✅ ${asset_number} asset claim parameters extracted successfully"
 }
 
 @test "Test triple claim internal calls -> 3 success" {
@@ -120,18 +71,30 @@ extract_claim_parameters_json() {
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
     # Extract claim parameters for first asset
-    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
-    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
-    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
-    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
-    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
-    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
+    local claim_params_1
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1
+    proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1
+    proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1
+    global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1
+    mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1
+    rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1
+    origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1
+    origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1
+    destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1
+    destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1
+    amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1
+    metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -145,18 +108,30 @@ extract_claim_parameters_json() {
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
     # Extract claim parameters for second asset
-    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
-    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
-    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
-    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
-    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
-    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
+    local claim_params_2
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2
+    proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2
+    proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2
+    global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2
+    mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2
+    rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2
+    origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2
+    origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2
+    destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2
+    destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2
+    amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2
+    metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -170,18 +145,30 @@ extract_claim_parameters_json() {
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
     # Extract claim parameters for third asset
-    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
-    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
-    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
-    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
-    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
-    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
+    local claim_params_3
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3
+    proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3
+    proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3
+    global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3
+    mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3
+    rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3
+    origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3
+    origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3
+    destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3
+    destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3
+    amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3
+    metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -195,18 +182,30 @@ extract_claim_parameters_json() {
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
     # Extract claim parameters for fourth asset
-    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
-    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
-    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
-    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
-    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
-    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
-    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
-    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
-    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
-    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+    local claim_params_4
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4
+    proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4
+    proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4
+    global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4
+    mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4
+    rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4
+    origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4
+    origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4
+    destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4
+    destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4
+    amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4
+    metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
 
     log "✅ Fourth asset claim parameters extracted successfully"
 
@@ -293,7 +292,8 @@ extract_claim_parameters_json() {
 
     # Check if the transaction was successful
     if [[ $? -eq 0 ]]; then
-        local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
+        local tx_hash
+        tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         # Validate the bridge_getClaims API to verify all four claims were processed
@@ -306,15 +306,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for first claim
         log "🔍 Validating all parameters for first claim"
-        local claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
-        local claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
-        local claim_1_global_exit_root=$(echo "$claim_1" | jq -r '.global_exit_root')
-        local claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
-        local claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
-        local claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
-        local claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
-        local claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
-        local claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
+        local claim_1_mainnet_exit_root
+        claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
+        local claim_1_rollup_exit_root
+        claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
+        local claim_1_global_exit_root
+        claim_1_global_exit_root=$(echo "$claim_1" | jq -r '.global_exit_root')
+        local claim_1_origin_network
+        claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
+        local claim_1_origin_address
+        claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
+        local claim_1_destination_network
+        claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
+        local claim_1_destination_address
+        claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
+        local claim_1_amount
+        claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
+        local claim_1_metadata
+        claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
 
         log "🌳 First claim mainnet exit root: $claim_1_mainnet_exit_root (Expected: $mainnet_exit_root_1)"
         log "🌳 First claim rollup exit root: $claim_1_rollup_exit_root (Expected: $rollup_exit_root_1)"
@@ -338,8 +347,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for first claim
         log "🔍 Validating proofs for first claim"
-        local claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_1_proof_local_exit_root
+        claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_1_proof_rollup_exit_root
+        claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 First claim proof local exit root: $claim_1_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_1"
@@ -360,15 +371,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for second claim
         log "🔍 Validating all parameters for second claim"
-        local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
-        local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
-        local claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
-        local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
-        local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
-        local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
-        local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
-        local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
-        local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
+        local claim_2_mainnet_exit_root
+        claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+        local claim_2_rollup_exit_root
+        claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+        local claim_2_global_exit_root
+        claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
+        local claim_2_origin_network
+        claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
+        local claim_2_origin_address
+        claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
+        local claim_2_destination_network
+        claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
+        local claim_2_destination_address
+        claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
+        local claim_2_amount
+        claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+        local claim_2_metadata
+        claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
         log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
         log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
@@ -392,8 +412,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for second claim
         log "🔍 Validating proofs for second claim"
-        local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_local_exit_root
+        claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_rollup_exit_root
+        claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 Second claim proof local exit root: $claim_2_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_2"
@@ -414,15 +436,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for third claim
         log "🔍 Validating all parameters for third claim"
-        local claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
-        local claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
-        local claim_3_global_exit_root=$(echo "$claim_3" | jq -r '.global_exit_root')
-        local claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
-        local claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
-        local claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
-        local claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
-        local claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
-        local claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
+        local claim_3_mainnet_exit_root
+        claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
+        local claim_3_rollup_exit_root
+        claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
+        local claim_3_global_exit_root
+        claim_3_global_exit_root=$(echo "$claim_3" | jq -r '.global_exit_root')
+        local claim_3_origin_network
+        claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
+        local claim_3_origin_address
+        claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
+        local claim_3_destination_network
+        claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
+        local claim_3_destination_address
+        claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
+        local claim_3_amount
+        claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
+        local claim_3_metadata
+        claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
 
         log "🌳 Third claim mainnet exit root: $claim_3_mainnet_exit_root (Expected: $mainnet_exit_root_3)"
         log "🌳 Third claim rollup exit root: $claim_3_rollup_exit_root (Expected: $rollup_exit_root_3)"
@@ -446,8 +477,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for third claim
         log "🔍 Validating proofs for third claim"
-        local claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_3_proof_local_exit_root
+        claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_3_proof_rollup_exit_root
+        claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 Third claim proof local exit root: $claim_3_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_3"
@@ -495,18 +528,30 @@ extract_claim_parameters_json() {
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
     # Extract claim parameters for first asset
-    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
-    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
-    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
-    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
-    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
-    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
+    local claim_params_1
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1
+    proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1
+    proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1
+    global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1
+    mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1
+    rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1
+    origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1
+    origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1
+    destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1
+    destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1
+    amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1
+    metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -520,18 +565,30 @@ extract_claim_parameters_json() {
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
     # Extract claim parameters for second asset
-    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
-    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
-    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
-    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
-    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
-    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
+    local claim_params_2
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2
+    proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2
+    proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2
+    global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2
+    mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2
+    rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2
+    origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2
+    origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2
+    destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2
+    destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2
+    amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2
+    metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -545,18 +602,30 @@ extract_claim_parameters_json() {
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
     # Extract claim parameters for third asset
-    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
-    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
-    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
-    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
-    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
-    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
+    local claim_params_3
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3
+    proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3
+    proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3
+    global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3
+    mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3
+    rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3
+    origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3
+    origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3
+    destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3
+    destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3
+    amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3
+    metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -570,18 +639,30 @@ extract_claim_parameters_json() {
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
     # Extract claim parameters for fourth asset
-    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
-    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
-    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
-    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
-    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
-    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
-    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
-    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
-    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
-    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+    local claim_params_4
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4
+    proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4
+    proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4
+    global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4
+    mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4
+    rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4
+    origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4
+    origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4
+    destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4
+    destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4
+    amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4
+    metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
 
     log "✅ Fourth asset claim parameters extracted successfully"
 
@@ -591,7 +672,8 @@ extract_claim_parameters_json() {
     log "🔧 STEP 5: Creating malformed parameters for second claim (to make it fail)"
 
     # Create malformed proof for second claim
-    local malformed_proof_local_exit_root_2=$(echo "$proof_local_exit_root_2" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
+    local malformed_proof_local_exit_root_2
+    malformed_proof_local_exit_root_2=$(echo "$proof_local_exit_root_2" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_2=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
     log "🔧 Malformed proof for second claim: $malformed_proof_local_exit_root_2"
@@ -680,7 +762,8 @@ extract_claim_parameters_json() {
 
     # Check if the transaction was successful (should succeed even if second claim fails)
     if [[ $? -eq 0 ]]; then
-        local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
+        local tx_hash
+        tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating first asset claim was processed"
@@ -692,15 +775,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for first claim
         log "🔍 Validating all parameters for first claim"
-        local claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
-        local claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
-        local claim_1_global_exit_root=$(echo "$claim_1" | jq -r '.global_exit_root')
-        local claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
-        local claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
-        local claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
-        local claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
-        local claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
-        local claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
+        local claim_1_mainnet_exit_root
+        claim_1_mainnet_exit_root=$(echo "$claim_1" | jq -r '.mainnet_exit_root')
+        local claim_1_rollup_exit_root
+        claim_1_rollup_exit_root=$(echo "$claim_1" | jq -r '.rollup_exit_root')
+        local claim_1_global_exit_root
+        claim_1_global_exit_root=$(echo "$claim_1" | jq -r '.global_exit_root')
+        local claim_1_origin_network
+        claim_1_origin_network=$(echo "$claim_1" | jq -r '.origin_network')
+        local claim_1_origin_address
+        claim_1_origin_address=$(echo "$claim_1" | jq -r '.origin_address')
+        local claim_1_destination_network
+        claim_1_destination_network=$(echo "$claim_1" | jq -r '.destination_network')
+        local claim_1_destination_address
+        claim_1_destination_address=$(echo "$claim_1" | jq -r '.destination_address')
+        local claim_1_amount
+        claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
+        local claim_1_metadata
+        claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
 
         log "🌳 First claim mainnet exit root: $claim_1_mainnet_exit_root (Expected: $mainnet_exit_root_1)"
         log "🌳 First claim rollup exit root: $claim_1_rollup_exit_root (Expected: $rollup_exit_root_1)"
@@ -724,8 +816,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for first claim
         log "🔍 Validating proofs for first claim"
-        local claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_1_proof_local_exit_root
+        claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_1_proof_rollup_exit_root
+        claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 First claim proof local exit root: $claim_1_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_1"
@@ -747,15 +841,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for third claim
         log "🔍 Validating all parameters for third claim"
-        local claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
-        local claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
-        local claim_3_global_exit_root=$(echo "$claim_3" | jq -r '.global_exit_root')
-        local claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
-        local claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
-        local claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
-        local claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
-        local claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
-        local claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
+        local claim_3_mainnet_exit_root
+        claim_3_mainnet_exit_root=$(echo "$claim_3" | jq -r '.mainnet_exit_root')
+        local claim_3_rollup_exit_root
+        claim_3_rollup_exit_root=$(echo "$claim_3" | jq -r '.rollup_exit_root')
+        local claim_3_global_exit_root
+        claim_3_global_exit_root=$(echo "$claim_3" | jq -r '.global_exit_root')
+        local claim_3_origin_network
+        claim_3_origin_network=$(echo "$claim_3" | jq -r '.origin_network')
+        local claim_3_origin_address
+        claim_3_origin_address=$(echo "$claim_3" | jq -r '.origin_address')
+        local claim_3_destination_network
+        claim_3_destination_network=$(echo "$claim_3" | jq -r '.destination_network')
+        local claim_3_destination_address
+        claim_3_destination_address=$(echo "$claim_3" | jq -r '.destination_address')
+        local claim_3_amount
+        claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
+        local claim_3_metadata
+        claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
 
         log "🌳 Third claim mainnet exit root: $claim_3_mainnet_exit_root (Expected: $mainnet_exit_root_3)"
         log "🌳 Third claim rollup exit root: $claim_3_rollup_exit_root (Expected: $rollup_exit_root_3)"
@@ -779,8 +882,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for third claim
         log "🔍 Validating proofs for third claim"
-        local claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_3_proof_local_exit_root
+        claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_3_proof_rollup_exit_root
+        claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 Third claim proof local exit root: $claim_3_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_3"
@@ -800,14 +905,16 @@ extract_claim_parameters_json() {
 
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
-        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        local all_claims_result
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
         log "📝 All claims response: $all_claims_result"
 
         # Check if second claim (failed) is present in the API response
         log "🔍 Checking if second claim (failed) with global_index $global_index_2 is present in API response"
         local second_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
-            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            local claim_global_index
+            claim_global_index=$(jq -r '.global_index' <<<"$row")
             if [[ "$claim_global_index" == "$global_index_2" ]]; then
                 second_claim_found=true
                 log "❌ ERROR: Second claim with global_index $global_index_2 was found in API response, but it should have failed"
@@ -860,18 +967,30 @@ extract_claim_parameters_json() {
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
     # Extract claim parameters for first asset
-    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
-    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
-    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
-    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
-    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
-    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
+    local claim_params_1
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1
+    proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1
+    proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1
+    global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1
+    mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1
+    rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1
+    origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1
+    origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1
+    destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1
+    destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1
+    amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1
+    metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -885,18 +1004,30 @@ extract_claim_parameters_json() {
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
     # Extract claim parameters for second asset
-    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
-    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
-    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
-    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
-    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
-    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
+    local claim_params_2
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2
+    proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2
+    proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2
+    global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2
+    mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2
+    rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2
+    origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2
+    origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2
+    destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2
+    destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2
+    amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2
+    metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -910,18 +1041,30 @@ extract_claim_parameters_json() {
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
     # Extract claim parameters for third asset
-    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
-    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
-    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
-    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
-    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
-    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
+    local claim_params_3
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3
+    proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3
+    proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3
+    global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3
+    mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3
+    rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3
+    origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3
+    origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3
+    destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3
+    destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3
+    amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3
+    metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -935,18 +1078,30 @@ extract_claim_parameters_json() {
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
     # Extract claim parameters for fourth asset
-    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
-    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
-    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
-    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
-    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
-    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
-    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
-    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
-    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
-    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+    local claim_params_4
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4
+    proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4
+    proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4
+    global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4
+    mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4
+    rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4
+    origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4
+    origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4
+    destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4
+    destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4
+    amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4
+    metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
 
     log "✅ Fourth asset claim parameters extracted successfully"
 
@@ -956,11 +1111,13 @@ extract_claim_parameters_json() {
     log "🔧 STEP 5: Creating malformed parameters for first and third claims (to make them fail)"
 
     # Create malformed proof for first claim (to make it fail)
-    local malformed_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
+    local malformed_proof_local_exit_root_1
+    malformed_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_1=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
     # Create malformed proof for third claim (to make it fail)
-    local malformed_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | sed 's/0x[0-9a-fA-F]\{64\}/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef/2')
+    local malformed_proof_local_exit_root_3
+    malformed_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | sed 's/0x[0-9a-fA-F]\{64\}/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef/2')
     local malformed_mainnet_exit_root_3=0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
 
     log "🔧 Malformed proof for first claim: $malformed_proof_local_exit_root_1"
@@ -1051,7 +1208,8 @@ extract_claim_parameters_json() {
 
     # Check if the transaction was successful (should succeed even if first and third claims fail)
     if [[ $? -eq 0 ]]; then
-        local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
+        local tx_hash
+        tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed"
@@ -1062,15 +1220,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for second claim
         log "🔍 Validating all parameters for second claim"
-        local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
-        local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
-        local claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
-        local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
-        local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
-        local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
-        local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
-        local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
-        local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
+        local claim_2_mainnet_exit_root
+        claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+        local claim_2_rollup_exit_root
+        claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+        local claim_2_global_exit_root
+        claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
+        local claim_2_origin_network
+        claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
+        local claim_2_origin_address
+        claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
+        local claim_2_destination_network
+        claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
+        local claim_2_destination_address
+        claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
+        local claim_2_amount
+        claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+        local claim_2_metadata
+        claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
         log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
         log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
@@ -1094,8 +1261,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for second claim
         log "🔍 Validating proofs for second claim"
-        local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_local_exit_root
+        claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_rollup_exit_root
+        claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 Second claim proof local exit root: $claim_2_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_2"
@@ -1115,14 +1284,16 @@ extract_claim_parameters_json() {
 
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
-        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        local all_claims_result
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) with global_index_1 is present in the API response
         log "🔍 Checking if first claim (failed) with global_index $global_index_1 is present in API response"
         local first_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
-            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            local claim_global_index
+            claim_global_index=$(jq -r '.global_index' <<<"$row")
             if [[ "$claim_global_index" == "$global_index_1" ]]; then
                 first_claim_found=true
                 log "❌ ERROR: First claim with global_index $global_index_1 was found in API response, but it should have failed"
@@ -1142,7 +1313,8 @@ extract_claim_parameters_json() {
         log "🔍 Checking if third claim (failed) with global_index $global_index_3 is present in API response"
         local third_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
-            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            local claim_global_index
+            claim_global_index=$(jq -r '.global_index' <<<"$row")
             if [[ "$claim_global_index" == "$global_index_3" ]]; then
                 third_claim_found=true
                 log "❌ ERROR: Third claim with global_index $global_index_3 was found in API response, but it should have failed"
@@ -1195,18 +1367,30 @@ extract_claim_parameters_json() {
     log "🌉 First bridge asset transaction hash: $bridge_tx_hash_1"
 
     # Extract claim parameters for first asset
-    local claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
-    local proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
-    local global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
-    local mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
-    local origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
-    local origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
-    local destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
-    local destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
-    local amount_1=$(echo "$claim_params_1" | jq -r '.amount')
-    local metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
+    local claim_params_1
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    local proof_local_exit_root_1
+    proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_1
+    proof_rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_rollup_exit_root')
+    local global_index_1
+    global_index_1=$(echo "$claim_params_1" | jq -r '.global_index')
+    local mainnet_exit_root_1
+    mainnet_exit_root_1=$(echo "$claim_params_1" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_1
+    rollup_exit_root_1=$(echo "$claim_params_1" | jq -r '.rollup_exit_root')
+    local origin_network_1
+    origin_network_1=$(echo "$claim_params_1" | jq -r '.origin_network')
+    local origin_address_1
+    origin_address_1=$(echo "$claim_params_1" | jq -r '.origin_address')
+    local destination_network_1
+    destination_network_1=$(echo "$claim_params_1" | jq -r '.destination_network')
+    local destination_address_1
+    destination_address_1=$(echo "$claim_params_1" | jq -r '.destination_address')
+    local amount_1
+    amount_1=$(echo "$claim_params_1" | jq -r '.amount')
+    local metadata_1
+    metadata_1=$(echo "$claim_params_1" | jq -r '.metadata')
 
     log "✅ First asset claim parameters extracted successfully"
 
@@ -1220,18 +1404,30 @@ extract_claim_parameters_json() {
     log "🌉 Second bridge asset transaction hash: $bridge_tx_hash_2"
 
     # Extract claim parameters for second asset
-    local claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
-    local proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
-    local global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
-    local mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
-    local origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
-    local origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
-    local destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
-    local destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
-    local amount_2=$(echo "$claim_params_2" | jq -r '.amount')
-    local metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
+    local claim_params_2
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    local proof_local_exit_root_2
+    proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_2
+    proof_rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_rollup_exit_root')
+    local global_index_2
+    global_index_2=$(echo "$claim_params_2" | jq -r '.global_index')
+    local mainnet_exit_root_2
+    mainnet_exit_root_2=$(echo "$claim_params_2" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_2
+    rollup_exit_root_2=$(echo "$claim_params_2" | jq -r '.rollup_exit_root')
+    local origin_network_2
+    origin_network_2=$(echo "$claim_params_2" | jq -r '.origin_network')
+    local origin_address_2
+    origin_address_2=$(echo "$claim_params_2" | jq -r '.origin_address')
+    local destination_network_2
+    destination_network_2=$(echo "$claim_params_2" | jq -r '.destination_network')
+    local destination_address_2
+    destination_address_2=$(echo "$claim_params_2" | jq -r '.destination_address')
+    local amount_2
+    amount_2=$(echo "$claim_params_2" | jq -r '.amount')
+    local metadata_2
+    metadata_2=$(echo "$claim_params_2" | jq -r '.metadata')
 
     log "✅ Second asset claim parameters extracted successfully"
 
@@ -1245,18 +1441,30 @@ extract_claim_parameters_json() {
     log "🌉 Third bridge asset transaction hash: $bridge_tx_hash_3"
 
     # Extract claim parameters for third asset
-    local claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
-    local proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
-    local global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
-    local mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
-    local origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
-    local origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
-    local destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
-    local destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
-    local amount_3=$(echo "$claim_params_3" | jq -r '.amount')
-    local metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
+    local claim_params_3
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    local proof_local_exit_root_3
+    proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_3
+    proof_rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_rollup_exit_root')
+    local global_index_3
+    global_index_3=$(echo "$claim_params_3" | jq -r '.global_index')
+    local mainnet_exit_root_3
+    mainnet_exit_root_3=$(echo "$claim_params_3" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_3
+    rollup_exit_root_3=$(echo "$claim_params_3" | jq -r '.rollup_exit_root')
+    local origin_network_3
+    origin_network_3=$(echo "$claim_params_3" | jq -r '.origin_network')
+    local origin_address_3
+    origin_address_3=$(echo "$claim_params_3" | jq -r '.origin_address')
+    local destination_network_3
+    destination_network_3=$(echo "$claim_params_3" | jq -r '.destination_network')
+    local destination_address_3
+    destination_address_3=$(echo "$claim_params_3" | jq -r '.destination_address')
+    local amount_3
+    amount_3=$(echo "$claim_params_3" | jq -r '.amount')
+    local metadata_3
+    metadata_3=$(echo "$claim_params_3" | jq -r '.metadata')
 
     log "✅ Third asset claim parameters extracted successfully"
 
@@ -1270,18 +1478,30 @@ extract_claim_parameters_json() {
     log "🌉 Fourth bridge asset transaction hash: $bridge_tx_hash_4"
 
     # Extract claim parameters for fourth asset
-    local claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
-    local proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
-    local proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
-    local global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
-    local mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
-    local rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
-    local origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
-    local origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
-    local destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
-    local destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
-    local amount_4=$(echo "$claim_params_4" | jq -r '.amount')
-    local metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
+    local claim_params_4
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth")
+    local proof_local_exit_root_4
+    proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
+    local proof_rollup_exit_root_4
+    proof_rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_rollup_exit_root')
+    local global_index_4
+    global_index_4=$(echo "$claim_params_4" | jq -r '.global_index')
+    local mainnet_exit_root_4
+    mainnet_exit_root_4=$(echo "$claim_params_4" | jq -r '.mainnet_exit_root')
+    local rollup_exit_root_4
+    rollup_exit_root_4=$(echo "$claim_params_4" | jq -r '.rollup_exit_root')
+    local origin_network_4
+    origin_network_4=$(echo "$claim_params_4" | jq -r '.origin_network')
+    local origin_address_4
+    origin_address_4=$(echo "$claim_params_4" | jq -r '.origin_address')
+    local destination_network_4
+    destination_network_4=$(echo "$claim_params_4" | jq -r '.destination_network')
+    local destination_address_4
+    destination_address_4=$(echo "$claim_params_4" | jq -r '.destination_address')
+    local amount_4
+    amount_4=$(echo "$claim_params_4" | jq -r '.amount')
+    local metadata_4
+    metadata_4=$(echo "$claim_params_4" | jq -r '.metadata')
 
     log "✅ Fourth asset claim parameters extracted successfully"
 
@@ -1291,11 +1511,13 @@ extract_claim_parameters_json() {
     log "🔧 STEP 5: Creating malformed parameters for first and third claims (to make them fail)"
 
     # Create malformed proof for first claim (to make it fail)
-    local malformed_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
+    local malformed_proof_local_exit_root_1
+    malformed_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | sed 's/0x[0-9a-fA-F]\{64\}/0xf077e0d22fd6721989347f053c33595697372ec8c0d0678b934bba193679e088/2')
     local malformed_mainnet_exit_root_1=0x787bc577d07da1b6ca15c9b2c6d869e08a29663f498b65752604c75efee2cfe0
 
     # Create malformed proof for third claim (to make it fail)
-    local malformed_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | sed 's/0x[0-9a-fA-F]\{64\}/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef/2')
+    local malformed_proof_local_exit_root_3
+    malformed_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | sed 's/0x[0-9a-fA-F]\{64\}/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef/2')
     local malformed_mainnet_exit_root_3=0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
 
     log "🔧 Malformed proof for first claim: $malformed_proof_local_exit_root_1"
@@ -1391,7 +1613,8 @@ extract_claim_parameters_json() {
 
     # Check if the transaction was successful (should succeed even if first and third claims fail)
     if [[ $? -eq 0 ]]; then
-        local tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
+        local tx_hash
+        tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed (should succeed with global_index_2)"
@@ -1402,15 +1625,24 @@ extract_claim_parameters_json() {
 
         # Validate all parameters for second claim
         log "🔍 Validating all parameters for second claim"
-        local claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
-        local claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
-        local claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
-        local claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
-        local claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
-        local claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
-        local claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
-        local claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
-        local claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
+        local claim_2_mainnet_exit_root
+        claim_2_mainnet_exit_root=$(echo "$claim_2" | jq -r '.mainnet_exit_root')
+        local claim_2_rollup_exit_root
+        claim_2_rollup_exit_root=$(echo "$claim_2" | jq -r '.rollup_exit_root')
+        local claim_2_global_exit_root
+        claim_2_global_exit_root=$(echo "$claim_2" | jq -r '.global_exit_root')
+        local claim_2_origin_network
+        claim_2_origin_network=$(echo "$claim_2" | jq -r '.origin_network')
+        local claim_2_origin_address
+        claim_2_origin_address=$(echo "$claim_2" | jq -r '.origin_address')
+        local claim_2_destination_network
+        claim_2_destination_network=$(echo "$claim_2" | jq -r '.destination_network')
+        local claim_2_destination_address
+        claim_2_destination_address=$(echo "$claim_2" | jq -r '.destination_address')
+        local claim_2_amount
+        claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
+        local claim_2_metadata
+        claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
 
         log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
         log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
@@ -1434,8 +1666,10 @@ extract_claim_parameters_json() {
 
         # Validate proofs for second claim
         log "🔍 Validating proofs for second claim"
-        local claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-        local claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_local_exit_root
+        claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+        local claim_2_proof_rollup_exit_root
+        claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
 
         log "🔐 Second claim proof local exit root: $claim_2_proof_local_exit_root"
         log "🔐 Expected proof local exit root: $proof_local_exit_root_2"
@@ -1455,14 +1689,16 @@ extract_claim_parameters_json() {
 
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
-        local all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        local all_claims_result
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) with global_index_1 is present in the API response
         log "🔍 Checking if first claim (failed) with global_index $global_index_1 is present in API response"
         local first_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
-            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            local claim_global_index
+            claim_global_index=$(jq -r '.global_index' <<<"$row")
             if [[ "$claim_global_index" == "$global_index_1" ]]; then
                 first_claim_found=true
                 log "❌ ERROR: First claim with global_index $global_index_1 was found in API response, but it should have failed"
@@ -1482,7 +1718,8 @@ extract_claim_parameters_json() {
         log "🔍 Checking if third claim (failed) with global_index $global_index_3 is present in API response"
         local third_claim_found=false
         for row in $(echo "$all_claims_result" | jq -c '.claims[]'); do
-            local claim_global_index=$(jq -r '.global_index' <<<"$row")
+            local claim_global_index
+            claim_global_index=$(jq -r '.global_index' <<<"$row")
             if [[ "$claim_global_index" == "$global_index_3" ]]; then
                 third_claim_found=true
                 log "❌ ERROR: Third claim with global_index $global_index_3 was found in API response, but it should have failed"
