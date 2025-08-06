@@ -220,7 +220,7 @@ _setup_contract_addresses() {
         current_time=$(date +%s)
         local elapsed=$((current_time - wait_start))
         
-        if (( elapsed > global_timeout )); then
+        if (( elapsed > ${global_timeout%s} )); then
             echo "Timeout reached, killing remaining processes..." | tee -a "$bridge_log"
             for pid in "${pids[@]}"; do
                 kill -9 "$pid" 2>/dev/null || true
