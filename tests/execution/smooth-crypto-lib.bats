@@ -10,7 +10,6 @@ setup_file() {
     export l2_eth_address
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    export global_timeout="${GLOBAL_TIMEOUT:-1800s}"
 
     export exponential_growth_limit=12
     export TEMP_DIR

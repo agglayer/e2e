@@ -168,6 +168,9 @@ jobs:
             set +a
           fi
 
+          # Set extended timeout and confirmation settings for cast
+          export ETH_RPC_TIMEOUT=2400
+
           # Set sensitive values from GitHub secrets
           export L1_RPC_URL="${{ secrets.L1_RPC_ENDPOINT }}"
           export L1_PRIVATE_KEY="${{ secrets.L1_FUNDED_PRIVATE_KEY }}"

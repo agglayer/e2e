@@ -25,6 +25,7 @@ setup() {
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
 
     log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
+    global_timeout="${ETH_RPC_TIMEOUT:-"2400s"}"
 }
 
 teardown() {
@@ -52,7 +53,6 @@ _setup_environment_variables() {
     l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
     l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     export claim_wait_duration="${CLAIM_WAIT_DURATION:-40m}"
-    export global_timeout="${GLOBAL_TIMEOUT:-2400s}"
 }
 
 

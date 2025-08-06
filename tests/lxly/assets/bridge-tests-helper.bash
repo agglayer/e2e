@@ -138,7 +138,7 @@ _fund_ephemeral_account() {
     echo "DEBUG: Funding $target_address with $amount on $rpc_url" >&2
     
     # First check if the RPC is reachable
-    if ! timeout 5s cast chain-id --rpc-url "$rpc_url" >/dev/null 2>&1; then
+    if ! cast chain-id --rpc-timeout 5 --rpc-url "$rpc_url" >/dev/null 2>&1; then
         echo "DEBUG: RPC $rpc_url is not reachable" >&2
         return 1
     fi
@@ -184,7 +184,7 @@ _fund_ephemeral_account() {
     # Send native token with timeout (no nonce management needed for sequential execution)
     local tx_output
     # shellcheck disable=SC2154
-    if tx_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
+    if tx_output=$(cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
          "$target_address" --value "$amount" 2>&1); then
         echo "DEBUG: Successfully funded $target_address" >&2
         return 0
@@ -304,7 +304,7 @@ _setup_token_for_ephemeral_account() {
             # Mint tokens with timeout (no nonce management needed for sequential execution)
             local mint_output
             # shellcheck disable=SC2154
-            if mint_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
+            if mint_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
                 echo "DEBUG: Successfully minted $token_type tokens" >&2
                 return 0
@@ -365,7 +365,7 @@ _setup_token_for_ephemeral_account() {
             
             # Mint GasToken with timeout
             local mint_output
-            if mint_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
+            if mint_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$gas_token_address" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
                 echo "DEBUG: Successfully minted GasToken" >&2
                 return 0
@@ -399,7 +399,7 @@ _setup_token_for_ephemeral_account() {
             
             # For POL, transfer from main account with timeout
             local pol_output
-            if pol_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
+            if pol_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$pol_address" 'transfer(address,uint256)' "$target_address" "$transfer_amount" 2>&1); then
                 echo "DEBUG: Successfully transferred POL tokens" >&2
                 return 0
@@ -502,7 +502,7 @@ _approve_token_for_ephemeral_account() {
     fi
     
     local approve_output
-    if approve_output=$(timeout "$global_timeout" cast send --rpc-url "$rpc_url" --private-key "$ephemeral_private_key" \
+    if approve_output=$(cast send --rpc-url "$rpc_url" --private-key "$ephemeral_private_key" \
         "$token_addr" 'approve(address,uint256)' "$bridge_addr" "$approve_amount" 2>&1); then
         echo "DEBUG: Successfully approved tokens" >&2
         return 0
@@ -953,8 +953,8 @@ _run_single_bridge_test() {
     echo "DEBUG: Executing bridge command for test $test_index: $bridge_command" >&2
     
     # Execute the bridge command with longer timeout for problematic combinations
-
-    local timeout_duration="$global_timeout"
+    # TODO: use a variable instead for timeout
+    local timeout_duration=$ETH_RPC_TIMEOUT
     # if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" && "$test_amount" == "Max" ]]; then
     #     timeout_duration=120  # Longer timeout for POL Max+Max combination
     #     echo "DEBUG: Using extended timeout for POL Max+Max combination" >&2
@@ -1087,7 +1087,7 @@ _run_single_bridge_test() {
                 # Execute claim command
                 echo "DEBUG: Running claim command for test $test_index: $claim_command" >&2
                 local claim_output claim_status
-                if claim_output=$(timeout "$global_timeout" bash -c "$claim_command" 2>&1); then
+                if claim_output=$(timeout "$ETH_RPC_TIMEOUT" bash -c "$claim_command" 2>&1); then
                     claim_status=0
                 else
                     claim_status=$?
