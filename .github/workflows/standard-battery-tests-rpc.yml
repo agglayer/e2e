@@ -151,9 +151,16 @@ jobs:
         run: |
           pushd agglayer-e2e || exit 1
 
+          # Load public environment variables
+          if [[ -f "tests/lxly/cardona.env" ]]; then
+            set -a
+            source tests/lxly/cardona.env
+            set +a
+          fi
+
+          # Set sensitive values from GitHub secrets
           export L1_RPC_URL="${{ secrets.L1_RPC_ENDPOINT }}"
           export L1_PRIVATE_KEY="${{ secrets.L1_FUNDED_PRIVATE_KEY }}"
-
           export L2_RPC_URL="${{ secrets.L2_RPC_ENDPOINT }}"
           export L2_PRIVATE_KEY="${{ secrets.L2_FUNDED_PRIVATE_KEY }}"
 
