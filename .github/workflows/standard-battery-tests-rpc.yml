@@ -135,6 +135,15 @@ jobs:
         with:
           version: v1.0.0
 
+      - name: Install pem certificate
+        shell: bash
+        env:
+          POLYGON_CERT: ${{ secrets.POLYGON_CERT }}
+        run: |
+          sudo apt-get install -y ca-certificates
+          echo "$POLYGON_CERT" | sudo tee /usr/local/share/ca-certificates/local-ca.crt > /dev/null
+          sudo update-ca-certificates
+
       - name: Validate RPC Endpoint
         run: |
           cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
