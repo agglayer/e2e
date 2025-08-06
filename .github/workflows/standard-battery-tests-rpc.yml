@@ -113,7 +113,7 @@ jobs:
             pushd $(mktemp -d) || exit 1
             curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
             tar xf polycli.tar.gz
-            mv polycli_* /usr/local/bin/polycli
+            sudo mv polycli_* /usr/local/bin/polycli
             polycli version
             popd
 
