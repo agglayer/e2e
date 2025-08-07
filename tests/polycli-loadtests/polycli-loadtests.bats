@@ -12,8 +12,8 @@ setup() {
     l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
 
     legacy_flag=""
-    output=$(cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url" 2>/dev/null)
-    if [[ $? -eq 0 ]]; then
+    run cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url"
+    if [[ "$status" -eq 0 ]]; then
         legacy_flag="--legacy"
         echo "legacy mode enabled"
     else
