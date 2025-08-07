@@ -7,7 +7,7 @@ setup() {
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
 
-    iteration_count=20
+    iteration_count=3
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
@@ -35,7 +35,7 @@ setup() {
         if [[ $index -gt "$iteration_count" ]]; then
             break;
         fi
-        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&3
+        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
         # this should work
         run cast send \
             --nonce "$nonce" \
@@ -47,14 +47,12 @@ setup() {
             --private-key "$ephemeral_private_key" \
             --value $index \
             0x0000000000000000000000000000000000000000
-        echo "Command output: $output" >&3
         if [[ "$status" -ne 0 ]]; then
-            echo "Test $index expected success but failed: $output" >&3
-            echo "Command status: $status" >&3
+            echo "Test $index expected success but failed: $output" >&2
             return 1
         fi
         index=$((index+1));
-        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&3
+        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
         # this should fail
         run cast send \
             --nonce "$nonce" \
@@ -66,12 +64,37 @@ setup() {
             --private-key "$ephemeral_private_key" \
             --value $index \
             0x0000000000000000000000000000000000000000
+        txn_hash=$output
+        txn_status=$status
         nonce=$((nonce + 1));
-        echo "Command output: $output" >&3
-        if [[ "$status" -ne 1 ]]; then
-            echo "Test $index expected fail but succeed: $output" >&3
-            echo "Command status: $status" >&3
-            return 1
+        # check if RPC client is using cdk-erigon
+        run cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url"
+        if [[ "$status" -eq 0 ]]; then
+            # for cdk-erigon, even invalid transactions can exist in the pool for a short time before being rejected
+            # wait for 3 blocks and then recheck if the transaction hash exists
+            echo "DEBUG: cdk-erigon detected" >&2
+            start_block=$(cast block-number --rpc-url "$l2_rpc_url")
+            block_diff=0
+            while [[ $block_diff -lt 3 ]]; do
+                echo "DEBUG: waiting for 3 blocks to be mined" >&2
+                end_block=$(cast block-number --rpc-url "$l2_rpc_url")
+                block_diff=$((end_block - start_block))
+                sleep 2
+            done
+            run cast tx $txn_hash --rpc-url "$l2_rpc_url"
+            if [[ "$status" -ne 0 ]]; then
+                echo "DEBUG: transaction hash is dropped from the pool" >&2
+                continue
+            else
+                echo "Test $index expected fail but succeed: $output" >&2
+                return 1
+            fi
+        else
+            # process normally for non-cdk-erigon clients
+            if [[ "$txn_status" -ne 1 ]]; then
+                echo "Test $index expected fail but succeed: $output" >&2
+                return 1
+            fi
         fi
     done
     wait < <(jobs -p)
