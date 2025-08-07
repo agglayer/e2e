@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: ${{ inputs.max-parallel-runs }}
+      max-parallel: ${{ fromJson(inputs.max-parallel-runs) }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
