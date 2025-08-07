@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard-kurtosis
+# bats file_tags=standard
 
 # We're going to try to tune these tests to so that they're targeting
 # 30M gas per second. When testing these cases with kurtosis it's
@@ -12,10 +12,13 @@ setup() {
     l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
 
     legacy_flag=""
-    # if kurtosis enclave inspect "$kurtosis_enclave_name" | grep -q "cdk-erigon-sequencer-001"; then
-    #     legacy_flag="--legacy"
-    #     echo "legacy mode enabled" >&3
-    # fi
+    output=$(cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url" 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+        legacy_flag="--legacy"
+        echo "legacy mode enabled"
+    else
+        echo "Skipping legacy mode: zkevm_getForkId failed, indicating non-CDK-Erigon client." >&2
+    fi
 
     tmp_output=${TMP_OUTPUT:-"/tmp/loadtest.out"}
 
