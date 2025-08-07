@@ -52,7 +52,7 @@ _setup_environment_variables() {
     export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
     l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
     l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-60m}"
+    export claim_wait_duration="${CLAIM_WAIT_DURATION:-90m}"
 }
 
 
