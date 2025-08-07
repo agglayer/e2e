@@ -183,17 +183,9 @@ _fund_ephemeral_account() {
     
     # Send native token with timeout (no nonce management needed for sequential execution)
     local tx_output
-    # Get current gas price and add premium
-    local gas_price
-    gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    if [[ -z "$gas_price" || "$gas_price" == "0" ]]; then
-        gas_price="1100000"  # fallback
-    else
-        gas_price=$((gas_price * 11 / 10))  # 1.1x current gas price
-    fi
     # shellcheck disable=SC2154
     if tx_output=$(cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
-         "$target_address" --gas-price $gas_price --value "$amount" 2>&1); then
+         "$target_address" --value "$amount" 2>&1); then
         echo "DEBUG: Successfully funded $target_address" >&2
         return 0
     else
