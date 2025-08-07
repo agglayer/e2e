@@ -7,13 +7,34 @@ setup() {
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
 
-    iteration_count=3
+    iteration_count=20
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
+wait_block_increment() {
+    local wait_blocks="$1"
+
+    start_block=$(cast block-number --rpc-url "$l2_rpc_url")
+    block_diff=0
+    while [[ $block_diff -lt $wait_blocks ]]; do
+        echo "DEBUG: waiting for 3 blocks to be mined" >&2
+        end_block=$(cast block-number --rpc-url "$l2_rpc_url")
+        block_diff=$((end_block - start_block))
+        sleep 1
+    done
+}
+
+is_cdk_erigon() {
+    run cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url"
+    if [[ "$status" -eq 0 ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 @test "Make conflicting contract calls" {
     local ephemeral_data
@@ -69,23 +90,21 @@ setup() {
         txn_status=$status
         nonce=$((nonce + 1));
         # check if RPC client is using cdk-erigon
-        run cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url"
-        if [[ "$status" -eq 0 ]]; then
-            # for cdk-erigon, even invalid transactions can exist in the pool for a short time before being rejected
-            # wait for 3 blocks and then recheck if the transaction hash exists
-            echo "DEBUG: cdk-erigon detected" >&2
-            start_block=$(cast block-number --rpc-url "$l2_rpc_url")
-            block_diff=0
-            while [[ $block_diff -lt 3 ]]; do
-                echo "DEBUG: waiting for 3 blocks to be mined" >&2
-                end_block=$(cast block-number --rpc-url "$l2_rpc_url")
-                block_diff=$((end_block - start_block))
-                sleep 2
-            done
-            run cast tx $txn_hash --rpc-url "$l2_rpc_url"
-            if [[ "$status" -ne 0 ]]; then
-                echo "DEBUG: transaction hash is dropped from the pool" >&2
-                continue
+        if is_cdk_erigon; then
+            # Check if the command succeeded (exit code 0) but transaction failed (status 0 in output)
+            if [[ "$txn_status" -eq 0 ]]; then
+                # for cdk-erigon, even invalid transactions can exist in the pool for a short time before being rejected
+                # wait for 3 blocks and then recheck if the transaction hash exists
+                echo "DEBUG: cdk-erigon detected" >&2
+                wait_block_increment 3
+                # Command succeeded, now check if transaction failed
+                run cast tx "$txn_hash" --rpc-url "$l2_rpc_url"
+                if [[ "$status" -ne 0 ]]; then
+                    echo "Transaction correctly failed as expected" >&3
+                else
+                    echo "Test expected transaction to fail but succeeded: $output" >&3
+                    return 1
+                fi
             else
                 echo "Test $index expected fail but succeed: $output" >&2
                 return 1
@@ -98,5 +117,5 @@ setup() {
             fi
         fi
     done
-    wait < <(jobs -p)
+    for job in $(jobs -p); do wait "$job"; done
 }
