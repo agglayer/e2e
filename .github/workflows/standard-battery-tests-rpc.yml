@@ -13,26 +13,11 @@ on:
         default: "main"
         required: true
         type: string
-      # l1-rpc-endpoint:
-      #   description: "valid l1 rpc endpoint to run the tests on"
-      #   default: "https://<l1-rpc-endpoint>"
-      #   required: true
-      #   type: string
-      # l2-rpc-endpoint:
-      #   description: "valid l2 rpc endpoint to run the tests on"
-      #   default: "https://<l2-rpc-endpoint>"
-      #   required: true
-      #   type: string
-      # l1-funded-private-key:
-      #   description: "private key with sufficient L1 funds"
-      #   default: "0x<l1-funded-private-key>"
-      #   required: true
-      #   type: string
-      # l2-funded-private-key:
-      #   description: "private key with sufficient L2 funds"
-      #   default: "0x<l2-funded-private-key>"
-      #   required: true
-      #   type: string
+      max-parallel-runs:
+        description: "strategy.max-parallel - how many matrix tests to run in parallel"
+        default: 1
+        required: true
+        type: number
 
   # pull_request:
   #   branches:
@@ -79,6 +64,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
+      max-parallel: ${{ inputs.max-parallel-runs }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
