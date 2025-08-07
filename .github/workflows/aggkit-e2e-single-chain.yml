@@ -59,6 +59,11 @@ on:
         type: string
         default: ""
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   test-single-e2e:
     name: Single chain E2E test

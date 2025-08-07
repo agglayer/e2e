@@ -4,8 +4,6 @@ run-name: Run Kurtosis CDK E2E test by @${{ github.actor }} using Kurtosis CDK r
 # TODO solve for remote callers setting bats environment variables
 # act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
 
-permissions:
-  contents: read
 on:
   workflow_call:
     inputs:
@@ -13,7 +11,7 @@ on:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
         required: false
         type: string
-        default: "4afaf689af3264dcb23eb92817b5c25949b62b12"
+        default: "7a5de968c9bdcd69b776494fd467c6b1d990ac47"
 
       agglayer-e2e-ref:
         description: "The tag, branch, or commit of the agglayer/e2e repo that will used for running tests"
@@ -100,6 +98,11 @@ on:
         required: false
         type: string
         default: ""
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
 
 env:
   POLYCLI_VERSION: v0.1.84
