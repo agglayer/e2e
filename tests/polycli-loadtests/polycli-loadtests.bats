@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard-kurtosis
 
 # We're going to try to tune these tests to so that they're targeting
 # 30M gas per second. When testing these cases with kurtosis it's

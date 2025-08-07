@@ -62,7 +62,8 @@ jobs:
         id: set-matrix
         run: |
             pushd agglayer-e2e || exit 1
-            files=$(grep -rl '# bats file_tags=standard' ./tests | grep '\.bats$' || true)
+            # strictly detect tags with file_tags=standard and test_tags=standard
+            files=$(grep -rl '# bats \(file_tags\|test_tags\)=standard\([[:space:]]\|$\)' ./tests | grep '\.bats$' || true)
             echo "Found files:"
             echo "$files"
             # Remove empty lines and ensure valid JSON array without trailing empty string
