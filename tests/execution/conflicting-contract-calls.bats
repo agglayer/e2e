@@ -51,6 +51,7 @@ setup() {
             echo "Test $index expected success but failed: $output" >&2
             return 1
         fi
+        echo "Test $index transaction hash: $output" >&2
         index=$((index+1));
         echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
         # this should fail
