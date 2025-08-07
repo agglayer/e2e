@@ -53,13 +53,13 @@ setup() {
     fi
 
     # Extract deployed contract address
-    readonly claim_reentrancy_sc_addr
     claim_reentrancy_sc_addr=$(echo "$deploy_output" | grep -o 'contractAddress\s\+\(0x[a-fA-F0-9]\{40\}\)' | awk '{print $2}')
     if [[ -z "$claim_reentrancy_sc_addr" ]]; then
         log "❌ Failed to extract deployed contract address"
         log "$deploy_output"
         exit 1
     fi
+    readonly claim_reentrancy_sc_addr
 
     log "✅ Reentrancy testing contract deployed at: $claim_reentrancy_sc_addr"
 }
@@ -88,7 +88,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_1
@@ -138,7 +138,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_2
@@ -225,7 +225,7 @@ setup() {
     # ========================================
     log "🌉 STEP 7: Claiming second asset (should succeed)"
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
     local global_index_2_claimed=$output
     log "✅ Second asset claimed successfully, global index: $global_index_2_claimed"
@@ -283,7 +283,7 @@ setup() {
 
     # Verify first claim was processed
     log "🔍 Validating first asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -330,7 +330,7 @@ setup() {
 
     # Verify second claim was processed
     log "🔍 Validating second asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -533,7 +533,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_1
@@ -571,7 +571,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_2
@@ -609,7 +609,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_3
@@ -802,7 +802,7 @@ setup() {
 
     # Verify first claim was processed (contract destination)
     log "🔍 Validating first asset claim processing (contract destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -849,7 +849,7 @@ setup() {
 
     # Verify second claim was processed (deployer destination)
     log "🔍 Validating second asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -896,7 +896,7 @@ setup() {
 
     # Verify third claim was processed (deployer destination)
     log "🔍 Validating third asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
+    run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_3="$output"
     log "📋 Third claim response received"
@@ -1049,7 +1049,7 @@ setup() {
     log "🔍 STEP 13: Verifying bridge event from aggkit with tx hash: $test_claim_tx_hash"
 
     # Get bridge details
-    run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 300 10 "$aggkit_bridge_url"
+    run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 300 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local bridge_test_claim="$output"
     log "📝 bridge_test_claim: $bridge_test_claim"
