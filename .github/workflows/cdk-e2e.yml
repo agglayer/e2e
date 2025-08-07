@@ -50,6 +50,11 @@ on:
         type: string
         default: "cdk"
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 env:
   POLYCLI_VERSION: v0.1.84
 
