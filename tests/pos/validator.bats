@@ -138,7 +138,7 @@ function generate_new_keypair() {
     "${validator_address}" "${deposit_amount}" "${heimdall_fee_amount}" "${accept_delegation}" "${validator_public_key}"
 
   echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1))
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1)) 180
 }
 
 # bats file_tags=pos,validator
@@ -162,7 +162,7 @@ function generate_new_keypair() {
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${VALIDATOR_ID}"
 
   echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1))
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1)) 180
 }
 
 # bats file_tags=pos,validator
@@ -288,7 +288,7 @@ function generate_new_keypair() {
 
   expected_voting_power=$(cast to-unit "${final_total_stake}" ether | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}"
+  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
 
   echo "Delegation test completed successfully!"
 }
@@ -380,7 +380,7 @@ function generate_new_keypair() {
 
   expected_voting_power=$(cast to-unit "${new_total_stake}" ether | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}"
+  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
 
   echo "Undelegation test completed successfully!"
 }
