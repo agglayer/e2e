@@ -31,13 +31,13 @@ pos_setup() {
   echo "L2_CL_API_URL=${L2_CL_API_URL}"
 
   if [[ -z "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-}" ]] ||
-   [[ -z "${L1_STAKE_MANAGER_PROXY_ADDRESS:-}" ]] ||
-   [[ -z "${L1_MATIC_TOKEN_ADDRESS:-}" ]] ||
-   [[ -z "${L1_ERC20_TOKEN_ADDRESS:-}" ]] ||
-   [[ -z "${L1_ERC721_TOKEN_ADDRESS:-}" ]] ||
-   [[ -z "${L2_STATE_RECEIVER_ADDRESS:-}" ]] ||
-   [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
-   [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
+    [[ -z "${L1_STAKE_MANAGER_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_MATIC_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ERC20_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ERC721_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L2_STATE_RECEIVER_ADDRESS:-}" ]] ||
+    [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
     matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
 
     # L1 contract addresses.
@@ -46,6 +46,9 @@ pos_setup() {
 
     export L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakeManagerProxy')}
     echo "L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS}"
+
+    export L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakingInfo')}
+    echo "L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS}"
 
     export L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
     echo "L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS}"
