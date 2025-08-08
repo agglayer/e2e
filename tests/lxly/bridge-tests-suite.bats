@@ -25,7 +25,7 @@ setup() {
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
 
     log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
-    global_timeout="${ETH_RPC_TIMEOUT:-"2400s"}"
+    global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
 }
 
 teardown() {

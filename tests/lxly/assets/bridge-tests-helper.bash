@@ -954,7 +954,7 @@ _run_single_bridge_test() {
     
     # Execute the bridge command with longer timeout for problematic combinations
     # TODO: use a variable instead for timeout
-    local timeout_duration=$ETH_RPC_TIMEOUT
+    local timeout_duration=$global_timeout
     # if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" && "$test_amount" == "Max" ]]; then
     #     timeout_duration=120  # Longer timeout for POL Max+Max combination
     #     echo "DEBUG: Using extended timeout for POL Max+Max combination" >&2
@@ -1087,7 +1087,7 @@ _run_single_bridge_test() {
                 # Execute claim command
                 echo "DEBUG: Running claim command for test $test_index: $claim_command" >&2
                 local claim_output claim_status
-                if claim_output=$(timeout "$ETH_RPC_TIMEOUT" bash -c "$claim_command" 2>&1); then
+                if claim_output=$(timeout "$global_timeout" bash -c "$claim_command" 2>&1); then
                     claim_status=0
                 else
                     claim_status=$?
