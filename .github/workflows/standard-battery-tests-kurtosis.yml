@@ -195,7 +195,7 @@ jobs:
 
   run-monitored-chaos-stress-tests:
     runs-on: ubuntu-latest
-    # if: ${{ inputs.enable-monitored-chaos-stress-tests }}
+    if: ${{ inputs.enable-monitored-chaos-stress-tests }}
     timeout-minutes: 60
     env:
       POLYCLI_VERSION: v0.1.84
@@ -316,7 +316,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: monitored_test_artifacts
+          name: monitored_chaos_stress_test_artifacts
           path: agglayer-e2e/scenarios/monitored-tests/post-state
           retention-days: 1
 
