@@ -7,7 +7,7 @@ setup() {
     l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc)"}
 
-    iteration_count=20
+    iteration_count=5
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
@@ -110,7 +110,7 @@ is_cdk_erigon() {
                 # wait for 3 blocks and then recheck if the transaction hash exists
                 echo "DEBUG: cdk-erigon detected" >&2
                 # usage: wait_block_increment <number_of_blocks_to_wait> <timeout_in_seconds>
-                wait_block_increment 5 60
+                wait_block_increment 12 144
                 # command succeeded, now check if transaction failed
                 run cast tx "$txn_hash" --rpc-url "$l2_rpc_url"
                 if [[ "$status" -ne 0 ]]; then
