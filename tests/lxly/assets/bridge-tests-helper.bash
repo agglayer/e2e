@@ -319,6 +319,7 @@ _setup_token_for_ephemeral_account() {
             
             # Check if target address already has sufficient GasToken balance
             local current_balance
+            # shellcheck disable=SC2154
             if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
                 echo "DEBUG: Current GasToken balance for $target_address: $current_balance" >&2
                 
@@ -954,6 +955,7 @@ _run_single_bridge_test() {
     
     # Execute the bridge command with longer timeout for problematic combinations
     # TODO: use a variable instead for timeout
+    # shellcheck disable=SC2154
     local timeout_duration=$global_timeout
     # if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" && "$test_amount" == "Max" ]]; then
     #     timeout_duration=120  # Longer timeout for POL Max+Max combination
