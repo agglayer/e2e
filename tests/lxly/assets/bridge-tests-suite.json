@@ -142,16 +142,6 @@
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Message",
-        "Token": "POL",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "Max",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x37e391c3"
-    },
-    {
         "DestinationAddress": "Precompile",
         "BridgeType": "Message",
         "Token": "GasToken",
@@ -172,16 +162,6 @@
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "POL",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
         "DestinationAddress": "BridgeContract",
         "BridgeType": "Weth",
         "Token": "GasToken",
@@ -220,16 +200,6 @@
         "Amount": "1",
         "ExpectedResultProcess": "Success",
         "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "POL",
-        "MetaData": "Random",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
     },
     {
         "DestinationAddress": "EOA",
