@@ -48,7 +48,8 @@ check_certificate_height() {
     assert_success
     local bridge="$output"
 
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    local deposit_count
+    deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 100 5 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
@@ -57,7 +58,8 @@ check_certificate_height() {
     assert_success
     local injected_info="$output"
 
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    local l1_info_tree_index
+    l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
     run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
@@ -82,7 +84,8 @@ check_certificate_height() {
     assert_success
     local bridge="$output"
 
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    local deposit_count
+    deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 100 5 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
@@ -91,7 +94,8 @@ check_certificate_height() {
     assert_success
     local injected_info="$output"
 
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    local l1_info_tree_index
+    l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
     run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
@@ -105,7 +109,8 @@ check_certificate_height() {
     wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_2
 
     run get_certificate_height $aggkit_rpc_url
-    local height=$(echo "$output" | tail -n 1)
+    local height
+    height=$(echo "$output" | tail -n 1)
     echo "Certificate height: $height" >&3
 
     echo "----------- Test mainnet flag 0, unused bits != 0 -----------" >&3
@@ -120,7 +125,8 @@ check_certificate_height() {
     assert_success
     local bridge="$output"
 
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    local deposit_count
+    deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     run find_l1_info_tree_index_for_bridge "$l2_rpc_network_id" "$deposit_count" 100 5 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
@@ -129,7 +135,8 @@ check_certificate_height() {
     assert_success
     local injected_info="$output"
 
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    local l1_info_tree_index
+    l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
     run generate_claim_proof "$l2_rpc_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
