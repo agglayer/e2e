@@ -39,8 +39,6 @@ setup() {
             --private-key "$ephemeral_private_key" \
             --value 0.5ether \
             0xC0FFEE0000000000000000000000000000000000;
-    # echo "Command output: $output" >&3
-    echo "Command status: $status" >&3
     if [[ "$status" -ne 0 ]]; then
         echo "Test expected success but failed: $output" >&3
         echo "Command status: $status" >&3
@@ -61,8 +59,6 @@ setup() {
             --private-key "$ephemeral_private_key" \
             --create \
             0x60005B60010180405063000000025600
-    # echo "Command output: $output" >&3
-    echo "Command status: $status" >&3
     # Check if the command succeeded (exit code 0) but transaction failed (status 0 in output)
     if [[ "$status" -eq 0 ]]; then
         # Command succeeded, now check if transaction failed

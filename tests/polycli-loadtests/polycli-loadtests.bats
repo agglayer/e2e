@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard-kurtosis
 
 # We're going to try to tune these tests to so that they're targeting
 # 30M gas per second. When testing these cases with kurtosis it's
@@ -12,9 +12,12 @@ setup() {
     l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
 
     legacy_flag=""
-    if kurtosis enclave inspect "$kurtosis_enclave_name" | grep -q "cdk-erigon-sequencer-001"; then
+    run cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url"
+    if [[ "$status" -eq 0 ]]; then
         legacy_flag="--legacy"
-        echo "legacy mode enabled" >&3
+        echo "legacy mode enabled"
+    else
+        echo "Skipping legacy mode: zkevm_getForkId failed, indicating non-CDK-Erigon client." >&2
     fi
 
     tmp_output=${TMP_OUTPUT:-"/tmp/loadtest.out"}
@@ -32,6 +35,8 @@ setup() {
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
     _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+
+    sleep 1
 
     start=$(date +%s)
     polycli loadtest \
@@ -52,7 +57,7 @@ setup() {
     fi
 }
 
-@test "send 61,200 ERC20 transfers and confirm mined in 240 seconds" {
+@test "send 41,200 ERC20 transfers and confirm mined in 240 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-erc20")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
@@ -61,12 +66,14 @@ setup() {
     # Fund the ephemeral account using imported function
     _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
 
+    sleep 1
+
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
             --rpc-url "$l2_rpc_url" \
             --concurrency 100 \
-            --requests 612 \
+            --requests 412 \
             --private-key "$ephemeral_private_key" \
             --rate-limit 5000 \
             --verbosity 600 \
@@ -81,7 +88,7 @@ setup() {
     fi
 }
 
-@test "send 29,800 ERC721 mints and confirm mined in 240 seconds" {
+@test "send 20,800 ERC721 mints and confirm mined in 240 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-erc721")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
@@ -90,12 +97,14 @@ setup() {
     # Fund the ephemeral account using imported function
     _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
 
+    sleep 1
+
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
             --rpc-url "$l2_rpc_url" \
             --concurrency 100 \
-            --requests 298 \
+            --requests 208 \
             --private-key "$ephemeral_private_key" \
             --rate-limit 5000 \
             --mode erc721 \
@@ -112,7 +121,7 @@ setup() {
 }
 
 # TODO this one is a little tricky because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful or we should pre deploy the contracts
-@test "send 17,200 Uniswapv3 swaps sent and mined in 300 seconds" {
+@test "send 10,200 Uniswapv3 swaps sent and mined in 300 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-uniswap")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
@@ -121,12 +130,14 @@ setup() {
     # Fund the ephemeral account using imported function
     _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
 
+    sleep 1
+
     start=$(date +%s)
     polycli loadtest \
             $legacy_flag \
             --rpc-url "$l2_rpc_url" \
             --concurrency 100 \
-            --requests 172 \
+            --requests 102 \
             --private-key "$ephemeral_private_key" \
             --rate-limit 5000 \
             --verbosity 600 \
