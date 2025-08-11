@@ -44,7 +44,7 @@ setup() {
 
     # Now we need to do a bridge on L2(PP1) to trigger a certificate to be sent to L1
     ether_value=${ETHER_VALUE:-"0.0100000054"}
-    amount=$(cast to-wei $ether_value ether)
+    amount=$(cast to-wei "$ether_value" ether)
     echo "=== Running LxLy bridge eth L2(PP1) to L1 (trigger certificate sending on PP1) amount:$amount" >&3
     destination_net=$l1_rpc_network_id
     meta_bytes="0xabcd"
@@ -57,10 +57,10 @@ setup() {
 
     if [[ "$ENCLAVE_NAME" == "aggkit" ]]; then
         echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1 (PP1 network: $aggkit_rpc_url)"
-        wait_to_settled_certificate_containing_global_index $aggkit_rpc_url $global_index_pp2_to_pp1
+        wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index_pp2_to_pp1"
     else
         echo "Waiting 10 minutes to get some verified batch...."
-        run $PROJECT_ROOT/core/helpers/scripts/batch_verification_monitor.sh 0 600
+        run "$PROJECT_ROOT/core/helpers/scripts/batch_verification_monitor.sh" 0 600
         assert_success
     fi
 }
