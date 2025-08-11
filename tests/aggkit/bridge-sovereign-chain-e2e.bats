@@ -35,7 +35,8 @@ setup() {
   log "🔍 Fetched UpdateHashChainValue events: $update_hash_chain_value_events"
 
   # Extract last GER
-  local last_ger=$(echo "$update_hash_chain_value_events" | jq -r '.[-1].topics[1]')
+  local last_ger
+  last_ger=$(echo "$update_hash_chain_value_events" | jq -r '.[-1].topics[1]')
   assert_success
   log "🔍 Last GER: $last_ger"
 
@@ -69,22 +70,25 @@ setup() {
 
 @test "Test Sovereign Chain Bridge Events" {
   log "=== 🧑‍💻 Running Sovereign Chain Bridge Events" >&3
-  run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+  run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
   assert_success
 
-  local l1_erc20_addr=$(echo "$output" | tail -n 1)
+  local l1_erc20_addr
+  l1_erc20_addr=$(echo "$output" | tail -n 1)
   log "ERC20 contract address: $l1_erc20_addr"
 
   # Mint and Approve ERC20 tokens on L1
   local tokens_amount="0.1ether"
-  local wei_amount=$(cast --to-unit $tokens_amount wei)
+  local wei_amount
+  wei_amount=$(cast --to-unit "$tokens_amount" wei)
   run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
   assert_success
 
   # Assert that balance of gas token (on the L1) is correct
   run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
   assert_success
-  local l1_erc20_token_sender_balance=$(echo "$output" |
+  local l1_erc20_token_sender_balance
+  l1_erc20_token_sender_balance=$(echo "$output" |
     tail -n 1 |
     awk '{print $1}')
   log "Sender balance ($sender_addr) (ERC20 token L1): $l1_erc20_token_sender_balance [weis]"
@@ -92,7 +96,7 @@ setup() {
   # DEPOSIT ON L1
   destination_addr=$receiver
   destination_net=$l2_rpc_network_id
-  amount=$(cast --to-unit $tokens_amount wei)
+  amount=$(cast --to-unit "$tokens_amount" wei)
   meta_bytes="0x"
   run bridge_asset "$l1_erc20_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
@@ -105,16 +109,18 @@ setup() {
   assert_success
   local token_mappings_result=$output
 
-  local l2_token_addr_legacy=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+  local l2_token_addr_legacy
+  l2_token_addr_legacy=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
   log "L2 Token address legacy: $l2_token_addr_legacy"
 
   run verify_balance "$L2_RPC_URL" "$l2_token_addr_legacy" "$receiver" 0 "$tokens_amount"
   assert_success
 
   # Deploy sovereign token erc20 contract on L2
-  run deploy_contract $L2_RPC_URL $sender_private_key $erc20_artifact_path
+  run deploy_contract "$L2_RPC_URL" "$sender_private_key" "$erc20_artifact_path"
   assert_success
-  local l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
+  local l2_token_addr_sovereign
+  l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
   log "L2 Token address sovereign: $l2_token_addr_sovereign"
 
   # event SetSovereignTokenAddress
@@ -148,7 +154,8 @@ setup() {
   assert_success
   local initial_legacy_token_migrations="$output"
   log "Initial legacy token migrations: $initial_legacy_token_migrations"
-  local initial_legacy_token_migrations_count=$(echo "$initial_legacy_token_migrations" | jq -r '.count')
+  local initial_legacy_token_migrations_count
+  initial_legacy_token_migrations_count=$(echo "$initial_legacy_token_migrations" | jq -r '.count')
 
   # event MigrateLegacyToken
   log "Emitting MigrateLegacyToken event"
@@ -194,8 +201,10 @@ setup() {
   run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10 "$migrate_legacy_token_transaction_hash"
   assert_success
   local legacy_token_migrations="$output"
-  local legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
-  local updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address')
+  local legacy_token_address
+  legacy_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].legacy_token_address')
+  local updated_token_address
+  updated_token_address=$(echo "$legacy_token_migrations" | jq -r '.legacy_token_migrations[0].updated_token_address')
   assert_equal "${l2_token_addr_legacy,,}" "${legacy_token_address,,}"
   assert_equal "${l2_token_addr_sovereign,,}" "${updated_token_address,,}"
 
@@ -224,7 +233,8 @@ setup() {
   assert_success
   local final_legacy_token_migrations="$output"
   log "Final legacy token migrations: $final_legacy_token_migrations"
-  local final_legacy_token_migrations_count=$(echo "$final_legacy_token_migrations" | jq -r '.count')
+  local final_legacy_token_migrations_count
+  final_legacy_token_migrations_count=$(echo "$final_legacy_token_migrations" | jq -r '.count')
   assert_equal "$initial_legacy_token_migrations_count" "$final_legacy_token_migrations_count"
   log "✅ Test Sovereign Chain Bridge Event successful"
 }
