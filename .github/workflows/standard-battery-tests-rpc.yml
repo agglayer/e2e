@@ -18,6 +18,14 @@ on:
         default: 1
         required: true
         type: number
+      target-network:
+        description: "target network to source env file on"
+        default: "cardona"
+        required: true
+        type: choice
+        options:
+          - cardona
+          - bali
 
   # pull_request:
   #   branches:
@@ -75,6 +83,7 @@ jobs:
       L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
+      TARGET_NETWORK: ${{ inputs.target-network }}
       # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
       # L1_RPC_ENDPOINT: ""
       # L2_RPC_ENDPOINT: ""
@@ -151,10 +160,21 @@ jobs:
           pushd agglayer-e2e || exit 1
 
           # Load public environment variables
-          if [[ -f "tests/lxly/cardona.env" ]]; then
-            set -a
-            source tests/lxly/cardona.env
-            set +a
+          if [[ "${{ env.TARGET_NETWORK }}" == "cardona" ]]; then
+            if [[ -f "tests/lxly/cardona.env" ]]; then
+              set -a
+              source tests/lxly/cardona.env
+              set +a
+            fi
+          elif [[ "${{ env.TARGET_NETWORK }}" == "bali" ]]; then
+            if [[ -f "tests/lxly/bali.env" ]]; then
+              set -a
+              source tests/lxly/bali.env
+              set +a
+            fi
+          else
+            echo "Invalid target network detected: ${{ env.TARGET_NETWORK }}. Expected 'cardona' or 'bali'."
+            exit 1
           fi
 
           # Set extended timeout and confirmation settings for cast
