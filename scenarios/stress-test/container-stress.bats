@@ -238,3 +238,17 @@ EOF
         [[ "$stress_status" -eq 0 ]]
     done
 }
+
+@test "Disk Read/Write stress test" {
+    local test_type="disk_read_write_stress"
+
+    for container_id in "${CONTAINER_IDS[@]}"; do
+        local stress_command="stress-ng --hdd 8 --io 8 --vm 8 -t $DURATION"
+
+        _run_stress_with_logging "$container_id" "$test_type" "$stress_command"
+
+        local stress_status=$?
+
+        [[ "$stress_status" -eq 0 ]]
+    done
+}
