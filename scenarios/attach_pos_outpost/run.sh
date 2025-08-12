@@ -66,6 +66,8 @@ kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-p
 kurtosis service exec $kurtosis_enclave_name l2-el-3-bor-heimdall-v2-rpc 'sed -i -E "s#(api = \[.*)(\])#\1, \"'debug'\"\2#" /etc/bor/config.toml'
 pos_rpc_docker_name=l2-el-3-bor-heimdall-v2-rpc--$(kurtosis service inspect $kurtosis_enclave_name l2-el-3-bor-heimdall-v2-rpc --full-uuid | grep UUID | sed  's/.*: //')
 docker restart $pos_rpc_docker_name
+# To avoid chain-id request to fail, lets allow few seconds for startup and catch up
+sleep 20
 
 # urls etc
 pos_rpc_url=$(kurtosis port print $kurtosis_enclave_name l2-el-3-bor-heimdall-v2-rpc rpc)
@@ -235,6 +237,7 @@ aggkit_image=$(docker ps | grep aggkit-001 | awk '{print $2}')
 
 # We need a folder to store files for aggkit, lets use tmp for now:
 datadir=/tmp/aggkit
+rm -fr $datadir
 mkdir -p $datadir/tmp
 chmod 777 $datadir/tmp
 
