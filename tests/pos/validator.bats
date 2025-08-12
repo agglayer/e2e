@@ -5,6 +5,10 @@ setup() {
   load "../../core/helpers/pos-setup.bash"
   load "../../core/helpers/scripts/eventually.bash"
   pos_setup
+
+  # Define timeout and interval for eventually commands.
+  timeout_seconds=${TIMEOUT_SECONDS:-"180"}
+  interval_seconds=${INTERVAL_SECONDS:-"10"}
 }
 
 function generate_new_keypair() {
@@ -16,94 +20,8 @@ function generate_new_keypair() {
 }
 
 # bats file_tags=pos,validator
-@test "update validator stake" {
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
-  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
-  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
-  echo "VALIDATOR_ID=${VALIDATOR_ID}"
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-  fi
-  echo "VALIDATOR_POWER_CMD=${VALIDATOR_POWER_CMD}"
-
-  validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
-  echo "validator_address=${validator_address}"
-
-  initial_validator_power=$(eval "${VALIDATOR_POWER_CMD}")
-  echo "Initial power of the validator (${VALIDATOR_ID}): ${initial_validator_power}."
-
-  echo "Funding the validator acount with MATIC tokens..."
-  stake_update_amount=$(cast to-unit 10ether wei)
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
-
-  echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
-
-  # TODO: Find out why the call is reverting
-  # Error: server returned an error response: error code -32000: execution reverted
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
-
-  echo "Updating the stake of the validator (${VALIDATOR_ID})..."
-  stake_rewards=false
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "restake(uint,uint,bool)" "${VALIDATOR_ID}" "${stake_update_amount}" "${stake_rewards}"
-
-  echo "Monitoring the power of the validator..."
-  validator_power_update_amount=$(cast to-unit "${stake_update_amount}"wei ether)
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_validator_power + validator_power_update_amount))
-}
-
-# bats file_tags=pos,validator
-@test "update validator top-up fee" {
-  VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"} # first validator
-  echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
-
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"matic\") | .amount"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"pol\") | .amount"'
-  fi
-  echo "TOP_UP_FEE_BALANCE_CMD=${TOP_UP_FEE_BALANCE_CMD}"
-
-  initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
-  echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
-
-  echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
-  top_up_amount=$(cast to-unit 1ether wei)
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
-
-  echo "Topping up the fee balance of the validator (${VALIDATOR_ADDRESS})..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${VALIDATOR_ADDRESS}" "${top_up_amount}"
-
-  # TODO: Find out why the target is wrong here.
-  # Monitoring the top-up balance of the validator...
-  # [2025-03-31 13:39:35] Target: -5930898827444486144
-  # [2025-03-31 13:39:35] Result: 1000000000000000000000000000
-  # [2025-03-31 13:39:45] Result: 1000000000000000000000000000
-  # [2025-03-31 13:39:55] Result: 1000000000000000000000000000
-  # [2025-03-31 13:40:05] Result: 1000000000000000000000000000
-  # [2025-03-31 13:40:15] Result: 999999999999000000000000000
-  # [2025-03-31 13:40:25] Result: 1000000000999000000000000000
-  # [2025-03-31 13:40:35] Result: 1000000000999000000000000000
-  # [2025-03-31 13:40:45] Result: 1000000000999000000000000000
-  # [2025-03-31 13:40:55] Result: 1000000000999000000000000000
-  # Timeout reached.
-  echo "Monitoring the top-up balance of the validator..."
-  assert_command_eventually_equal "${TOP_UP_FEE_BALANCE_CMD}" $((initial_top_up_balance + top_up_amount))
-}
-
-# bats file_tags=pos,validator
 @test "add new validator" {
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
-  fi
+  VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
   echo "VALIDATOR_COUNT_CMD=${VALIDATOR_COUNT_CMD}"
 
   initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
@@ -138,45 +56,94 @@ function generate_new_keypair() {
     "${validator_address}" "${deposit_amount}" "${heimdall_fee_amount}" "${accept_delegation}" "${validator_public_key}"
 
   echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1)) 180
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1))
 }
 
 # bats file_tags=pos,validator
-@test "remove validator" {
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+@test "update validator stake" {
+  # First validator.
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
   echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/staking/validator-set" | jq --raw-output ".result.validators | length"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
-  fi
+  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
+  echo "VALIDATOR_POWER_CMD=${VALIDATOR_POWER_CMD}"
 
-  initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
-  echo "Initial validator count: ${initial_validator_count}"
+  validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
+  echo "validator_address=${validator_address}"
 
-  echo "Removing the validator from the validator set..."
+  initial_voting_power=$(eval "${VALIDATOR_POWER_CMD}")
+  echo "Initial voting power of the validator (${VALIDATOR_ID}): ${initial_voting_power}."
+
+  echo "Funding the validator acount with MATIC/POL tokens..."
+  stake_update_amount=$(cast to-unit 1ether wei)
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
+
+  echo "Allowing the StakeManagerProxy contract to spend MATIC/POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${VALIDATOR_ID}"
+    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
-  echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1)) 180
+  echo "Updating the stake of the validator (${VALIDATOR_ID})..."
+  stake_rewards=false
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "restakePOL(uint,uint,bool)" "${VALIDATOR_ID}" "${stake_update_amount}" "${stake_rewards}"
+
+  echo "Monitoring the voting power of the validator..."
+  voting_power_update=$(cast to-unit "${stake_update_amount}"wei ether)
+  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_voting_power + voting_power_update))
+}
+
+# bats file_tags=pos,validator
+@test "update validator top-up fee" {
+  # First validator.
+  VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"}
+  echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
+
+  TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"pol\") | .amount"'
+  echo "TOP_UP_FEE_BALANCE_CMD=${TOP_UP_FEE_BALANCE_CMD}"
+
+  initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
+  echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
+
+  echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
+  top_up_amount=$(cast to-unit 1ether wei)
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
+
+  echo "Topping up the fee balance of the validator (${VALIDATOR_ADDRESS})..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${VALIDATOR_ADDRESS}" "${top_up_amount}"
+
+  # TODO: Find out why the target is wrong here.
+  # Monitoring the top-up balance of the validator...
+  # [2025-03-31 13:39:35] Target: -5930898827444486144
+  # [2025-03-31 13:39:35] Result: 1000000000000000000000000000
+  # [2025-03-31 13:39:45] Result: 1000000000000000000000000000
+  # [2025-03-31 13:39:55] Result: 1000000000000000000000000000
+  # [2025-03-31 13:40:05] Result: 1000000000000000000000000000
+  # [2025-03-31 13:40:15] Result: 999999999999000000000000000
+  # [2025-03-31 13:40:25] Result: 1000000000999000000000000000
+  # [2025-03-31 13:40:35] Result: 1000000000999000000000000000
+  # [2025-03-31 13:40:45] Result: 1000000000999000000000000000
+  # [2025-03-31 13:40:55] Result: 1000000000999000000000000000
+  # Timeout reached.
+  echo "Monitoring the top-up balance of the validator..."
+  assert_command_eventually_equal "${TOP_UP_FEE_BALANCE_CMD}" $((initial_top_up_balance + top_up_amount))
 }
 
 # bats file_tags=pos,validator
 @test "update signer" {
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"} # first validator
+  # First validator.
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
   echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.signer"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.signer"'
-  fi
+  VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.signer"'
 
   initial_signer=$(eval "${VALIDATOR_SIGNER_CMD}")
   echo "Initial signer: ${initial_signer}"
@@ -184,15 +151,21 @@ function generate_new_keypair() {
   # New account:
   # - address: 0xd74c0D3dEe45a0a9516fB66E31C01536e8756e2A
   # - public key: 0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908
-  # - private-key: f118c1f07cd6e1a417175f6316a5a36707da7be07cf5e360a9397e8a52bc690f
+  # - private-key: 0xf118c1f07cd6e1a417175f6316a5a36707da7be07cf5e360a9397e8a52bc690f
   new_public_key="0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908"
+
+  echo "Updating signer update limit..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_GOVERNANCE_PROXY_ADDRESS}" "update(address,bytes)" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" \
+    "$(cast calldata "updateSignerUpdateLimit(uint256)" "1")"
 
   echo "Updating signer..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "updateSigner(uint,bytes)" "${VALIDATOR_ID}" "${new_public_key}"
 
   echo "Monitoring signer change..."
-  assert_command_eventually_equal "${VALIDATOR_SIGNER_CMD}" "0xd74c0D3dEe45a0a9516fB66E31C01536e8756e2A"
+  assert_command_eventually_equal "${VALIDATOR_SIGNER_CMD}" "0xd74c0d3dee45a0a9516fb66e31c01536e8756e2a"
 }
 
 # bats file_tags=pos,validator,delegate
@@ -280,15 +253,11 @@ function generate_new_keypair() {
   [[ "${final_delegator_stake}" -eq "${expected_delegator_stake}" ]]
 
   # Verify L2 voting power matches the updated L1 stake.
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-  fi
+  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
 
   expected_voting_power=$(cast to-unit "${final_total_stake}" ether | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
+  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}"
 
   echo "Delegation test completed successfully!"
 }
@@ -372,15 +341,33 @@ function generate_new_keypair() {
   [[ "${final_unbond_nonce}" -eq "${expected_unbond_nonce}" ]]
 
   # Verify L2 voting power matches the updated L1 stake.
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/staking/validator/${VALIDATOR_ID}" | jq --raw-output ".result.power"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-  fi
+  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
 
   expected_voting_power=$(cast to-unit "${new_total_stake}" ether | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
+  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}"
 
   echo "Undelegation test completed successfully!"
+}
+
+# bats file_tags=pos,validator
+@test "remove validator" {
+  # First validator.
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
+  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+
+  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
+  echo "VALIDATOR_ID=${VALIDATOR_ID}"
+
+  VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
+
+  initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
+  echo "Initial validator count: ${initial_validator_count}"
+
+  echo "Removing the validator from the validator set..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${VALIDATOR_ID}"
+
+  echo "Monitoring the validator count on Heimdall..."
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1))
 }

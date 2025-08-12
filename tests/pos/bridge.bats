@@ -7,11 +7,7 @@ setup() {
   pos_setup
 
   # Define state sync count commands.
-  if [[ "${L2_CL_NODE_TYPE}" == "heimdall" ]]; then
-    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-record/list" | jq ".result | length"'
-  elif [[ "${L2_CL_NODE_TYPE}" == "heimdall-v2" ]]; then
-    HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
-  fi
+  HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
   BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
 
   # Define timeout and interval for eventually commands.
@@ -53,10 +49,11 @@ function wait_for_bor_state_sync() {
 @test "bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
-  # Get the initial values.
+  # Get the initial balances.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_MATIC_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
-  echo "Initial values:"
+
+  echo "Initial balances:"
   echo "- L1 balance: ${initial_l1_balance} MATIC"
   echo "- L2 balance: ${initial_l2_balance} wei"
 
@@ -66,6 +63,7 @@ function wait_for_bor_state_sync() {
   # Bridge some MATIC/POL tokens from L1 to L2 to trigger a state sync.
   # 1 MATIC/POL token = 1000000000000000000 wei.
   bridge_amount=$(cast to-unit 1ether wei)
+
   echo "Approving the DepositManager contract to spend MATIC/POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
@@ -95,9 +93,10 @@ function wait_for_bor_state_sync() {
 @test "bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
-  # Get the initial values.
+  # Get the initial balances.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+
   echo "Initial ERC20 balances:"
   echo "- L1: ${initial_l1_balance}"
   echo "- L2: ${initial_l2_balance}"
@@ -108,6 +107,7 @@ function wait_for_bor_state_sync() {
   # Bridge some ERC20 tokens from L1 to L2.
   # 1 ERC20 token = 1000000000000000000 wei.
   bridge_amount=$(cast to-unit 1ether wei)
+
   echo "Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_ERC20_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
@@ -140,6 +140,7 @@ function wait_for_bor_state_sync() {
   # Mint an ERC721 token.
   total_supply=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "totalSupply()(uint)" | jq --raw-output '.[0]')
   token_id=$((total_supply + 1))
+
   echo "Minting the ERC721 token (id: ${token_id})..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_ERC721_TOKEN_ADDRESS}" "mint(uint)" "${token_id}"
@@ -147,6 +148,7 @@ function wait_for_bor_state_sync() {
   # Get the initial values.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+
   echo "Initial ERC721 balances:"
   echo "- L1: ${initial_l1_balance}"
   echo "- L2: ${initial_l2_balance}"
@@ -193,6 +195,7 @@ function wait_for_bor_state_sync() {
   # Mint a new ERC721 token.
   total_supply=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "totalSupply()(uint)" | jq --raw-output '.[0]')
   token_id=$((total_supply + 1))
+
   echo "Minting ERC721 token (id: ${token_id})..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_ERC721_TOKEN_ADDRESS}" "mint(uint)" "${token_id}"
@@ -211,6 +214,7 @@ function wait_for_bor_state_sync() {
   # Get the initial state sync count.
   heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
   bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+
   echo "Initial state sync counts:"
   echo "- Heimdall: ${heimdall_state_sync_count}"
   echo "- Bor: ${bor_state_sync_count}"
