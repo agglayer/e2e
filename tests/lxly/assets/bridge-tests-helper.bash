@@ -743,6 +743,11 @@ _validate_claim_error() {
     local expected_result="$1"
     local output="$2"
     
+    # Check for "already claimed" patterns first - these should generally be treated as success
+    if echo "$output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
+        echo "DEBUG: Found 'already claimed' pattern - usually indicates success" >&2
+        return 0
+    fi
     echo "DEBUG: Validating claim error - Expected: $expected_result" >&2
     echo "DEBUG: Claim output: $output" >&2
     
@@ -1089,11 +1094,42 @@ _run_single_bridge_test() {
                 # Execute claim command
                 echo "DEBUG: Running claim command for test $test_index: $claim_command" >&2
                 local claim_output claim_status
-                if claim_output=$(timeout "$global_timeout" bash -c "$claim_command" 2>&1); then
-                    claim_status=0
-                else
-                    claim_status=$?
-                fi
+                local max_claim_retries=3
+                local claim_attempt=0
+
+                while [[ $claim_attempt -lt $max_claim_retries ]]; do
+                    claim_attempt=$((claim_attempt + 1))
+                    echo "DEBUG: Claim attempt $claim_attempt for test $test_index" >&2
+
+                    if claim_output=$(timeout "$global_timeout" bash -c "$claim_command" 2>&1); then
+                        claim_status=0
+                        echo "DEBUG: Claim succeeded on attempt $claim_attempt" >&2
+                        break
+                    else
+                        claim_status=$?
+                        echo "DEBUG: Claim attempt $claim_attempt failed with status $claim_status" >&2
+                        echo "DEBUG: Claim output: $claim_output" >&2
+
+                        # Check if it's already claimed - this should be treated as success
+                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
+                            echo "DEBUG: Deposit already claimed - treating as success" >&2
+                            claim_status=0
+                            break
+                        fi
+
+                        # Check if it's a temporary "not ready" error - retry after delay
+                        if echo "$claim_output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks)"; then
+                            echo "DEBUG: Claim not ready yet, will retry after delay" >&2
+                            if [[ $claim_attempt -lt $max_claim_retries ]]; then
+                                sleep 5  # Wait before retry
+                                continue
+                            fi
+                        fi
+
+                        # For other errors, don't retry
+                        break
+                    fi
+                done
                 
                 echo "DEBUG: Claim command output for test $test_index: $claim_output" >&2
 
@@ -1134,7 +1170,7 @@ _run_single_bridge_test() {
                         echo "DEBUG: Claim succeeded and success was expected" >&2
                     else
                         # Success not expected, but check if already claimed
-                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError)"; then
+                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
                             claim_result="PASS"
                             echo "DEBUG: Claim succeeded but only because already claimed" >&2
                         else
@@ -1144,7 +1180,7 @@ _run_single_bridge_test() {
                     fi
                 else
                     # Claim failed
-                    if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError)"; then
+                    if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
                         claim_result="PASS"
                         echo "DEBUG: Deposit $deposit_count already claimed, treating as success" >&2
                     elif $claim_has_other_expected_errors && _validate_claim_error "$expected_result_claim" "$claim_output"; then

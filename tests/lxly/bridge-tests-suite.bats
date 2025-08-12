@@ -165,7 +165,7 @@ _setup_contract_addresses() {
     echo "========================================" | tee -a "$bridge_log"
     
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    local max_concurrent=18
+    local max_concurrent=8
     if [[ $successful_count -lt 5 ]]; then
         max_concurrent=$successful_count
     fi
