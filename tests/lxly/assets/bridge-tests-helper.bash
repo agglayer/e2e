@@ -570,8 +570,12 @@ _add_metadata_to_command() {
             ;;
         "Huge")
             local temp_file="/tmp/huge_data_${test_index}.hex"
-            # Create the file with proper hex data
-            xxd -p /dev/zero | tr -d "\n" | head -c 97000 > "$temp_file"
+            # Create the file with proper hex data - add error handling and redirect stderr
+            if ! (dd if=/dev/zero bs=1 count=48500 2>/dev/null | xxd -p | tr -d "\n" > "$temp_file"); then
+                echo "DEBUG: Failed to create huge metadata file, using alternative method" >&2
+                # Alternative method using printf
+                printf '%*s' 97000 '' | tr ' ' '0' > "$temp_file"
+            fi
             echo "$command --call-data-file $temp_file"
             ;;
         "Max")
@@ -579,16 +583,22 @@ _add_metadata_to_command() {
             # Special handling for POL with Max metadata - reduce size to avoid issues
             if [[ "$token_type" == "POL" ]]; then
                 # Use smaller metadata size for POL to avoid memory/gas issues
-                xxd -p /dev/zero | tr -d "\n" | head -c 130000 > "$temp_file"  # ~130KB instead of ~260KB
+                if ! (dd if=/dev/zero bs=1 count=65000 2>/dev/null | xxd -p | tr -d "\n" > "$temp_file"); then
+                    echo "DEBUG: Failed to create max metadata file for POL, using alternative method" >&2
+                    printf '%*s' 130000 '' | tr ' ' '0' > "$temp_file"
+                fi
                 echo "DEBUG: Using reduced metadata size for POL token" >&2
             else
                 # Normal max size for other tokens
-                xxd -p /dev/zero | tr -d "\n" | head -c 261569 > "$temp_file"
+                if ! (dd if=/dev/zero bs=1 count=130784 2>/dev/null | xxd -p | tr -d "\n" > "$temp_file"); then
+                    echo "DEBUG: Failed to create max metadata file, using alternative method" >&2
+                    printf '%*s' 261569 '' | tr ' ' '0' > "$temp_file"
+                fi
             fi
             echo "$command --call-data-file $temp_file"
             ;;
         *)
-            echo "Unrecognized Metadata: $metadata_type" >&3
+            echo "Unrecognized Metadata: $metadata_type" >&2
             return 1
             ;;
     esac
