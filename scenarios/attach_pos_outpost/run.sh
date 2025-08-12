@@ -6,7 +6,7 @@ load_env
 # l1 variables
 l1_preallocated_mnemonic=${L1_PREALLOCATED_MNEMONIC:-"giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"}
 l1_preallocated_private_key=$(cast wallet private-key --mnemonic "$l1_preallocated_mnemonic")
-l1_preallocated_address=$(cast wallet address --mnemonic "$l1_preallocated_mnemonic")
+#l1_preallocated_address=$(cast wallet address --mnemonic "$l1_preallocated_mnemonic")
 
 # infra variables
 kurtosis_enclave_name=${AGL_ENCLAVE_NAME:-"outpost"}
@@ -32,16 +32,13 @@ kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-c
 # hardocoded for now, its used to attack network to rollupmanager
 zkevm_l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
 zkevm_l2_claimtxmanager_address="0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"
-zkevm_l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934"
+#zkevm_l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934"
 
 contracts_rpc=$(kurtosis port print $kurtosis_enclave_name contracts-001 http)
 
 # Gather required L1 params from deployed kurtosis enclave
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 l1_rpc_url_kurtosis="http://el-1-geth-lighthouse:8545"
-l1_ws_url=ws://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse ws)
-l1_beacon_url=$(kurtosis port print $kurtosis_enclave_name cl-1-lighthouse-geth http)
-l1_beacon_url_kurtosis="http://cl-1-lighthouse-geth:4000"
 l1_chainid=$(cast chain-id --rpc-url "$l1_rpc_url")
 
 
@@ -123,7 +120,7 @@ initializeBytesAggchain=\
 $(cast abi-encode 'initializeBytesAggchain(address,address,address,string,string)' \
     $pos_admin_addr \
     $sequencer_addr \
-    $(cast address-zero) \
+    "$(cast address-zero)" \
     "$pos_rpc_url_kurtosis" \
     "$kurtosis_enclave_name")
 
@@ -144,7 +141,7 @@ newRollupCount=$(cast call $rollupManagerAddress 'rollupCount() returns (uint32)
 # Lëts check that the rollup was attached
 if [[ $newRollupCount -eq $((rollupCount + 1)) ]]; then
     rollupId=$(cast call $rollupManagerAddress 'chainIDToRollupID(uint64)' $pos_chain_id --rpc-url $l1_rpc_url | cast to-dec)
-    rollup_addr=$(cast decode-abi 'output() returns (address)' $(cast call --rpc-url $l1_rpc_url $rollupManagerAddress 'rollupIDToRollupData(uint32)' $rollupId))
+    rollup_addr=$(cast decode-abi 'output() returns (address)' "$(cast call --rpc-url $l1_rpc_url $rollupManagerAddress 'rollupIDToRollupData(uint32)' $rollupId)")
     echo "Rollup successfully attached! New rollup count: $newRollupCount, new Rollup ID: $rollupId, new Rollup Address: $rollup_addr"
 else
     echo "Rollup attachment failed! Expected rollup count: $((rollupCount + 1)), got: $newRollupCount"
