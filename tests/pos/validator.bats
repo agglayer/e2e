@@ -5,10 +5,6 @@ setup() {
   load "../../core/helpers/pos-setup.bash"
   load "../../core/helpers/scripts/eventually.bash"
   pos_setup
-
-  # Define timeout and interval for eventually commands.
-  timeout_seconds=${TIMEOUT_SECONDS:-"180"}
-  interval_seconds=${INTERVAL_SECONDS:-"10"}
 }
 
 function generate_new_keypair() {
