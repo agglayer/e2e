@@ -240,9 +240,6 @@ function create_authorization_element() {
         echo "Transaction sent successfully, tx_hash: $tx_hash, tx type: $tx_type"
     fi
 
-    # balance before tx:
-    balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$alice_address")
-
     run cast send --json --rpc-url $l2_rpc_url --private-key $alice_private_key $alice_address "delegatedTest()"
     if [ "$status" -ne 0 ]; then
         echo "❌ Failed to send delegated transaction: $output"
