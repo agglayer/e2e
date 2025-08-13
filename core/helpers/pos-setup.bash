@@ -5,9 +5,6 @@ pos_setup() {
   export PRIVATE_KEY=${PRIVATE_KEY:-"0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"}
   echo "PRIVATE_KEY=${PRIVATE_KEY}"
 
-  export L2_CL_NODE_TYPE=${L2_CL_NODE_TYPE:-"heimdall-v2"}
-  echo "L2_CL_NODE_TYPE=${L2_CL_NODE_TYPE}"
-
   # The name of the Kurtosis enclave (used for default values).
   export ENCLAVE_NAME=${ENCLAVE_NAME:-"pos"}
   echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
