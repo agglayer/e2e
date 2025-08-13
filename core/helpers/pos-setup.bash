@@ -15,8 +15,10 @@ pos_setup() {
   # L1 and L2 RPC and API URLs.
   export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc)"}
   echo "L1_RPC_URL=${L1_RPC_URL}"
+
   export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-heimdall-v2-validator" rpc)}
   export L2_CL_API_URL=${L2_CL_API_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-1-heimdall-v2-bor-validator" http)}
+
   echo "L2_RPC_URL=${L2_RPC_URL}"
   echo "L2_CL_API_URL=${L2_CL_API_URL}"
 

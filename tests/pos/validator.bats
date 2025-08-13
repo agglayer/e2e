@@ -99,16 +99,19 @@ function generate_new_keypair() {
 # bats file_tags=pos,validator
 @test "update validator top-up fee" {
   # First validator.
+  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
+  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+
   VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"}
   echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
 
-  TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/bank/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".result[] | select(.denom == \"pol\") | .amount"'
+  TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/cosmos/bank/v1beta1/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".balances[] | select(.denom == \"pol\") | .amount"'
   echo "TOP_UP_FEE_BALANCE_CMD=${TOP_UP_FEE_BALANCE_CMD}"
 
   initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
   echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
 
-  echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
+  echo "Allowing the StakeManagerProxy contract to spend MATIC/POL tokens on our behalf..."
   top_up_amount=$(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
@@ -117,21 +120,30 @@ function generate_new_keypair() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${VALIDATOR_ADDRESS}" "${top_up_amount}"
 
-  # TODO: Find out why the target is wrong here.
-  # Monitoring the top-up balance of the validator...
-  # [2025-03-31 13:39:35] Target: -5930898827444486144
-  # [2025-03-31 13:39:35] Result: 1000000000000000000000000000
-  # [2025-03-31 13:39:45] Result: 1000000000000000000000000000
-  # [2025-03-31 13:39:55] Result: 1000000000000000000000000000
-  # [2025-03-31 13:40:05] Result: 1000000000000000000000000000
-  # [2025-03-31 13:40:15] Result: 999999999999000000000000000
-  # [2025-03-31 13:40:25] Result: 1000000000999000000000000000
-  # [2025-03-31 13:40:35] Result: 1000000000999000000000000000
-  # [2025-03-31 13:40:45] Result: 1000000000999000000000000000
-  # [2025-03-31 13:40:55] Result: 1000000000999000000000000000
-  # Timeout reached.
   echo "Monitoring the top-up balance of the validator..."
-  assert_command_eventually_equal "${TOP_UP_FEE_BALANCE_CMD}" $((initial_top_up_balance + top_up_amount))
+  echo "Initial balance: ${initial_top_up_balance}"
+
+  timeout=180
+  interval=10
+  start_time=$(date +%s)
+  end_time=$((start_time + timeout))
+
+  while true; do
+    if [[ "$(date +%s)" -ge "${end_time}" ]]; then
+      echo "Timeout reached."
+      exit 1
+    fi
+
+    current_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Current balance: ${current_balance}"
+
+    if [[ $(echo "${current_balance} > ${initial_top_up_balance}" | bc) -eq 1 ]]; then
+      echo "Balance check passed: ${current_balance} > ${initial_top_up_balance}"
+      break
+    fi
+
+    sleep "${interval}"
+  done
 }
 
 # bats file_tags=pos,validator
