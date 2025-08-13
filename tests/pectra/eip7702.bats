@@ -26,7 +26,8 @@ setup_file() {
 
     export l2_chain_id=${L2_CHAIN_ID:-"$(cast chain-id --rpc-url $l2_rpc_url)"}
     export l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l2_address=$(cast wallet address --private-key $l2_private_key)
+    l2_address=$(cast wallet address --private-key $l2_private_key)
+    export l2_address
 
     delegated_bytecode=$(cat contracts/Delegated.json | jq -r .bytecode.object)
     export delegated_bytecode
