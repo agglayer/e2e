@@ -36,8 +36,11 @@ setup_file() {
     alice_address=$(echo "$alice_wallet" | jq -r '.[0].address')
     alice_private_key=$(echo "$alice_wallet" | jq -r '.[0].private_key')
 
-    # fund alice with 5 eth:
-    run cast send --rpc-url $l2_rpc_url --private-key $l2_private_key --value 5ether $alice_address
+    # fund alice
+    fund_value_ether=0.1
+
+    fund_value_wei=$(echo $fund_value_ether | cast to-wei)
+    run cast send --rpc-url $l2_rpc_url --private-key $l2_private_key --value $fund_value_wei $alice_address
     if [ "$status" -ne 0 ]; then
         echo "❌ Failed to fund Alice's wallet: $output"
         exit 1
@@ -47,7 +50,7 @@ setup_file() {
 
     # assert alice got funded
     alice_balance=$(cast balance --rpc-url $l2_rpc_url $alice_address)
-    if [ $alice_balance -lt 5000000000000000000 ]; then
+    if [ $alice_balance -lt $fund_value_wei ]; then
         echo "❌ Failed to fund Alice's wallet, current balance: $alice_balance"
         exit 1
     fi
@@ -73,11 +76,11 @@ function deploy_contract() {
     echo $contract_address
 }
 
-
 function create_authorization_element() {
     local chain_id=$1
     local address=$2
     local nonce=$3
+    local signing_key=$4
 
     json_input="$(jq -cn \
         --argjson chain_id $chain_id \
@@ -94,7 +97,7 @@ function create_authorization_element() {
     rlp_signing_data=$(cast keccak "0x05${rlp_payload:2}")
 
     # Sign the authorization data
-    signature=$(cast wallet sign --no-hash --private-key "$l2_private_key" "$rlp_signing_data")
+    signature=$(cast wallet sign --no-hash --private-key "$signing_key" "$rlp_signing_data")
     signature=${signature#0x}
     signature_r="0x${signature:0:64}"
     signature_s="0x${signature:64:64}"
@@ -120,9 +123,7 @@ function create_authorization_element() {
     echo $authorization_element
 }
 
-
-
-@test "EIP-7702 Temporary Smart Contract Account" {
+@test "EIP-7702 Delegated contract with log event" {
     tx_type="0x04"  # EIP-7702 transaction type
 
     contract_address=$(deploy_contract)
@@ -130,34 +131,27 @@ function create_authorization_element() {
         echo "❌ Failed to deploy contract"
         exit 1
     fi
-    echo "Contract deployed at: $contract_address"
+    echo "Delegated contract deployed at: $contract_address"
 
     nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$alice_address")
     if [ -z "$nonce" ]; then
         echo "❌ Failed to get nonce for address $alice_address"
         exit 1
+    else
+        next_nonce=$((nonce + 1))
+        echo "Nonce for EOA address $alice_address: $nonce, next_nonce: $next_nonce"
     fi
-    echo "Nonce for EOA address $alice_address: $nonce"
 
-    authorization_element=$(create_authorization_element "$l2_chain_id" "$contract_address" "$nonce")
+    authorization_element=$(create_authorization_element "$l2_chain_id" "$contract_address" "$next_nonce" "$alice_private_key")
     if [ -z "$authorization_element" ]; then
         echo "❌ Failed to create authorization element"
         exit 1
     fi
-    echo "Authorization Element: $authorization_element"
-
+    echo "Got authorization element for EIP-7702 tx"
 
     gas_limit=2000000
     gas_price=1000000000  # 1 gwei
-
-    # SCA payload - just sends 1 wei to a random address
-    #encoded_data=$(cast abi-encode "execute(address,uint256,bytes)" "$random_address" 1 "0x")
-    #encoded_data="0x"
-
-    #tx_data="0x00"
-    # Encode call to delegatedTest()
-    tx_data=$(cast abi-encode "delegatedTest()")
-
+    tx_data="0x"
 
     json_input=$(jq -cn \
         --argjson chain_id $l2_chain_id \
@@ -183,13 +177,9 @@ function create_authorization_element() {
         ]'
     )
 
-    echo "JSON Input: $json_input"
-
     # RLP encode the transaction
     rlp_payload=$(cast to-rlp "$json_input")
     signing_data=$(cast keccak "${tx_type}${rlp_payload:2}")
-
-    echo "Signing Data: $signing_data"
 
     # Sign it
     signature=$(cast wallet sign --no-hash --private-key "$alice_private_key" "$signing_data")
@@ -198,7 +188,6 @@ function create_authorization_element() {
     signature_s="0x${signature:64:64}"
     raw_v=$((16#${signature:128:2}))
     y_parity=$((raw_v - 27))
-
 
     # Final transaction fields with signature
     final_tx=$(jq -cn \
@@ -231,15 +220,13 @@ function create_authorization_element() {
         ]'
     )
 
-    echo "Final Transaction: $final_tx"
-
     # RLP encode signed transaction
     signed_rlp=$(cast to-rlp "$final_tx")
 
     # Prepend tx type byte
     full_tx="${tx_type}${signed_rlp:2}"
 
-    echo "Signatures: signature=$signature y_parity=$y_parity, r=$signature_r, s=$signature_s"
+    echo "Publishing Signed EIP-7702 tx"
 
     # Submit transaction
     run cast publish "$full_tx" --rpc-url "$l2_rpc_url" --json
@@ -248,20 +235,26 @@ function create_authorization_element() {
         echo "Raw full transaction: $full_tx"
         exit 1
     else
-        echo "Transaction sent successfully: $output"
+        tx_hash=$(echo "$output" | jq -r '.transactionHash')
+        tx_type=$(echo "$output" | jq -r '.type')
+        echo "Transaction sent successfully, tx_hash: $tx_hash, tx type: $tx_type"
     fi
 
     # balance before tx:
     balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$alice_address")
 
-    #data=$(cast abi-encode "delegatedTest()")
-    run cast send --rpc-url $l2_rpc_url --private-key $l2_private_key $alice_address "delegatedTest()"
-    echo "Transaction sent successfully: $output"
-
-    balance_after=$(cast balance --rpc-url "$l2_rpc_url" "$alice_address")
-
-    # Lets calculate balance diff in eth:
-    balance_diff=$(bc <<< "$balance_before - $balance_after")
-    eth_diff=$(echo $balance_diff | cast from-wei)
-    echo "ETH Balance diff: $eth_diff (before: $balance_before, after: $balance_after)"
+    run cast send --json --rpc-url $l2_rpc_url --private-key $alice_private_key $alice_address "delegatedTest()"
+    if [ "$status" -ne 0 ]; then
+        echo "❌ Failed to send delegated transaction: $output"
+        exit 1
+    else
+        tx_hash=$(echo "$output" | jq -r '.transactionHash')
+        logs=$(echo "$output" | jq -r '.logs')
+        # Assert logs are not empty array []:
+        if [ "$logs" == "[]" ]; then
+            echo "❌ No logs found in delegated transaction: $tx_hash"
+            exit 1
+        fi
+    fi
+    echo "Delegated transaction executed successfully with hash: $tx_hash, logs: $logs"
 }
