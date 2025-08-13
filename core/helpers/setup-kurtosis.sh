@@ -60,14 +60,7 @@ elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
     # Deploy the package.
     kurtosis run --enclave "${ENCLAVE_NAME}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
 
-    # Determine the L2 CL node type.
     export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc)"
-    if [[ "${ARGS_FILE}" =~ "heimdall-v2" ]]; then
-        L2_CL_NODE_TYPE="heimdall-v2"
-    else
-        L2_CL_NODE_TYPE="heimdall"
-    fi
-    export_env_var "L2_CL_NODE_TYPE" "${L2_CL_NODE_TYPE}"
 
 elif [[ "${PACKAGE}" == "optimism-package" ]]; then
     ENCLAVE_NAME="op"
