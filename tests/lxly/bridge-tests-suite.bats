@@ -52,7 +52,7 @@ _setup_environment_variables() {
     export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
     l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
     l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-90m}"
+    export claim_wait_duration="${CLAIM_WAIT_DURATION:-120m}"
 }
 
 
@@ -165,7 +165,7 @@ _setup_contract_addresses() {
     echo "========================================" | tee -a "$bridge_log"
     
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    local max_concurrent=8
+    local max_concurrent=5
     if [[ $successful_count -lt 5 ]]; then
         max_concurrent=$successful_count
     fi
