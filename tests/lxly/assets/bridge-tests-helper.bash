@@ -622,13 +622,22 @@ _setup_amount_and_add_to_command() {
     local token_type="$4"
     local test_index="$5"
     local metadata_type="$6"  # Add metadata parameter to consider combinations
+    local base_gas_limit="$7"  # Add base gas limit parameter
+    
+    # Extract just the gas limit value from the base_gas_limit string
+    local gas_limit_value
+    if [[ "$base_gas_limit" =~ --gas-limit\ ([0-9]+) ]]; then
+        gas_limit_value="${BASH_REMATCH[1]}"
+    else
+        gas_limit_value="3000000"  # Default fallback
+    fi
     
     case "$amount_type" in
         "0")
-            echo "$command --value 0 --gas-limit 1500000"
+            echo "$command --value 0 --gas-limit $gas_limit_value"
             ;;
         "1")
-            echo "$command --value 1 --gas-limit 1500000"
+            echo "$command --value 1 --gas-limit $gas_limit_value"
             ;;
         "Max")
             if [[ "$token_type" == "Buggy" ]]; then
@@ -638,21 +647,25 @@ _setup_amount_and_add_to_command() {
                 # shellcheck disable=SC2154
                 cast send --rpc-url "$l1_rpc_url" --private-key "$ephemeral_private_key" \
                     "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0 --quiet 2>/dev/null || true
-                echo "$command --value $(cast max-uint) --gas-limit 15000000"
+                # Use higher gas limit for Max amounts, but respect metadata-based limits
+                local max_gas_limit=$((gas_limit_value * 2))
+                echo "$command --value $(cast max-uint) --gas-limit $max_gas_limit"
             elif [[ "$token_type" == "POL" && "$metadata_type" == "Max" ]]; then
                 # Special case: POL with Max amount AND Max metadata - use much smaller amount
-                echo "$command --value 100000000000000000000000 --gas-limit 20000000"
+                echo "$command --value 100000000000000000000000 --gas-limit $gas_limit_value"
                 echo "DEBUG: Using reduced bridge amount for POL Max+Max combination" >&2
             elif [[ "$token_type" == "LocalERC20" || "$token_type" == "POL" ]]; then
                 # Use the safe amount for LocalERC20 and POL (normal cases)
-                echo "$command --value 1000000000000000000000000000 --gas-limit 15000000"
+                local max_gas_limit=$((gas_limit_value * 2))
+                echo "$command --value 1000000000000000000000000000 --gas-limit $max_gas_limit"
             else
-                echo "$command --value $(cast max-uint) --gas-limit 15000000"
+                local max_gas_limit=$((gas_limit_value * 2))
+                echo "$command --value $(cast max-uint) --gas-limit $max_gas_limit"
             fi
             ;;
         "Random")
             # Use test index to make random values unique
-            echo "$command --value $((1000000 + test_index * 12345)) --gas-limit 2000000"
+            echo "$command --value $((1000000 + test_index * 12345)) --gas-limit $gas_limit_value"
             ;;
         *)
             echo "Unrecognized Amount: $amount_type" >&3
@@ -939,7 +952,7 @@ _run_single_bridge_test() {
     fi
 
     # Setup amount and add to command (now with metadata parameter)
-    bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data")
+    bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit")
     if [[ $? -ne 0 ]]; then
         echo "DEBUG: Failed to add amount to command" >&2
         echo "TEST_$test_index|FAIL|N/A|Failed to add amount" > "$result_file"
@@ -1066,6 +1079,40 @@ _run_single_bridge_test() {
                     fi
                 else
                     echo "DEBUG: Different error after removing gas limit" >&2
+                fi
+            fi
+        # Add special handling for huge calldata scenarios that fail with network/timeout errors
+        elif [[ "$test_meta_data" == "Huge" || "$test_meta_data" == "Max" ]] && \
+            echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found|replacement transaction underpriced)"; then
+            echo "DEBUG: Huge/Max calldata with network/timeout errors - likely gas estimation issue, removing gas limit" >&2
+            
+            # Remove the gas limit parameter entirely to let the system auto-estimate
+            local retry_command
+            retry_command=$(echo "$bridge_command" | sed 's/--gas-limit [0-9]* //g')
+            echo "DEBUG: Retrying huge/max calldata without gas limit (auto-estimation): $retry_command" >&2
+            
+            if bridge_output=$(timeout "$timeout_duration" bash -c "$retry_command" 2>&1); then
+                bridge_status=0
+                echo "DEBUG: Retry without gas limit succeeded for huge/max calldata" >&2
+            else
+                bridge_status=$?
+                echo "DEBUG: Retry without gas limit also failed for huge/max calldata" >&2
+                echo "DEBUG: Retry output: $bridge_output" >&2
+                
+                # Check if it's still a gas/block limit issue
+                if echo "$bridge_output" | grep -q -E "(insufficient gas|intrinsic gas too low|Perhaps try increasing the gas limit|GasUsed=[0-9]+)"; then
+                    echo "DEBUG: Still a gas issue even with auto-estimation for huge/max calldata" >&2
+                elif echo "$bridge_output" | grep -q "exceeds block gas limit"; then
+                    echo "DEBUG: Transaction exceeds block gas limit even with auto-estimation for huge/max calldata" >&2
+                    # Check if this is an expected failure
+                    if [[ "$expected_result_process" != "Success" ]]; then
+                        echo "DEBUG: Block gas limit error matches expected failure for huge/max calldata" >&2
+                        bridge_status=0  # Treat as success if failure was expected
+                    fi
+                elif echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found)"; then
+                    echo "DEBUG: Still getting network/timeout errors even without gas limit - may be RPC issue" >&2
+                else
+                    echo "DEBUG: Different error after removing gas limit for huge/max calldata" >&2
                 fi
             fi
         elif echo "$bridge_output" | grep -q "exceeds block gas limit"; then
