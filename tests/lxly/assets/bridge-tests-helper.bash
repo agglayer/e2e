@@ -1036,6 +1036,68 @@ _run_single_bridge_test() {
             # If it's retryable and we haven't exhausted retries, continue
             if $retry_bridge && [[ $bridge_attempt -lt $max_bridge_retries ]]; then
                 echo "DEBUG: Retrying bridge operation after delay (attempt $bridge_attempt/$max_bridge_retries)" >&2
+                
+                # For replacement transaction underpriced errors, increase gas price and limit
+                if echo "$bridge_output" | grep -q "replacement transaction underpriced"; then
+                    echo "DEBUG: Increasing gas price and limit for replacement transaction" >&2
+                    
+                    # Calculate gas price multiplier based on attempt (1.5x, 2x, 2.5x, etc.)
+                    local gas_price_multiplier=$((bridge_attempt + 1))
+                    local gas_limit_multiplier=$((bridge_attempt + 1))
+                    
+                    # Get current gas price from network
+                    local current_gas_price
+                    if current_gas_price=$(cast gas-price --rpc-url "$l1_rpc_url" 2>/dev/null); then
+                        # Increase gas price by multiplier + 20% buffer
+                        local new_gas_price=$((current_gas_price * gas_price_multiplier * 12 / 10))
+                        echo "DEBUG: Setting gas price to $new_gas_price (${gas_price_multiplier}.2x current)" >&2
+                    else
+                        echo "DEBUG: Could not get current gas price, using default escalation" >&2
+                        local new_gas_price=$((20000000000 * gas_price_multiplier))  # 20 gwei * multiplier
+                    fi
+                    
+                    # Extract current gas limit and increase it
+                    local current_gas_limit=""
+                    if [[ "$bridge_command" =~ --gas-limit\ ([0-9]+) ]]; then
+                        current_gas_limit="${BASH_REMATCH[1]}"
+                        local new_gas_limit=$((current_gas_limit * gas_limit_multiplier))
+                        echo "DEBUG: Increasing gas limit from $current_gas_limit to $new_gas_limit" >&2
+                        
+                        # Update the command with new gas limit
+                        bridge_command=$(echo "$bridge_command" | sed "s/--gas-limit [0-9]*/--gas-limit $new_gas_limit/")
+                    else
+                        # Add gas limit if not present
+                        local base_gas_limit=$((3000000 * gas_limit_multiplier))
+                        bridge_command="$bridge_command --gas-limit $base_gas_limit"
+                        echo "DEBUG: Added gas limit: $base_gas_limit" >&2
+                    fi
+                    
+                    # Add gas price to command
+                    bridge_command="$bridge_command --gas-price $new_gas_price"
+                    echo "DEBUG: Updated bridge command with higher gas: $bridge_command" >&2
+                elif echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found)"; then
+                    echo "DEBUG: Network/timeout error detected, increasing gas for faster inclusion" >&2
+                    
+                    # For network issues, also increase gas to get priority
+                    local gas_multiplier=$((bridge_attempt + 1))
+                    
+                    # Increase gas limit
+                    if [[ "$bridge_command" =~ --gas-limit\ ([0-9]+) ]]; then
+                        local current_gas_limit="${BASH_REMATCH[1]}"
+                        local new_gas_limit=$((current_gas_limit * gas_multiplier))
+                        bridge_command=$(echo "$bridge_command" | sed "s/--gas-limit [0-9]*/--gas-limit $new_gas_limit/")
+                        echo "DEBUG: Increased gas limit to $new_gas_limit for faster inclusion" >&2
+                    fi
+                    
+                    # Add higher gas price for network issues
+                    local current_gas_price
+                    if current_gas_price=$(cast gas-price --rpc-url "$l1_rpc_url" 2>/dev/null); then
+                        local priority_gas_price=$((current_gas_price * gas_multiplier * 15 / 10))  # 1.5x * multiplier
+                        bridge_command="$bridge_command --gas-price $priority_gas_price"
+                        echo "DEBUG: Added priority gas price: $priority_gas_price" >&2
+                    fi
+                fi
+                
                 sleep $((bridge_attempt * 2))  # Exponential backoff
                 continue
             else
