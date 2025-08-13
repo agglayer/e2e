@@ -982,10 +982,59 @@ _run_single_bridge_test() {
     
     local bridge_output
     local bridge_status
-    if bridge_output=$(timeout "$timeout_duration" bash -c "$bridge_command" 2>&1); then
-        bridge_status=0
-    else
-        bridge_status=$?
+    local max_bridge_retries=3
+    local bridge_attempt=0
+    local retry_bridge=false
+    
+    while [[ $bridge_attempt -lt $max_bridge_retries ]]; do
+        bridge_attempt=$((bridge_attempt + 1))
+        echo "DEBUG: Bridge attempt $bridge_attempt for test $test_index" >&2
+        
+        if bridge_output=$(timeout "$timeout_duration" bash -c "$bridge_command" 2>&1); then
+            bridge_status=0
+            echo "DEBUG: Bridge command succeeded on attempt $bridge_attempt" >&2
+            break
+        else
+            bridge_status=$?
+            echo "DEBUG: Bridge attempt $bridge_attempt failed with status $bridge_status" >&2
+            echo "DEBUG: Bridge output: $bridge_output" >&2
+            
+            # Check if this is a retryable error
+            retry_bridge=false
+            
+            # Check for network/receipt timeout issues - these are retryable
+            if echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found|connection refused|timeout|network error)"; then
+                echo "DEBUG: Detected network/timeout error - this is retryable" >&2
+                retry_bridge=true
+            fi
+            
+            # Check for nonce issues - also retryable
+            if echo "$bridge_output" | grep -q -E "(nonce too low|replacement transaction underpriced|already known)"; then
+                echo "DEBUG: Detected nonce/replacement error - this is retryable" >&2
+                retry_bridge=true
+            fi
+            
+            # Check for temporary RPC issues
+            if echo "$bridge_output" | grep -q -E "(502 Bad Gateway|503 Service Unavailable|429 Too Many Requests|Internal server error)"; then
+                echo "DEBUG: Detected temporary RPC error - this is retryable" >&2
+                retry_bridge=true
+            fi
+            
+            # If it's retryable and we haven't exhausted retries, continue
+            if $retry_bridge && [[ $bridge_attempt -lt $max_bridge_retries ]]; then
+                echo "DEBUG: Retrying bridge operation after delay (attempt $bridge_attempt/$max_bridge_retries)" >&2
+                sleep $((bridge_attempt * 2))  # Exponential backoff
+                continue
+            else
+                # Not retryable or exhausted retries
+                echo "DEBUG: Bridge operation failed permanently or exhausted retries" >&2
+                break
+            fi
+        fi
+    done
+    
+    # Only do gas limit retry if the final attempt failed with gas issues
+    if [[ $bridge_status -ne 0 ]]; then
         echo "DEBUG: Bridge command failed with timeout or error status $bridge_status" >&2
         
         # Check if it's a gas limit issue and suggest retry with higher gas
