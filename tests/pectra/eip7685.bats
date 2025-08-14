@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-
+# bats file_tags=pectra
 #
 # This file implements tests for EIP-7685: General purpose execution layer requests
 # https://eips.ethereum.org/EIPS/eip-7685
