@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
+# bats file_tags=zkevm
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
     _agglayer_cdk_common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=heavy,zk-counters,el:cdk-erigon
+# bats test_tags=zkevm-counters
 @test "Test zkCounters" {
     echo "🚀 Running Go test for zkCounters..."
 

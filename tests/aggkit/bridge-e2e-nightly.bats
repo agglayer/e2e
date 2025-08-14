@@ -1,3 +1,7 @@
+#!/usr/bin/env bats
+# bats file_tags=aggkit
+# shellcheck disable=SC2154,SC2034,SC2155
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -14,7 +18,7 @@ setup() {
     local bridge_message_tx_hash=$output
 
     # Step 2: Deploy and bridge ERC20 token L1 -> L2
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
@@ -71,7 +75,7 @@ setup() {
     local bridge_message_tx_hash=$output
 
     # Step 2: Deploy and bridge ERC20 token L1 -> L2
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
@@ -133,7 +137,7 @@ setup() {
     assert_success
 
     # Step 3: Deploy and bridge ERC20 token L1 -> L2
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
@@ -177,13 +181,13 @@ setup() {
 # Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B
 @test "Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B" {
     # Deploy first ERC20 token (Asset A)
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr_a=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address A: $l1_erc20_addr_a"
 
     # Deploy second ERC20 token (Asset B)
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr_b=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address B: $l1_erc20_addr_b"
@@ -250,13 +254,13 @@ setup() {
 # Bridge A -> Bridge B -> Claim A -> Claim B
 @test "Bridge A -> Bridge B -> Claim A -> Claim B" {
     # Deploy first ERC20 token (Asset A)
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr_a=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address A: $l1_erc20_addr_a"
 
     # Deploy second ERC20 token (Asset B)
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr_b=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address B: $l1_erc20_addr_b"
@@ -323,13 +327,13 @@ setup() {
 # Bridge A -> Bridge B -> Claim B -> Claim A
 @test "Bridge A -> Bridge B -> Claim B -> Claim A" {
     # Deploy first ERC20 token (Asset A)
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr_a=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address A: $l1_erc20_addr_a"
 
     # Deploy second ERC20 token (Asset B)
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr_b=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address B: $l1_erc20_addr_b"

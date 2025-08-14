@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
+# bats file_tags=zkevm
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
     _agglayer_cdk_common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=light,batch-verification,el:cdk-erigon
+# bats test_tags=zkevm-batch
 @test "Verify batches" {
     # ✅ Ensure Foundry's `cast` is available
     if ! command -v cast &> /dev/null; then

@@ -1,3 +1,7 @@
+#!/usr/bin/env bats
+# bats file_tags=aggkit
+# shellcheck disable=SC2154,SC2034
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -6,6 +10,6 @@ setup() {
 @test "Verify certificate settlement" {
     echo "Waiting 10 minutes to get some settle certificate...." >&3
 
-    run $PROJECT_ROOT/core/helpers/scripts/agglayer_certificates_monitor.sh 1 600 $l2_rpc_network_id
+    run $PROJECT_ROOT/core/helpers/scripts/agglayer_certificates_monitor.sh 1 600 "$l2_rpc_network_id"
     assert_success
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats test_tags=pos
 
 setup() {
   # Load libraries.
@@ -15,7 +16,7 @@ function generate_new_keypair() {
   echo "${address} ${public_key} ${private_key}"
 }
 
-# bats file_tags=pos,validator
+# bats test_tags=pos-validator
 @test "add new validator" {
   VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
   echo "VALIDATOR_COUNT_CMD=${VALIDATOR_COUNT_CMD}"
@@ -55,7 +56,7 @@ function generate_new_keypair() {
   assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1)) 180
 }
 
-# bats file_tags=pos,validator
+# bats test_tags=pos-validator
 @test "update validator stake" {
   # First validator.
   VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
@@ -92,7 +93,7 @@ function generate_new_keypair() {
   assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_voting_power + voting_power_update)) 180
 }
 
-# bats file_tags=pos,validator
+# bats test_tags=pos-validator
 @test "update validator top-up fee" {
   # First validator.
   VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
@@ -142,7 +143,7 @@ function generate_new_keypair() {
   done
 }
 
-# bats file_tags=pos,validator
+# bats test_tags=pos-validator
 @test "update signer" {
   # First validator.
   VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
@@ -176,7 +177,7 @@ function generate_new_keypair() {
   assert_command_eventually_equal "${VALIDATOR_SIGNER_CMD}" "0xd74c0d3dee45a0a9516fb66e31c01536e8756e2a" 180
 }
 
-# bats file_tags=pos,validator,delegate
+# bats test_tags=pos-validator,pos-delegate,transaction-pol
 @test "delegate MATIC/POL to a validator" {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
@@ -270,7 +271,7 @@ function generate_new_keypair() {
   echo "Delegation test completed successfully!"
 }
 
-# bats file_tags=pos,validator,undelegate
+# bats test_tags=pos-validator,pos-undelegate,transaction-pol
 @test "undelegate MATIC/POL from a validator" {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
@@ -358,7 +359,7 @@ function generate_new_keypair() {
   echo "Undelegation test completed successfully!"
 }
 
-# bats file_tags=pos,validator
+# bats test_tags=pos-validator
 @test "remove validator" {
   # First validator.
   VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}

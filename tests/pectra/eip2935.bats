@@ -1,9 +1,8 @@
 #!/usr/bin/env bats
+# bats file_tags=pectra
 
-#
 # This file implements tests for EIP-2935: Serve historical block hashes from state
 # https://eips.ethereum.org/EIPS/eip-2935
-#
 
 setup() {
     true
@@ -91,6 +90,7 @@ function eip2935_check_block_fail() {
     fi
 }
 
+# bats file_tags=pectra,eip-2935
 @test "EIP-2935: Random historical block hashes from state" {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     oldest_block=$((current_block - HISTORY_SERVE_WINDOW))
@@ -112,6 +112,7 @@ function eip2935_check_block_fail() {
     done
 }
 
+# bats file_tags=pectra,eip-2935
 @test "EIP-2935: Oldest possible historical block hash from state" {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     echo "Current block: $current_block"
@@ -124,6 +125,7 @@ function eip2935_check_block_fail() {
     eip2935_check_block "$block_to_check"
 }
 
+# bats file_tags=pectra,eip-2935
 @test "EIP-2935: Checking blocks outside historical serve window" {
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     oldest_block=$((current_block - HISTORY_SERVE_WINDOW))

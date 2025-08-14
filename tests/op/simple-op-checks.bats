@@ -1,4 +1,7 @@
-setup() {
+#!/usr/bin/env bats
+# bats file_tags=op
+
+etup() {
     rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
     # bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
     private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
@@ -6,7 +9,7 @@ setup() {
     export ETH_RPC_URL="$rpc_url"
 }
 
-# bats test_tags=smoke
+# bats file_tags=cdk-op-geth
 @test "sweep account with precise gas and DA fee estimation" {
     wallet_info=$(cast wallet new --json | jq '.[0]')
     tmp_address=$(echo "$wallet_info" | jq -r '.address')
@@ -40,8 +43,7 @@ setup() {
 
 }
 
-
-# bats test_tags=smoke
+# bats file_tags=cdk-op-geth
 @test "send concurrent transactions and verify DA fee handling" {
     a_wallet=$(cast wallet new --json)
     a_address=$(echo "$a_wallet" | jq -r .[0].address)

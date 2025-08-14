@@ -1,5 +1,7 @@
-# shellcheck disable=SC2154,SC2034
+#!/usr/bin/env bats
+# bats file_tags=cdk
 
+# shellcheck disable=SC2154,SC2034
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -56,14 +58,17 @@ native_gas_token_deposit_to_WETH() {
     assert_success
 }
 
+# bats test_tags=bridge,weth,native-gas-token
 @test "Native gas token deposit to WETH - BridgeAsset" {
     run native_gas_token_deposit_to_WETH "bridgeAsset"
 }
 
+# bats test_tags=bridge,weth,native-gas-token
 @test "Native gas token deposit to WETH - BridgeMessage" {
    run native_gas_token_deposit_to_WETH "bridgeMessage"
 }
 
+# bats test_tags=bridge,custom-gas-token
 @test "Custom gas token deposit" {
     echo "Custom gas token deposit (gas token addr: $gas_token_addr, L1 RPC: $l1_rpc_url, L2 RPC: $L2_RPC_URL)" >&3
 
@@ -128,6 +133,7 @@ native_gas_token_deposit_to_WETH() {
     assert_success
 }
 
+# bats test_tags=bridge,custom-gas-token
 @test "Custom gas token withdrawal" {
     echo "Running LxLy withdrawal" >&3
     echo "Gas token addr $gas_token_addr, L1 RPC: $l1_rpc_url" >&3
