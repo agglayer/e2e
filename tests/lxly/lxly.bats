@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=lxly
 
 setup() {
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}

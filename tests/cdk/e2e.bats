@@ -1,3 +1,6 @@
+#!/usr/bin/env bats
+# bats file_tags=cdk
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup

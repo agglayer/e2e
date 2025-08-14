@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=evm-rpc
 
 setup() {
     rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}

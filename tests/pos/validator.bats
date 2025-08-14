@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=pos
 
 setup() {
   # Load libraries.

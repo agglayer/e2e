@@ -1,9 +1,8 @@
 #!/usr/bin/env bats
+# bats file_tags=pectra
 
-#
 # This file implements tests for EIP-2935: Serve historical block hashes from state
 # https://eips.ethereum.org/EIPS/eip-2935
-#
 
 setup() {
     true

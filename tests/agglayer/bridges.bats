@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=agglayer
 
 setup() {
     kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
@@ -38,8 +39,6 @@ function fund_claim_tx_manager() {
          --private-key "$l2_private_key" \
          "$claimtxmanager_addr"
 }
-
-# bats file_tags=agglayer
 
 # bats test_tags=smoke,bridge
 @test "bridge native ETH from L1 to L2" {

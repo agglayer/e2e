@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=dapps
 
 setup () {
     rpc_url=${RPC_URL:-"http://127.0.0.1:8545"}

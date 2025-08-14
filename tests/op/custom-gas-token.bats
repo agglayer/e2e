@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=op
 
 setup() {
     load '../../core/helpers/scripts/fund.bash'

@@ -1,3 +1,6 @@
+#!/usr/bin/env bats
+# bats file_tags=ethereum-test-cases
+
 # This test leverages test data that's derived from the core ethereum
 # test suite. We're leveraging this data as a stress test rather than
 # a functional test. I.e. we don't check for the correct execution of

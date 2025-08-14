@@ -1,3 +1,6 @@
+#!/usr/bin/env bats
+# bats file_tags=agglayer
+
 setup() {
     kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env bats
+# bats file_tags=pectra
 
-#
 # This file implements tests for EIP-7623: Increase calldata cost
 # https://eips.ethereum.org/EIPS/eip-7623
-#
 
 setup() {
     true

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard,execution
 
 # This file tests the deployment of SmoothCrpytoLib - https://github.com/get-smooth/crypto-lib and interacting with it.
 

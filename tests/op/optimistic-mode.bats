@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=op
 
 setup() {
     kurtosis_enclave_name=${ENCLAVE_NAME:-"op"}
