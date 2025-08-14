@@ -1,18 +1,22 @@
 #!/usr/bin/env bats
 # bats file_tags=cdk
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
 }
 
 @test "Send EOA transaction" {
-    local initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$L2_RPC_URL") || {
+    local initial_nonce
+    # shellcheck disable=SC2154
+    initial_nonce=$(cast nonce "$sender_addr" --rpc-url "$L2_RPC_URL") || {
         echo "Failed to retrieve nonce for sender: $sender_addr using RPC URL: $L2_RPC_URL"
         return 1
     }
     local value="10ether"
 
     # case 1: Transaction successful sender has sufficient balance
+    # shellcheck disable=SC2154
     run send_tx "$L2_RPC_URL" "$sender_private_key" "$receiver" "$value"
     assert_success
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
@@ -20,16 +24,19 @@ setup() {
     # case 2: Transaction rejected as sender attempts to transfer more than it has in its wallet.
     # Transaction will fail pre-validation check on the node and will be dropped subsequently from the pool
     # without recording it on the chain and hence nonce will not change
-    local sender_balance=$(cast balance "$sender_addr" --ether --rpc-url "$L2_RPC_URL") || {
+    local sender_balance
+    sender_balance=$(cast balance "$sender_addr" --ether --rpc-url "$L2_RPC_URL") || {
         echo "Failed to retrieve balance for sender: $sender_addr using RPC URL: $L2_RPC_URL"
         return 1
     }
-    local excessive_value=$(echo "$sender_balance + 1" | bc)"ether"
+    local excessive_value
+    excessive_value=$(echo "$sender_balance + 1" | bc)"ether"
     run send_tx "$L2_RPC_URL" "$sender_private_key" "$receiver" "$excessive_value"
     assert_failure
 
     # Check whether the sender's nonce was updated correctly
-    local final_nonce=$(cast nonce "$sender_addr" --rpc-url "$L2_RPC_URL") || {
+    local final_nonce
+    final_nonce=$(cast nonce "$sender_addr" --rpc-url "$L2_RPC_URL") || {
         echo "Failed to retrieve nonce for sender: $sender_addr using RPC URL: $L2_RPC_URL"
         return 1
     }
@@ -43,6 +50,7 @@ setup() {
     address_B=$(cast wallet new | grep "Address" | awk '{print $2}')
 
     # Deploy ERC20Mock
+    # shellcheck disable=SC2154
     run deploy_contract "$L2_RPC_URL" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     contract_addr=$(echo "$output" | tail -n 1)
@@ -57,18 +65,23 @@ setup() {
     ## Case 2: Insufficient gas scenario => Transactions fails
     # nonce would not increase since transaction fails at the node's pre-validation check
     # Get bytecode from the contract artifact
-    local bytecode=$(jq -r .bytecode "$erc20_artifact_path")
+    local bytecode
+    bytecode=$(jq -r .bytecode "$erc20_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
         echo "Error: Failed to read bytecode from $erc20_artifact_path"
         return 1
     fi
 
     # Estimate gas, gas price and gas cost
-    local gas_units=$(cast estimate --rpc-url "$L2_RPC_URL" --create "$bytecode")
+    local gas_units
+    gas_units=$(cast estimate --rpc-url "$L2_RPC_URL" --create "$bytecode")
     gas_units=$(echo "scale=0; $gas_units / 2" | bc)
-    local gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
-    local value=$(echo "$gas_units * $gas_price" | bc)
-    local value_ether=$(cast to-unit "$value" ether)"ether" 
+    local gas_price
+    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
+    local value
+    value=$(echo "$gas_units * $gas_price" | bc)
+    local value_ether
+    value_ether=$(cast to-unit "$value" ether)"ether" 
 
     # Transfer only half amount of tokens needed for contract deployment fees
     cast_output=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$sender_private_key" "$address_A" --value "$value_ether" --legacy 2>&1)
@@ -79,7 +92,8 @@ setup() {
     fi
     
     # Fetch initial nonce for address_A
-    local address_A_initial_nonce=$(cast nonce "$address_A" --rpc-url "$L2_RPC_URL") || return 1
+    local address_A_initial_nonce
+    address_A_initial_nonce=$(cast nonce "$address_A" --rpc-url "$L2_RPC_URL") || return 1
     # Attempt to deploy contract with insufficient gas
     run deploy_contract "$L2_RPC_URL" "$address_A_private_key" "$erc20_artifact_path"
     assert_failure
@@ -98,11 +112,13 @@ setup() {
     # Fetch balance of address_A to simulate excessive transfer
     run query_contract "$L2_RPC_URL" "$contract_addr" "$BALANCE_OF_FN_SIG" "$address_A"
     assert_success
-    local address_A_Balance=$(echo "$output" | tail -n 1)
+    local address_A_Balance
+    address_A_Balance=$(echo "$output" | tail -n 1)
     address_A_Balance=$(echo "$address_A_Balance" | xargs)
 
     # Set excessive amount for transfer
-    local excessive_amount=$(echo "$address_A_Balance + 1" | bc)
+    local excessive_amount
+    excessive_amount=$(echo "$address_A_Balance + 1" | bc)
 
     # Attempt transfer of excessive amount from address_A to address_B
     local tranferFnSig="transfer(address,uint256)"
@@ -121,13 +137,15 @@ setup() {
     # Verify balance of address_B is still zero
     run query_contract "$L2_RPC_URL" "$contract_addr" "$BALANCE_OF_FN_SIG" "$address_B"
     assert_success
-    local address_B_Balance=$(echo "$output" | tail -n 1)
+    local address_B_Balance
+    address_B_Balance=$(echo "$output" | tail -n 1)
     address_B_Balance=$(echo "$address_B_Balance" | xargs)
 
     assert_equal "$address_B_Balance" "0"
 
     # Nonce should not increase
-    local address_A_final_nonce=$(cast nonce "$address_A" --rpc-url "$L2_RPC_URL") || {
+    local address_A_final_nonce
+    address_A_final_nonce=$(cast nonce "$address_A" --rpc-url "$L2_RPC_URL") || {
         echo "Failed to retrieve nonce for sender: $address_A using RPC URL: $L2_RPC_URL"
         return 1
     }
@@ -150,7 +168,7 @@ setup() {
         return 1
     fi
 
-    run polycli loadtest uniswapv3 --legacy -v 600 --rpc-url $L2_RPC_URL --private-key $address_A_private_key
+    run polycli loadtest uniswapv3 --legacy -v 600 --rpc-url "$L2_RPC_URL" --private-key "$address_A_private_key"
     assert_success
 
     # Remove ANSI escape codes from the output

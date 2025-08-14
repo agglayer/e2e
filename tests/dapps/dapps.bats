@@ -56,15 +56,25 @@ setup () {
     universal_xrp_addr=${UNIVERSAL_XRP_ADDR:-"0x26435983DF976A02C55aC28e6F67C6477bBd95E7"}
 
     # Vault Bridge
+    # shellcheck disable=SC2034
     vb_weth_addr=${VB_WETH_ADDR:-"0x17B8Ee96E3bcB3b04b3e8334de4524520C51caB4"}
+    # shellcheck disable=SC2034
     vb_weth_converter_addr=${VB_WETH_CONVERTER_ADDR:-"0x3aFbD158CF7B1E6BE4dAC88bC173FA65EBDf2EcD"}
+    # shellcheck disable=SC2034
     vb_usdc_addr=${VB_USDC_ADDR:-"0x102E14ffF48170F2e5b6d0e30259fCD4eE5E28aE"}
+    # shellcheck disable=SC2034
     vb_usdc_converter_addr=${VB_USDC_CONVERTER_ADDR:-"0x28FDCaF075242719b16D342866c9dd84cC459533"}
+    # shellcheck disable=SC2034
     vb_usdt_addr=${VB_USDT_ADDR:-"0xDe51Ef59663e79B494E1236551187399D3359C92"}
+    # shellcheck disable=SC2034
     vb_usdt_converter_addr=${VB_USDT_CONVERTER_ADDR:-"0x8f3a47e64d3AD1fBdC5C23adD53183CcCD05D8a4"}
+    # shellcheck disable=SC2034
     vb_wbtc_addr=${VB_WBTC_ADDR:-"0x1538aDF273f6f13CcdcdBa41A5ce4b2DC2177D1C"}
+    # shellcheck disable=SC2034
     vb_wbtc_converter_addr=${VB_WBTC_CONVERTER_ADDR:-"0x3Ef265DD0b4B86fC51b08D5B03699E57d52C9B27"}
+    # shellcheck disable=SC2034
     vb_usds_addr=${VB_USDS_ADDR:-"0xD416d04845d299bCC0e5105414C99fFc88f0C97d"}
+    # shellcheck disable=SC2034
     vb_usda_converter=${VB_USDA_CONVERTER:-"0x56342E6093381E2Bd732FFd6141b22136efB98Bf"}
 
     # MultiSigs	
@@ -93,7 +103,9 @@ assert_code_hash() {
     # 0000001c: RETURN
     local contract_address="$1"
     local asserted_hash="$2"
-    local actual_code_hash=$(cast call --rpc-url "$rpc_url" --create "0x73$(echo $contract_address | sed 's/0x//')3f5f5260205ff3")
+    local actual_code_hash
+    # shellcheck disable=SC2001
+    actual_code_hash=$(cast call --rpc-url "$rpc_url" --create "0x73$(echo "$contract_address" | sed 's/0x//')3f5f5260205ff3")
     if [[ "$asserted_hash" != "$actual_code_hash" ]]; then
         echo "Expected $asserted_hash but got $actual_code_hash at address $contract_address"
         exit 1
@@ -112,7 +124,7 @@ assert_call_value() {
     local contract_address="$1"
     local method_sig="$2"
     local asserted_value="$3"
-    call_value=$(cast call --rpc-url "$rpc_url" "$contract_address" $method_sig) # method_sig is deliberately unquoted here to allow for arguments
+    call_value=$(cast call --rpc-url "$rpc_url" "$contract_address" "$method_sig") # method_sig is deliberately unquoted here to allow for arguments
     if [[ "$call_value" != "$asserted_value" ]] ; then
         echo "Expected $asserted_value but got $call_value when calling $method_sig on $contract_address"
         exit 1
@@ -144,7 +156,8 @@ assert_call_value() {
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L101C13-L101C1271
     assert_code_hash "$multi_send_addr" "0x81db0e4afdf5178583537b58c5ad403bd47a4ac7f9bde2442ef3e341d433126a"
 
-    if ! cast call --value 1 --from "$from_address" --rpc-url "$rpc_url" --create 0x7f8d80ff0a000000000000000000000000000000000000000000000000000000005f527c20000000000000000000000000000000000000000000000000000000006020527c55012d3f769b1ba9d5917f3a772dae0f68dfc7e1d082000000000000006040526701000000000000006060525f6080525f60a0525f60d060c05f73$(echo "$multi_send_addr" | sed 's/0x//')5af450 ; then
+    # shellcheck disable=SC2001
+    if ! cast call --value 1 --from "$from_address" --rpc-url "$rpc_url" --create 0x7f8d80ff0a000000000000000000000000000000000000000000000000000000005f527c20000000000000000000000000000000000000000000000000000000006020527c55012d3f769b1ba9d5917f3a772dae0f68dfc7e1d082000000000000006040526701000000000000006060525f6080525f60a0525f60d060c05f73"$(echo "$multi_send_addr" | sed 's/0x//')"5af450 ; then
         echo "There was an issue calling the multisend contract"
         exit 1
     fi
@@ -155,7 +168,8 @@ assert_call_value() {
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L92
     assert_code_hash "$multi_send_call_only_addr" "0xa9865ac2d9c7a1591619b188c4d88167b50df6cc0c5327fcbd1c8c75f7c066ad"
 
-    if ! cast call --value 1 --from "$from_address" --rpc-url "$rpc_url" --create 0x7f8d80ff0a000000000000000000000000000000000000000000000000000000005f527c20000000000000000000000000000000000000000000000000000000006020527c55012d3f769b1ba9d5917f3a772dae0f68dfc7e1d082000000000000006040526701000000000000006060525f6080525f60a0525f60d060c05f73$(echo "$multi_send_addr" | sed 's/0x//')5af450 ; then
+    # shellcheck disable=SC2001
+    if ! cast call --value 1 --from "$from_address" --rpc-url "$rpc_url" --create 0x7f8d80ff0a000000000000000000000000000000000000000000000000000000005f527c20000000000000000000000000000000000000000000000000000000006020527c55012d3f769b1ba9d5917f3a772dae0f68dfc7e1d082000000000000006040526701000000000000006060525f6080525f60a0525f60d060c05f73"$(echo "$multi_send_addr" | sed 's/0x//')"5af450 ; then
         echo "There was an issue calling the multisend contract"
         exit 1
     fi
