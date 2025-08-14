@@ -54,7 +54,7 @@ function eip7685_check_block() {
     fi
 }
 
-@test "EIP-7685: Random historical block hashes from state" {
+@test "EIP-7685: RequestsHash in block header" {
     # we wait for current_block to be at least 10:
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
     if ! [[ "$current_block" =~ ^[0-9]+$ ]]; then
