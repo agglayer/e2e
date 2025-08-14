@@ -27,6 +27,7 @@ setup_file() {
     export EMPTY_REQUESTS_HASH
 }
 
+# bats test_tags=eip-7685
 function eip7685_check_block() {
     block_number=$1
     if (( block_number < 0 )); then
