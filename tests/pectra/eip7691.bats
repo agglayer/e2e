@@ -99,8 +99,9 @@ teardown() {
         blocks+=("$bn")
     done
 
-    unique_blocks=($(echo "${blocks[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    mapfile -t unique_blocks < <(printf "%s\n" "${blocks[@]}" | sort -u)
     electra_block_found=false
+
     # Lets check each block
     for block in "${unique_blocks[@]}"; do
         run cast block $block --rpc-url "$l2_rpc_url" --json
