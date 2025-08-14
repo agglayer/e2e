@@ -55,6 +55,7 @@ function eip7685_check_block() {
     fi
 }
 
+# bats test_tags=eip-7685
 @test "EIP-7685: RequestsHash in block header" {
     # we wait for current_block to be at least 10:
     current_block=$(cast block-number --rpc-url "$l2_rpc_url")
