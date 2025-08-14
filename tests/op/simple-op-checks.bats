@@ -9,7 +9,7 @@ etup() {
     export ETH_RPC_URL="$rpc_url"
 }
 
-# bats test_tags=smoke
+# bats file_tags=cdk-op-geth
 @test "sweep account with precise gas and DA fee estimation" {
     wallet_info=$(cast wallet new --json | jq '.[0]')
     tmp_address=$(echo "$wallet_info" | jq -r '.address')
@@ -43,8 +43,7 @@ etup() {
 
 }
 
-
-# bats test_tags=smoke
+# bats file_tags=cdk-op-geth
 @test "send concurrent transactions and verify DA fee handling" {
     a_wallet=$(cast wallet new --json)
     a_address=$(echo "$a_wallet" | jq -r .[0].address)

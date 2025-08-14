@@ -71,7 +71,7 @@ _setup_contract_addresses() {
 # =============================================================================
 # Test Cases
 # =============================================================================
-
+# bats test_tags=bridge
 @test "Initial setup" {
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
@@ -91,7 +91,7 @@ _setup_contract_addresses() {
     deploy_tester_contract "$l2_rpc_url" "$l2_private_key"
 }
 
-
+# bats test_tags=bridge
 @test "Process bridge scenarios and claim deposits in parallel" {
     echo "Starting parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
@@ -259,6 +259,7 @@ _setup_contract_addresses() {
     }
 }
 
+# bats test_tags=bridge
 @test "Run address tester actions" {
     # This test will be skipped by default. Remove the below "skip" command to run it.
     skip

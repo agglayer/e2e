@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=cdk
+# bats file_tags=cdk,cdk-erigon
 
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
@@ -32,6 +32,7 @@ set_acl_mode() {
     run $kurtosis_sequencer_wrapper "acl mode --datadir $data_dir --mode $mode"
 }
 
+# bats test_tags=acl-blocklist
 @test "Test Block List - Sending regular transaction when address not in block list" {
     local value="10ether"
     run set_acl_mode "blocklist"
@@ -42,6 +43,7 @@ set_acl_mode() {
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 }
 
+# bats test_tags=acl-blocklist
 @test "Test Block List - Sending contracts deploy transaction when address not in block list" {
     run set_acl_mode "blocklist"
     # shellcheck disable=SC2154
@@ -53,6 +55,7 @@ set_acl_mode() {
     assert_output --regexp "0x[a-fA-F0-9]{40}"
 }
 
+# bats test_tags=acl-blocklist
 @test "Test Block List - Sending regular transaction when address is in block list" {
     local value="10ether"
 
@@ -65,6 +68,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to send tx by ACL policy"
 }
 
+# bats test_tags=acl-blocklist
 @test "Test Block List - Sending contracts deploy transaction when address is in block list" {
     run set_acl_mode "blocklist"
     run add_to_access_list "blocklist" "deploy"
@@ -74,6 +78,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to deploy contract by ACL policy"
 }
 
+# bats test_tags=acl-accesslist
 @test "Test Allow List - Sending regular transaction when address not in allow list" {
     local value="10ether"
 
@@ -84,6 +89,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to send tx by ACL policy"
 }
 
+# bats test_tags=acl-accesslist
 @test "Test Allow List - Sending contracts deploy transaction when address not in allow list" {
     run set_acl_mode "allowlist"
     run deploy_contract "$L2_RPC_URL" "$sender_private_key" "$erc20_artifact_path"
@@ -92,6 +98,7 @@ set_acl_mode() {
     assert_output --partial "sender disallowed to deploy contract by ACL policy"
 }
 
+# bats test_tags=acl-accesslist
 @test "Test Allow List - Sending regular transaction when address is in allow list" {
     local value="10ether"
 
@@ -103,6 +110,7 @@ set_acl_mode() {
     assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 }
 
+# bats test_tags=acl-accesslist
 @test "Test Allow List - Sending contracts deploy transaction when address is in allow list" {
     run set_acl_mode "allowlist"
     run add_to_access_list "allowlist" "deploy"

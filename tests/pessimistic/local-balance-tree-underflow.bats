@@ -14,7 +14,7 @@ setup() {
     deposit_count=$(( $(cast nonce "$claimtxmanager_addr" --rpc-url "$l2_rpc_url") + 2 ))
 }
 
-# bats file_tags=lxly,bridge,localbalancetree
+# bats file_tags=bridge,local-balance-tree
 @test "trigger local balance tree underflow bridge revert" {
     # Deploy TokenWrapped ERC20 on L1 and capture output
     l1_deploy_output=$(forge create --broadcast --rpc-url "$l1_rpc_url" \

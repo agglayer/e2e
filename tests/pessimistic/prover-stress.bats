@@ -6,7 +6,7 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
-# bats file_tags=pessimistic,prover-stress
+# bats file_tags=prover-stress
 @test "prover stress test" {
     # ✅ Get wallet address
     local wallet_addr

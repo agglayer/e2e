@@ -212,7 +212,7 @@ function fund_new_wallet() {
     echo "$wallet_info"
 }
 
-# bats test_tags=evm,stress
+# bats test_tags=evm-stress
 @test "execute ethereum test cases and ensure liveness" {
     # Need to figure out if there is a better way to manage this. It seems too nuclear
     # trap 'kill 0; exit' EXIT SIGINT SIGTERM

@@ -12,7 +12,7 @@ setup() {
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
-
+# bats test_tags=transaction-eoa
 @test "Call special addresses" {
     local ephemeral_data
     local ephemeral_private_key

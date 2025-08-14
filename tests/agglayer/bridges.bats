@@ -40,7 +40,7 @@ function fund_claim_tx_manager() {
          "$claimtxmanager_addr"
 }
 
-# bats test_tags=smoke,bridge
+# bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L1 to L2" {
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
@@ -82,8 +82,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-
-# bats test_tags=smoke,bridge
+# bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L2 to L1" {
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     initial_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
@@ -119,6 +118,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
+# bats test_tags=transaction-erc20,bridge
 @test "bridge L2 originated ERC20 from L2 to L1" {
     dd_code=$(cast code --rpc-url "$l2_rpc_url" 0x4e59b44847b379578588920ca78fbf26c0b4956c)
     if [[ $dd_code == "0x" ]]; then
@@ -169,7 +169,7 @@ function fund_claim_tx_manager() {
             --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getEpochConfiguration on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getEpochConfiguration > "$tmp_file"
@@ -185,7 +185,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$network_id" > "$tmp_file"
@@ -204,7 +204,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$network_id" > "$tmp_file"
@@ -226,7 +226,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getTxStatus on agglayer RPC for latest settled certificate returns done" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$network_id" > "$tmp_file"
@@ -245,7 +245,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
@@ -264,7 +264,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$network_id" > "$tmp_file"

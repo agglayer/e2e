@@ -6,6 +6,7 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
+# bats test_tags=transaction-eoa
 @test "Send EOA transaction" {
     local initial_nonce
     # shellcheck disable=SC2154
@@ -43,6 +44,7 @@ setup() {
     assert_equal "$final_nonce" "$(echo "$initial_nonce + 1" | bc)"
 }
 
+# bats test_tags=transaction-erc20
 @test "Test ERC20Mock contract" {
     wallet_A_output=$(cast wallet new)
     address_A=$(echo "$wallet_A_output" | grep "Address" | awk '{print $2}')
@@ -152,7 +154,7 @@ setup() {
     assert_equal "$address_A_final_nonce" "$address_A_initial_nonce"
 }
 
-
+# bats test_tags=transaction-uniswap
 @test "Deploy and test UniswapV3 contract" {
     # Generate new key pair
     wallet_A_output=$(cast wallet new)

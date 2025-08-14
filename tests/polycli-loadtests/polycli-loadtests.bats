@@ -27,6 +27,7 @@ setup() {
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
+# bats test_tags=loadtest,transaction-eoa
 @test "send 85,700 EOA transfers and confirm mined in 60 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-eoa")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -57,6 +58,7 @@ setup() {
     fi
 }
 
+# bats test_tags=loadtest,transaction-erc20
 @test "send 41,200 ERC20 transfers and confirm mined in 240 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-erc20")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -88,6 +90,7 @@ setup() {
     fi
 }
 
+# bats test_tags=loadtest,transaction-erc721
 @test "send 20,800 ERC721 mints and confirm mined in 240 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-erc721")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -121,6 +124,7 @@ setup() {
 }
 
 # TODO this one is a little tricky because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful or we should pre deploy the contracts
+# bats test_tags=loadtest,transaction-uniswap
 @test "send 10,200 Uniswapv3 swaps sent and mined in 300 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-uniswap")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)

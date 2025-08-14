@@ -80,6 +80,7 @@ check_fep_consensus_version() {
     fi
 }
 
+# bats file_tags=cdk-op-geth
 @test "Enable OptimisticMode" {
     check_fep_consensus_version
 
@@ -103,6 +104,7 @@ check_fep_consensus_version() {
     manage_bridge_spammer "start"
 }
 
+# bats file_tags=cdk-op-geth
 @test "Disable OptimisticMode" {
     ensure_non_null_cert
     manage_bridge_spammer "stop"

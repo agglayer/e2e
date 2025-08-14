@@ -131,6 +131,7 @@ assert_call_value() {
     fi
 }
 
+# bats test_tags=cdk-op-geth,katana,gnosis-safe
 @test "spot check Safe contract" {
     assert_has_code "$safe_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L86C13-L86C45929
@@ -141,6 +142,7 @@ assert_call_value() {
     assert_successful_call "$safe_addr" "domainSeparator()(bytes32)"
 }
 
+# bats test_tags=cdk-op-geth,katana,gnosis-safe
 @test "spot check SafeL2 contract" {
     assert_has_code "$safe_l2_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L89C13-L89C47613
@@ -151,6 +153,7 @@ assert_call_value() {
     assert_successful_call "$safe_l2_addr" "domainSeparator()(bytes32)"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check MultiSend contract" {
     assert_has_code "$multi_send_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L101C13-L101C1271
@@ -163,6 +166,7 @@ assert_call_value() {
     fi
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check MultiSendCallOnly contract" {
     assert_has_code "$multi_send_call_only_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L92
@@ -175,36 +179,42 @@ assert_call_value() {
     fi
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check SafeSingletonFactory contract" {
     assert_has_code "$safe_singleton_factory_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L95
     assert_code_hash "$safe_singleton_factory_addr" "0x2fa86add0aed31f33a762c9d88e807c475bd51d0f52bd0955754b2608f7e4989"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Multicall3 contract" {
     assert_has_code "$multicall3_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L80C13-L80C7629
     assert_code_hash "$multicall3_addr" "0xd5c15df687b16f2ff992fc8d767b4216323184a2bbc6ee2f9c398c318e770891"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Create2Deployer contract" {
     assert_has_code "$create2_deployer_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L83C13-L83C3181
     assert_code_hash "$create2_deployer_addr" "0xb0550b5b431e30d38000efb7107aaa0ade03d48a7198a140edda9d27134468b2"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check CreateX contract" {
     assert_has_code "$createx_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L116
     assert_code_hash "$createx_addr" "0xbd8a7ea8cfca7b4e5f5041d7d4b17bc317c5ce42cfbc42066a00cf26b43eb53f"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Arachnid's Deterministic Deployment Proxy contract" {
     assert_has_code "$arachnid_deployer_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L98
     assert_code_hash "$arachnid_deployer_addr" "0x2fa86add0aed31f33a762c9d88e807c475bd51d0f52bd0955754b2608f7e4989"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Permit2 contract" {
     assert_has_code "$permit2_addr"
     # This code is actual a template so the hash on chain is not expected to match the hash from the repo
@@ -213,24 +223,28 @@ assert_call_value() {
     assert_successful_call "$permit2_addr" "DOMAIN_SEPARATOR()(bytes32)"
 }
 
+# bats test_tags=cdk-op-geth,katana,erc-4337
 @test "spot check ERC-4337 v0.6.0 EntryPoint contract" {
     assert_has_code "$erc_4337_v6_entry_point_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L107C13-L107C47391
     assert_code_hash "$erc_4337_v6_entry_point_addr" "0xc93c806e738300b5357ecdc2e971d6438d34d8e4e17b99b758b1f9cac91c8e70"
 }
 
+# bats test_tags=cdk-op-geth,katana,erc-4337
 @test "spot check ERC-4337 v0.6.0 SenderCreator contract" {
     assert_has_code "$erc_4337_v6_sender_creator_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L104C13-L104C1069
     assert_code_hash "$erc_4337_v6_sender_creator_addr" "0xae818091eaaf1b6175ee41472359a689f3823d0908a41e2e5c4ad508f2fc04a3"
 }
 
+# bats test_tags=cdk-op-geth,katana,erc-4337
 @test "spot check ERC-4337 v0.7.0 EntryPoint contract" {
     assert_has_code "$erc_4337_v7_entry_point_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L107C13-L107C47391
     assert_code_hash "$erc_4337_v7_entry_point_addr" "0x8db5ff695839d655407cc8490bb7a5d82337a86a6b39c3f0258aa6c3b582fc58"
 }
 
+# bats test_tags=cdk-op-geth,katana,erc-4337
 @test "spot check ERC-4337 v0.7.0 SenderCreator contract" {
     assert_has_code "$erc_4337_v7_sender_creator_addr"
     # https://github.com/ethereum-optimism/optimism/blob/c8b9f62736a7dad7e569719a84c406605f4472e6/packages/contracts-bedrock/src/libraries/Preinstalls.sol#L104C13-L104C1069
@@ -244,6 +258,7 @@ assert_call_value() {
 # |_| \_|\___/|_| |_|      \__, |\___|_| |_|\___||___/_|___/
 #                          |___/
 
+# bats test_tags=cdk-op-geth,katana,bridge
 @test "spot check PolygonZkEVMBridgeV2 contract" {
     assert_has_code "$lxly_bridge_addr"
     assert_code_hash "$lxly_bridge_addr" "0xdcce4ba4cd504d8e268fe8e5d81e6bba52ee564429488f58ebecc20e6969b755"
@@ -252,6 +267,7 @@ assert_call_value() {
     assert_successful_call "$lxly_bridge_addr" "WETHToken()(address)"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Multicall1 contract" {
     assert_has_code "$multicall_addr"
     # Build locally and compare
@@ -259,6 +275,7 @@ assert_call_value() {
     assert_code_hash "$multicall_addr" "0xa3efe06775a1c62bbd5cd80b4933403a752ca21748f4ba162d7ef4f0ce293916"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Multicall2 contract" {
     assert_has_code "$multicall2_addr"
     # Build locally and compare
@@ -266,6 +283,7 @@ assert_call_value() {
     assert_code_hash "$multicall2_addr" "0xd68a1d2401a359f968b182a1746881574b946d1f03f8751441228443495c7193"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check BatchDistributor contract" {
     assert_has_code "$batch_distributor_addr"
     # https://github.com/pcaversaccio/batch-distributor/blob/main/contracts/BatchDistributor.sol
@@ -276,6 +294,7 @@ assert_call_value() {
     fi
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check RIP-7212 contract" {
     if [[ $(cast call --rpc-url "$rpc_url" "$rip7212_addr" 0xb7b8486d949d2beef140ca44d4c8c0524dd53a250fadefa477b2db15b7d38776beb9e3aacfdc1408bfe5f876d9ab6f7c50e06a2d5f68aa500b9a2ff896587597ba72bb78539ef6de9188a0ce5e6d694e2b0cb5aeda35d7ccbb335f6cb5e97d8832f6471f0e06a4830d24eaecfac34e12ad223211a89c42aaf11f44ce3364233a4cfeddbcb7aa6aad4226715338725398546cb20ba2e8b133b2abae61cfc624d0) != "0x0000000000000000000000000000000000000000000000000000000000000001" ]] ; then
         echo "RIP-7212 signature verification failed"
@@ -283,12 +302,14 @@ assert_call_value() {
     fi
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Seaport 1.6 contract" {
     skip # the address 0x0000000000FFe8B47B3e2130213B802212439497 seems like it's tied to the immutable create 2 factory. Not seaport
     assert_has_code "$seaport_v16_addr"
     assert_code_hash "$seaport_v16_addr" "0x767db8f19b71e367540fa372e8e81e4dcb7ca8feede0ae58a0c0bd08b7320dee"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Seaport Conduit Controller contract" {
     assert_has_code "$seaport_controller_addr"
     # https://github.com/ProjectOpenSea/seaport-1.6/blob/main/src/core/conduit/ConduitController.sol
@@ -297,11 +318,14 @@ assert_call_value() {
 }
 
 # RedSnwapper
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Sushi Router contract" {
     assert_has_code "$sushi_router_addr"
     assert_code_hash "$sushi_router_addr" "0x09a33bedcf9669b6acb4e832804cfd8457d73b96074af0868a0085657633ed49"
     assert_successful_call "$sushi_router_addr" 'safeExecutor()(address)'
 }
+
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Sushi V3 Factory contract" {
     assert_has_code "$sushi_v3_factory_addr"
     # The code has the contract address in the code, so the hash will change every time. Below, we are manually stripping the hash from the binary and comparing
@@ -318,6 +342,8 @@ assert_call_value() {
     fi
     rm "$tmp_data" "$tmp_data.head" "$tmp_data.tail" "$tmp_data.stripped"
 }
+
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Sushi V3 Position Manager contract" {
     assert_has_code "$sushi_v3_position_manager_addr"
     # The implementation doesn't line up with the code here.. But it's verified
@@ -328,6 +354,7 @@ assert_call_value() {
     assert_successful_call "$sushi_v3_position_manager_addr" "baseURI()(address)"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Morpho blue contract" {
     assert_has_code "$morpho_blue_addr"
     # This code doesn't exactly match what's compiled, but it's very close. It will change with each deployment
@@ -336,18 +363,21 @@ assert_call_value() {
     assert_successful_call "$morpho_blue_addr" "feeRecipient()(address)"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Morpho AdaptiveCurveIrm contract" {
     assert_has_code "$morpho_adaptive_irm_addr"
     assert_code_hash "$morpho_adaptive_irm_addr" "0x9777879d622ba73f476f34b5dda84c9c70b2432255a865ea8b602c443e75f7ec"
     assert_call_value "$morpho_adaptive_irm_addr" "MORPHO()(address)" "$morpho_blue_addr"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Morpho Chainlink Oracle contract" {
     assert_has_code "$morpho_chainlink_oracle_v2_factory_addr"
     assert_code_hash "$morpho_chainlink_oracle_v2_factory_addr" "0x535cbea6cb733b4afdb01e5c88ed057b16bea4a28c0adc5b4f02de09694ecfd2"
     assert_call_value "$morpho_chainlink_oracle_v2_factory_addr" "isMorphoChainlinkOracleV2(address)(bool) 0x0000000000000000000000000000000000000000" "false"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Morpho Metamorpho Factory contract" {
     assert_has_code "$morpho_metamorpho_factory_addr"
     assert_code_hash "$morpho_metamorpho_factory_addr" "0x65de735d0731cb772a9fe815eaeb18af38e47c08b77bfacf218eeb8ae02083d1"
@@ -355,6 +385,7 @@ assert_call_value() {
     assert_call_value "$morpho_metamorpho_factory_addr" "isMetaMorpho(address)(bool) 0x0000000000000000000000000000000000000000" "false"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Morpho Bundler3 contract" {
     assert_has_code "$morpho_bundler3_addr"
     # Exact hash match for this:
@@ -362,12 +393,14 @@ assert_call_value() {
     assert_code_hash "$morpho_bundler3_addr" "0xd3912f2b89d1e2848544ca398d337f59950ffb9ecc38a7bd644063fa094c8454"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Morpho Public Allocator contract" {
     assert_has_code "$morpho_public_allocator"
     assert_code_hash "$morpho_public_allocator" "0xb5ccbbd4c0638cf582ec3f95914a062d58682e585af17c0c664eb5141c2bc2b1"
     assert_call_value "$morpho_public_allocator" "MORPHO()(address)" "$morpho_blue_addr"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Yearn AUSD contract" {
     assert_has_code "$yearn_ausd_addr"
     # Proxy
@@ -379,6 +412,7 @@ assert_call_value() {
     assert_call_value "$yearn_ausd_addr" "name()(string)" '"AUSD yVault"'
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Yearn WETH contract" {
     assert_has_code "$yearn_weth_addr"
     # Proxy
@@ -391,11 +425,13 @@ assert_call_value() {
 }
 
 # https://github.com/agora-finance/agora-dollar-evm/blob/master/src/contracts/proxy/AgoraDollarErc1967Proxy.sol
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Agora AUSD contract" {
     assert_has_code "$agora_ausd_addr"
     assert_code_hash "$agora_ausd_addr" "0x9136a47182d5cc37ad65b84dfecc2c61c9de45494efbed5be9c7737a9472153e"
 }
 
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Universal BTC contract" {
     assert_has_code "$universal_btc_addr"
     #proxy
@@ -410,6 +446,8 @@ assert_call_value() {
     assert_call_value "$universal_btc_addr" "symbol()(string)" '"uBTC"'
     assert_call_value "$universal_btc_addr" "name()(string)" '"Bitcoin (Universal)"'
 }
+
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Universal SOL contract" {
     assert_has_code "$universal_sol_addr"
     #proxy
@@ -424,6 +462,8 @@ assert_call_value() {
     assert_call_value "$universal_sol_addr" "symbol()(string)" '"uSOL"'
     assert_call_value "$universal_sol_addr" "name()(string)" '"Solana (Universal)"'
 }
+
+# bats test_tags=cdk-op-geth,katana
 @test "spot check Universal XRP contract" {
     assert_has_code "$universal_xrp_addr"
     #proxy

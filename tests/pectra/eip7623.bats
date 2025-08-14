@@ -93,31 +93,37 @@ function eip7623_check_gas() {
     fi
 }
 
-
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for empty calldata" {
     eip7623_check_gas "0x"
 }
 
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for 0x00" {
     eip7623_check_gas "0x00"
 }
 
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for 0x0001" {
     eip7623_check_gas "0x0001"
 }
 
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for 0x000100" {
     eip7623_check_gas "0x000100"
 }
 
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for 0x000000" {
     eip7623_check_gas "0x000000"
 }
 
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for 0x00aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff001100220033004400550066007700880099" {
     eip7623_check_gas "0x00aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff001100220033004400550066007700880099"
 }
 
+# bats file_tags=pectra,eip-7623
 @test "EIP-7623: Check gas cost for 0xffff" {
     eip7623_check_gas "0xffff"
 }

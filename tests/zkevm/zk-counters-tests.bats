@@ -6,7 +6,7 @@ setup() {
     _agglayer_cdk_common_setup  # ✅ Standardized setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=heavy,zk-counters,el:cdk-erigon
+# bats test_tags=zkevm-counters
 @test "Test zkCounters" {
     echo "🚀 Running Go test for zkCounters..."
 

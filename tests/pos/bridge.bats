@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=pos
+# bats test_tags=pos
 
 setup() {
   # Load libraries.
@@ -46,7 +46,7 @@ function wait_for_bor_state_sync() {
   assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats file_tags=pos,bridge,matic,pol
+# bats test_tags=bridge,transaction-pol
 @test "bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
@@ -85,12 +85,12 @@ function wait_for_bor_state_sync() {
   assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats file_tags=pos,bridge,matic,pol
+# bats test_tags=bridge,transaction-pol
 # @test "bridge MATIC/POL from L2 to L1 and confirm L1 MATIC/POL balance increased" {
 #   echo TODO
 # }
 
-# bats file_tags=pos,bridge,erc20
+# bats test_tags=bridge,transaction-erc20
 @test "bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
@@ -129,12 +129,12 @@ function wait_for_bor_state_sync() {
   assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats file_tags=pos,bridge,erc20
+# bats test_tags=bridge,transaction-erc20
 # @test "bridge some ERC20 tokens from L2 to L1 and confirm L1 ERC20 balance increased" {
 #   echo TODO
 # }
 
-# bats file_tags=pos,bridge,erc721
+# bats test_tags=bridge,transaction-erc721
 @test "bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
@@ -178,12 +178,12 @@ function wait_for_bor_state_sync() {
   assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats file_tags=pos,bridge,erc721
+# bats test_tags=bridge,transaction-erc721
 # @test "bridge an ERC721 token from L2 to L1 and confirm L1 ERC721 balance increased" {
 #   echo TODO
 # }
 
-# bats file_tags=pos,bridge,l1,l2
+# bats test_tags=bridge,transaction-pol,transaction-erc20,transaction-erc721
 @test "bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 

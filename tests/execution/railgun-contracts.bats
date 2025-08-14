@@ -17,6 +17,7 @@ teardown_file() {
     rm -rf "$TEMP_DIR"
 }
 
+# bats test_tags=railgun
 @test "Setup Railgun" {
     echo "Temp working directory: $TEMP_DIR" >&3
 

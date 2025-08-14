@@ -6,7 +6,7 @@ setup() {
     _agglayer_cdk_common_setup  # Standard setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=regression,el:cdk-erigon
+# bats file_tags=evm-opcode
 # https://github.com/0xPolygonHermez/cdk-erigon/issues/1044
 @test "send 0xFB opcode to sequencer and ensure failure" {
     local out_file
@@ -28,6 +28,7 @@ setup() {
 
 # https://github.com/0xPolygonHermez/cdk-erigon/issues/1046
 # solc --strict-assembly - <<< "{mstore(0, create(0, 0, 0xfffffffffff)) return(0, 32)}"
+# bats file_tags=evm-opcode
 @test "send CREATE with large size" {
     local bytecode="0x650fffffffffff5f80f05f5260205ff3"
 
@@ -55,6 +56,7 @@ setup() {
 }
 
 # solc --strict-assembly - <<< "{return(0, sub(0, 1))}"
+# bats file_tags=evm-opcode
 @test "send large RETURN" {
     local bytecode="0x60015f035ff3"
 
@@ -82,6 +84,7 @@ setup() {
 }
 
 # solc --strict-assembly - <<< "{mstore(0, create2(0, 0, 0xfffffffffff, 1)) return(0, 32)}"
+# bats file_tags=evm-opcode
 @test "send CREATE2 with large size" {
     local bytecode="0x6001650fffffffffff5f80f55f5260205ff3"
 
@@ -110,6 +113,7 @@ setup() {
 
 
 # https://github.com/0xPolygonHermez/cdk-erigon/issues/1073
+# bats file_tags=evm-opcode
 @test "send malformed PUSH opcode" {
     local addr
     addr=$(cast wallet address --private-key "$PRIVATE_KEY")
@@ -145,6 +149,7 @@ setup() {
 }
 
 # https://github.com/0xPolygonHermez/cdk-erigon/issues/1136
+# bats file_tags=evm-opcode
 @test "send SHA256 counter" {
     local addr
     addr=$(cast wallet address --private-key "$PRIVATE_KEY")
@@ -166,6 +171,7 @@ setup() {
 }
 
 # solc --strict-assembly - <<< "{mstore(100,100) pop(create2(0x8c,0x8c,0x6234608c608c,0x17179149))}"
+# bats file_tags=evm-opcode
 @test "send CREATE2 oom issue" {
     local bytecode="0x606480526317179149656234608c608c608c80f500"
 
@@ -192,7 +198,7 @@ setup() {
     assert_block_production "$L2_RPC_URL" 12
 }
 
-
+# bats file_tags=evm-opcode
 @test "send executable PUSH operand" {
     # Manually constructed contract
     local bytecode="0x665b5f5fa05f5ff350600156fe"
@@ -229,6 +235,7 @@ setup() {
 }
 
 # solc --strict-assembly - <<< "{if lt(gas(), 50000) { log0(0, 0) return(0, 0) } codecopy(0, 0, codesize()) pop(create(0, 0, codesize()))}"
+# bats file_tags=evm-opcode
 @test "send recursive CREATE transaction" {
     local bytecode="0x61c3505a10601157385f8039385f80f0005b5f80a05f80f3"
     local out_file
@@ -255,6 +262,7 @@ setup() {
 }
 
 # solc --strict-assembly - <<< "{codecopy(0, 0, codesize()) pop(create(0, 0, codesize()))}"
+# bats file_tags=evm-opcode
 @test "send exhaustive recursive CREATE transaction" {
     local bytecode="0x385f8039385f80f000"
     local out_file
@@ -275,7 +283,7 @@ setup() {
     assert_block_production "$L2_RPC_URL" 12
 }
 
-
+# bats file_tags=zkevm-batch
 @test "counter overflowing transactions do not create new batches" {
     deploy_test_contracts "$L2_RPC_URL" "$PRIVATE_KEY"
 
@@ -323,6 +331,7 @@ setup() {
     fi
 }
 
+# bats file_tags=evm-precompile
 @test "send IDENTITY precompile test" {
     local addr
     addr=$(cast wallet address --private-key "$PRIVATE_KEY")

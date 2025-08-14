@@ -6,6 +6,7 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
+# bats test_tags=zkevm-batch
 @test "Verify batches" {
     echo "Waiting 10 minutes to get some verified batch...."
     run $PROJECT_ROOT/core/helpers/scripts/batch_verification_monitor.sh 0 600
