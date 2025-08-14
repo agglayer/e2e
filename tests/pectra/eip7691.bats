@@ -55,6 +55,7 @@ teardown() {
 }
 
 
+# bats test_tags=eip-7691
 @test "EIP-7691: Max blobs per block" {
     read -r -a wallet_private_keys <<< "$wallet_private_keys_serialized"
     echo "0x$(head -c 8192 </dev/random | xxd -p -c 8192)" > blob_data.hex
