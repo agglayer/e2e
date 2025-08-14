@@ -1,3 +1,7 @@
+#!/usr/bin/env bats
+# bats file_tags=aggkit
+# shellcheck disable=SC2154,SC2034,SC2155
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -22,7 +26,7 @@ setup() {
 }
 
 @test "ERC20 token deposit L1 -> L2" {
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
@@ -97,7 +101,7 @@ setup() {
 @test "Native token transfer L1 -> L2" {
     destination_addr=$receiver
     local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
+    echo "Initial receiver balance of native token on L2 ""$initial_receiver_balance"" eth" >&3
 
     echo "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)" >&3
     destination_net=$l2_rpc_network_id
@@ -110,11 +114,11 @@ setup() {
     assert_success
 
     sender_balance_after_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
-    log "Sender balance of native token on L1 after claim "$sender_balance_after_claim" eth" >&3
+    log "Sender balance of native token on L1 after claim ""$sender_balance_after_claim"" eth" >&3
 
     # verify receiver balance changed on L2
     local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Final receiver balance of native token on L2 "$final_receiver_balance" eth" >&3
+    echo "Final receiver balance of native token on L2 ""$final_receiver_balance"" eth" >&3
     initial_receiver_balance_wei=$(cast --to-wei "$initial_receiver_balance")
     run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance_wei" "$ether_value"
     assert_success
@@ -127,7 +131,7 @@ setup() {
 
     # verify balance did not changed on L1 after duplicate claim
     sender_balance_after_duplicate_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
-    log "Sender balance of native token on L1 after duplicate claim "$sender_balance_after_duplicate_claim" eth" >&3
+    log "Sender balance of native token on L1 after duplicate claim ""$sender_balance_after_duplicate_claim"" eth" >&3
     assert_equal "$sender_balance_after_claim" "$sender_balance_after_duplicate_claim"
 
     # verify balance did not changed on L2 after duplicate claim
@@ -145,7 +149,7 @@ setup() {
 @test "Native token transfer L1 -> L2 - manipulated global index" {
     destination_addr=$sender_addr
     local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
+    echo "Initial receiver balance of native token on L2 ""$initial_receiver_balance"" eth" >&3
 
     echo "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)" >&3
     destination_net=$l2_rpc_network_id

@@ -1,3 +1,5 @@
+#!/usr/bin/env bats
+# bats file_tags=aggkit
 # shellcheck disable=SC2154,SC2034
 
 setup() {

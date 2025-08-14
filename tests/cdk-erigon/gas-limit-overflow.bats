@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=cdk-erigon
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
