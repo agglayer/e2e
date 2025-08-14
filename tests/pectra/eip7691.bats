@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-
+# bats file_tags=pectra
 #
 # This file implements tests for EIP-7691: Blob throughput increase
 # https://eips.ethereum.org/EIPS/eip-7691
