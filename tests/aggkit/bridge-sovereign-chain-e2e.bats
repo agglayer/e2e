@@ -20,6 +20,7 @@ setup() {
 }
 
 @test "Test GlobalExitRoot removal" {
+  skip "Skipping GlobalExitRoot removal test (until GER removal is implemented on the aggkit prover https://github.com/agglayer/provers/issues/254)"
   echo "=== 🧑‍💻 Running GlobalExitRoot removal" >&3
 
   # Fetch UpdateHashChainValue events
@@ -222,7 +223,7 @@ setup() {
   local remove_legacy_token_data=$output
   removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0]' <<<"$remove_legacy_token_data")
   assert_equal "${l2_token_addr_legacy,,}" "${removeLegacySovereignTokenAddress_event_sovereignTokenAddress,,}"
-  log "✅ RemoveLegacySovereignTokenAddress event successful"
+  log "✅ RemoveLegacySovereignTokenAddress event successful, sleeping for 450 seconds to give aggkit time to index the event"
 
   # sleep briefly to give aggkit time to index the event
   # Increasing the sleep time to 450 seconds to give aggkit time to index the event as the settings for BridgeL2Sync is FinalizedBlock and not LatestBlock
