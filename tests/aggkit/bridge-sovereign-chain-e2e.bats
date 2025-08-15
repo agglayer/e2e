@@ -18,7 +18,7 @@ setup() {
 }
 
 @test "Test GlobalExitRoot removal" {
-  skip "Skipping GlobalExitRoot removal test"
+  skip "Skipping GlobalExitRoot removal test (until GER removal is implemented on the aggkit prover https://github.com/agglayer/provers/issues/254)"
   echo "=== 🧑‍💻 Running GlobalExitRoot removal" >&3
 
   # Fetch UpdateHashChainValue events
