@@ -1,6 +1,6 @@
 # Agglayer Upgrade/Downgrade Automation
 
-This repo contains shell scripts to automate **Agglayer image upgrades and downgrades** while running rollup testnets inside **Kurtosis** and attaching Agglayer services via **Docker Compose**.
+This repo contains e2e test scenario  to automate **Agglayer image upgrade and downgrade** while running rollup testnets inside **Kurtosis**.
 
 It is designed to:
 
@@ -22,18 +22,29 @@ It is designed to:
     ```bash
     ./run.sh FROM_TAG TO_TAG
     ```
-  - **Downgrade usage:**  
+
+    example
+
     ```bash
-    ./run.sh FROM_TAG TO_TAG true
+    ./run.sh 0.3.0-rc.21 0.3.5
     ```
 
+  - **Downgrade usage:**  
+    ```bash
+    ./run.sh FROM_TAG TO_TAG downgrade
+    ```
+    example
+
+    ```bash
+    ./run.sh 0.3.5  0.3.0-rc.21  downgrade
+    ```
 ##  Arguments & Descriptions
 
 | Argument               | Required | Description |
 |------------------------|----------|-------------|
 | `<FROM_TAG>`           |    Yes   | Docker image tag to start with (e.g., `0.3.0-rc.21`)|
 | `<TO_TAG>`             |    Yes   | Docker image tag to upgrade to (e.g., `0.3.5`)|
-| `[OPTION]`             |     No   | Optional: set to `true` to  downgrade back to `<FROM_TAG>` after upgrade |
+| `[ACTION]`             |     No   | Optional: set to `downgrade` to  downgrade back to `<FROM_TAG>` after upgrade |
 
 ---
 
