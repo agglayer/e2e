@@ -20,12 +20,14 @@ setup() {
     # Step 2: Deploy and bridge ERC20 token L1 -> L2
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr
+    l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
 
     # Mint and Approve ERC20 token on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
@@ -33,7 +35,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -49,10 +51,12 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    local origin_token_addr
+    origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l1_erc20_addr" "$origin_token_addr"
 
-    local l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr
+    l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr $l2_token_addr" >&3
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
@@ -77,12 +81,14 @@ setup() {
     # Step 2: Deploy and bridge ERC20 token L1 -> L2
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr
+    l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
 
     # Mint and Approve ERC20 token on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
@@ -90,7 +96,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -111,10 +117,12 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    local origin_token_addr
+    origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l1_erc20_addr" "$origin_token_addr"
 
-    local l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr
+    l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr $l2_token_addr" >&3
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
@@ -139,12 +147,14 @@ setup() {
     # Step 3: Deploy and bridge ERC20 token L1 -> L2
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr
+    l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
 
     # Mint and Approve ERC20 token on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
@@ -152,7 +162,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -168,10 +178,12 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    local origin_token_addr
+    origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l1_erc20_addr" "$origin_token_addr"
 
-    local l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr
+    l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr $l2_token_addr" >&3
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
@@ -183,18 +195,21 @@ setup() {
     # Deploy first ERC20 token (Asset A)
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr_a=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr_a
+    l1_erc20_addr_a=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address A: $l1_erc20_addr_a"
 
     # Deploy second ERC20 token (Asset B)
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr_b=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr_b
+    l1_erc20_addr_b=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address B: $l1_erc20_addr_b"
 
     # Mint and Approve ERC20 tokens on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
 
     # Mint and approve Asset A
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr_a" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
@@ -208,7 +223,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token A on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr_a" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -222,7 +237,8 @@ setup() {
     run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_a=$output
-    local l2_token_addr_a=$(echo "$token_mappings_result_a" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr_a
+    l2_token_addr_a=$(echo "$token_mappings_result_a" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr A: $l2_token_addr_a" >&3
 
     # Verify balance of Asset A on L2
@@ -243,7 +259,8 @@ setup() {
     run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_b=$output
-    local l2_token_addr_b=$(echo "$token_mappings_result_b" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr_b
+    l2_token_addr_b=$(echo "$token_mappings_result_b" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr B: $l2_token_addr_b" >&3
 
     # Verify balance of Asset B on L2
@@ -256,18 +273,21 @@ setup() {
     # Deploy first ERC20 token (Asset A)
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr_a=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr_a
+    l1_erc20_addr_a=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address A: $l1_erc20_addr_a"
 
     # Deploy second ERC20 token (Asset B)
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr_b=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr_b
+    l1_erc20_addr_b=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address B: $l1_erc20_addr_b"
 
     # Mint and Approve ERC20 tokens on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
 
     # Mint and approve Asset A
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr_a" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
@@ -281,7 +301,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token A on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr_a" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -301,7 +321,8 @@ setup() {
     run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_a=$output
-    local l2_token_addr_a=$(echo "$token_mappings_result_a" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr_a
+    l2_token_addr_a=$(echo "$token_mappings_result_a" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr A: $l2_token_addr_a" >&3
 
     # Verify balance of Asset A on L2
@@ -316,7 +337,8 @@ setup() {
     run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_b=$output
-    local l2_token_addr_b=$(echo "$token_mappings_result_b" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr_b
+    l2_token_addr_b=$(echo "$token_mappings_result_b" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr B: $l2_token_addr_b" >&3
 
     # Verify balance of Asset B on L2
@@ -329,18 +351,21 @@ setup() {
     # Deploy first ERC20 token (Asset A)
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr_a=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr_a
+    l1_erc20_addr_a=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address A: $l1_erc20_addr_a"
 
     # Deploy second ERC20 token (Asset B)
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr_b=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr_b
+    l1_erc20_addr_b=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address B: $l1_erc20_addr_b"
 
     # Mint and Approve ERC20 tokens on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
 
     # Mint and approve Asset A
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr_a" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
@@ -354,7 +379,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token A on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr_a" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -374,7 +399,8 @@ setup() {
     run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_b=$output
-    local l2_token_addr_b=$(echo "$token_mappings_result_b" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr_b
+    l2_token_addr_b=$(echo "$token_mappings_result_b" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr B: $l2_token_addr_b" >&3
 
     # Verify balance of Asset B on L2
@@ -389,7 +415,8 @@ setup() {
     run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_a=$output
-    local l2_token_addr_a=$(echo "$token_mappings_result_a" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr_a
+    l2_token_addr_a=$(echo "$token_mappings_result_a" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr A: $l2_token_addr_a" >&3
 
     # Verify balance of Asset A on L2
