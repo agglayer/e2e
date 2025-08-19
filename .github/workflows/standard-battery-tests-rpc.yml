@@ -75,11 +75,6 @@ jobs:
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       TARGET_NETWORK: ${{ inputs.target-network }}
-      # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
-      # L1_RPC_ENDPOINT: ""
-      # L2_RPC_ENDPOINT: ""
-      # L1_FUNDED_PRIVATE_KEY: ""
-      # L2_FUNDED_PRIVATE_KEY: ""
     steps:
       - name: Debug environment variables
         run: |
@@ -181,10 +176,10 @@ jobs:
           export ETH_RPC_TIMEOUT=2400
 
           # Set sensitive values from GitHub secrets
-          export L1_RPC_URL="${{ secrets.L1_RPC_ENDPOINT }}"
-          export L1_PRIVATE_KEY="${{ secrets.L1_FUNDED_PRIVATE_KEY }}"
-          export L2_RPC_URL="${{ secrets.L2_RPC_ENDPOINT }}"
-          export L2_PRIVATE_KEY="${{ secrets.L2_FUNDED_PRIVATE_KEY }}"
+          export L1_RPC_URL="${{ env.L1_RPC_ENDPOINT }}"
+          export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
+          export L2_RPC_URL="${{ env.L2_RPC_ENDPOINT }}"
+          export L2_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
           bats --filter-tags standard ${{ matrix.testfile }}
           popd

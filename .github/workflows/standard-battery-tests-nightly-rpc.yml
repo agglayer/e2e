@@ -67,7 +67,7 @@ jobs:
     timeout-minutes: 180
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJson(inputs.max-parallel-runs) }}
+      max-parallel: ${{ fromJson(inputs.max-parallel-runs || '1') }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
         target-network: ["cardona", "bali"]
@@ -180,10 +180,10 @@ jobs:
           export ETH_RPC_TIMEOUT=2400
 
           # Set sensitive values from GitHub secrets
-          export L1_RPC_URL="${{ secrets.L1_RPC_ENDPOINT }}"
-          export L1_PRIVATE_KEY="${{ secrets.L1_FUNDED_PRIVATE_KEY }}"
-          export L2_RPC_URL="${{ secrets.L2_RPC_ENDPOINT }}"
-          export L2_PRIVATE_KEY="${{ secrets.L2_FUNDED_PRIVATE_KEY }}"
+          export L1_RPC_URL="${{ env.L1_RPC_ENDPOINT }}"
+          export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
+          export L2_RPC_URL="${{ env.L2_RPC_ENDPOINT }}"
+          export L2_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
