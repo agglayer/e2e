@@ -130,9 +130,23 @@ while IFS= read -r test_case; do
       echo "Jitter: $JITTER ms"
     } >> "$TEST_LOG_DIR/test_parameters.log"
 
-    # Start collecting container logs in background
-    docker logs "$CONTAINER" --follow > "$TEST_LOG_DIR/container_${CONTAINER}_logs.log" 2>&1 &
-    CONTAINER_LOG_PID=$!
+    # Start collecting container logs in background and watch for error/fatal keywords
+    LOG_FILE="$TEST_LOG_DIR/container_${CONTAINER}_logs.log"
+    ERR_FILE="$TEST_LOG_DIR/container_${CONTAINER}_errors.log"
+    : > "$ERR_FILE"
+
+    # Create/clear the log file so paths exist
+    : > "$LOG_FILE"
+
+    # Pipeline is run in a subshell so we can kill it by PID later.
+    (
+      docker logs "$CONTAINER" --follow 2>&1 \
+        | tee -a "$LOG_FILE" \
+        | grep -iE --line-buffered 'error|eror|fatal' \
+        | grep -viE '"level"[[:space:]]*:[[:space:]]*"(info|debug)"|\"lvl\"[[:space:]]*:[[:space:]]*\"(info|debug)\"' \
+        >> "$ERR_FILE"
+    ) &
+    LOG_PIPE_PID=$!
 
     # Add delay to egress traffic
     pumba --log-level debug netem \
@@ -199,7 +213,7 @@ while IFS= read -r test_case; do
       "$CONTAINER" > "$TEST_LOG_DIR/iptables_test.log" 2>&1 &
     IPTABLES_PID=$!
 
-    # Wait for all chaos tests to complete
+   # Wait for all chaos tests to complete
     wait $DELAY_PID
     wait $LOSS_PID
     wait $RATELIMIT_PID
@@ -207,9 +221,21 @@ while IFS= read -r test_case; do
     wait $CORRUPT_PID
     wait $IPTABLES_PID
 
-    # Stop container log collection
-    kill $CONTAINER_LOG_PID 2>/dev/null
-    wait $CONTAINER_LOG_PID 2>/dev/null
+    # Stop container log collection and watcher
+    kill "$LOG_PIPE_PID" 2>/dev/null || true
+    wait "$LOG_PIPE_PID" 2>/dev/null || true
+
+    # If errors were captured, append a summary to per-test and global summary
+    if [[ -s "$ERR_FILE" ]]; then
+        echo "Errors detected in container $CONTAINER during test $TEST_INDEX:" >> "$TEST_LOG_DIR/test_parameters.log"
+        echo "See $ERR_FILE for details." >> "$TEST_LOG_DIR/test_parameters.log"
+
+        # Centralized summary for quick post-run inspection
+        SUMMARY="$LOG_DIR/errors_summary.log"
+        echo "==== Test $TEST_INDEX - $CONTAINER ====" >> "$SUMMARY"
+        cat "$ERR_FILE" >> "$SUMMARY"
+        echo >> "$SUMMARY"
+    fi
 
     echo "Test case $TEST_INDEX complete!" | tee -a "$TEST_LOG_DIR/test_parameters.log"
   ) &
