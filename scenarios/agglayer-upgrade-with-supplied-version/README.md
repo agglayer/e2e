@@ -26,7 +26,7 @@ It is designed to:
     example
 
     ```bash
-    ./run.sh 0.3.0-rc.21 0.3.5
+    ./run.sh  0.2.2  0.2.3
     ```
 
   - **Downgrade usage:**  
@@ -36,14 +36,14 @@ It is designed to:
     example
 
     ```bash
-    ./run.sh 0.3.5  0.3.0-rc.21  downgrade
+    ./run.sh  0.2.3  0.2.2  downgrade
     ```
 ##  Arguments & Descriptions
 
 | Argument               | Required | Description |
 |------------------------|----------|-------------|
-| `<FROM_TAG>`           |    Yes   | Docker image tag to start with (e.g., `0.3.0-rc.21`)|
-| `<TO_TAG>`             |    Yes   | Docker image tag to upgrade to (e.g., `0.3.5`)|
+| `<FROM_TAG>`           |    Yes   | Docker image tag to start with (e.g., `0.2.2`)|
+| `<TO_TAG>`             |    Yes   | Docker image tag to upgrade to (e.g., `0.2.3`)|
 | `[ACTION]`             |     No   | Optional: set to `downgrade` to  downgrade back to `<FROM_TAG>` after upgrade |
 
 ---
