@@ -22,6 +22,14 @@ on:
         options:
           - cardona
           - bali
+      user-input-gas-token-address:
+        description: "l2 gas token address contract on l1 - overrides default value"
+        required: false
+        type: string
+      user-input-bridge-service-url:
+        description: "l2 bridge service endpoint - overrides default value"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -177,9 +185,20 @@ jobs:
 
           # Set sensitive values from GitHub secrets
           export L1_RPC_URL="${{ env.L1_RPC_ENDPOINT }}"
-          export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
           export L2_RPC_URL="${{ env.L2_RPC_ENDPOINT }}"
+          export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
           export L2_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
+          # Override below values if provided by user input
+          if [[ -n "${{ inputs.user-input-gas-token-address }}" ]]; then
+            echo "Using user-provided gas token address"
+            export GAS_TOKEN_ADDRESS="${{ inputs.user-input-gas-token-address }}"
+          fi
+
+          if [[ -n "${{ inputs.user-input-bridge-service-url }}" ]]; then
+            echo "Using user-provided bridge service URL"
+            export BRIDGE_SERVICE_URL="${{ inputs.user-input-bridge-service-url }}"
+          fi
 
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
