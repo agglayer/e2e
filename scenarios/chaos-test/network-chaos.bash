@@ -1,5 +1,35 @@
 #!/bin/bash
 
+###############################################################################
+# network-chaos.bash
+#
+# This script injects network chaos into running Docker containers using
+# Pumba (netem + iptables) driven by a JSON test matrix. It runs test cases
+# in parallel, captures container and chaos-tool logs, and stores results in
+# a timestamped log directory for post-run analysis.
+#
+# Features:
+# - Applies delay, packet loss, rate limiting, duplication, corruption, and
+#   probabilistic iptables connection drops to target containers.
+# - Reads combinations from a PICT-generated JSON matrix (see assets/test_matrix.json)
+# - Runs test cases concurrently; collects per-test logs and container output.
+#
+# Usage:
+#   ./network-chaos.bash <duration> <path_to_test_matrix.json>
+# Examples:
+#   ./network-chaos.bash 30s assets/test_matrix.json
+#   ./network-chaos.bash 1m /path/to/matrix.json
+#
+# Output:
+# - Main log directory: chaos_logs_YYYYMMDD_HHMMSS/
+# - test_parameters.log (overall run)
+# - per-test dirs: test_1/, test_2/, ... containing:
+#   - test_parameters.log
+#   - container_<name>_logs.log
+#   - delay_test.log, loss_test.log, ratelimit_test.log,
+#     duplicate_test.log, corrupt_test.log, iptables_test.log
+###############################################################################
+
 # Set ROOT_DIR to current working directory if not already set
 LOG_ROOT_DIR="${LOG_ROOT_DIR:-$PWD}"
 
