@@ -1,8 +1,4 @@
 # Make sure to configure the agglayer/e2e Github Secrets before running this test
-# L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-# L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
-# L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
-# L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
 name: Standard Battery Tests - RPC
 
 on:
@@ -20,16 +16,12 @@ on:
         type: number
       target-network:
         description: "target network to source env file on"
-        default: "cardona"
+        default: "bali"
         required: true
         type: choice
         options:
           - cardona
           - bali
-
-  # pull_request:
-  #   branches:
-  #     - main
 
 permissions:
   contents: read
@@ -41,7 +33,6 @@ jobs:
     runs-on: gke-shared-dev-runners
     env:
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
-      # AGGLAYER_E2E_REF: jihwan/standard-battery-tests
     outputs:
       testfiles: ${{ steps.set-matrix.outputs.testfiles }}
     steps:
@@ -80,7 +71,7 @@ jobs:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
       L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-      L2_RPC_ENDPOINT: ${{ secrets.L2_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ inputs.target-network == 'cardona' && secrets.L2_CARDONA_RPC_ENDPOINT || secrets.L2_BALI_RPC_ENDPOINT }}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       TARGET_NETWORK: ${{ inputs.target-network }}
@@ -150,7 +141,11 @@ jobs:
       - name: Validate RPC Endpoint
         run: |
           cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
-          cast chain-id --rpc-url ${{ secrets.L2_RPC_ENDPOINT }}
+          if [[ "${{ inputs.target-network }}" == "cardona" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_RPC_ENDPOINT }}
+          else
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_RPC_ENDPOINT }}
+          fi
 
       - name: Validate test file existence
         run: |
