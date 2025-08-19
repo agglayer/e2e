@@ -67,7 +67,7 @@ jobs:
     timeout-minutes: 180
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJson(inputs.max-parallel-runs) }}
+      max-parallel: ${{ fromJson(inputs.max-parallel-runs || '1') }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
         target-network: ["cardona", "bali"]
