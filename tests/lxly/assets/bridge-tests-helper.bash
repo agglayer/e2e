@@ -715,7 +715,7 @@ _setup_single_test_account() {
     # Fund ephemeral account with native tokens on L2 (if needed for claims later)
     echo "DEBUG: Funding L2 account for test $test_index" >&2
     # shellcheck disable=SC2154
-    if ! _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"; then
+    if ! _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"; then
         echo "DEBUG: Failed to fund L2 account for test $test_index" >&2
         return 1
     fi

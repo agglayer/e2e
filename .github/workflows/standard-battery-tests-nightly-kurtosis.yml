@@ -192,7 +192,6 @@ jobs:
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
           args_filename: ${{ steps.extract.outputs.filename }}-${{ matrix.stack }}-artifacts
-          retention-days: 7
 
   run-monitored-chaos-stress-tests:
     runs-on: ubuntu-latest
