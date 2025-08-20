@@ -32,6 +32,7 @@ function get_current_block_producer() {
 # bats test_tags=veblop
 @test "stop the current block producer mid-span" {
   # Stop the current block producer.
+  last_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
   read block_producer < <(get_current_block_producer)
   kurtosis service stop "${ENCLAVE_NAME}" "${block_producer}"
   echo "Block producer stopped: ${block_producer}" >&3
