@@ -27,7 +27,7 @@ setup() {
 
     run cast send --rpc-url $l2_rpc_url "$op_l2_standard_bridge_addr" \
         --private-key $l2_private_key \
-        --value :"$(date +%s)" \
+        --value "$(date +%s)" \
         "bridgeETHTo(address,uint32,bytes)" \
         "0xC0FFEE0000000000000000000000000000000000" \
         "$(cast gas-price --rpc-url $l2_rpc_url)" \
