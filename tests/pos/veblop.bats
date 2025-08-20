@@ -36,7 +36,7 @@ function get_current_block_producer() {
   kurtosis service stop "${ENCLAVE_NAME}" "${block_producer}"
 
   # Update the rpc and api urls if the first validator was stopped.
-  if [[ "${block_producer_id}" == "1" ]]; then
+  if [[ "${block_producer}" == "l2-el-1-bor-heimdall-v2-validator" ]]; then
     export L2_RPC_URL=$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-2-bor-heimdall-v2-validator" rpc)
     export L2_CL_API_URL=$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-2-heimdall-v2-bor-validator" http)
   fi
