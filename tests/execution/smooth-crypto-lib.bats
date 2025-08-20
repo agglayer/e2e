@@ -89,7 +89,7 @@ setup() {
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         # Fund ephemeral account
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         # Small delay to prevent overwhelming the network
         if (( i % 20 == 0 )); then
@@ -135,7 +135,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
 
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -178,7 +178,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -217,7 +217,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -272,7 +272,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -331,7 +331,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -387,7 +387,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -443,7 +443,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -501,7 +501,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -552,7 +552,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 30 == 0 )); then
             wait
@@ -606,7 +606,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -633,7 +633,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -674,7 +674,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -724,7 +724,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait

@@ -59,7 +59,7 @@ is_cdk_erigon() {
     
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
     
     index=0;
     nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$ephemeral_address")
