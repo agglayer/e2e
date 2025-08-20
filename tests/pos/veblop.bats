@@ -34,6 +34,7 @@ function get_current_block_producer() {
   # Stop the current block producer.
   read block_producer < <(get_current_block_producer)
   kurtosis service stop "${ENCLAVE_NAME}" "${block_producer}"
+  echo "Block producer stopped: ${block_producer}" >&3
 
   # Update the rpc and api urls if the first validator was stopped.
   if [[ "${block_producer}" == "l2-el-1-bor-heimdall-v2-validator" ]]; then
@@ -42,21 +43,21 @@ function get_current_block_producer() {
   fi
 
   # Wait until the chain progresses by at least 10 blocks.
-  echo "Last block number before stopping producer: ${last_block_number}"
+  echo "Last block number before stopping producer: ${last_block_number}" >&3
   current_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
   while (( current_block_number <= last_block_number + 10 )); do
-    echo "Waiting for chain to progress... Current block: ${current_block_number}"
+    echo "Waiting for chain to progress... Current block: ${current_block_number}" >&3
     sleep 2
     current_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
   done
-  echo "Chain has progressed. Current block: ${current_block_number}"
+  echo "Chain has progressed. Current block: ${current_block_number}" >&3
 
   # Make sure another block producer is selected.
   read new_block_producer < <(get_current_block_producer)
   if [[ "${new_block_producer}" != "${block_producer}" ]]; then
-    echo "New block producer: ${new_block_producer}"
+    echo "New block producer: ${new_block_producer}" >&3
   else
-    echo "Block producer did not change as expected."
+    echo "Block producer did not change as expected." >&3
     exit 1
   fi
 }
