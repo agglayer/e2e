@@ -8,45 +8,41 @@ setup() {
   pos_setup
 }
 
-function get_current_block_producer() {
+function get_current_span_id() {
   next_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
   current_span_id=$(($(echo "$next_span" | jq -r .span.id) - 1))
-  current_span=$(curl -s "${L2_CL_API_URL}/bor/spans/${current_span_id}")
+  echo "${current_span_id}"
+}
 
-  # Double-check that the current block number is included in the current span.
-  # block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
-  # start_block=$(echo "${span}" | jq -r .span.start_block)
-  # end_block=$(echo "${span}" | jq -r .span.end_block)
-  # if [[ "${start_block}" -le "${block_number}" && "${end_block}" -ge "${block_number}" ]]; then
-  #   echo "Block number ${block_number} is within span ${span_id}."
-  # else
-  #   echo "Block number ${block_number} is NOT within span ${span_id}."
-  #   exit 1
-  # fi
-
-  block_producer_id=$(echo "${current_span}" | jq -r '.span.selected_producers[0].val_id')
-  block_producer="l2-el-${block_producer_id}-bor-heimdall-v2-validator"
-  echo "${block_producer}"
+function get_current_block_producer_id() {
+  span_id="$1"
+  span=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}")
+  block_producer_id=$(echo "${span}" | jq -r '.span.selected_producers[0].val_id')
+  echo "${block_producer_id}"
 }
 
 # bats test_tags=veblop
 @test "stop the current block producer mid-span" {
+  block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
+  span_id=$(get_current_span_id)
+
   # Stop the current block producer.
-  last_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
-  read block_producer < <(get_current_block_producer)
-  kurtosis service stop "${ENCLAVE_NAME}" "${block_producer}"
-  echo "Block producer stopped: ${block_producer}" >&3
+  block_producer_id=$(get_current_block_producer_id "${span_id}")
+  kurtosis service stop "${ENCLAVE_NAME}" "l2-cl-${block_producer_id}-bor-heimdall-v2-validator"
+  kurtosis service stop "${ENCLAVE_NAME}" "l2-el-${block_producer_id}-bor-heimdall-v2-validator"
+  echo "Block producer stopped: ${block_producer_id}" >&3
 
   # Update the rpc and api urls if the first validator was stopped.
-  if [[ "${block_producer}" == "l2-el-1-bor-heimdall-v2-validator" ]]; then
+  if [[ "${block_producer_id}" == "1" ]]; then
     export L2_RPC_URL=$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-2-bor-heimdall-v2-validator" rpc)
     export L2_CL_API_URL=$(kurtosis port print "${ENCLAVE_NAME}" "l2-cl-2-heimdall-v2-bor-validator" http)
   fi
 
-  # Wait until the chain progresses by at least 10 blocks.
-  echo "Last block number before stopping producer: ${last_block_number}" >&3
+  # Wait until the chain progresses by at least a full span (128 blocks).
+  # TODO: We could wait for less blocks maybe?
+  echo "Last block number before stopping producer: ${block_number}" >&3
   current_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
-  while (( current_block_number <= last_block_number + 10 )); do
+  while (( current_block_number <= block_number + 128 )); do
     echo "Waiting for chain to progress... Current block: ${current_block_number}" >&3
     sleep 2
     current_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
@@ -54,9 +50,9 @@ function get_current_block_producer() {
   echo "Chain has progressed. Current block: ${current_block_number}" >&3
 
   # Make sure another block producer is selected.
-  read new_block_producer < <(get_current_block_producer)
-  if [[ "${new_block_producer}" != "${block_producer}" ]]; then
-    echo "New block producer: ${new_block_producer}" >&3
+  new_block_producer_id=$(get_current_block_producer_id "${span_id}")
+  if [[ "${new_block_producer_id}" != "${block_producer_id}" ]]; then
+    echo "New block producer: ${new_block_producer_id}" >&3
   else
     echo "Block producer did not change as expected." >&3
     exit 1
