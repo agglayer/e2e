@@ -30,7 +30,7 @@ function get_current_block_producer_id() {
   block_producer_id=$(get_current_block_producer_id "${span_id}")
   kurtosis service stop "${ENCLAVE_NAME}" "l2-cl-${block_producer_id}-heimdall-v2-bor-validator"
   kurtosis service stop "${ENCLAVE_NAME}" "l2-el-${block_producer_id}-bor-heimdall-v2-validator"
-  echo "Block producer stopped: ${block_producer_id}" >&3
+  echo "Block producer id ${block_producer_id} stopped" >&3
 
   # Update the rpc and api urls if the first validator was stopped.
   if [[ "${block_producer_id}" == "1" ]]; then
@@ -40,14 +40,7 @@ function get_current_block_producer_id() {
 
   # Wait until the chain progresses by at least a full span (128 blocks).
   # TODO: We could wait for less blocks maybe?
-  echo "Last block number before stopping producer: ${block_number}" >&3
-  current_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
-  while (( current_block_number <= block_number + 128 )); do
-    echo "Waiting for chain to progress... Current block: ${current_block_number}" >&3
-    sleep 2
-    current_block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
-  done
-  echo "Chain has progressed. Current block: ${current_block_number}" >&3
+  assert_command_eventually_greater_than "cast block-number --rpc-url ${L2_RPC_URL}" $((block_number + 128)) "180" "10"
 
   # Make sure another block producer is selected.
   new_block_producer_id=$(get_current_block_producer_id "${span_id}")
