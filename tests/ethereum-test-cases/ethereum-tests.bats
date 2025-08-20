@@ -1,3 +1,6 @@
+#!/usr/bin/env bats
+# bats file_tags=ethereum-test-cases
+
 # This test leverages test data that's derived from the core ethereum
 # test suite. We're leveraging this data as a stress test rather than
 # a functional test. I.e. we don't check for the correct execution of
@@ -209,7 +212,7 @@ function fund_new_wallet() {
     echo "$wallet_info"
 }
 
-# bats test_tags=evm,stress
+# bats test_tags=evm-stress
 @test "execute ethereum test cases and ensure liveness" {
     # Need to figure out if there is a better way to manage this. It seems too nuclear
     # trap 'kill 0; exit' EXIT SIGINT SIGTERM

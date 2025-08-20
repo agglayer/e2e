@@ -1,3 +1,6 @@
+#!/usr/bin/env bats
+# bats file_tags=agglayer
+
 setup() {
     kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
 
@@ -63,7 +66,7 @@ setup() {
 
 }
 
-# bats test_tags=danger,agglayer-cert-test,cdk
+# bats test_tags=agglayer-cert
 @test "Agglayer valid cert test" {
     echo "Cleaning up previous databases..."
     rm -rf cdk-databases
@@ -104,7 +107,7 @@ setup() {
     assert_success
 }
 
-# bats test_tags=danger,agglayer-cert-fake-deposit-test,cdk
+# bats test_tags=agglayer-cert
 @test "Agglayer valid cert fake deposit test" {
     echo "Cleaning up previous databases..."
     rm -rf cdk-databases
@@ -147,7 +150,7 @@ setup() {
     rm -rf cdk-databases
 }
 
-# bats test_tags=danger,agglayer-random-cert-test,cdk
+# bats test_tags=agglayer-cert
 @test "Agglayer random cert test" {
     local network_id="2"
     local height="1004"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard,execution
 
 setup() {
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
@@ -49,6 +49,7 @@ is_cdk_erigon() {
     fi
 }
 
+# bats test_tags=transaction-eoa,evm-pool
 @test "Make conflicting contract calls" {
     local ephemeral_data
     local ephemeral_private_key

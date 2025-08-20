@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard,execution
 
 setup() {
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
@@ -12,7 +12,7 @@ setup() {
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
-
+# bats test_tags=transaction-eoa,evm-pool
 @test "Make conflicting transaction to pool" {
     local ephemeral_data
     local ephemeral_private_key
