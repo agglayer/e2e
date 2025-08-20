@@ -28,7 +28,7 @@ function get_current_block_producer_id() {
 
   # Stop the current block producer.
   block_producer_id=$(get_current_block_producer_id "${span_id}")
-  kurtosis service stop "${ENCLAVE_NAME}" "l2-cl-${block_producer_id}-bor-heimdall-v2-validator"
+  kurtosis service stop "${ENCLAVE_NAME}" "l2-cl-${block_producer_id}-heimdall-v2-bor-validator"
   kurtosis service stop "${ENCLAVE_NAME}" "l2-el-${block_producer_id}-bor-heimdall-v2-validator"
   echo "Block producer stopped: ${block_producer_id}" >&3
 
