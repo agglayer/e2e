@@ -30,7 +30,7 @@ function get_current_block_producer_id() {
   block_producer_id=$(get_current_block_producer_id "${span_id}")
   kurtosis service stop "${ENCLAVE_NAME}" "l2-cl-${block_producer_id}-heimdall-v2-bor-validator"
   kurtosis service stop "${ENCLAVE_NAME}" "l2-el-${block_producer_id}-bor-heimdall-v2-validator"
-  echo "Block producer id ${block_producer_id} stopped" >&3
+  echo "Block producer id ${block_producer_id} stopped"
 
   # Update the rpc and api urls if the first validator was stopped.
   if [[ "${block_producer_id}" == "1" ]]; then
@@ -45,9 +45,9 @@ function get_current_block_producer_id() {
   # Make sure another block producer is selected.
   new_block_producer_id=$(get_current_block_producer_id "${span_id}")
   if [[ "${new_block_producer_id}" != "${block_producer_id}" ]]; then
-    echo "New block producer: ${new_block_producer_id}" >&3
+    echo "New block producer: ${new_block_producer_id}"
   else
-    echo "Block producer did not change as expected." >&3
+    echo "Block producer did not change as expected."
     exit 1
   fi
 }
