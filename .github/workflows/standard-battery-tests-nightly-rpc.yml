@@ -1,4 +1,5 @@
 # Make sure to configure the agglayer/e2e Github Secrets before running this test
+# The tests target cardona-24 and bali-35 networks.
 name: Standard Battery Tests - RPC (Nightly)
 
 on:
@@ -75,7 +76,7 @@ jobs:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'cardona' && secrets.L2_CARDONA_RPC_ENDPOINT || secrets.L2_BALI_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'cardona' && secrets.L2_CARDONA_NIGHTLY_RPC_ENDPOINT || secrets.L2_BALI_NIGHTLY_RPC_ENDPOINT }}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       TARGET_NETWORK: ${{ matrix.target-network }}
@@ -141,9 +142,9 @@ jobs:
         run: |
           cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
           if [[ "${{ matrix.target-network }}" == "cardona" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_RPC_ENDPOINT }}
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_NIGHTLY_RPC_ENDPOINT }}
           else
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_RPC_ENDPOINT }}
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_NIGHTLY_RPC_ENDPOINT }}
           fi
 
       - name: Validate test file existence
