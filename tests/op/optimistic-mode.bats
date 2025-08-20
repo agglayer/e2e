@@ -1,12 +1,16 @@
 #!/usr/bin/env bats
-# bats file_tags=op
+# shellcheck disable=SC2034
 
 setup() {
     kurtosis_enclave_name=${ENCLAVE_NAME:-"op"}
     l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
+    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
     l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http)"}
+    rollup_manager_address=${ROLLUP_MANAGER_ADDRESS:-"0x6c6c009cC348976dB4A908c92B24433d4F6edA43"}
     rollup_address=${ROLLUP_ADDRESS:-"0x414e9E227e4b589aF92200508aF5399576530E4e"}
     optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
+    timeout=${TIMEOUT:-3000}
+    retry_interval=${RETRY_INTERVAL:-15}
 
     load "../../core/helpers/agglayer-certificates-checks.bash"
     agglayer_certificates_checks_setup
@@ -80,7 +84,6 @@ check_fep_consensus_version() {
     fi
 }
 
-# bats file_tags=cdk-op-geth
 @test "Enable OptimisticMode" {
     check_fep_consensus_version
 
@@ -104,7 +107,6 @@ check_fep_consensus_version() {
     manage_bridge_spammer "start"
 }
 
-# bats file_tags=cdk-op-geth
 @test "Disable OptimisticMode" {
     ensure_non_null_cert
     manage_bridge_spammer "stop"
