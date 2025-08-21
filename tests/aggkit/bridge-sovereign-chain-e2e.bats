@@ -17,8 +17,40 @@ setup() {
   readonly grant_role_func_sig="function grantRole(bytes32, address)"
   readonly migrate_legacy_token_func_sig="function migrateLegacyToken(address, uint256, bytes)"
   readonly remove_legacy_sovereign_token_address_func_sig="function removeLegacySovereignTokenAddress(address)"
+  readonly unset_multiple_claims_func_sig="function unsetMultipleClaims(uint256[])"
+  readonly is_claimed_func_sig="function isClaimed(uint32,uint32)"
 
   readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
+}
+
+get_certificate_height() {
+    local aggkit_rpc_url=$1
+    height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
+    echo "$height"
+    return 0
+}
+
+check_certificate_height() {
+    local expected_height=$1
+    local max_retries=${2:-10}
+    local retry_delay=${3:-5}
+
+    echo "=== Getting certificate height (expected: $expected_height, retry: $max_retries) ===" >&3
+    local retry_count=0
+    local height=0
+
+    while [ $retry_count -lt $max_retries ]; do
+        height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
+        echo "Certificate height: $height" >&3
+
+        if [ "$height" -eq "$expected_height" ]; then
+            echo "Certificate height: $height" >&3
+            return 0
+        fi
+
+        sleep $retry_delay
+        retry_count=$((retry_count + 1))
+    done
 }
 
 @test "Test GlobalExitRoot removal" {
@@ -239,4 +271,439 @@ setup() {
   final_legacy_token_migrations_count=$(echo "$final_legacy_token_migrations" | jq -r '.count')
   assert_equal "$initial_legacy_token_migrations_count" "$final_legacy_token_migrations_count"
   log "✅ Test Sovereign Chain Bridge Event successful"
+}
+
+@test "Test Unset claims Events" {
+  log "=== 🧑‍💻 Running Test Unset claims Events" >&3
+
+  # Set token amount for native token bridging
+  local tokens_amount="0.1ether"
+  local wei_amount
+  wei_amount=$(cast --to-unit "$tokens_amount" wei)
+
+  # Array to store bridge transaction hashes
+  local bridge_tx_hashes=()
+  local global_indexes=()
+
+  # Send 5 bridge transactions from L1 to L2
+  log "🚀 Sending 5 bridge transactions from L1 to L2"
+  for i in {1..5}; do
+    log "Sending bridge transaction $i/5"
+
+    # DEPOSIT ON L1
+    destination_addr=$receiver
+    destination_net=$l2_rpc_network_id
+    amount=$(cast --to-unit "$tokens_amount" wei)
+    meta_bytes="0x"
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+    bridge_tx_hashes+=("$bridge_tx_hash")
+    log "Bridge transaction $i hash: $bridge_tx_hash"
+  done
+
+  # Claim all 5 deposits on L2
+  log "🔐 Claiming all 5 deposits on L2"
+  for i in {0..4}; do
+    local bridge_tx_hash=${bridge_tx_hashes[$i]}
+    log "Claiming bridge transaction $((i+1))/5 with hash: $bridge_tx_hash"
+
+    # Process bridge claim
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
+
+    # Extract global index from the claim
+    local global_index
+    global_index=$(echo "$output" | tail -n 1)
+    global_indexes+=("$global_index")
+    log "Global index for transaction $((i+1)): $global_index"
+  done
+
+  # Verify native token balance on L2 for the receiver
+  local receiver_balance_wei
+  receiver_balance_wei=$(cast balance --rpc-url "$L2_RPC_URL" "$receiver")
+  log "Receiver native token balance on L2: $receiver_balance_wei wei"
+
+  # Verify that the balance is at least the expected amount
+  local expected_balance_wei
+  expected_balance_wei=$(cast --to-wei "$tokens_amount")
+  if [[ "$receiver_balance_wei" -ge "$expected_balance_wei" ]]; then
+    log "✅ Receiver has sufficient native token balance on L2"
+  else
+    log "❌ Receiver native token balance insufficient: expected >= $expected_balance_wei, got $receiver_balance_wei"
+    exit 1
+  fi
+
+  # Check initial certificate settlement for the last global index
+  log "📋 Checking initial certificate settlement for the last global index"
+  local last_global_index=${global_indexes[4]}
+  log "Last global index: $last_global_index"
+
+  # Wait for certificate settlement containing the last global index
+  log "⏳ Waiting for certificate settlement containing global index: $last_global_index"
+  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$last_global_index"
+
+  # Get certificate height after initial claims
+  local certificate_height_after_claims
+  certificate_height_after_claims=$(get_certificate_height "$aggkit_rpc_url")
+  log "Certificate height after claims: $certificate_height_after_claims"
+
+    # Verify that the last 2 claims are marked as claimed
+  log "🔍 Verifying that the last 2 claims are marked as claimed"
+  for i in {3..4}; do
+    local global_index=${global_indexes[$i]}
+    local origin_network=0  # L1 network ID
+
+    # Check isClaimed for the global index
+    local is_claimed_result
+    is_claimed_result=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$is_claimed_func_sig" "$global_index" "$origin_network")
+    log "isClaimed for global index $global_index: $is_claimed_result"
+
+    # Convert hex to boolean and verify it's true
+    if [[ "$is_claimed_result" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+      log "✅ Global index $global_index is correctly marked as claimed"
+    else
+      log "❌ Global index $global_index is not marked as claimed"
+      exit 1
+    fi
+  done
+
+  # Unset the last 2 claims using unsetMultipleClaims
+  log "🔄 Unsetting the last 2 claims using unsetMultipleClaims"
+  local last_two_global_indexes=("${global_indexes[3]}" "${global_indexes[4]}")
+
+  # Call unsetMultipleClaims function
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_two_global_indexes[0]}, ${last_two_global_indexes[1]}]" --json
+  assert_success
+  local unset_claims_tx_resp=$output
+  log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
+
+  # Verify that the last 2 claims are now unset (not claimed)
+  log "🔍 Verifying that the last 2 claims are now unset"
+  for i in {3..4}; do
+    local global_index=${global_indexes[$i]}
+    local origin_network=0  # L1 network ID
+
+    # Check isClaimed for the global index
+    local is_claimed_result
+    is_claimed_result=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$is_claimed_func_sig" "$global_index" "$origin_network")
+    log "isClaimed for global index $global_index after unset: $is_claimed_result"
+
+    # Convert hex to boolean and verify it's false
+    if [[ "$is_claimed_result" == "0x0000000000000000000000000000000000000000000000000000000000000000" ]]; then
+      log "✅ Global index $global_index is correctly marked as unclaimed after unset"
+    else
+      log "❌ Global index $global_index is still marked as claimed after unset"
+      exit 1
+    fi
+  done
+
+  # Check certificate settlement height after unsetting claims
+  log "📋 Checking certificate settlement height after unsetting claims"
+  local certificate_height_after_unset
+  certificate_height_after_unset=$(get_certificate_height "$aggkit_rpc_url")
+  log "Certificate height after unset: $certificate_height_after_unset"
+
+  # Verify that certificate height increased
+  if [[ "$certificate_height_after_unset" -gt "$certificate_height_after_claims" ]]; then
+    log "✅ Certificate height increased after unsetting claims: $certificate_height_after_claims -> $certificate_height_after_unset"
+  else
+    log "❌ Certificate height did not increase after unsetting claims"
+    exit 1
+  fi
+
+  # Claim the unset claims again
+  log "🔐 Claiming the unset claims again"
+  for i in {3..4}; do
+    local bridge_tx_hash=${bridge_tx_hashes[$i]}
+    local global_index=${global_indexes[$i]}
+    log "Re-claiming bridge transaction $((i+1))/5 with hash: $bridge_tx_hash, global index: $global_index"
+
+    # Process bridge claim again
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
+
+    log "Successfully re-claimed global index: $global_index"
+  done
+
+  # Verify that the last 2 claims are marked as claimed again
+  log "🔍 Verifying that the last 2 claims are marked as claimed again"
+  for i in {3..4}; do
+    local global_index=${global_indexes[$i]}
+    local origin_network=0  # L1 network ID
+
+    # Check isClaimed for the global index
+    local is_claimed_result
+    is_claimed_result=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$is_claimed_func_sig" "$global_index" "$origin_network")
+    log "isClaimed for global index $global_index after re-claim: $is_claimed_result"
+
+    # Convert hex to boolean and verify it's true
+    if [[ "$is_claimed_result" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+      log "✅ Global index $global_index is correctly marked as claimed after re-claim"
+    else
+      log "❌ Global index $global_index is not marked as claimed after re-claim"
+      exit 1
+    fi
+  done
+
+  # Wait for certificate settlement containing the re-claimed global indexes
+  log "⏳ Waiting for certificate settlement containing re-claimed global indexes..."
+  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[4]}"
+
+  # Check final certificate settlement height
+  log "📋 Checking final certificate settlement height"
+  local final_certificate_height
+  final_certificate_height=$(get_certificate_height "$aggkit_rpc_url")
+  log "Final certificate height: $final_certificate_height"
+
+  # Verify that certificate height increased again
+  if [[ "$final_certificate_height" -gt "$certificate_height_after_unset" ]]; then
+    log "✅ Certificate height increased after re-claiming: $certificate_height_after_unset -> $final_certificate_height"
+  else
+    log "❌ Certificate height did not increase after re-claiming"
+    exit 1
+  fi
+
+  log "✅ Test Unset claims Events completed successfully"
+}
+
+@test "Test Combined GlobalExitRoot Removal and Unset Claims with Certificate Tracking" {
+  log "=== 🧑‍💻 Running Combined GlobalExitRoot Removal and Unset Claims Test" >&3
+
+  # Get initial certificate height
+  local initial_certificate_height
+  initial_certificate_height=$(get_certificate_height "$aggkit_rpc_url")
+  log "Initial certificate height: $initial_certificate_height"
+
+  # Set token amount for native token bridging
+  local tokens_amount="0.1ether"
+  local wei_amount
+  wei_amount=$(cast --to-unit "$tokens_amount" wei)
+
+  # Array to store bridge transaction hashes and global indexes
+  local bridge_tx_hashes=()
+  local global_indexes=()
+
+  # Send 3 bridge transactions from L1 to L2
+  log "🚀 Sending 3 bridge transactions from L1 to L2"
+  for i in {1..3}; do
+    log "Sending bridge transaction $i/3"
+
+    # DEPOSIT ON L1
+    destination_addr=$receiver
+    destination_net=$l2_rpc_network_id
+    amount=$(cast --to-unit "$tokens_amount" wei)
+    meta_bytes="0x"
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    local bridge_tx_hash=$output
+    bridge_tx_hashes+=("$bridge_tx_hash")
+    log "Bridge transaction $i hash: $bridge_tx_hash"
+  done
+
+  # Claim all 3 deposits on L2
+  log "🔐 Claiming all 3 deposits on L2"
+  for i in {0..2}; do
+    local bridge_tx_hash=${bridge_tx_hashes[$i]}
+    log "Claiming bridge transaction $((i+1))/3 with hash: $bridge_tx_hash"
+
+    # Process bridge claim
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
+
+    # Extract global index from the claim
+    local global_index
+    global_index=$(echo "$output" | tail -n 1)
+    global_indexes+=("$global_index")
+    log "Global index for transaction $((i+1)): $global_index"
+  done
+
+  # Wait for certificate settlement containing the last global index
+  log "⏳ Waiting for certificate settlement containing global index: ${global_indexes[2]}"
+  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[2]}"
+
+  # Get certificate height after initial claims
+  local certificate_height_after_claims
+  certificate_height_after_claims=$(get_certificate_height "$aggkit_rpc_url")
+  log "Certificate height after claims: $certificate_height_after_claims"
+
+  # Verify that certificate height increased
+  if [[ "$certificate_height_after_claims" -gt "$initial_certificate_height" ]]; then
+    log "✅ Certificate height increased after initial claims: $initial_certificate_height -> $certificate_height_after_claims"
+  else
+    log "❌ Certificate height did not increase after initial claims"
+    exit 1
+  fi
+
+  # Verify that all 3 claims are marked as claimed
+  log "🔍 Verifying that all 3 claims are marked as claimed"
+  for i in {0..2}; do
+    local global_index=${global_indexes[$i]}
+    local origin_network=0  # L1 network ID
+
+    # Check isClaimed for the global index
+    local is_claimed_result
+    is_claimed_result=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$is_claimed_func_sig" "$global_index" "$origin_network")
+    log "isClaimed for global index $global_index: $is_claimed_result"
+
+    # Convert hex to boolean and verify it's true
+    if [[ "$is_claimed_result" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+      log "✅ Global index $global_index is correctly marked as claimed"
+    else
+      log "❌ Global index $global_index is not marked as claimed"
+      exit 1
+    fi
+  done
+
+  # Fetch UpdateHashChainValue events to get the latest GER
+  log "🔍 Fetching UpdateHashChainValue events to get the latest GER"
+  run cast logs \
+    --rpc-url "$L2_RPC_URL" \
+    --from-block 0x0 \
+    --to-block latest \
+    --address "$l2_ger_addr" \
+    "$update_hash_chain_value_event_sig" \
+    --json
+  assert_success
+  update_hash_chain_value_events="$output"
+  log "🔍 Fetched UpdateHashChainValue events: $update_hash_chain_value_events"
+
+  # Extract last GER
+  local last_ger
+  last_ger=$(echo "$update_hash_chain_value_events" | jq -r '.[-1].topics[1]')
+  assert_success
+  log "🔍 Last GER: $last_ger"
+
+  # Query initial status of the GER
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
+  assert_success
+  initial_ger_status="$output"
+  log "⏳ Initial GER status for $last_ger -> $initial_ger_status"
+
+  # Assert that the initial status is not zero
+  if [[ "$initial_ger_status" == "0" ]]; then
+    log "🚫 GER not found in map, cannot proceed with removal"
+    exit 1
+  fi
+
+  # Remove the GER from map using sovereign admin
+  log "🔄 Removing GER from map: $last_ger"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$last_ger]"
+  assert_success
+  log "✅ GER successfully removed from map"
+
+  # Query final status of the GER
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
+  assert_success
+  final_ger_status="$output"
+  log "⏳ Final GER status for $last_ger -> $final_ger_status"
+
+  # Assert that the final status is zero
+  assert_equal "$final_ger_status" "0"
+  log "✅ GER successfully removed and verified"
+
+  # Unset the last 2 claims using unsetMultipleClaims
+  log "🔄 Unsetting the last 2 claims using unsetMultipleClaims"
+  local last_two_global_indexes=("${global_indexes[1]}" "${global_indexes[2]}")
+
+  # Call unsetMultipleClaims function
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_two_global_indexes[0]}, ${last_two_global_indexes[1]}]" --json
+  assert_success
+  local unset_claims_tx_resp=$output
+  log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
+
+  # Verify that the last 2 claims are now unset (not claimed)
+  log "🔍 Verifying that the last 2 claims are now unset"
+  for i in {1..2}; do
+    local global_index=${global_indexes[$i]}
+    local origin_network=0  # L1 network ID
+
+    # Check isClaimed for the global index
+    local is_claimed_result
+    is_claimed_result=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$is_claimed_func_sig" "$global_index" "$origin_network")
+    log "isClaimed for global index $global_index after unset: $is_claimed_result"
+
+    # Convert hex to boolean and verify it's false
+    if [[ "$is_claimed_result" == "0x0000000000000000000000000000000000000000000000000000000000000000" ]]; then
+      log "✅ Global index $global_index is correctly marked as unclaimed after unset"
+    else
+      log "❌ Global index $global_index is still marked as claimed after unset"
+      exit 1
+    fi
+  done
+
+  # Check certificate settlement height after unsetting claims
+  log "📋 Checking certificate settlement height after unsetting claims"
+  local certificate_height_after_unset
+  certificate_height_after_unset=$(get_certificate_height "$aggkit_rpc_url")
+  log "Certificate height after unset: $certificate_height_after_unset"
+
+  # Verify that certificate height increased after unsetting claims
+  if [[ "$certificate_height_after_unset" -gt "$certificate_height_after_claims" ]]; then
+    log "✅ Certificate height increased after unsetting claims: $certificate_height_after_claims -> $certificate_height_after_unset"
+  else
+    log "❌ Certificate height did not increase after unsetting claims"
+    exit 1
+  fi
+
+  # Claim the unset claims again
+  log "🔐 Claiming the unset claims again"
+  for i in {1..2}; do
+    local bridge_tx_hash=${bridge_tx_hashes[$i]}
+    local global_index=${global_indexes[$i]}
+    log "Re-claiming bridge transaction $((i+1))/3 with hash: $bridge_tx_hash, global index: $global_index"
+
+    # Process bridge claim again
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
+
+    log "Successfully re-claimed global index: $global_index"
+  done
+
+  # Verify that the last 2 claims are marked as claimed again
+  log "🔍 Verifying that the last 2 claims are marked as claimed again"
+  for i in {1..2}; do
+    local global_index=${global_indexes[$i]}
+    local origin_network=0  # L1 network ID
+
+    # Check isClaimed for the global index
+    local is_claimed_result
+    is_claimed_result=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$is_claimed_func_sig" "$global_index" "$origin_network")
+    log "isClaimed for global index $global_index after re-claim: $is_claimed_result"
+
+    # Convert hex to boolean and verify it's true
+    if [[ "$is_claimed_result" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
+      log "✅ Global index $global_index is correctly marked as claimed after re-claim"
+    else
+      log "❌ Global index $global_index is not marked as claimed after re-claim"
+      exit 1
+    fi
+  done
+
+  # Wait for certificate settlement containing the re-claimed global indexes
+  log "⏳ Waiting for certificate settlement containing re-claimed global indexes..."
+  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[2]}"
+
+  # Check final certificate settlement height
+  log "📋 Checking final certificate settlement height"
+  local final_certificate_height
+  final_certificate_height=$(get_certificate_height "$aggkit_rpc_url")
+  log "Final certificate height: $final_certificate_height"
+
+  # Verify that certificate height increased again after re-claiming
+  if [[ "$final_certificate_height" -gt "$certificate_height_after_unset" ]]; then
+    log "✅ Certificate height increased after re-claiming: $certificate_height_after_unset -> $final_certificate_height"
+  else
+    log "❌ Certificate height did not increase after re-claiming"
+    exit 1
+  fi
+
+  # Summary of all certificate height changes
+  log "📊 Certificate Height Summary:"
+  log "  Initial: $initial_certificate_height"
+  log "  After claims: $certificate_height_after_claims (+$((certificate_height_after_claims - initial_certificate_height)))"
+  log "  After unset: $certificate_height_after_unset (+$((certificate_height_after_unset - certificate_height_after_claims)))"
+  log "  Final: $final_certificate_height (+$((final_certificate_height - certificate_height_after_unset)))"
+
+  log "✅ Combined GlobalExitRoot Removal and Unset Claims Test completed successfully"
 }
