@@ -18,14 +18,6 @@ on:
         default: 1
         required: true
         type: number
-      target-network:
-        description: "target network to source env file on"
-        default: "cardona"
-        required: true
-        type: choice
-        options:
-          - cardona
-          - bali
 
 permissions:
   contents: read
