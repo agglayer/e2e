@@ -148,11 +148,10 @@ jobs:
             bats ./tests/aggkit/global-index-pp-old-contracts.bats \
                  || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
-            bats \
+            bats ./tests/op/optimistic-mode.bats \
                  ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
                  ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
-                 ./tests/op/optimistic-mode.bats \
                  || exit 1
 
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
