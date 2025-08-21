@@ -56,13 +56,13 @@ setup_file() {
     random_private_key=$(echo "$random_wallet" | jq -r '.[0].privateKey')
 }
 
-# bats file_tags=bridge,custom-gas-token
+# bats test_tags=bridge,custom-gas-token
 @test "check address for custom gas token on L2" {
     # That check has been moved to setup_file, we just report success here.
     echo "✅ Custom gas token address: $gas_token_address, WETH address: $weth_address"
 }
 
-# bats file_tags=bridge,custom-gas-token
+# bats test_tags=bridge,custom-gas-token
 @test "test custom gas token bridge from L1 to L2" {
     # This test deposits gas token on L1 bridge, so it has to become L2 native balance.
     # It checks few things:
@@ -190,7 +190,7 @@ setup_file() {
     fi
 }
 
-# bats file_tags=bridge,custom-gas-token
+# bats test_tags=bridge,custom-gas-token
 @test "test custom gas token bridge from L2 to L1" {
     # This test deposits gas token on L1 bridge, so it has to become L2 native balance.
     # It checks few things:

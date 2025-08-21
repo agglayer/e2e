@@ -23,11 +23,11 @@ on:
           - cardona
           - bali
       user-input-gas-token-address:
-        description: "l2 gas token address contract on l1 - overrides default value"
+        description: "l2 gas token address contract on l1 - input will override default value"
         required: false
         type: string
       user-input-bridge-service-url:
-        description: "l2 bridge service endpoint - overrides default value"
+        description: "l2 bridge service endpoint - input will override default value"
         required: false
         type: string
 
@@ -56,7 +56,7 @@ jobs:
         run: |
             pushd agglayer-e2e || exit 1
             # strictly detect tags with file_tags=standard and test_tags=standard
-            files=$(grep -rl '# bats \(file_tags\|test_tags\)=standard\([[:space:]]\|$\)' ./tests | grep '\.bats$' || true)
+            files=$(grep -rlP '#\s*bats\s+(?:file_tags|test_tags)=[^#]*\bstandard\b(?!-)' ./tests | grep '\.bats$' || true)
             echo "Found files:"
             echo "$files"
             # Remove empty lines and ensure valid JSON array without trailing empty string
@@ -69,7 +69,7 @@ jobs:
   run-standard-battery-tests:
     runs-on: gke-shared-dev-runners
     needs: discover-standard-tests
-    timeout-minutes: 120
+    timeout-minutes: 300
     strategy:
       fail-fast: false
       max-parallel: ${{ fromJson(inputs.max-parallel-runs) }}

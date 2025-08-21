@@ -26,7 +26,7 @@ setup() {
     l1_token_address=$(echo "$l1_deploy_output" | grep "Deployed to:" | awk '{print $3}')
 
     # Deploy TokenWrapped ERC20 on L2 and capture output
-    l2_deploy_output=$(forge create --broadcast --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)" \
+    l2_deploy_output=$(forge create --broadcast --rpc-url "$l2_rpc_url" \
     --private-key "$private_key" \
     core/contracts/erc20sovereignbridge/TokenWrapped.sol:TokenWrapped \
     --constructor-args "L2 Wrapped ERC20" "zETH" 18)
@@ -43,13 +43,13 @@ setup() {
     "[$l2_token_address]" \
     "[false]" \
     --private-key "$bridge_manager_private_key" \
-    --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
+    --rpc-url "$l2_rpc_url"
 
     # Check tokenInfoToWrappedToken information
     echo "Query getTokenWrappedAddress(uint32,address)(address)"
     cast call "$bridge_address" "getTokenWrappedAddress(uint32,address)(address)" \
     "0" "$l1_token_address" \
-    --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
+    --rpc-url "$l2_rpc_url"
 
     # Check L1 and L2 Token addresses
     echo "L1 Token Address: $l1_token_address"
@@ -81,7 +81,7 @@ setup() {
     echo "Calling approve() on the zETH ERC20 contract to increase Allowance of the bridge address"
     cast send "$l2_token_address" "approve(address,uint256)" \
     "$bridge_address" "999999999999999999999999999999" \
-    --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"\
+    --rpc-url "$l2_rpc_url"\
     --private-key "$private_key" \
     --quiet
 
@@ -114,13 +114,13 @@ setup() {
         --destination-address "$admin_address" \
         --deposit-network 0 \
         --private-key "$private_key" \
-        --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"\
+        --rpc-url "$l2_rpc_url"\
         --wait 25s
 
     # Check zETH balance before
     echo "Check zETH balance before converting"
     cast call "$l2_token_address" "balanceOf(address)(uint256)" "$admin_address" \
-    --rpc-url"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
+    --rpc-url"$l2_rpc_url"
 
     # Convert L2 Native ETH to zETH
     echo "Convert L2 Native ETH to zETH"
@@ -128,23 +128,23 @@ setup() {
     cast send "$l2_token_address" "mint(address,uint256)" \
     "$admin_address" "10000000000" \
     --private-key "$private_key" \
-    --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"\
+    --rpc-url "$l2_rpc_url"\
     --quiet
     echo "Burn native ETH"
     cast send "$(cast az)" \
     --value "10000000000" \
     --private-key "$private_key" \
-    --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"\
+    --rpc-url "$l2_rpc_url"\
     --quiet
 
     # Check zETH balance after
     echo "Check zETH balance after converting"
     cast call "$l2_token_address" "balanceOf(address)(uint256)" "$admin_address" \
-    --rpc-url"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
+    --rpc-url"$l2_rpc_url"
 
     echo "Check nativeETH balance after converting"
     cast balance "$admin_address" \
-    --rpc-url"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
+    --rpc-url"$l2_rpc_url"
 
     # Try to exit with 2x zETH (1 from yeETH, another from L2 conversion)
     echo "Try to exit 2x zETH - this should revert on the bridge"
@@ -152,7 +152,7 @@ setup() {
         --bridge-address "$bridge_address" \
         --destination-network 0 \
         --private-key "$private_key" \
-        --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)" \
+        --rpc-url "$l2_rpc_url" \
         --value 20000000000 \
         --token-address "$l2_token_address"
 
