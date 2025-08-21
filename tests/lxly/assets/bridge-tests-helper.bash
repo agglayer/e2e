@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2154,SC2034
 deploy_buggy_erc20() {
     local rpc_url=$1
     local private_key=$2
@@ -183,7 +184,6 @@ _fund_ephemeral_account() {
     
     # Send native token with timeout (no nonce management needed for sequential execution)
     local tx_output
-    # shellcheck disable=SC2154
     if tx_output=$(cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
          "$target_address" --value "$amount" 2>&1); then
         echo "DEBUG: Successfully funded $target_address" >&2
@@ -303,7 +303,6 @@ _setup_token_for_ephemeral_account() {
             
             # Mint tokens with timeout (no nonce management needed for sequential execution)
             local mint_output
-            # shellcheck disable=SC2154
             if mint_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
                 echo "DEBUG: Successfully minted $token_type tokens" >&2
@@ -319,7 +318,6 @@ _setup_token_for_ephemeral_account() {
             
             # Check if target address already has sufficient GasToken balance
             local current_balance
-            # shellcheck disable=SC2154
             if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
                 echo "DEBUG: Current GasToken balance for $target_address: $current_balance" >&2
                 
@@ -378,7 +376,6 @@ _setup_token_for_ephemeral_account() {
             ;;
         "POL")
             echo "DEBUG: Transferring $amount POL to $target_address" >&2
-            # shellcheck disable=SC2154
             echo "DEBUG: POL address: $pol_address" >&2
             
             # For POL transfers with max amount, use a safe amount instead
@@ -532,7 +529,6 @@ _get_destination_address() {
     local dest_type="$1"
     local ephemeral_address="$2"
     local bridge_direction="${3:-L1_TO_L2}"  # Add direction parameter
-    # shellcheck disable=SC2154
     case "$dest_type" in
         "BridgeContract") 
             if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
@@ -550,7 +546,6 @@ _get_destination_address() {
 _get_token_address() {
     local token_type="$1"
     local bridge_direction="${2:-L1_TO_L2}"  # Add direction parameter
-    # shellcheck disable=SC2154
     case "$token_type" in
         "POL") echo "$pol_address" ;;  # Should be the same on both networks
         "LocalERC20") echo "$test_erc20_addr" ;;  # Should be deployed on both
@@ -659,7 +654,6 @@ _setup_amount_and_add_to_command() {
                 # Use ephemeral account to manipulate buggy token
                 local ephemeral_address
                 ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
-                # shellcheck disable=SC2154
                 cast send --rpc-url "$l1_rpc_url" --private-key "$ephemeral_private_key" \
                     "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0 --quiet 2>/dev/null || true
                 # Use higher gas limit for Max amounts, but respect metadata-based limits
@@ -1073,7 +1067,6 @@ _run_single_bridge_test() {
     echo "DEBUG: Executing bridge command for test $test_index: $bridge_command" >&2
     
     # Execute the bridge command with longer timeout for problematic combinations
-    # shellcheck disable=SC2154
     local timeout_duration=$global_timeout
     
     local bridge_output
@@ -1609,7 +1602,6 @@ _collect_and_report_results() {
     for i in $(seq 0 $((total_scenarios - 1))); do
         local result_file="/tmp/test_result_${i}.txt"
         local scenario
-        # shellcheck disable=SC2154
         scenario=$(echo "$scenarios" | jq -c ".[$i]")
         
         # Extract scenario details for detailed report
