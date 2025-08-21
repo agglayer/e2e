@@ -79,8 +79,9 @@ echo ":-action:= $ACTION"
 
 
 # Create a yml files with a real SP1 keys if needed
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key
+yq -y --arg sp1key "$SP1_NETWORK_KEY" --arg newImage "$FROM_IMAGE" '
+  .args.agglayer_prover_sp1_key = $sp1key |
+  .args.agglayer_image = $newImage
 ' ./assets/cdk-erigon-validium.yml > initial-cdk-erigon-validium.yml
 
 yq -y --arg sp1key "$SP1_NETWORK_KEY" '
@@ -109,7 +110,6 @@ if [[ "$ACTION" == "downgrade" ]]; then
     
 
       TO_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
-
       kurtosis service inspect cdk agglayer --output json \
         | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_IMAGE_SERVICE_CONFIG_FILE"
      
