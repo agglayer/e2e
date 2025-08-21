@@ -23,11 +23,11 @@ on:
           - cardona
           - bali
       user-input-gas-token-address:
-        description: "l2 gas token address contract on l1 - overrides default value"
+        description: "l2 gas token address contract on l1 - input will override default value"
         required: false
         type: string
       user-input-bridge-service-url:
-        description: "l2 bridge service endpoint - overrides default value"
+        description: "l2 bridge service endpoint - input will override default value"
         required: false
         type: string
 
