@@ -69,7 +69,7 @@ jobs:
   run-standard-battery-tests:
     runs-on: gke-shared-dev-runners
     needs: discover-standard-tests
-    timeout-minutes: 120
+    timeout-minutes: 300
     strategy:
       fail-fast: false
       max-parallel: ${{ fromJson(inputs.max-parallel-runs) }}

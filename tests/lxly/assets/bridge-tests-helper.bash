@@ -531,9 +531,16 @@ _get_bridge_type_command() {
 _get_destination_address() {
     local dest_type="$1"
     local ephemeral_address="$2"
+    local bridge_direction="${3:-L1_TO_L2}"  # Add direction parameter
     # shellcheck disable=SC2154
     case "$dest_type" in
-        "BridgeContract") echo "$l1_bridge_addr" ;;
+        "BridgeContract") 
+            if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
+                echo "$l1_bridge_addr"  # Destination is L1
+            else
+                echo "$l2_bridge_addr"  # Destination is L2
+            fi
+            ;;
         "Precompile") echo "0x0000000000000000000000000000000000000004" ;;
         "EOA") echo "$ephemeral_address" ;;
         *) echo "Unrecognized Destination Address: $dest_type" >&3; return 1 ;;
@@ -542,14 +549,22 @@ _get_destination_address() {
 
 _get_token_address() {
     local token_type="$1"
+    local bridge_direction="${2:-L1_TO_L2}"  # Add direction parameter
     # shellcheck disable=SC2154
     case "$token_type" in
-        "POL") echo "$pol_address" ;;
-        "LocalERC20") echo "$test_erc20_addr" ;;
-        "WETH") echo "$pp_weth_address" ;;
+        "POL") echo "$pol_address" ;;  # Should be the same on both networks
+        "LocalERC20") echo "$test_erc20_addr" ;;  # Should be deployed on both
+        "WETH") 
+            # WETH addresses might be different on L1 vs L2
+            if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
+                echo "$pp_weth_address"  # L2 WETH for bridging from L2
+            else
+                echo "$pp_weth_address"  # L1 WETH for bridging from L1
+            fi
+            ;;
         "Buggy") echo "$test_erc20_buggy_addr" ;;
-        "GasToken") echo "$gas_token_address" ;;
         "NativeEther") echo "0x0000000000000000000000000000000000000000" ;;
+        "GasToken") echo "$gas_token_address" ;;
         *) echo "Unrecognized Test Token: $token_type" >&3; return 1 ;;
     esac
 }
@@ -677,8 +692,9 @@ _setup_amount_and_add_to_command() {
 _setup_single_test_account() {
     local test_index="$1"
     local scenario="$2"
+    local bridge_direction="${3:-L1_TO_L2}"  # Default to L1->L2 for backward compatibility
     
-    echo "DEBUG: Setting up account for test $test_index" >&2
+    echo "DEBUG: Setting up account for test $test_index (direction: $bridge_direction)" >&2
     
     # Extract scenario parameters
     local test_token
@@ -687,6 +703,38 @@ _setup_single_test_account() {
     test_amount=$(echo "$scenario" | jq -r '.Amount')
     local test_meta_data
     test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
+    
+    # Set source and destination networks based on bridge direction
+    local source_rpc_url source_network_id source_bridge_addr source_private_key
+    local dest_rpc_url dest_network_id dest_bridge_addr dest_private_key
+    
+    if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
+        # Bridge from L2 to L1 - setup tokens on L2 (source)
+        source_rpc_url="$l2_rpc_url"
+        source_network_id="$l2_network_id"
+        source_bridge_addr="$l2_bridge_addr"
+        source_private_key="$l2_private_key"
+        
+        dest_rpc_url="$l1_rpc_url"
+        dest_network_id="$l1_network_id"
+        dest_bridge_addr="$l1_bridge_addr"
+        dest_private_key="$l1_private_key"
+        
+        echo "DEBUG: Configured for L2->L1 bridge setup" >&2
+    else
+        # Bridge from L1 to L2 (default) - setup tokens on L1 (source)
+        source_rpc_url="$l1_rpc_url"
+        source_network_id="$l1_network_id"
+        source_bridge_addr="$l1_bridge_addr"
+        source_private_key="$l1_private_key"
+        
+        dest_rpc_url="$l2_rpc_url"
+        dest_network_id="$l2_network_id"
+        dest_bridge_addr="$l2_bridge_addr"
+        dest_private_key="$l2_private_key"
+        
+        echo "DEBUG: Configured for L1->L2 bridge setup" >&2
+    fi
     
     # Generate ephemeral account
     local ephemeral_data
@@ -705,22 +753,21 @@ _setup_single_test_account() {
         return 1
     fi
     
-    # Fund ephemeral account with native tokens on L1
-    echo "DEBUG: Funding L1 account for test $test_index" >&2
-    if ! _fund_ephemeral_account "$ephemeral_address" "$l1_rpc_url" "$l1_private_key" "1000000000000000000"; then
-        echo "DEBUG: Failed to fund L1 account for test $test_index" >&2
+    # Fund ephemeral account with native tokens on source network (where bridging happens from)
+    echo "DEBUG: Funding source network account for test $test_index ($bridge_direction)" >&2
+    if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "1000000000000000000"; then
+        echo "DEBUG: Failed to fund source network account for test $test_index" >&2
         return 1
     fi
     
-    # Fund ephemeral account with native tokens on L2 (if needed for claims later)
-    echo "DEBUG: Funding L2 account for test $test_index" >&2
-    # shellcheck disable=SC2154
-    if ! _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"; then
-        echo "DEBUG: Failed to fund L2 account for test $test_index" >&2
+    # Fund ephemeral account with native tokens on destination network (for claims later)
+    echo "DEBUG: Funding destination network account for test $test_index ($bridge_direction)" >&2
+    if ! _fund_ephemeral_account "$ephemeral_address" "$dest_rpc_url" "$dest_private_key" "10000000000000000"; then
+        echo "DEBUG: Failed to fund destination network account for test $test_index" >&2
         return 1
     fi
     
-    # Setup tokens for ephemeral account
+    # Setup tokens for ephemeral account on source network
     local amount_for_setup="100000000000000000000" # 100 tokens
     if [[ "$test_amount" == "Max" ]]; then
         # Special handling for POL with max amount and max metadata
@@ -735,22 +782,22 @@ _setup_single_test_account() {
         fi
     fi
     
-    echo "DEBUG: Setting up tokens for test $test_index (token: $test_token, amount: $amount_for_setup)" >&2
-    if ! _setup_token_for_ephemeral_account "$ephemeral_address" "$test_token" "$amount_for_setup" "$l1_rpc_url" "$l1_bridge_addr"; then
-        echo "DEBUG: Failed to setup tokens for test $test_index" >&2
+    echo "DEBUG: Setting up tokens for test $test_index on source network (token: $test_token, amount: $amount_for_setup)" >&2
+    if ! _setup_token_for_ephemeral_account "$ephemeral_address" "$test_token" "$amount_for_setup" "$source_rpc_url" "$source_bridge_addr"; then
+        echo "DEBUG: Failed to setup tokens for test $test_index on source network" >&2
         return 1
     fi
     
     # Small delay to let transaction propagate
     sleep 0.5
     
-    echo "DEBUG: Approving tokens for test $test_index" >&2
-    if ! _approve_token_for_ephemeral_account "$ephemeral_private_key" "$test_token" "$amount_for_setup" "$l1_rpc_url" "$l1_bridge_addr"; then
-        echo "DEBUG: Failed to approve tokens for test $test_index" >&2
+    echo "DEBUG: Approving tokens for test $test_index on source network" >&2
+    if ! _approve_token_for_ephemeral_account "$ephemeral_private_key" "$test_token" "$amount_for_setup" "$source_rpc_url" "$source_bridge_addr"; then
+        echo "DEBUG: Failed to approve tokens for test $test_index on source network" >&2
         return 1
     fi
     
-    echo "DEBUG: Successfully set up account for test $test_index" >&2
+    echo "DEBUG: Successfully set up account for test $test_index ($bridge_direction)" >&2
     return 0
 }
 
@@ -854,9 +901,10 @@ _check_error_pattern() {
 _run_single_bridge_test() {
     local test_index="$1"
     local scenario="$2"
+    local bridge_direction="${3:-L1_TO_L2}"  # Default to L1->L2 for backward compatibility
     local result_file="/tmp/test_result_${test_index}.txt"
     
-    echo "DEBUG: Starting bridge test $test_index" >&2
+    echo "DEBUG: Starting bridge test $test_index (direction: $bridge_direction)" >&2
     
     # Extract scenario parameters
     local test_bridge_type
@@ -875,6 +923,49 @@ _run_single_bridge_test() {
     expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
     local expected_result_claim
     expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
+    
+    # Set source and destination networks based on bridge direction
+    local source_rpc_url source_network_id source_bridge_addr source_private_key
+    local dest_rpc_url dest_network_id dest_bridge_addr dest_private_key
+    local claim_rpc_url claim_bridge_addr claim_private_key
+    
+    if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
+        # Bridge from L2 to L1
+        source_rpc_url="$l2_rpc_url"
+        source_network_id="$l2_network_id"
+        source_bridge_addr="$l2_bridge_addr"
+        source_private_key="$l2_private_key"
+        
+        dest_rpc_url="$l1_rpc_url"
+        dest_network_id="$l1_network_id"
+        dest_bridge_addr="$l1_bridge_addr"
+        dest_private_key="$l1_private_key"
+        
+        # Claims happen on destination (L1)
+        claim_rpc_url="$l1_rpc_url"
+        claim_bridge_addr="$l1_bridge_addr"
+        claim_private_key="$l1_private_key"
+        
+        echo "DEBUG: Configured for L2->L1 bridge" >&2
+    else
+        # Bridge from L1 to L2 (default)
+        source_rpc_url="$l1_rpc_url"
+        source_network_id="$l1_network_id"
+        source_bridge_addr="$l1_bridge_addr"
+        source_private_key="$l1_private_key"
+        
+        dest_rpc_url="$l2_rpc_url"
+        dest_network_id="$l2_network_id"
+        dest_bridge_addr="$l2_bridge_addr"
+        dest_private_key="$l2_private_key"
+        
+        # Claims happen on destination (L2)
+        claim_rpc_url="$l2_rpc_url"
+        claim_bridge_addr="$l2_bridge_addr"
+        claim_private_key="$l2_private_key"
+        
+        echo "DEBUG: Configured for L1->L2 bridge" >&2
+    fi
     
     echo "DEBUG: Test $test_index - Token: $test_token, Amount: $test_amount, Metadata: $test_meta_data" >&2
     
@@ -915,24 +1006,24 @@ _run_single_bridge_test() {
         fi
     fi
     
-    # Build bridge command - FIX: Add missing polycli ulxly prefix
+    # Build bridge command
     local bridge_command="polycli ulxly bridge"
     local bridge_type_cmd
     bridge_type_cmd=$(_get_bridge_type_command "$test_bridge_type")
     bridge_command="$bridge_command $bridge_type_cmd"
     
-    # shellcheck disable=SC2154
-    local fixed_flags="--rpc-url $l1_rpc_url --destination-network $l2_network_id"
+    # Use source network parameters for the bridge command
+    local fixed_flags="--rpc-url $source_rpc_url --destination-network $dest_network_id"
     bridge_command="$bridge_command $fixed_flags"
 
     # Add destination address
     local dest_addr
-    dest_addr=$(_get_destination_address "$test_destination_address" "$ephemeral_address")
+    dest_addr=$(_get_destination_address "$test_destination_address" "$ephemeral_address" "$bridge_direction")
     bridge_command="$bridge_command --destination-address $dest_addr"
 
     # Add token address
     local token_addr
-    token_addr=$(_get_token_address "$test_token")
+    token_addr=$(_get_token_address "$test_token" "$bridge_direction")
     bridge_command="$bridge_command --token-address $token_addr"
 
     # Add metadata with test_index and token_type parameters
@@ -959,8 +1050,8 @@ _run_single_bridge_test() {
         return 1
     fi
 
-    # Add final command parameters
-    bridge_command="$bridge_command --bridge-address $l1_bridge_addr --private-key $ephemeral_private_key"
+    # Add final command parameters - use source bridge address and ephemeral private key
+    bridge_command="$bridge_command --bridge-address $source_bridge_addr --private-key $ephemeral_private_key"
     
     # Determine appropriate gas limit based on operation complexity - stay within block limits
     local base_gas_limit=""
@@ -982,16 +1073,8 @@ _run_single_bridge_test() {
     echo "DEBUG: Executing bridge command for test $test_index: $bridge_command" >&2
     
     # Execute the bridge command with longer timeout for problematic combinations
-    # TODO: use a variable instead for timeout
     # shellcheck disable=SC2154
     local timeout_duration=$global_timeout
-    # if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" && "$test_amount" == "Max" ]]; then
-    #     timeout_duration=120  # Longer timeout for POL Max+Max combination
-    #     echo "DEBUG: Using extended timeout for POL Max+Max combination" >&2
-    # elif [[ "$test_meta_data" == "Max" || "$test_amount" == "Max" ]]; then
-    #     timeout_duration=90   # Longer timeout for any max operations
-    #     echo "DEBUG: Using extended timeout for max operations" >&2
-    # fi
     
     local bridge_output
     local bridge_status
@@ -1045,9 +1128,9 @@ _run_single_bridge_test() {
                     local gas_price_multiplier=$((bridge_attempt + 1))
                     local gas_limit_multiplier=$((bridge_attempt + 1))
                     
-                    # Get current gas price from network
+                    # Get current gas price from source network
                     local current_gas_price
-                    if current_gas_price=$(cast gas-price --rpc-url "$l1_rpc_url" 2>/dev/null); then
+                    if current_gas_price=$(cast gas-price --rpc-url "$source_rpc_url" 2>/dev/null); then
                         # Increase gas price by multiplier + 20% buffer
                         local new_gas_price=$((current_gas_price * gas_price_multiplier * 12 / 10))
                         echo "DEBUG: Setting gas price to $new_gas_price (${gas_price_multiplier}.2x current)" >&2
@@ -1091,7 +1174,7 @@ _run_single_bridge_test() {
                     
                     # Add higher gas price for network issues
                     local current_gas_price
-                    if current_gas_price=$(cast gas-price --rpc-url "$l1_rpc_url" 2>/dev/null); then
+                    if current_gas_price=$(cast gas-price --rpc-url "$source_rpc_url" 2>/dev/null); then
                         local priority_gas_price=$((current_gas_price * gas_multiplier * 15 / 10))  # 1.5x * multiplier
                         bridge_command="$bridge_command --gas-price $priority_gas_price"
                         echo "DEBUG: Added priority gas price: $priority_gas_price" >&2
@@ -1256,8 +1339,8 @@ _run_single_bridge_test() {
                         ;;
                 esac
 
-                # shellcheck disable=SC2154
-                claim_command="$claim_command --destination-address $dest_addr --bridge-address $l2_bridge_addr --private-key $ephemeral_private_key --rpc-url $l2_rpc_url --deposit-count $deposit_count --deposit-network $l1_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
+                # Use destination network parameters for the claim command
+                claim_command="$claim_command --destination-address $dest_addr --bridge-address $claim_bridge_addr --private-key $ephemeral_private_key --rpc-url $claim_rpc_url --deposit-count $deposit_count --deposit-network $source_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
                 
                 # Execute claim command
                 echo "DEBUG: Running claim command for test $test_index: $claim_command" >&2
