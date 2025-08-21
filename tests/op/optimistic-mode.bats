@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=op-fep
 # shellcheck disable=SC2034
 
 setup() {
@@ -84,6 +85,7 @@ check_fep_consensus_version() {
     fi
 }
 
+# bats test_tags=optimistic-mode
 @test "Enable OptimisticMode" {
     check_fep_consensus_version
 
@@ -107,6 +109,7 @@ check_fep_consensus_version() {
     manage_bridge_spammer "start"
 }
 
+# bats test_tags=optimistic-mode
 @test "Disable OptimisticMode" {
     ensure_non_null_cert
     manage_bridge_spammer "stop"

@@ -180,9 +180,8 @@ scenarios/
 These will target holistic features or services within the entire system.
 Naming convention should follow that of the directories.
 
-- standard
-- agglayer
 - aggkit
+- agglayer
 - cdk
 - cdk-erigon
 - dapps
@@ -195,6 +194,7 @@ Naming convention should follow that of the directories.
 - pessimistic
 - polycli-loadtests
 - pos
+- standard
 - zkevm
 
 ## test_tags
@@ -202,45 +202,47 @@ Naming convention should follow that of the directories.
 These will aim to have feature-specific targeted tests.
 Naming convention should follow general EVM or Polygon standards.
 
-- bridge
-- local-balance-tree
 - acl-accesslist
 - acl-blocklist
-- transaction-eoa
-- transaction-erc20
-- transaction-erc721
-- transaction-uniswap
-- transaction-pol
-- weth
-- native-gas-token
-- custom-gas-token
-- zkevm-batch
-- zkevm-counters
-- agglayer-rpc
 - agglayer-cert
-- evm-gas
-- evm-pool
-- evm-opcode
-- evm-stress
-- evm-precompile
-- evm-block
-- evm-nonce
-- evm-inscription
-- gnosis-safe
+- agglayer-rpc
+- bridge
 - cdk-op-geth
-- katana
-- loadtest
-- railgun
-- smooth-crypto-lib
 - check-hardfork
-- pectra
+- custom-gas-token
 - eip-2537
 - eip-2935
 - eip-7623
-- prover-stress
-- pos-validator
+- evm-block
+- evm-gas
+- evm-inscription
+- evm-nonce
+- evm-opcode
+- evm-pool
+- evm-precompile
+- evm-stress
+- gnosis-safe
+- katana
+- loadtest
+- local-balance-tree
+- native-gas-token
+- op-fep
+- operator-fee
+- pectra
 - pos-delegate
 - pos-undelegate
+- pos-validator
+- prover-stress
+- railgun
+- smooth-crypto-lib
+- transaction-eoa
+- transaction-erc20
+- transaction-erc721
+- transaction-pol
+- transaction-uniswap
+- weth
+- zkevm-batch
+- zkevm-counters
 
 ## Common helper functions
 
