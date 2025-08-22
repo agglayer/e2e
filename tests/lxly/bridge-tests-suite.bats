@@ -93,7 +93,7 @@ _setup_contract_addresses() {
 
 # bats test_tags=bridge
 @test "Process L1 to L2 bridge scenarios and claim deposits in parallel" {
-    echo "Starting parallel bridge scenarios and claims test" >&3
+    echo "Starting L1 to L2 parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
@@ -310,7 +310,7 @@ _setup_contract_addresses() {
 
 # bats test_tags=bridge
 @test "Process L2 to L1 bridge scenarios and claim deposits in parallel" {
-    echo "Starting parallel bridge scenarios and claims test" >&3
+    echo "Starting L2 to L1 parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
