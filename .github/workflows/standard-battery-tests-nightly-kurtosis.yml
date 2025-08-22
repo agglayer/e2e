@@ -21,14 +21,6 @@ on:
         default: "cdk"
         required: false
         type: string
-      stack:
-        description: "name of the l2 cdk client"
-        default: "cdk-op-geth"
-        required: true
-        type: choice
-        options:
-          - cdk-op-geth
-          - cdk-erigon
       enable-monitored-chaos-stress-tests:
         description: "enable monitored chaos and stress tests scenario"
         default: false
