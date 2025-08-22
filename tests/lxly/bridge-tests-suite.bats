@@ -93,7 +93,7 @@ _setup_contract_addresses() {
 
 # bats test_tags=bridge
 @test "Process L1 to L2 bridge scenarios and claim deposits in parallel" {
-    echo "Starting parallel bridge scenarios and claims test" >&3
+    echo "Starting L1 to L2 parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
@@ -102,7 +102,7 @@ _setup_contract_addresses() {
     # Create output directory with timestamp
     local timestamp
     timestamp=$(date +%Y%m%d_%H%M%S)
-    local output_dir="$log_root_dir/bridge_test_results_${timestamp}"
+    local output_dir="$log_root_dir/bridge_test_results_l1_to_l2_${timestamp}"
     mkdir -p "$output_dir"
     
     echo "Test results will be saved to: $output_dir" >&3
@@ -126,14 +126,17 @@ _setup_contract_addresses() {
     local setup_failures=0
     local successful_setups=()  # Array to track successfully set up test indices
     
+    echo "Setting up $total_scenarios test accounts..." >&3
+    
     while read -r scenario; do
-        echo "Setting up test account $index" | tee -a "$setup_log"
+        local progress_percent=$((index * 100 / total_scenarios))
+        echo "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log" >&3
         
         if ! _setup_single_test_account "$index" "$scenario" "L1_TO_L2" 2>>"$output_dir/setup_debug_${index}.log"; then
-            echo "Failed to set up account for test $index" | tee -a "$setup_log"
+            echo "❌ Failed to set up account for test $index" | tee -a "$setup_log" >&3
             setup_failures=$((setup_failures + 1))
         else
-            echo "Successfully set up account for test $index" | tee -a "$setup_log"
+            echo "✅ Successfully set up account for test $index" | tee -a "$setup_log"
             successful_setups+=("$index")  # Track successful setup
         fi
         
@@ -141,6 +144,11 @@ _setup_contract_addresses() {
     done < <(echo "$scenarios" | jq -c '.[]')
     
     local successful_count=${#successful_setups[@]}
+    
+    echo "" >&3
+    echo "Setup Phase Complete:" >&3
+    echo "  ✅ Successful setups: $successful_count" >&3
+    echo "  ❌ Failed setups: $setup_failures" >&3
     
     if [[ $setup_failures -gt 0 ]]; then
         echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log"
@@ -173,33 +181,49 @@ _setup_contract_addresses() {
     echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log"
     echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log"
     
+    echo "" >&3
+    echo "Starting parallel bridge tests with max concurrency: $max_concurrent" >&3
+    
     local pids=()
     local scenario_array
     readarray -t scenario_array < <(echo "$scenarios" | jq -c '.[]')
     
+    # Track progress
+    local started_tests=0
+    local completed_tests=0
+    
     for test_index in "${successful_setups[@]}"; do
         # Wait if we've reached max concurrency
         while (( ${#pids[@]} >= max_concurrent )); do
-            # Wait for any process to complete
-            local completed_pid=""
+            # Check for completed processes
+            local new_completions=0
             for i in "${!pids[@]}"; do
                 if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                    completed_pid="${pids[$i]}"
                     unset 'pids[$i]'
-                    break
+                    new_completions=$((new_completions + 1))
                 fi
             done
             
-            # If no process completed, wait a bit
-            if [[ -z "$completed_pid" ]]; then
-                sleep 0.5
+            # Update progress if we had completions
+            if [[ $new_completions -gt 0 ]]; then
+                completed_tests=$((completed_tests + new_completions))
+                local progress_percent=$((completed_tests * 100 / successful_count))
+                echo "[${progress_percent}%] Completed: $completed_tests/$successful_count bridge tests" >&3
             fi
             
             # Rebuild pids array to remove gaps
             pids=("${pids[@]}")
+            
+            # If no process completed, wait a bit
+            if [[ $new_completions -eq 0 ]]; then
+                sleep 0.5
+            fi
         done
         
-        echo "Starting bridge test $test_index" | tee -a "$bridge_log"
+        started_tests=$((started_tests + 1))
+        local start_progress_percent=$((started_tests * 100 / successful_count))
+        echo "[${start_progress_percent}%] Starting bridge test $test_index (${started_tests}/${successful_count})" | tee -a "$bridge_log" >&3
+        
         _run_single_bridge_test "$test_index" "${scenario_array[$test_index]}" "L1_TO_L2" 2>"$output_dir/bridge_test_${test_index}.log" &
         local test_pid=$!
         pids+=("$test_pid")
@@ -209,19 +233,24 @@ _setup_contract_addresses() {
         
     done
     
-    echo "Started ${#successful_setups[@]} parallel bridge test processes" | tee -a "$bridge_log"
+    echo "Started all ${#successful_setups[@]} parallel bridge test processes" | tee -a "$bridge_log" >&3
     
     # Wait for all remaining background processes to complete
     local wait_start
     wait_start=$(date +%s)
     
+    echo "" >&3
+    echo "Waiting for all bridge tests to complete..." >&3
+    
     while (( ${#pids[@]} > 0 )); do
         local current_time
         current_time=$(date +%s)
         local elapsed=$((current_time - wait_start))
+        local elapsed_minutes=$((elapsed / 60))
+        local elapsed_seconds=$((elapsed % 60))
         
         if (( elapsed > ${global_timeout%s} )); then
-            echo "Timeout reached, killing remaining processes..." | tee -a "$bridge_log"
+            echo "Timeout reached after ${elapsed_minutes}m${elapsed_seconds}s, killing remaining processes..." | tee -a "$bridge_log" >&3
             for pid in "${pids[@]}"; do
                 kill -9 "$pid" 2>/dev/null || true
             done
@@ -229,19 +258,38 @@ _setup_contract_addresses() {
         fi
         
         # Check for completed processes
+        local new_completions=0
         for i in "${!pids[@]}"; do
             if ! kill -0 "${pids[$i]}" 2>/dev/null; then
                 echo "Bridge test process ${pids[$i]} completed" | tee -a "$bridge_log"
                 unset 'pids[$i]'
+                new_completions=$((new_completions + 1))
             fi
         done
+        
+        # Update progress if we had completions
+        if [[ $new_completions -gt 0 ]]; then
+            completed_tests=$((completed_tests + new_completions))
+            local progress_percent=$((completed_tests * 100 / successful_count))
+            local remaining_tests=$((successful_count - completed_tests))
+            echo "[${progress_percent}%] Completed: $completed_tests/$successful_count tests (${remaining_tests} remaining) - ${elapsed_minutes}m${elapsed_seconds}s elapsed" >&3
+        fi
         
         # Rebuild pids array to remove gaps
         pids=("${pids[@]}")
         
+        # Show periodic progress even if no completions
+        if (( elapsed % 30 == 0 )); then
+            local active_processes=${#pids[@]}
+            echo "Status: $active_processes tests still running, $completed_tests/$successful_count completed - ${elapsed_minutes}m${elapsed_seconds}s elapsed" >&3
+        fi
+        
         # Wait a bit before checking again
         sleep 1
     done
+    
+    echo "" >&3
+    echo "All bridge tests completed! Collecting results..." >&3
     
     # Collect and report results - pass the successful count instead of total
     _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
@@ -262,7 +310,7 @@ _setup_contract_addresses() {
 
 # bats test_tags=bridge
 @test "Process L2 to L1 bridge scenarios and claim deposits in parallel" {
-    echo "Starting parallel bridge scenarios and claims test" >&3
+    echo "Starting L2 to L1 parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
@@ -271,7 +319,7 @@ _setup_contract_addresses() {
     # Create output directory with timestamp
     local timestamp
     timestamp=$(date +%Y%m%d_%H%M%S)
-    local output_dir="$log_root_dir/bridge_test_results_${timestamp}"
+    local output_dir="$log_root_dir/bridge_test_results_l2_to_l1_${timestamp}"
     mkdir -p "$output_dir"
     
     echo "Test results will be saved to: $output_dir" >&3
@@ -295,14 +343,17 @@ _setup_contract_addresses() {
     local setup_failures=0
     local successful_setups=()  # Array to track successfully set up test indices
     
+    echo "Setting up $total_scenarios test accounts..." >&3
+    
     while read -r scenario; do
-        echo "Setting up test account $index" | tee -a "$setup_log"
+        local progress_percent=$((index * 100 / total_scenarios))
+        echo "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log" >&3
         
         if ! _setup_single_test_account "$index" "$scenario" "L2_TO_L1" 2>>"$output_dir/setup_debug_${index}.log"; then
-            echo "Failed to set up account for test $index" | tee -a "$setup_log"
+            echo "❌ Failed to set up account for test $index" | tee -a "$setup_log" >&3
             setup_failures=$((setup_failures + 1))
         else
-            echo "Successfully set up account for test $index" | tee -a "$setup_log"
+            echo "✅ Successfully set up account for test $index" | tee -a "$setup_log"
             successful_setups+=("$index")  # Track successful setup
         fi
         
@@ -310,6 +361,11 @@ _setup_contract_addresses() {
     done < <(echo "$scenarios" | jq -c '.[]')
     
     local successful_count=${#successful_setups[@]}
+    
+    echo "" >&3
+    echo "Setup Phase Complete:" >&3
+    echo "  ✅ Successful setups: $successful_count" >&3
+    echo "  ❌ Failed setups: $setup_failures" >&3
     
     if [[ $setup_failures -gt 0 ]]; then
         echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log"
@@ -342,33 +398,49 @@ _setup_contract_addresses() {
     echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log"
     echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log"
     
+    echo "" >&3
+    echo "Starting parallel bridge tests with max concurrency: $max_concurrent" >&3
+    
     local pids=()
     local scenario_array
     readarray -t scenario_array < <(echo "$scenarios" | jq -c '.[]')
     
+    # Track progress
+    local started_tests=0
+    local completed_tests=0
+    
     for test_index in "${successful_setups[@]}"; do
         # Wait if we've reached max concurrency
         while (( ${#pids[@]} >= max_concurrent )); do
-            # Wait for any process to complete
-            local completed_pid=""
+            # Check for completed processes
+            local new_completions=0
             for i in "${!pids[@]}"; do
                 if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                    completed_pid="${pids[$i]}"
                     unset 'pids[$i]'
-                    break
+                    new_completions=$((new_completions + 1))
                 fi
             done
             
-            # If no process completed, wait a bit
-            if [[ -z "$completed_pid" ]]; then
-                sleep 0.5
+            # Update progress if we had completions
+            if [[ $new_completions -gt 0 ]]; then
+                completed_tests=$((completed_tests + new_completions))
+                local progress_percent=$((completed_tests * 100 / successful_count))
+                echo "[${progress_percent}%] Completed: $completed_tests/$successful_count bridge tests" >&3
             fi
             
             # Rebuild pids array to remove gaps
             pids=("${pids[@]}")
+            
+            # If no process completed, wait a bit
+            if [[ $new_completions -eq 0 ]]; then
+                sleep 0.5
+            fi
         done
         
-        echo "Starting bridge test $test_index" | tee -a "$bridge_log"
+        started_tests=$((started_tests + 1))
+        local start_progress_percent=$((started_tests * 100 / successful_count))
+        echo "[${start_progress_percent}%] Starting bridge test $test_index (${started_tests}/${successful_count})" | tee -a "$bridge_log" >&3
+        
         _run_single_bridge_test "$test_index" "${scenario_array[$test_index]}" "L2_TO_L1" 2>"$output_dir/bridge_test_${test_index}.log" &
         local test_pid=$!
         pids+=("$test_pid")
@@ -378,19 +450,24 @@ _setup_contract_addresses() {
         
     done
     
-    echo "Started ${#successful_setups[@]} parallel bridge test processes" | tee -a "$bridge_log"
+    echo "Started all ${#successful_setups[@]} parallel bridge test processes" | tee -a "$bridge_log" >&3
     
     # Wait for all remaining background processes to complete
     local wait_start
     wait_start=$(date +%s)
     
+    echo "" >&3
+    echo "Waiting for all bridge tests to complete..." >&3
+    
     while (( ${#pids[@]} > 0 )); do
         local current_time
         current_time=$(date +%s)
         local elapsed=$((current_time - wait_start))
+        local elapsed_minutes=$((elapsed / 60))
+        local elapsed_seconds=$((elapsed % 60))
         
         if (( elapsed > ${global_timeout%s} )); then
-            echo "Timeout reached, killing remaining processes..." | tee -a "$bridge_log"
+            echo "Timeout reached after ${elapsed_minutes}m${elapsed_seconds}s, killing remaining processes..." | tee -a "$bridge_log" >&3
             for pid in "${pids[@]}"; do
                 kill -9 "$pid" 2>/dev/null || true
             done
@@ -398,19 +475,38 @@ _setup_contract_addresses() {
         fi
         
         # Check for completed processes
+        local new_completions=0
         for i in "${!pids[@]}"; do
             if ! kill -0 "${pids[$i]}" 2>/dev/null; then
                 echo "Bridge test process ${pids[$i]} completed" | tee -a "$bridge_log"
                 unset 'pids[$i]'
+                new_completions=$((new_completions + 1))
             fi
         done
+        
+        # Update progress if we had completions
+        if [[ $new_completions -gt 0 ]]; then
+            completed_tests=$((completed_tests + new_completions))
+            local progress_percent=$((completed_tests * 100 / successful_count))
+            local remaining_tests=$((successful_count - completed_tests))
+            echo "[${progress_percent}%] Completed: $completed_tests/$successful_count tests (${remaining_tests} remaining) - ${elapsed_minutes}m${elapsed_seconds}s elapsed" >&3
+        fi
         
         # Rebuild pids array to remove gaps
         pids=("${pids[@]}")
         
+        # Show periodic progress even if no completions
+        if (( elapsed % 30 == 0 )); then
+            local active_processes=${#pids[@]}
+            echo "Status: $active_processes tests still running, $completed_tests/$successful_count completed - ${elapsed_minutes}m${elapsed_seconds}s elapsed" >&3
+        fi
+        
         # Wait a bit before checking again
         sleep 1
     done
+    
+    echo "" >&3
+    echo "All bridge tests completed! Collecting results..." >&3
     
     # Collect and report results - pass the successful count instead of total
     _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"

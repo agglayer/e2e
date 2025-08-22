@@ -16,18 +16,21 @@ on:
         type: number
       target-network:
         description: "target network to source env file on"
-        default: "bali"
+        default: "bali-35"
         required: true
         type: choice
         options:
-          - cardona
-          - bali
+          - bali-35
+          - bali-44
+          - cardona-37
+          - custom-bali
+          - custom-cardona
       user-input-gas-token-address:
-        description: "l2 gas token address contract on l1 - input will override default value"
+        description: "l2 gas token address contract on l1 - keep empty, only fill for custom-bali or custom-cardona"
         required: false
         type: string
       user-input-bridge-service-url:
-        description: "l2 bridge service endpoint - input will override default value"
+        description: "l2 bridge service endpoint - keep empty, only fill for custom-bali or custom-cardona"
         required: false
         type: string
 
@@ -72,14 +75,14 @@ jobs:
     timeout-minutes: 300
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJson(inputs.max-parallel-runs) }}
+      max-parallel: ${{ fromJson(inputs.max-parallel-runs || '1') }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
       L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-      L2_RPC_ENDPOINT: ${{ inputs.target-network == 'cardona' && secrets.L2_CARDONA_RPC_ENDPOINT || secrets.L2_BALI_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ inputs.target-network == 'cardona-37' && secrets.L2_CARDONA_37_RPC_ENDPOINT || inputs.target-network == 'bali-35' && secrets.L2_BALI_35_RPC_ENDPOINT || inputs.target-network == 'bali-44' && secrets.L2_BALI_44_RPC_ENDPOINT || inputs.target-network == 'custom-bali' && secrets.L2_CUSTOM_BALI_RPC_ENDPOINT || inputs.target-network == 'custom-cardona' && secrets.L2_CUSTOM_CARDONA_RPC_ENDPOINT }}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       TARGET_NETWORK: ${{ inputs.target-network }}
@@ -87,6 +90,20 @@ jobs:
       - name: Debug environment variables
         run: |
           env | grep -E 'AGGLAYER_E2E_REF'
+
+      - name: Validate custom inputs
+        run: |
+          # Validate that custom inputs are only provided for custom networks
+          if [[ "${{ inputs.target-network }}" != "custom-bali" && "${{ inputs.target-network }}" != "custom-cardona" ]]; then
+            if [[ -n "${{ inputs.user-input-gas-token-address }}" ]]; then
+              echo "Error: user-input-gas-token-address should only be used with custom-bali or custom-cardona target networks"
+              exit 1
+            fi
+            if [[ -n "${{ inputs.user-input-bridge-service-url }}" ]]; then
+              echo "Error: user-input-bridge-service-url should only be used with custom-bali or custom-cardona target networks"
+              exit 1
+            fi
+          fi
 
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
@@ -144,10 +161,19 @@ jobs:
       - name: Validate RPC Endpoint
         run: |
           cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
-          if [[ "${{ inputs.target-network }}" == "cardona" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_RPC_ENDPOINT }}
+          if [[ "${{ inputs.target-network }}" == "cardona-37" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_37_RPC_ENDPOINT }}
+          elif [[ "${{ inputs.target-network }}" == "bali-35" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_35_RPC_ENDPOINT }}
+          elif [[ "${{ inputs.target-network }}" == "bali-44" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_44_RPC_ENDPOINT }}
+          elif [[ "${{ inputs.target-network }}" == "custom-bali" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_CUSTOM_BALI_RPC_ENDPOINT }}
+          elif [[ "${{ inputs.target-network }}" == "custom-cardona" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_CUSTOM_CARDONA_RPC_ENDPOINT }}
           else
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_RPC_ENDPOINT }}
+            echo "no valid RPC to validate"
+            exit 1
           fi
 
       - name: Validate test file existence
@@ -163,20 +189,38 @@ jobs:
           pushd agglayer-e2e || exit 1
 
           # Load public environment variables
-          if [[ "${{ env.TARGET_NETWORK }}" == "cardona" ]]; then
-            if [[ -f "tests/lxly/cardona.env" ]]; then
+          if [[ "${{ env.TARGET_NETWORK }}" == "cardona-37" ]]; then
+            if [[ -f "tests/lxly/networks/cardona-37.env" ]]; then
               set -a
-              source tests/lxly/cardona.env
+              source tests/lxly/networks/cardona-37.env
               set +a
             fi
-          elif [[ "${{ env.TARGET_NETWORK }}" == "bali" ]]; then
-            if [[ -f "tests/lxly/bali.env" ]]; then
+          elif [[ "${{ env.TARGET_NETWORK }}" == "bali-35" ]]; then
+            if [[ -f "tests/lxly/networks/bali-35.env" ]]; then
               set -a
-              source tests/lxly/bali.env
+              source tests/lxly/networks/bali-35.env
+              set +a
+            fi
+          elif [[ "${{ env.TARGET_NETWORK }}" == "bali-44" ]]; then
+            if [[ -f "tests/lxly/networks/bali-44.env" ]]; then
+              set -a
+              source tests/lxly/networks/bali-44.env
+              set +a
+            fi
+          elif [[ "${{ env.TARGET_NETWORK }}" == "custom-bali" ]]; then
+            if [[ -f "tests/lxly/networks/custom-bali.env" ]]; then
+              set -a
+              source tests/lxly/networks/custom-bali.env
+              set +a
+            fi
+          elif [[ "${{ env.TARGET_NETWORK }}" == "custom-cardona" ]]; then
+            if [[ -f "tests/lxly/networks/custom-cardona.env" ]]; then
+              set -a
+              source tests/lxly/networks/custom-cardona.env
               set +a
             fi
           else
-            echo "Invalid target network detected: ${{ env.TARGET_NETWORK }}. Expected 'cardona' or 'bali'."
+            echo "Invalid target network detected: ${{ env.TARGET_NETWORK }}. Expected 'cardona-37', 'bali-35', 'bali-44', 'custom-bali', or 'custom-cardona'."
             exit 1
           fi
 
@@ -189,15 +233,17 @@ jobs:
           export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
           export L2_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-          # Override below values if provided by user input
-          if [[ -n "${{ inputs.user-input-gas-token-address }}" ]]; then
-            echo "Using user-provided gas token address"
-            export GAS_TOKEN_ADDRESS="${{ inputs.user-input-gas-token-address }}"
-          fi
+          # Override below values if provided by user input (only for custom networks)
+          if [[ "${{ inputs.target-network }}" == "custom-bali" || "${{ inputs.target-network }}" == "custom-cardona" ]]; then
+            if [[ -n "${{ inputs.user-input-gas-token-address }}" ]]; then
+              echo "Using user-provided gas token address"
+              export GAS_TOKEN_ADDRESS="${{ inputs.user-input-gas-token-address }}"
+            fi
 
-          if [[ -n "${{ inputs.user-input-bridge-service-url }}" ]]; then
-            echo "Using user-provided bridge service URL"
-            export BRIDGE_SERVICE_URL="${{ inputs.user-input-bridge-service-url }}"
+            if [[ -n "${{ inputs.user-input-bridge-service-url }}" ]]; then
+              echo "Using user-provided bridge service URL"
+              export BRIDGE_SERVICE_URL="${{ inputs.user-input-bridge-service-url }}"
+            fi
           fi
 
           bats --filter-tags standard ${{ matrix.testfile }}

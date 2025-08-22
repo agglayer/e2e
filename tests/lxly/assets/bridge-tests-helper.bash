@@ -803,7 +803,7 @@ _cleanup_max_amount_setup() {
     fi
 }
 
-_validate_claim_error() {
+_validate_bridge_error() {
     local expected_result="$1"
     local output="$2"
     
@@ -812,8 +812,8 @@ _validate_claim_error() {
         echo "DEBUG: Found 'already claimed' pattern - usually indicates success" >&2
         return 0
     fi
-    echo "DEBUG: Validating claim error - Expected: $expected_result" >&2
-    echo "DEBUG: Claim output: $output" >&2
+    echo "DEBUG: Validating bridge error - Expected: $expected_result" >&2
+    echo "DEBUG: Bridge output: $output" >&2
     
     # Check if expected_result_claim is an array or a single string
     if [[ "$expected_result" =~ ^\[.*\]$ ]]; then
@@ -1514,7 +1514,7 @@ _run_single_bridge_test() {
                     if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
                         claim_result="PASS"
                         echo "DEBUG: Deposit $deposit_count already claimed, treating as success" >&2
-                    elif $claim_has_other_expected_errors && _validate_claim_error "$expected_result_claim" "$claim_output"; then
+                    elif $claim_has_other_expected_errors && _validate_bridge_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
                         echo "DEBUG: Claim failed with expected error pattern" >&2
                     elif $claim_expects_success && ! $claim_has_other_expected_errors; then
@@ -1544,7 +1544,7 @@ _run_single_bridge_test() {
         fi
     else
         # Bridge failed
-        if $bridge_has_other_expected_errors && _validate_claim_error "$expected_result_process" "$bridge_output"; then
+        if $bridge_has_other_expected_errors && _validate_bridge_error "$expected_result_process" "$bridge_output"; then
             bridge_result="PASS"
             echo "DEBUG: Bridge failed with expected error pattern" >&2
         elif $bridge_expects_success && ! $bridge_has_other_expected_errors; then
