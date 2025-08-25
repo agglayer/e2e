@@ -147,6 +147,9 @@ jobs:
             export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
             bats ./tests/aggkit/global-index-pp-old-contracts.bats \
                  || exit 1
+          elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-fork12-op-succinct-aggoracle-committee" ]]; then
+            bats ./tests/aggkit/bridge-e2e.bats \
+                 || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
             bats ./tests/op/optimistic-mode.bats \
                  ./tests/aggkit/bridge-e2e.bats \
