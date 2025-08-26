@@ -1,24 +1,63 @@
+# # This file has been generated automatically.
+# deployment_stages:
+#   deploy_l1: false
+#   deploy_agglayer: false
+#   deploy_cdk_bridge_ui: false
+# args:
+#   deployment_suffix: "-003"
+#   zkevm_rollup_chain_id: 30303
+#   zkevm_rollup_id: 3
+#   verbosity: debug
+#   zkevm_contracts_image: leovct/zkevm-contracts:v9.0.0-rc.6-pp-fork.12
+#   zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12
+#   additional_services: []
+#   consensus_contract_type: pessimistic
+#   erigon_strict_mode: false
+#   gas_token_enabled: false
+#   zkevm_use_real_verifier: false
+#   enable_normalcy: true
+#   agglayer_prover_sp1_key: "0x50630eb71ab68ff812fcb9b9c58859f9e9f70a62b7e9e97c9c1cc09d86c760d8" # Replace with valid key
+#   agglayer_prover_primary_prover: network-prover
+#   sequencer_type: erigon
+
+
+
+
+  
+
 # This file has been generated automatically.
 deployment_stages:
   deploy_l1: false
   deploy_agglayer: false
   deploy_cdk_bridge_ui: false
+  deploy_l2_contracts: true
+  deploy_optimism_rollup: false
+  deploy_op_succinct: false
 args:
   deployment_suffix: "-003"
   zkevm_rollup_chain_id: 30303
   zkevm_rollup_id: 3
   verbosity: debug
-  zkevm_contracts_image: leovct/zkevm-contracts:v9.0.0-rc.6-pp-fork.12
+  zkevm_contracts_image: europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v11.0.0-rc.2-fork.12
   zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12
   additional_services: []
   consensus_contract_type: pessimistic
+  sp1_prover_key: ''
+  agglayer_prover_primary_prover: mock-prover
   erigon_strict_mode: false
   gas_token_enabled: false
   zkevm_use_real_verifier: false
   enable_normalcy: true
   agglayer_prover_sp1_key: "0x50630eb71ab68ff812fcb9b9c58859f9e9f70a62b7e9e97c9c1cc09d86c760d8" # Replace with valid key
-  agglayer_prover_primary_prover: network-prover
+  # aggkit_components: aggsender,bridge
   sequencer_type: erigon
+  cdk_erigon_node_image: hermeznetwork/cdk-erigon:v2.63.0-rc4
+  
+
+
+
+
+
 
   # sequencer
   zkevm_l2_sequencer_address: "0x0d59BC8C02A089D48d9Cd465b74Cb6E23dEB950D"

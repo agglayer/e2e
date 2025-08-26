@@ -1,11 +1,35 @@
-# This file has been generated automatically.
+# # This file has been generated automatically.
+# deployment_stages:
+#   deploy_l1: false
+#   deploy_agglayer: false
+#   deploy_cdk_bridge_ui: false
+# args:
+#   verbosity: debug
+#   zkevm_contracts_image: leovct/zkevm-contracts:v9.0.0-rc.6-pp-fork.12
+#   zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12
+#   additional_services: []
+#   consensus_contract_type: rollup
+#   sequencer_type: erigon
+#   agglayer_prover_sp1_key: "0x50630eb71ab68ff812fcb9b9c58859f9e9f70a62b7e9e97c9c1cc09d86c760d8" # Replace with valid key
+#   deployment_suffix: "-002"
+#   zkevm_rollup_chain_id: 20202
+#   zkevm_rollup_id: 2
+
+
+
+
+
+  # This file has been generated automatically.
 deployment_stages:
   deploy_l1: false
   deploy_agglayer: false
   deploy_cdk_bridge_ui: false
+  deploy_l2_contracts: true
+  deploy_optimism_rollup: false
+  deploy_op_succinct: false
 args:
   verbosity: debug
-  zkevm_contracts_image: leovct/zkevm-contracts:v9.0.0-rc.6-pp-fork.12
+  zkevm_contracts_image: europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v11.0.0-rc.2-fork.12
   zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12
   additional_services: []
   consensus_contract_type: rollup
@@ -14,6 +38,10 @@ args:
   deployment_suffix: "-002"
   zkevm_rollup_chain_id: 20202
   zkevm_rollup_id: 2
+
+
+
+
 
   # polycli wallet inspect --mnemonic 'tennis coconut priority easy toward lava lake cigar address private visit purity' --addresses 11 | tee keys.txt | jq -r '.Addresses[] | [.ETHAddress, .HexPrivateKey] | @tsv' | awk 'BEGIN{split("sequencer,aggregator,claimtxmanager,timelock,admin,loadtest,agglayer,dac,proofsigner,l1testing,claimsponsor",roles,",")} {print "# " roles[NR] "\nzkevm_l2_" roles[NR] "_address: " $1 ""; print "zkevm_l2_" roles[NR] "_private_key: 0x" $2 "\n"}'
 

@@ -11,7 +11,14 @@ It is designed to:
 - Cleanly tear down the setup using:
   ```bash
   kurtosis enclave rm cdk --force
-
+---
+- List running services in the cdk enclave:
+```bash
+  kurtosis enclave inspect cdk
+---
+- View the logs of a service:
+```bash
+ kurtosis service logs cdk <service-identifier>
 ---
 
 ##  Scripts
