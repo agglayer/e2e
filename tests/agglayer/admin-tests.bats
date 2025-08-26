@@ -1,10 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=agglayer
 
-setup() {
-    true
-}
-
 setup_file() {
     kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
 
@@ -49,7 +45,7 @@ function interop_status_query() {
     echo $answer
 }
 
-# bats test_tags=admin-api,certificate-management
+# bats test_tags=agglayer-admin
 @test "admin_getCertificate returns certificate data for valid certificate ID" {
     # First get a known certificate ID from regular API
     certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
@@ -107,7 +103,7 @@ function interop_status_query() {
     echo "✅ Successfully retrieved certificate data for $certificate_id with status $certificate_status"
 }
 
-# bats test_tags=admin-api,certificate-management
+# bats test_tags=agglayer-admin
 @test "admin_getCertificate returns error for invalid certificate ID" {
     run cast rpc --rpc-url "$agglayer_admin_url" admin_getCertificate "$invalid_cert_id"
     if [[ "$status" -eq 0 ]]; then
@@ -123,7 +119,7 @@ function interop_status_query() {
     fi
 }
 
-# bats test_tags=admin-api,state-management
+# bats test_tags=agglayer-admin
 @test "admin_setLatestPendingCertificate with non-existent certificate" {
     run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestPendingCertificate "$invalid_cert_id"
     if [[ "$status" -eq 0 ]]; then
@@ -139,7 +135,7 @@ function interop_status_query() {
     fi
 }
 
-# bats test_tags=admin-api,state-management
+# bats test_tags=agglayer-admin
 @test "admin_setLatestPendingCertificate with valid certificate ID" {
 
     latest_known_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
@@ -176,7 +172,7 @@ function interop_status_query() {
     # fi
 }
 
-# bats test_tags=admin-api,certificate-cleanup
+# bats test_tags=agglayer-admin
 @test "admin_removePendingCertificate with non-existent certificate" {
     run cast rpc --rpc-url "$agglayer_admin_url" admin_removePendingCertificate "$rollup_id" "$invalid_height" "true"
     if [[ "$status" -eq 0 ]]; then
@@ -192,7 +188,7 @@ function interop_status_query() {
     fi
 }
 
-# bats test_tags=admin-api,proof-cleanup
+# bats test_tags=agglayer-admin
 @test "admin_removePendingProof with invalid certificate ID" {
     run cast rpc --rpc-url "$agglayer_admin_url" admin_removePendingProof "$invalid_cert_id"
     # this call succeeds and returns null anyway.....
@@ -209,7 +205,7 @@ function interop_status_query() {
     fi
 }
 
-# bats test_tags=admin-api,comparison
+# bats test_tags=agglayer-admin
 @test "compare admin and regular API responses for same certificate" {
     interop_header=$(interop_status_query interop_getLatestKnownCertificateHeader 1)
     
