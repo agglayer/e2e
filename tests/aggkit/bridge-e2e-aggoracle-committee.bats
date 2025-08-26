@@ -114,7 +114,6 @@ manage_aggkit() {
         sleep $check_interval
     done
 
-    # Assert that GER was NOT updated in the map (this is the expected failure)
     if [[ "$ger_updated" == "true" ]]; then
         log "❌ Test FAILED: L1 GER was unexpectedly added to L2 map"
         log "L1 GER: $l1_latest_ger"
@@ -127,14 +126,14 @@ manage_aggkit() {
         log "Expected behavior: L1 GER should not be added to L2 map when aggkit service is stopped"
     fi
 
-    echo "Step 4: Starting aggkit-001 service..." >&3
+    echo "Step 5: Starting aggkit-001 service..." >&3
     manage_aggkit "start"
 
     aggkit_bridge_url=$(_resolve_url_or_use_env "" \
         "aggkit-001" "rest" \
         "Failed to resolve aggkit bridge url from all fallback nodes" true)
 
-    echo "Step 5: Attempting to claim the second bridge transaction..., should succeed" >&3
+    echo "Step 6: Attempting to claim the second bridge transaction..., should succeed" >&3
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
