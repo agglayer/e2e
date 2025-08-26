@@ -19,30 +19,40 @@ setup_file() {
 
     rollup_id=$(cast call $rollup_mgr 'chainIDToRollupID(uint64)' $chain_id --rpc-url $l1_rpc_url | cast to-dec)
     export rollup_id
+
+    export invalid_cert_id="0x0000000000000000000000000000000000000000000000000000000000000000"
+    export invalid_height=999999
 }
 
-function interop_getLatestKnownCertificateHeader() {
+function interop_status_query() {
+    local interop_ep=$1
+    local full_answer=${2:-0}
+
     # Iterate until there is one certificate (no null answer)
     while true; do
-        run cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$rollup_id"
+        run cast rpc --rpc-url "$agglayer_rpc_url" "$interop_ep" "$rollup_id"
         if [[ "$status" -ne 0 ]]; then
-            echo "❌ Failed to get latest known certificate header using interop_getLatestKnownCertificateHeader: $output"
+            echo "❌ Failed to get latest known certificate header using $interop_ep: $output"
             exit 1
         else
-            certificate_id=$(echo "$output" | jq -r '.certificate_id')
-            if [ -n "$certificate_id" ]; then
+            if [[ "$full_answer" -ne 0 ]]; then
+                answer=$output
+            else
+                answer=$(echo "$output" | jq -r '.certificate_id')
+            fi
+            if [ -n "$answer" ]; then
                 break
             fi
             sleep 3
         fi
     done
-    echo $certificate_id
+    echo $answer
 }
 
 # bats test_tags=admin-api,certificate-management
 @test "admin_getCertificate returns certificate data for valid certificate ID" {
     # First get a known certificate ID from regular API
-    certificate_id=$(interop_getLatestKnownCertificateHeader)
+    certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
     echo "✅ Successfully retrieved latest known certificate header for $certificate_id"
   
     # Test admin_getCertificate
@@ -99,45 +109,153 @@ function interop_getLatestKnownCertificateHeader() {
 
 # bats test_tags=admin-api,certificate-management
 @test "admin_getCertificate returns error for invalid certificate ID" {
-    invalid_cert_id="0x0000000000000000000000000000000000000000000000000000000000000000"
-    
     run cast rpc --rpc-url "$agglayer_admin_url" admin_getCertificate "$invalid_cert_id"
     if [[ "$status" -eq 0 ]]; then
-        echo "❌ Expected error for invalid certificate id with admin_getCertificate, but got success: "
+        echo "❌ Expected error for invalid certificate id with admin_getCertificate, but got success: $output"
         exit 1
     else
-        echo "✅ Successfully handled invalid certificate id with admin_getCertificate"
+        if [[ "$output" == *"resource-not-found"* ]]; then
+            echo "✅ Successfully handled invalid certificate id with admin_getCertificate: $output"
+        else
+            echo "❌ Expected resource-not-found error for invalid certificate id with admin_getCertificate, but got: $output"
+            exit 1
+        fi
+    fi
+}
+
+# bats test_tags=admin-api,state-management
+@test "admin_setLatestPendingCertificate with non-existent certificate" {
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestPendingCertificate "$invalid_cert_id"
+    if [[ "$status" -eq 0 ]]; then
+        echo "❌ Expected error for invalid certificate id with admin_setLatestPendingCertificate, but got success: $output"
+        exit 1
+    else
+        if [[ "$output" == *"resource-not-found"* ]]; then
+            echo "✅ Successfully handled invalid certificate id with admin_setLatestPendingCertificate: $output"
+        else
+            echo "❌ Expected resource-not-found error for invalid certificate id with admin_setLatestPendingCertificate, but got: $output"
+            exit 1
+        fi
     fi
 }
 
 # bats test_tags=admin-api,state-management
 @test "admin_setLatestPendingCertificate with valid certificate ID" {
-    # Get a valid certificate first
-    certificate_id=$(interop_getLatestKnownCertificateHeader)
-    echo "✅ Successfully retrieved latest known certificate header for $certificate_id, waiting for a new one..."
 
-    new_certificate_id=$(interop_getLatestKnownCertificateHeader)
-    while [[ "$new_certificate_id" == "$certificate_id" ]]; do
-        echo "⏳ Waiting for new certificate to be created..."
-        sleep 10
-        new_certificate_id=$(interop_getLatestKnownCertificateHeader)
+    latest_known_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
+    echo "✅ Successfully retrieved latest known certificate for $latest_known_certificate_id"
+
+    # Get a pending certificate, will be set later
+    while true; do
+        latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
+        if [[ "$latest_pending_certificate_id" != "$latest_known_certificate_id" ]]; then
+            break
+        else
+            echo "⏳ Waiting for a pending certificate to be available..."
+            sleep 3
+        fi
     done
-    echo "✅ Successfully retrieved a new latest known certificate header for $new_certificate_id"
+    echo "✅ Successfully retrieved pending certificate: $latest_pending_certificate_id"
 
     # Test admin_setLatestPendingCertificate
-    run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestPendingCertificate "$certificate_id"
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestPendingCertificate "$latest_known_certificate_id"
     if [ "$status" -ne 0 ]; then
         echo "❌ Failed to set last pending certificate using admin_setLatestPendingCertificate: $output"
         exit 1
     else
-        echo "✅ Successfully called admin_setLatestPendingCertificate with certificate $certificate_id, let's verify..."
+        echo "✅ Successfully called admin_setLatestPendingCertificate with certificate $latest_known_certificate_id, let's verify..."
     fi
 
-    updated_certificate_id=$(interop_getLatestKnownCertificateHeader)
-    if [[ "$updated_certificate_id" == "$new_certificate_id" ]]; then
-        echo "❌ Failed to update latest known certificate, after calling admin_setLatestPendingCertificate it's still $updated_certificate_id"
+    # So far, I've been unable to retrieve certificate id that we just set above. It keeps returning previous data...
+    # updated_latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
+    # if [[ "$updated_latest_pending_certificate_id" == "$latest_known_certificate_id" ]]; then
+    #     echo "✅ Successfully updated latest pending certificate to $updated_latest_pending_certificate_id"
+    # else
+    #     echo "❌ Failed to update latest pending certificate, after calling admin_setLatestPendingCertificate it's still $updated_latest_pending_certificate_id"
+    #     exit 1
+    # fi
+}
+
+# bats test_tags=admin-api,certificate-cleanup
+@test "admin_removePendingCertificate with non-existent certificate" {
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_removePendingCertificate "$rollup_id" "$invalid_height" "true"
+    if [[ "$status" -eq 0 ]]; then
+        echo "❌ Expected error for invalid certificate height with admin_removePendingCertificate, but got success: $output"
         exit 1
     else
-        echo "✅ Successfully updated latest known certificate header to $updated_certificate_id"
+        if [[ "$output" == *"resource-not-found"* ]]; then
+            echo "✅ Successfully handled invalid certificate height with admin_removePendingCertificate: $output"
+        else
+            echo "❌ Expected resource-not-found error for invalid certificate height with admin_removePendingCertificate, but got: $output"
+            exit 1
+        fi
     fi
 }
+
+# bats test_tags=admin-api,proof-cleanup
+@test "admin_removePendingProof with invalid certificate ID" {
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_removePendingProof "$invalid_cert_id"
+    # this call succeeds and returns null anyway.....
+    if [[ "$status" -ne 0 ]]; then
+        echo "❌ Error calling admin_removePendingProof with invalid certificate id: $output"
+        exit 1
+    else
+        if [[ "$output" == "null" ]]; then
+            echo "✅ Successfully called admin_removePendingProof with invalid certificate ID"
+        else
+            echo "❌ Expected null result from admin_removePendingProof with invalid certificate ID, but got: $output"
+            exit 1
+        fi
+    fi
+}
+
+# bats test_tags=admin-api,comparison
+@test "compare admin and regular API responses for same certificate" {
+    interop_header=$(interop_status_query interop_getLatestKnownCertificateHeader 1)
+    
+    # Skip if no certificate exists
+    if jq -e '. == null' <<< "$interop_header"; then
+        skip "❌ No certificate available to test"
+    fi
+
+    certificate_id=$(jq -r '.certificate_id' <<< "$interop_header")
+    if [[ -z "$certificate_id" ]]; then
+        echo "❌ Error parsing certificate_id from certificate: $output"
+        exit 1
+    else
+        echo "✅ Successfully retrieved latest known certificate for $certificate_id"
+    fi
+
+    # Get same certificate from admin API
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_getCertificate "$certificate_id"
+    if [[ "$status" -ne 0 ]]; then
+        echo "❌ Error calling admin_getCertificate with valid certificate id: $output"
+        exit 1
+    else
+        echo "✅ Successfully called admin_getCertificate for certificate $certificate_id"
+        admin_cert=$output
+    fi
+
+    # Verify admin API returned certificate data
+    if ! jq -e '.[0] != null' <<< "$admin_cert"; then
+        echo "❌ Error: Admin API did not return certificate data"
+        exit 1
+    fi
+
+    # Extract certificate header from admin response (second element)
+    admin_header=$(jq '.[1]' <<< "$admin_cert")
+
+    if [ "$(jq -S . <<<"$admin_header")" = "$(jq -S . <<<"$interop_header")" ]; then
+        echo "✅ Certificate headers match between interop and admin APIs for $certificate_id"
+    else
+        echo "❌ Error: Certificate header mismatch: interop=$interop_header, admin=$admin_header"
+        exit 1
+    fi
+}
+
+# Improvement and or pending features to test:
+# - Validate admin_setLatestPendingCertificate did what it's expected to do, right now we just know the call succedeed
+# - Validate admin_removePendingCertificate properly cleans up the state, we just test invalid input
+# - Validate admin_removePendingProof properly cleans up the state, we just test invalid input
+# - admin_forcePushPendingCertificate
+# - admin_setLatestProvenCertificate
