@@ -8,9 +8,9 @@ setup() {
 }
 
 # Helper function to manage aggkit-001 service
-manage_aggkit() {
-    local action="$1"  # start or stop
-    local service="aggkit-001"
+manage_aggkit_nodes() {
+    local service="$1"
+    local action="$2"  # start or stop
     local kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
 
     if [[ "$action" == "stop" ]]; then
@@ -35,9 +35,7 @@ manage_aggkit() {
     fi
 }
 
-@test "Aggoracle committee -> Stop all quorum nodes" {
-    echo "=== 🧑‍💻 Running GER validation after claiming on L2" >&3
-
+@test "Test Aggoracle committee" {
     echo "Step 1: Bridging and claiming asset on L2..." >&3
     destination_addr=$sender_addr
     destination_net=$l2_rpc_network_id
@@ -56,8 +54,9 @@ manage_aggkit() {
     assert_success
     log "🔍 Latest L1 GER: $l1_latest_ger"
 
-    echo "Step 2: Stopping aggkit-001 service..." >&3
-    manage_aggkit "stop"
+    echo "Step 2: Stopping aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
+    manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "stop"
+    manage_aggkit_nodes "aggkit-001-aggoracle-committee-002" "stop"
 
     echo "Step 3: Bridging asset from L1 to L2 (without claiming)..." >&3
     destination_addr=$sender_addr
@@ -68,7 +67,7 @@ manage_aggkit() {
     assert_success
     local bridge_tx_hash=$output
 
-    echo "Step 4: Checking L1 GER update propagation to L2 (should fail)..." >&3
+    echo "Step 4: Checking L1 GER update propagation to L2..." >&3
     # Get the latest GER from L1
     local l1_latest_ger
     l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
@@ -82,9 +81,9 @@ manage_aggkit() {
     log "🔍 Initial GER status in L2 map for $l1_latest_ger: $initial_ger_status"
     assert_equal "$initial_ger_status" "0"
 
-    log "⏳ Starting GER update monitoring for 2 minutes..."
+    log "⏳ Starting GER update monitoring for 3 minutes..."
     local start_time=$(date +%s)
-    local end_time=$((start_time + 120))  # 2 minutes = 120 seconds
+    local end_time=$((start_time + 180))  # 3 minutes = 180 seconds
     local check_interval=10  # 10 seconds
     local check_count=0
     local ger_updated=false
@@ -126,12 +125,9 @@ manage_aggkit() {
         log "Expected behavior: L1 GER should not be added to L2 map when aggkit service is stopped"
     fi
 
-    echo "Step 5: Starting aggkit-001 service..." >&3
-    manage_aggkit "start"
-
-    aggkit_bridge_url=$(_resolve_url_or_use_env "" \
-        "aggkit-001" "rest" \
-        "Failed to resolve aggkit bridge url from all fallback nodes" true)
+    echo "Step 5: Starting aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
+    manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "start"
+    manage_aggkit_nodes "aggkit-001-aggoracle-committee-002" "start"
 
     echo "Step 6: Attempting to claim the second bridge transaction..., should succeed" >&3
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
