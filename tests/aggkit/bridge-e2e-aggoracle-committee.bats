@@ -35,7 +35,7 @@ manage_aggkit() {
     fi
 }
 
-@test "Aggoracle committee -> Stop all quorom nodes" {
+@test "Aggoracle committee -> Stop all quorum nodes" {
     echo "=== 🧑‍💻 Running GER validation after claiming on L2" >&3
 
     echo "Step 1: Bridging and claiming asset on L2..." >&3
