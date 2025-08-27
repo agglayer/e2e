@@ -68,7 +68,6 @@ manage_aggkit_nodes() {
 
     local l2_ger_status
     l2_ger_status=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootMap(bytes32) (uint256)' "$l1_latest_ger")
-    log "🔍 Initial GER status in L2 map for $l1_latest_ger: $l2_ger_status"
     assert_equal "$l2_ger_status" "0"
 
     echo "Step 5: Starting aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
