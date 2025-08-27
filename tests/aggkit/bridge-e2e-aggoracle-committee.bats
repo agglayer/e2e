@@ -36,10 +36,6 @@ manage_aggkit_nodes() {
 }
 
 @test "Test Aggoracle committee" {
-    local l1_latest_ger
-    l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
-    log "🔍 Latest L1 GER: $l1_latest_ger"
-
     echo "Step 1: Bridging and claiming asset on L2..." >&3
     destination_addr=$sender_addr
     destination_net=$l2_rpc_network_id
@@ -47,10 +43,6 @@ manage_aggkit_nodes() {
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     local bridge_tx_hash=$output
-
-    local l1_latest_ger
-    l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
-    log "🔍 Latest L1 GER: $l1_latest_ger"
 
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
@@ -74,11 +66,10 @@ manage_aggkit_nodes() {
     echo "Step 4: Waiting for 3 minutes to check if GER is not added to L2 map..." >&3
     sleep 180
 
-    local initial_ger_status
-    initial_ger_status=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootMap(bytes32) (uint256)' "$l1_latest_ger")
-    assert_success
-    log "🔍 Initial GER status in L2 map for $l1_latest_ger: $initial_ger_status"
-    assert_equal "$initial_ger_status" "0"
+    local l2_ger_status
+    l2_ger_status=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootMap(bytes32) (uint256)' "$l1_latest_ger")
+    log "🔍 Initial GER status in L2 map for $l1_latest_ger: $l2_ger_status"
+    assert_equal "$l2_ger_status" "0"
 
     echo "Step 5: Starting aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
     manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "start"
