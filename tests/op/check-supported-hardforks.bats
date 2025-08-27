@@ -31,7 +31,7 @@ setup() {
     )
 }
 
-# bats file_tags=bridge,check-hardfork
+# bats test_tags=bridge,check-hardfork
 @test "Check L2 supported forks" {
     op_el_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep op-el-1-op-geth-op-node-001 | awk '{print $1}')
     op_el_container_name=op-el-1-op-geth-op-node-001--$op_el_uuid

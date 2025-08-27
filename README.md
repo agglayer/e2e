@@ -180,67 +180,87 @@ scenarios/
 These will target holistic features or services within the entire system.
 Naming convention should follow that of the directories.
 
-- standard
-- agglayer
+```bash
+grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
+```
+
 - aggkit
+- agglayer
+- bridge
 - cdk
 - cdk-erigon
 - dapps
+- eip-2537
+- eip-2935
+- eip-7623
 - ethereum-test-cases
+- evm-gas
+- evm-opcode
+- evm-precompile
 - evm-rpc
 - execution
+- local-balance-tree
 - lxly
 - op
+- op-fep
 - pectra
 - pessimistic
 - polycli-loadtests
-- pos
+- prover-stress
+- standard
+- standard-kurtosis
+- transaction-erc20
 - zkevm
+- zkevm-batch
 
 ## test_tags
 
 These will aim to have feature-specific targeted tests.
 Naming convention should follow general EVM or Polygon standards.
 
-- bridge
-- local-balance-tree
+```bash
+grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
+```
+
 - acl-accesslist
 - acl-blocklist
+- agglayer-admin
+- agglayer-cert
+- agglayer-rpc
+- bridge
+- cdk-op-geth
+- check-hardfork
+- custom-gas-token
+- eip-7685
+- eip-7691
+- erc-4337
+- evm-block
+- evm-gas
+- evm-inscription
+- evm-nonce
+- evm-pool
+- evm-precompile
+- evm-stress
+- gnosis-safe
+- katana
+- loadtest
+- native-gas-token
+- operator-fee
+- optimistic-mode
+- pos
+- pos-delegate
+- pos-undelegate
+- pos-validator
+- railgun
+- smooth-crypto-lib
 - transaction-eoa
 - transaction-erc20
 - transaction-erc721
-- transaction-uniswap
 - transaction-pol
+- transaction-uniswap
 - weth
-- native-gas-token
-- custom-gas-token
 - zkevm-batch
 - zkevm-counters
-- agglayer-rpc
-- agglayer-cert
-- evm-gas
-- evm-pool
-- evm-opcode
-- evm-stress
-- evm-precompile
-- evm-block
-- evm-nonce
-- evm-inscription
-- gnosis-safe
-- cdk-op-geth
-- katana
-- loadtest
-- railgun
-- smooth-crypto-lib
-- check-hardfork
-- pectra
-- eip-2537
-- eip-2935
-- eip-7623
-- prover-stress
-- pos-validator
-- pos-delegate
-- pos-undelegate
 
 ## Common helper functions
 
