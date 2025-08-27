@@ -50,10 +50,11 @@ on:
         type: string
         default: "cdk"
 
-permissions:
-  contents: read
-  packages: write
-  id-token: write
+# 2025-08-27: I'm not sure if these are necessary. Delete entirely if this doesn't break anything
+# permissions:
+#   contents: read
+#   packages: write
+#   id-token: write
 
 env:
   POLYCLI_VERSION: v0.1.84
