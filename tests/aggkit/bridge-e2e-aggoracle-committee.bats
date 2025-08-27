@@ -36,23 +36,24 @@ manage_aggkit_nodes() {
 }
 
 @test "Test Aggoracle committee" {
+    local l1_latest_ger
+    l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
+    log "🔍 Latest L1 GER: $l1_latest_ger"
+
     echo "Step 1: Bridging and claiming asset on L2..." >&3
     destination_addr=$sender_addr
     destination_net=$l2_rpc_network_id
     amount=$(cast --to-unit "0.01ether" wei)
-
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     local bridge_tx_hash=$output
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-    assert_success
-
-    # Get the latest GER from L1
     local l1_latest_ger
     l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
-    assert_success
     log "🔍 Latest L1 GER: $l1_latest_ger"
+
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     echo "Step 2: Stopping aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
     manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "stop"
@@ -61,69 +62,23 @@ manage_aggkit_nodes() {
     echo "Step 3: Bridging asset from L1 to L2 (without claiming)..." >&3
     destination_addr=$sender_addr
     destination_net=$l2_rpc_network_id
-    is_forced=false
     meta_bytes="0x"
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     local bridge_tx_hash=$output
 
-    echo "Step 4: Checking L1 GER update propagation to L2..." >&3
-    # Get the latest GER from L1
     local l1_latest_ger
     l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
-    assert_success
     log "🔍 Latest L1 GER: $l1_latest_ger"
 
-    # Check initial status in the map for the L2 GER
+    echo "Waiting for 3 minutes to check if GER is not added to L2 map..." >&3
+    sleep 180
+
     local initial_ger_status
     initial_ger_status=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootMap(bytes32) (uint256)' "$l1_latest_ger")
     assert_success
     log "🔍 Initial GER status in L2 map for $l1_latest_ger: $initial_ger_status"
     assert_equal "$initial_ger_status" "0"
-
-    log "⏳ Starting GER update monitoring for 3 minutes..."
-    local start_time=$(date +%s)
-    local end_time=$((start_time + 180))  # 3 minutes = 180 seconds
-    local check_interval=10  # 10 seconds
-    local check_count=0
-    local ger_updated=false
-
-    while [[ $(date +%s) -lt $end_time ]]; do
-        check_count=$((check_count + 1))
-        local current_time=$(date +%s)
-        local elapsed=$((current_time - start_time))
-
-        log "🔍 Check $check_count: Elapsed time: ${elapsed}s"
-
-        # Check current status in the map for the L1 GER
-        local current_ger_status
-        current_ger_status=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootMap(bytes32) (uint256)' "$l1_latest_ger")
-        assert_success
-
-        log "🔍 L2 GER map status at check $check_count for $l1_latest_ger: $current_ger_status"
-
-        # Check if the L1 GER has been added to the L2 map (status should change from 0 to non-zero)
-        if [[ "$current_ger_status" != "0" && "$current_ger_status" != "$initial_ger_status" ]]; then
-            ger_updated=true
-            log "⚠️ L1 GER was added to L2 map with status: $current_ger_status"
-            break
-        fi
-
-        log "⏳ L2 GER not yet updated. Waiting $check_interval seconds for next check..."
-        sleep $check_interval
-    done
-
-    if [[ "$ger_updated" == "true" ]]; then
-        log "❌ Test FAILED: L1 GER was unexpectedly added to L2 map"
-        log "L1 GER: $l1_latest_ger"
-        log "L2 GER map status changed to: $current_ger_status"
-        assert_failure "L1 GER should not have been added to L2 map during the monitoring period"
-    else
-        log "✅ Test PASSED: L1 GER was not added to L2 map during the 2-minute monitoring period"
-        log "L1 GER: $l1_latest_ger"
-        log "L2 GER map status remained at: $initial_ger_status"
-        log "Expected behavior: L1 GER should not be added to L2 map when aggkit service is stopped"
-    fi
 
     echo "Step 5: Starting aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
     manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "start"
