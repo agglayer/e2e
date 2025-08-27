@@ -63,8 +63,8 @@ manage_aggkit_nodes() {
     l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
     log "🔍 Latest L1 GER: $l1_latest_ger"
 
-    echo "Step 4: Waiting for 3 minutes to check if GER is not added to L2 map..." >&3
-    sleep 180
+    echo "Step 4: Waiting for 2 minutes to check if GER is not added to L2 map..." >&3
+    sleep 120
 
     local l2_ger_status
     l2_ger_status=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootMap(bytes32) (uint256)' "$l1_latest_ger")
