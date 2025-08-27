@@ -145,6 +145,8 @@ jobs:
             bats tests/cdk/e2e.bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
           elif [[ "${{ inputs.test-name }}" == "test-fork12-pessimistic-e2e" ]]; then
             bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
+          else
+            bats tests/aggkit/bridge-e2e.bats
           fi
           popd
 
