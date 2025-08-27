@@ -141,6 +141,13 @@ function interop_status_query() {
     latest_known_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
     echo "✅ Successfully retrieved latest known certificate for $latest_known_certificate_id"
 
+    # This snippet of commented code aims to ensure than we wait for a pending certificate that's not
+    # the latest known certificate. So when we call admin_setLatestPendingCertificate, we can be sure
+    # we're not setting the same certificate that's already the latests pending.
+    # As the endpoint to retrieve latest pending does not return the value set (something's wrong),
+    # this code can not be used right now and it's left here just to understand how it should be, and
+    # hopefully it can be uncommented in the future.
+
     # # Get a pending certificate, will be set later
     # while true; do
     #     latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
@@ -162,7 +169,11 @@ function interop_status_query() {
         echo "✅ Successfully called admin_setLatestPendingCertificate with certificate $latest_known_certificate_id, let's verify..."
     fi
 
-    # So far, I've been unable to retrieve certificate id that we just set above. It keeps returning previous data...
+    # This snippet of commented code aims to ensure than the state has been updated with the value we used.
+    # For some reason, it's not returning the value set as we expect, so we need to disable this check to
+    # pass the test.
+    # It's left here as it's how it should work, hopefully we can uncomment this at some point.
+
     # updated_latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
     # if [[ "$updated_latest_pending_certificate_id" == "$latest_known_certificate_id" ]]; then
     #     echo "✅ Successfully updated latest pending certificate to $updated_latest_pending_certificate_id"
@@ -271,6 +282,13 @@ function interop_status_query() {
     latest_known_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
     echo "✅ Successfully retrieved latest known certificate for $latest_known_certificate_id"
 
+    # This snippet of commented code aims to ensure than we wait for a proven certificate that's not
+    # the latest known certificate. So when we call admin_setLatestProvenCertificate, we can be sure
+    # we're not setting the same certificate that's already the latest proven.
+    # As the endpoint to retrieve latest proven does not return the value set (something's wrong),
+    # this code can not be used right now and it's left here just to understand how it should be, and
+    # hopefully it can be uncommented in the future.
+
     # while true; do
     #     latest_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
     #     if [[ "$latest_proven_certificate_id" != "$latest_known_certificate_id" ]]; then
@@ -291,7 +309,11 @@ function interop_status_query() {
         echo "✅ Successfully called admin_setLatestProvenCertificate with certificate $latest_known_certificate_id, let's verify..."
     fi
 
-    # # So far, I've been unable to retrieve certificate id that we just set above. It keeps returning previous data...
+    # This snippet of commented code aims to ensure than the state has been updated with the value we used.
+    # For some reason, it's not returning the value set as we expect, so we need to disable this check to
+    # pass the test.
+    # It's left here as it's how it should work, hopefully we can uncomment this at some point.
+
     # updated_latest_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
     # if [[ "$updated_latest_proven_certificate_id" == "$latest_known_certificate_id" ]]; then
     #     echo "✅ Successfully updated latest proven certificate to $updated_latest_proven_certificate_id"
@@ -300,8 +322,6 @@ function interop_status_query() {
     #     exit 1
     # fi
 }
-
-
 
 # Improvement and or pending features to test:
 # - Validate admin_setLatestPendingCertificate did what it's expected to do, right now we just know the call succedeed
