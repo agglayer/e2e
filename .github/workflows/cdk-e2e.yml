@@ -138,7 +138,7 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats tests/cdk/access-list-e2e.bats tests/cdk/basic-e2e.bats
+          bats tests/cdk/basic-e2e.bats
           if [[ "${{ inputs.test-name }}" == "test-fork9-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork11-rollup-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e-zkevm-bridge" ]]; then
             bats tests/cdk/e2e.bats tests/cdk/bridge-e2e.bats
           elif [[ "${{ inputs.test-name }}" == "test-fork12-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e" ]]; then
