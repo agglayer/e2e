@@ -150,19 +150,22 @@ jobs:
           elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats \
                  || exit 1
-          elif [[ $ENCLAVE_NAME == "op" ]]; then
-            bats ./tests/op/optimistic-mode.bats \
-                 ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+          elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-pessimistic" ]]; then
+            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
                  || exit 1
-
+          elif [[ $ENCLAVE_NAME == "op" ]]; then
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/aggkit/bridge-e2e-nightly.bats \
+              bats ./tests/op/optimistic-mode.bats \
+                   ./tests/aggkit/bridge-e2e-nightly.bats \
                    ./tests/aggkit/internal-claims.bats \
                    ./tests/aggkit/claim-reetrancy.bats \
                    || exit 1
             fi
+            bats  \
+                 ./tests/aggkit/bridge-e2e.bats \
+                 ./tests/aggkit/e2e-pp.bats \
+                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+                 || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \
                  ./tests/aggkit/e2e-pp.bats \
