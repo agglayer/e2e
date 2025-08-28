@@ -199,6 +199,7 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - evm-precompile
 - evm-rpc
 - execution
+- forced-txs
 - local-balance-tree
 - lxly
 - op
@@ -241,6 +242,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - evm-pool
 - evm-precompile
 - evm-stress
+- forced-txs
 - gnosis-safe
 - katana
 - loadtest
