@@ -147,7 +147,7 @@ _fund_ephemeral_account() {
     # Check if target address already has sufficient balance (more than 1 ETH)
     local target_balance
     target_balance=$(cast balance --rpc-url "$rpc_url" "$target_address")
-    local threshold="500000000000000000"  # 0.5 ETH in wei
+    local threshold="100000000000000000"  # 0.1 ETH in wei
     
     echo "DEBUG: Target address balance: $target_balance" >&2
     echo "DEBUG: Funding threshold: $threshold" >&2
@@ -816,7 +816,7 @@ _setup_single_test_account() {
     
     # Fund ephemeral account with native tokens on source network (where bridging happens from)
     echo "DEBUG: Funding source network account for test $test_index ($bridge_direction)" >&2
-    if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "1000000000000000000"; then
+    if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "100000000000000000"; then
         echo "DEBUG: Failed to fund source network account for test $test_index" >&2
         return 1
     fi
@@ -829,15 +829,15 @@ _setup_single_test_account() {
     fi
     
     # Setup tokens for ephemeral account on source network
-    local amount_for_setup="100000000000000000000" # 100 tokens
+    local amount_for_setup="100000000000000000000"
     if [[ "$test_amount" == "Max" ]]; then
         # Special handling for POL with max amount and max metadata
         if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" ]]; then
             # Use even smaller amount for this problematic combination
-            amount_for_setup="100000000000000000000000"  # 100,000 tokens
+            amount_for_setup="100000000000000000000000"
             echo "DEBUG: Using reduced amount $amount_for_setup for POL Max+Max combination" >&2
         elif [[ "$test_token" == "LocalERC20" || "$test_token" == "POL" ]]; then
-            amount_for_setup="1000000000000000000000000000"  # 1,000,000,000 tokens
+            amount_for_setup="1000000000000000000000000000"
         else
             amount_for_setup="$(cast max-uint)"
         fi
