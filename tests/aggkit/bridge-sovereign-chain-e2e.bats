@@ -54,36 +54,26 @@ check_certificate_height() {
 }
 
 @test "Test GlobalExitRoot removal" {
-  echo "=== 🧑‍💻 Running GlobalExitRoot removal" >&3
-
-  # Send 1 transaction from L1 to L2, claim it and wait for certificate settlement
-  log "🚀 Sending 1 bridge transaction from L1 to L2 after GER removal"
-
-  # Set token amount for native token bridging
+  log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
   local tokens_amount="0.1ether"
   local wei_amount
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
-
   destination_addr=$receiver
   destination_net=$l2_rpc_network_id
   amount=$wei_amount
   meta_bytes="0x"
 
-  # Send bridge transaction from L1 to L2
-  log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
-  log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
-
-  # Claim the deposit on L2
-  log "🔐 Claiming the bridge deposit on L2"
   run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local global_index=$output
-  log "✅ Bridge claim processed successfully with global index: $global_index"
 
-  # Fetch UpdateHashChainValue events
+  log "⏳ Waiting for certificate settlement containing global index: $global_index"
+  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  log "✅ Certificate settlement completed for global index: $global_index"
+
   run cast logs \
     --rpc-url "$L2_RPC_URL" \
     --from-block 0x0 \
@@ -95,67 +85,43 @@ check_certificate_height() {
   update_hash_chain_value_events="$output"
   log "🔍 Fetched UpdateHashChainValue events: $update_hash_chain_value_events"
 
-  # Extract last GER
   local last_ger
   last_ger=$(echo "$update_hash_chain_value_events" | jq -r '.[-1].topics[1]')
   assert_success
   log "🔍 Last GER: $last_ger"
 
-  # Query initial status
   run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
   assert_success
   initial_status="$output"
-  log "⏳ initial_status for GER $last_ger -> $initial_status"
-
-  # Assert that the initial status is not zero
   if [[ "$initial_status" == "0" ]]; then
     log "🚫 GER not found in map, cannot proceed with removal"
     exit 1
   fi
 
-  # Remove the GER from map, sovereign admin should be the sender
+  log "🔄 Removing GER from map $last_ger"
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$last_ger]"
   assert_success
-  log "🔄 Removing GER from map $last_ger"
-
-  # Query final status
   run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$last_ger"
   assert_success
   final_status="$output"
-  log "⏳ final_status for GER $last_ger -> $final_status"
-
-  # Assert that the final status is zero
   assert_equal "$final_status" "0"
   log "✅ GER successfully removed"
 
-  # Send 1 transaction from L1 to L2, claim it and wait for certificate settlement
-  log "🚀 Sending 1 bridge transaction from L1 to L2 after GER removal"
-
-  # Set token amount for native token bridging
+  log "🚀 Sending and claiming 1 bridge transaction from L1 to L2 after GER removal"
   local tokens_amount="0.1ether"
   local wei_amount
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
-
   destination_addr=$receiver
   destination_net=$l2_rpc_network_id
   amount=$wei_amount
   meta_bytes="0x"
-
-  # Send bridge transaction from L1 to L2
-  log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
-  log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
-
-  # Claim the deposit on L2
-  log "🔐 Claiming the bridge deposit on L2"
   run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local global_index=$output
-  log "✅ Bridge claim processed successfully with global index: $global_index"
 
-  # Wait for certificate settlement containing the global index
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
