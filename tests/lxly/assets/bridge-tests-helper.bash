@@ -872,15 +872,23 @@ _cleanup_max_amount_setup() {
 }
 
 
+_check_already_claimed() {
+    local output="$1"
+    
+    # Check for "already claimed" patterns first - these should generally be treated as success
+    # We will not return 1 if this is false, because we will first need to attempt to claim it
+    if echo "$output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
+        echo "[DEBUG]: Found 'already claimed' pattern - indicates success" >&2
+        return 0
+    fi
+}
+
 _validate_bridge_error() {
     local expected_result="$1"
     local output="$2"
     
     # Check for "already claimed" patterns first - these should generally be treated as success
-    if echo "$output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
-        echo "[DEBUG]: Found 'already claimed' pattern - usually indicates success" >&2
-        return 0
-    fi
+    _check_already_claimed "$output"
     echo "[DEBUG]: Validating bridge error - Expected: $expected_result" >&2
     echo "[DEBUG]: Bridge output: $output" >&2
     
@@ -1432,7 +1440,7 @@ _run_single_bridge_test() {
                                 local verify_output
                                 if verify_output=$(timeout 30 bash -c "$verify_command" 2>&1) || \
                                    verify_output=$(timeout 30 bash -c "$claim_command" 2>&1); then
-                                    if echo "$verify_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
+                                    if _check_already_claimed "$verify_output"; then
                                         echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                                         claim_status=0  # Treat as success
                                         claim_output="Deposit was already claimed (verified)"
@@ -1464,8 +1472,8 @@ _run_single_bridge_test() {
                             echo "[DEBUG]: Claim output: $claim_output" >&2
 
                             # Check if it's already claimed - this should be treated as success
-                            if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
-                                echo "[DEBUG]: Deposit already claimed - treating as success" >&2
+                            if _check_already_claimed "$claim_output"; then
+                                echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                                 claim_status=0
                                 break
                             fi
@@ -1479,8 +1487,8 @@ _run_single_bridge_test() {
                                 # Do one final verification attempt
                                 local final_verify_output
                                 if final_verify_output=$(timeout 15 bash -c "$claim_command" 2>&1); then
-                                    if echo "$final_verify_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
-                                        echo "[DEBUG]: Final verification confirms deposit was already claimed" >&2
+                                    if _check_already_claimed "$final_verify_output"; then
+                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                                         claim_status=0
                                         claim_output="Deposit was already claimed (race condition detected)"
                                         break
@@ -1488,8 +1496,8 @@ _run_single_bridge_test() {
                                 else
                                     # If the verification also fails with the same pattern, assume it's already claimed
                                     if echo "$final_verify_output" | grep -q "The deposit is ready to be claimed" && \
-                                       echo "$final_verify_output" | grep -q "Deposit transaction failed"; then
-                                        echo "[DEBUG]: Final verification shows same pattern - treating as already claimed" >&2
+                                    echo "$final_verify_output" | grep -q "Deposit transaction failed"; then
+                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                                         claim_status=0
                                         claim_output="Deposit was already claimed (consistent failure pattern)"
                                         break
@@ -1519,8 +1527,8 @@ _run_single_bridge_test() {
                                     claim_output="$final_check_output"
                                     break
                                 else
-                                    if echo "$final_check_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
-                                        echo "[DEBUG]: Final check confirms deposit was already claimed" >&2
+                                    if _check_already_claimed "$final_check_output"; then
+                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                                         claim_status=0
                                         claim_output="$final_check_output"
                                         break
@@ -1572,9 +1580,9 @@ _run_single_bridge_test() {
                         echo "[DEBUG]: Claim succeeded and success was expected" >&2
                     else
                         # Success not expected, but check if already claimed
-                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
+                        if _check_already_claimed "$claim_output"; then
                             claim_result="PASS"
-                            echo "[DEBUG]: Claim succeeded but only because already claimed" >&2
+                            echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                         else
                             claim_result="FAIL"
                             error_message="Expected claim failure but succeeded for deposit $deposit_count"
@@ -1582,17 +1590,17 @@ _run_single_bridge_test() {
                     fi
                 else
                     # Claim failed
-                    if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
+                    if _check_already_claimed "$claim_output"; then
                         claim_result="PASS"
-                        echo "[DEBUG]: Deposit $deposit_count already claimed, treating as success" >&2
+                        echo "[DEBUG]: Verification shows deposit $deposit_count was already claimed by another process" >&2
                     elif $claim_has_other_expected_errors && _validate_bridge_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
                         echo "[DEBUG]: Claim failed with expected error pattern" >&2
                     elif $claim_expects_success && ! $claim_has_other_expected_errors; then
                         # Only expected success, but got failure - check if it's AlreadyClaimedError
-                        if echo "$claim_output" | grep -q -E "(already been claimed|AlreadyClaimedError)"; then
+                        if _check_already_claimed "$claim_output"; then
                             claim_result="PASS"
-                            echo "[DEBUG]: Claim failed with AlreadyClaimedError but this counts as success" >&2
+                            echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
                         else
                             claim_result="FAIL"
                             error_message="Expected claim success but failed for deposit $deposit_count"

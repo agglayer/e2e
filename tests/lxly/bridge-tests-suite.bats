@@ -109,9 +109,9 @@ _setup_contract_addresses() {
 
 # bats test_tags=bridge
 @test "Process L1 to L2 bridge scenarios and claim deposits in parallel" {
-    echo "Starting L1 to L2 parallel bridge scenarios and claims test" >&3
+    echo "[DEBUG]: Starting L1 to L2 parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
-        echo "Bridge Tests Suite file not found" >&3
+        echo "[DEBUG]: Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
     }
 
@@ -121,20 +121,21 @@ _setup_contract_addresses() {
     local output_dir="$log_root_dir/bridge_test_results_l1_to_l2_${timestamp}"
     mkdir -p "$output_dir"
     
-    echo "Test results will be saved to: $output_dir" >&3
+    echo "[DEBUG]: Test results will be saved to: $output_dir" >&3
 
     
     # Get total number of scenarios
     local total_scenarios
     total_scenarios=$(echo "$scenarios" | jq '. | length')
-    echo "Total scenarios to process: $total_scenarios" >&3
+    echo "[DEBUG]: Total scenarios to process: $total_scenarios" >&3
     
     # Save detailed setup log
     local setup_log="$output_dir/setup_phase.log"
     
     echo "" | tee "$setup_log"
     echo "========================================" | tee -a "$setup_log"
-    echo "      PHASE 1: SEQUENTIAL SETUP        " | tee -a "$setup_log"
+    echo "      PHASE 1: SEQUENTIAL SETUP         " | tee -a "$setup_log"
+    echo "              L1 -> L2                  " | tee -a "$setup_log"
     echo "========================================" | tee -a "$setup_log"
     
     # Phase 1: Sequential setup of all test accounts
@@ -142,7 +143,7 @@ _setup_contract_addresses() {
     local setup_failures=0
     local successful_setups=()  # Array to track successfully set up test indices
     
-    echo "Setting up $total_scenarios test accounts..." >&3
+    echo "[DEBUG]: Setting up $total_scenarios test accounts..." >&3
     
     while read -r scenario; do
         local progress_percent=$((index * 100 / total_scenarios))
@@ -185,7 +186,8 @@ _setup_contract_addresses() {
     
     echo "" | tee "$bridge_log"
     echo "========================================" | tee -a "$bridge_log"
-    echo "      PHASE 2: PARALLEL BRIDGE TESTS   " | tee -a "$bridge_log"
+    echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log"
+    echo "              L1 -> L2                  " | tee -a "$setup_log"
     echo "========================================" | tee -a "$bridge_log"
     
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
@@ -305,7 +307,7 @@ _setup_contract_addresses() {
     done
     
     echo "" >&3
-    echo "All bridge tests completed! Collecting results..." >&3
+    echo "[DEBUG]: All bridge tests completed! Collecting results..." >&3
     
     # Collect and report results - pass the successful count instead of total
     _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
@@ -313,12 +315,12 @@ _setup_contract_addresses() {
     
     # Report setup failures in the final summary but don't fail the test for them
     if [[ $setup_failures -gt 0 ]]; then
-        echo "Note: $setup_failures accounts failed setup and were skipped" >&3
+        echo "[DEBUG]: Note: $setup_failures accounts failed setup and were skipped" >&3
     fi
     
     # Fail the test only if bridge tests failed (not setup failures)
     [[ $failed_tests -eq 0 ]] || {
-        echo "Some bridge tests failed. Check the detailed logs in $output_dir" >&3
+        echo "[DEBUG]: Some bridge tests failed. Check the detailed logs in $output_dir" >&3
         return 1
     }
 }
@@ -326,7 +328,7 @@ _setup_contract_addresses() {
 
 # bats test_tags=bridge
 @test "Process L2 to L1 bridge scenarios and claim deposits in parallel" {
-    echo "Starting L2 to L1 parallel bridge scenarios and claims test" >&3
+    echo "[DEBUG]: Starting L2 to L1 parallel bridge scenarios and claims test" >&3
     [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
@@ -338,20 +340,21 @@ _setup_contract_addresses() {
     local output_dir="$log_root_dir/bridge_test_results_l2_to_l1_${timestamp}"
     mkdir -p "$output_dir"
     
-    echo "Test results will be saved to: $output_dir" >&3
+    echo "[DEBUG]: Test results will be saved to: $output_dir" >&3
 
     
     # Get total number of scenarios
     local total_scenarios
     total_scenarios=$(echo "$scenarios" | jq '. | length')
-    echo "Total scenarios to process: $total_scenarios" >&3
+    echo "[DEBUG]: Total scenarios to process: $total_scenarios" >&3
     
     # Save detailed setup log
     local setup_log="$output_dir/setup_phase.log"
     
     echo "" | tee "$setup_log"
     echo "========================================" | tee -a "$setup_log"
-    echo "      PHASE 1: SEQUENTIAL SETUP        " | tee -a "$setup_log"
+    echo "      PHASE 1: SEQUENTIAL SETUP         " | tee -a "$setup_log"
+    echo "              L2 -> L1                  " | tee -a "$setup_log"
     echo "========================================" | tee -a "$setup_log"
     
     # Phase 1: Sequential setup of all test accounts
@@ -359,7 +362,7 @@ _setup_contract_addresses() {
     local setup_failures=0
     local successful_setups=()  # Array to track successfully set up test indices
     
-    echo "Setting up $total_scenarios test accounts..." >&3
+    echo "[DEBUG]: Setting up $total_scenarios test accounts..." >&3
     
     while read -r scenario; do
         local progress_percent=$((index * 100 / total_scenarios))
@@ -402,7 +405,8 @@ _setup_contract_addresses() {
     
     echo "" | tee "$bridge_log"
     echo "========================================" | tee -a "$bridge_log"
-    echo "      PHASE 2: PARALLEL BRIDGE TESTS   " | tee -a "$bridge_log"
+    echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log"
+    echo "              L2 -> L1                  " | tee -a "$setup_log"
     echo "========================================" | tee -a "$bridge_log"
     
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
@@ -522,7 +526,7 @@ _setup_contract_addresses() {
     done
     
     echo "" >&3
-    echo "All bridge tests completed! Collecting results..." >&3
+    echo "[DEBUG]: All bridge tests completed! Collecting results..." >&3
     
     # Collect and report results - pass the successful count instead of total
     _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
@@ -575,29 +579,29 @@ _setup_contract_addresses() {
 @test "Reclaim test funds" {
     # Sanity check for l1_rpc_url
     if [[ -z "$l1_rpc_url" ]]; then
-        echo "Error: l1_rpc_url is empty" >&3
+        echo "[ERROR]: l1_rpc_url is empty" >&3
         return 1
     fi
 
     # Sanity check for l2_rpc_url
     if [[ -z "$l2_rpc_url" ]]; then
-        echo "Error: l2_rpc_url is empty" >&3
+        echo "[Error]: l2_rpc_url is empty" >&3
         return 1
     fi
 
     # Check and reclaim funds for L1
     if [[ ! "$l1_rpc_url" =~ 127.0.0.1 ]]; then
-        echo "Non-Kurtosis L1 network detected, attempting to reclaim funds..." >&3
+        echo "[DEBUG]: Non-Kurtosis L1 network detected, attempting to reclaim funds..." >&3
         _reclaim_funds_after_test "$l1_eth_address" "$l1_rpc_url"
     else
-        echo "Kurtosis L1 network detected, skipping reclaiming funds..." >&3
+        echo "[DEBUG]: Kurtosis L1 network detected, skipping reclaiming funds..." >&3
     fi
 
     # Check and reclaim funds for L2
     if [[ ! "$l2_rpc_url" =~ 127.0.0.1 ]]; then
-        echo "Non-Kurtosis L2 network detected, attempting to reclaim funds..." >&3
+        echo "[DEBUG]: Non-Kurtosis L2 network detected, attempting to reclaim funds..." >&3
         _reclaim_funds_after_test "$l2_eth_address" "$l2_rpc_url"
     else
-        echo "Kurtosis L2 network detected, skipping reclaiming funds..." >&3
+        echo "[DEBUG]: Kurtosis L2 network detected, skipping reclaiming funds..." >&3
     fi
 }
