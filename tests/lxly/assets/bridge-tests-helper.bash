@@ -195,6 +195,65 @@ _fund_ephemeral_account() {
     fi
 }
 
+
+_reclaim_funds_after_test() {
+    local target_address="$1"
+    local rpc_url="$2"
+
+    # Iteration count should be changed based on number of ephemeral accounts generated
+    for i in {0..30}; do
+            result=$(_generate_ephemeral_account "$i")
+            private_key=$(echo "$result" | cut -d' ' -f1)
+            address=$(echo "$result" | cut -d' ' -f2)
+            balance=$(cast balance "$address" --rpc-url "$rpc_url")
+            if [[ "$balance" != "0" ]]; then
+                echo "Transferring from $address..." >&2
+                
+                # Get gas price and estimate gas for the transaction
+                gas_price=$(cast gas-price --rpc-url "$rpc_url")
+                gas_limit=21000  
+                
+                # Calculate total gas cost
+                gas_cost=$((gas_price * gas_limit))
+                
+                # Calculate adjusted balance (balance - gas cost)
+                adjusted_balance=$((balance - gas_cost))
+                
+                # Only proceed if we have enough balance to cover gas
+                if [[ $adjusted_balance -gt 0 ]]; then
+                echo "  Balance: $(cast to-unit $balance ether) ETH" >&2
+                echo "  Gas cost: $(cast to-unit $gas_cost ether) ETH" >&2
+                echo "  Sending: $(cast to-unit $adjusted_balance ether) ETH" >&2
+                
+                # Try basic cast send
+                cast send --private-key "$private_key" \
+                    --rpc-url "$rpc_url" \
+                    "$target_address" \
+                    --value "$adjusted_balance" \
+                    --confirmations 3
+
+                # More aggressive gas price
+                cast send --private-key "$private_key" \
+                    --rpc-url "$rpc_url" \
+                    --gas-price "$((gas_price + 20000000))" \
+                    "$target_address" \
+                    --value "$adjusted_balance" \
+                    --confirmations 3
+
+                # Retry with reduced value
+                cast send --private-key "$private_key" \
+                    --rpc-url "$rpc_url" \
+                    "$target_address" \
+                    --value 0.999ether \
+                    --confirmations 3
+            else
+                echo "  Insufficient balance to cover gas fees" >&2
+            fi
+        fi
+    done
+}
+
+
 _setup_token_for_ephemeral_account() {
     local target_address="$1"
     local token_type="$2"
@@ -418,6 +477,7 @@ _setup_token_for_ephemeral_account() {
     esac
 }
 
+
 _approve_token_for_ephemeral_account() {
     local ephemeral_private_key="$1"
     local token_type="$2"
@@ -515,6 +575,7 @@ _approve_token_for_ephemeral_account() {
 # =============================================================================
 # Utility Functions
 # =============================================================================
+
 _get_bridge_type_command() {
     local bridge_type="$1"
     case "$bridge_type" in
@@ -524,6 +585,7 @@ _get_bridge_type_command() {
         *) echo "Unrecognized Bridge Type: $bridge_type" >&3; return 1 ;;
     esac
 }
+
 
 _get_destination_address() {
     local dest_type="$1"
@@ -542,6 +604,7 @@ _get_destination_address() {
         *) echo "Unrecognized Destination Address: $dest_type" >&3; return 1 ;;
     esac
 }
+
 
 _get_token_address() {
     local token_type="$1"
@@ -563,6 +626,7 @@ _get_token_address() {
         *) echo "Unrecognized Test Token: $token_type" >&3; return 1 ;;
     esac
 }
+
 
 _add_metadata_to_command() {
     local command="$1"
@@ -614,6 +678,7 @@ _add_metadata_to_command() {
     esac
 }
 
+
 _add_force_update_to_command() {
     local command="$1"
     local force_update="$2"
@@ -624,6 +689,7 @@ _add_force_update_to_command() {
         *) echo "Unrecognized Force Update: $force_update" >&3; return 1 ;;
     esac
 }
+
 
 _setup_amount_and_add_to_command() {
     local command="$1"
@@ -682,6 +748,7 @@ _setup_amount_and_add_to_command() {
             ;;
     esac
 }
+
 
 _setup_single_test_account() {
     local test_index="$1"
@@ -795,6 +862,7 @@ _setup_single_test_account() {
     return 0
 }
 
+
 _cleanup_max_amount_setup() {
     local amount_type="$1"
     if [[ "$amount_type" = "Max" ]]; then
@@ -802,6 +870,7 @@ _cleanup_max_amount_setup() {
             "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0
     fi
 }
+
 
 _validate_bridge_error() {
     local expected_result="$1"
@@ -862,6 +931,7 @@ _validate_bridge_error() {
     fi
 }
 
+
 _check_error_pattern() {
     local expected_error="$1"
     local output="$2"
@@ -891,6 +961,7 @@ _check_error_pattern() {
     echo "DEBUG: No pattern match found for: $expected_error" >&2
     return 1
 }
+
 
 _run_single_bridge_test() {
     local test_index="$1"

@@ -570,3 +570,34 @@ _setup_contract_addresses() {
         done
     done
 }
+
+# bats test_tags=bridge
+@test "Reclaim test funds" {
+    # Sanity check for l1_rpc_url
+    if [[ -z "$l1_rpc_url" ]]; then
+        echo "Error: l1_rpc_url is empty" >&3
+        return 1
+    fi
+
+    # Sanity check for l2_rpc_url
+    if [[ -z "$l2_rpc_url" ]]; then
+        echo "Error: l2_rpc_url is empty" >&3
+        return 1
+    fi
+
+    # Check and reclaim funds for L1
+    if [[ ! "$l1_rpc_url" =~ 127.0.0.1 ]]; then
+        echo "Non-Kurtosis L1 network detected, attempting to reclaim funds..." >&3
+        _reclaim_funds_after_test "$l1_eth_address" "$l1_rpc_url"
+    else
+        echo "Kurtosis L1 network detected, skipping reclaiming funds..." >&3
+    fi
+
+    # Check and reclaim funds for L2
+    if [[ ! "$l2_rpc_url" =~ 127.0.0.1 ]]; then
+        echo "Non-Kurtosis L2 network detected, attempting to reclaim funds..." >&3
+        _reclaim_funds_after_test "$l2_eth_address" "$l2_rpc_url"
+    else
+        echo "Kurtosis L2 network detected, skipping reclaiming funds..." >&3
+    fi
+}
