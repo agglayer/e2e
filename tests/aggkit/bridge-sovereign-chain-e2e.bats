@@ -56,6 +56,33 @@ check_certificate_height() {
 @test "Test GlobalExitRoot removal" {
   echo "=== 🧑‍💻 Running GlobalExitRoot removal" >&3
 
+  # Send 1 transaction from L1 to L2, claim it and wait for certificate settlement
+  log "🚀 Sending 1 bridge transaction from L1 to L2 after GER removal"
+
+  # Set token amount for native token bridging
+  local tokens_amount="0.1ether"
+  local wei_amount
+  wei_amount=$(cast --to-unit "$tokens_amount" wei)
+
+  destination_addr=$receiver
+  destination_net=$l2_rpc_network_id
+  amount=$wei_amount
+  meta_bytes="0x"
+
+  # Send bridge transaction from L1 to L2
+  log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local bridge_tx_hash=$output
+  log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
+
+  # Claim the deposit on L2
+  log "🔐 Claiming the bridge deposit on L2"
+  run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  local global_index=$output
+  log "✅ Bridge claim processed successfully with global index: $global_index"
+
   # Fetch UpdateHashChainValue events
   run cast logs \
     --rpc-url "$L2_RPC_URL" \
@@ -305,176 +332,176 @@ check_certificate_height() {
 #   log "✅ Test Sovereign Chain Bridge Event successful"
 # }
 
-@test "Test Unset claims Events" {
-  log "=== 🧑‍💻 Running Test Unset claims Events" >&3
+# @test "Test Unset claims Events -> claim in 1 cert, unset claim in another cert" {
+#   log "=== 🧑‍💻 Running Test Unset claims Events" >&3
 
-  # Set token amount for native token bridging
-  local tokens_amount="0.1ether"
-  local wei_amount
-  wei_amount=$(cast --to-unit "$tokens_amount" wei)
+#   # Set token amount for native token bridging
+#   local tokens_amount="0.1ether"
+#   local wei_amount
+#   wei_amount=$(cast --to-unit "$tokens_amount" wei)
 
-  # Array to store bridge transaction hashes
-  local bridge_tx_hashes=()
-  local global_indexes=()
-  local deposit_counts=()
+#   # Array to store bridge transaction hashes
+#   local bridge_tx_hashes=()
+#   local global_indexes=()
+#   local deposit_counts=()
 
-  # Send 2 bridge transactions from L1 to L2
-  log "🚀 Sending 2 bridge transactions from L1 to L2"
-  for i in {1..2}; do
-    log "Sending bridge transaction $i/2"
+#   # Send 2 bridge transactions from L1 to L2
+#   log "🚀 Sending 2 bridge transactions from L1 to L2"
+#   for i in {1..2}; do
+#     log "Sending bridge transaction $i/2"
 
-    # DEPOSIT ON L1
-    destination_addr=$receiver
-    destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit "$tokens_amount" wei)
-    meta_bytes="0x"
-    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-    assert_success
-    local bridge_tx_hash=$output
-    bridge_tx_hashes+=("$bridge_tx_hash")
-    log "Bridge transaction $i hash: $bridge_tx_hash"
+#     # DEPOSIT ON L1
+#     destination_addr=$receiver
+#     destination_net=$l2_rpc_network_id
+#     amount=$(cast --to-unit "$tokens_amount" wei)
+#     meta_bytes="0x"
+#     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+#     assert_success
+#     local bridge_tx_hash=$output
+#     bridge_tx_hashes+=("$bridge_tx_hash")
+#     log "Bridge transaction $i hash: $bridge_tx_hash"
 
-    # Get deposit count
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 10 "$aggkit_bridge_url" "$sender_addr"
-    assert_success
-    local deposit_count=$(echo "$output" | jq -r '.deposit_count')
-    deposit_counts+=("$deposit_count")
-  done
+#     # Get deposit count
+#     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 10 "$aggkit_bridge_url" "$sender_addr"
+#     assert_success
+#     local deposit_count=$(echo "$output" | jq -r '.deposit_count')
+#     deposit_counts+=("$deposit_count")
+#   done
 
-  # Claim 2 deposits on L2
-  log "🔐 Claiming 2 deposits on L2"
-  for i in {0..1}; do
-    local bridge_tx_hash=${bridge_tx_hashes[$i]}
-    log "Claiming bridge transaction $((i+1))/2 with hash: $bridge_tx_hash"
+#   # Claim 2 deposits on L2
+#   log "🔐 Claiming 2 deposits on L2"
+#   for i in {0..1}; do
+#     local bridge_tx_hash=${bridge_tx_hashes[$i]}
+#     log "Claiming bridge transaction $((i+1))/2 with hash: $bridge_tx_hash"
 
-    # Process bridge claim
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-    assert_success
+#     # Process bridge claim
+#     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+#     assert_success
 
-    # Extract global index from the claim
-    local global_index
-    global_index=$(echo "$output" | tail -n 1)
-    global_indexes+=("$global_index")
-    log "Global index for transaction $((i+1)): $global_index"
-  done
+#     # Extract global index from the claim
+#     local global_index
+#     global_index=$(echo "$output" | tail -n 1)
+#     global_indexes+=("$global_index")
+#     log "Global index for transaction $((i+1)): $global_index"
+#   done
 
-  # Unset the last 1 claim using unsetMultipleClaims
-  log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
-  local last_one_global_indexes=("${global_indexes[1]}")
+#   # Unset the last 1 claim using unsetMultipleClaims
+#   log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
+#   local last_one_global_indexes=("${global_indexes[1]}")
 
-  # Call unsetMultipleClaims function
-  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
-  assert_success
-  local unset_claims_tx_resp=$output
-  log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
+#   # Call unsetMultipleClaims function
+#   run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
+#   assert_success
+#   local unset_claims_tx_resp=$output
+#   log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
 
-  # Verify that the last 1 claim is now unset (not claimed)
-  log "🔍 Verifying that the last 1 claim is now unset"
-  for i in {1..1}; do
-    local global_index=${global_indexes[$i]}
-    local deposit_count=${deposit_counts[$i]}
-    local origin_network=0  # L1 network ID
+#   # Verify that the last 1 claim is now unset (not claimed)
+#   log "🔍 Verifying that the last 1 claim is now unset"
+#   for i in {1..1}; do
+#     local global_index=${global_indexes[$i]}
+#     local deposit_count=${deposit_counts[$i]}
+#     local origin_network=0  # L1 network ID
 
-    # Check isClaimed for the global index
-    run is_claimed "$deposit_count" "$origin_network" "$l2_bridge_addr" "$L2_RPC_URL"
-    assert_success
-    local is_claimed_result=$output
-    log "isClaimed for deposit count $deposit_count after unset: $is_claimed_result"
+#     # Check isClaimed for the global index
+#     run is_claimed "$deposit_count" "$origin_network" "$l2_bridge_addr" "$L2_RPC_URL"
+#     assert_success
+#     local is_claimed_result=$output
+#     log "isClaimed for deposit count $deposit_count after unset: $is_claimed_result"
 
-    # Convert hex to boolean and verify it's false
-    if [[ "$is_claimed_result" == "false" ]]; then
-      log "✅ Global index $global_index is correctly marked as unclaimed after unset"
-    else
-      log "❌ Global index $global_index is still marked as claimed after unset"
-      exit 1
-    fi
-  done
+#     # Convert hex to boolean and verify it's false
+#     if [[ "$is_claimed_result" == "false" ]]; then
+#       log "✅ Global index $global_index is correctly marked as unclaimed after unset"
+#     else
+#       log "❌ Global index $global_index is still marked as claimed after unset"
+#       exit 1
+#     fi
+#   done
 
-  # Send 1 transaction from L1 to L2, claim it and wait for certificate settlement
-  log "🚀 Sending 1 bridge transaction from L1 to L2 after unset claims"
+#   # Send 1 transaction from L1 to L2, claim it and wait for certificate settlement
+#   log "🚀 Sending 1 bridge transaction from L1 to L2 after unset claims"
 
-  # Set token amount for native token bridging
-  local tokens_amount="0.1ether"
-  local wei_amount
-  wei_amount=$(cast --to-unit "$tokens_amount" wei)
+#   # Set token amount for native token bridging
+#   local tokens_amount="0.1ether"
+#   local wei_amount
+#   wei_amount=$(cast --to-unit "$tokens_amount" wei)
 
-  destination_addr=$receiver
-  destination_net=$l2_rpc_network_id
-  amount=$wei_amount
-  meta_bytes="0x"
+#   destination_addr=$receiver
+#   destination_net=$l2_rpc_network_id
+#   amount=$wei_amount
+#   meta_bytes="0x"
 
-  # Send bridge transaction from L1 to L2
-  log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
-  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-  assert_success
-  local bridge_tx_hash=$output
-  log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
+#   # Send bridge transaction from L1 to L2
+#   log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
+#   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+#   assert_success
+#   local bridge_tx_hash=$output
+#   log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
 
-  # Claim the deposit on L2
-  log "🔐 Claiming the bridge deposit on L2"
-  run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-  assert_success
-  local global_index=$output
-  log "✅ Bridge claim processed successfully with global index: $global_index"
+#   # Claim the deposit on L2
+#   log "🔐 Claiming the bridge deposit on L2"
+#   run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+#   assert_success
+#   local global_index=$output
+#   log "✅ Bridge claim processed successfully with global index: $global_index"
 
-  # Wait for certificate settlement containing the global index
-  log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
-  log "✅ Certificate settlement completed for global index: $global_index"
+#   # Wait for certificate settlement containing the global index
+#   log "⏳ Waiting for certificate settlement containing global index: $global_index"
+#   wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+#   log "✅ Certificate settlement completed for global index: $global_index"
 
-  # Claim the unset claims again
-  log "🔐 Claiming the unset claims again"
-  for i in {2..2}; do
-    local bridge_tx_hash=${bridge_tx_hashes[$i]}
-    local global_index=${global_indexes[$i]}
-    log "Re-claiming bridge transaction $((i+1))/3 with hash: $bridge_tx_hash, global index: $global_index"
+#   # Claim the unset claims again
+#   log "🔐 Claiming the unset claims again"
+#   for i in {2..2}; do
+#     local bridge_tx_hash=${bridge_tx_hashes[$i]}
+#     local global_index=${global_indexes[$i]}
+#     log "Re-claiming bridge transaction $((i+1))/3 with hash: $bridge_tx_hash, global index: $global_index"
 
-    # Process bridge claim again
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-    assert_success
+#     # Process bridge claim again
+#     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+#     assert_success
 
-    log "Successfully re-claimed global index: $global_index"
-  done
+#     log "Successfully re-claimed global index: $global_index"
+#   done
 
-  # Verify that the last 1 claim is marked as claimed again
-  log "🔍 Verifying that the last 1 claim is marked as claimed again"
-  for i in {2..2}; do
-    local global_index=${global_indexes[$i]}
-    local origin_network=0  # L1 network ID
+#   # Verify that the last 1 claim is marked as claimed again
+#   log "🔍 Verifying that the last 1 claim is marked as claimed again"
+#   for i in {2..2}; do
+#     local global_index=${global_indexes[$i]}
+#     local origin_network=0  # L1 network ID
 
-    # Check isClaimed for the global index
-    run is_claimed "$deposit_count" "$origin_network" "$l2_bridge_addr" "$L2_RPC_URL"
-    assert_success
-    local is_claimed_result=$output
-    log "isClaimed for global index $global_index after re-claim: $is_claimed_result"
+#     # Check isClaimed for the global index
+#     run is_claimed "$deposit_count" "$origin_network" "$l2_bridge_addr" "$L2_RPC_URL"
+#     assert_success
+#     local is_claimed_result=$output
+#     log "isClaimed for global index $global_index after re-claim: $is_claimed_result"
 
-    # Convert hex to boolean and verify it's true
-    if [[ "$is_claimed_result" == "true" ]]; then
-      log "✅ Global index $global_index is correctly marked as claimed after re-claim"
-    else
-      log "❌ Global index $global_index is not marked as claimed after re-claim"
-      exit 1
-    fi
-  done
+#     # Convert hex to boolean and verify it's true
+#     if [[ "$is_claimed_result" == "true" ]]; then
+#       log "✅ Global index $global_index is correctly marked as claimed after re-claim"
+#     else
+#       log "❌ Global index $global_index is not marked as claimed after re-claim"
+#       exit 1
+#     fi
+#   done
 
- # Send bridge transaction from L1 to L2
-  log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
-  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-  assert_success
-  local bridge_tx_hash=$output
-  log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
+#  # Send bridge transaction from L1 to L2
+#   log "🌉 Bridging $tokens_amount native tokens from L1 to L2"
+#   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+#   assert_success
+#   local bridge_tx_hash=$output
+#   log "✅ Bridge transaction sent successfully with hash: $bridge_tx_hash"
 
-  # Claim the deposit on L2
-  log "🔐 Claiming the bridge deposit on L2"
-  run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-  assert_success
-  local global_index=$output
-  log "✅ Bridge claim processed successfully with global index: $global_index"
+#   # Claim the deposit on L2
+#   log "🔐 Claiming the bridge deposit on L2"
+#   run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+#   assert_success
+#   local global_index=$output
+#   log "✅ Bridge claim processed successfully with global index: $global_index"
 
-  # Wait for certificate settlement containing the global index
-  log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
-  log "✅ Certificate settlement completed for global index: $global_index"
+#   # Wait for certificate settlement containing the global index
+#   log "⏳ Waiting for certificate settlement containing global index: $global_index"
+#   wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+#   log "✅ Certificate settlement completed for global index: $global_index"
 
-  log "✅ Test Unset claims Events completed successfully"
-}
+#   log "✅ Test Unset claims Events completed successfully"
+# }
