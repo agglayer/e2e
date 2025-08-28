@@ -299,14 +299,10 @@ check_certificate_height() {
 # }
 
 # @test "Test Unset claims Events -> claim in 1 cert, unset claim in another cert" {
-#   log "=== 🧑‍💻 Running Test Unset claims Events" >&3
-
-#   # Set token amount for native token bridging
 #   local tokens_amount="0.1ether"
 #   local wei_amount
 #   wei_amount=$(cast --to-unit "$tokens_amount" wei)
 
-#   # Array to store bridge transaction hashes
 #   local bridge_tx_hashes=()
 #   local global_indexes=()
 #   local deposit_counts=()
@@ -316,7 +312,6 @@ check_certificate_height() {
 #   for i in {1..2}; do
 #     log "Sending bridge transaction $i/2"
 
-#     # DEPOSIT ON L1
 #     destination_addr=$receiver
 #     destination_net=$l2_rpc_network_id
 #     amount=$(cast --to-unit "$tokens_amount" wei)
@@ -325,61 +320,41 @@ check_certificate_height() {
 #     assert_success
 #     local bridge_tx_hash=$output
 #     bridge_tx_hashes+=("$bridge_tx_hash")
-#     log "Bridge transaction $i hash: $bridge_tx_hash"
-
-#     # Get deposit count
 #     run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 100 10 "$aggkit_bridge_url" "$sender_addr"
 #     assert_success
 #     local deposit_count=$(echo "$output" | jq -r '.deposit_count')
 #     deposit_counts+=("$deposit_count")
 #   done
 
-#   # Claim 2 deposits on L2
 #   log "🔐 Claiming 2 deposits on L2"
 #   for i in {0..1}; do
 #     local bridge_tx_hash=${bridge_tx_hashes[$i]}
-#     log "Claiming bridge transaction $((i+1))/2 with hash: $bridge_tx_hash"
-
-#     # Process bridge claim
 #     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
 #     assert_success
-
-#     # Extract global index from the claim
 #     local global_index
 #     global_index=$(echo "$output" | tail -n 1)
 #     global_indexes+=("$global_index")
-#     log "Global index for transaction $((i+1)): $global_index"
-#   done
+#     if [[ "$i" == 1 ]]; then
+#       log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
+#       local last_one_global_indexes=("${global_indexes[1]}")
+#       run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
+#       assert_success
+#       local unset_claims_tx_resp=$output
+#       log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
 
-#   # Unset the last 1 claim using unsetMultipleClaims
-#   log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
-#   local last_one_global_indexes=("${global_indexes[1]}")
-
-#   # Call unsetMultipleClaims function
-#   run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
-#   assert_success
-#   local unset_claims_tx_resp=$output
-#   log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
-
-#   # Verify that the last 1 claim is now unset (not claimed)
-#   log "🔍 Verifying that the last 1 claim is now unset"
-#   for i in {1..1}; do
-#     local global_index=${global_indexes[$i]}
-#     local deposit_count=${deposit_counts[$i]}
-#     local origin_network=0  # L1 network ID
-
-#     # Check isClaimed for the global index
-#     run is_claimed "$deposit_count" "$origin_network" "$l2_bridge_addr" "$L2_RPC_URL"
-#     assert_success
-#     local is_claimed_result=$output
-#     log "isClaimed for deposit count $deposit_count after unset: $is_claimed_result"
-
-#     # Convert hex to boolean and verify it's false
-#     if [[ "$is_claimed_result" == "false" ]]; then
-#       log "✅ Global index $global_index is correctly marked as unclaimed after unset"
-#     else
-#       log "❌ Global index $global_index is still marked as claimed after unset"
-#       exit 1
+#       log "🔍 Verifying that the last 1 claim is now unset"
+#       local global_index=${global_indexes[1]}
+#       local deposit_count=${deposit_counts[1]}
+#       local origin_network=0
+#       run is_claimed "$deposit_count" "$origin_network" "$l2_bridge_addr" "$L2_RPC_URL"
+#       assert_success
+#       local is_claimed_result=$output
+#       if [[ "$is_claimed_result" == "false" ]]; then
+#         log "✅ Global index $global_index is correctly marked as unclaimed after unset"
+#       else
+#         log "❌ Global index $global_index is still marked as claimed after unset"
+#         exit 1
+#       fi
 #     fi
 #   done
 
