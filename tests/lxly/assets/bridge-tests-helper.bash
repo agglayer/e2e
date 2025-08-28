@@ -1,11 +1,16 @@
 #!/bin/bash
 # shellcheck disable=SC2154,SC2034
+
+# Source the logger functions
+# shellcheck disable=SC1091
+source "$PWD/core/helpers/logger.bash"
+
 deploy_buggy_erc20() {
     local rpc_url=$1
     local private_key=$2
     local eth_address=$3
     local bridge_address=$4
-    echo "[DEBUG]: Deploying Buggy ERC20 - RPC: $rpc_url, Address: $eth_address, Bridge: $bridge_address" >&3
+    _log_file_descriptor "3" "Deploying Buggy ERC20 - RPC: $rpc_url, Address: $eth_address, Bridge: $bridge_address"
 
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr="0x4e59b44847b379578588920ca78fbf26c0b4956c"
@@ -14,22 +19,22 @@ deploy_buggy_erc20() {
     # This contract is a weird ERC20 that has a infinite money glitch and allows for some bizarre testing
     constructor_args=$(cast abi-encode 'f(string,string,uint8)' 'Buggy ERC20' 'BUG' "18" | sed 's/0x//')
     test_erc20_buggy_addr=$(cast create2 --salt $salt --init-code $erc20_buggy_bytecode"$constructor_args")
-    echo "[DEBUG]: Calculated Buggy ERC20 address: $test_erc20_buggy_addr" >&3
+    _log_file_descriptor "3" "Calculated Buggy ERC20 address: $test_erc20_buggy_addr"
 
     if [[ $(cast code --rpc-url "$rpc_url" "$test_erc20_buggy_addr") != "0x" ]]; then
-        echo "[DEBUG]: The network on $rpc_url already has the Buggy ERC20 deployed. Skipping deployment..." >&3
+        _log_file_descriptor "3" "The network on $rpc_url already has the Buggy ERC20 deployed. Skipping deployment..."
     else
-        echo "[DEBUG]: Deploying Buggy ERC20 to $rpc_url..." >&3
+        _log_file_descriptor "3" "Deploying Buggy ERC20 to $rpc_url..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" "$deterministic_deployer_addr" "$salt$erc20_buggy_bytecode$constructor_args"
-        echo "[DEBUG]: Deployment transaction sent." >&3
+        _log_file_descriptor "3" "Deployment transaction sent."
 
-        echo "[DEBUG]: Minting max uint tokens to $eth_address..." >&3
+        _log_file_descriptor "3" "Minting max uint tokens to $eth_address..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_buggy_addr" 'mint(address,uint256)' "$eth_address" "$(cast max-uint)"
-        echo "[DEBUG]: Minting completed." >&3
+        _log_file_descriptor "3" "Minting completed."
 
-        echo "[DEBUG]: Approving max uint tokens for bridge $bridge_address..." >&3
+        _log_file_descriptor "3" "Approving max uint tokens for bridge $bridge_address..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_buggy_addr" 'approve(address,uint256)' "$bridge_address" "$(cast max-uint)"
-        echo "[DEBUG]: Approval completed." >&3
+        _log_file_descriptor "3" "Approval completed."
     fi
 }
 
@@ -39,7 +44,7 @@ deploy_test_erc20() {
     local private_key=$2
     local eth_address=$3
     local bridge_address=$4
-    echo "[DEBUG]: Deploying Test ERC20 - RPC: $rpc_url, Address: $eth_address, Bridge: $bridge_address" >&3
+    _log_file_descriptor "3" "Deploying Test ERC20 - RPC: $rpc_url, Address: $eth_address, Bridge: $bridge_address"
 
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr="0x4e59b44847b379578588920ca78fbf26c0b4956c"
@@ -47,18 +52,18 @@ deploy_test_erc20() {
     
     constructor_args=$(cast abi-encode 'f(string,string,address,uint256)' 'Bridge Test' 'BT' "$eth_address" 100000000000000000000 | sed 's/0x//')
     test_erc20_addr=$(cast create2 --salt $salt --init-code $erc_20_bytecode"$constructor_args")
-    echo "[DEBUG]: Calculated Test ERC20 address: $test_erc20_addr" >&3
+    _log_file_descriptor "3" "Calculated Test ERC20 address: $test_erc20_addr"
 
     if [[ $(cast code --rpc-url "$rpc_url" "$test_erc20_addr") != "0x" ]]; then
-        echo "[DEBUG]: The network on $rpc_url already has the Test ERC20 deployed. Skipping deployment..." >&3
+        _log_file_descriptor "3" "The network on $rpc_url already has the Test ERC20 deployed. Skipping deployment..."
     else
-        echo "[DEBUG]: Deploying Test ERC20 to $rpc_url..." >&3
+        _log_file_descriptor "3" "Deploying Test ERC20 to $rpc_url..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" "$deterministic_deployer_addr" "$salt$erc_20_bytecode$constructor_args"
-        echo "[DEBUG]: Deployment transaction sent." >&3
+        _log_file_descriptor "3" "Deployment transaction sent."
 
-        echo "[DEBUG]: Approving max uint tokens for bridge $bridge_address..." >&3
+        _log_file_descriptor "3" "Approving max uint tokens for bridge $bridge_address..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" "$test_erc20_addr" 'approve(address,uint256)' "$bridge_address" "$(cast max-uint)"
-        echo "[DEBUG]: Approval completed." >&3
+        _log_file_descriptor "3" "Approval completed."
     fi
 }
 
@@ -67,7 +72,7 @@ deploy_lxly_proxy() {
     local rpc_url=$1
     local private_key=$2
     local bridge_address=$3
-    echo "[DEBUG]: Deploying LxLy Proxy - RPC: $rpc_url, Bridge: $bridge_address" >&3
+    _log_file_descriptor "3" "Deploying LxLy Proxy - RPC: $rpc_url, Bridge: $bridge_address"
 
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr="0x4e59b44847b379578588920ca78fbf26c0b4956c"
@@ -75,14 +80,14 @@ deploy_lxly_proxy() {
     
     constructor_args=$(cast abi-encode 'f(address)' "$bridge_address" | sed 's/0x//')
     test_lxly_proxy_addr=$(cast create2 --salt $salt --init-code $lxly_proxy_bytecode"$constructor_args")
-    echo "[DEBUG]: Calculated LxLy Proxy address: $test_lxly_proxy_addr" >&3
+    _log_file_descriptor "3" "Calculated LxLy Proxy address: $test_lxly_proxy_addr"
 
     if [[ $(cast code --rpc-url "$rpc_url" "$test_lxly_proxy_addr") != "0x" ]]; then
-        echo "[DEBUG]: The network on $rpc_url already has the LxLy Proxy deployed. Skipping deployment..." >&3
+        _log_file_descriptor "3" "The network on $rpc_url already has the LxLy Proxy deployed. Skipping deployment..."
     else
-        echo "[DEBUG]: Deploying LxLy Proxy to $rpc_url..." >&3
+        _log_file_descriptor "3" "Deploying LxLy Proxy to $rpc_url..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" $deterministic_deployer_addr $salt$lxly_proxy_bytecode"$constructor_args"
-        echo "[DEBUG]: Deployment transaction sent." >&3
+        _log_file_descriptor "3" "Deployment transaction sent."
     fi
 }
 
@@ -90,21 +95,21 @@ deploy_lxly_proxy() {
 deploy_tester_contract() {
     local rpc_url=$1
     local private_key=$2
-    echo "[DEBUG]: Deploying Tester Contract - RPC: $rpc_url" >&3
+    _log_file_descriptor "3" "Deploying Tester Contract - RPC: $rpc_url"
 
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr="0x4e59b44847b379578588920ca78fbf26c0b4956c"
     address_tester_bytecode=6300000dac63000000156000396300000dac6000F3366060811015610032577f6e6f7420656e6f7567682063616c6c6461746100000000000000000000000000805f5260205ffd5b5f356020356040356060840380606060c0375f845f528360205282604052600185612000116110008711161561006f576110008603915061100195505b85613000116120008711161561008c576120008603915061200195505b85600181146101a057600281146101b057600381146101c057600481146101cf57601181146101de57601281146101fe576013811461021e576014811461023e576021811461025e576022811461027e576023811461029e57602481146102be57603181146102de57603281146102fd576033811461031c576034811461033b576041811461035a5760428114610379576043811461039857604481146103b75761010181146103d657610201811461041a57610301811461045e5761040181146104a25761050181146104e657610601811461052a57610701811461056d5761080181146105b15761090181146105f557611001811461063857612001811461067f575f9150644641494c215f526106c3565b5f808560c0888a5af191506106c3565b5f808560c0888a5af291506106c3565b5f808560c0895af491506106c3565b5f808560c0895afa91506106c3565b6001606052856080528460a0525f8085606001606088305af191506106c3565b6002606052856080528460a0525f8085606001606088305af191506106c3565b6003606052856080528460a0525f8085606001606088305af191506106c3565b6004606052856080528460a0525f8085606001606088305af191506106c3565b6001606052856080528460a0525f8085606001606088305af291506106c3565b6002606052856080528460a0525f8085606001606088305af291506106c3565b6003606052856080528460a0525f8085606001606088305af291506106c3565b6004606052856080528460a0525f8085606001606088305af291506106c3565b6001606052856080528460a0525f80856060016060305af491506106c3565b6002606052856080528460a0525f80856060016060305af491506106c3565b6003606052856080528460a0525f80856060016060305af491506106c3565b6004606052856080528460a0525f80856060016060305af491506106c3565b6001606052856080528460a0525f80856060016060305afa91506106c3565b6002606052856080528460a0525f80856060016060305afa91506106c3565b6003606052856080528460a0525f80856060016060305afa91506106c3565b6004606052856080528460a0525f80856060016060305afa91506106c3565b7f600e600c600039600e6000f3600160015b8101906300000004560000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6009600c60003960096000f3fe60005260206000f300000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6001600c60003960016000f350000000000000000000000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6007600c60003960076000f35b63ffffffff56000000000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6008600c60003960086000f35b5f6300000000560000000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6003600c60003960036000f35f5f5500000000000000000000000000000000005f5260205f80f05f805f808461c350fa505f808660c0898b5af19250506106c3565b7f6008600c60003960086000f360015f5560025f550000000000000000000000005f5260205f80f05f805f805f856156c2f1505f808660c0898b5af19250506106c3565b7f6002600c60003960026000f332ff0000000000000000000000000000000000005f5260205f80f05f805f805f856156c2f1505f808660c0898b5af19250506106c3565b7f6002600c60003960026000f332ff0000000000000000000000000000000000005f5260205f80f05f805f80846156c2fa505f808660c0898b5af19250506106c3565b82606052856080528460a0527f333b5f5f333c595ff300000000000000000000000000000000000000000000005f5260205f80f05f8086606001606089855af150506106c3565b82606052856080528460a0527f333b5f5f333c595ff300000000000000000000000000000000000000000000005f524460205f80f55f8086606001606089855af150505b50806106ce5760205ffd5b50505050505050
     
     tester_contract_address=$(cast create2 --salt $salt --init-code $address_tester_bytecode)
-    echo "[DEBUG]: Calculated Tester Contract address: $tester_contract_address" >&3
+    _log_file_descriptor "3" "Calculated Tester Contract address: $tester_contract_address"
 
     if [[ $(cast code --rpc-url "$rpc_url" "$tester_contract_address") != "0x" ]]; then
-        echo "[DEBUG]: The network on $rpc_url already has the Tester Contract deployed. Skipping deployment..." >&3
+        _log_file_descriptor "3" "The network on $rpc_url already has the Tester Contract deployed. Skipping deployment..."
     else
-        echo "[DEBUG]: Deploying Tester Contract to $rpc_url..." >&3
+        _log_file_descriptor "3" "Deploying Tester Contract to $rpc_url..."
         cast send --rpc-url "$rpc_url" --private-key "$private_key" $deterministic_deployer_addr $salt$address_tester_bytecode
-        echo "[DEBUG]: Deployment transaction sent." >&3
+        _log_file_descriptor "3" "Deployment transaction sent."
     fi
 }
 
@@ -136,11 +141,11 @@ _fund_ephemeral_account() {
     local funding_private_key="$3"
     local amount="$4"
     
-    echo "[DEBUG]: Funding $target_address with $amount on $rpc_url" >&2
+    _log_file_descriptor "2" "Funding $target_address with $amount on $rpc_url"
     
     # First check if the RPC is reachable
     if ! cast chain-id --rpc-timeout 5 --rpc-url "$rpc_url" >/dev/null 2>&1; then
-        echo "[DEBUG]: RPC $rpc_url is not reachable" >&2
+        _log_file_descriptor "2" "RPC $rpc_url is not reachable"
         return 1
     fi
     
@@ -149,20 +154,20 @@ _fund_ephemeral_account() {
     target_balance=$(cast balance --rpc-url "$rpc_url" "$target_address")
     local threshold="100000000000000000"  # 0.1 ETH in wei
     
-    echo "[DEBUG]: Target address balance: $target_balance" >&2
-    echo "[DEBUG]: Funding threshold: $threshold" >&2
+    _log_file_descriptor "2" "Target address balance: $target_balance"
+    _log_file_descriptor "2" "Funding threshold: $threshold"
     
     if [[ -n "$target_balance" && "$target_balance" != "0" ]]; then
         # Use bc for comparison if available, otherwise use bash arithmetic
         if command -v bc >/dev/null 2>&1; then
             if [[ $(echo "$target_balance > $threshold" | bc) -eq 1 ]]; then
-                echo "[DEBUG]: Target address already has sufficient balance ($target_balance > $threshold), skipping funding" >&2
+                _log_file_descriptor "2" "Target address already has sufficient balance ($target_balance > $threshold), skipping funding"
                 return 0
             fi
         else
             # Fallback to bash arithmetic for smaller numbers
             if [[ "$target_balance" -gt "$threshold" ]]; then
-                echo "[DEBUG]: Target address already has sufficient balance ($target_balance > $threshold), skipping funding" >&2
+                _log_file_descriptor "2" "Target address already has sufficient balance ($target_balance > $threshold), skipping funding"
                 return 0
             fi
         fi
@@ -170,15 +175,15 @@ _fund_ephemeral_account() {
     
     local funding_address
     funding_address=$(cast wallet address --private-key "$funding_private_key")
-    echo "[DEBUG]: Funding from address: $funding_address" >&2
+    _log_file_descriptor "2" "Funding from address: $funding_address"
     
     # Check balance of funding account
     local balance
     balance=$(cast balance --rpc-url "$rpc_url" "$funding_address")
-    echo "[DEBUG]: Funding account balance: $balance" >&2
+    _log_file_descriptor "2" "Funding account balance: $balance"
     
     if [[ "$balance" == "0" ]]; then
-        echo "[DEBUG]: Funding account has zero balance" >&2
+        _log_file_descriptor "2" "Funding account has zero balance"
         return 1
     fi
     
@@ -186,11 +191,11 @@ _fund_ephemeral_account() {
     local tx_output
     if tx_output=$(cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
          "$target_address" --value "$amount" 2>&1); then
-        echo "[DEBUG]: Successfully funded $target_address" >&2
+        _log_file_descriptor "2" "Successfully funded $target_address"
         return 0
     else
-        echo "[DEBUG]: Failed to fund $target_address" >&2
-        echo "[DEBUG]: Transaction error: $tx_output" >&2
+        _log_file_descriptor "2" "Failed to fund $target_address"
+        _log_file_descriptor "2" "Transaction error: $tx_output"
         return 1
     fi
 }
@@ -207,7 +212,7 @@ _reclaim_funds_after_test() {
             address=$(echo "$result" | cut -d' ' -f2)
             balance=$(cast balance "$address" --rpc-url "$rpc_url")
             if [[ "$balance" != "0" ]]; then
-                echo "Transferring from $address..." >&2
+                _log_file_descriptor "2" "Transferring from $address..."
                 
                 # Get gas price and estimate gas for the transaction
                 gas_price=$(cast gas-price --rpc-url "$rpc_url")
@@ -221,33 +226,33 @@ _reclaim_funds_after_test() {
                 
                 # Only proceed if we have enough balance to cover gas
                 if [[ $adjusted_balance -gt 0 ]]; then
-                echo "  Balance: $(cast to-unit $balance ether) ETH" >&2
-                echo "  Gas cost: $(cast to-unit $gas_cost ether) ETH" >&2
-                echo "  Sending: $(cast to-unit $adjusted_balance ether) ETH" >&2
-                
-                # Try basic cast send
-                cast send --private-key "$private_key" \
-                    --rpc-url "$rpc_url" \
-                    "$target_address" \
-                    --value "$adjusted_balance" \
-                    --confirmations 3
+                    _log_file_descriptor "2" "  Balance: $(cast to-unit $balance ether) ETH"
+                    _log_file_descriptor "2" "  Gas cost: $(cast to-unit $gas_cost ether) ETH"
+                    _log_file_descriptor "2" "  Sending: $(cast to-unit $adjusted_balance ether) ETH"
+                    
+                    # Try basic cast send
+                    cast send --private-key "$private_key" \
+                        --rpc-url "$rpc_url" \
+                        "$target_address" \
+                        --value "$adjusted_balance" \
+                        --confirmations 3
 
-                # More aggressive gas price
-                cast send --private-key "$private_key" \
-                    --rpc-url "$rpc_url" \
-                    --gas-price "$((gas_price + 20000000))" \
-                    "$target_address" \
-                    --value "$adjusted_balance" \
-                    --confirmations 3
+                    # More aggressive gas price
+                    cast send --private-key "$private_key" \
+                        --rpc-url "$rpc_url" \
+                        --gas-price "$((gas_price + 20000000))" \
+                        "$target_address" \
+                        --value "$adjusted_balance" \
+                        --confirmations 3
 
-                # Retry with reduced value
-                cast send --private-key "$private_key" \
-                    --rpc-url "$rpc_url" \
-                    "$target_address" \
-                    --value 0.999ether \
-                    --confirmations 3
+                    # Retry with reduced value
+                    cast send --private-key "$private_key" \
+                        --rpc-url "$rpc_url" \
+                        "$target_address" \
+                        --value 0.999ether \
+                        --confirmations 3
             else
-                echo "  Insufficient balance to cover gas fees" >&2
+                _log_file_descriptor "2" "  Insufficient balance to cover gas fees"
             fi
         fi
     done
@@ -261,18 +266,18 @@ _setup_token_for_ephemeral_account() {
     local rpc_url="$4"
     local bridge_addr="$5"
     
-    echo "[DEBUG]: Setting up token $token_type for $target_address" >&2
+    _log_file_descriptor "2" "Setting up token $token_type for $target_address"
     
     case "$token_type" in
         "Buggy"|"LocalERC20")
             local token_addr
             token_addr=$(_get_token_address "$token_type")
-            echo "[DEBUG]: Token address for $token_type: $token_addr" >&2
+            _log_file_descriptor "2" "Token address for $token_type: $token_addr"
             
             # Check if target address already has sufficient balance
             local current_balance
             if current_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
-                echo "[DEBUG]: Current token balance for $target_address: $current_balance" >&2
+                _log_file_descriptor "2" "Current token balance for $target_address: $current_balance"
                 
                 # Define minimum required balance (use the requested amount as threshold)
                 local required_balance="$amount"
@@ -303,16 +308,16 @@ _setup_token_for_ephemeral_account() {
                     local current_length=${#current_balance}
                     local required_length=${#required_balance}
                     
-                    echo "[DEBUG]: Comparing balance lengths - current: $current_length, required: $required_length" >&2
+                    _log_file_descriptor "2" "Comparing balance lengths - current: $current_length, required: $required_length"
                     # shellcheck disable=SC2071
                     if [[ $current_length -gt $required_length ]] || \
                        [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
                         has_sufficient_balance=true
-                        echo "[DEBUG]: Large number comparison: sufficient balance detected" >&2
+                        _log_file_descriptor "2" "Large number comparison: sufficient balance detected"
                     elif [[ "$token_type" == "Buggy" && $current_length -ge 75 ]]; then
                         # For Buggy token, if we have a very large number (75+ digits), it's probably sufficient
                         has_sufficient_balance=true
-                        echo "[DEBUG]: Buggy token has very large balance (${current_length} digits), considering sufficient" >&2
+                        _log_file_descriptor "2" "Buggy token has very large balance (${current_length} digits), considering sufficient"
                     fi
                 else
                     # For normal amounts, use bc if available, otherwise bash arithmetic
@@ -343,11 +348,11 @@ _setup_token_for_ephemeral_account() {
                 fi
                 
                 if $has_sufficient_balance; then
-                    echo "[DEBUG]: Target address already has sufficient $token_type balance ($current_balance >= $required_balance), skipping minting" >&2
+                    _log_file_descriptor "2" "Target address already has sufficient $token_type balance ($current_balance >= $required_balance), skipping minting"
                     return 0
                 fi
             else
-                echo "[DEBUG]: Could not check token balance, proceeding with minting" >&2
+                _log_file_descriptor "2" "Could not check token balance, proceeding with minting"
             fi
             
             # For Max amount with LocalERC20, use a large but safe amount instead of max-uint
@@ -355,30 +360,30 @@ _setup_token_for_ephemeral_account() {
             if [[ "$amount" == "$(cast max-uint)" && "$token_type" == "LocalERC20" ]]; then
                 # Use 1 billion tokens instead of max-uint to avoid overflow
                 mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                echo "[DEBUG]: Using safe amount $mint_amount instead of max-uint for LocalERC20" >&2
+                _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for LocalERC20"
             fi
             
-            echo "[DEBUG]: Minting $mint_amount of $token_type to $target_address" >&2
+            _log_file_descriptor "2" "Minting $mint_amount of $token_type to $target_address"
             
             # Mint tokens with timeout (no nonce management needed for sequential execution)
             local mint_output
             if mint_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
-                echo "[DEBUG]: Successfully minted $token_type tokens" >&2
+                _log_file_descriptor "2" "Successfully minted $token_type tokens"
                 return 0
             else
-                echo "[DEBUG]: Failed to mint $token_type tokens" >&2
-                echo "[DEBUG]: Mint error: $mint_output" >&2
+                _log_file_descriptor "2" "Failed to mint $token_type tokens"
+                _log_file_descriptor "2" "Mint error: $mint_output"
                 return 1
             fi
             ;;
         "GasToken")
-            echo "[DEBUG]: Minting GasToken to $target_address" >&2
+            _log_file_descriptor "2" "Minting GasToken to $target_address"
             
             # Check if target address already has sufficient GasToken balance
             local current_balance
             if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
-                echo "[DEBUG]: Current GasToken balance for $target_address: $current_balance" >&2
+                _log_file_descriptor "2" "Current GasToken balance for $target_address: $current_balance"
                 
                 # Define minimum required balance
                 local required_balance="$amount"
@@ -407,7 +412,7 @@ _setup_token_for_ephemeral_account() {
                 fi
                 
                 if $has_sufficient_balance; then
-                    echo "[DEBUG]: Target address already has sufficient GasToken balance, skipping minting" >&2
+                    _log_file_descriptor "2" "Target address already has sufficient GasToken balance, skipping minting"
                     return 0
                 fi
             fi
@@ -416,26 +421,26 @@ _setup_token_for_ephemeral_account() {
             local mint_amount="$amount"
             if [[ "$amount" == "$(cast max-uint)" ]]; then
                 mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                echo "[DEBUG]: Using safe amount $mint_amount instead of max-uint for GasToken" >&2
+                _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for GasToken"
             fi
             
-            echo "[DEBUG]: Minting $mint_amount GasToken to $target_address" >&2
+            _log_file_descriptor "2" "Minting $mint_amount GasToken to $target_address"
             
             # Mint GasToken with timeout
             local mint_output
             if mint_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$gas_token_address" 'mint(address,uint256)' "$target_address" "$mint_amount" 2>&1); then
-                echo "[DEBUG]: Successfully minted GasToken" >&2
+                _log_file_descriptor "2" "Successfully minted GasToken"
                 return 0
             else
-                echo "[DEBUG]: Failed to mint GasToken" >&2
-                echo "[DEBUG]: GasToken mint error: $mint_output" >&2
+                _log_file_descriptor "2" "Failed to mint GasToken"
+                _log_file_descriptor "2" "GasToken mint error: $mint_output"
                 return 1
             fi
             ;;
         "POL")
-            echo "[DEBUG]: Transferring $amount POL to $target_address" >&2
-            echo "[DEBUG]: POL address: $pol_address" >&2
+            _log_file_descriptor "2" "Transferring $amount POL to $target_address"
+            _log_file_descriptor "2" "POL address: $pol_address"
             
             # For POL transfers with max amount, use a safe amount instead
             local transfer_amount="$amount"
@@ -446,11 +451,11 @@ _setup_token_for_ephemeral_account() {
                 if [[ -n "$pol_balance" && "$pol_balance" != "0" ]]; then
                     # Use 90% of available balance to avoid transfer amount exceeds balance error
                     transfer_amount=$((pol_balance * 9 / 10))
-                    echo "[DEBUG]: Using safe transfer amount $transfer_amount (90% of available $pol_balance) instead of max-uint for POL" >&2
+                    _log_file_descriptor "2" "Using safe transfer amount $transfer_amount (90% of available $pol_balance) instead of max-uint for POL"
                 else
                     # Fallback to a reasonable amount if balance check fails
                     transfer_amount="1000000000000000000000000000"  # 1 billion tokens
-                    echo "[DEBUG]: Using fallback amount $transfer_amount for POL transfer" >&2
+                    _log_file_descriptor "2" "Using fallback amount $transfer_amount for POL transfer"
                 fi
             fi
             
@@ -458,20 +463,20 @@ _setup_token_for_ephemeral_account() {
             local pol_output
             if pol_output=$(cast send --rpc-url "$rpc_url" --private-key "$l1_private_key" \
                 "$pol_address" 'transfer(address,uint256)' "$target_address" "$transfer_amount" 2>&1); then
-                echo "[DEBUG]: Successfully transferred POL tokens" >&2
+                _log_file_descriptor "2" "Successfully transferred POL tokens"
                 return 0
             else
-                echo "[DEBUG]: Failed to transfer POL tokens" >&2
-                echo "[DEBUG]: POL transfer error: $pol_output" >&2
+                _log_file_descriptor "2" "Failed to transfer POL tokens"
+                _log_file_descriptor "2" "POL transfer error: $pol_output"
                 return 1
             fi
             ;;
         "NativeEther"|"WETH")
-            echo "[DEBUG]: Skipping token setup for $token_type (native token or special handling)" >&2
+            _log_file_descriptor "2" "Skipping token setup for $token_type (native token or special handling)"
             return 0
             ;;
         *)
-            echo "[DEBUG]: Unknown token type $token_type, skipping" >&2
+            _log_file_descriptor "2" "Unknown token type $token_type, skipping"
             return 0
             ;;
     esac
@@ -485,11 +490,11 @@ _approve_token_for_ephemeral_account() {
     local rpc_url="$4"
     local bridge_addr="$5"
     
-    echo "[DEBUG]: Approving $token_type tokens for bridge" >&2
+    _log_file_descriptor "2" "Approving $token_type tokens for bridge"
     
     # Skip approval for native tokens and special cases
     if [[ "$token_type" == "NativeEther" || "$token_type" == "WETH" ]]; then
-        echo "[DEBUG]: Skipping approval for $token_type (native token or special handling)" >&2
+        _log_file_descriptor "2" "Skipping approval for $token_type (native token or special handling)"
         return 0
     fi
     
@@ -498,23 +503,23 @@ _approve_token_for_ephemeral_account() {
     
     # Validate token address
     if [[ "$token_addr" == "0x0000000000000000000000000000000000000000" ]]; then
-        echo "[DEBUG]: Skipping approval for zero address token $token_type" >&2
+        _log_file_descriptor "2" "Skipping approval for zero address token $token_type"
         return 0
     fi
     
     local ephemeral_address
     ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
     
-    echo "[DEBUG]: Approving $amount of token $token_addr for bridge $bridge_addr" >&2
-    echo "[DEBUG]: Approval from ephemeral address: $ephemeral_address" >&2
+    _log_file_descriptor "2" "Approving $amount of token $token_addr for bridge $bridge_addr"
+    _log_file_descriptor "2" "Approval from ephemeral address: $ephemeral_address"
     
     # Check if ephemeral account has native tokens for gas
     local ephemeral_balance
     ephemeral_balance=$(cast balance --rpc-url "$rpc_url" "$ephemeral_address")
-    echo "[DEBUG]: Ephemeral account native balance: $ephemeral_balance" >&2
+    _log_file_descriptor "2" "Ephemeral account native balance: $ephemeral_balance"
     
     if [[ "$ephemeral_balance" == "0" ]]; then
-        echo "[DEBUG]: Ephemeral account has no native tokens for gas fees" >&2
+        _log_file_descriptor "2" "Ephemeral account has no native tokens for gas fees"
         return 1
     fi
     
@@ -522,16 +527,16 @@ _approve_token_for_ephemeral_account() {
     local code_size
     code_size=$(cast code --rpc-url "$rpc_url" "$token_addr" | wc -c)
     if [[ $code_size -le 2 ]]; then  # "0x" is 2 characters
-        echo "[DEBUG]: Token contract $token_addr has no code, skipping approval" >&2
+        _log_file_descriptor "2" "Token contract $token_addr has no code, skipping approval"
         return 0
     fi
     
     # Check token balance before approval
     local token_balance
     if token_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$ephemeral_address" 2>/dev/null); then
-        echo "[DEBUG]: Ephemeral account token balance: $token_balance" >&2
+        _log_file_descriptor "2" "Ephemeral account token balance: $token_balance"
     else
-        echo "[DEBUG]: Failed to check token balance, proceeding with approval anyway" >&2
+        _log_file_descriptor "2" "Failed to check token balance, proceeding with approval anyway"
     fi
     
     # Use the same safe amount logic for approval
@@ -540,16 +545,16 @@ _approve_token_for_ephemeral_account() {
         case "$token_type" in
             "LocalERC20"|"GasToken")
                 approve_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                echo "[DEBUG]: Using safe approval amount $approve_amount instead of max-uint for $token_type" >&2
+                _log_file_descriptor "2" "Using safe approval amount $approve_amount instead of max-uint for $token_type"
                 ;;
             "POL")
                 # Use the actual token balance for approval
                 if [[ -n "$token_balance" && "$token_balance" != "0" ]]; then
                     approve_amount="$token_balance"
-                    echo "[DEBUG]: Using token balance $approve_amount for POL approval" >&2
+                    _log_file_descriptor "2" "Using token balance $approve_amount for POL approval"
                 else
                     approve_amount="1000000000000000000000000000"  # 1 billion tokens fallback
-                    echo "[DEBUG]: Using fallback approval amount $approve_amount for POL" >&2
+                    _log_file_descriptor "2" "Using fallback approval amount $approve_amount for POL"
                 fi
                 ;;
             *)
@@ -562,11 +567,11 @@ _approve_token_for_ephemeral_account() {
     local approve_output
     if approve_output=$(cast send --rpc-url "$rpc_url" --private-key "$ephemeral_private_key" \
         "$token_addr" 'approve(address,uint256)' "$bridge_addr" "$approve_amount" 2>&1); then
-        echo "[DEBUG]: Successfully approved tokens" >&2
+        _log_file_descriptor "2" "Successfully approved tokens"
         return 0
     else
-        echo "[DEBUG]: Failed to approve tokens" >&2
-        echo "[DEBUG]: Approval error: $approve_output" >&2
+        _log_file_descriptor "2" "Failed to approve tokens"
+        _log_file_descriptor "2" "Approval error: $approve_output"
         return 1
     fi
 }
@@ -646,7 +651,7 @@ _add_metadata_to_command() {
             local temp_file="/tmp/huge_data_${test_index}.hex"
             # Create the file with proper hex data - add error handling and redirect stderr
             if ! (dd if=/dev/zero bs=1 count=48500 2>/dev/null | xxd -p | tr -d "\n" > "$temp_file"); then
-                echo "[DEBUG]: Failed to create huge metadata file, using alternative method" >&2
+                _log_file_descriptor "2" "Failed to create huge metadata file, using alternative method"
                 # Alternative method using printf
                 printf '%*s' 97000 '' | tr ' ' '0' > "$temp_file"
             fi
@@ -658,21 +663,21 @@ _add_metadata_to_command() {
             if [[ "$token_type" == "POL" ]]; then
                 # Use smaller metadata size for POL to avoid memory/gas issues
                 if ! (dd if=/dev/zero bs=1 count=65000 2>/dev/null | xxd -p | tr -d "\n" > "$temp_file"); then
-                    echo "[DEBUG]: Failed to create max metadata file for POL, using alternative method" >&2
+                    _log_file_descriptor "2" "Failed to create max metadata file for POL, using alternative method"
                     printf '%*s' 130000 '' | tr ' ' '0' > "$temp_file"
                 fi
-                echo "[DEBUG]: Using reduced metadata size for POL token" >&2
+                _log_file_descriptor "2" "Using reduced metadata size for POL token"
             else
                 # Normal max size for other tokens
                 if ! (dd if=/dev/zero bs=1 count=130784 2>/dev/null | xxd -p | tr -d "\n" > "$temp_file"); then
-                    echo "[DEBUG]: Failed to create max metadata file, using alternative method" >&2
+                    _log_file_descriptor "2" "Failed to create max metadata file, using alternative method"
                     printf '%*s' 261569 '' | tr ' ' '0' > "$temp_file"
                 fi
             fi
             echo "$command --call-data-file $temp_file"
             ;;
         *)
-            echo "Unrecognized Metadata: $metadata_type" >&2
+            _log_file_descriptor "2" "Unrecognized Metadata: $metadata_type"
             return 1
             ;;
     esac
@@ -728,7 +733,7 @@ _setup_amount_and_add_to_command() {
             elif [[ "$token_type" == "POL" && "$metadata_type" == "Max" ]]; then
                 # Special case: POL with Max amount AND Max metadata - use much smaller amount
                 echo "$command --value 100000000000000000000000 --gas-limit $gas_limit_value"
-                echo "[DEBUG]: Using reduced bridge amount for POL Max+Max combination" >&2
+                _log_file_descriptor "2" "Using reduced bridge amount for POL Max+Max combination"
             elif [[ "$token_type" == "LocalERC20" || "$token_type" == "POL" ]]; then
                 # Use the safe amount for LocalERC20 and POL (normal cases)
                 local max_gas_limit=$((gas_limit_value * 2))
@@ -755,7 +760,7 @@ _setup_single_test_account() {
     local scenario="$2"
     local bridge_direction="${3:-L1_TO_L2}"  # Default to L1->L2 for backward compatibility
     
-    echo "[DEBUG]: Setting up account for test $test_index (direction: $bridge_direction)" >&2
+    _log_file_descriptor "2" "Setting up account for test $test_index (direction: $bridge_direction)"
     
     # Extract scenario parameters
     local test_token
@@ -781,7 +786,7 @@ _setup_single_test_account() {
         dest_bridge_addr="$l1_bridge_addr"
         dest_private_key="$l1_private_key"
         
-        echo "[DEBUG]: Configured for L2->L1 bridge setup" >&2
+        _log_file_descriptor "2" "Configured for L2->L1 bridge setup"
     else
         # Bridge from L1 to L2 (default) - setup tokens on L1 (source)
         source_rpc_url="$l1_rpc_url"
@@ -794,7 +799,7 @@ _setup_single_test_account() {
         dest_bridge_addr="$l2_bridge_addr"
         dest_private_key="$l2_private_key"
         
-        echo "[DEBUG]: Configured for L1->L2 bridge setup" >&2
+        _log_file_descriptor "2" "Configured for L1->L2 bridge setup"
     fi
     
     # Generate ephemeral account
@@ -805,26 +810,26 @@ _setup_single_test_account() {
     local ephemeral_address
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     
-    echo "[DEBUG]: Generated ephemeral account for test $test_index: $ephemeral_address" >&2
-    echo "[DEBUG]: Private key for ephemeral account $test_index: $ephemeral_private_key" >&2
+    _log_file_descriptor "2" "Generated ephemeral account for test $test_index: $ephemeral_address"
+    _log_file_descriptor "2" "Private key for ephemeral account $test_index: $ephemeral_private_key"
     
     # Test if ephemeral_private_key is valid
     if [[ -z "$ephemeral_private_key" || "$ephemeral_private_key" == "0x" ]]; then
-        echo "[DEBUG]: Failed to generate ephemeral private key for test $test_index" >&2
+        _log_file_descriptor "2" "Failed to generate ephemeral private key for test $test_index"
         return 1
     fi
     
     # Fund ephemeral account with native tokens on source network (where bridging happens from)
-    echo "[DEBUG]: Funding source network account for test $test_index ($bridge_direction)" >&2
+    _log_file_descriptor "2" "Funding source network account for test $test_index ($bridge_direction)"
     if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "100000000000000000"; then
-        echo "[DEBUG]: Failed to fund source network account for test $test_index" >&2
+        _log_file_descriptor "2" "Failed to fund source network account for test $test_index"
         return 1
     fi
     
     # Fund ephemeral account with native tokens on destination network (for claims later)
-    echo "[DEBUG]: Funding destination network account for test $test_index ($bridge_direction)" >&2
+    _log_file_descriptor "2" "Funding destination network account for test $test_index ($bridge_direction)"
     if ! _fund_ephemeral_account "$ephemeral_address" "$dest_rpc_url" "$dest_private_key" "10000000000000000"; then
-        echo "[DEBUG]: Failed to fund destination network account for test $test_index" >&2
+        _log_file_descriptor "2" "Failed to fund destination network account for test $test_index"
         return 1
     fi
     
@@ -835,7 +840,7 @@ _setup_single_test_account() {
         if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" ]]; then
             # Use even smaller amount for this problematic combination
             amount_for_setup="100000000000000000000000"
-            echo "[DEBUG]: Using reduced amount $amount_for_setup for POL Max+Max combination" >&2
+            _log_file_descriptor "2" "Using reduced amount $amount_for_setup for POL Max+Max combination"
         elif [[ "$test_token" == "LocalERC20" || "$test_token" == "POL" ]]; then
             amount_for_setup="1000000000000000000000000000"
         else
@@ -843,22 +848,22 @@ _setup_single_test_account() {
         fi
     fi
     
-    echo "[DEBUG]: Setting up tokens for test $test_index on source network (token: $test_token, amount: $amount_for_setup)" >&2
+    _log_file_descriptor "2" "Setting up tokens for test $test_index on source network (token: $test_token, amount: $amount_for_setup)"
     if ! _setup_token_for_ephemeral_account "$ephemeral_address" "$test_token" "$amount_for_setup" "$source_rpc_url" "$source_bridge_addr"; then
-        echo "[DEBUG]: Failed to setup tokens for test $test_index on source network" >&2
+        _log_file_descriptor "2" "Failed to setup tokens for test $test_index on source network"
         return 1
     fi
     
     # Small delay to let transaction propagate
     sleep 0.5
     
-    echo "[DEBUG]: Approving tokens for test $test_index on source network" >&2
+    _log_file_descriptor "2" "Approving tokens for test $test_index on source network"
     if ! _approve_token_for_ephemeral_account "$ephemeral_private_key" "$test_token" "$amount_for_setup" "$source_rpc_url" "$source_bridge_addr"; then
-        echo "[DEBUG]: Failed to approve tokens for test $test_index on source network" >&2
+        _log_file_descriptor "2" "Failed to approve tokens for test $test_index on source network"
         return 1
     fi
     
-    echo "[DEBUG]: Successfully set up account for test $test_index ($bridge_direction)" >&2
+    _log_file_descriptor "2" "Successfully set up account for test $test_index ($bridge_direction)"
     return 0
 }
 
@@ -878,7 +883,7 @@ _check_already_claimed() {
     # Check for "already claimed" patterns first - these should generally be treated as success
     # We will not return 1 if this is false, because we will first need to attempt to claim it
     if echo "$output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
-        echo "[DEBUG]: Found 'already claimed' pattern - indicates success" >&2
+        _log_file_descriptor "2" "Found 'already claimed' pattern - indicates success"
         return 0
     fi
 }
@@ -889,51 +894,51 @@ _validate_bridge_error() {
     
     # Check for "already claimed" patterns first - these should generally be treated as success
     _check_already_claimed "$output"
-    echo "[DEBUG]: Validating bridge error - Expected: $expected_result" >&2
-    echo "[DEBUG]: Bridge output: $output" >&2
+    _log_file_descriptor "2" "Validating bridge error - Expected: $expected_result"
+    _log_file_descriptor "2" "Bridge output: $output"
     
     # Check if expected_result_claim is an array or a single string
     if [[ "$expected_result" =~ ^\[.*\]$ ]]; then
         # Handle array of expected results
-        echo "[DEBUG]: Processing array of expected results" >&2
+        _log_file_descriptor "2" "Processing array of expected results"
         local match_found=false
         while read -r expected_error; do
             expected_error=$(echo "$expected_error" | jq -r '.')
-            echo "[DEBUG]: Checking for expected error: $expected_error" >&2
+            _log_file_descriptor "2" "Checking for expected error: $expected_error"
             
             # Special handling for "Success" in array
             if [[ "$expected_error" == "Success" ]]; then
-                echo "[DEBUG]: Found 'Success' in expected array - this should be handled in main logic" >&2
+                _log_file_descriptor "2" "Found 'Success' in expected array - this should be handled in main logic"
                 match_found=true
                 break
             elif _check_error_pattern "$expected_error" "$output"; then
-                echo "[DEBUG]: Found matching error pattern: $expected_error" >&2
+                _log_file_descriptor "2" "Found matching error pattern: $expected_error"
                 match_found=true
                 break
             fi
         done < <(echo "$expected_result" | jq -c '.[]')
         
         if $match_found; then
-            echo "[DEBUG]: Match found in array validation" >&2
+            _log_file_descriptor "2" "Match found in array validation"
             return 0
         else
-            echo "[DEBUG]: No match found in array validation" >&2
+            _log_file_descriptor "2" "No match found in array validation"
             return 1
         fi
     else
         # Handle single expected error
         local expected_error
         expected_error=$(echo "$expected_result" | jq -r '.')
-        echo "[DEBUG]: Processing single expected result: $expected_error" >&2
+        _log_file_descriptor "2" "Processing single expected result: $expected_error"
         
         if [[ "$expected_error" == "Success" ]]; then
-            echo "[DEBUG]: Single 'Success' expected" >&2
+            _log_file_descriptor "2" "Single 'Success' expected"
             return 0  # Success is always valid
         elif _check_error_pattern "$expected_error" "$output"; then
-            echo "[DEBUG]: Single error pattern matched" >&2
+            _log_file_descriptor "2" "Single error pattern matched"
             return 0
         else
-            echo "[DEBUG]: Single error pattern not matched" >&2
+            _log_file_descriptor "2" "Single error pattern not matched"
             return 1
         fi
     fi
@@ -944,29 +949,29 @@ _check_error_pattern() {
     local expected_error="$1"
     local output="$2"
     
-    echo "[DEBUG]: Checking error pattern '$expected_error' in output" >&2
+    _log_file_descriptor "2" "Checking error pattern '$expected_error' in output"
     
     # Handle different error patterns
     if [[ "$expected_error" =~ ^oversized\ data ]]; then
         if echo "$output" | grep -q "oversized data: transaction size [0-9]\+, limit 131072"; then
-            echo "[DEBUG]: Matched oversized data pattern" >&2
+            _log_file_descriptor "2" "Matched oversized data pattern"
             return 0
         fi
     elif [[ "$expected_error" =~ ^0x[0-9a-fA-F]+$ ]]; then
         # Handle hex error codes (like 0x23d72133)
         if echo "$output" | grep -q "$expected_error"; then
-            echo "[DEBUG]: Matched hex error code: $expected_error" >&2
+            _log_file_descriptor "2" "Matched hex error code: $expected_error"
             return 0
         fi
     else
         # Handle general string patterns
         if echo "$output" | grep -q "$expected_error"; then
-            echo "[DEBUG]: Matched general error pattern: $expected_error" >&2
+            _log_file_descriptor "2" "Matched general error pattern: $expected_error"
             return 0
         fi
     fi
     
-    echo "[DEBUG]: No pattern match found for: $expected_error" >&2
+    _log_file_descriptor "2" "No pattern match found for: $expected_error"
     return 1
 }
 
@@ -977,7 +982,7 @@ _run_single_bridge_test() {
     local bridge_direction="${3:-L1_TO_L2}"  # Default to L1->L2 for backward compatibility
     local result_file="/tmp/test_result_${test_index}.txt"
     
-    echo "[DEBUG]: Starting bridge test $test_index (direction: $bridge_direction)" >&2
+    _log_file_descriptor "2" "Starting bridge test $test_index (direction: $bridge_direction)"
     
     # Extract scenario parameters
     local test_bridge_type
@@ -1019,7 +1024,7 @@ _run_single_bridge_test() {
         claim_bridge_addr="$l1_bridge_addr"
         claim_private_key="$l1_private_key"
         
-        echo "[DEBUG]: Configured for L2->L1 bridge" >&2
+        _log_file_descriptor "2" "Configured for L2->L1 bridge"
     else
         # Bridge from L1 to L2 (default)
         source_rpc_url="$l1_rpc_url"
@@ -1037,10 +1042,10 @@ _run_single_bridge_test() {
         claim_bridge_addr="$l2_bridge_addr"
         claim_private_key="$l2_private_key"
         
-        echo "[DEBUG]: Configured for L1->L2 bridge" >&2
+        _log_file_descriptor "2" "Configured for L1->L2 bridge"
     fi
     
-    echo "[DEBUG]: Test $test_index - Token: $test_token, Amount: $test_amount, Metadata: $test_meta_data" >&2
+    _log_file_descriptor "2" "Test $test_index - Token: $test_token, Amount: $test_amount, Metadata: $test_meta_data"
     
     # Get ephemeral account (already set up)
     local ephemeral_data
@@ -1050,30 +1055,30 @@ _run_single_bridge_test() {
     local ephemeral_address
     ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
     
-    echo "[DEBUG]: Using ephemeral account for test $test_index: $ephemeral_address" >&2
+    _log_file_descriptor "2" "Using ephemeral account for test $test_index: $ephemeral_address"
     
     # Pre-create metadata files if needed
     if [[ "$test_meta_data" == "Huge" ]]; then
         local temp_file="/tmp/huge_data_${test_index}.hex"
-        echo "[DEBUG]: Creating huge metadata file: $temp_file" >&2
+        _log_file_descriptor "2" "Creating huge metadata file: $temp_file"
         xxd -p /dev/zero | tr -d "\n" | head -c 97000 > "$temp_file"
         if [[ ! -f "$temp_file" ]]; then
-            echo "[DEBUG]: Failed to create huge metadata file" >&2
+            _log_file_descriptor "2" "Failed to create huge metadata file"
             echo "TEST_$test_index|FAIL|N/A|Failed to create metadata file" > "$result_file"
             return 1
         fi
     elif [[ "$test_meta_data" == "Max" ]]; then
         local temp_file="/tmp/max_data_${test_index}.hex"
-        echo "[DEBUG]: Creating max metadata file: $temp_file" >&2
+        _log_file_descriptor "2" "Creating max metadata file: $temp_file"
         # Special handling for POL with Max metadata
         if [[ "$test_token" == "POL" ]]; then
             xxd -p /dev/zero | tr -d "\n" | head -c 130000 > "$temp_file"  # Reduced size for POL
-            echo "[DEBUG]: Created reduced max metadata file for POL: $(wc -c < "$temp_file") bytes" >&2
+            _log_file_descriptor "2" "Created reduced max metadata file for POL: $(wc -c < "$temp_file") bytes"
         else
             xxd -p /dev/zero | tr -d "\n" | head -c 261569 > "$temp_file"
         fi
         if [[ ! -f "$temp_file" ]]; then
-            echo "[DEBUG]: Failed to create max metadata file" >&2
+            _log_file_descriptor "2" "Failed to create max metadata file"
             echo "TEST_$test_index|FAIL|N/A|Failed to create metadata file" > "$result_file"
             return 1
         fi
@@ -1102,7 +1107,7 @@ _run_single_bridge_test() {
     # Add metadata with test_index and token_type parameters
     bridge_command=$(_add_metadata_to_command "$bridge_command" "$test_meta_data" "$test_index" "$test_token")
     if [[ $? -ne 0 ]]; then
-        echo "[DEBUG]: Failed to add metadata to command" >&2
+        _log_file_descriptor "2" "Failed to add metadata to command"
         echo "TEST_$test_index|FAIL|N/A|Failed to add metadata" > "$result_file"
         return 1
     fi
@@ -1110,7 +1115,7 @@ _run_single_bridge_test() {
     # Add force update flag
     bridge_command=$(_add_force_update_to_command "$bridge_command" "$test_force_update")
     if [[ $? -ne 0 ]]; then
-        echo "[DEBUG]: Failed to add force update to command" >&2
+        _log_file_descriptor "2" "Failed to add force update to command"
         echo "TEST_$test_index|FAIL|N/A|Failed to add force update flag" > "$result_file"
         return 1
     fi
@@ -1118,7 +1123,7 @@ _run_single_bridge_test() {
     # Setup amount and add to command (now with metadata parameter)
     bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit")
     if [[ $? -ne 0 ]]; then
-        echo "[DEBUG]: Failed to add amount to command" >&2
+        _log_file_descriptor "2" "Failed to add amount to command"
         echo "TEST_$test_index|FAIL|N/A|Failed to add amount" > "$result_file"
         return 1
     fi
@@ -1143,7 +1148,7 @@ _run_single_bridge_test() {
         bridge_command="$bridge_command $base_gas_limit"
     fi
     
-    echo "[DEBUG]: Executing bridge command for test $test_index: $bridge_command" >&2
+    _log_file_descriptor "2" "Executing bridge command for test $test_index: $bridge_command"
     
     # Execute the bridge command with longer timeout for problematic combinations
     local timeout_duration=$global_timeout
@@ -1156,45 +1161,45 @@ _run_single_bridge_test() {
     
     while [[ $bridge_attempt -lt $max_bridge_retries ]]; do
         bridge_attempt=$((bridge_attempt + 1))
-        echo "[DEBUG]: Bridge attempt $bridge_attempt for test $test_index" >&2
+        _log_file_descriptor "2" "Bridge attempt $bridge_attempt for test $test_index"
         
         if bridge_output=$(timeout "$timeout_duration" bash -c "$bridge_command" 2>&1); then
             bridge_status=0
-            echo "[DEBUG]: Bridge command succeeded on attempt $bridge_attempt" >&2
+            _log_file_descriptor "2" "Bridge command succeeded on attempt $bridge_attempt"
             break
         else
             bridge_status=$?
-            echo "[DEBUG]: Bridge attempt $bridge_attempt failed with status $bridge_status" >&2
-            echo "[DEBUG]: Bridge output: $bridge_output" >&2
+            _log_file_descriptor "2" "Bridge attempt $bridge_attempt failed with status $bridge_status"
+            _log_file_descriptor "2" "Bridge output: $bridge_output"
             
             # Check if this is a retryable error
             retry_bridge=false
             
             # Check for network/receipt timeout issues - these are retryable
             if echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found|connection refused|timeout|network error)"; then
-                echo "[DEBUG]: Detected network/timeout error - this is retryable" >&2
+                _log_file_descriptor "2" "Detected network/timeout error - this is retryable"
                 retry_bridge=true
             fi
             
             # Check for nonce issues - also retryable
             if echo "$bridge_output" | grep -q -E "(nonce too low|replacement transaction underpriced|already known)"; then
-                echo "[DEBUG]: Detected nonce/replacement error - this is retryable" >&2
+                _log_file_descriptor "2" "Detected nonce/replacement error - this is retryable"
                 retry_bridge=true
             fi
             
             # Check for temporary RPC issues
             if echo "$bridge_output" | grep -q -E "(502 Bad Gateway|503 Service Unavailable|429 Too Many Requests|Internal server error)"; then
-                echo "[DEBUG]: Detected temporary RPC error - this is retryable" >&2
+                _log_file_descriptor "2" "Detected temporary RPC error - this is retryable"
                 retry_bridge=true
             fi
             
             # If it's retryable and we haven't exhausted retries, continue
             if $retry_bridge && [[ $bridge_attempt -lt $max_bridge_retries ]]; then
-                echo "[DEBUG]: Retrying bridge operation after delay (attempt $bridge_attempt/$max_bridge_retries)" >&2
+                _log_file_descriptor "2" "Retrying bridge operation after delay (attempt $bridge_attempt/$max_bridge_retries)"
                 
                 # For replacement transaction underpriced errors, increase gas price and limit
                 if echo "$bridge_output" | grep -q "replacement transaction underpriced"; then
-                    echo "[DEBUG]: Increasing gas price and limit for replacement transaction" >&2
+                    _log_file_descriptor "2" "Increasing gas price and limit for replacement transaction"
                     
                     # Calculate gas price multiplier based on attempt (1.5x, 2x, 2.5x, etc.)
                     local gas_price_multiplier=$((bridge_attempt + 1))
@@ -1205,9 +1210,9 @@ _run_single_bridge_test() {
                     if current_gas_price=$(cast gas-price --rpc-url "$source_rpc_url" 2>/dev/null); then
                         # Increase gas price by multiplier + 20% buffer
                         local new_gas_price=$((current_gas_price * gas_price_multiplier * 12 / 10))
-                        echo "[DEBUG]: Setting gas price to $new_gas_price (${gas_price_multiplier}.2x current)" >&2
+                        _log_file_descriptor "2" "Setting gas price to $new_gas_price (${gas_price_multiplier}.2x current)"
                     else
-                        echo "[DEBUG]: Could not get current gas price, using default escalation" >&2
+                        _log_file_descriptor "2" "Could not get current gas price, using default escalation"
                         local new_gas_price=$((20000000000 * gas_price_multiplier))  # 20 gwei * multiplier
                     fi
                     
@@ -1216,7 +1221,7 @@ _run_single_bridge_test() {
                     if [[ "$bridge_command" =~ --gas-limit\ ([0-9]+) ]]; then
                         current_gas_limit="${BASH_REMATCH[1]}"
                         local new_gas_limit=$((current_gas_limit * gas_limit_multiplier))
-                        echo "[DEBUG]: Increasing gas limit from $current_gas_limit to $new_gas_limit" >&2
+                        _log_file_descriptor "2" "Increasing gas limit from $current_gas_limit to $new_gas_limit"
                         
                         # Update the command with new gas limit
                         bridge_command=$(echo "$bridge_command" | sed "s/--gas-limit [0-9]*/--gas-limit $new_gas_limit/")
@@ -1224,14 +1229,14 @@ _run_single_bridge_test() {
                         # Add gas limit if not present
                         local base_gas_limit=$((3000000 * gas_limit_multiplier))
                         bridge_command="$bridge_command --gas-limit $base_gas_limit"
-                        echo "[DEBUG]: Added gas limit: $base_gas_limit" >&2
+                        _log_file_descriptor "2" "Added gas limit: $base_gas_limit"
                     fi
                     
                     # Add gas price to command
                     bridge_command="$bridge_command --gas-price $new_gas_price"
-                    echo "[DEBUG]: Updated bridge command with higher gas: $bridge_command" >&2
+                    _log_file_descriptor "2" "Updated bridge command with higher gas: $bridge_command"
                 elif echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found)"; then
-                    echo "[DEBUG]: Network/timeout error detected, increasing gas for faster inclusion" >&2
+                    _log_file_descriptor "2" "Network/timeout error detected, increasing gas for faster inclusion"
                     
                     # For network issues, also increase gas to get priority
                     local gas_multiplier=$((bridge_attempt + 1))
@@ -1241,7 +1246,7 @@ _run_single_bridge_test() {
                         local current_gas_limit="${BASH_REMATCH[1]}"
                         local new_gas_limit=$((current_gas_limit * gas_multiplier))
                         bridge_command=$(echo "$bridge_command" | sed "s/--gas-limit [0-9]*/--gas-limit $new_gas_limit/")
-                        echo "[DEBUG]: Increased gas limit to $new_gas_limit for faster inclusion" >&2
+                        _log_file_descriptor "2" "Increased gas limit to $new_gas_limit for faster inclusion"
                     fi
                     
                     # Add higher gas price for network issues
@@ -1249,7 +1254,7 @@ _run_single_bridge_test() {
                     if current_gas_price=$(cast gas-price --rpc-url "$source_rpc_url" 2>/dev/null); then
                         local priority_gas_price=$((current_gas_price * gas_multiplier * 15 / 10))  # 1.5x * multiplier
                         bridge_command="$bridge_command --gas-price $priority_gas_price"
-                        echo "[DEBUG]: Added priority gas price: $priority_gas_price" >&2
+                        _log_file_descriptor "2" "Added priority gas price: $priority_gas_price"
                     fi
                 fi
                 
@@ -1257,7 +1262,7 @@ _run_single_bridge_test() {
                 continue
             else
                 # Not retryable or exhausted retries
-                echo "[DEBUG]: Bridge operation failed permanently or exhausted retries" >&2
+                _log_file_descriptor "2" "Bridge operation failed permanently or exhausted retries"
                 break
             fi
         fi
@@ -1265,94 +1270,94 @@ _run_single_bridge_test() {
     
     # Only do gas limit retry if the final attempt failed with gas issues
     if [[ $bridge_status -ne 0 ]]; then
-        echo "[DEBUG]: Bridge command failed with timeout or error status $bridge_status" >&2
+        _log_file_descriptor "2" "Bridge command failed with timeout or error status $bridge_status"
         
         # Check if it's a gas limit issue and suggest retry with higher gas
         if echo "$bridge_output" | grep -q -E "(Perhaps try increasing the gas limit|insufficient gas|intrinsic gas too low|GasUsed=[0-9]+ cumulativeGasUsedForTx=)"; then
-            echo "[DEBUG]: Gas limit issue detected, removing gas limit to use automatic estimation" >&2
+            _log_file_descriptor "2" "Gas limit issue detected, removing gas limit to use automatic estimation"
             
             # Remove the gas limit parameter entirely to let the system auto-estimate
             local retry_command
             retry_command=$(echo "$bridge_command" | sed 's/--gas-limit [0-9]* //g')
-            echo "[DEBUG]: Retrying without gas limit (auto-estimation): $retry_command" >&2
+            _log_file_descriptor "2" "Retrying without gas limit (auto-estimation): $retry_command"
             
             if bridge_output=$(timeout "$timeout_duration" bash -c "$retry_command" 2>&1); then
                 bridge_status=0
-                echo "[DEBUG]: Retry without gas limit succeeded" >&2
+                _log_file_descriptor "2" "Retry without gas limit succeeded"
             else
                 bridge_status=$?
-                echo "[DEBUG]: Retry without gas limit also failed" >&2
-                echo "[DEBUG]: Retry output: $bridge_output" >&2
+                _log_file_descriptor "2" "Retry without gas limit also failed"
+                _log_file_descriptor "2" "Retry output: $bridge_output"
                 
                 # If it still fails, check if it's a different error
                 if echo "$bridge_output" | grep -q -E "(insufficient gas|intrinsic gas too low|Perhaps try increasing the gas limit|GasUsed=[0-9]+)"; then
-                    echo "[DEBUG]: Still a gas issue even with auto-estimation - may be a block limit" >&2
+                    _log_file_descriptor "2" "Still a gas issue even with auto-estimation - may be a block limit"
                 elif echo "$bridge_output" | grep -q "exceeds block gas limit"; then
-                    echo "[DEBUG]: Transaction exceeds block gas limit even with auto-estimation" >&2
+                    _log_file_descriptor "2" "Transaction exceeds block gas limit even with auto-estimation"
                     # Check if this is an expected failure
                     if [[ "$expected_result_process" != "Success" ]]; then
-                        echo "[DEBUG]: Block gas limit error matches expected failure" >&2
+                        _log_file_descriptor "2" "Block gas limit error matches expected failure"
                         bridge_status=0  # Treat as success if failure was expected
                     fi
                 else
-                    echo "[DEBUG]: Different error after removing gas limit" >&2
+                    _log_file_descriptor "2" "Different error after removing gas limit"
                 fi
             fi
         # Add special handling for huge calldata scenarios that fail with network/timeout errors
         elif [[ "$test_meta_data" == "Huge" || "$test_meta_data" == "Max" ]] && \
             echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found|replacement transaction underpriced)"; then
-            echo "[DEBUG]: Huge/Max calldata with network/timeout errors - likely gas estimation issue, removing gas limit" >&2
+            _log_file_descriptor "2" "Huge/Max calldata with network/timeout errors - likely gas estimation issue, removing gas limit"
             
             # Remove the gas limit parameter entirely to let the system auto-estimate
             local retry_command
             retry_command=$(echo "$bridge_command" | sed 's/--gas-limit [0-9]* //g')
-            echo "[DEBUG]: Retrying huge/max calldata without gas limit (auto-estimation): $retry_command" >&2
+            _log_file_descriptor "2" "Retrying huge/max calldata without gas limit (auto-estimation): $retry_command"
             
             if bridge_output=$(timeout "$timeout_duration" bash -c "$retry_command" 2>&1); then
                 bridge_status=0
-                echo "[DEBUG]: Retry without gas limit succeeded for huge/max calldata" >&2
+                _log_file_descriptor "2" "Retry without gas limit succeeded for huge/max calldata"
             else
                 bridge_status=$?
-                echo "[DEBUG]: Retry without gas limit also failed for huge/max calldata" >&2
-                echo "[DEBUG]: Retry output: $bridge_output" >&2
+                _log_file_descriptor "2" "Retry without gas limit also failed for huge/max calldata"
+                _log_file_descriptor "2" "Retry output: $bridge_output"
                 
                 # Check if it's still a gas/block limit issue
                 if echo "$bridge_output" | grep -q -E "(insufficient gas|intrinsic gas too low|Perhaps try increasing the gas limit|GasUsed=[0-9]+)"; then
-                    echo "[DEBUG]: Still a gas issue even with auto-estimation for huge/max calldata" >&2
+                    _log_file_descriptor "2" "Still a gas issue even with auto-estimation for huge/max calldata"
                 elif echo "$bridge_output" | grep -q "exceeds block gas limit"; then
-                    echo "[DEBUG]: Transaction exceeds block gas limit even with auto-estimation for huge/max calldata" >&2
+                    _log_file_descriptor "2" "Transaction exceeds block gas limit even with auto-estimation for huge/max calldata"
                     # Check if this is an expected failure
                     if [[ "$expected_result_process" != "Success" ]]; then
-                        echo "[DEBUG]: Block gas limit error matches expected failure for huge/max calldata" >&2
+                        _log_file_descriptor "2" "Block gas limit error matches expected failure for huge/max calldata"
                         bridge_status=0  # Treat as success if failure was expected
                     fi
                 elif echo "$bridge_output" | grep -q -E "(Wait timer for transaction receipt exceeded|not found)"; then
-                    echo "[DEBUG]: Still getting network/timeout errors even without gas limit - may be RPC issue" >&2
+                    _log_file_descriptor "2" "Still getting network/timeout errors even without gas limit - may be RPC issue"
                 else
-                    echo "[DEBUG]: Different error after removing gas limit for huge/max calldata" >&2
+                    _log_file_descriptor "2" "Different error after removing gas limit for huge/max calldata"
                 fi
             fi
         elif echo "$bridge_output" | grep -q "exceeds block gas limit"; then
-            echo "[DEBUG]: Transaction exceeds block gas limit - this is expected for some edge case tests" >&2
+            _log_file_descriptor "2" "Transaction exceeds block gas limit - this is expected for some edge case tests"
             # For tests expecting to hit block gas limits, this might be the expected behavior
             # Check if this is an expected failure
             if [[ "$expected_result_process" != "Success" ]]; then
-                echo "[DEBUG]: Block gas limit error matches expected failure" >&2
+                _log_file_descriptor "2" "Block gas limit error matches expected failure"
                 bridge_status=0  # Treat as success if failure was expected
             fi
         fi
     fi
     
-    echo "[DEBUG]: Bridge command completed for test $test_index with status $bridge_status" >&2
+    _log_file_descriptor "2" "Bridge command completed for test $test_index with status $bridge_status"
     if [[ $bridge_status -ne 0 ]]; then
-        echo "[DEBUG]: Bridge output: $bridge_output" >&2
+        _log_file_descriptor "2" "Bridge output: $bridge_output"
     fi
     
     local deposit_count=""
     if [[ $bridge_status -eq 0 ]]; then
-        echo "[DEBUG]: Bridge output: $bridge_output" >&2
+        _log_file_descriptor "2" "Bridge output: $bridge_output"
         deposit_count=$(echo "$bridge_output" | awk '/depositCount=/ {gsub(/.*depositCount=/, ""); gsub(/\x1b\[[0-9;]*m/, ""); print}')
-        echo "[DEBUG]: Extracted deposit count: $deposit_count" >&2
+        _log_file_descriptor "2" "Extracted deposit count: $deposit_count"
     fi
     
     local bridge_result="FAIL"
@@ -1368,36 +1373,36 @@ _run_single_bridge_test() {
         bridge_expects_success=true
     elif [[ "$expected_result_process" =~ ^\[.*\]$ ]]; then
         # Handle array of expected bridge results
-        echo "[DEBUG]: Processing array of expected bridge results: $expected_result_process" >&2
+        _log_file_descriptor "2" "Processing array of expected bridge results: $expected_result_process"
         
         # Check if array contains "Success"
         if echo "$expected_result_process" | jq -r '.[]' | grep -q "^Success$"; then
             bridge_expects_success=true
-            echo "[DEBUG]: Bridge array contains 'Success' as valid outcome" >&2
+            _log_file_descriptor "2" "Bridge array contains 'Success' as valid outcome"
         fi
         
         # Check if array contains other error patterns
         if echo "$expected_result_process" | jq -r '.[]' | grep -v "^Success$" | grep -q .; then
             bridge_has_other_expected_errors=true
-            echo "[DEBUG]: Bridge array contains other expected error patterns" >&2
+            _log_file_descriptor "2" "Bridge array contains other expected error patterns"
         fi
     else
         # Single non-Success expected result
         bridge_has_other_expected_errors=true
     fi
     
-    echo "[DEBUG]: Bridge expects success: $bridge_expects_success, has other expected errors: $bridge_has_other_expected_errors" >&2
+    _log_file_descriptor "2" "Bridge expects success: $bridge_expects_success, has other expected errors: $bridge_has_other_expected_errors"
     
     # Validate based on actual bridge result
     if [[ $bridge_status -eq 0 ]]; then
         # Bridge succeeded
         if $bridge_expects_success; then
             bridge_result="PASS"
-            echo "[DEBUG]: Bridge succeeded and success was expected" >&2
+            _log_file_descriptor "2" "Bridge succeeded and success was expected"
             
             # Execute claim if expected (based on reference implementation)
             if [[ "$expected_result_claim" != "N/A" ]]; then
-                echo "[DEBUG]: Executing claim command for test $test_index" >&2
+                _log_file_descriptor "2" "Executing claim command for test $test_index"
                 
                 # Build claim command based on reference
                 local claim_command="polycli ulxly claim"
@@ -1405,7 +1410,7 @@ _run_single_bridge_test() {
                     "Asset"|"Weth") claim_command="$claim_command asset" ;;
                     "Message") claim_command="$claim_command message" ;;
                     *) 
-                        echo "[DEBUG]: Unrecognized Bridge Type for claim: $test_bridge_type" >&2
+                        _log_file_descriptor "2" "Unrecognized Bridge Type for claim: $test_bridge_type"
                         echo "TEST_$test_index|FAIL|N/A|Unrecognized Bridge Type for claim" > "$result_file"
                         return 1 
                         ;;
@@ -1415,22 +1420,22 @@ _run_single_bridge_test() {
                 claim_command="$claim_command --destination-address $dest_addr --bridge-address $claim_bridge_addr --private-key $ephemeral_private_key --rpc-url $claim_rpc_url --deposit-count $deposit_count --deposit-network $source_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
                 
                 # Execute claim command
-                echo "[DEBUG]: Running claim command for test $test_index: $claim_command" >&2
+                _log_file_descriptor "2" "Running claim command for test $test_index: $claim_command"
                 local claim_output claim_status
                 local max_claim_retries=3
                 local claim_attempt=0
 
                 while [[ $claim_attempt -lt $max_claim_retries ]]; do
                         claim_attempt=$((claim_attempt + 1))
-                        echo "[DEBUG]: Claim attempt $claim_attempt for test $test_index" >&2
+                        _log_file_descriptor "2" "Claim attempt $claim_attempt for test $test_index"
 
                         if claim_output=$(timeout "$global_timeout" bash -c "$claim_command" 2>&1); then
                             claim_status=0
-                            echo "[DEBUG]: Claim command exited with status 0 on attempt $claim_attempt" >&2
+                            _log_file_descriptor "2" "Claim command exited with status 0 on attempt $claim_attempt"
                             
                             # Even if exit status is 0, check for failure indicators in the output
                             if echo "$claim_output" | grep -q -E "(Deposit transaction failed|Perhaps try increasing the gas limit|GasUsed=[0-9]+ cumulativeGasUsedForTx=)"; then
-                                echo "[DEBUG]: Claim command succeeded but transaction failed - checking if already claimed" >&2
+                                _log_file_descriptor "2" "Claim command succeeded but transaction failed - checking if already claimed"
                                 
                                 # Wait a moment for state to update, then check if it was actually claimed
                                 sleep 2
@@ -1441,7 +1446,7 @@ _run_single_bridge_test() {
                                 if verify_output=$(timeout 30 bash -c "$verify_command" 2>&1) || \
                                    verify_output=$(timeout 30 bash -c "$claim_command" 2>&1); then
                                     if _check_already_claimed "$verify_output"; then
-                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                                         claim_status=0  # Treat as success
                                         claim_output="Deposit was already claimed (verified)"
                                         break
@@ -1452,28 +1457,28 @@ _run_single_bridge_test() {
                                 # it's likely already claimed by another process
                                 if echo "$claim_output" | grep -q "The deposit is ready to be claimed" && \
                                    echo "$claim_output" | grep -q "Deposit transaction failed"; then
-                                    echo "[DEBUG]: Deposit ready but transaction failed - likely already claimed by parallel process" >&2
+                                    _log_file_descriptor "2" "Deposit ready but transaction failed - likely already claimed by parallel process"
                                     claim_status=0  # Treat as success
                                     claim_output="Deposit was likely already claimed by parallel process"
                                     break
                                 fi
                                 
                                 # If verification fails, treat the original failure as real
-                                echo "[DEBUG]: Transaction genuinely failed, not due to already claimed" >&2
+                                _log_file_descriptor "2" "Transaction genuinely failed, not due to already claimed"
                                 claim_status=1
                                 break
                             else
-                                echo "[DEBUG]: Claim succeeded cleanly on attempt $claim_attempt" >&2
+                                _log_file_descriptor "2" "Claim succeeded cleanly on attempt $claim_attempt"
                                 break
                             fi
                         else
                             claim_status=$?
-                            echo "[DEBUG]: Claim attempt $claim_attempt failed with exit status $claim_status" >&2
-                            echo "[DEBUG]: Claim output: $claim_output" >&2
+                            _log_file_descriptor "2" "Claim attempt $claim_attempt failed with exit status $claim_status"
+                            _log_file_descriptor "2" "Claim output: $claim_output"
 
                             # Check if it's already claimed - this should be treated as success
                             if _check_already_claimed "$claim_output"; then
-                                echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                                _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                                 claim_status=0
                                 break
                             fi
@@ -1482,13 +1487,13 @@ _run_single_bridge_test() {
                             # This typically indicates the deposit was claimed between the ready check and the claim attempt
                             if echo "$claim_output" | grep -q "The deposit is ready to be claimed" && \
                                echo "$claim_output" | grep -q "Deposit transaction failed"; then
-                                echo "[DEBUG]: Deposit ready but transaction failed - likely race condition with parallel claim" >&2
+                                _log_file_descriptor "2" "Deposit ready but transaction failed - likely race condition with parallel claim"
                                 
                                 # Do one final verification attempt
                                 local final_verify_output
                                 if final_verify_output=$(timeout 15 bash -c "$claim_command" 2>&1); then
                                     if _check_already_claimed "$final_verify_output"; then
-                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                                         claim_status=0
                                         claim_output="Deposit was already claimed (race condition detected)"
                                         break
@@ -1497,7 +1502,7 @@ _run_single_bridge_test() {
                                     # If the verification also fails with the same pattern, assume it's already claimed
                                     if echo "$final_verify_output" | grep -q "The deposit is ready to be claimed" && \
                                     echo "$final_verify_output" | grep -q "Deposit transaction failed"; then
-                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                                         claim_status=0
                                         claim_output="Deposit was already claimed (consistent failure pattern)"
                                         break
@@ -1507,7 +1512,7 @@ _run_single_bridge_test() {
 
                             # Check if it's a temporary "not ready" error - retry after delay
                             if echo "$claim_output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks)"; then
-                                echo "[DEBUG]: Claim not ready yet, will retry after delay" >&2
+                                _log_file_descriptor "2" "Claim not ready yet, will retry after delay"
                                 if [[ $claim_attempt -lt $max_claim_retries ]]; then
                                     sleep 5  # Wait before retry
                                     continue
@@ -1516,19 +1521,19 @@ _run_single_bridge_test() {
 
                             # For other errors, don't retry immediately but check if it might be an already-claimed case
                             if echo "$claim_output" | grep -q -E "(Deposit transaction failed|Perhaps try increasing the gas limit)"; then
-                                echo "[DEBUG]: Got transaction failure error - checking if deposit was actually claimed" >&2
+                                _log_file_descriptor "2" "Got transaction failure error - checking if deposit was actually claimed"
                                 sleep 2  # Brief pause for state propagation
                                 
                                 # Try one more time to see if the error message changes to "already claimed"
                                 local final_check_output
                                 if final_check_output=$(timeout 30 bash -c "$claim_command" 2>&1); then
-                                    echo "[DEBUG]: Final check succeeded unexpectedly" >&2
+                                    _log_file_descriptor "2" "Final check succeeded unexpectedly"
                                     claim_status=0
                                     claim_output="$final_check_output"
                                     break
                                 else
                                     if _check_already_claimed "$final_check_output"; then
-                                        echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                                         claim_status=0
                                         claim_output="$final_check_output"
                                         break
@@ -1541,7 +1546,7 @@ _run_single_bridge_test() {
                         fi
                     done
                 
-                echo "[DEBUG]: Claim command output for test $test_index: $claim_output" >&2
+                _log_file_descriptor "2" "Claim command output for test $test_index: $claim_output"
 
                 # Validate claim result with array support
                 local claim_expects_success=false
@@ -1552,37 +1557,37 @@ _run_single_bridge_test() {
                     claim_expects_success=true
                 elif [[ "$expected_result_claim" =~ ^\[.*\]$ ]]; then
                     # Handle array of expected claim results
-                    echo "[DEBUG]: Processing array of expected claim results: $expected_result_claim" >&2
+                    _log_file_descriptor "2" "Processing array of expected claim results: $expected_result_claim"
                     
                     # Check if array contains "Success"
                     if echo "$expected_result_claim" | jq -r '.[]' | grep -q "^Success$"; then
                         claim_expects_success=true
-                        echo "[DEBUG]: Claim array contains 'Success' as valid outcome" >&2
+                        _log_file_descriptor "2" "Claim array contains 'Success' as valid outcome"
                     fi
                     
                     # Check if array contains other error patterns
                     if echo "$expected_result_claim" | jq -r '.[]' | grep -v "^Success$" | grep -q .; then
                         claim_has_other_expected_errors=true
-                        echo "[DEBUG]: Claim array contains other expected error patterns" >&2
+                        _log_file_descriptor "2" "Claim array contains other expected error patterns"
                     fi
                 else
                     # Single non-Success expected result
                     claim_has_other_expected_errors=true
                 fi
                 
-                echo "[DEBUG]: Claim expects success: $claim_expects_success, has other expected errors: $claim_has_other_expected_errors" >&2
+                _log_file_descriptor "2" "Claim expects success: $claim_expects_success, has other expected errors: $claim_has_other_expected_errors"
                 
                 # Validate claim result
                 if [[ $claim_status -eq 0 ]]; then
                     # Claim succeeded
                     if $claim_expects_success; then
                         claim_result="PASS"
-                        echo "[DEBUG]: Claim succeeded and success was expected" >&2
+                        _log_file_descriptor "2" "Claim succeeded and success was expected"
                     else
                         # Success not expected, but check if already claimed
                         if _check_already_claimed "$claim_output"; then
                             claim_result="PASS"
-                            echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                            _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                         else
                             claim_result="FAIL"
                             error_message="Expected claim failure but succeeded for deposit $deposit_count"
@@ -1592,15 +1597,15 @@ _run_single_bridge_test() {
                     # Claim failed
                     if _check_already_claimed "$claim_output"; then
                         claim_result="PASS"
-                        echo "[DEBUG]: Verification shows deposit $deposit_count was already claimed by another process" >&2
+                        _log_file_descriptor "2" "Verification shows deposit $deposit_count was already claimed by another process"
                     elif $claim_has_other_expected_errors && _validate_bridge_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
-                        echo "[DEBUG]: Claim failed with expected error pattern" >&2
+                        _log_file_descriptor "2" "Claim failed with expected error pattern"
                     elif $claim_expects_success && ! $claim_has_other_expected_errors; then
                         # Only expected success, but got failure - check if it's AlreadyClaimedError
                         if _check_already_claimed "$claim_output"; then
                             claim_result="PASS"
-                            echo "[DEBUG]: Verification shows deposit was already claimed by another process" >&2
+                            _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
                         else
                             claim_result="FAIL"
                             error_message="Expected claim success but failed for deposit $deposit_count"
@@ -1625,7 +1630,7 @@ _run_single_bridge_test() {
         # Bridge failed
         if $bridge_has_other_expected_errors && _validate_bridge_error "$expected_result_process" "$bridge_output"; then
             bridge_result="PASS"
-            echo "[DEBUG]: Bridge failed with expected error pattern" >&2
+            _log_file_descriptor "2" "Bridge failed with expected error pattern"
         elif $bridge_expects_success && ! $bridge_has_other_expected_errors; then
             # Only expected success, but got failure
             bridge_result="FAIL"
@@ -1647,7 +1652,7 @@ _run_single_bridge_test() {
     # Write result to file
     echo "TEST_$test_index|$bridge_result|$claim_result|$error_message" > "$result_file"
     
-    echo "[DEBUG]: Completed bridge test $test_index" >&2
+    _log_file_descriptor "2" "Completed bridge test $test_index"
 }
 
 
@@ -1656,7 +1661,7 @@ _collect_and_report_results() {
     local bridge_log="$2"
     local total_scenarios="$3"
     
-    echo "All parallel bridge tests completed. Collecting results..." | tee -a "$bridge_log"
+    _log_file_descriptor "3" "All parallel bridge tests completed. Collecting results..." | tee -a "$bridge_log"
     
     # Initialize counters
     local total_tests=0 passed_bridge=0 passed_claim=0 failed_tests=0
@@ -1665,12 +1670,14 @@ _collect_and_report_results() {
     local detailed_results="$output_dir/detailed_results.txt"
     
     # Create summary file header
-    echo "" | tee "$summary_file"
-    echo "========================================" | tee -a "$summary_file"
-    echo "           TEST RESULTS SUMMARY         " | tee -a "$summary_file"
-    echo "========================================" | tee -a "$summary_file"
-    printf "%-8s %-8s %-8s %s\n" "TEST" "BRIDGE" "CLAIM" "ERROR" | tee -a "$summary_file"
-    echo "----------------------------------------" | tee -a "$summary_file"
+    {
+        echo ""
+        echo "========================================"
+        echo "           TEST RESULTS SUMMARY         "
+        echo "========================================"
+        printf "%-8s %-8s %-8s %s\n" "TEST" "BRIDGE" "CLAIM" "ERROR"
+        echo "----------------------------------------"
+    } | tee "$summary_file" >&3
     
     # Create detailed results file header
     echo "DETAILED TEST RESULTS" > "$detailed_results"
@@ -1707,7 +1714,8 @@ _collect_and_report_results() {
             result_line=$(cat "$result_file")
             IFS='|' read -r test_id bridge_result claim_result error_msg <<< "$result_line"
             
-            printf "%-8s %-8s %-8s %s\n" "$test_id" "$bridge_result" "$claim_result" "$error_msg" | tee -a "$summary_file"
+            # Display to both console (fd 3) and summary file
+            printf "%-8s %-8s %-8s %s\n" "$test_id" "$bridge_result" "$claim_result" "$error_msg" | tee -a "$summary_file" >&3
             
             echo "  Result: $bridge_result" >> "$detailed_results"
             [[ -n "$error_msg" ]] && echo "  Error: $error_msg" >> "$detailed_results"
@@ -1717,7 +1725,8 @@ _collect_and_report_results() {
             [[ "$claim_result" == "PASS" ]] && passed_claim=$((passed_claim + 1))
             [[ "$bridge_result" == "FAIL" || "$claim_result" == "FAIL" ]] && failed_tests=$((failed_tests + 1))
         else
-            printf "%-8s %-8s %-8s %s\n" "TEST_$i" "TIMEOUT" "N/A" "Test timed out or failed to complete" | tee -a "$summary_file"
+            # Display timeout to both console and summary file
+            printf "%-8s %-8s %-8s %s\n" "TEST_$i" "TIMEOUT" "N/A" "Test timed out or failed to complete" | tee -a "$summary_file" >&3
             echo "  Result: TIMEOUT" >> "$detailed_results"
             failed_tests=$((failed_tests + 1))
             total_tests=$((total_tests + 1))
@@ -1726,13 +1735,15 @@ _collect_and_report_results() {
         echo "" >> "$detailed_results"
     done
     
-    # Summary footer
-    echo "----------------------------------------" | tee -a "$summary_file"
-    echo "Total Tests: $total_tests" | tee -a "$summary_file"
-    echo "Bridge Success: $passed_bridge/$total_tests" | tee -a "$summary_file"
-    echo "Claim Success: $passed_claim (out of applicable tests)" | tee -a "$summary_file"
-    echo "Failed Tests: $failed_tests" | tee -a "$summary_file"
-    echo "========================================" | tee -a "$summary_file"
+    # Summary footer - display to both console and file
+    {
+        echo "----------------------------------------"
+        echo "Total Tests: $total_tests"
+        echo "Bridge Success: $passed_bridge/$total_tests"
+        echo "Claim Success: $passed_claim (out of applicable tests)"
+        echo "Failed Tests: $failed_tests"
+        echo "========================================"
+    } | tee -a "$summary_file" >&3
     
     # Save test configuration for reference
     echo "$scenarios" | jq '.' > "$output_dir/test_scenarios.json"
@@ -1767,18 +1778,17 @@ To debug specific test failures:
 EOF
     
     # Print summary to terminal
-    echo "" >&3
-    echo "========================================" >&3
-    echo "           FINAL RESULTS                " >&3
-    echo "========================================" >&3
-    echo "Total Tests: $total_tests" >&3
-    echo "Bridge Success: $passed_bridge/$total_tests" >&3
-    echo "Failed Tests: $failed_tests" >&3
-    echo "" >&3
-    echo "Detailed results saved to: $output_dir" >&3
-    echo "Quick summary: cat $summary_file" >&3
-    echo "Full details: cat $detailed_results" >&3
-    echo "" >&3
+    _log_file_descriptor "3" ""
+    _log_file_descriptor "3" "========================================"
+    _log_file_descriptor "3" "           FINAL RESULTS                "
+    _log_file_descriptor "3" "========================================"
+    _log_file_descriptor "3" "Total Tests: $total_tests"
+    _log_file_descriptor "3" "Bridge Success: $passed_bridge/$total_tests"
+    _log_file_descriptor "3" "Failed Tests: $failed_tests"
+    _log_file_descriptor "3" ""
+    _log_file_descriptor "3" "Detailed results saved to: $output_dir"
+    _log_file_descriptor "3" "Quick summary: cat $summary_file"
+    _log_file_descriptor "3" "Full details: cat $detailed_results"
     
     # Return failure count for test result
     return $failed_tests
