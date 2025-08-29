@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# shellcheck disable=SC2154
+# shellcheck disable=SC2154,SC1087
 set -euo pipefail
 
 function wait_to_settled_certificate_containing_global_index() {
