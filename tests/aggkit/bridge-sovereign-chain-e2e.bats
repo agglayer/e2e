@@ -361,7 +361,7 @@ check_certificate_height() {
     fi
   done
 
-  log "⏳ Waiting for certificate settlement containing global index: $global_index[0]"
+  log "⏳ Waiting for certificate settlement containing global index: ${global_indexes[0]}"
   wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[0]}"
   log "✅ Certificate settlement completed for global index: ${global_indexes[0]}"
 
