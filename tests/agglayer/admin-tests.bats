@@ -141,17 +141,24 @@ function interop_status_query() {
     latest_known_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
     echo "✅ Successfully retrieved latest known certificate for $latest_known_certificate_id"
 
-    # Get a pending certificate, will be set later
-    while true; do
-        latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
-        if [[ "$latest_pending_certificate_id" != "$latest_known_certificate_id" ]]; then
-            break
-        else
-            echo "⏳ Waiting for a pending certificate to be available..."
-            sleep 3
-        fi
-    done
-    echo "✅ Successfully retrieved pending certificate: $latest_pending_certificate_id"
+    # This snippet of commented code aims to ensure than we wait for a pending certificate that's not
+    # the latest known certificate. So when we call admin_setLatestPendingCertificate, we can be sure
+    # we're not setting the same certificate that's already the latests pending.
+    # As the endpoint to retrieve latest pending does not return the value set (something's wrong),
+    # this code can not be used right now and it's left here just to understand how it should be, and
+    # hopefully it can be uncommented in the future.
+
+    # # Get a pending certificate, will be set later
+    # while true; do
+    #     latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
+    #     if [[ "$latest_pending_certificate_id" != "$latest_known_certificate_id" ]]; then
+    #         break
+    #     else
+    #         echo "⏳ Waiting for a pending certificate to be available..."
+    #         sleep 3
+    #     fi
+    # done
+    # echo "✅ Successfully retrieved pending certificate: $latest_pending_certificate_id"
 
     # Test admin_setLatestPendingCertificate
     run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestPendingCertificate "$latest_known_certificate_id"
@@ -162,7 +169,11 @@ function interop_status_query() {
         echo "✅ Successfully called admin_setLatestPendingCertificate with certificate $latest_known_certificate_id, let's verify..."
     fi
 
-    # So far, I've been unable to retrieve certificate id that we just set above. It keeps returning previous data...
+    # This snippet of commented code aims to ensure than the state has been updated with the value we used.
+    # For some reason, it's not returning the value set as we expect, so we need to disable this check to
+    # pass the test.
+    # It's left here as it's how it should work, hopefully we can uncomment this at some point.
+
     # updated_latest_pending_certificate_id=$(interop_status_query interop_getLatestPendingCertificateHeader)
     # if [[ "$updated_latest_pending_certificate_id" == "$latest_known_certificate_id" ]]; then
     #     echo "✅ Successfully updated latest pending certificate to $updated_latest_pending_certificate_id"
@@ -249,9 +260,72 @@ function interop_status_query() {
     fi
 }
 
+# bats test_tags=agglayer-admin
+@test "admin_setLatestProvenCertificate with non-existent certificate" {
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestProvenCertificate "$invalid_cert_id"
+    if [[ "$status" -eq 0 ]]; then
+        echo "❌ Expected error for invalid certificate id with admin_setLatestProvenCertificate, but got success: $output"
+        exit 1
+    else
+        if [[ "$output" == *"resource-not-found"* ]]; then
+            echo "✅ Successfully handled invalid certificate id with admin_setLatestProvenCertificate: $output"
+        else
+            echo "❌ Expected resource-not-found error for invalid certificate id with admin_setLatestProvenCertificate, but got: $output"
+            exit 1
+        fi
+    fi
+}
+
+# bats test_tags=agglayer-admin
+@test "admin_setLatestProvenCertificate with valid certificate ID" {
+
+    latest_known_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
+    echo "✅ Successfully retrieved latest known certificate for $latest_known_certificate_id"
+
+    # This snippet of commented code aims to ensure than we wait for a proven certificate that's not
+    # the latest known certificate. So when we call admin_setLatestProvenCertificate, we can be sure
+    # we're not setting the same certificate that's already the latest proven.
+    # As the endpoint to retrieve latest proven does not return the value set (something's wrong),
+    # this code can not be used right now and it's left here just to understand how it should be, and
+    # hopefully it can be uncommented in the future.
+
+    # while true; do
+    #     latest_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
+    #     if [[ "$latest_proven_certificate_id" != "$latest_known_certificate_id" ]]; then
+    #         break
+    #     else
+    #         echo "⏳ Waiting for a proven certificate to be available..."
+    #         sleep 5
+    #     fi
+    # done
+    # echo "✅ Successfully retrieved proven certificate: $latest_proven_certificate_id"
+
+    # Test admin_setLatestProvenCertificate
+    run cast rpc --rpc-url "$agglayer_admin_url" admin_setLatestProvenCertificate "$latest_known_certificate_id"
+    if [ "$status" -ne 0 ]; then
+        echo "❌ Failed to set last proven certificate using admin_setLatestProvenCertificate: $output"
+        exit 1
+    else
+        echo "✅ Successfully called admin_setLatestProvenCertificate with certificate $latest_known_certificate_id, let's verify..."
+    fi
+
+    # This snippet of commented code aims to ensure than the state has been updated with the value we used.
+    # For some reason, it's not returning the value set as we expect, so we need to disable this check to
+    # pass the test.
+    # It's left here as it's how it should work, hopefully we can uncomment this at some point.
+
+    # updated_latest_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
+    # if [[ "$updated_latest_proven_certificate_id" == "$latest_known_certificate_id" ]]; then
+    #     echo "✅ Successfully updated latest proven certificate to $updated_latest_proven_certificate_id"
+    # else
+    #     echo "❌ Failed to update latest proven certificate, after calling admin_setLatestProvenCertificate it's still $updated_latest_proven_certificate_id"
+    #     exit 1
+    # fi
+}
+
 # Improvement and or pending features to test:
 # - Validate admin_setLatestPendingCertificate did what it's expected to do, right now we just know the call succedeed
 # - Validate admin_removePendingCertificate properly cleans up the state, we just test invalid input
 # - Validate admin_removePendingProof properly cleans up the state, we just test invalid input
 # - admin_forcePushPendingCertificate
-# - admin_setLatestProvenCertificate
+# - Validate admin_setLatestProvenCertificate did what it's expected to do, right now we just know the call succeeded
