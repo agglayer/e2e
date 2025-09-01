@@ -18,34 +18,34 @@ setup_file() {
     if [[ -z "$l1_optimism_portal_addr" ]]; then
         l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http)"}
         if [[ -z "$l2_node_url" ]]; then
-            echo "❌ We need L1_OPTIMISM_PORTAL_ADDR or L2_NODE_URL to retrieve this information"
+            echo "❌ We need L1_OPTIMISM_PORTAL_ADDR or L2_NODE_URL to retrieve this information" >&3
             exit 1
         else
             run cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig
             if [[ "$status" -ne 0 ]]; then
-                echo "❌ Failed to retrieve rollup config from l2 node"
+                echo "❌ Failed to retrieve rollup config from l2 node" >&3
                 exit 1
             else
                 l1_system_config_addr=$(echo $output | jq -r '.l1_system_config_address')
                 if [[ -z "$l1_system_config_addr" ]]; then
-                    echo "❌ Failed to retrieve L1 system config address from Rollup Config: $output"
+                    echo "❌ Failed to retrieve L1 system config address from Rollup Config: $output" >&3
                     exit 1
                 else
-                    echo "✅ L1 system config address: $l1_system_config_addr"
+                    echo "✅ L1 system config address: $l1_system_config_addr" >&3
                 fi
             fi
 
             run cast call "$l1_system_config_addr" "optimismPortal()(address)" --rpc-url "$l1_rpc_url"
             if [[ "$status" -ne 0 ]]; then
-                echo "❌ Failed to retrieve L1 Optimism Portal address from L1 System Config: $output"
+                echo "❌ Failed to retrieve L1 Optimism Portal address from L1 System Config: $output" >&3
                 exit 1
             else
                 l1_optimism_portal_addr=$output
                 if [[ -z "$l1_optimism_portal_addr" ]]; then
-                    echo "❌ Failed to retrieve L1 Optimism Portal address from L1 System Config: $output"
+                    echo "❌ Failed to retrieve L1 Optimism Portal address from L1 System Config: $output" >&3
                     exit 1
                 else
-                    echo "✅ L1 Optimism Portal address: $l1_optimism_portal_addr"
+                    echo "✅ L1 Optimism Portal address: $l1_optimism_portal_addr" >&3
                 fi
             fi
         fi
@@ -76,11 +76,11 @@ function send_forced_tx() {
         false \
         "$l2_data"
     if [[ "$status" -ne 0 ]]; then
-        echo "❌ Failed to estimate forced transaction to L1 Optimism Portal: $output"
+        echo "❌ Failed to estimate forced transaction to L1 Optimism Portal: $output" >&3
         exit 1
     else
         gas=$output
-        echo "✅ Successfully estimated gas for depositTransaction to L1 Optimism Portal: $gas"
+        echo "✅ Successfully estimated gas for depositTransaction to L1 Optimism Portal: $gas" >&3
     fi
 
     run cast send --rpc-url $l1_rpc_url "$l1_optimism_portal_addr" \
@@ -96,14 +96,14 @@ function send_forced_tx() {
        "$l2_data"
 
     if [[ "$status" -ne 0 ]]; then
-        echo "❌ Failed to send forced transaction to L1 Optimism Portal: $output"
+        echo "❌ Failed to send forced transaction to L1 Optimism Portal: $output" >&3
         exit 1
     else
         forced_tx_hash=$(echo "$output" | jq -r '.transactionHash')
         tx_status=$(echo "$output" | jq -r '.status')
         if [[ "$tx_status" -ne 1 ]]; then
             jq_output=$(echo $output | jq .)
-            echo "❌ Forced transaction $forced_tx_hash was mined with failed status: $jq_output"
+            echo "❌ Forced transaction $forced_tx_hash was mined with failed status: $jq_output" >&3
             exit 1
         fi
     fi
@@ -132,23 +132,23 @@ function send_forced_tx() {
     l2_sender_balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_sender")
     l2_receiver_balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_receiver")
     if [[ "$l2_sender_balance_before" != "$l2_sender_funds_required" ]]; then
-        echo "❌ L2 sender address $random_addr_sender balance before deposit is not as expected: $l2_sender_balance_before != $l2_sender_funds_required"
+        echo "❌ L2 sender address $random_addr_sender balance before deposit is not as expected: $l2_sender_balance_before != $l2_sender_funds_required" >&3
         exit 1
     else
-        echo "✅ L2 sender address $random_addr_sender balance before deposit is as expected: $l2_sender_balance_before"
+        echo "✅ L2 sender address $random_addr_sender balance before deposit is as expected: $l2_sender_balance_before" >&3
     fi
 
     # Lets check the receiver balance before the forced tx
     if [[ "$l2_receiver_balance_before" != "0" ]]; then
-        echo "❌ L2 receiver address $random_addr_receiver balance before deposit is not as expected: $l2_receiver_balance_before != 0"
+        echo "❌ L2 receiver address $random_addr_receiver balance before deposit is not as expected: $l2_receiver_balance_before != 0" >&3
         exit 1
     else
-        echo "✅ L2 receiver address $random_addr_receiver balance before deposit is as expected: $l2_receiver_balance_before"
+        echo "✅ L2 receiver address $random_addr_receiver balance before deposit is as expected: $l2_receiver_balance_before" >&3
     fi
 
     # send_forced_tx sender_key l1_gas_limit l2_receiver_addr l2_amount l2_gas_limit l2_data(optional)
     send_forced_tx "$random_pkey_sender" "$random_addr_receiver" $l2_sender_funds_required 21000
-    echo "✅ Successfully sent depositTransaction to L1 Optimism Portal with txhash: $forced_tx_hash"
+    echo "✅ Successfully sent depositTransaction to L1 Optimism Portal with txhash: $forced_tx_hash" >&3
 
     # lets loop until receiver has some balance on l2
     while true; do
@@ -163,17 +163,17 @@ function send_forced_tx() {
     l2_sender_balance_after=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_sender")
 
     if [[ "$l2_sender_balance_after" != "0" ]]; then
-        echo "❌ L2 sender address $random_addr_sender balance after deposit is not as expected: $l2_sender_balance_after != 0"
+        echo "❌ L2 sender address $random_addr_sender balance after deposit is not as expected: $l2_sender_balance_after != 0" >&3
         exit 1
     else
-        echo "✅ L2 sender address $random_addr_sender balance after deposit is as expected: $l2_sender_balance_after"
+        echo "✅ L2 sender address $random_addr_sender balance after deposit is as expected: $l2_sender_balance_after" >&3
     fi
 
     if [[ "$l2_receiver_balance_after" != "$l2_sender_funds_required" ]]; then
-        echo "❌ L2 receiver address $random_addr_receiver balance after deposit is not as expected: $l2_receiver_balance_after != $l2_sender_funds_required"
+        echo "❌ L2 receiver address $random_addr_receiver balance after deposit is not as expected: $l2_receiver_balance_after != $l2_sender_funds_required" >&3
         exit 1
     else
-        echo "✅ L2 receiver address $random_addr_receiver balance after deposit is as expected: $l2_receiver_balance_after"
+        echo "✅ L2 receiver address $random_addr_receiver balance after deposit is as expected: $l2_receiver_balance_after" >&3
     fi
 
 }
@@ -195,23 +195,23 @@ function send_forced_tx() {
     l2_sender_balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_sender")
     l2_receiver_balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_receiver")
     if [[ "$l2_sender_balance_before" != "0" ]]; then
-        echo "❌ L2 sender address $random_addr_sender balance before deposit is not as expected: $l2_sender_balance_before != 0"
+        echo "❌ L2 sender address $random_addr_sender balance before deposit is not as expected: $l2_sender_balance_before != 0" >&3
         exit 1
     else
-        echo "✅ L2 sender address $random_addr_sender balance before deposit is as expected: $l2_sender_balance_before"
+        echo "✅ L2 sender address $random_addr_sender balance before deposit is as expected: $l2_sender_balance_before" >&3
     fi
 
     # Lets check the receiver balance before the forced tx
     if [[ "$l2_receiver_balance_before" != "0" ]]; then
-        echo "❌ L2 receiver address $random_addr_receiver balance before deposit is not as expected: $l2_receiver_balance_before != 0"
+        echo "❌ L2 receiver address $random_addr_receiver balance before deposit is not as expected: $l2_receiver_balance_before != 0" >&3
         exit 1
     else
-        echo "✅ L2 receiver address $random_addr_receiver balance before deposit is as expected: $l2_receiver_balance_before"
+        echo "✅ L2 receiver address $random_addr_receiver balance before deposit is as expected: $l2_receiver_balance_before" >&3
     fi
 
     # send_forced_tx sender_key l1_gas_limit l2_receiver_addr l2_amount l2_gas_limit l2_data(optional)
     send_forced_tx "$random_pkey_sender" "$random_addr_receiver" 1 21000
-    echo "✅ Successfully sent depositTransaction to L1 Optimism Portal with txhash: $forced_tx_hash"
+    echo "✅ Successfully sent depositTransaction to L1 Optimism Portal with txhash: $forced_tx_hash" >&3
 
     # Let's wait to allow forced tx to be processed
     sleep 20
@@ -221,17 +221,17 @@ function send_forced_tx() {
     l2_receiver_balance_after=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_receiver")
 
     if [[ "$l2_sender_balance_after" != "0" ]]; then
-        echo "❌ L2 sender address $random_addr_sender balance after deposit is not as expected: $l2_sender_balance_after != 0"
+        echo "❌ L2 sender address $random_addr_sender balance after deposit is not as expected: $l2_sender_balance_after != 0" >&3
         exit 1
     else
-        echo "✅ L2 sender address $random_addr_sender balance after deposit is as expected: $l2_sender_balance_after"
+        echo "✅ L2 sender address $random_addr_sender balance after deposit is as expected: $l2_sender_balance_after" >&3
     fi
 
     if [[ "$l2_receiver_balance_after" != "0" ]]; then
-        echo "❌ L2 receiver address $random_addr_receiver balance after deposit is not as expected: $l2_receiver_balance_after != 0"
+        echo "❌ L2 receiver address $random_addr_receiver balance after deposit is not as expected: $l2_receiver_balance_after != 0" >&3
         exit 1
     else
-        echo "✅ L2 receiver address $random_addr_receiver balance after deposit is as expected: $l2_receiver_balance_after"
+        echo "✅ L2 receiver address $random_addr_receiver balance after deposit is as expected: $l2_receiver_balance_after" >&3
     fi
 }
 
@@ -247,18 +247,18 @@ function send_forced_tx() {
     contract_call_value=3
 
     # Deploy the contract
-    contract_bytecode=$(cat contracts/SimpleStorage.json | jq -r .bytecode.object)
+    contract_bytecode=$(cat $PWD/contracts/SimpleStorage.json | jq -r .bytecode.object)
     run cast send --rpc-url $l2_rpc_url --private-key $l2_private_key --create $contract_bytecode --json
     if [ "$status" -ne 0 ]; then
-        echo "❌ Failed to deploy contract: $output"
+        echo "❌ Failed to deploy contract: $output" >&3
         exit 1
     else
         contract_address=$(echo "$output" | jq -r '.contractAddress')
         if [ -z "$contract_address" ]; then
-            echo "❌ Contract address not found in output"
+            echo "❌ Contract address not found in output" >&3
             exit 1
         else
-            echo "✅ Successfully deployed contract with address: $contract_address"
+            echo "✅ Successfully deployed contract with address: $contract_address" >&3
         fi
     fi
 
@@ -271,37 +271,38 @@ function send_forced_tx() {
     # Lets save and check the balances before the forced tx
     l2_sender_balance_before=$(cast balance --rpc-url "$l2_rpc_url" "$random_addr_sender")
     if [[ "$l2_sender_balance_before" != "$l2_sender_funds_required" ]]; then
-        echo "❌ L2 sender address $random_addr_sender balance before deposit is not as expected: $l2_sender_balance_before != $l2_sender_funds_required"
+        echo "❌ L2 sender address $random_addr_sender balance before deposit is not as expected: $l2_sender_balance_before != $l2_sender_funds_required" >&3
         exit 1
     else
-        echo "✅ L2 sender address $random_addr_sender balance before deposit is as expected: $l2_sender_balance_before"
+        echo "✅ L2 sender address $random_addr_sender balance before deposit is as expected: $l2_sender_balance_before" >&3
     fi
 
     # send_forced_tx sender_key l1_gas_limit l2_receiver_addr l2_amount l2_gas_limit l2_data(optional)
     send_forced_tx "$random_pkey_sender" "$contract_address" 0 15000000 "$(cast abi-encode "set(uint256)" $contract_call_value)"
-    echo "✅ Successfully sent forced transaction to L1 Optimism Portal with txhash $forced_tx_hash"
+    echo "✅ Successfully sent forced transaction to L1 Optimism Portal with txhash $forced_tx_hash" >&3
 
     while true; do
         sleep 5
         run cast call --rpc-url $l2_rpc_url $contract_address 'getValue()'
         if [[ "$status" -ne 0 ]]; then
-            echo "❌ Failed to call l2 contract: $output"
+            echo "❌ Failed to call l2 contract: $output" >&3
             exit 1
         else
             value=$(echo $output | cast to-dec)
             if [[ "$value" == "43981" ]]; then
-                echo "⏳ L2 contract value is still the default $value, waiting for forced tx to be processed..."
+                echo "⏳ L2 contract value is still the default $value, waiting for forced tx to be processed..." >&3
             elif [[ "$value" == "1337" ]]; then
-                echo "❌ L2 contract value is $value, which means that the call was not processed correctly"
+                echo "❌ L2 contract value is $value, which means that the call was not processed correctly" >&3
                 exit 1
             elif [[ "$value" == "$contract_call_value" ]]; then
-                echo "✅ L2 contract value is as expected: $value"
+                echo "✅ L2 contract value is as expected: $value" >&3
                 break
             else
-                echo "❌ L2 contract value is unexpected: $value"
+                echo "❌ L2 contract value is unexpected: $value" >&3
                 exit 1
             fi
         fi
     done
     # L2 balances are not modified at all, no need to check
+
 }
