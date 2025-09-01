@@ -23,8 +23,22 @@ function get_current_block_producer_id() {
 
 # bats test_tags=veblop
 @test "stop the current block producer mid-span" {
-  block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
+  # Right after the primary producer stops, there should be a new span with a different producer.
+  # We should observe the following log in heimdall: "Updating latest span due to different author".
+  # - The chain should not halt.
+  # - There should not be any reorgs.
+
+  # Get the current span id.
   span_id=$(get_current_span_id)
+
+  # Check that the span is not ending soon.
+  span=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}")
+  span_end_block=$(echo "${span}" | jq -r '.span.end_block')
+  block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
+  if [[ $((block_number + 5)) -ge "${span_end_block}" ]]; then
+    echo "Current span is ending soon or has already ended. Aborting test."
+    exit 0
+  fi
 
   # Stop the current block producer.
   block_producer_id=$(get_current_block_producer_id "${span_id}")
@@ -43,5 +57,5 @@ function get_current_block_producer_id() {
   echo "Waiting for chain to progress..."
   assert_command_eventually_greater_than "cast block-number --rpc-url ${L2_RPC_URL}" $((block_number + 30)) "180" "10"
 
-  # TODO: Monitor how heimdall elects the new block producer.
+  # TODO: Monitor how heimdall elects the next block producer.
 }
