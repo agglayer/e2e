@@ -247,7 +247,7 @@ function send_forced_tx() {
     contract_call_value=3
 
     # Deploy the contract
-    contract_bytecode=$(cat $PWD/contracts/SimpleStorage.json | jq -r .bytecode.object)
+    contract_bytecode=$(cat $BATS_TEST_DIRNAME/contracts/SimpleStorage.json | jq -r .bytecode.object)
     run cast send --rpc-url $l2_rpc_url --private-key $l2_private_key --create $contract_bytecode --json
     if [ "$status" -ne 0 ]; then
         echo "❌ Failed to deploy contract: $output" >&3
