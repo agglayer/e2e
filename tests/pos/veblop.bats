@@ -8,7 +8,10 @@ setup() {
   pos_setup
 
   # Skip veblop tests if not enabled.
-  is_veblop_enabled || exit 1
+  if ! is_veblop_enabled; then
+    echo "VEBLOP is not enabled (block number <= 256). Arborting tests."
+    exit 1
+  fi
 }
 
 function is_veblop_enabled() {
