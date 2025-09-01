@@ -6,6 +6,15 @@ setup() {
   load "../../core/helpers/pos-setup.bash"
   load "../../core/helpers/scripts/eventually.bash"
   pos_setup
+
+  # Skip veblop tests if not enabled.
+  is_veblop_enabled || echo "Veblop hardfork is not enabled (block number <= 256). Aborting tests."
+}
+
+function is_veblop_enabled() {
+  local block_number
+  block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
+  [[ $block_number -gt 256 ]]
 }
 
 function get_current_span_id() {
