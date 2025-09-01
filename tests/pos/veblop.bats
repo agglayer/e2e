@@ -8,7 +8,7 @@ setup() {
   pos_setup
 
   # Skip veblop tests if not enabled.
-  is_veblop_enabled || echo "Veblop hardfork is not enabled (block number <= 256). Aborting tests."
+  is_veblop_enabled || exit 1
 }
 
 function is_veblop_enabled() {
