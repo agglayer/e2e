@@ -20,6 +20,15 @@ It is designed to:
 ```bash
  kurtosis service logs cdk <service-identifier>
 ---
+- Shell into a service:
+```bash
+ kurtosis service shell cdk <service-identifier>
+---
+---
+- Inspect a service
+```bash
+kurtosis service inspect cdk <service-identifier>
+---
 
 ##  Scripts
 
@@ -33,7 +42,7 @@ It is designed to:
     example
 
     ```bash
-    ./run.sh  0.2.2  0.2.3
+    ./run.sh 0.3.4 0.3.5
     ```
 
   - **Downgrade usage:**  
@@ -43,7 +52,7 @@ It is designed to:
     example
 
     ```bash
-    ./run.sh  0.2.3  0.2.2  downgrade
+    ./run.sh  0.3.5 0.3.4  downgrade
     ```
 ##  Arguments & Descriptions
 

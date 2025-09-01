@@ -88,10 +88,12 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 .args.agglayer_prover_sp1_key = $sp1key
 ' ./assets/cdk-erigon-rollup.yml > initial-cdk-erigon-rollup.yml
 
+
 yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key |
-.args.sp1_prover_key = $sp1key
-' ./assets/cdk-erigon-pp.yml > initial-cdk-erigon-pp.yml
+.args.agglayer_prover_sp1_key = $sp1key
+' ./assets/cdk-erigon-rollup-003.yml > initial-cdk-erigon-rollup-003.yml
+
+
 
 
 # checks if the user is requesting for downgrade
@@ -142,6 +144,9 @@ if [[ "$ACTION" == "downgrade" ]]; then
       echo '║   🎉 💃💃💃💃💃   D O W N G R A D I N G    A G G L A Y E R   S U C C E S S F U L L  🎉 💃💃💃💃💃          ║'
       echo '╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
+      echo "🔧 Running Updating Agglayer with Rollup ERIGON ROLLUP RPC NODE"
+      node script.js
+
 else
       echo '╔═══════════════════════════════════════════════════════════════╗'
       echo '║   A T T A C H I N G    C D K   E R I G O N   V A L I D I U M  ║'
@@ -154,27 +159,12 @@ else
               "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
       
 
-      contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
-      contracts_container_name=contracts-001--$contracts_uuid
-
-      # Get the deployment details
-      docker cp $contracts_container_name:/opt/zkevm/combined.json .
-      rollup_manager_address=$(jq -r '.polygonRollupManagerAddress' combined.json)
-      l1_bridge_address=$(jq -r '.polygonZkEVMBridgeAddress' combined.json)
-      l2_bridge_address=$(jq -r '.polygonZkEVML2BridgeAddress' combined.json)
-
-      L1_BRIDGE_ADDR=$l1_bridge_address
-      L2_BRIDGE_ADDR=$l2_bridge_address
-
-
       echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
       echo '║      A T T A C H I N G    C D K   E R I G O N   V A L I D I U M   S U C C E S S F U L L               ║'
       echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
       echo "======================================================================================================================="
       sleep 10
 
-
-      prev_aglr_readrpc=$(kurtosis service inspect cdk agglayer --output json | jq -r '.ports["aglr-readrpc"].number')
      
 
       echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════╗'
@@ -251,34 +241,11 @@ else
 
 
 
-      echo "====================================================================================================================================="
-      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K   E R I G O N    P E R S I M I S T I C  P R O O F (P P)      ║'
-      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════╝'
-
-      kurtosis run \
-              --enclave "$kurtosis_enclave_name" \
-              --args-file ./initial-cdk-erigon-pp.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
-
-
-      contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
-      contracts_container_name=contracts-001--$contracts_uuid
-
-      # Get the deployment details
-      docker cp $contracts_container_name:/opt/zkevm/combined.json .
-      rollup_manager_address=$(jq -r '.polygonRollupManagerAddress' combined.json)
-      l1_bridge_address=$(jq -r '.polygonZkEVMBridgeAddress' combined.json)
-      l2_bridge_address=$(jq -r '.polygonZkEVML2BridgeAddress' combined.json)
-
-      L1_BRIDGE_ADDR=$l1_bridge_address
-      L2_BRIDGE_ADDR=$l2_bridge_address
-
       
 
       echo "======================================================================================================================================================"
       echo '╔═══════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P                                 ║'
+      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T W O                         ║'
       echo '╚═══════════════════════════════════════════════════════════════════════════════════════════╝'
 
 
@@ -295,6 +262,29 @@ else
       echo "====================================================================================================================================="
       sleep 10
 
+
+      echo "======================================================================================================================================================"
+      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════╗'
+      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T H R E E                     ║'
+      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════╝'
+
+
+      kurtosis run \
+              --enclave "$kurtosis_enclave_name" \
+              --args-file ./initial-cdk-erigon-rollup-003.yml \
+              "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"  
+      
+      
+
+      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      echo '║      A T T A C H I N G    C D K   E R I G O N   R O L L U P   S U C C E S S F U L L                   ║'
+      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
+      echo "====================================================================================================================================="
+      sleep 10
+
+
+      echo "🔧 Running Updating Agglayer with Rollup ERIGON ROLLUP RPC NODE"
+      node script.js > script.log 2>&1 &
 
 
 fi
