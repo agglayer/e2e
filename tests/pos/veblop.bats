@@ -132,9 +132,16 @@ function isolate_container_from_el_nodes() {
   echo "Current producer signer address: $signer"
   echo "Corresponding validator id: $validator_id"
 
+  # Get the current block number
+  block_number=$(cast block-number --rpc-url "$L2_RPC_URL")
+  echo "Current block number: $block_number"
+
   # Isolate the current block producer with network delays
   echo "Isolating the current block producer with network delays..."
   container_name=$(docker ps --format '{{.Names}}' | grep "^l2-el-${validator_id}-bor-heimdall-v2-validator--")
   isolate_container_from_el_nodes "$container_name"
   echo "Container isolated"
+
+  echo "Waiting for chain to progress..."
+  assert_command_eventually_greater_than "cast block-number --rpc-url $L2_RPC_URL" $((block_number + 50)) "180" "10"
 }
