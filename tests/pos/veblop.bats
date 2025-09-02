@@ -96,7 +96,9 @@ function isolate_container_from_el_nodes() {
     -v /var/run/docker.sock:/var/run/docker.sock \
     gaiaadm/pumba:0.10.1 netem \
     "${target_flags[@]}" \
+    --tc-image "gaiadocker/iproute2" \
     --duration "15s" \
+	  --interface "eth0" \
     loss --percent 100 "$node_name"
 }
 
