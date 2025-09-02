@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bats
 set -e
 
 enclave_name="pos-veblop"
