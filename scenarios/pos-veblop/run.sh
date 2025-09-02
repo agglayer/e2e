@@ -51,7 +51,7 @@ echo "✅ VeBLoP hardfork is now enabled!"
 if [[ "$SKIP_TESTS" != "true" ]]; then
   echo "Running veblop tests..."
   cd ../..
-  export KURTOSIS_ENCLAVE_NAME="$enclave_name"
+  export ENCLAVE_NAME="$enclave_name"
   bats tests/pos/veblop.bats
   if [[ $? -ne 0 ]]; then
     echo "❌ Tests failed"
