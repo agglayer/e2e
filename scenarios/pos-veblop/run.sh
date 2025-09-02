@@ -32,7 +32,7 @@ if [[ "$SKIP_DEPLOYMENT" != "true" ]]; then
   echo "Deploying the kurtosis enclave..."
   kurtosis run --enclave "$enclave_name" --args-file params.yml github.com/0xPolygon/kurtosis-pos@d7102e27da39c91bc19540ff45a76fab392dbcca
 else
-  echo "Skipping deployment as requested"
+  echo "🚫 Skipping deployment as requested"
 fi
 
 # Wait for veblop hard fork to be enabled (block 256)
@@ -59,5 +59,5 @@ if [[ "$SKIP_TESTS" != "true" ]]; then
   fi
   echo "✅ Tests passed"
 else
-  echo "Skipping tests as requested"
+  echo "🚫 Skipping tests as requested"
 fi
