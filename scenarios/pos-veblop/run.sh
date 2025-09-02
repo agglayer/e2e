@@ -14,8 +14,8 @@ echo '    \_/  |_____|____/|_____\___/|_|    '
 
 # Wait for veblop hard fork to be enabled (block 256)
 block_number=0
-while [[ "$block_number" -lt 256 ]]; do
-  echo "Waiting for block 256... Current: $block_number"
+while [[ "$block_number" -lt 270 ]]; do
+  echo "Waiting for block 270... Current: $block_number"
   sleep 5
   block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
 done

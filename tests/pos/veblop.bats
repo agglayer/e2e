@@ -9,7 +9,7 @@ setup() {
 
   # Skip veblop tests if not enabled.
   if ! is_veblop_enabled; then
-    echo "VEBLOP is not enabled (block number <= 256). Arborting tests."
+    echo "Veblop hardfork is not enabled (block number <= 256). Aborting tests."
     exit 1
   fi
 }
@@ -17,7 +17,7 @@ setup() {
 function is_veblop_enabled() {
   local block_number
   block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
-  [[ $block_number -gt 256 ]]
+  [[ $block_number -gt 270 ]]
 }
 
 function get_current_span_id() {
@@ -49,7 +49,7 @@ function get_current_block_producer_id() {
   block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
   if [[ $((block_number + 5)) -ge "${span_end_block}" ]]; then
     echo "Current span is ending soon or has already ended. Aborting test."
-    exit 0
+    exit 1
   fi
 
   # Stop the current block producer.
