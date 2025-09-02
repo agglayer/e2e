@@ -6,8 +6,8 @@ bor_tag="0fe4b0d"
 heimdallv2_tag="0d27dfc"
 
 # Build local images
-if ! docker images --format 'table {{.Repository}}:{{.Tag}}' | grep -q "local/bor:$bor_tag"; then
-  echo "Building bor:$bor_tag..."
+if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/bor:$bor_tag"; then
+  echo "Building bor:$bor_tag..." >&3
   git clone --branch develop https://github.com/0xPolygon/bor
   pushd bor
   git checkout "$bor_tag"
@@ -15,8 +15,8 @@ if ! docker images --format 'table {{.Repository}}:{{.Tag}}' | grep -q "local/bo
   popd
 fi
 
-if ! docker images --format 'table {{.Repository}}:{{.Tag}}' | grep -q "local/heimdall-v2:$heimdallv2_tag"; then
-  echo "Building heimdall-v2:$heimdallv2_tag..."
+if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/heimdall-v2:$heimdallv2_tag"; then
+  echo "Building heimdall-v2:$heimdallv2_tag..." >&3
   git clone --branch develop https://github.com/0xPolygon/heimdall-v2
   pushd heimdall-v2
   git checkout "$heimdallv2_tag"
@@ -25,26 +25,21 @@ if ! docker images --format 'table {{.Repository}}:{{.Tag}}' | grep -q "local/he
 fi
 
 # Spin up the network
-echo 'Deploying the kurtosis enclave...'
+echo "Deploying the kurtosis enclave..." >&3
 kurtosis run --enclave "$enclave_name" --args-file params.yml github.com/0xPolygon/kurtosis-pos@d7102e27da39c91bc19540ff45a76fab392dbcca
-
-echo ' __     _______ ____  _     ___  ____  '
-echo ' \ \   / / ____| __ )| |   / _ \|  _ \ '
-echo '  \ \ / /|  _| |  _ \| |  | | | | |_) |'
-echo '   \ V / | |___| |_) | |__| |_| |  __/ '
-echo '    \_/  |_____|____/|_____\___/|_|    '
 
 # Wait for veblop hard fork to be enabled (block 256)
 l2_rpc_url=$(kurtosis port print "$enclave_name" "l2-el-1-bor-heimdall-v2-validator" rpc)
 block_number=0
 while [[ "$block_number" -lt 270 ]]; do
-  echo "Waiting for block 270... Current: $block_number"
+  echo "Waiting for block 270... Current: $block_number" >&3
   sleep 5
   block_number=$(cast block-number --rpc-url "$l2_rpc_url")
 done
-echo "VeBLoP hardfork is now enabled"
+echo "VeBLoP hardfork is now enabled" >&3
 
 # Run veblop tests
+echo "Running veblop tests..." >&3
 cd ../..
 export KURTOSIS_ENCLAVE_NAME="$enclave_name"
 bats tests/pos/veblop.bats
