@@ -4,7 +4,7 @@ set -e
 enclave_name="pos-veblop"
 
 # Spin up the network
-kurtosis run --enclave "$enclave_name" --args-file params.yml github.com/0xPolygon/kurtosis-pos@v1.1.7
+kurtosis run --enclave "$enclave_name" --args-file params.yml github.com/0xPolygon/kurtosis-pos@d7102e27da39c91bc19540ff45a76fab392dbcca
 
 echo ' __     _______ ____  _     ___  ____  '
 echo ' \ \   / / ____| __ )| |   / _ \|  _ \ '
