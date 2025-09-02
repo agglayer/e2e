@@ -134,6 +134,7 @@ function isolate_container_from_el_nodes() {
 
   # Isolate the current block producer with network delays
   echo "Isolating the current block producer with network delays..."
-  isolate_container_from_el_nodes "$validator_el_container_name"
+  container_name=$(docker ps --format '{{.Names}}' | grep "^l2-el-${validator_id}-bor-heimdall-v2-validator--")
+  isolate_container_from_el_nodes "$container_name"
   echo "Container isolated"
 }
