@@ -24,13 +24,9 @@ if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
   exit 1
 fi
 echo "Latest span id: $latest_span_id"
+
+
 echo "Fetching all spans from 1 to $latest_span_id..."
-echo
-
-# Fetch all spans from 1 to latest
-echo "ID | Start Block | End Block | Block Count | Selected Producers | Status"
-echo "---|-------------|-----------|-------------|--------------------|---------"
-
 # First collect all span data
 declare -A spans
 declare -A span_status
@@ -47,18 +43,19 @@ for ((span_id=1; span_id<=latest_span_id; span_id++)); do
   if [[ -n "${spans[$span_id]}" ]]; then
     span_data="${spans[$span_id]}"
     start_block=$(echo "$span_data" | jq -r '.span.start_block')
+    end_block=$(echo "$span_data" | jq -r '.span.end_block')
 
     span_status[$span_id]="Normal"
 
-    # Check if this span should follow the previous one
-    if [[ $span_id -gt 1 && -n "${spans[$((span_id-1))]}" ]]; then
-      prev_span_data="${spans[$((span_id-1))]}"
-      prev_end_block=$(echo "$prev_span_data" | jq -r '.span.end_block')
-      expected_start=$((prev_end_block + 1))
+    # Check if this span overlaps with the next span
+    next_span_id=$((span_id + 1))
+    if [[ $next_span_id -le $latest_span_id && -n "${spans[$next_span_id]}" ]]; then
+      next_span_data="${spans[$next_span_id]}"
+      next_start_block=$(echo "$next_span_data" | jq -r '.span.start_block')
+      expected_next_start=$((end_block + 1))
 
-      # If this span starts before where it should, it means there was an overlap
-      # which indicates this span was created due to producer rotation (skipped original)
-      if [[ $start_block -lt $expected_start ]]; then
+      # If the next span starts before where it should, this current span was skipped
+      if [[ $next_start_block -lt $expected_next_start ]]; then
         span_status[$span_id]="Skipped"
       fi
     fi
@@ -66,6 +63,8 @@ for ((span_id=1; span_id<=latest_span_id; span_id++)); do
 done
 
 # Display results in reverse order (latest first)
+echo "ID | Start Block | End Block | Block Count | Selected Producers | Status"
+echo "---|-------------|-----------|-------------|--------------------|---------"
 for ((span_id=latest_span_id; span_id>=1; span_id--)); do
   if [[ -n "${spans[$span_id]}" ]]; then
     span_data="${spans[$span_id]}"
