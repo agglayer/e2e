@@ -31,39 +31,59 @@ echo
 echo "ID | Start Block | End Block | Block Count | Selected Producers | Status"
 echo "---|-------------|-----------|-------------|--------------------|---------"
 
-# Variables to track previous span for continuity check
-prev_start_block=""
-prev_end_block=""
+# First, collect all span data
+declare -A spans
+declare -A span_order
 
-for ((span_id=latest_span_id; span_id>=1; span_id--)); do
+for ((span_id=1; span_id<=latest_span_id; span_id++)); do
   span_data=$(curl -s "$cl_api_url/bor/spans/$span_id")
 
   if [[ $? -eq 0 && "$span_data" != *"error"* ]]; then
-    id=$(echo "$span_data" | jq -r '.span.id')
+    spans[$span_id]="$span_data"
+    span_order[$span_id]=$span_id
+  fi
+done
+
+# Now analyze spans in order and determine status
+declare -A span_status
+
+for ((span_id=1; span_id<=latest_span_id; span_id++)); do
+  if [[ -n "${spans[$span_id]}" ]]; then
+    span_data="${spans[$span_id]}"
     start_block=$(echo "$span_data" | jq -r '.span.start_block')
     end_block=$(echo "$span_data" | jq -r '.span.end_block')
 
-    # Calculate the number of blocks in the span
-    block_count=$((end_block - start_block + 1))
+    span_status[$span_id]="Normal"
 
-    # Get selected producers IDs as a comma-separated list
-    producers=$(echo "$span_data" | jq -r '.span.selected_producers[].val_id' | tr '\n' ',' | sed 's/,$//')
+    # Check relationship with previous span
+    if [[ $span_id -gt 1 && -n "${spans[$((span_id-1))]}" ]]; then
+      prev_span_data="${spans[$((span_id-1))]}"
+      prev_end_block=$(echo "$prev_span_data" | jq -r '.span.end_block')
+      expected_start=$((prev_end_block + 1))
 
-    # Determine span status (continuous or producer rotated)
-    status="Normal"
-    if [[ -n "$prev_start_block" ]]; then
-      # Check if this span is continuous with the previous one
-      expected_next_start=$((end_block + 1))
-      if [[ "$prev_start_block" -ne "$expected_next_start" ]]; then
-        status="Producer Rotated"
+      if [[ $start_block -gt $expected_start ]]; then
+        # Gap: previous span was cut short (producer rotated)
+        span_status[$((span_id-1))]="Producer Rotated"
+      elif [[ $start_block -lt $expected_start ]]; then
+        # Overlap: current span was skipped/invalidated
+        span_status[$span_id]="Skipped"
       fi
     fi
+  fi
+done
+
+# Display results in reverse order (latest first)
+for ((span_id=latest_span_id; span_id>=1; span_id--)); do
+  if [[ -n "${spans[$span_id]}" ]]; then
+    span_data="${spans[$span_id]}"
+    id=$(echo "$span_data" | jq -r '.span.id')
+    start_block=$(echo "$span_data" | jq -r '.span.start_block')
+    end_block=$(echo "$span_data" | jq -r '.span.end_block')
+    block_count=$((end_block - start_block + 1))
+    producers=$(echo "$span_data" | jq -r '.span.selected_producers[].val_id' | tr '\n' ',' | sed 's/,$//')
+    status="${span_status[$span_id]}"
 
     printf "%-3s | %-11s | %-9s | %-11s | %-18s | %s\n" "$id" "$start_block" "$end_block" "$block_count" "$producers" "$status"
-
-    # Store current span info for next iteration
-    prev_start_block="$start_block"
-    prev_end_block="$end_block"
   else
     echo "Error fetching span $span_id"
   fi
