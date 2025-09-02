@@ -95,10 +95,10 @@ function isolate_container_from_el_nodes() {
   docker run --rm \
     -v /var/run/docker.sock:/var/run/docker.sock \
     gaiaadm/pumba:0.10.1 netem \
-    $target_flags \
-    --tc-image gaiadocker/iproute2 \
-    --duration 15s \
-    --interface eth0 \
+    "$target_flags" \
+    --tc-image "gaiadocker/iproute2" \
+    --duration "15s" \
+    --interface "eth0" \
     delay --time 6000 --jitter 1000 "$node_name"
 }
 
