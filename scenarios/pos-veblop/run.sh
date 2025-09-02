@@ -35,11 +35,12 @@ echo '   \ V / | |___| |_) | |__| |_| |  __/ '
 echo '    \_/  |_____|____/|_____\___/|_|    '
 
 # Wait for veblop hard fork to be enabled (block 256)
+l2_rpc_url=$(kurtosis port print "$enclave_name" "l2-el-1-bor-heimdall-v2-validator" rpc)
 block_number=0
 while [[ "$block_number" -lt 270 ]]; do
   echo "Waiting for block 270... Current: $block_number"
   sleep 5
-  block_number=$(cast block-number --rpc-url "${L2_RPC_URL}")
+  block_number=$(cast block-number --rpc-url "$l2_rpc_url")
 done
 echo "VeBLoP hardfork is now enabled"
 
