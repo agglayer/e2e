@@ -36,7 +36,7 @@ while [[ "$block_number" -lt 270 ]]; do
   sleep 5
   block_number=$(cast block-number --rpc-url "$l2_rpc_url")
 done
-echo "VeBLoP hardfork is now enabled"
+echo "VeBLoP hardfork is now enabled (block number: $block_number)"
 
 # Run veblop tests
 echo "Running veblop tests..."
