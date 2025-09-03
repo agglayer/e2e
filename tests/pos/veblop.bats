@@ -159,11 +159,11 @@ setup() {
   for ((span_id=1; span_id<=latest_span_id; span_id++)); do
     producer_count=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers | length')
     echo "Span $span_id: $producer_count producer(s)"
-    if [[ $producer_count -lt 1]]; then
+    if [[ "$producer_count" -lt 1 ]]; then
       echo "Error: No producer found for span $span_id"
       exit 1
     fi
-    if [[ $producer_count -gt 3 ]]; then
+    if [[ "$producer_count" -gt 3 ]]; then
       echo "Error: More than 3 selected producers for span $span_id"
       exit 1
     fi
