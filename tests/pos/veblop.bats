@@ -93,6 +93,7 @@ setup() {
   fi
 }
 
+# bats test_tags=veblop
 @test "isolate the current block producer mid-span to trigger a producer rotation" {
   # Get the current validator id.
   validator_id=$(get_current_validator_id)
@@ -108,7 +109,8 @@ setup() {
 
   # Get the reorg count from the first rpc node.
   # Note: We assume the devnet contains at least three validator nodes and one rpc.
-  initial_reorg_count=$(get_reorg_count "l2-el-4-bor-heimdall-v2-rpc")
+  rpc_node=$(docker ps --format '{{.Names}}' | grep "^l2-el-.*-bor-heimdall-v2-rpc" | head -n 1 | sed 's/--.*$//')
+  initial_reorg_count=$(get_reorg_count "$rpc_node")
   echo "Initial reorg count: $initial_reorg_count"
 
   # Isolate the current block producer from the rest of the network.
@@ -134,11 +136,11 @@ setup() {
   echo "Block number: $block_number"
 
   # Get the reorg count.
-  final_reorg_count=$(get_reorg_count "l2-el-4-bor-heimdall-v2-rpc")
+  final_reorg_count=$(get_reorg_count "$rpc_node")
   echo "Final reorg count: $final_reorg_count"
 
   if [[ $final_reorg_count -ne $initial_reorg_count ]]; then
-    echo "❌ Detected reorg on rpc node (l2-el-4-bor-heimdall-v2-rpc) during producer rotation"
+    echo "❌ Detected reorg on rpc node ($rpc_node) during producer rotation"
     exit 1
   fi
 }
