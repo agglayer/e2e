@@ -1,3 +1,10 @@
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BATS_LIB_PATH=$BATS_LIB_PATH:$HERE/lib
+PROJECT_ROOT=$HERE/../..
+
+L2_PRIVATE_KEY="${L2_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+
+
 _agglayer_cdk_common_setup() {
     _load_bats_libraries || return 1
     _load_helper_scripts
