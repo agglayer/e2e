@@ -45,7 +45,7 @@ for ((span_id=1; span_id<=latest_span_id; span_id++)); do
     start_block=$(echo "$span_data" | jq -r '.span.start_block')
     end_block=$(echo "$span_data" | jq -r '.span.end_block')
 
-    span_status[$span_id]="Normal"
+    span_status[$span_id]=""
 
     # Check if this span overlaps with the next span
     next_span_id=$((span_id + 1))
