@@ -37,6 +37,10 @@ if [[ -z "${ARGS_FILE}" ]]; then
   echo "Error: ARGS_FILE environment variable is not set"
   exit 1
 fi
+if [[ -z "${KURTOSIS_POS_TAG}" ]]; then
+  echo "Error: KURTOSIS_POS_TAG environment variable is not set"
+  exit 1
+fi
 
 
 # Build local images
@@ -60,7 +64,7 @@ fi
 
 # Spin up the network
 echo "Deploying the kurtosis enclave..."
-kurtosis run --enclave "$enclave_name" --args-file "$ARGS_FILE" github.com/0xPolygon/kurtosis-pos@d7102e27da39c91bc19540ff45a76fab392dbcca
+kurtosis run --enclave "$enclave_name" --args-file "$ARGS_FILE" "github.com/0xPolygon/kurtosis-pos@$KURTOSIS_POS_TAG"
 
 # Wait for veblop hard fork to be enabled (block 256)
 l2_rpc_url=$(kurtosis port print "$enclave_name" "l2-el-1-bor-heimdall-v2-validator" rpc)
