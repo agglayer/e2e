@@ -169,3 +169,52 @@ setup() {
     fi
   done
 }
+
+function get_block_author() {
+  block_number="$1"
+  local block_number_hex
+  block_number_hex=$(printf "0x%x" "$block_number")
+  cast rpc bor_getAuthor "$block_number_hex" --rpc-url "$L2_RPC_URL"
+}
+
+# bats test_tags=equal-slot-distribution
+@test "enforce equal slot distribution between block producers" {
+  # This invariant won't be enforced if there have been producer rotations.
+
+  # Get the current block number.
+  block_number=$(cast block-number --rpc-url "$L2_RPC_URL")
+  echo "Block number: $block_number"
+
+  # Iterate through all the blocks and count the number of blocks by producer.
+  declare -A block_count
+  total_blocks=0
+  for ((i=1; i<=block_number; i++)); do
+    producer=$(get_block_author "$i")
+    ((block_count["$producer"]++))
+    ((total_blocks++))
+  done
+
+  # Print block distribution by producer.
+  echo "Block distribution by producer:"
+  for producer in "${!block_count[@]}"; do
+    echo "- Producer $producer: ${block_count[$producer]} blocks"
+  done
+
+  num_producers=${#block_count[@]}
+  expected_blocks_per_producer=$((total_blocks / num_producers))
+  echo "Total blocks: $total_blocks"
+  echo "Number of producers: $num_producers"
+  echo "Expected blocks per producer: ~$expected_blocks_per_producer"
+
+  # Check if the distribution is reasonably equal
+  tolerance=128  # ±1 span (128 blocks)
+  for producer in "${!block_count[@]}"; do
+    count=${block_count[$producer]}
+    diff=$((count - expected_blocks_per_producer))
+    abs_diff=${diff#-}  # Remove negative sign for absolute value
+    if ((abs_diff > tolerance)); then
+      echo "❌ Unequal distribution: Producer $producer has $count blocks (expected ~$expected_blocks_per_producer ±$tolerance)"
+      exit 1
+    fi
+  done
+}
