@@ -179,6 +179,7 @@ function get_block_author() {
 
 # bats test_tags=equal-slot-distribution
 @test "enforce equal block distribution between block producers" {
+  # This test usually takes around 30/40 seconds to run.
   # This invariant won't be enforced if there have been producer rotations.
 
   # Get the current block number.
