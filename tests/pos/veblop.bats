@@ -193,7 +193,7 @@ function get_block_author() {
   declare -A span_count
   total_spans=0
   for ((span_id=1; span_id<=latest_span_id; span_id++)); do
-    producer=$(echo "$current_span" | jq -r '.span.selected_producers[0].signer')
+    producer=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers[0].signer')
     span_count["$producer"]=$((${span_count["$producer"]:-0} + 1))
     total_spans=$((total_spans + 1))
   done
