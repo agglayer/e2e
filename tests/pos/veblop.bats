@@ -105,7 +105,7 @@ setup() {
   # Note: We assume the devnet contains at least three validator nodes and one rpc.
   rpc_node=$(docker ps --format '{{.Names}}' | grep "^l2-el-.*-bor-heimdall-v2-rpc" | head -n 1 | sed 's/--.*$//')
   l2_metrics_url=$(kurtosis port print "$ENCLAVE_NAME" "$rpc_node" metrics)
-  if [[ -n "$l2_metrics_url" ]]; then
+  if [[ -z "$l2_metrics_url" ]]; then
     echo "Error: Could not retrieve L2 metrics url" >&2
     exit 1
   fi
