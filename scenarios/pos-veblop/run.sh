@@ -73,9 +73,7 @@ else
 fi
 
 
-# Run veblop tests
-if [[ "$SKIP_TESTS" != "true" ]]; then
-  # Wait for veblop hard fork to be enabled (block 256)
+# Wait for veblop hard fork to be enabled (block 256)
   l2_rpc_url=$(kurtosis port print "$enclave_name" "l2-el-1-bor-heimdall-v2-validator" rpc)
   block_number=$(cast block-number --rpc-url "$l2_rpc_url")
   echo "Waiting for block 256..."
@@ -87,6 +85,9 @@ if [[ "$SKIP_TESTS" != "true" ]]; then
   done
   echo "✅ VeBLoP hardfork is now enabled!"
 
+
+# Run veblop tests
+if [[ "$SKIP_TESTS" != "true" ]]; then
   echo "Running veblop tests..."
   cd ../..
   export ENCLAVE_NAME="$enclave_name"
