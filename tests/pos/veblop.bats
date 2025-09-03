@@ -178,6 +178,52 @@ function get_block_author() {
 }
 
 # bats test_tags=equal-slot-distribution
+@test "enforce equal slot distribution between block producers" {
+  # This invariant won't be enforced if there have been producer rotations.
+
+  # Get the latest span.
+  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
+  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
+  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
+    echo "Error: Could not retrieve latest span id"
+    return 1
+  fi
+
+  # Iterate through all the spans and count the number of spans by producer.
+  declare -A span_count
+  total_spans=0
+  for ((span_id=1; span_id<=latest_span_id; span_id++)); do
+    producer=$(echo "$current_span" | jq -r '.span.selected_producers[0].signer')
+    span_count["$producer"]=$((${span_count["$producer"]:-0} + 1))
+    total_spans=$((total_spans + 1))
+  done
+
+  # Print slot distribution by producer.
+  echo "Slot distribution by producer:"
+  for producer in "${!span_count[@]}"; do
+    echo "- Producer $producer: ${span_count[$producer]} blocks"
+  done
+
+  num_producers=${#span_count[@]}
+  expected_spans_per_producer=$((total_spans / num_producers))
+  echo "Total spans: $total_spans"
+  echo "Number of producers: $num_producers"
+  echo "Expected spans per producer: ~$expected_spans_per_producer"
+
+  # Check if the distribution is reasonably equal
+  tolerance=1  # ±1 span
+  for producer in "${!span_count[@]}"; do
+    count=${span_count[$producer]}
+    diff=$((count - expected_spans_per_producer))
+    abs_diff=${diff#-}  # Remove negative sign for absolute value
+    if ((abs_diff > tolerance)); then
+      echo "❌ Unequal distribution: Producer $producer has $count spans (expected ~$expected_spans_per_producer ±$tolerance)"
+      exit 1
+    fi
+  done
+}
+
+# bats test_tags=equal-slot-distribution
 @test "enforce equal block distribution between block producers" {
   # This test usually takes around 30/40 seconds to run.
   # This invariant won't be enforced if there have been producer rotations.
