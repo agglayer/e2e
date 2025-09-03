@@ -39,13 +39,7 @@ function get_current_validator_id() {
 }
 
 function get_reorg_count() {
-  l2_el_service_name="$1"
-  l2_metrics_url=$(kurtosis port print "$ENCLAVE_NAME" "$l2_el_service_name" metrics)
-  if [[ -n "$l2_metrics_url" ]]; then
-    echo "Error: Could not retrieve L2 metrics url" >&2
-    exit 1
-  fi
-
+  l2_metrics_url="$1"
   local reorg_count
   reorg_count=$(curl -s "$l2_metrics_url/debug/metrics/prometheus" | grep -e "^chain_reorg_executes" | awk '{print $2}')
   if [[ -z "$reorg_count" || "$reorg_count" == "null" ]]; then
@@ -110,8 +104,13 @@ setup() {
   # Get the reorg count from the first rpc node.
   # Note: We assume the devnet contains at least three validator nodes and one rpc.
   rpc_node=$(docker ps --format '{{.Names}}' | grep "^l2-el-.*-bor-heimdall-v2-rpc" | head -n 1 | sed 's/--.*$//')
-  echo "RPC node: $rpc_node"
-  initial_reorg_count=$(get_reorg_count "$rpc_node")
+  l2_metrics_url=$(kurtosis port print "$ENCLAVE_NAME" "$l2_el_service_name" metrics)
+  if [[ -n "$l2_metrics_url" ]]; then
+    echo "Error: Could not retrieve L2 metrics url" >&2
+    exit 1
+  fi
+
+  initial_reorg_count=$(get_reorg_count "$l2_metrics_url")
   echo "Initial reorg count: $initial_reorg_count"
 
   # Isolate the current block producer from the rest of the network.
@@ -137,7 +136,7 @@ setup() {
   echo "Block number: $block_number"
 
   # Get the reorg count.
-  final_reorg_count=$(get_reorg_count "$rpc_node")
+  final_reorg_count=$(get_reorg_count "$l2_metrics_url")
   echo "Final reorg count: $final_reorg_count"
 
   if [[ $final_reorg_count -ne $initial_reorg_count ]]; then
