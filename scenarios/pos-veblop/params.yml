@@ -3,9 +3,9 @@ polygon_pos_package:
     # validator nodes
     - kind: validator
       cl_type: heimdall-v2
-      cl_image: local/heimdall-v2:0d27dfc # develop - 2025/09/01
+      cl_image: local/heimdall-v2:0d27dfc
       el_type: bor
-      el_image: local/bor:0fe4b0d # develop - 2025/08/29
+      el_image: local/bor:0fe4b0d
       count: 3
       el_bor_produce_witness: true
 
