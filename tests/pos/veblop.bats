@@ -40,7 +40,7 @@ function get_current_validator_id() {
 
 function get_reorg_count() {
   l2_el_service_name="$1"
-  l2_metrics_url=$(kurtosis port print "$ENCLAVE_NAME" "$l2_el_service_name" rpc)
+  l2_metrics_url=$(kurtosis port print "$ENCLAVE_NAME" "$l2_el_service_name" metrics)
   if [[ -n "$l2_metrics_url" ]]; then
     echo "Error: Could not retrieve L2 metrics url" >&2
     exit 1
