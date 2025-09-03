@@ -40,12 +40,13 @@ while true; do
 
   if (( block_number > 1000 )); then
     echo "✅ Block number exceeded 1000"
-    exit 0
+    break
   fi
   sleep 20
 done
 
-bats -f "enforce equal slot distribution between block producers" tests/pos/veblop.bats
+export ENCLAVE_NAME="pos-veblop"
+bats --filter-tags equal-slot-distribution tests/pos/veblop.bats
 ```
 
 ```bash
