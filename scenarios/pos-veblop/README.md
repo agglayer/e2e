@@ -21,6 +21,9 @@ Invariants checked:
 
 ```bash
 ./run.sh --env .env.default
+
+export ENCLAVE_NAME="pos-veblop"
+bats --filter-tags veblop tests/pos/veblop.bats
 ```
 
 ### Scenario 4
@@ -51,7 +54,13 @@ bats --filter-tags equal-slot-distribution tests/pos/veblop.bats
 
 ```bash
 veblop.bats
+ ✓ enforce equal slot distribution between block producers
  ✓ enforce equal block distribution between block producers
 
-1 test, 0 failures
+2 tests, 0 failures
+
+
+real	0m36.413s
+user	0m16.265s
+sys	0m21.489s
 ```
