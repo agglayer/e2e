@@ -190,6 +190,12 @@ function get_block_author() {
   total_blocks=0
   for ((i=1; i<=block_number; i++)); do
     producer=$(get_block_author "$i")
+
+    # Initialize the count if it doesn't exist
+    if [[ -z "${block_count[$producer]:-}" ]]; then
+      block_count["$producer"]=0
+    fi
+
     ((block_count["$producer"]++))
     ((total_blocks++))
   done
