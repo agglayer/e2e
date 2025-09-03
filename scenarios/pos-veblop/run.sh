@@ -91,7 +91,7 @@ if [[ "$SKIP_TESTS" != "true" ]]; then
   echo "Running veblop tests..."
   cd ../..
   export ENCLAVE_NAME="$enclave_name"
-  bats tests/pos/veblop.bats
+  bats -t veblop tests/pos/veblop.bats
   if [[ $? -ne 0 ]]; then
     echo "❌ Tests failed"
     exit 1
