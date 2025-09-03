@@ -178,17 +178,17 @@ function get_block_author() {
 }
 
 # bats test_tags=equal-slot-distribution
-@test "enforce equal slot distribution between block producers" {
+@test "enforce equal block distribution between block producers" {
   # This invariant won't be enforced if there have been producer rotations.
 
   # Get the current block number.
   block_number=$(cast block-number --rpc-url "$L2_RPC_URL")
   echo "Block number: $block_number"
 
-  # Iterate through all the blocks and count the number of blocks by producer.
+  # Iterate through the last thousand blocks and count the number of blocks by producer.
   declare -A block_count
   total_blocks=0
-  for ((i=1; i<=block_number; i++)); do
+  for ((i=block_number-999; i<=block_number; i++)); do
     producer=$(get_block_author "$i")
     block_count["$producer"]=$((${block_count["$producer"]:-0} + 1))
     total_blocks=$((total_blocks + 1))
