@@ -38,6 +38,23 @@ function get_current_validator_id() {
   echo "$validator_id"
 }
 
+function get_reorg_count() {
+  l2_el_service_name="$1"
+  l2_metrics_url=$(kurtosis port print "$enclave_name" "$l2_el_service_name" rpc)
+  if [[ -n "$l2_metrics_url" ]]; then
+    echo "Error: Could not retrieve L2 metrics url" >&2
+    exit 1
+  fi
+
+  local reorg_count
+  reorg_count=$(curl -s "$l2_metrics_url/debug/metrics/prometheus" | grep -e "^chain_reorg_executes" | awk '{print $2}')
+  if [[ -z "$reorg_count" || "$reorg_count" == "null" ]]; then
+    echo "Error: Could not retrieve reorg count" >&2
+    return 1
+  fi
+  echo "$reorg_count"
+}
+
 function isolate_container_from_el_nodes() {
   node_name="$1"
   node_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$node_name")
@@ -89,6 +106,11 @@ setup() {
   block_number=$(cast block-number --rpc-url "$L2_RPC_URL")
   echo "Block number: $block_number"
 
+  # Get the reorg count from the first rpc node.
+  # Note: We assume the devnet contains at least three validator nodes and one rpc.
+  initial_reorg_count=$(get_reorg_count "l2-el-4-bor-heimdall-v2-rpc")
+  echo "Initial reorg count: $initial_reorg_count"
+
   # Isolate the current block producer from the rest of the network.
   # The node won't be able to send anything to the other EL nodes for 15 seconds.
   # It should trigger a producer rotation.
@@ -110,4 +132,13 @@ setup() {
   # Get the current block number.
   block_number=$(cast block-number --rpc-url "$L2_RPC_URL")
   echo "Block number: $block_number"
+
+  # Get the reorg count.
+  final_reorg_count=$(get_reorg_count "l2-el-4-bor-heimdall-v2-rpc")
+  echo "Final reorg count: $final_reorg_count"
+
+  if [[ $final_reorg_count -ne $initial_reorg_count ]]; then
+    echo "❌ Detected reorg on rpc node (l2-el-4-bor-heimdall-v2-rpc) during producer rotation"
+    exit 1
+  fi
 }
