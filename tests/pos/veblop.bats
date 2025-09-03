@@ -7,6 +7,37 @@ function is_veblop_enabled() {
   [[ $block_number -gt 270 ]]
 }
 
+function get_current_validator_id() {
+  # Get the latest span.
+  local latest_span
+  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
+  local latest_span_id
+  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
+  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
+    echo "Error: Could not retrieve latest span id" >&2
+    return 1
+  fi
+
+  # Get the current span (latest - 1).
+  local current_span_id=$((latest_span_id - 1))
+  local current_span
+  current_span=$(curl -s "${L2_CL_API_URL}/bor/spans/${current_span_id}")
+  if [[ -z "$current_span" || "$current_span" == "null" ]]; then
+    echo "Error: Could not retrieve current span" >&2
+    return 1
+  fi
+
+  # Extract the validator id.
+  local validator_id
+  validator_id=$(echo "$current_span" | jq -r '.span.selected_producers[0].val_id')
+  if [[ -z "$validator_id" || "$validator_id" == "null" ]]; then
+    echo "Error: Could not retrieve validator id" >&2
+    return 1
+  fi
+
+  echo "$validator_id"
+}
+
 function isolate_container_from_el_nodes() {
   node_name="$1"
   node_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$node_name")
@@ -46,31 +77,13 @@ setup() {
 }
 
 @test "isolate the current block producer mid-span to trigger a producer rotation" {
-  # Get the latest span.
-  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
-  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
-  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
-    echo "Error: Could not retrieve latest span id"
+  # Get the current validator id.
+  validator_id=$(get_current_validator_id)
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to get current validator id"
     exit 1
   fi
-  echo "Latest span id: $latest_span_id"
-
-  # Get the current span.
-  current_span_id=$((latest_span_id - 1))
-  current_span=$(curl -s "${L2_CL_API_URL}/bor/spans/${current_span_id}")
-  if [[ -z "$current_span" || "$current_span" == "null" ]]; then
-    echo "Error: Could not retrieve current span"
-    exit 1
-  fi
-  echo "Current span id: $current_span_id"
-
-  # Extract the validator id.
-  validator_id=$(echo "$current_span" | jq -r '.span.selected_producers[0].val_id')
-  if [[ -z "$validator_id" || "$validator_id" == "null" ]]; then
-    echo "Error: Could not retrieve validator id"
-    exit 1
-  fi
-  echo "Validator id: $validator_id"
+  echo "Current block producer validator id: $validator_id"
 
   # Get the current block number.
   block_number=$(cast block-number --rpc-url "$L2_RPC_URL")
