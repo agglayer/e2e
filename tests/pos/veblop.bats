@@ -137,10 +137,16 @@ function isolate_container_from_el_nodes() {
   echo "Current block number: $block_number"
 
   # Isolate the current block producer with network delays
-  echo "Isolating the current block producer with network delays..."
-  container_name=$(docker ps --format '{{.Names}}' | grep "^l2-el-${validator_id}-bor-heimdall-v2-validator--")
-  isolate_container_from_el_nodes "$container_name"
-  echo "Container isolated"
+  # echo "Isolating the current block producer with network delays..."
+  # container_name=$(docker ps --format '{{.Names}}' | grep "^l2-el-${validator_id}-bor-heimdall-v2-validator--")
+  # isolate_container_from_el_nodes "$container_name"
+  # echo "Container isolated"
+
+  # Stop EL node
+  service_name="l2-el-${block_producer_id}-bor-heimdall-v2-validator"
+  echo "Stopping $service_name"
+  kurtosis service stop "$ENCLAVE_NAME" "$service_name"
+  echo "$service_name stopped"
 
   echo "Waiting for chain to progress..."
   assert_command_eventually_greater_than "cast block-number --rpc-url $L2_RPC_URL" $((block_number + 50)) "180" "10"
