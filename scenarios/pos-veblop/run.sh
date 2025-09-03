@@ -1,7 +1,6 @@
 #!/bin/env bash
 set -e
 
-enclave_name="pos-veblop"
 bor_tag="0fe4b0d" # develop - 2025/08/29
 heimdallv2_tag="0d27dfc" # develop - 2025/09/01
 
@@ -33,6 +32,10 @@ else
 fi
 
 # Checking environment variables.
+if [[ -z "${ENCLAVE_NAME}" ]]; then
+  export ENCLAVE_NAME="pos-veblop"
+  echo "Warning: ENCLAVE_NAME environment variable is not set. Using default value: $ENCLAVE_NAME."
+fi
 if [[ -z "${ARGS_FILE}" ]]; then
   echo "Error: ARGS_FILE environment variable is not set"
   exit 1
@@ -64,10 +67,10 @@ fi
 
 # Spin up the network
 echo "Deploying the kurtosis enclave..."
-kurtosis run --enclave "$enclave_name" --args-file "$ARGS_FILE" "github.com/0xPolygon/kurtosis-pos@$KURTOSIS_POS_TAG"
+kurtosis run --enclave "$ENCLAVE_NAME" --args-file "$ARGS_FILE" "github.com/0xPolygon/kurtosis-pos@$KURTOSIS_POS_TAG"
 
 # Wait for veblop hard fork to be enabled (block 256)
-l2_rpc_url=$(kurtosis port print "$enclave_name" "l2-el-1-bor-heimdall-v2-validator" rpc)
+l2_rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "l2-el-1-bor-heimdall-v2-validator" rpc)
 block_number=$(cast block-number --rpc-url "$l2_rpc_url")
 echo "Waiting for block 256..."
 echo "Block number: $block_number"

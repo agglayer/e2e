@@ -21,9 +21,8 @@ Invariants checked:
 - Each span has a minimum of one selected producer and a maximum of three selected producers.
 
 ```bash
-./run.sh --env .env.default
-
 export ENCLAVE_NAME="pos-veblop"
+./run.sh --env .env.default
 bats --filter-tags veblop tests/pos/veblop.bats
 ```
 
@@ -49,6 +48,7 @@ The script starts a Polygon PoS devnet with 5 validators and 4 RPC nodes. It wai
 Note: Waiting for more blocks, e.g., 10,000, would provide greater confidence in validating this invariant.
 
 ```bash
+export ENCLAVE_NAME="pos-veblop-4"
 ./run.sh --env .env.default
 
 echo "Waiting for block 1000..."
@@ -182,6 +182,7 @@ index ab15dc7..22456d8 100644
 Here is how to spin up the environment and trigger tests.
 
 ```bash
+export ENCLAVE_NAME="pos-veblop-5"
 ./run.sh --env .env.scenario.5
 bats -f "producer with more than 2/3 of the active power should produce all the blocks" tests/pos/veblop.bats
 ```
