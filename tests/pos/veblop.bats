@@ -146,7 +146,7 @@ setup() {
 }
 
 # bats test_tags=veblop
-@test "minimum one and maximum three selected producers per span" {
+@test "enforce minimum one and maximum three selected producers per span" {
   # Get the latest span.
   latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
   latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
