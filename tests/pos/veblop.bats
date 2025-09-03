@@ -144,3 +144,28 @@ setup() {
     exit 1
   fi
 }
+
+# bats test_tags=veblop
+@test "minimum one and maximum three selected producers per span" {
+  # Get the latest span.
+  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
+  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
+  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
+    echo "Error: Could not retrieve latest span id"
+    return 1
+  fi
+
+  # Iterate through all the spans and check the number of producers.
+  for ((span_id=1; span_id<=latest_span_id; span_id++)); do
+    producer_count=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers | length')
+    echo "Span $span_id: $producer_count producer(s)"
+    if [[ $producer_count -lt 1]]; then
+      echo "Error: No producer found for span $span_id"
+      exit 1
+    fi
+    if [[ $producer_count -gt 3 ]]; then
+      echo "Error: More than 3 selected producers for span $span_id"
+      exit 1
+    fi
+  done
+}
