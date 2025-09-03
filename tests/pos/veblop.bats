@@ -110,6 +110,7 @@ setup() {
   # Get the reorg count from the first rpc node.
   # Note: We assume the devnet contains at least three validator nodes and one rpc.
   rpc_node=$(docker ps --format '{{.Names}}' | grep "^l2-el-.*-bor-heimdall-v2-rpc" | head -n 1 | sed 's/--.*$//')
+  echo "RPC node: $rpc_node"
   initial_reorg_count=$(get_reorg_count "$rpc_node")
   echo "Initial reorg count: $initial_reorg_count"
 
