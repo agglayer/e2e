@@ -26,6 +26,21 @@ export ENCLAVE_NAME="pos-veblop"
 bats --filter-tags veblop tests/pos/veblop.bats
 ```
 
+Result:
+
+```bash
+veblop.bats
+ ✓ isolate the current block producer mid-span to trigger a producer rotation
+ ✓ enforce minimum one and maximum three selected producers per span
+
+2 tests, 0 failures
+
+
+real	1m4.685s
+user	0m5.361s
+sys	0m1.434s
+```
+
 ### Scenario 4
 
 The script starts a Polygon PoS devnet with 5 validators and 4 RPC nodes. It waits until block 1000 to ensure VEBloP is active and that multiple spans with producer rotations have occurred. It then verifies whether block producer slots are evenly distributed over the last 1000 blocks, allowing a tolerance of ±1 span (128 blocks).
@@ -51,6 +66,8 @@ done
 export ENCLAVE_NAME="pos-veblop"
 bats --filter-tags equal-slot-distribution tests/pos/veblop.bats
 ```
+
+Result:
 
 ```bash
 veblop.bats
