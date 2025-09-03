@@ -191,7 +191,7 @@ function get_block_author() {
   for ((i=1; i<=block_number; i++)); do
     producer=$(get_block_author "$i")
     block_count["$producer"]=$((${block_count["$producer"]:-0} + 1))
-    ((total_blocks++))
+    total_blocks=$((total_blocks + 1))
   done
 
   # Print block distribution by producer.
