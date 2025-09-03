@@ -183,6 +183,5 @@ Here is how to spin up the environment and trigger tests.
 
 ```bash
 ./run.sh --env .env.scenario.5
-
-
+bats -f "producer with more than 2/3 of the active power should produce all the blocks" tests/pos/veblop.bats
 ```
