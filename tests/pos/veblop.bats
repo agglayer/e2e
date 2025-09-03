@@ -117,8 +117,8 @@ setup() {
   # The node won't be able to send anything to the other EL nodes for 15 seconds.
   # It should trigger a producer rotation.
   echo "Isolating the current block producer from the rest of the network..."
-  echo "Container name: $container_name"
   container_name=$(docker ps --format '{{.Names}}' | grep "^l2-el-${validator_id}-bor-heimdall-v2-validator--")
+  echo "Container name: $container_name"
   isolate_container_from_el_nodes "$container_name"
   echo "Container isolated"
 
