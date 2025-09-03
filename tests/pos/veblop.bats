@@ -143,7 +143,7 @@ function isolate_container_from_el_nodes() {
   # echo "Container isolated"
 
   # Stop EL node
-  service_name="l2-el-${block_producer_id}-bor-heimdall-v2-validator"
+  service_name="l2-el-${validator_id}-bor-heimdall-v2-validator"
   echo "Stopping $service_name"
   kurtosis service stop "$ENCLAVE_NAME" "$service_name"
   echo "$service_name stopped"
