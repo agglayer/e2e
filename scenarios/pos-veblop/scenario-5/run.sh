@@ -2,7 +2,6 @@
 set -e
 
 source ../common.sh
-load_env
 
 enclave_name="pos-veblop-5"
 bor_tag="0fe4b0d" # develop - 2025/08/29
