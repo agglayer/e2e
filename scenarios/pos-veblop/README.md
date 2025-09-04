@@ -12,7 +12,11 @@
 
 ## Testing
 
-### Scenarios: 2 and 3
+### Scenario 1
+
+TODO
+
+### Scenario: 2
 
 The script launches a Polygon PoS devnet with 5 validators and 4 rpc nodes. It waits until block 256 to ensure VEBloP is active, then simulates a failure by isolating the current block producer’s EL node from the rest of the EL nodes for 15 seconds. The remaining validators detect the producer’s inactivity and trigger a rotation, ending the current span and immediately starting the next one. The chain progresses smoothly without halting or reorgs.
 
@@ -21,9 +25,7 @@ Invariants checked:
 - Each span has a minimum of one selected producer and a maximum of three selected producers.
 
 ```bash
-export ENCLAVE_NAME="pos-veblop"
-./run.sh --env .env.default
-bats --filter-tags veblop tests/pos/veblop.bats
+cd default && ./run.sh
 ```
 
 Result:
@@ -41,6 +43,10 @@ user 0m5.361s
 sys 0m1.434s
 ```
 
+### Scenario 3
+
+TODO: Start with 5 validators in the selected block producers.
+
 ### Scenario 4
 
 The script starts a Polygon PoS devnet with 5 validators and 4 RPC nodes. It waits until block 1000 to ensure VEBloP is active and that multiple spans with producer rotations have occurred. It then verifies whether block producer slots are evenly distributed over the last 1000 blocks, allowing a tolerance of ±1 span (128 blocks).
@@ -48,24 +54,7 @@ The script starts a Polygon PoS devnet with 5 validators and 4 RPC nodes. It wai
 Note: Waiting for more blocks, e.g., 10,000, would provide greater confidence in validating this invariant.
 
 ```bash
-export ENCLAVE_NAME="pos-veblop-4"
-./run.sh --env .env.default
-
-echo "Waiting for block 1000..."
-while true; do
-  l2_rpc_url=$(kurtosis port print "pos-veblop" "l2-el-1-bor-heimdall-v2-validator" rpc)
-  block_number=$(cast bn --rpc-url "$l2_rpc_url")
-  echo "Block number: $block_number"
-
-  if (( block_number > 1000 )); then
-    echo "✅ Block number exceeded 1000"
-    break
-  fi
-  sleep 20
-done
-
-export ENCLAVE_NAME="pos-veblop"
-bats --filter-tags equal-slot-distribution tests/pos/veblop.bats
+cd scenario-4 && ./run.sh
 ```
 
 Result:
