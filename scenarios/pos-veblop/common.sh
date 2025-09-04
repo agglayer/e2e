@@ -28,7 +28,7 @@ function wait_for_veblop_hf() {
   block_number=$(cast block-number --rpc-url "$l2_rpc_url")
   echo "Waiting for block 256..." # plus some margin, here 20 blocks more
   echo "Block number: $block_number"
-  while [[ "$block_number" -lt (( 256 + 20 )) ]]; do
+  while [[ "$block_number" -lt 276 ]]; do
     sleep 5
     block_number=$(cast block-number --rpc-url "$l2_rpc_url")
     echo "Block number: $block_number"
