@@ -28,7 +28,7 @@ wait_for_veblop_hf "$l2_rpc_url"
 # Wait for block 1000 to ensure multiple spans with producer rotations have occurred
 echo "Waiting for block 1000..."
 while true; do
-  l2_rpc_url=$(kurtosis port print "pos-veblop" "l2-el-1-bor-heimdall-v2-validator" rpc)
+  l2_rpc_url=$(kurtosis port print "$enclave_name" "l2-el-1-bor-heimdall-v2-validator" rpc)
   block_number=$(cast bn --rpc-url "$l2_rpc_url")
   echo "Block number: $block_number"
 
