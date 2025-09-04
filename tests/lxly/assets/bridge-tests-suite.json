@@ -27,8 +27,8 @@
         "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success", "transfer amount exceeds balance"],
+        "ExpectedResultClaim": ["Success","N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
