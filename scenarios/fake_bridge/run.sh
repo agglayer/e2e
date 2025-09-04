@@ -477,7 +477,12 @@ echo '╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═════�
 # Deploy Malicious Bridge contract on L2 rollupId 2 (PoS outpost)
 malicious_bridge_bytecode=$(cat PolygonZkEVMBridgeV2.json | jq -r .bytecode.object)
 fake_bridge_addr=$(cast send --rpc-url $pos_rpc_url --private-key $l1_preallocated_private_key --create $malicious_bridge_bytecode --json | jq -r .contractAddress)
+
+docker stop aggkit-pos
+rm -f /tmp/aggkit/tmp/*
 sed -i "s|^BridgeAddr *= *\".*\"|BridgeAddr = \"$fake_bridge_addr\"|" /tmp/aggkit/aggkit-config.toml
+docker start aggkit-pos
+
 
 hacker_wallet_json=$(cast wallet new --json)
 hacker_addr=$(echo "$hacker_wallet_json" | jq -r '.[0].address')
