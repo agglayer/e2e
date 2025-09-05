@@ -1,17 +1,17 @@
 #!/usr/bin/env bats
 # bats file_tags=standard,execution
 
+setup_file() {
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
+}
+
 setup() {
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
-
-    l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc)"}
-
     iteration_count=5
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
-    source "./tests/lxly/assets/bridge-tests-helper.bash"
+    source "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
 }
 
 wait_block_increment() {

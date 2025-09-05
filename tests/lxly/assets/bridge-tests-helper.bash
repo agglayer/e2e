@@ -3,7 +3,7 @@
 
 # Source the logger functions
 # shellcheck disable=SC1091
-source "$PWD/core/helpers/logger.bash"
+source "$PROJECT_ROOT/core/helpers/logger.bash"
 
 deploy_buggy_erc20() {
     local rpc_url=$1
