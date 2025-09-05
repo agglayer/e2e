@@ -5,25 +5,47 @@
 # Setup and Configuration
 # =============================================================================
 
+setup_file() {
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
+
+    export l1_bridge_addr="${L1_BRIDGE_ADDR:-0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae}"
+    if [[ $(cast code $l1_bridge_addr --rpc-url $l1_rpc_url) == "0x" ]]; then
+        _log_file_descriptor "3" "Replacing empty bridge contract address..."
+        export l1_bridge_addr=$(_get_bridge_address)
+    fi
+
+    export l2_bridge_addr="${L2_BRIDGE_ADDR:-0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae}"
+    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
+        _log_file_descriptor "3" "Replacing empty bridge contract address..."
+        export l2_bridge_addr=$(_get_bridge_address)
+    fi
+
+    export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
+    export l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
+    export l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    export claim_wait_duration="${CLAIM_WAIT_DURATION:-120m}"
+}
+
 setup() {
     # Source the logger functions
     # shellcheck disable=SC1091
-    source "$PWD/core/helpers/logger.bash"
+    source "$BATS_TEST_DIRNAME/../../core/helpers/logger.bash"
 
     # Initialize test_index for this test run
     test_index=0
 
-    # Environment variables with defaults
-    _setup_environment_variables
+    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
+    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     
     # Contract addresses
     _setup_contract_addresses
     
     # Load helper functions from helper bash file
-    load "./assets/bridge-tests-helper.bash"
+    load "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
 
     # Load test scenarios from file
-    scenarios=$(cat "./tests/lxly/assets/bridge-tests-suite.json")
+    scenarios=$(cat "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json")
 
     # Clean up any previous result files
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
@@ -38,33 +60,6 @@ teardown() {
 
     # Clean up result files
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
-}
-
-
-_setup_environment_variables() {
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
-    l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url="${L1_RPC_URL:-http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)}"
-    l1_bridge_addr="${L1_BRIDGE_ADDR:-0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae}"
-    if [[ $(cast code $l1_bridge_addr --rpc-url $l1_rpc_url) == "0x" ]]; then
-        _log_file_descriptor "3" "Replacing empty bridge contract address..."
-        l1_bridge_addr=$(_get_bridge_address)
-    fi
-
-    l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url="${L2_RPC_URL:-$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)}"
-    l2_bridge_addr="${L2_BRIDGE_ADDR:-0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae}"
-    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
-        _log_file_descriptor "3" "Replacing empty bridge contract address..."
-        l2_bridge_addr=$(_get_bridge_address)
-    fi
-
-    export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
-    l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
-    l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-120m}"
 }
 
 
@@ -93,7 +88,7 @@ _setup_contract_addresses() {
 # =============================================================================
 # bats test_tags=bridge
 @test "Initial setup" {
-    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
+    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
         _log_file_descriptor "3" "Bridge Tests Suite file not found"
         skip "Bridge Tests Suite file not found"
     }
@@ -114,7 +109,7 @@ _setup_contract_addresses() {
 # bats test_tags=bridge
 @test "Process L1 to L2 bridge scenarios and claim deposits in parallel" {
     _log_file_descriptor "3" "Starting L1 to L2 parallel bridge scenarios and claims test"
-    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
+    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
         _log_file_descriptor "3" "Bridge Tests Suite file not found"
         skip "Bridge Tests Suite file not found"
     }
@@ -336,7 +331,7 @@ _setup_contract_addresses() {
 # bats test_tags=bridge
 @test "Process L2 to L1 bridge scenarios and claim deposits in parallel" {
     _log_file_descriptor "3" "Starting L2 to L1 parallel bridge scenarios and claims test"
-    [[ -f "./tests/lxly/assets/bridge-tests-suite.json" ]] || {
+    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
         echo "Bridge Tests Suite file not found" >&3
         skip "Bridge Tests Suite file not found"
     }
