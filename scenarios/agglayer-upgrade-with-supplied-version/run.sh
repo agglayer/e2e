@@ -1,8 +1,118 @@
 #!/bin/env bash
 set -e
 
-# Check before sourcing
-if [ -f ../common/load-env.sh ]; then
+
+# ----------------------------------------------------------------------
+# Function: Adds rollup RPCs to agglayer and restarts the service
+# ----------------------------------------------------------------------
+add_rollup_rpc_to_agglayer() {
+    echo "Updating agglayer config..."
+
+    kurtosis service exec cdk agglayer '
+      set -eu
+      file=/etc/zkevm/agglayer-config.toml
+      if ! grep -q "2 = http://cdk-erigon-rpc-002:8123" "$file"; then
+          sed -i "/1 = \"http:\/\/cdk-erigon-rpc-001:8123\"/a 2 = \"http://cdk-erigon-rpc-002:8123\"" "$file"
+          sed -i "/2 = \"http:\/\/cdk-erigon-rpc-002:8123\"/a 3 = \"http://cdk-erigon-rpc-003:8123\"" "$file"
+      fi
+    '
+
+    echo "Restarting agglayer..."
+    kurtosis service stop cdk agglayer
+    kurtosis service start cdk agglayer
+
+    echo "Done."
+}
+
+
+
+# -----------------------------------------------------------------------------------------------------------------
+# Function: to verify deployment by checking for events  VerifyBatchesTrustedAggregator in the contract deployments
+# ------------------------------------------------------------------------------------------------------------------
+run_verification_in_container() (
+  set -euo pipefail
+  set -o pipefail
+
+  SERVICE_NAME="${1:?Usage: run_verification_in_container <SERVICE_NAME> [LOCAL_SCRIPT] [RPC_URL]}"
+  LOCAL_SCRIPT="${2:-./check_verification.sh}"
+  RPC_URL="${3:-http://el-1-geth-lighthouse:8545}"
+
+  LOG_DIR="${LOG_DIR:-./logs}"
+  mkdir -p "$LOG_DIR"
+  LOG_FILE="${LOG_DIR}/${SERVICE_NAME}.log"
+
+  START_TS="$(date -Is)" # current timestamp
+  echo "[START  ${START_TS}] ${SERVICE_NAME}"
+
+  # Find the kurtosis container for the service 
+  # It finds  the most recent container whose name starts with ${SERVICE_NAME}-- and stores its name in CONTAINER
+  CONTAINER="$(docker ps -a --format '{{.Names}}' | grep -E "^${SERVICE_NAME}--" | head -n1 || true)"
+
+  # Run and stream output to both terminal and log
+  {
+    echo "---- ${START_TS} BEGIN ${SERVICE_NAME} ----"
+    # checks if no service was found and exits
+    if [[ -z "${CONTAINER}" ]]; then
+      echo "No container found matching \"${SERVICE_NAME}--*\"" >&2
+      echo "---- $(date -Is) END ${SERVICE_NAME} rc=127 ----"
+      exit 127
+    fi
+
+    # continues execution if service was found
+    echo "Using container: ${CONTAINER}"
+
+    # Copy local script into the container
+    REMOTE_SCRIPT="/tmp/check_verification.sh"
+    echo "Copying ${LOCAL_SCRIPT} -> ${CONTAINER}:${REMOTE_SCRIPT}"
+    docker cp "${LOCAL_SCRIPT}" "${CONTAINER}:${REMOTE_SCRIPT}"
+
+    # Patch placeholders from combined.json and execute
+    docker exec -e RPC_URL="${RPC_URL}" "${CONTAINER}" bash -lc '
+      set -euo pipefail
+      FILE=/opt/zkevm/combined.json
+      [[ -f "$FILE" ]] || { echo "Missing $FILE"; exit 1; }
+
+      if command -v jq >/dev/null 2>&1; then
+        ROLLUP_MANAGER=$(jq -r ".polygonRollupManagerAddress" "$FILE")
+        ROLLUP_ADDRESS=$(jq -r ".rollupAddress" "$FILE")
+      else
+        ROLLUP_MANAGER=$(grep -oP "\"polygonRollupManagerAddress\"\\s*:\\s*\"\\K0x[0-9a-fA-F]+" "$FILE")
+        ROLLUP_ADDRESS=$(grep -oP "\"rollupAddress\"\\s*:\\s*\"\\K0x[0-9a-fA-F]+" "$FILE")
+      fi
+
+      [[ -n "$ROLLUP_MANAGER" ]] || { echo "Could not parse polygonRollupManagerAddress"; exit 1; }
+      [[ -n "$ROLLUP_ADDRESS" ]] || { echo "Could not parse rollupAddress"; exit 1; }
+
+      echo "ROLLUP_MANAGER=$ROLLUP_MANAGER"
+      echo "ROLLUP_ADDRESS=$ROLLUP_ADDRESS"
+
+      sed -i "s/__ROLLUP_MANAGER__/$ROLLUP_MANAGER/g; s/__ROLLUP_ADDRESS__/$ROLLUP_ADDRESS/g" "'"$REMOTE_SCRIPT"'"
+      chmod +x "'"$REMOTE_SCRIPT"'"
+      "'"$REMOTE_SCRIPT"'"
+    '
+    RC=$? # saves exits status of prev execution
+    echo "---- $(date -Is) END ${SERVICE_NAME} rc=${RC} ----"
+    exit $RC
+  } 2>&1 | tee -a "$LOG_FILE". # stdout & stderr from the prev cmd, pipes it & appends to log file shows also on terminal.
+
+  # Preserve the exit code of the block (left side of the pipe)
+  RC=${PIPESTATUS[0]} # captures the exit code of the first command in the pipeline
+  END_TS="$(date -Is)"
+  if [[ $RC -eq 0 ]]; then
+    echo "[FINISH ${END_TS}] ${SERVICE_NAME} ✅ (rc=0) | log: ${LOG_FILE}"
+  elif [[ $RC -eq 2 ]]; then
+    echo "[FINISH ${END_TS}] ${SERVICE_NAME} ⚠️  No verification events (rc=2) | log: ${LOG_FILE}"
+  else
+    echo "[FINISH ${END_TS}] ${SERVICE_NAME} ❌ (rc=${RC}) | log: ${LOG_FILE}"
+  fi
+  exit $RC
+)
+
+
+# ----------------------------------------------------------------------
+# Load environment
+# ----------------------------------------------------------------------
+if [[ -f ../common/load-env.sh ]]; then
     source ../common/load-env.sh
 else
     echo "load-env.sh not found!"
@@ -16,6 +126,9 @@ else
     exit 1
 fi
 
+
+# ------------------------------------------------------------------------------
+# CLI Arguments
 # ──────────────────────────────────────────────────────────────────────────────
 # Usage: ./run.sh <from-tag> <to-tag> [action]
 #   <from-tag>      e.g. 0.3.0-rc.21
@@ -42,9 +155,9 @@ ACTION="${3:-upgrade}"
 
 if [[ "$ACTION" == "downgrade" ]]; then
   if [[ "$TO_TAG" == "$PREV_FROM_TAG" && "$FROM_TAG" == "$PREV_TO_TAG" ]]; then
-    echo "✅ Downgrade tags match previous upgrade."
+    echo "Downgrade tags match previous upgrade."
   else
-    echo "❌ Downgrade tag mismatch!"
+    echo "Downgrade tag mismatch!"
     echo "Expected FROM_TAG=$PREV_TO_TAG, TO_TAG=$PREV_FROM_TAG"
     echo "Got      FROM_TAG=$FROM_TAG, TO_TAG=$TO_TAG"
     exit 1
@@ -58,18 +171,18 @@ TO_IMAGE="${IMAGE_BASE}:${TO_TAG}"
 
 
 
-sed -i "s#^FROM_IMAGE=.*#FROM_IMAGE=$FROM_IMAGE#" .env
-sed -i "s#^TO_IMAGE=.*#TO_IMAGE=$TO_IMAGE#" .env
+
 sed -i "s#^FROM_TAG=.*#FROM_TAG=$FROM_TAG#" .env
 sed -i "s#^TO_TAG=.*#TO_TAG=$TO_TAG#" .env
 
 
-kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
-kurtosis_enclave_name="$ENCLAVE_NAME"
+KURTOSIS_HASH="$KURTOSIS_PACKAGE_HASH"
+KURTOSIS_ENCLAVE_NAME="$ENCLAVE_NAME"
 
 
-echo ":-kurtosis hash:= $kurtosis_hash"
-echo ":-enclave name:= $kurtosis_enclave_name"
+
+echo ":-kurtosis hash:= $KURTOSIS_HASH"
+echo ":-enclave name:= $KURTOSIS_ENCLAVE_NAME"
 echo ":-from image:= $FROM_IMAGE"
 echo ":-to image:= $TO_IMAGE"
 echo ":-from tag:= $FROM_TAG"
@@ -100,9 +213,9 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 if [[ "$ACTION" == "downgrade" ]]; then
 
       # check if there is a running enclave
-      enclaveExist=$(kurtosis enclave ls | awk '$3 == "RUNNING" {print $2; exit}')
-      if [[ "$enclaveExist" != "$kurtosis_enclave_name" ]]; then
-          echo "Enclave name is not $kurtosis_enclave_name. Exiting...OR No Running enclave "
+      ENCLAVE_EXIST=$(kurtosis enclave ls | awk '$3 == "RUNNING" {print $2; exit}')
+      if [[ "$ENCLAVE_EXIST" != "$KURTOSIS_ENCLAVE_NAME" ]]; then
+          echo "Enclave name is not $KURTOSIS_ENCLAVE_NAME. Exiting...OR No Running enclave "
           exit 1
       fi
       
@@ -119,12 +232,12 @@ if [[ "$ACTION" == "downgrade" ]]; then
       echo $TO_IMAGE_SERVICE_CONFIG_FILE
       cat "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
-      kurtosis service rm "$kurtosis_enclave_name" agglayer
+      kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
       kurtosis service add cdk agglayer --json-service-config "$TO_IMAGE_SERVICE_CONFIG_FILE"
       rm  "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
 
-      sleep 10
+     
 
       TO_PROVER_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
       kurtosis service inspect cdk agglayer-prover --output json \
@@ -141,11 +254,11 @@ if [[ "$ACTION" == "downgrade" ]]; then
 
 
       echo '╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   🎉 💃💃💃💃💃   D O W N G R A D I N G    A G G L A Y E R   S U C C E S S F U L L  🎉 💃💃💃💃💃          ║'
+      echo '║      D O W N G R A D I N G    A G G L A Y E R   S U C C E S S F U L L                                      ║'
       echo '╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
-      echo "🔧 Running Updating Agglayer with Rollup ERIGON ROLLUP RPC NODE"
-      node script.js
+      echo " Running Updating Agglayer with Rollup ERIGON ROLLUP RPC NODE"
+      add_rollup_rpc_to_agglayer
 
 else
       echo '╔═══════════════════════════════════════════════════════════════╗'
@@ -154,28 +267,24 @@ else
 
 
       kurtosis run \
-              --enclave "$kurtosis_enclave_name" \
+              --enclave "$KURTOSIS_ENCLAVE_NAME" \
               --args-file ./initial-cdk-erigon-validium.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
+              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"
       
 
-      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║      A T T A C H I N G    C D K   E R I G O N   V A L I D I U M   S U C C E S S F U L L               ║'
-      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
-      echo "======================================================================================================================="
-      sleep 10
+      echo '╔══════════════════════════════════════════════════════════════════════════════════════════════╗'
+      echo '║      A T T A C H I N G    C D K   E R I G O N   V A L I D I U M   S U C C E S S F U L L      ║'
+      echo '╚══════════════════════════════════════════════════════════════════════════════════════════════╝'
+      
 
-     
 
       echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════╗'
       echo '║   R U N N I N G   U P G R A D E   F O R   A G G L A Y E R   F R O M   S U P L I E D   T A G      ║'
       echo '╚══════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
-      # kurtosis service inspect cdk agglayer --output json
-      echo "======================================================================================================================="
+  
 
-
-      echo "==================== R U N N I N G   K U R T O R S I S  W I T H    A G G L A Y E R   F R O M   I M A G E:  $FROM_IMAGE ============"
+      echo "==================== R U N N I N G   K U R T O S I S  W I T H    A G G L A Y E R   F R O M   I M A G E:  $FROM_IMAGE ============"
       # 1. Create a temporary file  to hold the config json of the current kurtosis base image
       FROM_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
 
@@ -186,12 +295,11 @@ else
       echo $FROM_IMAGE_SERVICE_CONFIG_FILE
       cat "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
-      kurtosis service rm "$kurtosis_enclave_name" agglayer
+      kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
       kurtosis service add cdk agglayer --json-service-config "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
       rm  "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
-      sleep 10
 
 
       FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
@@ -202,8 +310,8 @@ else
        rm  "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
 
       
-      sleep 20
-      echo "==================== R U N N I N G   K U R T O R S I S   W I T H    A G G L A Y E R   T O   I M A G E:  $TO_IMAGE ================="
+     
+      echo "==================== R U N N I N G   K U R T O S I S   W I T H    A G G L A Y E R   T O   I M A G E:  $TO_IMAGE ================="
       # 1. Create a temporary file  to hold the config json of the current service
       TO_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
 
@@ -214,7 +322,7 @@ else
       echo $TO_IMAGE_SERVICE_CONFIG_FILE
       cat "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
-      kurtosis service rm "$kurtosis_enclave_name" agglayer
+      kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
       kurtosis service add cdk agglayer --json-service-config "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
       rm  "$TO_IMAGE_SERVICE_CONFIG_FILE"
@@ -233,58 +341,68 @@ else
       kurtosis service inspect cdk agglayer --output json
       echo "========================================================================================================================"
 
-      sleep 15
+     
 
-      echo '╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║     🎉 💃💃💃💃💃   U P G R A D I N G    A G G L A Y E R   T O  T A R G E T   V E R S I O N  S U C C E S S F U L L 🎉 💃💃💃💃💃                   ║'
-      echo '╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝'
+      echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      echo '║        U P G R A D I N G    A G G L A Y E R   T O  T A R G E T   V E R S I O N  S U C C E S S F U L L    ║'
+      echo '╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
 
 
       
 
-      echo "======================================================================================================================================================"
-      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T W O                         ║'
-      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════╝'
+      echo '╔═════════════════════════════════════════════════════════════════════════╗'
+      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T W O       ║'
+      echo '╚═════════════════════════════════════════════════════════════════════════╝'
 
 
       kurtosis run \
-              --enclave "$kurtosis_enclave_name" \
+              --enclave "$KURTOSIS_ENCLAVE_NAME" \
               --args-file ./initial-cdk-erigon-rollup.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"  
+              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"  
       
       
 
-      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║      A T T A C H I N G    C D K   E R I G O N   R O L L U P   S U C C E S S F U L L                   ║'
-      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
-      echo "====================================================================================================================================="
-      sleep 10
+      echo '╔═════════════════════════════════════════════════════════════════════════════════════════╗'
+      echo '║      A T T A C H I N G    C D K   E R I G O N   R O L L U P   S U C C E S S F U L L     ║'
+      echo '╚═════════════════════════════════════════════════════════════════════════════════════════╝'
+  
 
 
-      echo "======================================================================================================================================================"
-      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T H R E E                     ║'
-      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════╝'
+      echo '╔═════════════════════════════════════════════════════════════════════════════╗'
+      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T H R E E       ║'
+      echo '╚═════════════════════════════════════════════════════════════════════════════╝'
 
 
       kurtosis run \
-              --enclave "$kurtosis_enclave_name" \
+              --enclave "$KURTOSIS_ENCLAVE_NAME" \
               --args-file ./initial-cdk-erigon-rollup-003.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"  
+              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"  
       
       
 
       echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║      A T T A C H I N G    C D K   E R I G O N   R O L L U P   S U C C E S S F U L L                   ║'
+      echo '║      A T T A C H I N G    C D K   E R I G O N     R O L L U P   T H R E E   S U C C E S S F U L L     ║'
       echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
-      echo "====================================================================================================================================="
-      sleep 10
 
 
-      echo "🔧 Running Updating Agglayer with Rollup ERIGON ROLLUP RPC NODE"
-      node script.js > script.log 2>&1 &
+
+      echo "Modifying agglayer configuration to include new rollup"
+      add_rollup_rpc_to_agglayer
 
 
+
+      # live countdown for 3 minutes
+      for ((s=180; s>0; s--)); do
+        printf "\rWaiting 3 min to verify deployment - will execute VerifyBatchesTrustedAggregator event… %02d:%02d" $((s/60)) $((s%60))
+        sleep 1
+      done
+      printf "\r✓ done.          \n"
+
+      for n in 001 002 003; do
+        run_verification_in_container "contracts-$n" || true
+      done
 fi
+
+
+
