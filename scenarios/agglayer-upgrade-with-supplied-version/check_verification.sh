@@ -20,6 +20,7 @@ echo "  event: $EVENT"
 echo "  lookback: $LOOKBACK blocks"
 
 TMP_JSON="$(mktemp -t verify-logs.XXXXXX.json)"
+trap 'rm -f "$TMP_JSON"' EXIT
 
 # Stream logs as pretty JSON to terminal (if jq is installed) and save raw JSON to file
 if command -v jq >/dev/null 2>&1; then
