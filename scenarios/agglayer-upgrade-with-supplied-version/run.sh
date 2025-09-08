@@ -89,7 +89,7 @@ run_verification_in_container() (
     '
     RC=$? # saves exits status of prev execution
     echo "---- $(date -Is) END ${SERVICE_NAME} rc=${RC} ----"
-    exit $RC
+    exit "$RC"
   } 2>&1 | tee -a "$LOG_FILE". # stdout & stderr from the prev cmd, pipes it & appends to log file shows also on terminal.
 
   # Preserve the exit code of the block (left side of the pipe)
@@ -102,7 +102,7 @@ run_verification_in_container() (
   else
     echo "[FINISH ${END_TS}] ${SERVICE_NAME} ❌ (rc=${RC}) | log: ${LOG_FILE}"
   fi
-  exit $RC
+  exit "$RC"
 )
 
 
@@ -226,7 +226,7 @@ if [[ "$ACTION" == "downgrade" ]]; then
       kurtosis service inspect cdk agglayer --output json \
         | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_IMAGE_SERVICE_CONFIG_FILE"
      
-      echo $TO_IMAGE_SERVICE_CONFIG_FILE
+      echo "$TO_IMAGE_SERVICE_CONFIG_FILE"
       cat "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
       kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
@@ -289,7 +289,7 @@ else
       kurtosis service inspect cdk agglayer --output json \
         | jq --arg img "$FROM_IMAGE" '.image = $img' > "$FROM_IMAGE_SERVICE_CONFIG_FILE"
      
-      echo $FROM_IMAGE_SERVICE_CONFIG_FILE
+      echo "$FROM_IMAGE_SERVICE_CONFIG_FILE"
       cat "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
       kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
@@ -316,7 +316,7 @@ else
       kurtosis service inspect cdk agglayer --output json \
         | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_IMAGE_SERVICE_CONFIG_FILE"
      
-      echo $TO_IMAGE_SERVICE_CONFIG_FILE
+      echo "$TO_IMAGE_SERVICE_CONFIG_FILE"
       cat "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
       kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
