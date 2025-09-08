@@ -3,7 +3,7 @@ set -euo pipefail
 
 # These get replaced by the host helper script
 ROLLUP_MANAGER="__ROLLUP_MANAGER__"   # from combined.json: polygonRollupManagerAddress
-ROLLUP_ADDRESS="__ROLLUP_ADDRESS__"   # from combined.json: rollupAddress (L2), if you need it
+
 
 RPC_URL="${RPC_URL:-http://el-1-geth-lighthouse:8545}"
 LOOKBACK="${LOOKBACK:-100}" # set the look back for event to be 100 blocks

@@ -74,19 +74,16 @@ run_verification_in_container() (
 
       if command -v jq >/dev/null 2>&1; then
         ROLLUP_MANAGER=$(jq -r ".polygonRollupManagerAddress" "$FILE")
-        ROLLUP_ADDRESS=$(jq -r ".rollupAddress" "$FILE")
       else
         ROLLUP_MANAGER=$(grep -oP "\"polygonRollupManagerAddress\"\\s*:\\s*\"\\K0x[0-9a-fA-F]+" "$FILE")
-        ROLLUP_ADDRESS=$(grep -oP "\"rollupAddress\"\\s*:\\s*\"\\K0x[0-9a-fA-F]+" "$FILE")
       fi
 
       [[ -n "$ROLLUP_MANAGER" ]] || { echo "Could not parse polygonRollupManagerAddress"; exit 1; }
-      [[ -n "$ROLLUP_ADDRESS" ]] || { echo "Could not parse rollupAddress"; exit 1; }
+
 
       echo "ROLLUP_MANAGER=$ROLLUP_MANAGER"
-      echo "ROLLUP_ADDRESS=$ROLLUP_ADDRESS"
 
-      sed -i "s/__ROLLUP_MANAGER__/$ROLLUP_MANAGER/g; s/__ROLLUP_ADDRESS__/$ROLLUP_ADDRESS/g" "'"$REMOTE_SCRIPT"'"
+      sed -i "s|__ROLLUP_MANAGER__|$ROLLUP_MANAGER|g" "'"$REMOTE_SCRIPT"'"
       chmod +x "'"$REMOTE_SCRIPT"'"
       "'"$REMOTE_SCRIPT"'"
     '
