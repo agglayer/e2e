@@ -50,7 +50,7 @@ else
   fi
 fi
 
-if (( FOUND > 0 )); then
+if [[ $FOUND -gt 0 ]]; then
   echo "[SUCCESS---] Found ${FOUND} verification event(s) for $ROLLUP_MANAGER in the last $LOOKBACK blocks."
   if command -v jq >/dev/null 2>&1; then
     echo "--- summary ---"
