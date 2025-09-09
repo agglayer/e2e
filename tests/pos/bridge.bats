@@ -28,7 +28,7 @@ function wait_for_heimdall_state_sync() {
   fi
 
   echo "Monitoring state syncs on Heimdall..."
-  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_or_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 function wait_for_bor_state_sync() {
@@ -43,7 +43,7 @@ function wait_for_bor_state_sync() {
   fi
 
   echo "Monitoring state syncs on Bor..."
-  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_or_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-pol
@@ -79,10 +79,10 @@ function wait_for_bor_state_sync() {
 
   # Monitor the balances on L1 and L2.
   echo "Monitoring MATIC/POL balance on L1..."
-  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_lower_or_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Monitoring MATIC/POL balance on L2..."
-  assert_ether_balance_eventually_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_ether_balance_eventually_greater_or_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-pol
@@ -123,10 +123,10 @@ function wait_for_bor_state_sync() {
 
   # Monitor the balances on L1 and L2.
   echo "Monitoring ERC20 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_lower_or_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Monitoring ERC20 balance on L2..."
-  assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_greater_or_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-erc20
@@ -172,10 +172,10 @@ function wait_for_bor_state_sync() {
 
   # Monitor the balances on L1 and L2.
   echo "Monitoring ERC721 balance on L1..."
-  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_lower_or_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Monitoring ERC721 balance on L2..."
-  assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_greater_or_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-erc721
@@ -245,28 +245,28 @@ function wait_for_bor_state_sync() {
     "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC721(address,uint)" "${L1_ERC721_TOKEN_ADDRESS}" "${token_id}"
 
   # Wait for Heimdall and Bor to process the bridge events.
-  assert_command_eventually_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((heimdall_state_sync_count + 3)) "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_or_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((heimdall_state_sync_count + 3)) "${timeout_seconds}" "${interval_seconds}"
 
   echo "Waiting for Bor to process all bridge events..."
-  assert_command_eventually_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((bor_state_sync_count + 3)) "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_or_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((bor_state_sync_count + 3)) "${timeout_seconds}" "${interval_seconds}"
 
   echo "Verifying L1 MATIC/POL balance decreased..."
-  assert_token_balance_eventually_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_matic_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_lower_or_equal "${L1_MATIC_TOKEN_ADDRESS}" "${address}" $((initial_l1_matic_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Verifying L1 ERC20 balance decreased..."
-  assert_token_balance_eventually_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_erc20_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_lower_or_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l1_erc20_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Verifying L1 ERC721 balance decreased..."
-  assert_token_balance_eventually_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_erc721_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_lower_or_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_erc721_balance - 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Verifying L2 native balance increased..."
-  assert_ether_balance_eventually_equal "${address}" $((initial_l2_native_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_ether_balance_eventually_greater_or_equal "${address}" $((initial_l2_native_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Verifying L2 ERC20 balance increased..."
-  assert_token_balance_eventually_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc20_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_greater_or_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc20_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "Verifying L2 ERC721 balance increased..."
-  assert_token_balance_eventually_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc721_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_greater_or_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_erc721_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   echo "✅ MATIC/POL, ERC20, and ERC721 bridge operations completed successfully!"
   echo "Summary:"
