@@ -13,8 +13,10 @@ function assert_command_eventually_equal() {
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
-  local start_time=$(date +%s)
-  local end_time=$((start_time + timeout))
+  local start_time
+  start_time=$(date +%s)
+  local end_time
+  end_time=$((start_time + timeout))
   while true; do
     if [[ "$(date +%s)" -ge "${end_time}" ]]; then
       echo "Timeout reached."
@@ -39,8 +41,10 @@ function assert_command_eventually_greater_or_equal() {
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
-  local start_time=$(date +%s)
-  local end_time=$((start_time + timeout))
+  local start_time
+  start_time=$(date +%s)
+  local end_time
+  end_time=$((start_time + timeout))
   while true; do
     if [[ "$(date +%s)" -ge "${end_time}" ]]; then
       echo "Timeout reached."
@@ -67,7 +71,9 @@ function assert_token_balance_eventually_greater_or_equal() {
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
+  local start_time
   start_time=$(date +%s)
+  local end_time
   end_time=$((start_time + timeout))
   while true; do
     if [[ "$(date +%s)" -ge "${end_time}" ]]; then
@@ -95,7 +101,9 @@ function assert_token_balance_eventually_lower_or_equal() {
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
+  local start_time
   start_time=$(date +%s)
+  local end_time
   end_time=$((start_time + timeout))
   while true; do
     if [[ "$(date +%s)" -le "${end_time}" ]]; then
@@ -122,7 +130,9 @@ function assert_ether_balance_eventually_greater_or_equal() {
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
+  local start_time
   start_time=$(date +%s)
+  local end_time
   end_time=$((start_time + timeout))
   while true; do
     if [[ "$(date +%s)" -ge "${end_time}" ]]; then
