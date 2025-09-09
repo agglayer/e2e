@@ -3,7 +3,7 @@
 setup(){
   load "../../core/helpers/scripts/eventually.bash"
 
-  HEIMDALL_GET_LATEST_HEIGHT='curl --silent "${HEIMDALURL}/status" | jq -r '.result.sync_info.latest_block_height''
+  HEIMDALL_GET_LATEST_HEIGHT='curl --silent "${L2_CL_RPC_URL}/status" | jq -r '.result.sync_info.latest_block_height''
   
   timeout_seconds=${TIMEOUT_SECONDS:-"300"}
   interval_seconds=${INTERVAL_SECONDS:-"10"}
@@ -22,7 +22,7 @@ parse_duration_seconds() {
 }
 
 get_latest_height() {
-  curl --silent "${HEIMDALURL}/status" \
+  curl --silent "${L2_CL_RPC_URL}/status" \
   | jq -r '.result.sync_info.latest_block_height'
 }
 
@@ -50,7 +50,7 @@ sleep_for_prune_interval() {
 check_block_pruned() {
   local resp
   local height_to_check="$1"
-  resp="$(curl --silent "${HEIMDALURL}/block?height=$height_to_check")"
+  resp="$(curl --silent "${L2_CL_RPC_URL}/block?height=$height_to_check")"
 
   # Prefer checking the structured error fields first.
   local code message data
