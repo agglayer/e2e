@@ -191,7 +191,7 @@ _setup_contract_addresses() {
     echo "" | tee "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
     echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log" >&3
-    echo "              L2 -> L1                  " | tee -a "$bridge_log" >&3
+    echo "              L1 -> L2                  " | tee -a "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
 
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
