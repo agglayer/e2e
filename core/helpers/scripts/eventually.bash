@@ -106,14 +106,14 @@ function assert_token_balance_eventually_lower_or_equal() {
   local end_time
   end_time=$((start_time + timeout))
   while true; do
-    if [[ "$(date +%s)" -le "${end_time}" ]]; then
+    if [[ "$(date +%s)" -ge "${end_time}" ]]; then
       echo "Timeout reached."
       exit 1
     fi
 
     balance=$(cast call --json --rpc-url "${rpc_url}" "${contract_address}" "balanceOf(address)(uint)" "${eoa_address}" | jq --raw-output ".[0]")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} tokens"
-    if [[ "${balance}" -ge "${target}" ]]; then
+    if [[ "${balance}" -le "${target}" ]]; then
       break
     fi
 
