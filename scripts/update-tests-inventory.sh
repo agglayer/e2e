@@ -90,15 +90,15 @@ categories["Full System Tests"]=""
 categories["Other Tests"]=""
 categories["Miscellaneous Tests"]=""
 
-# Find all .bats files and categorize them (only user test files)
-while IFS= read -r -d '' file; do
+# Find all .bats files, sort them, and categorize (only user test files)
+while IFS= read -r file; do
     if [[ -f "$file" ]] && is_user_test_file "$file"; then
         category=$(categorize_test "$file")
         if [[ -n "${categories[$category]+isset}" ]]; then
             categories["$category"]+="$file"$'\n'
         fi
     fi
-done < <(find "$PROJECT_ROOT" -name "*.bats" -type f -print0)
+done < <(find "$PROJECT_ROOT" -name "*.bats" -type f | sort)
 
 # Generate inventory for each category (only if it has files)
 for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
@@ -109,12 +109,19 @@ for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pe
         echo "| Test Name | Reference | Notes |" >> "$TEMP_INVENTORY"
         echo "|-----------|-----------|-------|" >> "$TEMP_INVENTORY"
         
-        # Process each file in this category
+        # Create temp file for this category's tests
+        CATEGORY_TEMP=$(mktemp)
+        
+        # Process each file in this category and collect all tests
         while IFS= read -r file; do
             if [[ -n "$file" && -f "$file" ]]; then
-                extract_test_info "$file" >> "$TEMP_INVENTORY"
+                extract_test_info "$file" >> "$CATEGORY_TEMP"
             fi
         done <<< "${categories[$category]}"
+        
+        # Sort the tests within this category and append to main inventory
+        sort "$CATEGORY_TEMP" >> "$TEMP_INVENTORY"
+        rm "$CATEGORY_TEMP"
     fi
 done
 
@@ -174,17 +181,6 @@ if ! diff -q "$INVENTORY_FILE" "$TEMP_INVENTORY" > /dev/null 2>&1; then
     user_bats_count=$(find "$PROJECT_ROOT" -name "*.bats" -type f | while read -r file; do is_user_test_file "$file" && echo "$file"; done | wc -l)
     echo "- User .bats files found: $user_bats_count"
     echo "- Categories with tests: $(grep -c "^## " "$INVENTORY_FILE")"
-    
-    # Show which directories have tests
-    echo -e "${YELLOW}Test directories found:${NC}"
-    for dir in tests/lxly tests/agglayer tests/regression tests/heavy tests/execution tests/op tests/cdk tests/pectra tests/dapps tests/ethereum-test-cases tests/polycli-loadtests scenarios; do
-        if [ -d "$PROJECT_ROOT/$dir" ]; then
-            count=$(find "$PROJECT_ROOT/$dir" -name "*.bats" -type f 2>/dev/null | while read -r file; do is_user_test_file "$file" && echo "$file"; done | wc -l)
-            if [ "$count" -gt 0 ]; then
-                echo "- $dir: $count files"
-            fi
-        fi
-    done
 else
     echo -e "${GREEN}Tests inventory is already up to date.${NC}"
     rm "$TEMP_INVENTORY"

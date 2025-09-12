@@ -9,6 +9,11 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   check-inventory-consistency:
     runs-on: ubuntu-latest
