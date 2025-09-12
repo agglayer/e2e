@@ -1,18 +1,12 @@
 name: Check Tests Inventory Consistency
 
 on:
-  pull_request:
-    paths:
-      - '**/*.bats'
-      - 'TESTSINVENTORY.md'
-      - 'scripts/update-tests-inventory.sh'
   push:
     branches:
       - main
-    paths:
-      - '**/*.bats'
-      - 'TESTSINVENTORY.md'
-      - 'scripts/update-tests-inventory.sh'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -55,21 +49,3 @@ jobs:
             cat inventory-diff.txt
             exit 1
           fi
-
-  validate-script:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Validate script syntax
-        run: |
-          bash -n scripts/update-tests-inventory.sh
-          echo "✅ Script syntax is valid"
-      
-      - name: Test script execution
-        run: |
-          chmod +x scripts/update-tests-inventory.sh
-          ./scripts/update-tests-inventory.sh
-          echo "✅ Script executed successfully"

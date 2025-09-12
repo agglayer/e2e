@@ -1,16 +1,12 @@
 name: Check Tests Tags Consistency
 
 on:
-  pull_request:
-    paths:
-      - '**/*.bats'
-      - 'README.md'
   push:
     branches:
       - main
-    paths:
-      - '**/*.bats'
-      - 'README.md'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
