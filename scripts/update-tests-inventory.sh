@@ -119,8 +119,8 @@ for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pe
             fi
         done <<< "${categories[$category]}"
         
-        # Sort the tests within this category and append to main inventory
-        sort "$CATEGORY_TEMP" >> "$TEMP_INVENTORY"
+        # Sort the tests within this category using C locale for consistent sorting
+        LC_ALL=C sort "$CATEGORY_TEMP" >> "$TEMP_INVENTORY"
         rm "$CATEGORY_TEMP"
     fi
 done
