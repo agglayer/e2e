@@ -77,11 +77,3 @@ jobs:
             echo "grep -hoR --include=\"*.bats\" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'"
             exit 1
           fi
-      
-      - name: Show tag statistics
-        if: success()
-        run: |
-          total_tags=$(cat actual_tags.txt | wc -l)
-          echo "Summary:"
-          echo "- Total unique tests tags: $total_tags"
-          echo "- README.md and .bats files are in sync ✅"
