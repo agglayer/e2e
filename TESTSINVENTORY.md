@@ -41,6 +41,24 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L285) | |
 | query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L247) | |
 
+## CDK Erigon Tests
+
+| Test Name | Reference | Notes |
+|-----------|-----------|-------|
+| counter overflowing transactions do not create new batches | [Link](./tests/cdk-erigon/standard-erigon.bats#L287) | |
+| RPC and sequencer handle two large transactions | [Link](./tests/cdk-erigon/gas-limit-overflow.bats#L10) | |
+| send 0xFB opcode to sequencer and ensure failure | [Link](./tests/cdk-erigon/standard-erigon.bats#L11) | |
+| send CREATE2 oom issue | [Link](./tests/cdk-erigon/standard-erigon.bats#L175) | |
+| send CREATE2 with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L88) | |
+| send CREATE with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L32) | |
+| send executable PUSH operand | [Link](./tests/cdk-erigon/standard-erigon.bats#L202) | |
+| send exhaustive recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L266) | |
+| send IDENTITY precompile test | [Link](./tests/cdk-erigon/standard-erigon.bats#L335) | |
+| send large RETURN | [Link](./tests/cdk-erigon/standard-erigon.bats#L60) | |
+| send malformed PUSH opcode | [Link](./tests/cdk-erigon/standard-erigon.bats#L117) | |
+| send recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L239) | |
+| send SHA256 counter | [Link](./tests/cdk-erigon/standard-erigon.bats#L153) | |
+
 ## CDK Tests
 
 | Test Name | Reference | Notes |
@@ -223,7 +241,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Bridge message A → Bridge asset B → Claim message A → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L71) | |
 | Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L132) | |
 | bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L94) | |
-| counter overflowing transactions do not create new batches | [Link](./tests/cdk-erigon/standard-erigon.bats#L287) | |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L77) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
@@ -239,21 +256,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
-| RPC and sequencer handle two large transactions | [Link](./tests/cdk-erigon/gas-limit-overflow.bats#L10) | |
-| send 0xFB opcode to sequencer and ensure failure | [Link](./tests/cdk-erigon/standard-erigon.bats#L11) | |
 | send and sweep account with precise gas calculation | [Link](./tests/evm-rpc/simple-validations.bats#L13) | |
-| send CREATE2 oom issue | [Link](./tests/cdk-erigon/standard-erigon.bats#L175) | |
-| send CREATE2 with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L88) | |
-| send CREATE with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L32) | |
 | send ETH and verify pending nonce updates | [Link](./tests/evm-rpc/simple-validations.bats#L64) | |
-| send executable PUSH operand | [Link](./tests/cdk-erigon/standard-erigon.bats#L202) | |
-| send exhaustive recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L266) | |
-| send IDENTITY precompile test | [Link](./tests/cdk-erigon/standard-erigon.bats#L335) | |
-| send large RETURN | [Link](./tests/cdk-erigon/standard-erigon.bats#L60) | |
-| send malformed PUSH opcode | [Link](./tests/cdk-erigon/standard-erigon.bats#L117) | |
 | send multiple transactions with same nonce and verify rejection | [Link](./tests/evm-rpc/simple-validations.bats#L168) | |
-| send recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L239) | |
-| send SHA256 counter | [Link](./tests/cdk-erigon/standard-erigon.bats#L153) | |
 | send zero priced transactions and confirm rejection | [Link](./tests/evm-rpc/simple-validations.bats#L36) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L477) | |

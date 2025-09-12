@@ -49,7 +49,7 @@ categorize_test() {
     case "$file" in
         */tests/lxly/*) echo "LxLy Tests" ;;
         */tests/agglayer/*) echo "AggLayer Tests" ;;
-        */tests/regression/*|*/tests/heavy/*) echo "CDK Erigon Tests" ;;
+        */tests/cdk-erigon/*) echo "CDK Erigon Tests" ;;
         */tests/execution/*) echo "Execution Layer Tests" ;;
         */tests/op/*) echo "CDK OP Geth Tests" ;;
         */tests/cdk/*) echo "CDK Tests" ;;
@@ -90,7 +90,7 @@ categories["Full System Tests"]=""
 categories["Other Tests"]=""
 categories["Miscellaneous Tests"]=""
 
-# Find all .bats files, sort them, and categorize (only user test files)
+# Find all .bats files and categorize (only user test files)
 while IFS= read -r file; do
     if [[ -f "$file" ]] && is_user_test_file "$file"; then
         category=$(categorize_test "$file")
@@ -112,7 +112,7 @@ for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pe
         # Create temp file for this category's tests
         CATEGORY_TEMP=$(mktemp)
         
-        # Process each file in this category and collect all tests
+        # Process each file in this category and collect all tests (preserve file order, sort tests within files)
         while IFS= read -r file; do
             if [[ -n "$file" && -f "$file" ]]; then
                 extract_test_info "$file" >> "$CATEGORY_TEMP"
@@ -125,7 +125,7 @@ for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pe
     fi
 done
 
-# Add special handling for existing manual entries and external references
+# Add Kurtosis Tests section (these are external references)
 echo "" >> "$TEMP_INVENTORY"
 echo "## Kurtosis Tests" >> "$TEMP_INVENTORY"
 echo "" >> "$TEMP_INVENTORY"
@@ -149,7 +149,7 @@ cat >> "$TEMP_INVENTORY" << 'EOF'
 | CDK-OP-Stack without SP1 prover | [Link](https://github.com/0xPolygon/kurtosis-cdk/blob/v0.4.8/.github/tests/nightly/op-rollup/op-default.yml) | |
 EOF
 
-# Special handling for external test references that should be preserved
+# Add External Test References section
 echo "" >> "$TEMP_INVENTORY"
 echo "## External Test References" >> "$TEMP_INVENTORY"
 echo "" >> "$TEMP_INVENTORY"
