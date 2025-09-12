@@ -18,36 +18,25 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Extract tests tags from .bats files
-        id: extract-tags
         run: |
           echo "Extracting tests tags from .bats files..."
-          actual_tags=$(grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /')
-          echo "actual_tags<<EOF" >> $GITHUB_OUTPUT
-          echo "$actual_tags" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | \
+            sed 's/.*test_tags=//' | \
+            tr ',' '\n' | \
+            sort -u | \
+            sed 's/^/- /' > actual_tags.txt
           
-          # Also save to file for comparison
-          echo "$actual_tags" > actual_tags.txt
-          echo "Found $(echo "$actual_tags" | wc -l) unique tests tags"
+          echo "Found $(wc -l < actual_tags.txt) unique tests tags in .bats files"
       
       - name: Extract tests tags from README.md
-        id: extract-readme
         run: |
           echo "Extracting tests tags from README.md..."
+          
           # Extract the test_tags section from README.md
-          readme_tags=$(sed -n '/^## test_tags$/,/^## /p' README.md | grep '^- ' | head -n -1)
-          if [[ -z "$readme_tags" ]]; then
-            # If the above doesn't work, try alternative extraction
-            readme_tags=$(sed -n '/^## test_tags$/,/^#/p' README.md | grep '^- ')
-          fi
+          sed -n '/^## test_tags$/,/^#/p' README.md | \
+          grep '^- ' > readme_tags.txt
           
-          echo "readme_tags<<EOF" >> $GITHUB_OUTPUT
-          echo "$readme_tags" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          # Save to file for comparison
-          echo "$readme_tags" > readme_tags.txt
-          echo "Found $(echo "$readme_tags" | wc -l) tests tags in README"
+          echo "Found $(wc -l < readme_tags.txt) tests tags in README.md"
       
       - name: Compare tests tags
         run: |
