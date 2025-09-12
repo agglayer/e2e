@@ -1,0 +1,87 @@
+name: Check Tests Tags Consistency
+
+on:
+  pull_request:
+    paths:
+      - '**/*.bats'
+      - 'README.md'
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.bats'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  check-tests-tags:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Extract tests tags from .bats files
+        id: extract-tags
+        run: |
+          echo "Extracting tests tags from .bats files..."
+          actual_tags=$(grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /')
+          echo "actual_tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$actual_tags" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Also save to file for comparison
+          echo "$actual_tags" > actual_tags.txt
+          echo "Found $(echo "$actual_tags" | wc -l) unique tests tags"
+      
+      - name: Extract tests tags from README.md
+        id: extract-readme
+        run: |
+          echo "Extracting tests tags from README.md..."
+          # Extract the test_tags section from README.md
+          readme_tags=$(sed -n '/^## test_tags$/,/^## /p' README.md | grep '^- ' | head -n -1)
+          if [[ -z "$readme_tags" ]]; then
+            # If the above doesn't work, try alternative extraction
+            readme_tags=$(sed -n '/^## test_tags$/,/^#/p' README.md | grep '^- ')
+          fi
+          
+          echo "readme_tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$readme_tags" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Save to file for comparison
+          echo "$readme_tags" > readme_tags.txt
+          echo "Found $(echo "$readme_tags" | wc -l) tests tags in README"
+      
+      - name: Compare tests tags
+        run: |
+          echo "=== Actual tests tags from .bats files ==="
+          cat actual_tags.txt
+          echo ""
+          echo "=== tests tags documented in README.md ==="
+          cat readme_tags.txt
+          echo ""
+          
+          # Compare the files
+          if diff -u readme_tags.txt actual_tags.txt > diff_output.txt; then
+            echo "✅ tests tags in README.md are consistent with .bats files"
+          else
+            echo "❌ tests tags in README.md are NOT consistent with .bats files"
+            echo ""
+            echo "Differences found:"
+            cat diff_output.txt
+            echo ""
+            echo "Please update the test_tags section in README.md to match the actual tags found in .bats files."
+            echo ""
+            echo "You can run this command to generate the correct list:"
+            echo "grep -hoR --include=\"*.bats\" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'"
+            exit 1
+          fi
+      
+      - name: Show tag statistics
+        if: success()
+        run: |
+          total_tags=$(cat actual_tags.txt | wc -l)
+          echo "Summary:"
+          echo "- Total unique tests tags: $total_tags"
+          echo "- README.md and .bats files are in sync ✅"
