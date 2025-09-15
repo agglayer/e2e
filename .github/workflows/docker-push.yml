@@ -47,3 +47,5 @@ jobs:
         with:
           tags: ghcr.io/agglayer/e2e:${{ env.SHORT_COMMIT_ID }}
           push: true
+          build-args: |
+            PRIVATE_TOKEN=${{ secrets.GIT_TOKEN }} # mandatory to push to ghcr - configured at org level
