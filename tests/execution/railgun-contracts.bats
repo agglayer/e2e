@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard-kurtosis
+# bats file_tags=standard-kurtosis,execution
 
 # This file tests the deployment of Railgun - https://docs.railgun.org/developer-guide/wallet/getting-started and interacting with its contracts.
 
@@ -17,6 +17,7 @@ teardown_file() {
     rm -rf "$TEMP_DIR"
 }
 
+# bats test_tags=railgun
 @test "Setup Railgun" {
     echo "Temp working directory: $TEMP_DIR" >&3
 

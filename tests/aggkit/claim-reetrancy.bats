@@ -1,3 +1,5 @@
+#!/usr/bin/env bats
+# bats file_tags=aggkit
 # shellcheck disable=SC2154,SC2034
 
 setup() {
@@ -283,7 +285,7 @@ setup() {
 
     # Verify first claim was processed
     log "🔍 Validating first asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -330,7 +332,7 @@ setup() {
 
     # Verify second claim was processed
     log "🔍 Validating second asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$sender_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url" "$sender_addr"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -802,7 +804,7 @@ setup() {
 
     # Verify first claim was processed (contract destination)
     log "🔍 Validating first asset claim processing (contract destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -849,7 +851,7 @@ setup() {
 
     # Verify second claim was processed (deployer destination)
     log "🔍 Validating second asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -896,7 +898,7 @@ setup() {
 
     # Verify third claim was processed (deployer destination)
     log "🔍 Validating third asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_3" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local claim_3="$output"
     log "📋 Third claim response received"

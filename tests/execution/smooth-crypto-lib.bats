@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard,execution
 
 # This file tests the deployment of SmoothCrpytoLib - https://github.com/get-smooth/crypto-lib and interacting with it.
 
@@ -27,6 +27,7 @@ setup() {
 #     rm -rf $TEMP_DIR
 # }
 
+# bats test_tags=smooth-crypto-lib
 @test "Setup SmoothCryptoLib" {
     echo "Temp working directory: $TEMP_DIR" >&3
 
@@ -51,6 +52,7 @@ setup() {
 }
 
 # HashLE method does not exist anymore.
+# bats test_tags=smooth-crypto-lib
 # @test "Testing SHA512 - HashLE" {
 #     echo "Starting SHA512 Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -69,6 +71,7 @@ setup() {
 #     done
 # }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - BasePointMultiply" {
     echo "Starting EIP6565 BasePointMultiply Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -89,7 +92,7 @@ setup() {
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
         # Fund ephemeral account
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         # Small delay to prevent overwhelming the network
         if (( i % 20 == 0 )); then
@@ -115,6 +118,7 @@ setup() {
     wait
 }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - BasePointMultiply_Edwards" {
     echo "Starting EIP6565 BasePointMultiply_Edwards Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -135,7 +139,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
 
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -161,6 +165,7 @@ setup() {
 # # TODO: Fix ExpandSecret test
 # # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
 # # error code -32000: invalid jump destination
+# bats test_tags=smooth-crypto-lib
 # @test "Testing EIP6565 - ExpandSecret" {
 #     echo "Starting EIP6565 ExpandSecret Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -178,7 +183,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -202,6 +207,7 @@ setup() {
 # # TODO: Fix SetKey test
 # # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
 # # error code -32000: invalid jump destination
+# bats test_tags=smooth-crypto-lib
 # @test "Testing EIP6565 - SetKey" {
 #     echo "Starting EIP6565 SetKey Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -217,7 +223,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -238,6 +244,7 @@ setup() {
 #     wait
 # }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - HashInternal" {
     echo "Starting EIP6565 HashInternal Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -272,7 +279,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -300,6 +307,7 @@ setup() {
 # # TODO: Fix Sign test
 # # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
 # # error code -32000: invalid jump destination
+# bats test_tags=smooth-crypto-lib
 # @test "Testing EIP6565 - Sign" {
 #     echo "Starting EIP6565 Sign Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -331,7 +339,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -358,6 +366,7 @@ setup() {
 # # TODO: Fix SignSlow test
 # # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
 # # error code -32000: invalid jump destination
+# bats test_tags=smooth-crypto-lib
 # @test "Testing EIP6565 - SignSlow" {
 #     echo "Starting EIP6565 SignSlow Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -387,7 +396,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -410,6 +419,7 @@ setup() {
 #     wait
 # }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - Verify" {
     echo "Starting EIP6565 Verify Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -443,7 +453,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -468,6 +478,7 @@ setup() {
     wait
 }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - Verify_LE" {
     echo "Starting EIP6565 Verify_LE Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -501,7 +512,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -526,6 +537,7 @@ setup() {
     wait
 }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - ecPow128" {
     echo "Starting EIP6565 ecPow128 Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -552,7 +564,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 30 == 0 )); then
             wait
@@ -582,6 +594,7 @@ setup() {
 # # TODO: Fix edCompress test
 # # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
 # # execution reverted: arithmetic underflow or overflow, data: "0x4e487b710000000000000000000000000000000000000000000000000000000000000011"
+# bats test_tags=smooth-crypto-lib
 # @test "Testing EIP6565 - edCompress" {
 #     echo "Starting EIP6565 edCompress Tests" >&3
 #     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -606,7 +619,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -633,7 +646,7 @@ setup() {
 #         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
 #         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
 #         if (( i % 20 == 0 )); then
 #             wait
@@ -655,6 +668,7 @@ setup() {
 #     wait
 # }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing RIP7212 - verify" {
     echo "Starting RIP7212 verify Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -674,7 +688,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait
@@ -703,6 +717,7 @@ setup() {
     wait
 }
 
+# bats test_tags=smooth-crypto-lib
 @test "Testing ECDSAB4 - verify" {
     echo "Starting ECDSAB4 verify Tests" >&3
     cd "$TEMP_DIR/crypto-lib" || exit 1
@@ -724,7 +739,7 @@ setup() {
         ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
         ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
         
-        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000" &
+        _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
         
         if (( i % 20 == 0 )); then
             wait

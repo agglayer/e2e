@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=evm-rpc
 
 setup() {
     rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
@@ -8,7 +9,7 @@ setup() {
     export ETH_RPC_URL="$rpc_url"
 }
 
-# bats test_tags=smoke
+# bats test_tags=evm-gas,transaction-eoa
 @test "send and sweep account with precise gas calculation" {
     wallet_info=$(cast wallet new --json | jq '.[0]')
     tmp_address=$(echo "$wallet_info" | jq -r '.address')
@@ -31,7 +32,7 @@ setup() {
          --private-key "$tmp_private_key" "$eth_address"
 }
 
-# bats test_tags=smoke
+# bats test_tags=transaction-eoa
 @test "send zero priced transactions and confirm rejection" {
     if cast send --legacy --gas-price 0 --value "1" --private-key "$private_key" 0x0000000000000000000000000000000000000000 ; then
         echo "A zero priced legacy transaction was mined"
@@ -59,7 +60,7 @@ setup() {
     fi
 }
 
-# bats test_tags=smoke
+# bats test_tags=evm-nonce,transaction-eoa
 @test "send ETH and verify pending nonce updates" {
     # shellcheck disable=SC2034
     for i in {1..20}; do
@@ -90,7 +91,7 @@ setup() {
     done
 }
 
-# bats test_tags=smoke
+# bats test_tags=evm-block
 @test "query finalized, safe, latest, and pending blocks return expected order" {
     prev_finalized_block=0
     prev_safe_block=0
@@ -163,7 +164,7 @@ setup() {
     done
 }
 
-# bats test_tags=smoke
+# bats test_tags=evm-nonce,transaction-eoa
 @test "send multiple transactions with same nonce and verify rejection" {
     nonce=$(cast nonce "$eth_address")
     gas_price=$(cast gas-price)

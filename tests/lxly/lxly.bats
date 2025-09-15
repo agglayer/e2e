@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=lxly
 
 setup() {
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
@@ -35,7 +36,7 @@ function fund_claim_tx_manager() {
          "$claimtxmanager_addr"
 }
 
-# bats file_tags=lxly,bridge
+# bats file_tags=bridge
 @test "bridge native eth from l1 to l2" {
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
@@ -61,6 +62,7 @@ function fund_claim_tx_manager() {
     set -e
 }
 
+# bats file_tags=bridge,transaction-erc20
 @test "bridge l2 originated token from L2 to L1 and back to L2" {
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr=0x4e59b44847b379578588920ca78fbf26c0b4956c

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard,execution
 
 setup() {
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
@@ -12,7 +12,7 @@ setup() {
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
-
+# bats test_tags=transaction-eoa
 @test "Call special addresses" {
     local ephemeral_data
     local ephemeral_private_key
@@ -23,7 +23,7 @@ setup() {
     
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
     
     nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$ephemeral_address")
     cast send --async --nonce "$nonce" --legacy --from "$ephemeral_address" --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --gas-limit 100000 --value 2 --json "0x0000000000000000000000000000000000000000" >> well-known-addresses.out

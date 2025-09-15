@@ -1,9 +1,8 @@
 #!/usr/bin/env bats
+# bats file_tags=pectra,eip-2537
 
-#
 # This file implements tests for EIP-2537: Precompile for BLS12-381 curve operations
 # https://eips.ethereum.org/EIPS/eip-2537
-#
 
 setup() {
     true
@@ -145,22 +144,27 @@ function eip2537_test_ko() {
     done
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G1ADD test vectors OK" {
     eip2537_test_ok "G1ADD" "$g1add_test_vectors_ok" "$BLS12_G1ADD_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G1ADD test vectors KO" {
     eip2537_test_ko "G1ADD" "$g1add_test_vectors_ko" "$BLS12_G1ADD_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G2ADD test vectors OK" {
     eip2537_test_ok "G2ADD" "$g2add_test_vectors_ok" "$BLS12_G2ADD_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G2ADD test vectors KO" {
     eip2537_test_ko "G2ADD" "$g2add_test_vectors_ko" "$BLS12_G2ADD_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G1MUL test vectors OK" {
     eip2537_test_ok "G1MUL" "$g1mul_test_vectors_ok" "$BLS12_G1MUL_PRECOMPILE_ADDR"
 }
@@ -169,50 +173,62 @@ function eip2537_test_ko() {
     eip2537_test_ko "G1MUL" "$g1mul_test_vectors_ko" "$BLS12_G1MUL_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G2MUL test vectors OK" {
     eip2537_test_ok "G2MUL" "$g2mul_test_vectors_ok" "$BLS12_G2MUL_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G2MUL test vectors KO" {
     eip2537_test_ko "G2MUL" "$g2mul_test_vectors_ko" "$BLS12_G2MUL_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G1MSM test vectors OK (long test)" {
     eip2537_test_ok "G1MSM" "$g1msm_test_vectors_ok" "$BLS12_G1MSM_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G1MSM test vectors KO" {
     eip2537_test_ko "G1MSM" "$g1msm_test_vectors_ko" "$BLS12_G1MSM_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G2MSM test vectors OK (long test)" {
     eip2537_test_ok "G2MSM" "$g2msm_test_vectors_ok" "$BLS12_G2MSM_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "G2MSM test vectors KO" {
     eip2537_test_ko "G2MSM" "$g2msm_test_vectors_ko" "$BLS12_G2MSM_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "PAIRING_CHECK test vectors OK" {
     eip2537_test_ok "PAIRING_CHECK" "$pairing_check_test_vectors_ok" "$BLS12_PAIRING_CHECK_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "PAIRING_CHECK test vectors KO" {
     eip2537_test_ko "PAIRING_CHECK" "$pairing_check_test_vectors_ko" "$BLS12_PAIRING_CHECK_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "MAP_FP_TO_G1 test vectors OK" {
     eip2537_test_ok "MAP_FP_TO_G1" "$map_fp_to_g1_test_vectors_ok" "$BLS12_MAP_FP_TO_G1_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "MAP_FP_TO_G1 test vectors KO" {
     eip2537_test_ko "MAP_FP_TO_G1" "$map_fp_to_g1_test_vectors_ko" "$BLS12_MAP_FP_TO_G1_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "MAP_FP2_TO_G2 test vectors OK" {
     eip2537_test_ok "MAP_FP2_TO_G2" "$map_fp2_to_g2_test_vectors_ok" "$BLS12_MAP_FP2_TO_G2_PRECOMPILE_ADDR"
 }
 
+# bats file_tags=pectra,eip-2537
 @test "MAP_FP2_TO_G2 test vectors KO" {
     eip2537_test_ko "MAP_FP2_TO_G2" "$map_fp2_to_g2_test_vectors_ko" "$BLS12_MAP_FP2_TO_G2_PRECOMPILE_ADDR"
 }

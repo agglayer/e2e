@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard-kurtosis
+# bats file_tags=standard-kurtosis,polycli-loadtests
 
 # We're going to try to tune these tests to so that they're targeting
 # 30M gas per second. When testing these cases with kurtosis it's
@@ -27,6 +27,7 @@ setup() {
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
+# bats test_tags=loadtest,transaction-eoa
 @test "send 85,700 EOA transfers and confirm mined in 60 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-eoa")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -34,7 +35,7 @@ setup() {
 
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
 
     sleep 1
 
@@ -57,6 +58,7 @@ setup() {
     fi
 }
 
+# bats test_tags=loadtest,transaction-erc20
 @test "send 41,200 ERC20 transfers and confirm mined in 240 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-erc20")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -64,7 +66,7 @@ setup() {
 
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
 
     sleep 1
 
@@ -88,6 +90,7 @@ setup() {
     fi
 }
 
+# bats test_tags=loadtest,transaction-erc721
 @test "send 20,800 ERC721 mints and confirm mined in 240 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-erc721")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -95,7 +98,7 @@ setup() {
 
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
 
     sleep 1
 
@@ -121,6 +124,7 @@ setup() {
 }
 
 # TODO this one is a little tricky because 1/2 of the time is deploying contracts.. Maybe adding a timeout parameter would be helpful or we should pre deploy the contracts
+# bats test_tags=loadtest,transaction-uniswap
 @test "send 10,200 Uniswapv3 swaps sent and mined in 300 seconds" {
     ephemeral_data=$(_generate_ephemeral_account "polycli-uniswap")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
@@ -128,7 +132,7 @@ setup() {
 
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
 
     sleep 1
 

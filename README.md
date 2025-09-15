@@ -64,21 +64,23 @@ Another major goal of this project is to have a *simple developer experience*. M
 
 As a test developer, you can define whatever environment variables you like, but in order for the test cases to be executed via generic automations, it's critical that you're aware of commonly used environment variables and to use them whenever possible.
 
-| Variable              | Purpose                                                            |
-|-----------------------|--------------------------------------------------------------------|
-| RPC_URL               | A generic JSON RPC URL for tests that do not require L1/L2 context |
-| L1_RPC_URL            | An RPC URL that serves as the L1 for some rollup or validium       |
-| L2_RPC_URL            | An RPC URL for a rollup that's anchored on L1                      |
-| PRIVATE_KEY           | A private key that's funded for RPC_URL                            |
-| L1_PRIVATE_KEY        | A private key that's funded for L1_RPC_URL                         |
-| L2_PRIVATE_KEY        | A private key that's funded for L2_RPC_URL                         |
-| SEQUENCER_RPC_URL     | An RPC URL that's directly connected to a sequencer                |
-| GAS_TOKEN_ADDR        | The L1 address of a custom gas token                               |
-| BRIDGE_SERVICE_URL    | The URL of the bridge service used for claiming deposits           |
-| L1_BRIDGE_ADDR        | The address of the bridge on L1                                    |
-| L2_BRIDGE_ADDR        | The address of the bridge on L2                                    |
-| LEGACY_MODE           | If true, don't send a type 2 transaction                           |
-| KURTOSIS_ENCLAVE_NAME | Specifies the enclave name used in some defaults                   |
+| Variable                | Purpose                                                            |
+|-------------------------|--------------------------------------------------------------------|
+| RPC_URL                 | A generic JSON RPC URL for tests that do not require L1/L2 context |
+| L1_RPC_URL              | An RPC URL that serves as the L1 for some rollup or validium       |
+| L2_RPC_URL              | An RPC URL for a rollup that's anchored on L1                      |
+| PRIVATE_KEY             | A private key that's funded for RPC_URL                            |
+| L1_PRIVATE_KEY          | A private key that's funded for L1_RPC_URL                         |
+| L2_PRIVATE_KEY          | A private key that's funded for L2_RPC_URL                         |
+| SEQUENCER_RPC_URL       | An RPC URL that's directly connected to a sequencer                |
+| GAS_TOKEN_ADDR          | The L1 address of a custom gas token                               |
+| BRIDGE_SERVICE_URL      | The URL of the bridge service used for claiming deposits           |
+| L1_BRIDGE_ADDR          | The address of the bridge on L1                                    |
+| L2_BRIDGE_ADDR          | The address of the bridge on L2                                    |
+| LEGACY_MODE             | If true, don't send a type 2 transaction                           |
+| KURTOSIS_ENCLAVE_NAME   | Specifies the enclave name used in some defaults                   |
+| L2_NODE_URL             | The URL for the consensus endpoint on OP                           |
+| L1_OPTIMISM_PORTAL_ADDR | The L1 address for the Optimism Portal                             |
 
 A few points on the design and thinking. In general, we're going to *prefer deriving* rather than specifying everything. Rather than specifying an `L1_ETH_ADDRESS` variable that can be set, we would derive this value from the `L1_PRIVATE_KEY`. Similarly, rather than specifying the [networkID](https://github.com/0xPolygonHermez/zkevm-contracts/blob/98b8b1f0af6074d5e2cf6b6c223db99d1f3e29f3/contracts/v2/PolygonZkEVMBridgeV2.sol#L61) with something like `L2_NETWORK_ID`, we would rather read this value from the bridge.
 
@@ -173,23 +175,96 @@ scenarios/
 └── common/            # Shared helpers for *all* scenarios (similar to tests/core/helpers/)
 ```
 
-## Thinking about tagging
+# Tagging tests
 
-TODO - Like the overall project organization, there's more thinking needed for test tags. Each test probably needs at least two tags to be useful. E.g.:
+## file_tags
 
-- Target (i.e., what is being tested):
-  - `agglayer`
-  - `lxly`
-  - `erigon`
-  - `evm`
-  - `pos`
-  - `heimdall`
-- Type of test:
-  - `regression`
-  - `smoke`
-  - `acceptance`
-  - `stress`
-  - `load`
+These will target holistic features or services within the entire system.
+Naming convention should follow that of the directories.
+
+```bash
+grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
+```
+
+- aggkit
+- agglayer
+- bridge
+- cdk
+- cdk-erigon
+- dapps
+- eip-2537
+- eip-2935
+- eip-7623
+- ethereum-test-cases
+- evm-gas
+- evm-opcode
+- evm-precompile
+- evm-rpc
+- execution
+- forced-txs
+- local-balance-tree
+- lxly
+- op
+- op-fep
+- pectra
+- pessimistic
+- polycli-loadtests
+- prover-stress
+- standard
+- standard-kurtosis
+- transaction-erc20
+- zkevm
+- zkevm-batch
+
+## test_tags
+
+These will aim to have feature-specific targeted tests.
+Naming convention should follow general EVM or Polygon standards.
+
+```bash
+grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
+```
+
+- acl-accesslist
+- acl-blocklist
+- agglayer-admin
+- agglayer-cert
+- agglayer-rpc
+- bridge
+- cdk-op-geth
+- check-hardfork
+- custom-gas-token
+- eip-7685
+- eip-7691
+- erc-4337
+- evm-block
+- evm-gas
+- evm-inscription
+- evm-nonce
+- evm-pool
+- evm-precompile
+- evm-stress
+- forced-txs
+- gnosis-safe
+- katana
+- loadtest
+- native-gas-token
+- operator-fee
+- optimistic-mode
+- pos
+- pos-delegate
+- pos-undelegate
+- pos-validator
+- railgun
+- smooth-crypto-lib
+- transaction-eoa
+- transaction-erc20
+- transaction-erc721
+- transaction-pol
+- transaction-uniswap
+- weth
+- zkevm-batch
+- zkevm-counters
 
 ## Common helper functions
 

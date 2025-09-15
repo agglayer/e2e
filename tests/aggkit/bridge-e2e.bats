@@ -1,3 +1,7 @@
+#!/usr/bin/env bats
+# bats file_tags=aggkit
+# shellcheck disable=SC2154,SC2034,SC2155
+
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
@@ -22,21 +26,24 @@ setup() {
 }
 
 @test "ERC20 token deposit L1 -> L2" {
-    run deploy_contract $l1_rpc_url $sender_private_key $erc20_artifact_path
+    run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
-    local l1_erc20_addr=$(echo "$output" | tail -n 1)
+    local l1_erc20_addr
+    l1_erc20_addr=$(echo "$output" | tail -n 1)
     log "📜 ERC20 contract address: $l1_erc20_addr"
 
     # Mint and Approve ERC20 token on L1
     local tokens_amount="0.1ether"
-    local wei_amount=$(cast --to-unit $tokens_amount wei)
+    local wei_amount
+    wei_amount=$(cast --to-unit "$tokens_amount" wei)
     run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
     assert_success
 
     # Assert that balance of ERC20 token (on the L1) is correct
     run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
-    local l1_erc20_token_sender_balance=$(echo "$output" |
+    local l1_erc20_token_sender_balance
+    l1_erc20_token_sender_balance=$(echo "$output" |
         tail -n 1 |
         awk '{print $1}')
     echo "Sender balance ($sender_addr) (ERC20 token L1): $l1_erc20_token_sender_balance [weis]" >&3
@@ -45,7 +52,7 @@ setup() {
     echo "==== 🚀 Depositing ERC20 token on L1 ($l1_rpc_url)" >&3
     destination_addr=$receiver
     destination_net=$l2_rpc_network_id
-    amount=$(cast --to-unit $tokens_amount wei)
+    amount=$(cast --to-unit "$tokens_amount" wei)
     meta_bytes="0x"
     run bridge_asset "$l1_erc20_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
@@ -60,17 +67,19 @@ setup() {
     assert_success
     local token_mappings_result=$output
 
-    local origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+    local origin_token_addr
+    origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l1_erc20_addr" "$origin_token_addr"
 
-    local l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
+    local l2_token_addr
+    l2_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
     echo "L2 token addr $l2_token_addr" >&3
 
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" 0 "$tokens_amount"
     assert_success
 
     # -----------------------------------------------------------------------------
-    # Attempt a second “claim” on L2 — this should fail because it’s already been claimed
+    # Attempt a second "claim" on L2 — this should fail because it's already been claimed
     # -----------------------------------------------------------------------------
     echo "==== 🔐 Claiming deposit on L2 again (${L2_RPC_URL}) — expected to fail (already claimed)" >&3
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
@@ -79,14 +88,16 @@ setup() {
 
     # verify balance did not changed on L2
     ether_amount=$(echo "$tokens_amount" | sed 's/ether//')
-    local receiver_balance_after_claim_wei=$(cast --to-wei "$ether_amount")
+    local receiver_balance_after_claim_wei
+    receiver_balance_after_claim_wei=$(cast --to-wei "$ether_amount")
     run verify_balance "$L2_RPC_URL" "$l2_token_addr" "$receiver" "$receiver_balance_after_claim_wei" "0ether"
     assert_success
 
-    # check that the sender’s ERC-20 balance on L1 remains unchanged
+    # check that the sender's ERC-20 balance on L1 remains unchanged
     run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
     assert_success
-    local l1_erc20_token_sender_balance_after_duplicate_claim=$(echo "$output" |
+    local l1_erc20_token_sender_balance_after_duplicate_claim
+    l1_erc20_token_sender_balance_after_duplicate_claim=$(echo "$output" |
         tail -n 1 |
         awk '{print $1}')
     echo "Sender balance ($sender_addr) (ERC20 token L1) after duplicate claim: $l1_erc20_token_sender_balance_after_duplicate_claim [weis]" >&3
@@ -96,8 +107,9 @@ setup() {
 
 @test "Native token transfer L1 -> L2" {
     destination_addr=$receiver
-    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
+    local initial_receiver_balance
+    initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
+    echo "Initial receiver balance of native token on L2 $initial_receiver_balance eth" >&3
 
     echo "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)" >&3
     destination_net=$l2_rpc_network_id
@@ -110,16 +122,17 @@ setup() {
     assert_success
 
     sender_balance_after_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
-    log "Sender balance of native token on L1 after claim "$sender_balance_after_claim" eth" >&3
+    log "Sender balance of native token on L1 after claim $sender_balance_after_claim eth" >&3
 
     # verify receiver balance changed on L2
-    local final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Final receiver balance of native token on L2 "$final_receiver_balance" eth" >&3
+    local final_receiver_balance
+    final_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
+    echo "Final receiver balance of native token on L2 $final_receiver_balance eth" >&3
     initial_receiver_balance_wei=$(cast --to-wei "$initial_receiver_balance")
     run verify_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr" "$initial_receiver_balance_wei" "$ether_value"
     assert_success
 
-    # Attempt a second claim on L2 — this should fail because it’s already been claimed
+    # Attempt a second claim on L2 — this should fail because it's already been claimed
     echo "==== 🔐 Claiming deposit on L2 again (${L2_RPC_URL}) — expected to fail (already claimed)" >&3
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     log "💡 duplicate process_bridge_claim returns $output"
@@ -127,7 +140,7 @@ setup() {
 
     # verify balance did not changed on L1 after duplicate claim
     sender_balance_after_duplicate_claim=$(get_token_balance "$l1_rpc_url" "$native_token_addr" "$destination_addr")
-    log "Sender balance of native token on L1 after duplicate claim "$sender_balance_after_duplicate_claim" eth" >&3
+    log "Sender balance of native token on L1 after duplicate claim $sender_balance_after_duplicate_claim eth" >&3
     assert_equal "$sender_balance_after_claim" "$sender_balance_after_duplicate_claim"
 
     # verify balance did not changed on L2 after duplicate claim
@@ -144,8 +157,9 @@ setup() {
 
 @test "Native token transfer L1 -> L2 - manipulated global index" {
     destination_addr=$sender_addr
-    local initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Initial receiver balance of native token on L2 "$initial_receiver_balance" eth" >&3
+    local initial_receiver_balance
+    initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
+    echo "Initial receiver balance of native token on L2 $initial_receiver_balance eth" >&3
 
     echo "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)" >&3
     destination_net=$l2_rpc_network_id

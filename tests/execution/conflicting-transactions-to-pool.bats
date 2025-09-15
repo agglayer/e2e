@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=standard
+# bats file_tags=standard,execution
 
 setup() {
     kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
@@ -12,7 +12,7 @@ setup() {
     source "./tests/lxly/assets/bridge-tests-helper.bash"
 }
 
-
+# bats test_tags=transaction-eoa,evm-pool
 @test "Make conflicting transaction to pool" {
     local ephemeral_data
     local ephemeral_private_key
@@ -23,7 +23,7 @@ setup() {
     
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
     
     nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$ephemeral_address")
     gas_price=$(cast gas-price --rpc-url "$l2_rpc_url")
@@ -37,7 +37,7 @@ setup() {
             --async \
             --legacy \
             --private-key "$ephemeral_private_key" \
-            --value 0.5ether \
+            --value 0.000000001ether \
             0xC0FFEE0000000000000000000000000000000000;
     if [[ "$status" -ne 0 ]]; then
         echo "Test expected success but failed: $output" >&3
@@ -55,7 +55,7 @@ setup() {
             --gas-limit 100000 \
             --gas-price "$gas_price" \
             --legacy \
-            --value 0.5ether\
+            --value 0.000000001ether\
             --private-key "$ephemeral_private_key" \
             --create \
             0x60005B60010180405063000000025600

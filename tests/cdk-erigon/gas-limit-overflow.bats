@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
+# bats file_tags=cdk-erigon
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
     _agglayer_cdk_common_setup  # ✅ Standard setup (wallet, funding, RPC, etc.)
 }
 
-# bats file_tags=regression,gas-limit-overflow
+# bats file_tags=evm-gas
 @test "RPC and sequencer handle two large transactions" {    
     # ✅ Deploy necessary contracts and capture deployed address
     deploy_test_contracts "$L2_RPC_URL" "$PRIVATE_KEY"

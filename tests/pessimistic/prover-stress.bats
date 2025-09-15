@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
+# bats file_tags=pessimistic
 
 setup() {
     load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
     _agglayer_cdk_common_setup
 }
 
-# bats file_tags=pessimistic,prover-stress
+# bats file_tags=prover-stress
 @test "prover stress test" {
     # ✅ Get wallet address
     local wallet_addr
