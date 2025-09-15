@@ -30,7 +30,7 @@ get_latest_height() {
 wait_until_height_exceeds_retain() {
   local retain_blocks="$1"
 
-  assert_command_eventually_gt get_latest_height $retain_blocks "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_than get_latest_height $retain_blocks "${timeout_seconds}" "${interval_seconds}"
 }
 
 # Sleep for the prune interval (+ small buffer) to allow pruning to run.

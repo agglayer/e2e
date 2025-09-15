@@ -127,7 +127,7 @@ jobs:
             if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
               kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
             elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
-              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/cdk-erigon/sovereign.yml .
             else
               echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
               exit 1
@@ -269,7 +269,7 @@ jobs:
             if [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-op-geth" ]]; then
               kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} .
             elif [[ "${{ env.DEFAULT_L2_CLIENT }}" == "cdk-erigon" ]]; then
-              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/combinations/fork12-cdk-erigon-sovereign.yml .
+              kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=./.github/tests/cdk-erigon/sovereign.yml .
             else
               echo "Invalid L2 client detected: ${{ env.DEFAULT_L2_CLIENT }}. Expected 'cdk-op-geth' or 'cdk-erigon'."
               exit 1

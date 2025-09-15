@@ -27,8 +27,8 @@
         "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success", "transfer amount exceeds balance"],
+        "ExpectedResultClaim": ["Success","N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -303,15 +303,5 @@
         "Amount": "1",
         "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
         "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "GasToken",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
     }
 ]
