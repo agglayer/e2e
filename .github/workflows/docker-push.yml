@@ -2,12 +2,9 @@ name: docker-push
 
 on:
   # Trigger the workflow on pull requests made to the main branch.
-  # But avoid creating new images when changes only affect .github files.
   push:
     branches:
       - main
-    paths-ignore:
-      - ".github/**"
 
   # Allow manual triggering of the workflow.
   workflow_dispatch:
@@ -47,5 +44,5 @@ jobs:
         with:
           tags: ghcr.io/agglayer/e2e:${{ env.SHORT_COMMIT_ID }}
           push: true
-          build-args: |
-            PRIVATE_TOKEN=${{ secrets.GIT_TOKEN }} # mandatory to push to ghcr - configured at org level
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
