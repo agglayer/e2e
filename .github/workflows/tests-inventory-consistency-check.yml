@@ -1,0 +1,56 @@
+name: Check Tests Inventory Consistency
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  check-inventory-consistency:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Make script executable
+        run: chmod +x scripts/update-tests-inventory.sh
+      
+      - name: Generate expected inventory
+        run: |
+          # Generate new inventory
+          ./scripts/update-tests-inventory.sh
+          
+          # Store generated inventory for comparison
+          cp TESTSINVENTORY.md TESTSINVENTORY.md.generated
+          
+          # Reset to original state
+          git checkout TESTSINVENTORY.md
+      
+      - name: Check for differences
+        run: |
+          echo "Comparing current TESTSINVENTORY.md with generated version..."
+          
+          if diff -u TESTSINVENTORY.md TESTSINVENTORY.md.generated > inventory-diff.txt; then
+            echo "✅ Tests inventory is consistent"
+          else
+            echo "❌ Tests inventory is NOT consistent"
+            echo ""
+            echo "To fix this issue, run the following command:"
+            echo "  ./scripts/update-tests-inventory.sh"
+            echo ""
+            echo "This will automatically update TESTSINVENTORY.md to include all current test files."
+            echo ""
+            echo "Differences found:"
+            cat inventory-diff.txt
+            exit 1
+          fi

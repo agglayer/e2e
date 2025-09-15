@@ -1,0 +1,69 @@
+name: Check Tests Tags Consistency
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  check-tests-tags:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Extract tests tags from .bats files
+        run: |
+          echo "Extracting tests tags from .bats files..."
+          grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | \
+            sed 's/.*test_tags=//' | \
+            tr ',' '\n' | \
+            sort -u | \
+            sed 's/^/- /' > actual_tags.txt
+          
+          echo "Found $(wc -l < actual_tags.txt) unique tests tags in .bats files"
+      
+      - name: Extract tests tags from README.md
+        run: |
+          echo "Extracting tests tags from README.md..."
+          
+          # Extract the test_tags section from README.md
+          sed -n '/^## test_tags$/,/^#/p' README.md | \
+          grep '^- ' > readme_tags.txt
+          
+          echo "Found $(wc -l < readme_tags.txt) tests tags in README.md"
+      
+      - name: Compare tests tags
+        run: |
+          echo "=== Actual tests tags from .bats files ==="
+          cat actual_tags.txt
+          echo ""
+          echo "=== tests tags documented in README.md ==="
+          cat readme_tags.txt
+          echo ""
+          
+          # Compare the files
+          if diff -u readme_tags.txt actual_tags.txt > diff_output.txt; then
+            echo "✅ tests tags in README.md are consistent with .bats files"
+          else
+            echo "❌ tests tags in README.md are NOT consistent with .bats files"
+            echo ""
+            echo "Differences found:"
+            cat diff_output.txt
+            echo ""
+            echo "Please update the test_tags section in README.md to match the actual tags found in .bats files."
+            echo ""
+            echo "You can run this command to generate the correct list:"
+            echo "grep -hoR --include=\"*.bats\" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'"
+            exit 1
+          fi
