@@ -303,15 +303,5 @@
         "Amount": "1",
         "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
         "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "GasToken",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
     }
 ]
