@@ -116,6 +116,22 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | PAIRING_CHECK test vectors KO | [Link](./tests/pectra/eip2537.bats#L212) | |
 | PAIRING_CHECK test vectors OK | [Link](./tests/pectra/eip2537.bats#L207) | |
 
+## POS Tests
+
+| Test Name | Reference | Notes |
+|-----------|-----------|-------|
+| add new validator | [Link](./tests/pos/validator.bats#L20) | |
+| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L50) | |
+| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L187) | |
+| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L138) | |
+| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L94) | |
+| delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
+| remove validator | [Link](./tests/pos/validator.bats#L363) | |
+| undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
+| update signer | [Link](./tests/pos/validator.bats#L147) | |
+| update validator stake | [Link](./tests/pos/validator.bats#L60) | |
+| update validator top-up fee | [Link](./tests/pos/validator.bats#L97) | |
+
 ## DApps Tests
 
 | Test Name | Reference | Notes |
@@ -262,24 +278,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L10) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
-| add new validator | [Link](./tests/pos/validator.bats#L20) | |
-| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L50) | |
-| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L187) | |
-| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L138) | |
-| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L94) | |
-| delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |
-| remove validator | [Link](./tests/pos/validator.bats#L363) | |
 | send ETH and verify pending nonce updates | [Link](./tests/evm-rpc/simple-validations.bats#L64) | |
 | send and sweep account with precise gas calculation | [Link](./tests/evm-rpc/simple-validations.bats#L13) | |
 | send multiple transactions with same nonce and verify rejection | [Link](./tests/evm-rpc/simple-validations.bats#L168) | |
 | send zero priced transactions and confirm rejection | [Link](./tests/evm-rpc/simple-validations.bats#L36) | |
 | trigger local balance tree underflow bridge revert | [Link](./tests/pessimistic/local-balance-tree-underflow.bats#L18) | |
-| undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
-| update signer | [Link](./tests/pos/validator.bats#L147) | |
-| update validator stake | [Link](./tests/pos/validator.bats#L60) | |
-| update validator top-up fee | [Link](./tests/pos/validator.bats#L97) | |
 
 ## Kurtosis Tests
 

@@ -54,6 +54,7 @@ categorize_test() {
         */tests/op/*) echo "CDK OP Geth Tests" ;;
         */tests/cdk/*) echo "CDK Tests" ;;
         */tests/pectra/*) echo "Pectra Tests" ;;
+        */tests/pos/*) echo "POS Tests" ;;
         */tests/dapps/*) echo "DApps Tests" ;;
         */tests/ethereum-test-cases/*) echo "Ethereum Test Cases" ;;
         */tests/polycli-loadtests/*) echo "Load Tests" ;;
@@ -81,6 +82,7 @@ categories["AggLayer Tests"]=""
 categories["CDK Erigon Tests"]=""
 categories["CDK Tests"]=""
 categories["Pectra Tests"]=""
+categories["POS Tests"]=""
 categories["DApps Tests"]=""
 categories["Ethereum Test Cases"]=""
 categories["Execution Layer Tests"]=""
@@ -101,7 +103,7 @@ while IFS= read -r file; do
 done < <(find "$PROJECT_ROOT" -name "*.bats" -type f | sort)
 
 # Generate inventory for each category (only if it has files)
-for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
+for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "POS Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
     if [[ -n "${categories[$category]}" ]]; then
         echo "" >> "$TEMP_INVENTORY"
         echo "## $category" >> "$TEMP_INVENTORY"
