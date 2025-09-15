@@ -110,7 +110,7 @@ function wait_for_bor_state_sync() {
 
   # 1) eth_getTransactionReceipt — must include the StateSync log with expected id
   tx_receipt_json="$(cast rpc --json -r "${L2_RPC_URL}" eth_getTransactionReceipt ${state_sync_tx_hash})"
-  assert_statesync_in_receipts_json "${tx_receipt_json}" "eth_getTransactionReceipt" || return 1
+  assert_statesync_in_receipts_json "${tx_receipt_json}" "eth_getTransactionReceipt" ${expected_id} || return 1
 
   # Capture block hash from the receipt for later checks
   block_hash="$(jq -r '.result.blockHash' <<< "${tx_receipt_json}")"
@@ -118,7 +118,7 @@ function wait_for_bor_state_sync() {
 
   # 2) eth_getBlockReceipts — all receipts in the block; must contain the StateSync log
   block_receipts_json="$(cast rpc --json -r "${L2_RPC_URL}" eth_getBlockReceipts "${state_sync_block_hex}")"
-  assert_statesync_in_receipts_json "${block_receipts_json}" "eth_getBlockReceipts" || return 1
+  assert_statesync_in_receipts_json "${block_receipts_json}" "eth_getBlockReceipts" ${expected_id} || return 1
 
 }
 

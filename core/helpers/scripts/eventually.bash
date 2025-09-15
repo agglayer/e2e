@@ -41,8 +41,10 @@ function assert_command_eventually_greater_than() {
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
 
-  local start_time=$(date +%s)
-  local end_time=$((start_time + timeout))
+  local start_time
+  start_time=$(date +%s)
+  local end_time
+  end_time=$((start_time + timeout))
   while true; do
     if [[ "$(date +%s)" -ge "${end_time}" ]]; then
       echo "Timeout reached."

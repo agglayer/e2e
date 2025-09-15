@@ -5,7 +5,8 @@ set -euo pipefail
 function  assert_statesync_in_receipts_json() {
     local json="$1"
     local where="$2"  # label for messages
-
+    local expected_id="$3"
+    
     local id_hex
     id_hex="$(jq -r --arg topic "${TOPIC_STATE_SYNC}" --arg em "${EMITTER_ADDR}" '
       def rcpts:

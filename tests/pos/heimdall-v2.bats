@@ -2,8 +2,6 @@
 
 setup(){
   load "../../core/helpers/scripts/eventually.bash"
-
-  HEIMDALL_GET_LATEST_HEIGHT='curl --silent "${L2_CL_RPC_URL}/status" | jq -r '.result.sync_info.latest_block_height''
   
   timeout_seconds=${TIMEOUT_SECONDS:-"300"}
   interval_seconds=${INTERVAL_SECONDS:-"10"}
@@ -55,7 +53,6 @@ check_block_pruned() {
   # Prefer checking the structured error fields first.
   local code message data
   code="$(jq -r '.error.code // empty' <<<"$resp")"
-  message="$(jq -r '.error.message // empty' <<<"$resp")"
   data="$(jq -r '.error.data // empty' <<<"$resp")"
 
   echo "Block query response:"
