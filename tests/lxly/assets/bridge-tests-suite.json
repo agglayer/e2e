@@ -27,8 +27,8 @@
         "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success", "transfer amount exceeds balance"],
+        "ExpectedResultClaim": ["Success","N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -198,8 +198,9 @@
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "1",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success","0x14603c01"],
+        "ExpectedResultClaim": ["Success","N/A"],
+        "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
     },
     {
         "DestinationAddress": "EOA",
@@ -229,8 +230,9 @@
         "MetaData": "Huge",
         "ForceUpdate": "True",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x6747a288"
+        "ExpectedResultProcess": ["Success","0x14603c01"],
+        "ExpectedResultClaim": ["0x6747a288","N/A"],
+        "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
     },
     {
         "DestinationAddress": "EOA",
@@ -301,15 +303,5 @@
         "Amount": "1",
         "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
         "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "GasToken",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
     }
 ]

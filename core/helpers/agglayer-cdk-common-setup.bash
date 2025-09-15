@@ -1,3 +1,9 @@
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BATS_LIB_PATH=$BATS_LIB_PATH:$HERE/lib
+PROJECT_ROOT=${PROJECT_ROOT:-$HERE/../..}
+
+L2_PRIVATE_KEY="${L2_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+
 _agglayer_cdk_common_setup() {
     _load_bats_libraries || return 1
     _load_helper_scripts
@@ -67,10 +73,10 @@ _load_helper_scripts() {
   done
 }
 
-# Resolves and exports required service URLs for the test environment by attempting to 
-# discover them from a set of fallback node names. If the URLs are not found in the environment 
+# Resolves and exports required service URLs for the test environment by attempting to
+# discover them from a set of fallback node names. If the URLs are not found in the environment
 # variables, this function will attempt to resolve them using the _resolve_url_or_use_env helper.
-# 
+#
 # The function handles:
 # - L1_RPC_URL: L1 execution node RPC endpoint
 # - L2_RPC_URL: L2 execution node RPC endpoint
@@ -120,7 +126,7 @@ _resolve_required_urls() {
 
 # _resolve_url_from_nodes
 # Attempts to resolve a reachable URL from a list of node/port pairs using Kurtosis.
-# 
+#
 # Arguments:
 #   node1 port1 node2 port2 ... error_msg required
 #   - node/port pairs (alternating)
@@ -195,7 +201,7 @@ _resolve_url_or_use_env() {
     fi
 }
 
-# Generates a fresh test wallet using `cast wallet new`, exports the PRIVATE_KEY and PUBLIC_ADDRESS, 
+# Generates a fresh test wallet using `cast wallet new`, exports the PRIVATE_KEY and PUBLIC_ADDRESS,
 # and optionally funds it from the configured admin wallet unless funding is disabled.
 # Fails if wallet generation or funding fails after retries.
 _generate_and_fund_wallet() {
@@ -273,7 +279,7 @@ _generate_and_fund_wallet() {
 
 # _resolve_contract_addresses <enclave_name>
 # Exports the following lowercase readonly vars:
-#   l1_bridge_addr, l2_bridge_addr, pol_address, l2_ger_addr, gas_token_addr
+#   l1_bridge_addr, l2_bridge_addr, pol_address, l1_ger_addr, l2_ger_addr, gas_token_addr
 # If any are set via env, all must be set. Otherwise fetches from combined.json.
 _resolve_contract_addresses() {
     export contracts_container="${KURTOSIS_CONTRACTS:-contracts-001}"
@@ -281,13 +287,15 @@ _resolve_contract_addresses() {
     local l1="${L1_BRIDGE_ADDRESS:-}"
     local l2="${L2_BRIDGE_ADDRESS:-}"
     local pol="${POL_TOKEN_ADDRESS:-}"
+    local l1_ger="${L1_GER_ADDRESS:-}"
     local ger="${L2_GER_ADDRESS:-}"
     local gas="${GAS_TOKEN_ADDRESS:-}"
 
-    if [[ -n "$l1" || -n "$l2" || -n "$pol" || -n "$ger" || -n "$gas" ]]; then
+    if [[ -n "$l1" || -n "$l2" || -n "$pol" || -n "$l1_ger" || -n "$ger" || -n "$gas" ]]; then
         [[ -z "$l1" ]] && { echo "Error: L1_BRIDGE_ADDRESS is required but not set." >&2; exit 1; }
         [[ -z "$l2" ]] && { echo "Error: L2_BRIDGE_ADDRESS is required but not set." >&2; exit 1; }
         [[ -z "$pol" ]] && { echo "Error: POL_TOKEN_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$l1_ger" ]] && { echo "Error: L1_GER_ADDRESS is required but not set." >&2; exit 1; }
         [[ -z "$ger" ]] && { echo "Error: L2_GER_ADDRESS is required but not set." >&2; exit 1; }
         [[ -z "$gas" ]] && { echo "Error: GAS_TOKEN_ADDRESS is required but not set." >&2; exit 1; }
 
@@ -308,6 +316,7 @@ _resolve_contract_addresses() {
         l1=$(echo "$json_output" | jq -r .polygonZkEVMBridgeAddress)
         l2=$(echo "$json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol=$(echo "$json_output" | jq -r .polTokenAddress)
+        l1_ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootAddress)
         ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
         gas=$(echo "$json_output" | jq -r .gasTokenAddress)
     fi
@@ -316,6 +325,7 @@ _resolve_contract_addresses() {
     export l1_bridge_addr="$l1"; readonly l1_bridge_addr
     export l2_bridge_addr="$l2"; readonly l2_bridge_addr
     export pol_address="$pol"; readonly pol_address
+    export l1_ger_addr="$l1_ger"; readonly l1_ger_addr
     export l2_ger_addr="$ger"; readonly l2_ger_addr
     export gas_token_addr="$gas"; readonly gas_token_addr
 
@@ -325,6 +335,7 @@ _resolve_contract_addresses() {
         echo "  l1_bridge_addr = $l1_bridge_addr"
         echo "  l2_bridge_addr = $l2_bridge_addr"
         echo "  pol_address     = $pol_address"
+        echo "  l1_ger_addr     = $l1_ger_addr"
         echo "  l2_ger_addr     = $l2_ger_addr"
         echo "  gas_token_addr  = $gas_token_addr"
     } >&3
@@ -332,7 +343,7 @@ _resolve_contract_addresses() {
 
 # _set_and_export_bridge_vars initializes and exports environment variables
 # needed for bridge operations (e.g., sending messages/tokens across L1/L2).
-# It ensures that all required context such as private keys, network IDs, 
+# It ensures that all required context such as private keys, network IDs,
 # destination addresses, and token-related values are available as env vars.
 _set_and_export_bridge_vars() {
     local tmp

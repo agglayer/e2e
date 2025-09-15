@@ -19,8 +19,8 @@ wait_block_increment() {
     local timeout_seconds="$2"
 
     start_block=$(cast block-number --rpc-url "$l2_rpc_url")
-    echo "DEBUG: starting block: $start_block" >&3
-    echo "DEBUG: waiting until: $((start_block + wait_blocks))" >&3
+    echo "[DEBUG]: starting block: $start_block" >&3
+    echo "[DEBUG]: waiting until: $((start_block + wait_blocks))" >&3
     block_diff=0
     start_time=$(date +%s)
     
@@ -34,7 +34,7 @@ wait_block_increment() {
         fi
         
         current_block=$(cast block-number --rpc-url "$l2_rpc_url")
-        echo "DEBUG: current block: $current_block" >&3
+        echo "[DEBUG]: current block: $current_block" >&3
         block_diff=$((current_block - start_block))
         sleep 1
     done
@@ -60,7 +60,7 @@ is_cdk_erigon() {
     
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "1000000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
     
     index=0;
     nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$ephemeral_address")
@@ -70,7 +70,7 @@ is_cdk_erigon() {
         if [[ $index -gt "$iteration_count" ]]; then
             break;
         fi
-        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
+        echo "[DEBUG]: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
         # this should work
         run cast send \
             --nonce "$nonce" \
@@ -88,7 +88,7 @@ is_cdk_erigon() {
         fi
         echo "Test $index transaction hash: $output" >&2
         index=$((index+1));
-        echo "DEBUG: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
+        echo "[DEBUG]: cast send --nonce \"$nonce\" --rpc-url \"$l2_rpc_url\" --gas-limit 21000 --gas-price \"$gas_price\" --async --legacy --private-key \"$ephemeral_private_key\" --value $index 0x0000000000000000000000000000000000000000" >&2
         # this should fail
         run cast send \
             --nonce "$nonce" \
@@ -109,7 +109,7 @@ is_cdk_erigon() {
             if [[ "$txn_status" -eq 0 ]]; then
                 # for cdk-erigon, even invalid transactions can exist in the pool for a short time before being rejected
                 # wait for 3 blocks and then recheck if the transaction hash exists
-                echo "DEBUG: cdk-erigon detected" >&2
+                echo "[DEBUG]: cdk-erigon detected" >&2
                 # usage: wait_block_increment <number_of_blocks_to_wait> <timeout_in_seconds>
                 wait_block_increment 12 144
                 # command succeeded, now check if transaction failed
