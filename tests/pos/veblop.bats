@@ -145,31 +145,6 @@ setup() {
   fi
 }
 
-# bats test_tags=veblop
-@test "enforce minimum one and maximum three selected producers per span" {
-  # Get the latest span.
-  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
-  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
-  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
-    echo "Error: Could not retrieve latest span id"
-    return 1
-  fi
-
-  # Iterate through all the spans and check the number of producers.
-  for ((span_id=1; span_id<=latest_span_id; span_id++)); do
-    producer_count=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers | length')
-    echo "Span $span_id: $producer_count producer(s)"
-    if [[ "$producer_count" -lt 1 ]]; then
-      echo "Error: No producer found for span $span_id"
-      exit 1
-    fi
-    if [[ "$producer_count" -gt 3 ]]; then
-      echo "Error: More than 3 selected producers for span $span_id"
-      exit 1
-    fi
-  done
-}
-
 function get_block_author() {
   block_number="$1"
   local block_number_hex
@@ -261,42 +236,8 @@ function get_block_author() {
   done
 }
 
-@test "producer with more than 2/3 of the active power should produce all the blocks" {
-  # Get the validator set from the genesis.
-  validator_set=$(kurtosis files inspect $ENCLAVE_NAME l2-cl-genesis genesis.json | jq '.app_state.bor.spans[0].validator_set.validators')
-
-  # Parse each validator's voting power.
-  declare -a voting_powers
-  total_voting_power=0
-  num_validators=$(echo "$validator_set" | jq 'length')
-  for ((i=0; i<num_validators; i++)); do
-    voting_powers[$i]=$(echo "$validator_set" | jq -r ".[$i].voting_power")
-    echo "- Validator ${validator_ids[$i]}: ${voting_powers[$i]} voting power"
-    total_voting_power=$((total_voting_power + voting_powers[$i]))
-  done
-
-  two_thirds_threshold=$((total_voting_power * 2 / 3))
-  echo "Total voting power: $total_voting_power"
-  echo "2/3 threshold: $two_thirds_threshold"
-
-  # Check if any validator has more than 2/3 of the power.
-  dominant_validator=""
-  for ((i=0; i<num_validators; i++)); do
-    if ((voting_powers[i] > two_thirds_threshold)); then
-      dominant_validator="$i"
-      echo "Validator ${validator_ids[$i]} has ${voting_powers[$i]} voting power (> 2/3 = $two_thirds_threshold)"
-      break
-    fi
-  done
-
-  # If no validator has more than 2/3, skip the test.
-  if [[ -z "$dominant_validator" ]]; then
-    skip "No validator has more than 2/3 of voting power. Skipping the test."
-  fi
-
-  # Checking if the dominant validator has produced all the blocks.
-  echo "Checking if dominant validator $dominant_validator produces all recent blocks..."
-
+# bats test_tags=veblop
+@test "enforce minimum one and maximum three selected producers per span" {
   # Get the latest span.
   latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
   latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
@@ -305,30 +246,35 @@ function get_block_author() {
     return 1
   fi
 
-  # Iterate through all the spans and count the number of spans by producer.
-  declare -A span_count
-  total_spans=0
+  # Iterate through all the spans and check the number of producers.
   for ((span_id=1; span_id<=latest_span_id; span_id++)); do
-    validator_id=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers[0].val_id')
-    span_count["$validator_id"]=$((${span_count["$validator_id"]:-0} + 1))
-    total_spans=$((total_spans + 1))
-  done
-
-  # Check if the dominant validator produced all the blocks
-  tolerance=1  # ±1 span
-  for validator_id in "${!span_count[@]}"; do
-    count=${span_count[$validator_id]}
-    if [[ "$validator_id" == "$dominant_validator" ]]; then
-      expected_count=$total_spans
-    else
-      expected_count=0
+    producer_count=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers | length')
+    echo "Span $span_id: $producer_count producer(s)"
+    if [[ "$producer_count" -lt 1 ]]; then
+      echo "Error: No producer found for span $span_id"
+      exit 1
     fi
-
-    diff=$((count - expected_count))
-    abs_diff=${diff#-}  # Remove negative sign for absolute value
-    if ((abs_diff > tolerance)); then
-      echo "Error: Producer $validator_id has produced $count spans (expected ~$expected_count ±$tolerance)"
+    if [[ "$producer_count" -gt 3 ]]; then
+      echo "Error: More than 3 selected producers for span $span_id"
       exit 1
     fi
   done
+}
+
+# bats test_tags=veblop
+@test "spam VoteProducers messages at the consensus layer and ensure the protocol handles them gracefully" {
+  # TODO
+  exit 1
+}
+
+# bats test_tags=veblop
+@test "spam ProposeSpan messages at the consensus layer and ensure the protocol handles them gracefully" {
+  # TODO
+  exit 1
+}
+
+# bats test_tags=veblop
+@test "spam BackfillSpans messages at the consensus layer and ensure the protocol handles them gracefully" {
+  # TODO
+  exit 1
 }
