@@ -14,7 +14,7 @@ Each invariant test is tagged to indicate whether it applies to any devnet or on
 
 - **stake-agnostic**: Invariants that hold under any stake distribution. These include structural properties that must always be true, regardless of how validator weights differ.
 
-- **equal-stake** – Invariants that only hold when all producers have the same stake. These are useful for catching allocation or rotation bugs. They will fail on heterogeneous networks.
+- **equal-stake**: Invariants that only hold when all producers have the same stake. These are useful for catching allocation or rotation bugs. They will fail on heterogeneous networks.
 
 Run all invariants:
 
