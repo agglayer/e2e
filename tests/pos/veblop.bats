@@ -152,8 +152,10 @@ function get_block_author() {
   cast rpc bor_getAuthor "$block_number_hex" --rpc-url "$L2_RPC_URL"
 }
 
-# bats test_tags=equal-slot-distribution
-@test "enforce equal slot distribution between block producers" {
+# This test verifies fairness at the consensus layer (CL).
+# It counts spans assigned to each producer and checks that the distribution is reasonably equal with a tolerance of ±1 span.
+# bats test_tags=fairness
+@test "enforce equal slot distribution between block producers at the consensus layer" {
   # This invariant won't be enforced if there have been producer rotations.
 
   # Get the latest span.
@@ -198,8 +200,11 @@ function get_block_author() {
   done
 }
 
-# bats test_tags=equal-slot-distribution
-@test "enforce equal block distribution between block producers" {
+# This test verifies fairness at the execution layer (EL).
+# It counts actual produced blocks over the last 1000 blocks and checks that the distribution is reasonably equal with
+# a tolerance of ±128 blocks (±1 span).
+# bats test_tags=fairness
+@test "enforce equal block distribution between block producers at the execution layer" {
   # This test usually takes around 30/40 seconds to run.
   # This invariant won't be enforced if there have been producer rotations.
 
