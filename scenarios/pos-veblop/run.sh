@@ -25,6 +25,7 @@ done
 # Load environment variables from file
 if [[ -f "${ENV_FILE}" ]]; then
   echo "Loading environment variables from ${ENV_FILE}"
+  # shellcheck source=/dev/null
   source "${ENV_FILE}"
 else
   echo "Error: Environment file ${ENV_FILE} not found"

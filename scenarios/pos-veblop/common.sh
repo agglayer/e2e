@@ -5,10 +5,10 @@ function build_bor_image() {
 
   echo "Building bor:$bor_tag..."
   git clone --branch develop https://github.com/0xPolygon/bor
-  pushd bor
+  pushd bor || exit 1
   git checkout "$bor_tag"
   docker build -t "local/bor:$bor_tag" .
-  popd
+  popd || exit 1
 }
 
 function build_heimdallv2_image() {
@@ -16,10 +16,10 @@ function build_heimdallv2_image() {
 
   echo "Building heimdall-v2:$heimdallv2_tag..."
   git clone --branch develop https://github.com/0xPolygon/heimdall-v2
-  pushd heimdall-v2
+  pushd heimdall-v2 || exit 1
   git checkout "$heimdallv2_tag"
   docker build -t "local/heimdall-v2:$heimdallv2_tag" .
-  popd
+  popd || exit 1
 }
 
 function wait_for_veblop_hf() {
