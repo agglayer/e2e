@@ -12,7 +12,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L334) | |
 | Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L583) | |
 | Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L552) | |
+| bridge l2 ( | [Link](./tests/lxly/multi-chain-bridge.bats#L116) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L66) | |
+| bridge native eth from l1 to l2 ( | [Link](./tests/lxly/multi-chain-bridge.bats#L90) | |
 | bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L40) | |
 
 ## AggLayer Tests
