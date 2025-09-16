@@ -49,6 +49,13 @@ function get_reorg_count() {
   echo "$reorg_count"
 }
 
+function get_block_author() {
+  block_number="$1"
+  local block_number_hex
+  block_number_hex=$(printf "0x%x" "$block_number")
+  cast rpc bor_getAuthor "$block_number_hex" --rpc-url "$L2_RPC_URL"
+}
+
 function isolate_container_from_el_nodes() {
   node_name="$1"
   node_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$node_name")
@@ -87,6 +94,8 @@ setup() {
   fi
 }
 
+# This test isolates the current block producer mid-span by isolating its EL node from the rest of the network.
+# It ensures a producer rotation occurs and that the chain continues to progress without reorgs.
 # bats test_tags=veblop
 @test "isolate the current block producer mid-span to trigger a producer rotation" {
   # Get the current validator id.
@@ -143,13 +152,6 @@ setup() {
     echo "Error: Detected reorg on rpc node ($rpc_node) during producer rotation"
     exit 1
   fi
-}
-
-function get_block_author() {
-  block_number="$1"
-  local block_number_hex
-  block_number_hex=$(printf "0x%x" "$block_number")
-  cast rpc bor_getAuthor "$block_number_hex" --rpc-url "$L2_RPC_URL"
 }
 
 # This test verifies fairness at the consensus layer (CL).
@@ -241,6 +243,7 @@ function get_block_author() {
   done
 }
 
+# This test verifies that each span contains at least one and at most three selected producers.
 # bats test_tags=veblop
 @test "enforce minimum one and maximum three selected producers per span" {
   # Get the latest span.
@@ -266,20 +269,10 @@ function get_block_author() {
   done
 }
 
+# This test ensures that the consensus layer can handle spam messages gracefully without crashing or causing instability.
+# Messages include VoteProducers, ProposeSpan, and BackfillSpans.
 # bats test_tags=veblop
-@test "spam VoteProducers messages at the consensus layer and ensure the protocol handles them gracefully" {
-  # TODO
-  exit 1
-}
-
-# bats test_tags=veblop
-@test "spam ProposeSpan messages at the consensus layer and ensure the protocol handles them gracefully" {
-  # TODO
-  exit 1
-}
-
-# bats test_tags=veblop
-@test "spam BackfillSpans messages at the consensus layer and ensure the protocol handles them gracefully" {
+@test "spam messages at the consensus layer and ensure the protocol handles them gracefully" {
   # TODO
   exit 1
 }
