@@ -13,30 +13,30 @@ These are useful for reproducing edge cases or validating behavior under custom 
 
 ## Invariants
 
-Run all invariants:
+Run all invariant tests:
 
 ```bash
-bats tests/pos/veblop/invariants.bats
+bats invariants.bats
 ```
 
 Run only fairness invariants:
 
 ```bash
-bats tests/pos/veblop/invariants.bats --filter-tags fairness
+bats invariants.bats --filter-tags fairness
 ```
 
 ## Faults
 
-Run all faults:
+Run all fault tests:
 
 ```bash
-bats tests/pos/veblop/faults.bats
+bats faults.bats
 ```
 
 Run only liveness-related faults:
 
 ```bash
-bats tests/pos/veblop/faults.bats --filter-tags liveness
+bats faults.bats --filter-tags liveness
 ```
 
 ## Scenarios
