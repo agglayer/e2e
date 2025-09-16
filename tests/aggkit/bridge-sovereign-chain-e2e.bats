@@ -372,7 +372,7 @@ check_certificate_height() {
 #   log "✅ Certificate settlement completed for global index: $global_index"
 # }
 
-@test "Test Unset claims Events -> claim in 1 cert, unset claim and set it again in 2nd cert" {
+@test "Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd" {
   local tokens_amount="0.1ether"
   local wei_amount
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
