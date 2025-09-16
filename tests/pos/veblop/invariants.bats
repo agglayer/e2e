@@ -22,9 +22,49 @@ setup() {
   fi
 }
 
+#   ____ _____  _    _  _______      _    ____ _   _  ___  ____ _____ ___ ____ 
+#  / ___|_   _|/ \  | |/ / ____|    / \  / ___| \ | |/ _ \/ ___|_   _|_ _/ ___|
+#  \___ \ | | / _ \ | ' /|  _|     / _ \| |  _|  \| | | | \___ \ | |  | | |    
+#   ___) || |/ ___ \| . \| |___   / ___ \ |_| | |\  | |_| |___) || |  | | |___ 
+#  |____/ |_/_/   \_\_|\_\_____| /_/   \_\____|_| \_|\___/|____/ |_| |___\____|
+#
+
+# This test verifies that each span contains at least one and at most three selected producers.
+# bats test_tags=stake-agnostic
+@test "enforce minimum one and maximum three selected producers per span" {
+  # Get the latest span.
+  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
+  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
+  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
+    echo "Error: Could not retrieve latest span id"
+    return 1
+  fi
+
+  # Iterate through all the spans and check the number of producers.
+  for ((span_id=1; span_id<=latest_span_id; span_id++)); do
+    producer_count=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers | length')
+    echo "Span $span_id: $producer_count producer(s)"
+    if [[ "$producer_count" -lt 1 ]]; then
+      echo "Error: No producer found for span $span_id"
+      exit 1
+    fi
+    if [[ "$producer_count" -gt 3 ]]; then
+      echo "Error: More than 3 selected producers for span $span_id"
+      exit 1
+    fi
+  done
+}
+
+#   _____ ___  _   _   _    _       ____ _____  _    _  _______ 
+#  | ____/ _ \| | | | / \  | |     / ___|_   _|/ \  | |/ / ____|
+#  |  _|| | | | | | |/ _ \ | |     \___ \ | | / _ \ | ' /|  _|  
+#  | |__| |_| | |_| / ___ \| |___   ___) || |/ ___ \| . \| |___ 
+#  |_____\__\_\\___/_/   \_\_____| |____/ |_/_/   \_\_|\_\_____|
+#
+
 # This test verifies fairness at the consensus layer (CL).
 # It counts spans assigned to each producer and checks that the distribution is reasonably equal with a tolerance of ±1 span.
-# bats test_tags=fairness
+# bats test_tags=equal-stake
 @test "enforce equal slot distribution between block producers at the consensus layer" {
   # This invariant won't be enforced if there have been producer rotations.
 
@@ -72,7 +112,7 @@ setup() {
 
 # This test verifies fairness at the execution layer (EL).
 # It counts actual produced blocks over the last 1000 blocks and checks that the distribution is reasonably equal with a tolerance of ±128 blocks (±1 span).
-# bats test_tags=fairness
+# bats test_tags=equal-stake
 @test "enforce equal block distribution between block producers at the execution layer" {
   # This test usually takes around 30/40 seconds to run.
   # This invariant won't be enforced if there have been producer rotations.
@@ -110,28 +150,12 @@ setup() {
   done
 }
 
-# This test verifies that each span contains at least one and at most three selected producers.
-# bats test_tags=sanity
-@test "enforce minimum one and maximum three selected producers per span" {
-  # Get the latest span.
-  latest_span=$(curl -s "${L2_CL_API_URL}/bor/spans/latest")
-  latest_span_id=$(echo "$latest_span" | jq -r '.span.id')
-  if [[ -z "$latest_span_id" || "$latest_span_id" == "null" ]]; then
-    echo "Error: Could not retrieve latest span id"
-    return 1
-  fi
-
-  # Iterate through all the spans and check the number of producers.
-  for ((span_id=1; span_id<=latest_span_id; span_id++)); do
-    producer_count=$(curl -s "${L2_CL_API_URL}/bor/spans/${span_id}" | jq -r '.span.selected_producers | length')
-    echo "Span $span_id: $producer_count producer(s)"
-    if [[ "$producer_count" -lt 1 ]]; then
-      echo "Error: No producer found for span $span_id"
-      exit 1
-    fi
-    if [[ "$producer_count" -gt 3 ]]; then
-      echo "Error: More than 3 selected producers for span $span_id"
-      exit 1
-    fi
-  done
+# This test verifies that the fallback mechanism is deterministic.
+# It checks that producer are selected in a round-robin fashion.
+# bats test_tags=equal-stake
+@test "enforce deterministic fallback behavior" {
+    # This invariant won't be enforced if there have been producer rotations.
+    exit 1
 }
+
+
