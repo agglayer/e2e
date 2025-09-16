@@ -4,11 +4,11 @@ set -e
 # Define scenario specific variables
 enclave_name="pos-candidate-list-normalization"
 kurtosis_pos_tag="v1.1.11"
-bor_tag="0fe4b0d" # develop - 2025/08/29
-heimdallv2_tag="0d27dfc" # develop - 2025/09/01
+bor_tag="e3c09a2" # develop - 2025/09/09
+heimdallv2_tag="82ead2c" # develop - 2025/09/05
 
 # Load common functions
-load ../common.sh
+source ../common.sh
 
 # Build local images if needed
 if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/bor:$bor_tag"; then
