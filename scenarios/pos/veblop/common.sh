@@ -25,13 +25,15 @@ function build_heimdallv2_image() {
 function wait_for_veblop_hf() {
   l2_rpc_url="$1"
 
-  block_number=$(cast block-number --rpc-url "$l2_rpc_url")
   echo "Waiting for block 256..." # plus some margin, here 20 blocks more
-  echo "Block number: $block_number"
+  ts=$(date '+%Y-%m-%d %H:%M:%S')
+  block_number=$(cast block-number --rpc-url "$l2_rpc_url")
+  echo "[$ts] Block number: $block_number"
   while [[ "$block_number" -lt 276 ]]; do
     sleep 5
+    ts=$(date '+%Y-%m-%d %H:%M:%S')
     block_number=$(cast block-number --rpc-url "$l2_rpc_url")
-    echo "Block number: $block_number"
+    echo "[$ts] Block number: $block_number"
   done
   echo "✅ VeBLoP hardfork is now enabled!"
 }
