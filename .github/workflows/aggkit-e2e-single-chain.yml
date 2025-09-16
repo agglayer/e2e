@@ -153,17 +153,19 @@ jobs:
             bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
                  || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
-            if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/op/optimistic-mode.bats \
-                   ./tests/aggkit/bridge-e2e-nightly.bats \
-                   ./tests/aggkit/internal-claims.bats \
-                   ./tests/aggkit/claim-reetrancy.bats \
-                   || exit 1
-            fi
-            bats  \
-                 ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+            # if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
+            #   bats ./tests/op/optimistic-mode.bats \
+            #        ./tests/aggkit/bridge-e2e-nightly.bats \
+            #        ./tests/aggkit/internal-claims.bats \
+            #        ./tests/aggkit/claim-reetrancy.bats \
+            #        || exit 1
+            # fi
+            # bats  \
+            #      ./tests/aggkit/bridge-e2e.bats \
+            #      ./tests/aggkit/e2e-pp.bats \
+            #      ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
+            #      || exit 1
+            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
                  || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats \

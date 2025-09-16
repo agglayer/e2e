@@ -6,7 +6,7 @@ set -euo pipefail
 function wait_to_settled_certificate_containing_global_index() {
     local rpc_url=$1
     local global_index=$2
-    local check_frequency=${3:-30}
+    local check_frequency=${3:-60}
     local timeout=${4:-1200}
     log "Waiting for certificate with global index $global_index" >&3
     run_with_timeout "wait certificate settle for $global_index" $check_frequency $timeout $AGGSENDER_IMPORTED_BRIDGE_PATH $rpc_url $global_index
