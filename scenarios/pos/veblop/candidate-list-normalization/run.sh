@@ -14,13 +14,7 @@ heimdallv2_tag="82ead2c" # develop - 2025/09/05
 source ../common.sh
 
 # Build local images if needed
-if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/bor:$bor_tag"; then
-  build_bor_image "$bor_tag"
-fi
-
-if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/heimdall-v2:$heimdallv2_tag"; then
-  build_heimdallv2_image "$heimdallv2_tag"
-fi
+build_local_images "$bor_tag" "$heimdallv2_tag"
 
 # Clone the kurtosis-pos repository
 git clone https://github.com/0xPolygon/kurtosis-pos.git

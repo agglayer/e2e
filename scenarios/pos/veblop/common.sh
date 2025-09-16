@@ -1,5 +1,18 @@
 #!/bin/env bash
 
+fonction build_local_images() {
+  bor_tag="$1"
+  heimdallv2_tag="$2"
+
+  if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/bor:$bor_tag"; then
+    build_bor_image "$bor_tag"
+  fi
+
+  if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "local/heimdall-v2:$heimdallv2_tag"; then
+    build_heimdallv2_image "$heimdallv2_tag"
+  fi
+}
+
 function build_bor_image() {
   bor_tag="$1"
 
