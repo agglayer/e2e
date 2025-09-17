@@ -5,7 +5,7 @@
 
 set -e
 
-enclave_name="pos-candidate-list-normalization"
+enclave_name="pos-selected-producers-list-normalization"
 kurtosis_pos_tag="test/bad-genesis-selected-producers"
 bor_tag="e3c09a2" # develop - 2025/09/09
 heimdallv2_tag="82ead2c" # develop - 2025/09/05
@@ -34,7 +34,7 @@ wait_for_veblop_hf "$l2_rpc_url"
 err_found=0
 
 # Genesis selected producers
-genesis_selected_producers=$(kurtosis files inspect pos-candidate-list-normalization l2-cl-genesis genesis.json | jq '.app_state.bor.spans[0].selected_producers')
+genesis_selected_producers=$(kurtosis files inspect "$enclave_name" l2-cl-genesis genesis.json | jq '.app_state.bor.spans[0].selected_producers')
 echo "Selected producers set in the genesis: $genesis_selected_producers"
 
 size=$(jq 'length' <<<"$genesis_selected_producers")
