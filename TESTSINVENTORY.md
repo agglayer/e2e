@@ -274,7 +274,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L516) | |
 | Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L62) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
-| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L70) | |
+| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L10) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
