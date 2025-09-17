@@ -7,34 +7,6 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
-# Helper function to manage aggkit-001 service
-manage_aggkit_nodes() {
-    local service="$1"
-    local action="$2"  # start or stop
-    local kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
-
-    if [[ "$action" == "stop" ]]; then
-        if docker ps | grep "$service"; then
-            echo "Stopping $service..." >&3
-            kurtosis service stop "$kurtosis_enclave_name" "$service" || {
-                echo "Error: Failed to stop $service" >&3
-                return 1
-            }
-            echo "$service stopped." >&3
-        else
-            echo "Error: $service does not exist in enclave $kurtosis_enclave_name" >&3
-            return 1
-        fi
-    elif [[ "$action" == "start" ]]; then
-        echo "Starting $service..." >&3
-        kurtosis service start "$kurtosis_enclave_name" "$service" || {
-            echo "Error: Failed to start $service" >&3
-            return 1
-        }
-        echo "$service started." >&3
-    fi
-}
-
 @test "Test Aggoracle committee" {
     echo "Step 1: Bridging and claiming asset on L2..." >&3
     destination_addr=$sender_addr
