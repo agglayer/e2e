@@ -50,11 +50,17 @@ bats faults.bats --filter-tags liveness
 
 ## Scenarios
 
-TODO
+Checks scenarios at `scenarios/pos/veblop/`.
+
+Each scenario has its own folder, composed of a script and a parameters file.
+
+- The `run.sh` script is a documented shell script that can be executed directly. Its purpose and usage are explained at the top of the file.
+
+- The `params.yml` is the args file used to create the kurtosis-pos devnet.
 
 ## Tips
 
-You can list all tests along with their description and tags using this single command:
+You can list bats tests along with their description and tags using this single command:
 
 ```bash
 grep -B 3 "@test" *.bats
