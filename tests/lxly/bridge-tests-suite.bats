@@ -208,7 +208,10 @@ _setup_contract_addresses() {
     
     local pids=()
     local scenario_array
-    readarray -t scenario_array < <(echo "$scenarios" | jq -c '.[]')
+    scenario_array=()
+    while IFS= read -r line; do
+        scenario_array+=("$line")
+    done < <(echo "$scenarios" | jq -c '.[]')
     
     # Track progress
     local started_tests=0
@@ -427,7 +430,10 @@ _setup_contract_addresses() {
     
     local pids=()
     local scenario_array
-    readarray -t scenario_array < <(echo "$scenarios" | jq -c '.[]')
+    scenario_array=()
+    while IFS= read -r line; do
+        scenario_array+=("$line")
+    done < <(echo "$scenarios" | jq -c '.[]')
     
     # Track progress
     local started_tests=0
