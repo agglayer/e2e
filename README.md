@@ -236,6 +236,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - custom-gas-token
 - eip-7685
 - eip-7691
+- equal-stake
 - erc-4337
 - evm-block
 - evm-gas
@@ -247,6 +248,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - forced-txs
 - gnosis-safe
 - katana
+- liveness
 - loadtest
 - native-gas-token
 - operator-fee
@@ -257,6 +259,8 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - pos-validator
 - railgun
 - smooth-crypto-lib
+- spam
+- stake-agnostic
 - transaction-eoa
 - transaction-erc20
 - transaction-erc721
