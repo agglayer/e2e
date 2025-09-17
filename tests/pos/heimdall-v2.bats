@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=pos
 
 setup(){
   load "../../core/helpers/scripts/eventually.bash"
@@ -51,7 +52,7 @@ check_block_pruned() {
   resp="$(curl --silent "${L2_CL_RPC_URL}/block?height=$height_to_check")"
 
   # Prefer checking the structured error fields first.
-  local code message data
+  # local code message data
   code="$(jq -r '.error.code // empty' <<<"$resp")"
   data="$(jq -r '.error.data // empty' <<<"$resp")"
 
@@ -81,7 +82,7 @@ check_block_pruned() {
   return 1
 }
 
-# bats file_tags=pos,hv2,prune
+# bats test_tags=pos,hv2,prune
 @test "txIndexerPrune works" {
   echo "Step 1: Get current height"
   local latest_height

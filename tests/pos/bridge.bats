@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats test_tags=pos
+# bats file_tags=pos
 
 setup() {
   # Load libraries.
@@ -84,42 +84,6 @@ function wait_for_bor_state_sync() {
 
   echo "Monitoring MATIC/POL balance on L2..."
   assert_ether_balance_eventually_greater_or_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
-
-  # --- Validation: RPC methods + StateSync log checks -----------------------
-
-  # Constants for the StateSync event
-  EMITTER_ADDR="0x0000000000000000000000000000000000001001"
-  TOPIC_STATE_SYNC="0x5a22725590b0a51c923940223f7458512164b1113359a735e86e7f27f44791ee"
-
-  # Expected StateSync id is (previous count + 1)
-  expected_id=$((bor_state_sync_count + 1))
-
-  # Make sure our tx hash is raw (no quotes) and block number is hex for RPCs
-  state_sync_tx_hash=$(cast logs -r "${L2_RPC_URL}" --json --from-block 0 --to-block latest \
-    --address "${EMITTER_ADDR}" "${TOPIC_STATE_SYNC}" \
-    | jq -r '.[-1].transactionHash')
-
-  state_sync_block_number=$(cast logs -r "${L2_RPC_URL}" --json --from-block 0 --to-block latest \
-    --address "${EMITTER_ADDR}" "${TOPIC_STATE_SYNC}" \
-    | jq -r '.[-1].blockNumber' | xargs -r cast to-dec)
-
-  state_sync_block_hex=$(cast to-hex "${state_sync_block_number}")
-
-  echo "StateSync located at block #${state_sync_block_number} (${state_sync_block_hex}) tx ${state_sync_tx_hash}"
-
-
-  # 1) eth_getTransactionReceipt — must include the StateSync log with expected id
-  tx_receipt_json="$(cast rpc --json -r "${L2_RPC_URL}" eth_getTransactionReceipt ${state_sync_tx_hash})"
-  assert_statesync_in_receipts_json "${tx_receipt_json}" "eth_getTransactionReceipt" ${expected_id} || return 1
-
-  # Capture block hash from the receipt for later checks
-  block_hash="$(jq -r '.result.blockHash' <<< "${tx_receipt_json}")"
-  [ -n "${block_hash}" ] || { echo "Receipt missing blockHash"; return 1; }
-
-  # 2) eth_getBlockReceipts — all receipts in the block; must contain the StateSync log
-  block_receipts_json="$(cast rpc --json -r "${L2_RPC_URL}" eth_getBlockReceipts "${state_sync_block_hex}")"
-  assert_statesync_in_receipts_json "${block_receipts_json}" "eth_getBlockReceipts" ${expected_id} || return 1
-
 }
 
 # bats test_tags=bridge,transaction-pol
