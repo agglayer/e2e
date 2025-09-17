@@ -204,6 +204,14 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 ' ./assets/cdk-erigon-rollup-003.yml > initial-cdk-erigon-rollup-003.yml
 
 
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.args.sp1_prover_key = $sp1key
+' ./assets/cdk-opgeth-fep.yml > initial-cdk-opgeth-fep.yml
+
+
+yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+.args.sp1_prover_key = $sp1key
+' ./assets/cdk-opgeth-pp.yml > initial-cdk-opgeth-pp.yml
 
 
 # checks if the user is requesting for downgrade
@@ -258,10 +266,44 @@ if [[ "$ACTION" == "downgrade" ]]; then
       add_rollup_rpc_to_agglayer
 
 else
+
+      # echo '╔═════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║   A T T A C H I N G    C D K -  O P G E T H    P P - R O L L U P            ║'
+      # echo '╚═════════════════════════════════════════════════════════════════════════════╝'
+
+
+      # kurtosis run \
+      #         --enclave "$KURTOSIS_ENCLAVE_NAME" \
+      #         --args-file ./initial-cdk-opgeth-pp.yml \
+      #         "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH" 
+      
+      
+      # echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║      A T T A C H I N G    C D K -  O P G E T H    P P - R O L L U P     S U C C E S S F U L L         ║'
+      # echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
+
+
+      # echo '╔═════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║   A T T A C H I N G    C D K -  O P G E T H      - R O L L U P    T W O     ║'
+      # echo '╚═════════════════════════════════════════════════════════════════════════════╝'
+
+
+      # kurtosis run \
+      #         --enclave "$KURTOSIS_ENCLAVE_NAME" \
+      #         --args-file ./initial-cdk-opgeth-fep.yml \
+      #         "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH" 
+      
+      
+      # echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║      A T T A C H I N G    C D K -  O P G E T H    F E P - R O L L U P   S U C C E S S F U L L         ║'
+      # echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
+
+      
       echo '╔═══════════════════════════════════════════════════════════════╗'
       echo '║   A T T A C H I N G    C D K   E R I G O N   V A L I D I U M  ║'
       echo '╚═══════════════════════════════════════════════════════════════╝'
 
+      # sleep 60
 
       kurtosis run \
               --enclave "$KURTOSIS_ENCLAVE_NAME" \
@@ -272,133 +314,132 @@ else
       echo '╔══════════════════════════════════════════════════════════════════════════════════════════════╗'
       echo '║      A T T A C H I N G    C D K   E R I G O N   V A L I D I U M   S U C C E S S F U L L      ║'
       echo '╚══════════════════════════════════════════════════════════════════════════════════════════════╝'
-      
 
-
-      echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   R U N N I N G   U P G R A D E   F O R   A G G L A Y E R   F R O M   S U P L I E D   T A G      ║'
-      echo '╚══════════════════════════════════════════════════════════════════════════════════════════════════╝'
+      # echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║   R U N N I N G   U P G R A D E   F O R   A G G L A Y E R   F R O M   S U P L I E D   T A G      ║'
+      # echo '╚══════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
   
 
-      echo "==================== R U N N I N G   K U R T O S I S  W I T H    A G G L A Y E R   F R O M   I M A G E:  $FROM_IMAGE ============"
-      # 1. Create a temporary file  to hold the config json of the current kurtosis base image
-      FROM_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
+      # echo "==================== R U N N I N G   K U R T O S I S  W I T H    A G G L A Y E R   F R O M   I M A G E:  $FROM_IMAGE ============"
+      # # 1. Create a temporary file  to hold the config json of the current kurtosis base image
+      # FROM_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
 
-      # 2. Dump the inspected JSON, update the image, and save to the temp file
-      kurtosis service inspect cdk agglayer --output json \
-        | jq --arg img "$FROM_IMAGE" '.image = $img' > "$FROM_IMAGE_SERVICE_CONFIG_FILE"
+      # # 2. Dump the inspected JSON, update the image, and save to the temp file
+      # kurtosis service inspect cdk agglayer --output json \
+      #   | jq --arg img "$FROM_IMAGE" '.image = $img' > "$FROM_IMAGE_SERVICE_CONFIG_FILE"
      
-      echo "$FROM_IMAGE_SERVICE_CONFIG_FILE"
-      cat "$FROM_IMAGE_SERVICE_CONFIG_FILE"
+      # echo "$FROM_IMAGE_SERVICE_CONFIG_FILE"
+      # cat "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
-      kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
-      kurtosis service add cdk agglayer --json-service-config "$FROM_IMAGE_SERVICE_CONFIG_FILE"
+      # kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
+      # kurtosis service add cdk agglayer --json-service-config "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
-      rm  "$FROM_IMAGE_SERVICE_CONFIG_FILE"
+      # rm  "$FROM_IMAGE_SERVICE_CONFIG_FILE"
 
 
 
-      FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
-      echo "AGGLAYER - PROVER CONFIG JSON"
-      kurtosis service inspect cdk agglayer-prover --output json \
-        | jq --arg img "$FROM_IMAGE" '.image = $img' > "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
-      kurtosis service add cdk agglayer-prover --json-service-config "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
-       rm  "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
+      # FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
+      # echo "AGGLAYER - PROVER CONFIG JSON"
+      # kurtosis service inspect cdk agglayer-prover --output json \
+      #   | jq --arg img "$FROM_IMAGE" '.image = $img' > "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
+      # kurtosis service add cdk agglayer-prover --json-service-config "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
+      #  rm  "$FROM_PROVER_IMAGE_SERVICE_CONFIG_FILE"
 
       
      
-      echo "==================== R U N N I N G   K U R T O S I S   W I T H    A G G L A Y E R   T O   I M A G E:  $TO_IMAGE ================="
-      # 1. Create a temporary file  to hold the config json of the current service
-      TO_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
+      # echo "==================== R U N N I N G   K U R T O S I S   W I T H    A G G L A Y E R   T O   I M A G E:  $TO_IMAGE ================="
+      # # 1. Create a temporary file  to hold the config json of the current service
+      # TO_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
 
-      # 2. Dump the inspected JSON, update the image, and save to the temp file
-      kurtosis service inspect cdk agglayer --output json \
-        | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_IMAGE_SERVICE_CONFIG_FILE"
+      # # 2. Dump the inspected JSON, update the image, and save to the temp file
+      # kurtosis service inspect cdk agglayer --output json \
+      #   | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_IMAGE_SERVICE_CONFIG_FILE"
      
-      echo "$TO_IMAGE_SERVICE_CONFIG_FILE"
-      cat "$TO_IMAGE_SERVICE_CONFIG_FILE"
+      # echo "$TO_IMAGE_SERVICE_CONFIG_FILE"
+      # cat "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
-      kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
-      kurtosis service add cdk agglayer --json-service-config "$TO_IMAGE_SERVICE_CONFIG_FILE"
+      # kurtosis service rm "$KURTOSIS_ENCLAVE_NAME" agglayer
+      # kurtosis service add cdk agglayer --json-service-config "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
-      rm  "$TO_IMAGE_SERVICE_CONFIG_FILE"
+      # rm  "$TO_IMAGE_SERVICE_CONFIG_FILE"
 
 
-      TO_PROVER_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
-      kurtosis service inspect cdk agglayer-prover --output json \
-        | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_PROVER_IMAGE_SERVICE_CONFIG_FILE"
-      kurtosis service add cdk agglayer-prover --json-service-config "$TO_PROVER_IMAGE_SERVICE_CONFIG_FILE"
-       rm  "$TO_PROVER_IMAGE_SERVICE_CONFIG_FILE"
+      # TO_PROVER_IMAGE_SERVICE_CONFIG_FILE=$(mktemp)
+      # kurtosis service inspect cdk agglayer-prover --output json \
+      #   | jq --arg img "$TO_IMAGE" '.image = $img' > "$TO_PROVER_IMAGE_SERVICE_CONFIG_FILE"
+      # kurtosis service add cdk agglayer-prover --json-service-config "$TO_PROVER_IMAGE_SERVICE_CONFIG_FILE"
+      #  rm  "$TO_PROVER_IMAGE_SERVICE_CONFIG_FILE"
 
     
 
-      echo "C O N F I R M I N G   R U N N I N G  A G G L A Y E R   F R O M    S U P P L I E D   B A S E   V E R S I O N:  $TO_TAG "
-      echo "========================================================================================================================"
-      kurtosis service inspect cdk agglayer --output json
-      echo "========================================================================================================================"
+      # echo "C O N F I R M I N G   R U N N I N G  A G G L A Y E R   F R O M    S U P P L I E D   B A S E   V E R S I O N:  $TO_TAG "
+      # echo "========================================================================================================================"
+      # kurtosis service inspect cdk agglayer --output json
+      # echo "========================================================================================================================"
 
      
 
-      echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║        U P G R A D I N G    A G G L A Y E R   T O  T A R G E T   V E R S I O N  S U C C E S S F U L L    ║'
-      echo '╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝'
+      # echo '╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║        U P G R A D I N G    A G G L A Y E R   T O  T A R G E T   V E R S I O N  S U C C E S S F U L L    ║'
+      # echo '╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
 
 
       
 
-      echo '╔═════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T W O       ║'
-      echo '╚═════════════════════════════════════════════════════════════════════════╝'
+      # echo '╔═════════════════════════════════════════════════════════════════════════╗'
+      # echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T W O       ║'
+      # echo '╚═════════════════════════════════════════════════════════════════════════╝'
 
 
-      kurtosis run \
-              --enclave "$KURTOSIS_ENCLAVE_NAME" \
-              --args-file ./initial-cdk-erigon-rollup.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"  
+      # kurtosis run \
+      #         --enclave "$KURTOSIS_ENCLAVE_NAME" \
+      #         --args-file ./initial-cdk-erigon-rollup.yml \
+      #         "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"  
       
       
 
-      echo '╔═════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║      A T T A C H I N G    C D K   E R I G O N   R O L L U P   S U C C E S S F U L L     ║'
-      echo '╚═════════════════════════════════════════════════════════════════════════════════════════╝'
+      # echo '╔═════════════════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║      A T T A C H I N G    C D K   E R I G O N   R O L L U P   S U C C E S S F U L L     ║'
+      # echo '╚═════════════════════════════════════════════════════════════════════════════════════════╝'
   
 
 
-      echo '╔═════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T H R E E       ║'
-      echo '╚═════════════════════════════════════════════════════════════════════════════╝'
+      # echo '╔═════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║   A T T A C H I N G    C D K   E R I G O N    R O L L U P   T H R E E       ║'
+      # echo '╚═════════════════════════════════════════════════════════════════════════════╝'
 
 
-      kurtosis run \
-              --enclave "$KURTOSIS_ENCLAVE_NAME" \
-              --args-file ./initial-cdk-erigon-rollup-003.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"  
+      # kurtosis run \
+      #         --enclave "$KURTOSIS_ENCLAVE_NAME" \
+      #         --args-file ./initial-cdk-erigon-rollup-003.yml \
+      #         "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH"  
       
       
 
-      echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
-      echo '║      A T T A C H I N G    C D K   E R I G O N     R O L L U P   T H R E E   S U C C E S S F U L L     ║'
-      echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
+      # echo '╔═══════════════════════════════════════════════════════════════════════════════════════════════════════╗'
+      # echo '║      A T T A C H I N G    C D K   E R I G O N     R O L L U P   T H R E E   S U C C E S S F U L L     ║'
+      # echo '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝'
 
 
 
-      echo "Modifying agglayer configuration to include new rollup"
-      add_rollup_rpc_to_agglayer
+
+      # echo "Modifying agglayer configuration to include new rollup"
+      # add_rollup_rpc_to_agglayer
 
 
 
-      # live countdown for 3 minutes
-      for ((s=180; s>0; s--)); do
-        printf "\rWaiting 3 min to verify deployment - will execute VerifyBatchesTrustedAggregator event… %02d:%02d" $((s/60)) $((s%60))
-        sleep 1
-      done
-      printf "\r✓ done.          \n"
+      # # live countdown for 3 minutes
+      # for ((s=180; s>0; s--)); do
+      #   printf "\rWaiting 3 min to verify deployment - will execute VerifyBatchesTrustedAggregator event… %02d:%02d" $((s/60)) $((s%60))
+      #   sleep 1
+      # done
+      # printf "\r✓ done.          \n"
 
-      for n in 001 002 003; do
-        run_verification_in_container "contracts-$n" || true
-      done
+      # for n in 001 002 003 004; do
+      #   run_verification_in_container "contracts-$n" || true
+      # done
 fi
 
 
