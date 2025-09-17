@@ -186,6 +186,46 @@ Naming convention should follow that of the directories.
 grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
 ```
 
+- aggkit
+- agglayer
+- bridge
+- cdk
+- cdk-erigon
+- dapps
+- eip-2537
+- eip-2935
+- eip-7623
+- ethereum-test-cases
+- evm-gas
+- evm-opcode
+- evm-precompile
+- evm-rpc
+- execution
+- forced-txs
+- local-balance-tree
+- lxly
+- op
+- op-fep
+- pectra
+- pessimistic
+- polycli-loadtests
+- pos
+- prover-stress
+- standard
+- standard-kurtosis
+- transaction-erc20
+- zkevm
+- zkevm-batch
+
+## test_tags
+
+These will aim to have feature-specific targeted tests.
+Naming convention should follow general EVM or Polygon standards.
+
+```bash
+grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
+```
+
 - acl-accesslist
 - acl-blocklist
 - agglayer-admin
