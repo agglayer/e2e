@@ -107,7 +107,7 @@ _resolve_required_urls() {
 
     # AGGKIT_BRIDGE_URL
     aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
-        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "aggkit-001-bridge" "rest" "cdk-node-001" "rest" \
         "Failed to resolve aggkit bridge url from all fallback nodes" true)
     export aggkit_bridge_url
 
@@ -450,18 +450,18 @@ _agglayer_cdk_common_multi_setup() {
 
     # Resolve Aggkit Bridge URLs
     aggkit_bridge_1_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_1_URL \
-        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "aggkit-001-bridge" "rest" "cdk-node-001" "rest" \
         "Failed to resolve PP1 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_1_url
 
     aggkit_bridge_2_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_2_URL \
-        "aggkit-002" "rest" "cdk-node-002" "rest" \
+        "aggkit-002-bridge" "rest" "cdk-node-002" "rest" \
         "Failed to resolve PP2 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_2_url
 
     if [[ $number_of_chains -eq 3 ]]; then
         aggkit_bridge_3_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_3_URL \
-            "aggkit-003" "rest" "cdk-node-003" "rest" \
+            "aggkit-003-bridge" "rest" "cdk-node-003" "rest" \
             "Failed to resolve PP3 aggkit bridge url from all fallback nodes" true)
         readonly aggkit_bridge_3_url
     fi
