@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-fonction build_local_images() {
+function build_local_images() {
   bor_tag="$1"
   heimdallv2_tag="$2"
 
