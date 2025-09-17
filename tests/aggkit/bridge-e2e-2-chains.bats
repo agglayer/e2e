@@ -25,10 +25,14 @@ setup() {
     assert_success
     local bridge_tx_hash_pp2=$output
 
+    rollup_1_sender_balance=$(cast balance --rpc-url "$l2_rpc_url_1" "$eth_address")
+    echo "=== Sender balance on (PP2) === $rollup_1_sender_balance" >&3
     echo "=== Running LxLy claim L1 to L2(PP1) for $bridge_tx_hash_pp1" >&3
     process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp1" "$rollup_1_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
 
     echo "=== Running LxLy claim L1 to L2(PP2) for $bridge_tx_hash_pp2" >&3
+    rollup_2_sender_balance=$(cast balance --rpc-url "$l2_rpc_url_2" "$eth_address")
+    echo "=== Sender balance on (PP2) === $rollup_2_sender_balance" >&3
     process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp2" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_2_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
 
     # reduce eth amount
