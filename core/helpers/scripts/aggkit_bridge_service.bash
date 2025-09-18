@@ -140,7 +140,7 @@ function claim_bridge() {
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt ${attempt}/${max_attempts}"
+        log "🔍 Attempt ${attempt}/${max_attempts}: generate global index"
 
         local global_index
         if [[ "$manipulated_unused_bits" == "true" || "$manipulated_rollup_id" == "true" ]]; then
@@ -311,7 +311,8 @@ function wait_for_expected_token() {
         # Extract the first origin_token_address (if available)
         origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
 
-        echo "Attempt $attempt: found origin_token_address = $origin_token_address (Expected: $expected_origin_token), network id=$network_id" >&3
+        echo "🔍 Attempt $attempt/$max_attempts: found origin_token_address = $origin_token_address \
+(expected origin token = $expected_origin_token, network id = $network_id, bridge indexer url = $aggkit_url)" >&3
 
         # Break loop if the expected token is found (case-insensitive)
         if [[ "${origin_token_address,,}" == "${expected_origin_token,,}" ]]; then
@@ -340,12 +341,11 @@ function get_claim() {
     local from_address="${6:-}"
     local attempt=0
 
-    log "🔍 Searching for claim with global_index: ${expected_global_index} (bridge indexer RPC: ${aggkit_url})..."
+    log "🔍 Searching for claim with global_index: ${expected_global_index} (bridge indexer url: ${aggkit_url})..."
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt $attempt/$max_attempts"
-        log "Expected claim global index: $expected_global_index"
+        log "🔍 Attempt $attempt/$max_attempts: get claim global index: $expected_global_index"
 
         # Build the query URL with optional from_address parameter
         local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true&global_index=$expected_global_index"
@@ -429,7 +429,8 @@ function get_bridge() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching bridge, params: network_id = $network_id, tx_hash = $expected_tx_hash, aggkit_url = $aggkit_url"
+        log "🔎 Attempt $attempt/$max_attempts: fetching bridge \ 
+(network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url)"
 
         # Build the query URL with optional from_address parameter
         local query_url="$aggkit_url/bridge/v1/bridges?network_id=$network_id"
@@ -492,7 +493,8 @@ function generate_claim_proof() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching proof, params: network_id = $network_id, deposit_count = $deposit_count, l1_info_tree_index = $l1_info_tree_index, aggkit_url = $aggkit_url"
+        log "🔎 Attempt $attempt/$max_attempts: fetching proof \
+(network id = $network_id, deposit count = $deposit_count, l1 info tree index = $l1_info_tree_index, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (proof) and stderr (error message)
         proof=$(curl -s -H "Content-Type: application/json" \
@@ -534,7 +536,8 @@ function find_l1_info_tree_index_for_bridge() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: Fetching L1 info tree index for bridge (network id= $network_id, deposit count=$expected_deposit_count, aggkit_url = $aggkit_url)"
+        log "🔎 Attempt $attempt/$max_attempts: fetching L1 info tree index for bridge \
+(network id = $network_id, deposit count = $expected_deposit_count, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (index) and stderr (error message)
         index=$(curl -s -H "Content-Type: application/json" \
@@ -576,7 +579,8 @@ function find_injected_l1_info_leaf() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index, params: network_id = $network_id, index = $index, aggkit_url = $aggkit_url"
+        log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index \
+(network id = $network_id, index = $index, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (injected_info) and stderr (error message)
         injected_info=$(curl -s -H "Content-Type: application/json" \
@@ -674,7 +678,8 @@ function get_legacy_token_migrations() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching legacy token migrations, params: network_id = $network_id, page_number = $page_number, page_size = $page_size"
+        log "🔎 Attempt $attempt/$max_attempts: fetching legacy token migrations \
+(network id = $network_id, page number = $page_number, page size = $page_size, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (legacy_token_migrations) and stderr (error message)
         legacy_token_migrations=$(curl -s -H "Content-Type: application/json" \
