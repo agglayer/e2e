@@ -12,7 +12,7 @@ function bridge_asset() {
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
         local eth_balance
         eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
-        log "💰 $sender_addr ETH Balance: $eth_balance wei"
+        log "💰 $sender_addr ETH Balance: $eth_balance ethers"
     else
         local balance_wei
         balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
@@ -60,7 +60,7 @@ function bridge_message() {
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
         local eth_balance
         eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
-        log "💰 $sender_addr ETH Balance: $eth_balance wei"
+        log "💰 $sender_addr ETH Balance: $eth_balance ethers"
     else
         local balance_wei
         balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
@@ -534,7 +534,7 @@ function find_l1_info_tree_index_for_bridge() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: Fetching L1 info tree index for bridge with deposit count $expected_deposit_count, aggkit_url = $aggkit_url"
+        log "🔎 Attempt $attempt/$max_attempts: Fetching L1 info tree index for bridge (network id= $network_id, deposit count=$expected_deposit_count, aggkit_url = $aggkit_url)"
 
         # Capture both stdout (index) and stderr (error message)
         index=$(curl -s -H "Content-Type: application/json" \
@@ -617,6 +617,7 @@ function find_injected_l1_info_leaf() {
 #   $5 - origin_aggkit_bridge_url: The base URL of the bridge service of origin network.
 #   $6 - destination_aggkit_bridge_url: The base URL of the bridge service of destination network.
 #   $7 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
+#   $8 - from_address (optional): The address used to filter bridge transactions (if empty, no filtering is applied).
 function process_bridge_claim() {
     local origin_network_id="$1"
     local bridge_tx_hash="$2"
@@ -752,7 +753,7 @@ function is_claimed() {
 # Helper function to extract claim parameters for a bridge transaction
 # This function extracts all the claim parameters and returns them as a JSON object
 # Usage: claim_params=$(extract_claim_parameters_json <bridge_tx_hash> <asset_number>)
-extract_claim_parameters_json() {
+function extract_claim_parameters_json() {
     local bridge_tx_hash="$1"
     local asset_number="$2"
     local from_address="${3:-}"
