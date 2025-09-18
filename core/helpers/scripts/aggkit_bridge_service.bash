@@ -29,12 +29,12 @@ function bridge_asset() {
     else
         local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-            response=$(cast send --legacy --private-key "$sender_private_key" \
+            response=$(cast send --private-key "$sender_private_key" \
                 --value "$amount" \
                 --rpc-url "$rpc_url" "$bridge_addr" \
                 "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         else
-            response=$(cast send --legacy --private-key "$sender_private_key" \
+            response=$(cast send --private-key "$sender_private_key" \
                 --rpc-url "$rpc_url" "$bridge_addr" \
                 "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         fi
@@ -77,10 +77,10 @@ function bridge_message() {
     else
         local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-            response=$(cast send --legacy --private-key "$sender_private_key" --value "$amount" \
+            response=$(cast send --private-key "$sender_private_key" --value "$amount" \
                 --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
         else
-            response=$(cast send --legacy --private-key "$sender_private_key" \
+            response=$(cast send --private-key "$sender_private_key" \
                 --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
         fi
 
@@ -229,20 +229,17 @@ function claim_call() {
         log "📝 Dry run claim (showing calldata only)"
         cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata
     else
-        local comp_gas_price
-        comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
         if [[ $? -ne 0 ]]; then
             log "❌ Failed to calculate gas price" >&3
             return 1
         fi
         log "⏳ Claiming deposit: global_index: $in_global_index orig_net: $in_orig_net dest_net: $in_dest_net amount:$in_amount"
         log "🔍 Exit roots: MainnetExitRoot=$in_main_exit_root RollupExitRoot=$in_rollup_exit_root"
-        echo "cast send --legacy --gas-price $comp_gas_price --rpc-url $destination_rpc_url --private-key $sender_private_key $bridge_addr \"$claim_sig\" \"$in_merkle_proof\" \"$in_rollup_merkle_proof\" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata"
+        echo "cast send --rpc-url $destination_rpc_url --private-key $sender_private_key $bridge_addr \"$claim_sig\" \"$in_merkle_proof\" \"$in_rollup_merkle_proof\" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata"
 
         local tmp_response
         tmp_response=$(mktemp)
-        cast send --legacy --gas-price $comp_gas_price \
-            --rpc-url $destination_rpc_url \
+        cast send --rpc-url $destination_rpc_url \
             --private-key $sender_private_key \
             $bridge_addr "$claim_sig" "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata 2>$tmp_response || check_claim_revert_code $tmp_response
     fi
