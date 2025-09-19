@@ -1,10 +1,11 @@
 #!/usr/bin/env bats
-# bats test_tags=pos
+# bats file_tags=pos
 
 setup() {
   # Load libraries.
   load "../../core/helpers/pos-setup.bash"
   load "../../core/helpers/scripts/eventually.bash"
+  load "../../core/helpers/scripts/state_sync.bash"
   pos_setup
 
   # Define state sync count commands.
