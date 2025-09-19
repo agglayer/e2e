@@ -122,8 +122,16 @@ jobs:
 
       - name: Install yq
         run: |
+            # Remove any existing yq installations to avoid conflicts
+            sudo pip3 uninstall -y yq || true
+            # Remove any yq in /usr/local/bin that might be from pip
+            sudo rm -f /usr/local/bin/yq
+            # Install the Go version of yq
             sudo wget https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64 -O /usr/bin/yq
             sudo chmod +x /usr/bin/yq
+            # Make sure /usr/bin comes before /usr/local/bin in PATH
+            export PATH="/usr/bin:$PATH"
+            # Verify it's the correct version and test the syntax
             yq --version
 
       - name: Install Kurtosis CLI and Foundry
@@ -153,27 +161,27 @@ jobs:
 
             # Remove agglayer_contracts_image from all config files
             # This is critical to maintain consistent contract versions, and contract addresses
-            yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/sovereign.yml
-            yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
-            yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/sovereign.yml
-            yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/rollup.yml
-            yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/validium.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/sovereign.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/sovereign.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/rollup.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/validium.yml
 
             # Modify YAML files directly with yq
             # sovereign.yml (network 001)
-            yq eval '.optimism_package.chains[0].network_params.name = "001" | .optimism_package.chains[0].network_params.network_id = "2151908" | .args.zkevm_rollup_chain_id = 2151908 | .args.deployment_suffix = "-001" | .args.zkevm_rollup_id = 1' -i /tmp/op-geth/sovereign.yml
+            /usr/bin/yq eval '.optimism_package.chains[0].network_params.name = "001" | .optimism_package.chains[0].network_params.network_id = "2151908" | .args.zkevm_rollup_chain_id = 2151908 | .args.deployment_suffix = "-001" | .args.zkevm_rollup_id = 1' -i /tmp/op-geth/sovereign.yml
 
             # aggchain-ecdsa-multisig.yml (network 002)
-            yq eval '.optimism_package.chains[0].network_params.name = "002" | .optimism_package.chains[0].network_params.network_id = "2151909" | .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.zkevm_rollup_chain_id = 2151909 | .args.deployment_suffix = "-002" | .args.zkevm_rollup_id = 2' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
+            /usr/bin/yq eval '.optimism_package.chains[0].network_params.name = "002" | .optimism_package.chains[0].network_params.network_id = "2151909" | .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.zkevm_rollup_chain_id = 2151909 | .args.deployment_suffix = "-002" | .args.zkevm_rollup_id = 2' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
 
             # sovereign.yml (network 003)
-            yq eval '.args.zkevm_rollup_chain_id = 2151910 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-003" | .args.zkevm_rollup_id = 3' -i /tmp/cdk-erigon/sovereign.yml
+            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151910 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-003" | .args.zkevm_rollup_id = 3' -i /tmp/cdk-erigon/sovereign.yml
 
             # rollup.yml (network 004)
-            yq eval '.args.zkevm_rollup_chain_id = 2151911 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-004" | .args.zkevm_rollup_id = 4' -i /tmp/cdk-erigon/rollup.yml
+            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151911 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-004" | .args.zkevm_rollup_id = 4' -i /tmp/cdk-erigon/rollup.yml
 
             # validium.yml (network 005)
-            yq eval '.args.zkevm_rollup_chain_id = 2151912 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-005" | .args.zkevm_rollup_id = 5' -i /tmp/cdk-erigon/validium.yml
+            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151912 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-005" | .args.zkevm_rollup_id = 5' -i /tmp/cdk-erigon/validium.yml
 
             popd
 
