@@ -10,7 +10,7 @@ on:
         type: string
       kurtosis-cdk-ref:
         description: "kurtosis-cdk repo ref (branch, tag, or commit)"
-        default: "main"
+        default: "jhilliard/aggsender-validator-committee" # FIXME: Change this to main before merging
         required: true
         type: string
       kurtosis-enclave-name:
