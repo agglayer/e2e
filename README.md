@@ -204,6 +204,7 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - forced-txs
 - local-balance-tree
 - lxly
+- multi-chain-bridge
 - op
 - op-fep
 - pectra
@@ -248,6 +249,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - gnosis-safe
 - katana
 - loadtest
+- multi-chain
 - native-gas-token
 - operator-fee
 - optimistic-mode
