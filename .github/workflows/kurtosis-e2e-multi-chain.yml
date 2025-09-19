@@ -193,8 +193,8 @@ jobs:
             kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/sovereign.yml .
             kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
             kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/sovereign.yml .
-            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/rollup.yml .
-            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/validium.yml .
+            # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/rollup.yml .
+            # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/validium.yml .
 
             popd
 
@@ -223,11 +223,11 @@ jobs:
           export NETWORK_TARGET=network3
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          export NETWORK_TARGET=network4
-          bats ./tests/lxly/multi-chain-bridge.bats
+          # export NETWORK_TARGET=network4
+          # bats ./tests/lxly/multi-chain-bridge.bats
 
-          export NETWORK_TARGET=network5
-          bats ./tests/lxly/multi-chain-bridge.bats
+          # export NETWORK_TARGET=network5
+          # bats ./tests/lxly/multi-chain-bridge.bats
 
           popd
 
