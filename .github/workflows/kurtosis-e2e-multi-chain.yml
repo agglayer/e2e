@@ -81,7 +81,7 @@ jobs:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref  || 'jhilliard/aggsender-validator-committee' }}
-      KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name }}
+      KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name || 'cdk' }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.stack }}
     steps:
       - name: Debug environment variables
