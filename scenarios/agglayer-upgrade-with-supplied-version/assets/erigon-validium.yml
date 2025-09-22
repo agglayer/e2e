@@ -1,17 +1,21 @@
 deployment_stages:
+  deploy_l1: false
+  deploy_agglayer: false
   deploy_l2_contracts: true
   deploy_optimism_rollup: false
   deploy_op_succinct: false
 args:
   verbosity: debug
-  deployment_suffix: "-001"
-  agglayer_contracts_image: europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/zkevm-contracts:v8.1.0-rc.2-fork.13
+ 
   zkevm_prover_image: hermeznetwork/zkevm-prover:v9.0.0-RC3-fork.13
   consensus_contract_type: cdk_validium
   additional_services: []
   sequencer_type: erigon
   agglayer_prover_sp1_key: "0x50630eb71ab68ff812fcb9b9c58859f9e9f70a62b7e9e97c9c1cc09d86c760d8" # Replace with valid key
-  # l1_rpc_url: "http://op-el-1-op-geth-op-node-001:8545"
+  
 
 
+  zkevm_rollup_chain_id: 2151912
+  deployment_suffix: "-005" 
+  zkevm_rollup_id: 5
 

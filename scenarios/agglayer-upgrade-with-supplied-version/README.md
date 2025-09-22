@@ -4,7 +4,7 @@ This repo contains e2e test scenario to automate **Agglayer image upgrade and do
 
 It is designed to:
 
-- Bootstrap multiple rollup flavors ( e.g 1 Validium and  2 Rollup ) into the **same Kurtosis enclave**.
+- Bootstrap multiple rollup flavors ( e.g both opgeth and erigon stack ) into the **same Kurtosis enclave**.
 - Start Agglayer using a **FROM_TAG** version.
 - Upgrade Agglayer to a **TO_TAG** version.
 - Optionally downgrade back to the original **FROM_TAG** for validation.
