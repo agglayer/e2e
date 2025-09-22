@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# shellcheck disable=SC2154
 set -euo pipefail
 
 function bridge_asset() {
@@ -8,11 +10,14 @@ function bridge_asset() {
     local bridge_sig='bridgeAsset(uint32,address,uint256,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-        local eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
+        local eth_balance
+        eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
         log "💰 $sender_addr ETH Balance: $eth_balance wei"
     else
-        local balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
-        local token_balance=$(cast --from-wei "$balance_wei")
+        local balance_wei
+        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
+        local token_balance
+        token_balance=$(cast --from-wei "$balance_wei")
         log "💎 $sender_addr Token Balance: $token_balance units [$token_addr]"
     fi
 
@@ -34,10 +39,11 @@ function bridge_asset() {
                 "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         fi
 
-        local bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
+        local bridge_tx_hash
+        bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
         if [[ -n "$bridge_tx_hash" ]]; then
             log "🎉 Success: Tx Hash → $bridge_tx_hash"
-            echo $bridge_tx_hash
+            echo "$bridge_tx_hash"
         else
             log "❌ Error: Transaction failed (no hash returned)"
             return 1
@@ -52,11 +58,14 @@ function bridge_message() {
     local bridge_sig='bridgeMessage(uint32,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
-        local eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
+        local eth_balance
+        eth_balance=$(cast balance -e --rpc-url "$rpc_url" "$sender_addr")
         log "💰 $sender_addr ETH Balance: $eth_balance wei"
     else
-        local balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
-        local token_balance=$(cast --from-wei "$balance_wei")
+        local balance_wei
+        balance_wei=$(cast call --rpc-url "$rpc_url" "$token_addr" "$BALANCE_OF_FN_SIG" "$sender_addr" | awk '{print $1}')
+        local token_balance
+        token_balance=$(cast --from-wei "$balance_wei")
         log "💎 $sender_addr Token Balance: $token_balance units [$token_addr]"
     fi
 
@@ -64,24 +73,22 @@ function bridge_message() {
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run bridge message (showing calldata only)"
-        cast calldata "$bridge_sig" "$destination_net" \
-            "$destination_addr" "$is_forced" "$meta_bytes"
+        cast calldata "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes"
     else
         local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
             response=$(cast send --legacy --private-key "$sender_private_key" --value "$amount" \
-                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" \
-                "$destination_addr" "$is_forced" "$meta_bytes")
+                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
         else
             response=$(cast send --legacy --private-key "$sender_private_key" \
-                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" \
-                "$destination_addr" "$is_forced" "$meta_bytes")
+                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
         fi
 
-        local bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
+        local bridge_tx_hash
+        bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
         if [[ -n "$bridge_tx_hash" ]]; then
             log "🎉 Success: Tx Hash → $bridge_tx_hash"
-            echo $bridge_tx_hash
+            echo "$bridge_tx_hash"
         else
             log "❌ Error: Transaction failed (no hash returned)"
             return 1
@@ -133,9 +140,10 @@ function claim_bridge() {
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt "$attempt"/"$max_attempts""
+        log "🔍 Attempt ${attempt}/${max_attempts}"
 
-        local global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
+        local global_index
+        global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
         log "🔍 Global index: $global_index"
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
@@ -172,28 +180,52 @@ function claim_call() {
     local global_index="$5"
 
     local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
-    local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
+
+    local leaf_type
+    leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
     if [[ $leaf_type != "0" ]]; then
         claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     fi
 
-    local in_merkle_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local in_global_index=$global_index
-    local in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
-    local in_orig_addr=$(echo "$bridge_info" | jq -r '.origin_address')
-    local in_dest_net=$(echo "$bridge_info" | jq -r '.destination_network')
-    local in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
-    local in_amount=$(echo "$bridge_info" | jq -r '.amount')
-    local in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
+    local in_merkle_proof
+    in_merkle_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+    local in_rollup_merkle_proof
+    in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+
+    local in_global_index
+    in_global_index=$global_index
+
+    local in_main_exit_root
+    in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+
+    local in_rollup_exit_root
+    in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+
+    local in_orig_net
+    in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
+
+    local in_orig_addr
+    in_orig_addr=$(echo "$bridge_info" | jq -r '.origin_address')
+
+    local in_dest_net
+    in_dest_net=$(echo "$bridge_info" | jq -r '.destination_network')
+
+    local in_dest_addr
+    in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
+
+    local in_amount
+    in_amount=$(echo "$bridge_info" | jq -r '.amount')
+
+    local in_metadata
+    in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
         cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata
     else
-        local comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
+        local comp_gas_price
+        comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
         if [[ $? -ne 0 ]]; then
             log "❌ Failed to calculate gas price" >&3
             return 1
@@ -201,7 +233,9 @@ function claim_call() {
         log "⏳ Claiming deposit: global_index: $in_global_index orig_net: $in_orig_net dest_net: $in_dest_net amount:$in_amount"
         log "🔍 Exit roots: MainnetExitRoot=$in_main_exit_root RollupExitRoot=$in_rollup_exit_root"
         echo "cast send --legacy --gas-price $comp_gas_price --rpc-url $destination_rpc_url --private-key $sender_private_key $bridge_addr \"$claim_sig\" \"$in_merkle_proof\" \"$in_rollup_merkle_proof\" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata"
-        local tmp_response=$(mktemp)
+
+        local tmp_response
+        tmp_response=$(mktemp)
         cast send --legacy --gas-price $comp_gas_price \
             --rpc-url $destination_rpc_url \
             --private-key $sender_private_key \
@@ -305,16 +339,23 @@ function get_claim() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
+    local from_address="${6:-}"
     local attempt=0
 
-    log "🔍 Searching for claim with global_index: "$expected_global_index" (bridge indexer RPC: "$aggkit_url")..."
+    log "🔍 Searching for claim with global_index: ${expected_global_index} (bridge indexer RPC: ${aggkit_url})..."
 
     while true; do
         ((attempt++))
         log "🔍 Attempt $attempt"
         log "get claim global index: $expected_global_index"
-        claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true")
 
+        # Build the query URL with optional from_address parameter
+        local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true"
+        if [[ -n "$from_address" ]]; then
+            query_url="$query_url&from_address=$from_address"
+        fi
+
+        claims_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "------ claims_result ------"
         log "$claims_result"
         log "------ claims_result ------"
@@ -379,6 +420,7 @@ function get_bridge() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
+    local from_address="${6:-}"
 
     local attempt=0
     local bridges_result=""
@@ -387,8 +429,14 @@ function get_bridge() {
         ((attempt++))
         log "🔎 Attempt $attempt/$max_attempts: fetching bridge, params: network_id = $network_id, tx_hash = $expected_tx_hash, aggkit_url = $aggkit_url"
 
+        # Build the query URL with optional from_address parameter
+        local query_url="$aggkit_url/bridge/v1/bridges?network_id=$network_id"
+        if [[ -n "$from_address" ]]; then
+            query_url="$query_url&from_address=$from_address"
+        fi
+
         # Capture both stdout (bridge result) and stderr (error message)
-        bridges_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
+        bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "------ bridges_result ------"
         log "$bridges_result"
         log "------ bridges_result ------"
@@ -401,7 +449,7 @@ function get_bridge() {
         fi
 
         if [[ "$bridges_result" == "" ]]; then
-            log "Empty bridges response retrieved, retrying in "$poll_frequency"s..."
+            log "Empty bridges response retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -459,7 +507,7 @@ function generate_claim_proof() {
         fi
 
         if [[ "$proof" == "" ]]; then
-            log "Empty proof retrieved, retrying in "$poll_frequency"s..."
+            log "Empty proof retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -501,7 +549,7 @@ function find_l1_info_tree_index_for_bridge() {
         fi
 
         if [[ "$index" == "" ]]; then
-            log "Empty index retrieved, retrying in "$poll_frequency"s..."
+            log "Empty index retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -543,7 +591,7 @@ function find_injected_l1_info_leaf() {
         fi
 
         if [[ "$injected_info" == "" ]]; then
-            log "Empty injected info response retrieved, retrying in "$poll_frequency"s..."
+            log "Empty injected info response retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -554,129 +602,6 @@ function find_injected_l1_info_leaf() {
 
     log "❌ Failed to find injected info after index $index after $max_attempts attempts."
     return 1
-}
-
-function claim_bridge_claimSponsor() {
-    local bridge_info="$1"
-    local proof="$2"
-    local destination_rpc_url="$3"
-    local source_network_id="$4"
-    local max_attempts="$5"
-    local poll_frequency="$6"
-    local initial_receiver_balance="$7"
-
-    local leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
-    run generate_global_index "$bridge_info" "$source_network_id"
-    local global_index=$output
-    local proof_local_exit_root=$(echo "$proof" | jq '.proof_local_exit_root')
-    local proof_rollup_exit_root=$(echo "$proof" | jq '.proof_rollup_exit_root')
-    local mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local origin_network=$(echo "$bridge_info" | jq -r '.origin_network')
-    local origin_token_address=$(echo "$bridge_info" | jq -r '.origin_address')
-    local destination_network=$(echo "$bridge_info" | jq -r '.destination_network')
-    local destination_address=$(echo "$bridge_info" | jq -r '.destination_address')
-    local amount=$(echo "$bridge_info" | jq -r '.amount')
-    local metadata=$(echo "$bridge_info" | jq -r '.metadata')
-
-    claim_json=$(jq -n \
-        --argjson leaf_type "$leaf_type" \
-        --argjson proof_local_exit_root "$proof_local_exit_root" \
-        --argjson proof_rollup_exit_root "$proof_rollup_exit_root" \
-        --argjson global_index "$global_index" \
-        --arg mainnet_exit_root "$mainnet_exit_root" \
-        --arg rollup_exit_root "$rollup_exit_root" \
-        --argjson origin_network "$origin_network" \
-        --arg origin_token_address "$origin_token_address" \
-        --argjson destination_network "$destination_network" \
-        --arg destination_address "$destination_address" \
-        --argjson amount "$amount" \
-        --arg metadata "" \
-        '{
-            leaf_type:            $leaf_type,
-            proof_local_exit_root: $proof_local_exit_root,
-            proof_rollup_exit_root:$proof_rollup_exit_root,
-            global_index:         $global_index,
-            mainnet_exit_root:    $mainnet_exit_root,
-            rollup_exit_root:     $rollup_exit_root,
-            origin_network:       $origin_network,
-            origin_token_address: $origin_token_address,
-            destination_network:  $destination_network,
-            destination_address:  $destination_address,
-            amount:               $amount,
-            metadata:             $metadata
-        }')
-    log "Claim JSON: $claim_json"
-    log "📤 Submitting claim with sponsor-claim... $destination_rpc_url"
-
-    # Capture both stdout (sponsor-claim) and stderr (error message)
-    response=$(curl -s -X POST -H "Content-Type: application/json" \
-        -d "$claim_json" \
-        "$destination_rpc_url/bridge/v1/sponsor-claim" 2>&1)
-    log "sponsor-claim response: $response"
-
-    # Check if the response contains an error
-    if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
-        log "⚠️ Error: $response"
-        sleep "$poll_frequency"
-        continue
-    fi
-
-    if [[ "$response" == "" ]]; then
-        log "Empty response retrieved, retrying in "$poll_frequency"s..."
-        sleep "$poll_frequency"
-        continue
-    fi
-
-    log "🔄 Polling sponsored-claim-status for global_index: $global_index"
-    local attempt=0
-    while ((attempt < max_attempts)); do
-        sleep "$poll_frequency"
-
-        # Capture both stdout (sponsored-claim-status) and stderr (error message)
-        local status=$(curl -s -H "Content-Type: application/json" \
-            "$destination_rpc_url/bridge/v1/sponsored-claim-status?global_index=$global_index" 2>&1)
-
-        # Check if the response contains an error
-        if [[ "$status" == *"error"* || "$status" == *"Error"* ]]; then
-            log "⚠️ Error: $status"
-            sleep "$poll_frequency"
-            continue
-        fi
-
-        if [[ "$status" == "" ]]; then
-            log "Empty status retrieved, retrying in "$poll_frequency"s..."
-            sleep "$poll_frequency"
-            continue
-        fi
-
-        # Remove surrounding double quotes
-        status=${status#\"}
-        status=${status%\"}
-        log "⏱️  Attempt $((attempt + 1)): Status = $status"
-
-        if [[ "$status" == "success" ]]; then
-            log "✅ Claim sponsorship succeeded."
-            return 0
-        elif [[ "$status" == "failed" ]]; then
-            log "❌ Claim sponsorship failed."
-            exit 1
-        else
-            # check if bridge has already been claimed
-            local current_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_address")
-            delta=$(echo "$current_receiver_balance - $initial_receiver_balance" | bc)
-            delta=$(cast --to-wei "$delta")
-            log "⏱️  Attempt $((attempt + 1)): change in receiver($destination_address) balance = $delta wei"
-            if [[ "$delta" == "$amount" ]]; then
-                log "✅ Bridge already claimed receiver: $destination_address balance increased by $amount."
-                return 0
-            fi
-        fi
-        ((attempt++))
-    done
-
-    log "⚠️ Claim sponsorship did not complete in $max_attempts attempts."
-    exit 1
 }
 
 # process_bridge_claim processes a bridge claim by fetching the bridge details,
@@ -698,32 +623,35 @@ function process_bridge_claim() {
     local origin_aggkit_bridge_url="$5"
     local destination_aggkit_bridge_url="$6"
     local destination_rpc_url="$7"
+    local from_address="${8:-}"
 
     # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 5 "$origin_aggkit_bridge_url"
-    assert_success
+    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 10 "$origin_aggkit_bridge_url" "$from_address"
+    assert_success || return 1
     local bridge="$output"
 
     # Find the L1 info tree index for the given deposit count.
-    local deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
+    local deposit_count
+    deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$origin_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local l1_info_tree_index="$output"
 
     # Retrieve the injected L1 info leaf using the L1 info tree index.
     run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$destination_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local injected_info="$output"
 
     # Generate the claim proof based on the network ID, deposit count, and L1 info tree index.
-    local l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    local l1_info_tree_index
+    l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
     run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url"
-    assert_success
+    assert_success || return 1
     local proof="$output"
 
     # Submit the claim using the generated proof and bridge details.
     run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr"
-    assert_success
+    assert_success || return 1
     local global_index="$output"
 
     echo "$global_index"
@@ -760,7 +688,7 @@ function get_legacy_token_migrations() {
         fi
 
         if [[ "$legacy_token_migrations" == "" ]]; then
-            log "Empty legacy token migration response retrieved, retrying in "$poll_frequency"s..."
+            log "Empty legacy token migration response retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -791,7 +719,7 @@ function is_claimed() {
     local bridge_addr="$3"
     local rpc_url="$4"
 
-    log "🔍 Checking is_claimed for deposit_count: $deposit_count, origin_network: $origin_network"
+    log "🔍 Checking isClaimed for deposit_count: $deposit_count, origin_network: $origin_network"
 
     local is_claimed_output
     is_claimed_output=$(cast call \
@@ -802,13 +730,14 @@ function is_claimed() {
         --rpc-url "$rpc_url" 2>&1)
 
     if [[ $? -ne 0 ]]; then
-        log "❌ Error: Failed to check is_claimed"
+        log "❌ Error: Failed to check isClaimed"
         log "$is_claimed_output"
         return 1
     fi
 
-    local is_claimed=$(echo "$is_claimed_output" | tr -d '\n')
-    log "📋 is_claimed hex result: $is_claimed"
+    local is_claimed
+    is_claimed=$(echo "$is_claimed_output" | tr -d '\n')
+    log "📋 isClaimed hex result: $is_claimed"
 
     # Convert hex to boolean
     if [[ "$is_claimed" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]; then
@@ -816,4 +745,75 @@ function is_claimed() {
     else
         echo "false"
     fi
+}
+
+# Helper function to extract claim parameters for a bridge transaction
+# This function extracts all the claim parameters and returns them as a JSON object
+# Usage: claim_params=$(extract_claim_parameters_json <bridge_tx_hash> <asset_number>)
+extract_claim_parameters_json() {
+    local bridge_tx_hash="$1"
+    local asset_number="$2"
+    local from_address="${3:-}"
+
+    log "📋 Getting ${asset_number} bridge details"
+    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
+    assert_success
+    local bridge_response="$output"
+    log "📝 ${asset_number} bridge response: $bridge_response"
+    local deposit_count
+    deposit_count=$(echo "$bridge_response" | jq -r '.deposit_count')
+
+    log "🌳 Getting L1 info tree index for ${asset_number} bridge"
+    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local l1_info_tree_index="$output"
+    log "📝 ${asset_number} L1 info tree index: $l1_info_tree_index"
+
+    log "Getting injected L1 info leaf for ${asset_number} bridge"
+    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local injected_info="$output"
+    log "📝 ${asset_number} injected info: $injected_info"
+
+    # Extract the actual l1_info_tree_index from the injected info
+    local l1_info_tree_injected_index
+    l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+
+    log "🔐 Getting ${asset_number} claim proof"
+    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_injected_index" 50 10 "$aggkit_bridge_url"
+    assert_success
+    local proof="$output"
+    log "📝 ${asset_number} proof: $proof"
+
+    # Extract all claim parameters for the asset
+    log "🎯 Extracting claim parameters for ${asset_number} asset"
+    local proof_local_exit_root
+    proof_local_exit_root=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local proof_rollup_exit_root
+    proof_rollup_exit_root=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    run generate_global_index "$bridge_response" "$l1_rpc_network_id"
+    assert_success
+    local global_index
+    global_index=$output
+    log "📝 ${asset_number} global index: $global_index"
+    local mainnet_exit_root
+    mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local rollup_exit_root
+    rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local origin_network
+    origin_network=$(echo "$bridge_response" | jq -r '.origin_network')
+    local origin_address
+    origin_address=$(echo "$bridge_response" | jq -r '.origin_address')
+    local destination_network
+    destination_network=$(echo "$bridge_response" | jq -r '.destination_network')
+    local destination_address
+    destination_address=$(echo "$bridge_response" | jq -r '.destination_address')
+    local amount
+    amount=$(echo "$bridge_response" | jq -r '.amount')
+    local metadata
+    metadata=$(echo "$bridge_response" | jq -r '.metadata')
+
+    # Return all parameters as a JSON object
+    echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
+    log "✅ ${asset_number} asset claim parameters extracted successfully"
 }

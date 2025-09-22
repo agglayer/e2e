@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# bats file_tags=agglayer
 
 setup() {
     kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
@@ -6,12 +7,20 @@ setup() {
     l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
     l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x4c1335D41c271beD3eF6a1228a4D0C701Fc87b74"}
+    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae"}
+    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
+        echo "Replacing empty bridge contract address..." >&3
+        l2_bridge_addr=$(_get_bridge_address)
+    fi
 
     l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
     l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x4c1335D41c271beD3eF6a1228a4D0C701Fc87b74"}
+    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae"}
+    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
+        echo "Replacing empty bridge contract address..." >&3
+        l2_bridge_addr=$(_get_bridge_address)
+    fi
 
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
     network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
@@ -24,10 +33,19 @@ setup() {
     gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
     weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
 
-    fund_claim_tx_manager
+    _fund_claim_tx_manager
 }
 
-function fund_claim_tx_manager() {
+
+_get_bridge_address() {
+    # L1 and L2 bridge address should be identical
+    local bridge_addr
+    bridge_addr=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "jq -r '.polygonZkEVMBridgeAddress' /opt/zkevm/combined.json")
+    echo "$bridge_addr"
+}
+
+
+_fund_claim_tx_manager() {
     local balance
     balance=$(cast balance --rpc-url "$l2_rpc_url" "$claimtxmanager_addr")
     if [[ $balance != "0" ]]; then
@@ -39,9 +57,7 @@ function fund_claim_tx_manager() {
          "$claimtxmanager_addr"
 }
 
-# bats file_tags=agglayer
-
-# bats test_tags=smoke,bridge
+# bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L1 to L2" {
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
 
@@ -83,8 +99,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-
-# bats test_tags=smoke,bridge
+# bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L2 to L1" {
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     initial_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
@@ -120,6 +135,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
+# bats test_tags=transaction-erc20,bridge
 @test "bridge L2 originated ERC20 from L2 to L1" {
     dd_code=$(cast code --rpc-url "$l2_rpc_url" 0x4e59b44847b379578588920ca78fbf26c0b4956c)
     if [[ $dd_code == "0x" ]]; then
@@ -170,7 +186,7 @@ function fund_claim_tx_manager() {
             --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getEpochConfiguration on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getEpochConfiguration > "$tmp_file"
@@ -186,7 +202,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$network_id" > "$tmp_file"
@@ -205,7 +221,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$network_id" > "$tmp_file"
@@ -227,7 +243,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getTxStatus on agglayer RPC for latest settled certificate returns done" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$network_id" > "$tmp_file"
@@ -246,7 +262,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
@@ -265,7 +281,7 @@ function fund_claim_tx_manager() {
     fi
 }
 
-# bats test_tags=smoke,rpc
+# bats test_tags=agglayer-rpc
 @test "query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$network_id" > "$tmp_file"

@@ -1,28 +1,12 @@
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BATS_LIB_PATH=$BATS_LIB_PATH:$HERE/lib
+PROJECT_ROOT=${PROJECT_ROOT:-$HERE/../..}
+
+L2_PRIVATE_KEY="${L2_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+
 _agglayer_cdk_common_setup() {
-    bats_load_library 'bats-support'
-    if [ $? -ne 0 ]; then return 1; fi
-    bats_load_library 'bats-assert'
-    if [ $? -ne 0 ]; then return 1; fi
-
-    load '../../core/helpers/scripts/agglayer_network_setup'
-    load '../../core/helpers/scripts/aggkit_bridge_service'
-    load '../../core/helpers/scripts/fund'
-    load '../../core/helpers/scripts/get_token_balance'
-    load '../../core/helpers/scripts/mint_token_helpers'
-    load '../../core/helpers/scripts/query_contract'
-    load '../../core/helpers/scripts/send_tx'
-    load '../../core/helpers/scripts/verify_balance'
-    load '../../core/helpers/scripts/wait_to_settled_certificate_containing_global_index'
-
-    load '../../core/helpers/scripts/assert_block_production'
-    load '../../core/helpers/scripts/check_balances'
-    load '../../core/helpers/scripts/deploy_contract'
-    load '../../core/helpers/scripts/deploy_test_contracts'
-    load '../../core/helpers/scripts/send_eoa_tx'
-    load '../../core/helpers/scripts/send_smart_contract_tx'
-    load '../../core/helpers/scripts/zkevm_bridge_service'
-
-    load '../../core/helpers/scripts/kurtosis-helpers'
+    _load_bats_libraries || return 1
+    _load_helper_scripts
 
     # ✅ Ensure PROJECT_ROOT is correct
     if [[ "$PROJECT_ROOT" == *"/tests"* ]]; then
@@ -35,43 +19,192 @@ _agglayer_cdk_common_setup() {
 
     export DEPLOY_SALT="${DEPLOY_SALT:-0x0000000000000000000000000000000000000000000000000000000000000000}"
 
-    # ✅ Standard function signatures
+    # ✅ ERC20 function signatures
     export MINT_FN_SIG="function mint(address,uint256)"
     export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
-    # ✅ Kurtosis service setup
-    export CONTRACTS_CONTAINER="${KURTOSIS_CONTRACTS:-contracts-001}"
+    # ✅ Resolve URLs
+    _resolve_required_urls
 
-    # Resolve L2 RPC URL
-    local l2_nodes=("op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc")
-    export L2_RPC_URL=$(_resolve_url_from_nodes "${l2_nodes[@]}" "Failed to resolve L2 RPC URL from all fallback nodes" "Successfully resolved L2 RPC URL" true | tail -1)
-    echo "L2_RPC_URL: $L2_RPC_URL" >&3
+    # ✅ Generate and fund wallet
+    _generate_and_fund_wallet
 
-    # Resolve L2 Sequencer RPC URL
-    local sequencer_nodes=("op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc")
-    L2_SEQUENCER_RPC_URL=$(_resolve_url_from_nodes "${sequencer_nodes[@]}" "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" "Successfully resolved L2 SEQUENCER RPC URL" true | tail -1)
+    # ✅ Resolve smart contract addresses
+    _resolve_contract_addresses
+
+    # ✅ Set and export variables
+    _set_and_export_bridge_vars
+}
+
+# Loads required BATS testing libraries, such as bats-support and bats-assert.
+# Returns 1 if any of the libraries fail to load.
+_load_bats_libraries() {
+  for lib in 'bats-support' 'bats-assert'; do
+    bats_load_library "$lib" || return 1
+  done
+}
+
+# Loads all helper script files used across BATS tests.
+# These helpers provide reusable functions for things like funding accounts,
+# deploying contracts, sending transactions, and checking balances.
+_load_helper_scripts() {
+  local scripts=(
+    'agglayer_network_setup'
+    'aggkit_bridge_service'
+    'fund'
+    'get_token_balance'
+    'mint_token_helpers'
+    'query_contract'
+    'send_tx'
+    'verify_balance'
+    'wait_to_settled_certificate_containing_global_index'
+    'assert_block_production'
+    'check_balances'
+    'deploy_contract'
+    'deploy_test_contracts'
+    'send_eoa_tx'
+    'send_smart_contract_tx'
+    'zkevm_bridge_service'
+    'kurtosis-helpers'
+  )
+  for script in "${scripts[@]}"; do
+    load "../../core/helpers/scripts/$script"
+  done
+}
+
+# Resolves and exports required service URLs for the test environment by attempting to
+# discover them from a set of fallback node names. If the URLs are not found in the environment
+# variables, this function will attempt to resolve them using the _resolve_url_or_use_env helper.
+#
+# The function handles:
+# - L1_RPC_URL: L1 execution node RPC endpoint
+# - L2_RPC_URL: L2 execution node RPC endpoint
+# - L2_SEQUENCER_RPC_URL: L2 sequencer endpoint
+# - AGGKIT_BRIDGE_URL: AggKit REST API endpoint for bridge operations
+# - AGGKIT_RPC_URL: AggKit RPC interface
+# - ZKEVM_BRIDGE_URL: zkEVM bridge service endpoint
+#
+# Fallback nodes are tried in order. If a required URL cannot be resolved, the function will fail.
+_resolve_required_urls() {
+    # L1_RPC_URL
+    l1_rpc_url=$(_resolve_url_or_use_env L1_RPC_URL \
+        "el-1-geth-lighthouse" "rpc" \
+        "Failed to resolve L1 RPC URL" true)
+    export l1_rpc_url
+
+    # L2_RPC_URL
+    L2_RPC_URL=$(_resolve_url_or_use_env L2_RPC_URL \
+        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL" true)
+    export L2_RPC_URL
+
+    # L2_SEQUENCER_RPC_URL
+    L2_SEQUENCER_RPC_URL=$(_resolve_url_or_use_env L2_SEQUENCER_RPC_URL \
+        "op-batcher-001" "http" "cdk-erigon-sequencer-001" "rpc" \
+        "Failed to resolve L2 SEQUENCER RPC URL from all fallback nodes" true)
     export L2_SEQUENCER_RPC_URL
-    echo "L2_SEQUENCER_RPC_URL: $L2_SEQUENCER_RPC_URL" >&3
 
-    # Resolve Aggkit Bridge URL
-    local aggkit_nodes=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit bridge url from all fallback nodes" "Successfully resolved aggkit bridge url" true | tail -1)
-    readonly aggkit_bridge_url
-    echo "aggkit_bridge_url: $aggkit_bridge_url" >&3
+    # AGGKIT_BRIDGE_URL
+    aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve aggkit bridge url from all fallback nodes" true)
+    export aggkit_bridge_url
 
-    # Resolve Aggkit RPC URL
-    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-    aggkit_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-    readonly aggkit_rpc_url
-    echo "aggkit_rpc_url: $aggkit_rpc_url" >&3
+    # AGGKIT_RPC_URL
+    aggkit_rpc_url=$(_resolve_url_or_use_env AGGKIT_RPC_URL \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true)
+    export aggkit_rpc_url
 
-    # Resolve ZKEVM Bridge URL
-    local zkevm_nodes=("zkevm-bridge-service-001" "rpc")
-    zkevm_bridge_url=$(_resolve_url_from_nodes "${zkevm_nodes[@]}" "zkevm-bridge-service isnt running" "Successfully resolved zkevm bridge url" false | tail -1)
-    readonly zkevm_bridge_url
-    echo "zkevm_bridge_url: $zkevm_bridge_url" >&3
+    # ZKEVM_BRIDGE_URL
+    zkevm_bridge_url=$(_resolve_url_or_use_env ZKEVM_BRIDGE_URL \
+        "zkevm-bridge-service-001" "rpc" \
+        "Zk EVM Bridge service is not running" false)
+    export zkevm_bridge_url
+}
 
+# _resolve_url_from_nodes
+# Attempts to resolve a reachable URL from a list of node/port pairs using Kurtosis.
+#
+# Arguments:
+#   node1 port1 node2 port2 ... error_msg required
+#   - node/port pairs (alternating)
+#   - error_msg: string to print to stderr if resolution fails
+#   - required: "true" to exit 1 on failure, anything else to continue
+#
+# Outputs:
+#   - Prints the resolved URL to stdout if successful
+#   - Prints errors to stderr
+#   - Exits with code 1 if required flag is "true" and no URL is found
+#
+# Example:
+#   _resolve_url_from_nodes "node1" "rpc" "node2" "rest" "Could not resolve URL" true
+#
+_resolve_url_from_nodes() {
+    local -a args=("$@")
+    local -a nodes=("${args[@]:0:$#-2}")  # All args except last two
+    local error_msg="${args[$#-2]}"       # Second-to-last
+    local required="${args[$#-1]}"        # Last
+
+    local resolved_url=""
+    local num_nodes=${#nodes[@]}
+
+    for ((i = 0; i < num_nodes; i += 2)); do
+        local node_name="${nodes[i]}"
+        local node_port_type="${nodes[i+1]}"
+
+        kurtosis service inspect "$ENCLAVE_NAME" "$node_name" || {
+            echo "⚠️ Node $node_name is not running in the $ENCLAVE_NAME enclave, trying next one..." >&3
+            continue
+        }
+
+        resolved_url=$(kurtosis port print "$ENCLAVE_NAME" "$node_name" "$node_port_type")
+        if [[ -n "$resolved_url" ]]; then
+            echo "$resolved_url"
+            break
+        fi
+    done
+
+    if [[ -z "$resolved_url" ]]; then
+        echo "❌ $error_msg" >&2
+        if [[ "$required" == "true" ]]; then
+            exit 1
+        fi
+    fi
+}
+
+# _resolve_url_or_use_env <target_var_name> <node1> <port1> ... <error_msg> <required>
+# - If the env var with name <target_var_name> is set, use it
+# - Otherwise, resolve via fallback nodes using _resolve_url_from_nodes
+# - Sets and exports the result to a variable named <target_var_name>
+_resolve_url_or_use_env() {
+    local env_var="$1"
+    shift
+
+    local -a args=("$@")
+    local num_args=$#
+    local error_msg="${args[num_args-2]}"
+    local required="${args[num_args-1]}"
+    local -a nodes=("${args[@]:0:$num_args-2}")
+
+    local env_val="${!env_var:-}"
+
+    if [[ -n "$env_val" ]]; then
+        echo "$env_val"
+        echo "$env_var: $env_val (from environment)" >&3
+    else
+        local resolved
+        resolved=$(_resolve_url_from_nodes "${nodes[@]}" "$error_msg" "$required" | tail -1)
+        echo "$resolved"
+        echo "$env_var: $resolved" >&3
+    fi
+}
+
+# Generates a fresh test wallet using `cast wallet new`, exports the PRIVATE_KEY and PUBLIC_ADDRESS,
+# and optionally funds it from the configured admin wallet unless funding is disabled.
+# Fails if wallet generation or funding fails after retries.
+_generate_and_fund_wallet() {
     # ✅ Generate a fresh wallet
     wallet_json=$(cast wallet new --json)
 
@@ -103,11 +236,11 @@ _agglayer_cdk_common_setup() {
     FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 10 ETH if not provided
     FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
 
-    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_SENDER_PRIVATE_KEY'"
-    echo "🛠 Length: ${#L2_SENDER_PRIVATE_KEY} characters"
+    echo "🛠 Raw L2_SENDER_PRIVATE_KEY: '$L2_PRIVATE_KEY'"
+    echo "🛠 Length: ${#L2_PRIVATE_KEY} characters"
 
     # ✅ Check Admin Wallet Balance Before Sending Funds
-    export ADMIN_PRIVATE_KEY="${L2_SENDER_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+    export ADMIN_PRIVATE_KEY="${L2_PRIVATE_KEY:-0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
     ADMIN_ADDRESS=$(cast wallet address --private-key "$ADMIN_PRIVATE_KEY")
 
     echo "🛠 ADMIN_ADDRESS: $ADMIN_ADDRESS"
@@ -142,183 +275,255 @@ _agglayer_cdk_common_setup() {
         echo "❌ ERROR: Wallet did not receive test funds!"
         exit 1
     fi
-
-    readonly is_forced=${IS_FORCED:-"true"}
-    meta_bytes=${META_BYTES:-"0x1234"}
-
-    local combined_json_file="/opt/zkevm/combined.json"
-    kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >combined.json
-    local combined_json_output=$(cat combined.json)
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        l1_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMBridgeAddress)
-        l2_bridge_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVML2BridgeAddress)
-        pol_address=$(echo "$combined_json_output" | jq -r .polTokenAddress)
-        l2_ger_addr=$(echo "$combined_json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
-        gas_token_addr=$(echo "$combined_json_output" | jq -r .gasTokenAddress)
-    else
-        l1_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMBridgeAddress)
-        l2_bridge_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVML2BridgeAddress)
-        pol_address=$(echo "$combined_json_output" | tail -n +2 | jq -r .polTokenAddress)
-        l2_ger_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .polygonZkEVMGlobalExitRootL2Address)
-        gas_token_addr=$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)
-    fi
-    echo "L1 Bridge address=$l1_bridge_addr" >&3
-    echo "L2 Bridge address=$l2_bridge_addr" >&3
-    echo "POL address=$pol_address" >&3
-    echo "L2 GER address=$l2_ger_addr" >&3
-    echo "Gas token address=$gas_token_addr" >&3
-
-    sender_private_key=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    sender_addr="$(cast wallet address --private-key $sender_private_key)"
-    readonly dry_run=${DRY_RUN:-"false"}
-    ether_value=${ETHER_VALUE:-"0.0200000054"}
-    amount=$(cast to-wei $ether_value ether)
-    destination_net=${DESTINATION_NET:-"1"}
-    destination_addr=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
-    readonly native_token_addr=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
-    readonly l1_rpc_url=${L1_ETH_RPC_URL:-"$(kurtosis port print $ENCLAVE_NAME el-1-geth-lighthouse rpc)"}
-    readonly l1_rpc_network_id=$(cast call --rpc-url $l1_rpc_url $l1_bridge_addr 'networkID() (uint32)')
-    readonly l2_rpc_network_id=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'networkID() (uint32)')
-    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
-    readonly erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
-    readonly weth_token_addr=$(cast call --rpc-url $L2_RPC_URL $l2_bridge_addr 'WETHToken() (address)')
-    readonly receiver=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
 }
 
-_resolve_url_from_nodes() {
-    local error_msg="${@: -3:1}"
-    local success_msg="${@: -2:1}"
-    local required="${@: -1}"
+# _resolve_contract_addresses <enclave_name>
+# Exports the following lowercase readonly vars:
+#   l1_bridge_addr, l2_bridge_addr, pol_address, l1_ger_addr, l2_ger_addr, gas_token_addr
+# If any are set via env, all must be set. Otherwise fetches from combined.json.
+_resolve_contract_addresses() {
+    export contracts_container="${KURTOSIS_CONTRACTS:-contracts-001}"
 
-    # --- everything before them are the node/port pairs ---
-    local -a nodes=("${@:1:$#-3}")
+    local l1="${L1_BRIDGE_ADDRESS:-}"
+    local l2="${L2_BRIDGE_ADDRESS:-}"
+    local pol="${POL_TOKEN_ADDRESS:-}"
+    local l1_ger="${L1_GER_ADDRESS:-}"
+    local ger="${L2_GER_ADDRESS:-}"
+    local gas="${GAS_TOKEN_ADDRESS:-}"
 
-    local resolved_url=""
-    local num_nodes=${#nodes[@]}
+    if [[ -n "$l1" || -n "$l2" || -n "$pol" || -n "$l1_ger" || -n "$ger" || -n "$gas" ]]; then
+        [[ -z "$l1" ]] && { echo "Error: L1_BRIDGE_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$l2" ]] && { echo "Error: L2_BRIDGE_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$pol" ]] && { echo "Error: POL_TOKEN_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$l1_ger" ]] && { echo "Error: L1_GER_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$ger" ]] && { echo "Error: L2_GER_ADDRESS is required but not set." >&2; exit 1; }
+        [[ -z "$gas" ]] && { echo "Error: GAS_TOKEN_ADDRESS is required but not set." >&2; exit 1; }
 
-    for ((i = 0; i < num_nodes; i += 2)); do
-        local node_name="${nodes[i]}"
-        local node_port_type="${nodes[i+1]}"
+        echo "Using contract addresses from environment."
+    else
+        echo "Downloading combined.json to extract contract addresses..."
+        local combined_json_file="/opt/zkevm/combined.json"
+        kurtosis_download_file_exec_method "$ENCLAVE_NAME" "$contracts_container" "$combined_json_file" | jq '.' > combined.json
 
-        kurtosis service inspect "$ENCLAVE_NAME" "$node_name" || {
-            echo "⚠️  Node $node_name is not running in the $ENCLAVE_NAME enclave, trying next one..." >&3
-            continue
-        }
+        local json_output
+        json_output=$(<combined.json)
+        readonly json_output
 
-        resolved_url=$(kurtosis port print "$ENCLAVE_NAME" "$node_name" "$node_port_type")
-        if [[ "$resolved_url" != "" ]]; then
-            echo "$resolved_url"
-            break
+        if ! echo "$json_output" | jq empty >/dev/null 2>&1; then
+            json_output=$(echo "$json_output" | tail -n +2)
         fi
-    done
 
-    if [[ "$resolved_url" == "" ]]; then
-        echo "❌ $error_msg" >&2
-        if [[ "$required" == "true" ]]; then
-            exit 1
-        fi
+        l1=$(echo "$json_output" | jq -r .polygonZkEVMBridgeAddress)
+        l2=$(echo "$json_output" | jq -r .polygonZkEVML2BridgeAddress)
+        pol=$(echo "$json_output" | jq -r .polTokenAddress)
+        l1_ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootAddress)
+        ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+        gas=$(echo "$json_output" | jq -r .gasTokenAddress)
     fi
+
+    # Export and mark as readonly
+    export l1_bridge_addr="$l1"; readonly l1_bridge_addr
+    export l2_bridge_addr="$l2"; readonly l2_bridge_addr
+    export pol_address="$pol"; readonly pol_address
+    export l1_ger_addr="$l1_ger"; readonly l1_ger_addr
+    export l2_ger_addr="$ger"; readonly l2_ger_addr
+    export gas_token_addr="$gas"; readonly gas_token_addr
+
+    # Debug output
+    {
+        echo "Resolved contract addresses:"
+        echo "  l1_bridge_addr = $l1_bridge_addr"
+        echo "  l2_bridge_addr = $l2_bridge_addr"
+        echo "  pol_address     = $pol_address"
+        echo "  l1_ger_addr     = $l1_ger_addr"
+        echo "  l2_ger_addr     = $l2_ger_addr"
+        echo "  gas_token_addr  = $gas_token_addr"
+    } >&3
+}
+
+# _set_and_export_bridge_vars initializes and exports environment variables
+# needed for bridge operations (e.g., sending messages/tokens across L1/L2).
+# It ensures that all required context such as private keys, network IDs,
+# destination addresses, and token-related values are available as env vars.
+_set_and_export_bridge_vars() {
+    local tmp
+
+    tmp=${IS_FORCED:-"true"}
+    export is_forced="$tmp"
+
+    tmp=${META_BYTES:-"0x1234"}
+    export meta_bytes="$tmp"
+
+    tmp=${SENDER_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+    export sender_private_key="$tmp"
+
+    tmp="$(cast wallet address --private-key "$sender_private_key")"
+    export sender_addr="$tmp"
+
+    tmp=${DRY_RUN:-"false"}
+    export dry_run="$tmp"
+
+    tmp=${ETHER_VALUE:-"0.0200000054"}
+    export ether_value="$tmp"
+
+    tmp=$(cast to-wei "$ether_value" ether)
+    export amount="$tmp"
+
+    tmp=${DESTINATION_NET:-"1"}
+    export destination_net="$tmp"
+
+    tmp=${DESTINATION_ADDRESS:-"0x0bb7AA0b4FdC2D2862c088424260e99ed6299148"}
+    export destination_addr="$tmp"
+
+    tmp=${NATIVE_TOKEN_ADDRESS:-"0x0000000000000000000000000000000000000000"}
+    export native_token_addr="$tmp"
+
+    tmp=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID() (uint32)')
+    export l1_rpc_network_id="$tmp"
+
+    tmp=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" 'networkID() (uint32)')
+    export l2_rpc_network_id="$tmp"
+
+    tmp=$(cast gas-price --rpc-url "$L2_RPC_URL")
+    export gas_price="$tmp"
+
+    export erc20_artifact_path="$PROJECT_ROOT/core/contracts/erc20mock/ERC20Mock.json"
+
+    tmp=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" 'WETHToken() (address)')
+    export weth_token_addr="$tmp"
+
+    tmp=${RECEIVER:-"0x85dA99c8a7C2C95964c8EfD687E95E632Fc533D6"}
+    export receiver="$tmp"
+
+    tmp=${MINTER_KEY:-"bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"}
+    export minter_key="$tmp"
 }
 
 _get_gas_token_address() {
-    local chain_number=$1
+    local chain_number="$1"
+    local env_var_name="GAS_TOKEN_ADDRESS_ROLLUP_${chain_number#0}"  # 001 → 1
+    local env_val="${!env_var_name:-}"
+
+    if [[ -n "$env_val" ]]; then
+        echo "$env_val"
+        echo "$env_var_name: $env_val (from environment)" >&3
+        return
+    fi
+
     local combined_json_file="/opt/zkevm/combined-${chain_number}.json"
-    kurtosis_download_file_exec_method $ENCLAVE_NAME $CONTRACTS_CONTAINER "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
-    local combined_json_output=$(cat "combined-${chain_number}.json")
-    if echo "$combined_json_output" | jq empty >/dev/null 2>&1; then
-        echo "$(echo "$combined_json_output" | jq -r .gasTokenAddress)"
+    kurtosis_download_file_exec_method "$ENCLAVE_NAME" "$contracts_container" "$combined_json_file" | jq '.' >"combined-${chain_number}.json"
+
+    local chain_combined_output
+    chain_combined_output=$(cat "combined-${chain_number}.json")
+    if echo "$chain_combined_output" | jq empty >/dev/null 2>&1; then
+        echo "$(echo "$chain_combined_output" | jq -r .gasTokenAddress)"
     else
-        echo "$(echo "$combined_json_output" | tail -n +2 | jq -r .gasTokenAddress)"
+        echo "$(echo "$chain_combined_output" | tail -n +2 | jq -r .gasTokenAddress)"
     fi
 }
 
 _agglayer_cdk_common_multi_setup() {
     local number_of_chains=$1
 
-    readonly private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
-    readonly eth_address=$(cast wallet address --private-key $private_key)
-    readonly l2_pp1_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-001 rpc)
-    readonly l2_pp2_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-002 rpc)
-    if [[ $number_of_chains -eq 3 ]]; then
-        readonly l2_pp3_url=$(kurtosis port print $ENCLAVE_NAME cdk-erigon-rpc-003 rpc)
-    fi
+    private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+    readonly private_key
+    eth_address=$(cast wallet address --private-key $private_key)
+    export eth_address
 
-    # Resolve Aggkit RPC URL
-    local aggkit_nodes=("aggkit-001" "rpc" "cdk-node-001" "rpc")
-    aggkit_pp1_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-    readonly aggkit_pp1_rpc_url
-    echo "aggkit_pp1_rpc_url: $aggkit_pp1_rpc_url" >&3
+    # Resolve L2 RPC URLs
+    l2_rpc_url_1=$(_resolve_url_or_use_env L2_RPC_URL_1 \
+        "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL (rollup 1) " true)
+    readonly l2_rpc_url_1
 
-    local aggkit_nodes=("aggkit-002" "rpc" "cdk-node-002" "rpc")
-    aggkit_pp2_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-    readonly aggkit_pp2_rpc_url
-    echo "aggkit_pp2_rpc_url: $aggkit_pp2_rpc_url" >&3
+    l2_rpc_url_2=$(_resolve_url_or_use_env L2_RPC_URL_2 \
+        "cdk-erigon-rpc-002" "rpc" \
+        "Failed to resolve L2 RPC URL (rollup 2) " true)
+    readonly l2_rpc_url_2
 
     if [[ $number_of_chains -eq 3 ]]; then
-        local aggkit_nodes_3=("aggkit-003" "rpc" "cdk-node-003" "rpc")
-        aggkit_pp3_rpc_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit rpc url from all fallback nodes" "Successfully resolved aggkit rpc url" true | tail -1)
-        readonly aggkit_pp3_rpc_url
-        echo "aggkit_pp3_rpc_url: $aggkit_pp3_rpc_url" >&3
+        l2_rpc_url_3=$(_resolve_url_or_use_env L2_RPC_URL_3 \
+            "cdk-erigon-rpc-003" "rpc" \
+            "Failed to resolve L2 RPC URL (rollup 3) " true)
+        readonly l2_rpc_url_3
     fi
 
-    readonly l2_pp1_network_id=$(cast call --rpc-url $l2_pp1_url $l1_bridge_addr 'networkID() (uint32)')
-    readonly l2_pp2_network_id=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'networkID() (uint32)')
-    if [[ $number_of_chains -eq 3 ]]; then
-        readonly l2_pp3_network_id=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'networkID() (uint32)')
-    fi
-
-    # Resolve Aggkit Bridge URLs for both nodes
-    local aggkit_nodes_1=("aggkit-001" "rest" "cdk-node-001" "rest")
-    aggkit_bridge_1_url=$(_resolve_url_from_nodes "${aggkit_nodes_1[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_1" "Successfully resolved aggkit bridge url" true | tail -1)
+    # Resolve Aggkit Bridge URLs
+    aggkit_bridge_1_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_1_URL \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve PP1 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_1_url
-    echo "aggkit_bridge_1_url: $aggkit_bridge_1_url" >&3
 
-    local aggkit_nodes_2=("aggkit-002" "rest" "cdk-node-002" "rest")
-    aggkit_bridge_2_url=$(_resolve_url_from_nodes "${aggkit_nodes_2[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_2" "Successfully resolved aggkit bridge url" true | tail -1)
+    aggkit_bridge_2_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_2_URL \
+        "aggkit-002" "rest" "cdk-node-002" "rest" \
+        "Failed to resolve PP2 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_2_url
-    echo "aggkit_bridge_2_url: $aggkit_bridge_2_url" >&3
 
     if [[ $number_of_chains -eq 3 ]]; then
-        local aggkit_nodes_3=("aggkit-003" "rest" "cdk-node-003" "rest")
-        aggkit_bridge_3_url=$(_resolve_url_from_nodes "${aggkit_nodes_3[@]}" "Failed to resolve aggkit bridge url from all aggkit_nodes_3" "Successfully resolved aggkit bridge url" true | tail -1)
+        aggkit_bridge_3_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_3_URL \
+            "aggkit-003" "rest" "cdk-node-003" "rest" \
+            "Failed to resolve PP3 aggkit bridge url from all fallback nodes" true)
         readonly aggkit_bridge_3_url
-        echo "aggkit_bridge_3_url: $aggkit_bridge_3_url" >&3
     fi
 
-    readonly weth_token_addr_pp1=$(cast call --rpc-url $l2_pp1_url $l2_bridge_addr 'WETHToken() (address)')
-    readonly weth_token_addr_pp2=$(cast call --rpc-url $l2_pp2_url $l2_bridge_addr 'WETHToken() (address)')
+    # Rollup network ids
+    rollup_1_network_id=$(cast call --rpc-url $l2_rpc_url_1 $l2_bridge_addr 'networkID() (uint32)')
+    readonly rollup_1_network_id
+
+    rollup_2_network_id=$(cast call --rpc-url $l2_rpc_url_2 $l2_bridge_addr 'networkID() (uint32)')
+    readonly rollup_2_network_id
+
     if [[ $number_of_chains -eq 3 ]]; then
-        readonly weth_token_addr_pp3=$(cast call --rpc-url $l2_pp3_url $l2_bridge_addr 'WETHToken() (address)')
-    fi
-    echo "weth_token_addr_pp1: $weth_token_addr_pp1" >&3
-    echo "weth_token_addr_pp2: $weth_token_addr_pp2" >&3
-    if [[ $number_of_chains -eq 3 ]]; then
-        echo "weth_token_addr_pp3: $weth_token_addr_pp3" >&3
+        rollup_3_network_id=$(cast call --rpc-url $l2_rpc_url_3 $l2_bridge_addr 'networkID() (uint32)')
+        readonly rollup_3_network_id
     fi
 
-    gas_token_addr_pp1=$(_get_gas_token_address "001")
-    echo "Gas token address on PP1=$gas_token_addr_pp1" >&3
-    gas_token_addr_pp2=$(_get_gas_token_address "002")
-    echo "Gas token address on PP2=$gas_token_addr_pp2" >&3
+    # WETH token addresses
+    weth_token_rollup_1=$(cast call --rpc-url $l2_rpc_url_1 $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_rollup_1
+
+    weth_token_rollup_2=$(cast call --rpc-url $l2_rpc_url_2 $l2_bridge_addr 'WETHToken() (address)')
+    readonly weth_token_rollup_2
+
     if [[ $number_of_chains -eq 3 ]]; then
-        gas_token_addr_pp3=$(_get_gas_token_address "003")
-        echo "Gas token address on PP3=$gas_token_addr_pp3" >&3
+        weth_token_rollup_3=$(cast call --rpc-url $l2_rpc_url_3 $l2_bridge_addr 'WETHToken() (address)')
+        readonly weth_token_rollup_3
+    fi
+
+    echo "weth_token_rollup_1: $weth_token_rollup_1" >&3
+    echo "weth_token_rollup_2: $weth_token_rollup_2" >&3
+    if [[ $number_of_chains -eq 3 ]]; then
+        echo "weth_token_rollup_3: $weth_token_rollup_3" >&3
+    fi
+
+    # Gas token addresses
+    gas_token_rollup_1=$(_get_gas_token_address "001")
+    echo "Gas token address (rollup 1)=$gas_token_rollup_1" >&3
+
+    gas_token_rollup_2=$(_get_gas_token_address "002")
+    echo "Gas token address (rollup 2)=$gas_token_rollup_2" >&3
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        gas_token_rollup_3=$(_get_gas_token_address "003")
+        echo "Gas token address (rollup 3)=$gas_token_rollup_3" >&3
     fi
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
-    echo "=== L2 PP1 network id=$l2_pp1_network_id ===" >&3
-    echo "=== L2 PP2 network id=$l2_pp2_network_id ===" >&3
+    echo "=== L2 rollup 1 network id=$rollup_1_network_id ===" >&3
+    echo "=== L2 rollup 2 network id=$rollup_2_network_id ===" >&3
     echo "=== L1 RPC URL=$l1_rpc_url ===" >&3
-    echo "=== L2 PP1 URL=$l2_pp1_url ===" >&3
-    echo "=== L2 PP2 URL=$l2_pp2_url ===" >&3
+    echo "=== L2 rollup 1 URL=$l2_rpc_url_1 ===" >&3
+    echo "=== L2 rollup 2 URL=$l2_rpc_url_2 ===" >&3
     echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
     echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
     if [[ $number_of_chains -eq 3 ]]; then
-        echo "=== L2 PP3 network id=$l2_pp3_network_id ===" >&3
-        echo "=== L2 PP3 URL=$l2_pp3_url ===" >&3
+        echo "=== L2 rollup 3 network id=$rollup_3_network_id ===" >&3
+        echo "=== L2 rollup 3 URL=$l2_rpc_url_3 ===" >&3
         echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
     fi
 
-    readonly receiver1_private_key="0x9eece9566497455837334ad4d2cc1f81e24ea4fc532c5d9ac2c471df8560f5dd"
-    readonly receiver1_addr="$(cast wallet address --private-key $receiver1_private_key)"
+    receiver1_private_key="0x9eece9566497455837334ad4d2cc1f81e24ea4fc532c5d9ac2c471df8560f5dd"
+    readonly receiver1_private_key
+    receiver1_addr="$(cast wallet address --private-key $receiver1_private_key)"
+    export receiver1_addr
 }

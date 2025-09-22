@@ -50,8 +50,13 @@ on:
         type: string
         default: "cdk"
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 env:
-  POLYCLI_VERSION: v0.1.78
+  POLYCLI_VERSION: v0.1.84
 
 jobs:
   test-cdk-e2e:

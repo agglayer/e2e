@@ -1,4 +1,6 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2034
+# bats file_tags=op
 
 setup() {
     kurtosis_enclave_name=${ENCLAVE_NAME:-"op"}
@@ -7,6 +9,7 @@ setup() {
     l2_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
 }
 
+# bats test_tags=cdk-op-geth
 @test "Check L2 OP native bridge is disabled" {
     # /// @notice Sends ETH to a receiver's address on the other chain. Note that if ETH is sent to a
     # ///         smart contract and the call fails, the ETH will be temporarily locked in the
@@ -24,10 +27,10 @@ setup() {
 
     run cast send --rpc-url $l2_rpc_url "$op_l2_standard_bridge_addr" \
         --private-key $l2_private_key \
-        --value $(date +%s) \
+        --value "$(date +%s)" \
         "bridgeETHTo(address,uint32,bytes)" \
         "0xC0FFEE0000000000000000000000000000000000" \
-        $(cast gas-price --rpc-url $l2_rpc_url) \
+        "$(cast gas-price --rpc-url $l2_rpc_url)" \
         "0x"
 
     # Check if the command failed (non-zero exit status)

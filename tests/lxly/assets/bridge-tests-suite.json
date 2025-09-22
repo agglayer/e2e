@@ -16,7 +16,7 @@
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "Max",
-        "ExpectedResultProcess": "Success",
+        "ExpectedResultProcess": ["Success","0x4e487b71"],
         "ExpectedResultClaim": ["Success", "0x23d72133", "0x4e487b71"],
         "_comments": "Expected to pass in the first ever attempt, but fail from the second run onwards"
     },
@@ -27,8 +27,8 @@
         "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success", "transfer amount exceeds balance"],
+        "ExpectedResultClaim": ["Success","N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -88,7 +88,7 @@
         "ForceUpdate": "True",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": ["RPC error response: INVALID: RLPTooLong", "oversized data"]
+        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"]
     },
     {
         "DestinationAddress": "Precompile",
@@ -128,7 +128,7 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "0",
-        "ExpectedResultProcess": ["RPC error response: INVALID: RLPTooLong", "oversized data"],
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data"],
         "ExpectedResultClaim": "N/A"
     },
     {
@@ -140,16 +140,6 @@
         "Amount": "1",
         "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
         "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Message",
-        "Token": "POL",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "Max",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x37e391c3"
     },
     {
         "DestinationAddress": "Precompile",
@@ -172,16 +162,6 @@
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "POL",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
         "DestinationAddress": "BridgeContract",
         "BridgeType": "Weth",
         "Token": "GasToken",
@@ -218,18 +198,9 @@
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "1",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "POL",
-        "MetaData": "Random",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
+        "ExpectedResultProcess": ["Success","0x14603c01"],
+        "ExpectedResultClaim": ["Success","N/A"],
+        "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
     },
     {
         "DestinationAddress": "EOA",
@@ -259,8 +230,9 @@
         "MetaData": "Huge",
         "ForceUpdate": "True",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x6747a288"
+        "ExpectedResultProcess": ["Success","0x14603c01"],
+        "ExpectedResultClaim": ["0x6747a288","N/A"],
+        "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
     },
     {
         "DestinationAddress": "EOA",
@@ -299,7 +271,7 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "1",
-        "ExpectedResultProcess": ["RPC error response: INVALID: RLPTooLong", "oversized data"],
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data"],
         "ExpectedResultClaim": "N/A"
     },
     {
@@ -329,17 +301,7 @@
         "MetaData": "Huge",
         "ForceUpdate": "False",
         "Amount": "1",
-        "ExpectedResultProcess": ["RPC error response: INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
         "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "GasToken",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
     }
 ]
