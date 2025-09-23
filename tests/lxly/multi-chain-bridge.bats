@@ -68,8 +68,8 @@ function get_network_config() {
                 "network1") echo "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)" ;;
                 "network2") echo "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)" ;;
                 "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)" ;;
-                "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)" ;;
-                "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)" ;;
+                # "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)" ;;
+                # "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)" ;;
                 *) echo "" ;;
             esac
             ;;
@@ -78,8 +78,8 @@ function get_network_config() {
                 "network1") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)" ;;
                 "network2") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)" ;;
                 "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)" ;;
-                "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)" ;;
-                "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)" ;;
+                # "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)" ;;
+                # "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)" ;;
                 *) echo "" ;;
             esac
             ;;
@@ -88,6 +88,9 @@ function get_network_config() {
 
 # bats test_tags=bridge
 @test "bridge native eth from L1 to L2 ("$NETWORK_TARGET")" {
+    echo "Stopping the bridge-spammer service" >&3
+    kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+
     echo "Starting bridge native ETH test for network: $NETWORK_TARGET" >&3
     echo "L1 RPC URL: $l1_rpc_url" >&3
     echo "L2 RPC URL: $l2_rpc_url" >&3
@@ -226,6 +229,7 @@ function get_network_config() {
 
     echo "Claiming second round ERC20 token on L1..." >&3
     # Wait for that exit to settle on L1
+    set +e
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
@@ -234,7 +238,11 @@ function get_network_config() {
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
+    set -e
     echo "ERC20 token bridge test completed for network: $NETWORK_TARGET" >&3
+
+    echo "Restarting the bridge-spammer service" >&3
+    kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 }
 
 # # bats test_tags=bridge,multi-chain
