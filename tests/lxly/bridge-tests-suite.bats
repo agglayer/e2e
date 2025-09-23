@@ -9,49 +9,33 @@ setup_file() {
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
 
-    export l1_bridge_addr="${L1_BRIDGE_ADDR:-0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae}"
-    if [[ $(cast code $l1_bridge_addr --rpc-url $l1_rpc_url) == "0x" ]]; then
-        _log_file_descriptor "3" "Replacing empty bridge contract address..."
-        export l1_bridge_addr=$(_get_bridge_address)
-    fi
-
-    export l2_bridge_addr="${L2_BRIDGE_ADDR:-0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae}"
-    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
-        _log_file_descriptor "3" "Replacing empty bridge contract address..."
-        export l2_bridge_addr=$(_get_bridge_address)
-    fi
-
-    export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
-    export l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
-    export l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-120m}"
-}
-
-setup() {
     # Source the logger functions
     # shellcheck disable=SC1091
     source "$BATS_TEST_DIRNAME/../../core/helpers/logger.bash"
 
-    # Initialize test_index for this test run
-    test_index=0
-
-    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    
-    # Contract addresses
-    _setup_contract_addresses
-    
-    # Load helper functions from helper bash file
-    load "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
+    export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
+    export claim_wait_duration="${CLAIM_WAIT_DURATION:-120m}"
 
     # Load test scenarios from file
     scenarios=$(cat "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json")
+    export scenarios
 
+    # Contract addresses
+    _setup_contract_addresses
+
+    export log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
+    export global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
+}
+
+setup() {
+    # Initialize test_index for this test run
+    test_index=0
+  
     # Clean up any previous result files
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
 
-    log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
-    global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
+    # Load helper functions from helper bash file
+    load "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
 }
 
 teardown() {
@@ -60,14 +44,6 @@ teardown() {
 
     # Clean up result files
     rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
-}
-
-
-_get_bridge_address() {
-    # L1 and L2 bridge address should be identical
-    local bridge_addr
-    bridge_addr=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "jq -r '.polygonZkEVMBridgeAddress' /opt/zkevm/combined.json")
-    echo "$bridge_addr"
 }
 
 

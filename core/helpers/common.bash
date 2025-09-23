@@ -2,11 +2,13 @@
 
 function _setup_vars() {
 
-    # This vars are set when calling this function:
+    # These vars are set when calling this function:
     #   l2_rpc_url: Set from L2_RPC_URL or from kurtosis enclave if ENCLAVE_NAME is set
     #   l1_rpc_url: Set from L1_RPC_URL or from kurtosis enclave if ENCLAVE_NAME is set
     #   l2_private_key: Set from L2_PRIVATE_KEY or default value
     #   l1_private_key: Set from L1_PRIVATE_KEY or default value
+    #   l1_eth_address: Set from l1_private_key
+    #   l2_eth_address: Set from l2_private_key
     #   l2_chain_id: Set from chain id from l2_rpc_url if set
     #   l1_chain_id: Set from chain id from l1_rpc_url if set
     #   l2_type: Set to "op-geth" if the kurtosis enclave has an op-geth L2 node, empty otherwise
@@ -14,13 +16,17 @@ function _setup_vars() {
     #   l1_system_config_addr: Set to the L1SystemConfig address if using op-geth and ENCLAVE_NAME is set
     #   l1_optimism_portal_addr: Set to the L1OptimismPortal address if using op-geth and ENCLAVE_NAME is set and l1_system_config_addr is set and l1_rpc_url is set
     #   kurtosis_enclave_name: Set from ENCLAVE_NAME or default to "cdk"
+    #   l1_bridge_addr: Set from L1_BRIDGE_ADDR or from kurtosis enclave if ENCLAVE_NAME is set
+    #   l2_bridge_addr: Set from L2_BRIDGE_ADDR or from kurtosis enclave if ENCLAVE_NAME is set
+    #   l1_network_id: Set from network id from l1_rpc_url if set
+    #   l2_network_id: Set from network id from l2_rpc_url if set
 
 
     # Paths for libs, etc
     HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     export BATS_LIB_PATH=$BATS_LIB_PATH:$HERE/lib
     export PROJECT_ROOT=${PROJECT_ROOT:-$HERE/../..}
-    echo "✅ PROJECT_ROOT=$PROJECT_ROOT BATS_LIB_PATH=$BATS_LIB_PATH" >&3
+    echo "ℹ️ PROJECT_ROOT=$PROJECT_ROOT BATS_LIB_PATH=$BATS_LIB_PATH" >&3
 
     #
     # l2_rpc_url
@@ -62,7 +68,7 @@ function _setup_vars() {
             echo "❌ L2_CHAIN_ID ($L2_CHAIN_ID) does not match the chain id from the L2 RPC URL $l2_rpc_url). Please check." >&3
             exit 1
         fi
-        echo "✅ l2_rpc_url=$l2_rpc_url l2_chain_id=$l2_chain_id" >&3
+        echo "ℹ️ l2_rpc_url=$l2_rpc_url l2_chain_id=$l2_chain_id" >&3
         export l2_rpc_url l2_chain_id
     fi
 
@@ -101,17 +107,22 @@ function _setup_vars() {
             echo "❌ L1_CHAIN_ID ($L1_CHAIN_ID) does not match the chain id from the L1 RPC URL $l1_rpc_url). Please check." >&3
             exit 1
         fi
-        echo "✅ l1_rpc_url=$l1_rpc_url l1_chain_id=$l1_chain_id" >&3
+        echo "ℹ️ l1_rpc_url=$l1_rpc_url l1_chain_id=$l1_chain_id" >&3
         export l1_rpc_url l1_chain_id
     fi
 
 
     #
-    # default private keys
+    # default private keys and addresses
     #
-    export l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    export l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    echo "✅ l2_private_key=$l2_private_key l1_private_key=$l1_private_key" >&3
+    l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+    l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
+    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
+    export l1_private_key l2_private_key l1_eth_address l2_eth_address
+
+    echo "ℹ️ l1_eth_address=$l1_eth_address l1_private_key=$l1_private_key" >&3
+    echo "ℹ️ l2_eth_address=$l2_eth_address l2_private_key=$l2_private_key" >&3
 
 
     #
@@ -128,23 +139,101 @@ function _setup_vars() {
                     if [[ "$status" -eq 0 ]]; then
                         l1_optimism_portal_addr=$output
                         if [[ -n "$l1_optimism_portal_addr" ]]; then
-                            echo "✅ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr l1_optimism_portal_addr=$l1_optimism_portal_addr" >&3
+                            echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr l1_optimism_portal_addr=$l1_optimism_portal_addr" >&3
                         fi
                     else
-                        echo "✅ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr" >&3
+                        echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr" >&3
                     fi
                 else
-                    echo "✅ l2_node_url=$l2_node_url" >&3
+                    echo "ℹ️ l2_node_url=$l2_node_url" >&3
                 fi
             else
-                echo "✅ l2_node_url=$l2_node_url" >&3
+                echo "ℹ️ l2_node_url=$l2_node_url" >&3
             fi
         else
-            echo "✅ Could not determine L2 node URL" >&3
+            echo "ℹ️ Could not determine L2 node URL" >&3
         fi
     else
         # Not op geth or not kurtosis, so don't set any OP stack specific vars
         true
+    fi
+
+
+    #
+    # Kurtosis combined.json
+    #
+    if [[ -n "$kurtosis_enclave_name" ]]; then
+        combined_json_data=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)/opt/zkevm/combined-001.json)
+        if [[ -z "$combined_json_data" ]] || ! echo "$combined_json_data" | jq empty >/dev/null 2>&1; then
+            unset combined_json_data
+        fi
+    fi
+
+
+    #
+    # Bridge Addresses
+    #
+    if [[ -n "$L1_BRIDGE_ADDR" ]]; then
+        l1_bridge_addr="$L1_BRIDGE_ADDR"
+    fi
+
+    if [[ -n "$L2_BRIDGE_ADDR" ]]; then
+        l2_bridge_addr="$L2_BRIDGE_ADDR"
+    fi
+
+    if [[ -n "$combined_json_data" ]]; then
+        kurtosis_l1_bridge_addr=$(echo "$combined_json_data" | jq -r .polygonZkEVMBridgeAddress)
+        kurtosis_l2_bridge_addr=$(echo "$combined_json_data" | jq -r .polygonZkEVML2BridgeAddress)
+        if [[ -z "$l1_bridge_addr" ]]; then
+                l1_bridge_addr=$kurtosis_l1_bridge_addr
+        else
+            if [[ "$l1_bridge_addr" != "$kurtosis_l1_bridge_addr" ]]; then
+                echo "❌ L1_BRIDGE_ADDR ($l1_bridge_addr) does not match the L1 bridge address from Kurtosis ($kurtosis_l1_bridge_addr). Please check." >&3
+                exit 1
+            fi
+        fi
+        if [[ -z "$l2_bridge_addr" ]]; then
+            l2_bridge_addr=$kurtosis_l2_bridge_addr
+        else
+            if [[ "$l2_bridge_addr" != "$kurtosis_l2_bridge_addr" ]]; then
+                echo "❌ L2_BRIDGE_ADDR ($l2_bridge_addr) does not match the L2 bridge address from Kurtosis ($kurtosis_l2_bridge_addr). Please check." >&3
+                exit 1
+            fi
+        fi
+    fi
+
+    if [[ -n "$l1_bridge_addr" && -n "$l2_bridge_addr" ]]; then
+        export l1_bridge_addr l2_bridge_addr
+        echo "ℹ️ l1_bridge_addr=$l1_bridge_addr l2_bridge_addr=$l2_bridge_addr" >&3
+    elif [[ -n "$l1_bridge_addr" ]]; then
+        export l1_bridge_addr
+        echo "ℹ️ l1_bridge_addr=$l1_bridge_addr" >&3
+    elif [[ -n "$l2_bridge_addr" ]]; then
+        export l2_bridge_addr
+        echo "ℹ️ l2_bridge_addr=$l2_bridge_addr" >&3
+    fi
+
+
+    #
+    # Network IDs
+    #
+    if [[ -n "$l1_rpc_url" && -n "$l1_bridge_addr" ]]; then
+        l1_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)')
+    fi
+
+    if [[ -n "$l2_rpc_url" && -n "$l2_bridge_addr" ]]; then
+        l2_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    fi
+
+    if [[ -n "$l1_network_id" && -n "$l2_network_id" ]]; then
+        export l1_network_id l2_network_id
+        echo "ℹ️ l1_network_id=$l1_network_id l2_network_id=$l2_network_id" >&3
+    elif [[ -n "$l1_network_id" ]]; then
+        export l1_network_id
+        echo "ℹ️ l1_network_id=$l1_network_id" >&3
+    elif [[ -n "$l2_network_id" ]]; then
+        export l2_network_id
+        echo "ℹ️ l2_network_id=$l2_network_id" >&3
     fi
 
 }

@@ -3,12 +3,12 @@
 
 # This file tests the deployment of Railgun - https://docs.railgun.org/developer-guide/wallet/getting-started and interacting with its contracts.
 
+setup_file() {
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
+}
+
 setup() {
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
-
-    l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-
     export TEMP_DIR
     TEMP_DIR=$(mktemp -d)
 }
