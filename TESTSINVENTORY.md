@@ -7,13 +7,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L95) | |
-| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L115) | |
-| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L337) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L589) | |
-| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L558) | |
-| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L66) | |
-| bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L40) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L66) | |
+| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L86) | |
+| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L308) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L560) | |
+| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L529) | |
+| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L59) | |
+| bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L32) | |
 
 ## AggLayer Tests
 
@@ -184,34 +184,34 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | Call special addresses | [Link](./tests/execution/special-addresses.bats#L16) | |
-| Deploy polycli loadtest contracts | [Link](./tests/execution/polycli-cases.bats#L29) | |
+| Deploy polycli loadtest contracts | [Link](./tests/execution/polycli-cases.bats#L25) | |
 | Make conflicting contract calls | [Link](./tests/execution/conflicting-contract-calls.bats#L53) | |
 | Make conflicting transaction to pool | [Link](./tests/execution/conflicting-transactions-to-pool.bats#L16) | |
-| Perform ERC20 Transfers | [Link](./tests/execution/polycli-cases.bats#L41) | |
-| Perform some ERC721 Mints | [Link](./tests/execution/polycli-cases.bats#L46) | |
-| Perform some Storage calls in the load tester contract | [Link](./tests/execution/polycli-cases.bats#L64) | |
-| Perform some uniswap v3 calls | [Link](./tests/execution/polycli-cases.bats#L98) | |
+| Perform ERC20 Transfers | [Link](./tests/execution/polycli-cases.bats#L37) | |
+| Perform some ERC721 Mints | [Link](./tests/execution/polycli-cases.bats#L42) | |
+| Perform some Storage calls in the load tester contract | [Link](./tests/execution/polycli-cases.bats#L60) | |
+| Perform some uniswap v3 calls | [Link](./tests/execution/polycli-cases.bats#L94) | |
 | Setup Railgun | [Link](./tests/execution/railgun-contracts.bats#L21) | |
-| Setup SmoothCryptoLib | [Link](./tests/execution/smooth-crypto-lib.bats#L31) | |
-| Testing ECDSAB4 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L721) | |
-| Testing EIP6565 - BasePointMultiply | [Link](./tests/execution/smooth-crypto-lib.bats#L75) | |
-| Testing EIP6565 - BasePointMultiply_Edwards | [Link](./tests/execution/smooth-crypto-lib.bats#L122) | |
-| Testing EIP6565 - HashInternal | [Link](./tests/execution/smooth-crypto-lib.bats#L248) | |
-| Testing EIP6565 - Verify | [Link](./tests/execution/smooth-crypto-lib.bats#L423) | |
-| Testing EIP6565 - Verify_LE | [Link](./tests/execution/smooth-crypto-lib.bats#L482) | |
-| Testing EIP6565 - ecPow128 | [Link](./tests/execution/smooth-crypto-lib.bats#L541) | |
-| Testing RIP7212 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L672) | |
-| Using polycli to call some precompiles | [Link](./tests/execution/polycli-cases.bats#L104) | |
-| Using polycli to do some inscriptions | [Link](./tests/execution/polycli-cases.bats#L110) | |
+| Setup SmoothCryptoLib | [Link](./tests/execution/smooth-crypto-lib.bats#L30) | |
+| Testing ECDSAB4 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L720) | |
+| Testing EIP6565 - BasePointMultiply | [Link](./tests/execution/smooth-crypto-lib.bats#L74) | |
+| Testing EIP6565 - BasePointMultiply_Edwards | [Link](./tests/execution/smooth-crypto-lib.bats#L121) | |
+| Testing EIP6565 - HashInternal | [Link](./tests/execution/smooth-crypto-lib.bats#L247) | |
+| Testing EIP6565 - Verify | [Link](./tests/execution/smooth-crypto-lib.bats#L422) | |
+| Testing EIP6565 - Verify_LE | [Link](./tests/execution/smooth-crypto-lib.bats#L481) | |
+| Testing EIP6565 - ecPow128 | [Link](./tests/execution/smooth-crypto-lib.bats#L540) | |
+| Testing RIP7212 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L671) | |
+| Using polycli to call some precompiles | [Link](./tests/execution/polycli-cases.bats#L100) | |
+| Using polycli to do some inscriptions | [Link](./tests/execution/polycli-cases.bats#L106) | |
 
 ## Load Tests
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| send 10,200 Uniswapv3 swaps sent and mined in 300 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L128) | |
-| send 20,800 ERC721 mints and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L94) | |
-| send 41,200 ERC20 transfers and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L62) | |
-| send 85,700 EOA transfers and confirm mined in 60 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L31) | |
+| send 10,200 Uniswapv3 swaps sent and mined in 300 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L129) | |
+| send 20,800 ERC721 mints and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L95) | |
+| send 41,200 ERC20 transfers and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L63) | |
+| send 85,700 EOA transfers and confirm mined in 60 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L32) | |
 
 ## CDK OP Geth Tests
 
