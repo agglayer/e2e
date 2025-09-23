@@ -12,6 +12,7 @@ setup_file() {
     export network_id=$l2_network_id
     export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     export claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
+<<<<<<< HEAD
     export tx_receipt_timeout_seconds=${TX_RECEIPT_TIMEOUT_SECONDS:-"60"}
 
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
@@ -22,6 +23,11 @@ setup_file() {
 
     weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
     export weth_address
+=======
+
+    agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
+    export agglayer_rpc_url
+>>>>>>> 4e549d9 (Agglayer tests - _setup_vars)
 
     _fund_claim_tx_manager
 }
@@ -45,6 +51,7 @@ _fund_claim_tx_manager() {
 
     initial_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
     if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
+        echo "ℹ️ weth_address=$weth_address gas_token_address=$gas_token_address" >&3
         initial_l2_balance=$(cast call --rpc-url "$l2_rpc_url" "$weth_address" "balanceOf(address)(uint256)" "$l2_eth_address")
     fi
 
