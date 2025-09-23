@@ -1,27 +1,34 @@
 #!/usr/bin/env bats
 # bats file_tags=agglayer
 
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
+}
+
 setup() {
-    kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
+    load "$PROJECT_ROOT/core/helpers/agglayer-cdk-common-setup.bash"
+    _load_bats_libraries
 
     # Load ENV variables
     export CDK_NETWORKCONFIG_L1_L1CHAINID
-    CDK_NETWORKCONFIG_L1_L1CHAINID=$(cast chain-id --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)")
+    CDK_NETWORKCONFIG_L1_L1CHAINID=$l1_chain_id
 
     export CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR
     CDK_NETWORKCONFIG_L1_GLOBALEXITROOTMANAGERADDR="$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVMGlobalExitRootAddress" | awk -F'"' '{print $4}')"
 
     export CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR
-    CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR="$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonRollupManagerAddress" | awk -F'"' '{print $4}')"
+    CDK_NETWORKCONFIG_L1_ROLLUPMANAGERADDR=$rollup_manager_address
 
     export CDK_NETWORKCONFIG_L1_POLADDR
     CDK_NETWORKCONFIG_L1_POLADDR="$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polTokenAddress" | awk -F'"' '{print $4}')"
 
     export CDK_NETWORKCONFIG_L1_ZKEVMADDR
-    CDK_NETWORKCONFIG_L1_ZKEVMADDR="$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm-contracts/sovereign-rollup-out.json' | jq | grep "sovereignRollupContract" | awk -F'"' '{print $4}')"
+    CDK_NETWORKCONFIG_L1_ZKEVMADDR=$rollup_address
 
     export CDK_ETHERMAN_URL
-    CDK_ETHERMAN_URL="http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"
+    CDK_ETHERMAN_URL=$l1_rpc_url
 
     export CDK_ETHERMAN_ETHERMANCONFIG_URL="$CDK_ETHERMAN_URL"
     export CDK_ETHERMAN_ETHERMANCONFIG_L1CHAINID="$CDK_NETWORKCONFIG_L1_L1CHAINID"
@@ -53,17 +60,13 @@ setup() {
     export CDK_AGGSENDER_AGGSENDERPRIVATEKEY_PASSWORD="testonly"
 
     export CDK_AGGSENDER_URLRPCL2
-    CDK_AGGSENDER_URLRPCL2=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)
+    CDK_AGGSENDER_URLRPCL2=$l2_rpc_url
 
     export L1_Bridge_ADDR
-    L1_Bridge_ADDR=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVMBridgeAddress" | awk -F'"' '{print $4}')
+    L1_Bridge_ADDR=$l1_bridge_addr
 
     export SEQUENCER_PRIVATE_KEY="0x986b325f6f855236b0b04582a19fe0301eeecb343d0f660c61805299dbf250eb"
     echo "ENV set successfully"
-
-    l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
-
 }
 
 # bats test_tags=agglayer-cert
@@ -277,7 +280,8 @@ function wait_for_cert() {
 }
 
 function validCert() {
-    local extra_param="$1"
+    # Check if there are arguments passed to the function
+    local extra_param="${1:-}"
 
     echo "Sending valid cert..."
     local spammer_output

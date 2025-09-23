@@ -1,47 +1,29 @@
 #!/usr/bin/env bats
 # bats file_tags=agglayer
 
-setup() {
-    kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
-
-    l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae"}
-    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
-        echo "Replacing empty bridge contract address..." >&3
-        l2_bridge_addr=$(_get_bridge_address)
-    fi
-
-    l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae"}
-    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
-        echo "Replacing empty bridge contract address..." >&3
-        l2_bridge_addr=$(_get_bridge_address)
-    fi
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
-    network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
-    claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
-    tx_receipt_timeout_seconds=${TX_RECEIPT_TIMEOUT_SECONDS:-"60"}
+    export bridge_service_url
+
+    export network_id=$l2_network_id
+    export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
+    export claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
+    export tx_receipt_timeout_seconds=${TX_RECEIPT_TIMEOUT_SECONDS:-"60"}
 
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
+    export agglayer_rpc_url
 
     gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
+    export gas_token_address
+
     weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
+    export weth_address
 
     _fund_claim_tx_manager
-}
-
-
-_get_bridge_address() {
-    # L1 and L2 bridge address should be identical
-    local bridge_addr
-    bridge_addr=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "jq -r '.polygonZkEVMBridgeAddress' /opt/zkevm/combined.json")
-    echo "$bridge_addr"
 }
 
 
@@ -59,7 +41,7 @@ _fund_claim_tx_manager() {
 
 # bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L1 to L2" {
-    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
 
     initial_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
     if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
@@ -101,7 +83,7 @@ _fund_claim_tx_manager() {
 
 # bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L2 to L1" {
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     initial_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
 
     bridge_amount=$(cast to-wei 0.05)
@@ -164,7 +146,7 @@ _fund_claim_tx_manager() {
          "approve(address spender, uint256 value)" \
          "$l2_bridge_addr" 100000000000000000000
 
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     polycli ulxly bridge asset \
             --bridge-address "$l2_bridge_addr" \
             --destination-address "$l1_eth_address" \

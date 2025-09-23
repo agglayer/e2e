@@ -24,6 +24,9 @@ function _setup_vars() {
     #   l2_bridge_addr: Set from L2_BRIDGE_ADDR or from kurtosis enclave if ENCLAVE_NAME is set
     #   l1_network_id: Set from network id from l1_rpc_url if set
     #   l2_network_id: Set from network id from l2_rpc_url if set
+    #   rollup_manager_address: Set from rollup manager address from combined.json if set
+    #   rollup_id: Set from rollup id from rollup manager address if set
+    #   rollup_address: Set from rollup address from combined.json if set
 
 
     # Paths for libs, etc
@@ -240,4 +243,30 @@ function _setup_vars() {
         echo "ℹ️ l2_network_id=$l2_network_id" >&3
     fi
 
+
+    #
+    # Rollup Manager Address, Rollup ID, Rollup Address
+    #
+    if [[ -n "$combined_json_data" ]]; then
+        rollup_manager_address=$(echo "$combined_json_data" | jq -r .polygonRollupManagerAddress)
+        if [[ -n "$rollup_manager_address" && -n "$l2_chain_id" && -n "$l1_rpc_url" ]]; then
+            rollup_id=$(cast call $rollup_manager_address 'chainIDToRollupID(uint64)(uint32)' $l2_chain_id --rpc-url $l1_rpc_url)
+        fi
+
+        rollup_address=$(echo "$combined_json_data" | jq -r .rollupAddress)
+ 
+        if [[ -n $rollup_manager_address && -n "$rollup_id" && -n "$rollup_address" ]]; then
+            export rollup_manager_address rollup_id rollup_address
+            echo "ℹ️ rollup_manager_address=$rollup_manager_address rollup_id=$rollup_id rollup_address=$rollup_address" >&3
+        elif [[ -n "$rollup_manager_address" &&  -n "$rollup_address" ]]; then
+            export rollup_manager_address rollup_address
+            echo "ℹ️ rollup_manager_address=$rollup_manager_address rollup_address=$rollup_address" >&3
+        elif [[ -n "$rollup_manager_address" ]]; then
+            export rollup_manager_address
+            echo "ℹ️ rollup_manager_address=$rollup_manager_address" >&3
+        elif [[ -n "$rollup_address" ]]; then
+            export rollup_address
+            echo "ℹ️ rollup_address=$rollup_address" >&3
+        fi
+    fi
 }
