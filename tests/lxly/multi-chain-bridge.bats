@@ -16,16 +16,16 @@ setup() {
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)"
         ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
-        ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)"
-        ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)"
+        # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)"
+        # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)"
     )
     
     declare -A bridge_service_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)"
         ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
-        ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)"
-        ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)"
+        # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)"
+        # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)"
     )
     
     # Default to network1 for backward compatibility
@@ -87,10 +87,18 @@ function get_network_config() {
 }
 
 # bats test_tags=bridge
-@test "bridge native eth from l1 to l2 ("$NETWORK_TARGET")" {
+@test "bridge native eth from L1 to L2 ("$NETWORK_TARGET")" {
+    echo "Starting bridge native ETH test for network: $NETWORK_TARGET" >&3
+    echo "L1 RPC URL: $l1_rpc_url" >&3
+    echo "L2 RPC URL: $l2_rpc_url" >&3
+    echo "Network ID: $network_id" >&3
+    
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
+    echo "Initial L1 deposit count: $initial_deposit_count" >&3
 
     bridge_amount=$(date +%s)
+    echo "Bridge amount: $bridge_amount wei" >&3
+    echo "Bridging ETH from L1 to L2..." >&3
     polycli ulxly bridge asset \
             --bridge-address "$l1_bridge_addr" \
             --destination-address "$l2_eth_address" \
@@ -99,6 +107,7 @@ function get_network_config() {
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount"
 
+    echo "ETH bridge transaction completed, attempting to claim on L2..." >&3
     # It's possible this command will fail due to the auto claimer
     set +e
     polycli ulxly claim asset \
@@ -110,16 +119,20 @@ function get_network_config() {
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
     set -e
+    echo "L1 to L2 ETH bridge test completed for network: $NETWORK_TARGET" >&3
 }
 
 # bats test_tags=bridge,transaction-erc20
-@test "bridge l2 ("$NETWORK_TARGET") originated token from L2 to L1 and back to L2" {
+@test "bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1" {
+    echo "Starting ERC20 token bridge test for network: $NETWORK_TARGET" >&3
+    echo "Setting up deterministic deployer and ERC20 token..." >&3
+    
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr=0x4e59b44847b379578588920ca78fbf26c0b4956c
     deterministic_deployer_code=$(cast code --rpc-url "$l2_rpc_url" "$deterministic_deployer_addr")
 
     if [[ $deterministic_deployer_code == "0x" ]]; then
-        echo "ℹ️  Deploying missing proxy contract..."
+        echo "Deploying missing deterministic deployer proxy contract..." >&3
         cast send --legacy --value 0.1ether --rpc-url "$l2_rpc_url" --private-key "$l2_private_key" 0x3fab184622dc19b6109349b94811493bf2a45362
         cast publish --rpc-url "$l2_rpc_url" 0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222
     fi
@@ -127,14 +140,20 @@ function get_network_config() {
     erc_20_bytecode=$(cat core/contracts/bin/erc20permitmock.bin)
     constructor_args=$(cast abi-encode 'f(string,string,address,uint256)' "$erc20_token_name" "$erc20_token_symbol" "$l2_eth_address" 100000000000000000000 | sed 's/0x//')
     test_erc20_addr=$(cast create2 --salt $salt --init-code "$erc_20_bytecode$constructor_args")
+    echo "ERC20 token address: $test_erc20_addr" >&3
 
     if [[ $(cast code --rpc-url "$l2_rpc_url" "$test_erc20_addr") == "0x" ]]; then
+        echo "Deploying ERC20 test token..." >&3
         cast send --legacy --rpc-url "$l2_rpc_url" --private-key "$l2_private_key" "$deterministic_deployer_addr" "$salt$erc_20_bytecode$constructor_args"
         cast send --legacy --rpc-url "$l2_rpc_url" --private-key "$l2_private_key" "$test_erc20_addr" 'approve(address,uint256)' "$l2_bridge_addr" "$(cast max-uint)"
+        echo "ERC20 token deployed and approved for bridge" >&3
     fi
 
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     bridge_amount=$(date +%s)
+    echo "Initial L2 deposit count: $initial_deposit_count" >&3
+    echo "Bridge amount: $bridge_amount" >&3
+    echo "Bridging ERC20 token from L2 to L1..." >&3
     # Bridge some funds from L2 to L1
     polycli ulxly bridge asset \
             --destination-network 0 \
@@ -147,9 +166,12 @@ function get_network_config() {
     deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
 
     if [[ $initial_deposit_count -eq $deposit_count ]]; then
-        echo "the deposit count didn't increase"
+        echo "ERROR: the deposit count didn't increase" >&3
         exit 1
     fi
+    echo "Deposit count increased from $initial_deposit_count to $deposit_count" >&3
+
+    echo "Claiming ERC20 token on L1..." >&3
 
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
@@ -162,8 +184,11 @@ function get_network_config() {
 
     token_hash=$(cast keccak "$(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr")")
     wrapped_token_addr=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
+    echo "Wrapped token address on L1: $wrapped_token_addr" >&3
 
     initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
+    echo "Initial L1 deposit count for return bridge: $initial_deposit_count" >&3
+    echo "Bridging wrapped token from L1 back to L2..." >&3
 
     polycli ulxly bridge asset \
         --destination-network "$network_id" \
@@ -173,6 +198,7 @@ function get_network_config() {
         --rpc-url "$l1_rpc_url" \
         --private-key "$l1_private_key"
 
+    echo "Attempting to claim wrapped token back on L2..." >&3
     # It's possible this command will fail due to the auto claimer
     set +e
     polycli ulxly claim asset \
@@ -185,9 +211,11 @@ function get_network_config() {
             --wait "$claim_wait_duration"
     set -e
 
+    echo "Performing second round of L2 to L1 bridging..." >&3
     # repeat the first step again to trigger another exit of l2 but with the added claim
     initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     bridge_amount=$(date +%s)
+    echo "Second round - Initial deposit count: $initial_deposit_count, Bridge amount: $bridge_amount" >&3
     polycli ulxly bridge asset \
             --destination-network 0 \
             --token-address  "$test_erc20_addr" \
@@ -196,6 +224,7 @@ function get_network_config() {
             --rpc-url "$l2_rpc_url" \
             --private-key "$l2_private_key"
 
+    echo "Claiming second round ERC20 token on L1..." >&3
     # Wait for that exit to settle on L1
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
@@ -205,6 +234,7 @@ function get_network_config() {
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
+    echo "ERC20 token bridge test completed for network: $NETWORK_TARGET" >&3
 }
 
 # # bats test_tags=bridge,multi-chain

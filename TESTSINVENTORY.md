@@ -12,9 +12,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L337) | |
 | Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L589) | |
 | Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L558) | |
-| bridge l2 ("$NETWORK_TARGET") originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/multi-chain-bridge.bats#L116) | |
-| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L66) | |
-| bridge native eth from l1 to l2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L90) | |
+| bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L125) | |
+| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L67) | |
+| bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L90) | |
 | bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L40) | |
 
 ## AggLayer Tests
@@ -48,18 +48,18 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | RPC and sequencer handle two large transactions | [Link](./tests/cdk-erigon/gas-limit-overflow.bats#L10) | |
-| counter overflowing transactions do not create new batches | [Link](./tests/cdk-erigon/standard-erigon.bats#L287) | |
-| send 0xFB opcode to sequencer and ensure failure | [Link](./tests/cdk-erigon/standard-erigon.bats#L11) | |
-| send CREATE with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L32) | |
-| send CREATE2 oom issue | [Link](./tests/cdk-erigon/standard-erigon.bats#L175) | |
-| send CREATE2 with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L88) | |
-| send IDENTITY precompile test | [Link](./tests/cdk-erigon/standard-erigon.bats#L335) | |
-| send SHA256 counter | [Link](./tests/cdk-erigon/standard-erigon.bats#L153) | |
-| send executable PUSH operand | [Link](./tests/cdk-erigon/standard-erigon.bats#L202) | |
-| send exhaustive recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L266) | |
-| send large RETURN | [Link](./tests/cdk-erigon/standard-erigon.bats#L60) | |
-| send malformed PUSH opcode | [Link](./tests/cdk-erigon/standard-erigon.bats#L117) | |
-| send recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L239) | |
+| counter overflowing transactions do not create new batches | [Link](./tests/cdk-erigon/standard-erigon.bats#L289) | |
+| send 0xFB opcode to sequencer and ensure failure | [Link](./tests/cdk-erigon/standard-erigon.bats#L13) | |
+| send CREATE with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L34) | |
+| send CREATE2 oom issue | [Link](./tests/cdk-erigon/standard-erigon.bats#L177) | |
+| send CREATE2 with large size | [Link](./tests/cdk-erigon/standard-erigon.bats#L90) | |
+| send IDENTITY precompile test | [Link](./tests/cdk-erigon/standard-erigon.bats#L337) | |
+| send SHA256 counter | [Link](./tests/cdk-erigon/standard-erigon.bats#L155) | |
+| send executable PUSH operand | [Link](./tests/cdk-erigon/standard-erigon.bats#L204) | |
+| send exhaustive recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L268) | |
+| send large RETURN | [Link](./tests/cdk-erigon/standard-erigon.bats#L62) | |
+| send malformed PUSH opcode | [Link](./tests/cdk-erigon/standard-erigon.bats#L119) | |
+| send recursive CREATE transaction | [Link](./tests/cdk-erigon/standard-erigon.bats#L241) | |
 
 ## CDK Tests
 
@@ -67,10 +67,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 |-----------|-----------|-------|
 | Custom gas token deposit | [Link](./tests/cdk/bridge-e2e.bats#L72) | |
 | Custom gas token withdrawal | [Link](./tests/cdk/bridge-e2e.bats#L137) | |
-| Deploy and test UniswapV3 contract | [Link](./tests/cdk/basic-e2e.bats#L158) | |
+| Deploy and test UniswapV3 contract | [Link](./tests/cdk/basic-e2e.bats#L160) | |
 | Native gas token deposit to WETH - BridgeAsset | [Link](./tests/cdk/bridge-e2e.bats#L62) | |
 | Native gas token deposit to WETH - BridgeMessage | [Link](./tests/cdk/bridge-e2e.bats#L67) | |
-| Send EOA transaction | [Link](./tests/cdk/basic-e2e.bats#L10) | |
+| Send EOA transaction | [Link](./tests/cdk/basic-e2e.bats#L12) | |
 | Test Allow List - Sending contracts deploy transaction when address is in allow list | [Link](./tests/cdk/access-list-e2e.bats#L114) | |
 | Test Allow List - Sending contracts deploy transaction when address not in allow list | [Link](./tests/cdk/access-list-e2e.bats#L93) | |
 | Test Allow List - Sending regular transaction when address is in allow list | [Link](./tests/cdk/access-list-e2e.bats#L102) | |
@@ -79,7 +79,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Block List - Sending contracts deploy transaction when address not in block list | [Link](./tests/cdk/access-list-e2e.bats#L47) | |
 | Test Block List - Sending regular transaction when address is in block list | [Link](./tests/cdk/access-list-e2e.bats#L59) | |
 | Test Block List - Sending regular transaction when address not in block list | [Link](./tests/cdk/access-list-e2e.bats#L36) | |
-| Test ERC20Mock contract | [Link](./tests/cdk/basic-e2e.bats#L48) | |
+| Test ERC20Mock contract | [Link](./tests/cdk/basic-e2e.bats#L50) | |
 | Verify batches | [Link](./tests/cdk/e2e.bats#L10) | |
 
 ## Pectra Tests
