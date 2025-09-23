@@ -4,6 +4,7 @@
 # This file tests the deployment of Railgun - https://docs.railgun.org/developer-guide/wallet/getting-started and interacting with its contracts.
 
 setup_file() {
+    # shellcheck source=core/helpers/common.bash
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
 }

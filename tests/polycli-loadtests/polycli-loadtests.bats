@@ -7,6 +7,7 @@
 # implementation of the docker proxy. In this case, I'm bypassing the
 # proxy all together to directly connect to the sequencer's native IP.
 setup_file() {
+    # shellcheck source=core/helpers/common.bash
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
 }

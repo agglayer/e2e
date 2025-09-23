@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# BATS framework variables set after 'run' commands - disable shellcheck warnings
+# shellcheck disable=SC2154
+declare status output
+
 function _setup_vars() {
 
     # These vars are set when calling this function:
@@ -163,7 +167,7 @@ function _setup_vars() {
     # Kurtosis combined.json
     #
     if [[ -n "$kurtosis_enclave_name" ]]; then
-        combined_json_data=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)/opt/zkevm/combined-001.json)
+        combined_json_data=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/zkevm/combined-001.json")
         if [[ -z "$combined_json_data" ]] || ! echo "$combined_json_data" | jq empty >/dev/null 2>&1; then
             unset combined_json_data
         fi

@@ -6,6 +6,7 @@
 # =============================================================================
 
 setup_file() {
+    # shellcheck source=core/helpers/common.bash
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
 
@@ -24,7 +25,8 @@ setup_file() {
     _setup_contract_addresses
 
     export log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
-    export global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
+    global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
+    export global_timeout
 }
 
 setup() {

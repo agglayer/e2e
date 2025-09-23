@@ -4,6 +4,7 @@
 # This file tests the deployment of SmoothCrpytoLib - https://github.com/get-smooth/crypto-lib and interacting with it.
 
 setup_file() {
+    # shellcheck source=core/helpers/common.bash
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
 
