@@ -4,12 +4,12 @@
 # This file tests the deployment of SmoothCrpytoLib - https://github.com/get-smooth/crypto-lib and interacting with it.
 
 setup_file() {
-    export kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
-    export l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l2_eth_address
     l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    export l2_eth_address
 
     export exponential_growth_limit=12
     export TEMP_DIR
@@ -19,7 +19,7 @@ setup_file() {
 setup() {
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
-    source "./tests/lxly/assets/bridge-tests-helper.bash"
+    source "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
 }
 
 # teardown_file() {
