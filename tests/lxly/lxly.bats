@@ -1,24 +1,17 @@
 #!/usr/bin/env bats
 # bats file_tags=lxly
 
-setup() {
-    l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    # l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x83F138B325164b162b320F797b57f6f7E235ABAC"}
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
-    l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x83F138B325164b162b320F797b57f6f7E235ABAC"}
+    export bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)"}
+    export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
+    export claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
-    bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
-    network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
-    claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
-
-    erc20_token_name="e2e test"
-    erc20_token_symbol="E2E"
+    export erc20_token_name="e2e test"
+    export erc20_token_symbol="E2E"
 
     fund_claim_tx_manager
 }
@@ -38,13 +31,14 @@ function fund_claim_tx_manager() {
 
 # bats file_tags=bridge
 @test "bridge native eth from l1 to l2" {
-    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
+    # Depending on value, cast returns scientific notation (ex: 10554 [1.055e4]), so that's why we use awk
+    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
 
     bridge_amount=$(date +%s)
     polycli ulxly bridge asset \
             --bridge-address "$l1_bridge_addr" \
             --destination-address "$l2_eth_address" \
-            --destination-network "$network_id" \
+            --destination-network "$l2_network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount"
@@ -83,7 +77,7 @@ function fund_claim_tx_manager() {
         cast send --legacy --rpc-url "$l2_rpc_url" --private-key "$l2_private_key" "$test_erc20_addr" 'approve(address,uint256)' "$l2_bridge_addr" "$(cast max-uint)"
     fi
 
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     bridge_amount=$(date +%s)
     # Bridge some funds from L2 to L1
     polycli ulxly bridge asset \
@@ -94,7 +88,7 @@ function fund_claim_tx_manager() {
             --rpc-url "$l2_rpc_url" \
             --private-key "$l2_private_key"
 
-    deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
 
     if [[ $initial_deposit_count -eq $deposit_count ]]; then
         echo "the deposit count didn't increase"
@@ -106,17 +100,17 @@ function fund_claim_tx_manager() {
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
-            --deposit-network "$network_id" \
+            --deposit-network "$l2_network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
 
-    token_hash=$(cast keccak "$(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr")")
+    token_hash=$(cast keccak "$(cast abi-encode --packed 'f(uint32, address)' "$l2_network_id" "$test_erc20_addr")")
     wrapped_token_addr=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
 
-    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
 
     polycli ulxly bridge asset \
-        --destination-network "$network_id" \
+        --destination-network "$l2_network_id" \
         --token-address "$wrapped_token_addr" \
         --value "$bridge_amount" \
         --bridge-address "$l1_bridge_addr" \
@@ -136,7 +130,7 @@ function fund_claim_tx_manager() {
     set -e
 
     # repeat the first step again to trigger another exit of l2 but with the added claim
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     bridge_amount=$(date +%s)
     polycli ulxly bridge asset \
             --destination-network 0 \
@@ -152,7 +146,7 @@ function fund_claim_tx_manager() {
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
-            --deposit-network "$network_id" \
+            --deposit-network "$l2_network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
 }
