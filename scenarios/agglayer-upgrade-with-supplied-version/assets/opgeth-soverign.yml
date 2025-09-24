@@ -6,9 +6,9 @@ deployment_stages:
 args:
   sp1_prover_key: "bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31" # XXX: Replace with an active key
   # Valid values are: "network-prover", "mock-prover"
-  agglayer_prover_primary_prover: "network-prover"
+  agglayer_prover_primary_prover: "mock-prover"
   # Valid values are: "network-prover", "mock-prover"
-  aggkit_prover_primary_prover: "network-prover"
+  aggkit_prover_primary_prover: "mock-prover"
   consensus_contract_type: pessimistic
   # aggkit_prover_image: "ghcr.io/agglayer/aggkit-prover:feat-rust-proposer"
   # false = network
@@ -16,7 +16,7 @@ args:
   # A mock verifier is used otherwise.
   op_succinct_mock: false
   # Enable real (non-mock) verifier on contracts
-  zkevm_use_real_verifier: true
+  zkevm_use_real_verifier: false
   # Enable the integration with the Agglayer
   op_succinct_agglayer: true
   # Proof type. Must match the verifier gateway contract type. Options: "plonk", "groth16", "compressed", "core"
@@ -31,7 +31,7 @@ args:
   # The number following the "-" should be identical to network_params.name
   deployment_suffix: "-001"
   zkevm_rollup_id: 1
-  zkevm_rollup_chain_id: 2151908 
+  zkevm_rollup_chain_id: 2151908
   # Size of the range proof.
   op_succinct_range_proof_interval: "1800"
   # OP Networks rely on L1 blocks to have finalization on L2. This means if the L1 blocktime is very fast, OP Succinct proof requests will have to bundle many L1 blocks into a single proof.
@@ -51,7 +51,6 @@ optimism_package:
         seconds_per_slot: 1
   observability:
     enabled: true
-
 # optimism_package:
 #   observability:
 #     enabled: true

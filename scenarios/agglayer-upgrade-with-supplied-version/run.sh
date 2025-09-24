@@ -10,12 +10,12 @@ add_rollup_rpc_to_agglayer() {
 
     kurtosis service exec cdk agglayer '
       set -eu
-      file=/etc/zkevm/agglayer-config.toml
+      file=/etc/agglayer/agglayer-config.toml
       if ! grep -q "2 = http://op-el-1-op-geth-op-node-002:8545" "$file"; then
           sed -i "/1 = \"http:\/\/op-el-1-op-geth-op-node-001:8545\"/a 2 = \"http://op-el-1-op-geth-op-node-002:8545\"" "$file"
           sed -i "/2 = \"http:\/\/op-el-1-op-geth-op-node-002:8545\"/a 3 = \"http://cdk-erigon-rpc-003:8123\"" "$file"
-          sed -i "/3 = \"http:\/\/cdk-erigon-rpc-003:8123\"/a 4 = \"http://cdk-erigon-rpc-004:8123\"" "$file"
-          sed -i "/4 = \"http:\/\/cdk-erigon-rpc-004:8123\"/a 5 = \"http://cdk-erigon-rpc-005:8123\"" "$file"
+         
+
       fi
     '
 
@@ -195,7 +195,7 @@ echo ":-action:= $ACTION"
 
 
 yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key
+.args.sp1_prover_key = $sp1key
 ' ./assets/opgeth-soverign.yml > initial-opgeth-soverign.yml
 
 yq -y --arg sp1key "$SP1_NETWORK_KEY" '
@@ -207,15 +207,6 @@ yq -y --arg sp1key "$SP1_NETWORK_KEY" '
 .args.agglayer_prover_sp1_key = $sp1key |
 .args.sp1_prover_key = $sp1key
 ' ./assets/erigon-sovereign.yml > initial-erigon-sovereign.yml
-
-
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key
-' ./assets/erigon-rollup.yml > initial-erigon-rollup.yml
-
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key
-' ./assets/erigon-validium.yml > initial-erigon-validium.yml
 
 
 
@@ -379,27 +370,6 @@ else
 
 
       
-      echo '╔═════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K -  E R I G O N    R O L L U P                  ║'
-      echo '╚═════════════════════════════════════════════════════════════════════════════╝'
-
-      kurtosis run \
-              --enclave "$KURTOSIS_ENCLAVE_NAME" \
-              --args-file ./initial-erigon-rollup.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH" 
-
-
-      echo '╔═════════════════════════════════════════════════════════════════════════════╗'
-      echo '║   A T T A C H I N G    C D K -  E R I G O N    V A L I D I U M              ║'
-      echo '╚═════════════════════════════════════════════════════════════════════════════╝'
-      kurtosis run \
-              --enclave "$KURTOSIS_ENCLAVE_NAME" \
-              --args-file ./initial-erigon-validium.yml \
-              "github.com/0xPolygon/kurtosis-cdk@$KURTOSIS_HASH" 
-      
-
-
-
       echo "Modifying agglayer configuration to include new rollup"
       add_rollup_rpc_to_agglayer
 
@@ -411,10 +381,9 @@ else
       done
       printf "\r✓ done.          \n"
 
-      for n in 001 002 003 004 005; do
+      for n in 001 002 003; do
         run_verification_in_container "contracts-$n" || true
       done
 fi
-
 
 

@@ -32,4 +32,3 @@ optimism_package:
         seconds_per_slot: 1
   observability:
     enabled: false
-

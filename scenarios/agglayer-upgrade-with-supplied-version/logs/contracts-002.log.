@@ -1,0 +1,219 @@
+---- 2025-09-22T16:27:58+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--db9231cc2069486fac328e93818762bf
+Copying ./check_verification.sh -> contracts-002--db9231cc2069486fac328e93818762bf:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 98 → 198 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[][0m
+[ERROR---] No verification events found for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+---- 2025-09-22T16:27:58+00:00 END contracts-002 rc=2 ----
+---- 2025-09-22T17:12:41+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--08b7c8256689455abe5876f5c0c285d8
+Copying ./check_verification.sh -> contracts-002--08b7c8256689455abe5876f5c0c285d8:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 99 → 199 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[][0m
+[ERROR---] No verification events found for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+---- 2025-09-22T17:12:41+00:00 END contracts-002 rc=2 ----
+---- 2025-09-22T18:36:21+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--64fc71c7058e40108fdbc008df242388
+Copying ./check_verification.sh -> contracts-002--64fc71c7058e40108fdbc008df242388:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 99 → 199 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[][0m
+[ERROR---] No verification events found for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+---- 2025-09-22T18:36:21+00:00 END contracts-002 rc=2 ----
+---- 2025-09-22T19:28:36+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--6357bb9eb2ba4b408b2bd926d4eee079
+Copying ./check_verification.sh -> contracts-002--6357bb9eb2ba4b408b2bd926d4eee079:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 98 → 198 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[][0m
+[ERROR---] No verification events found for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+---- 2025-09-22T19:28:36+00:00 END contracts-002 rc=2 ----
+---- 2025-09-23T14:30:38+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--2a1b865ca6b24d0dabd133234f1f8c61
+Copying ./check_verification.sh -> contracts-002--2a1b865ca6b24d0dabd133234f1f8c61:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 102 → 202 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b85ba937b03ee0b826bc0a9ccd5a23f665ba603f185028a10b211171d3bdf3a"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0x05ff7bec970d0fe05db4e348b7a80eb190c885153da6a8da69e67342a78e1997"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0x98"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d2acb0"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0x9c35e69b6f8a525315ee00bed915b4f44344214c153fc2c4b804a003fbce0bc3"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m,
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000638d03cd50645788edc81674490b123ea410842e470cbf022589befee930077b"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0x624305e1c2e1df8ccb86073d80f264d9d962d84801ea080e62bafbcf55c2b89b"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0xc5"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d2aecc"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0x9025d7de2cc0416f4f501bbf25232cc0ffe1302f2c9f18b59048c68fe8103ead"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m
+[1;39m][0m
+[SUCCESS---] Found 2 verification event(s) for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+--- summary ---
+block=0x98 tx=0x9c35e69b6f8a525315ee00bed915b4f44344214c153fc2c4b804a003fbce0bc3 logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+block=0xc5 tx=0x9025d7de2cc0416f4f501bbf25232cc0ffe1302f2c9f18b59048c68fe8103ead logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+---- 2025-09-23T14:30:38+00:00 END contracts-002 rc=0 ----
+---- 2025-09-23T16:11:07+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--bc2c5ddfdc604341babd35bc965344a4
+Copying ./check_verification.sh -> contracts-002--bc2c5ddfdc604341babd35bc965344a4:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 163 → 263 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003dd8bc6c72fd1910ad800274ed44c796e040d524d349a62715824d577e44fd43"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0x7a2f36be88fab7cc90eff8b8f3b63e995515d54c18bccf46e0e0035b1214c074"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0xc5"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d2c378"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0x77bae77c05dfaed1ebd2bdab009d7e461187e92e3ae54d99d3ecb99ff5dba74a"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m,
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000097ef19b52065e4b20ce075f025939a704d804781050b2521123da1faa5a3a906"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0xb79859348277c3fc07b18f3f148a697770d5ad5493f72c61614b9a2b5accbcbe"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0xe3"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d2c4e0"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0xdfdf757bc314035e278d57be3500f04b0cb946cf66919ed3d609647b089f9312"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m,
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a031700cbbf70a13b29fd4093d221889462e7af08d4ea3165f1358fef49cd35c"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0x8d1335f9386e13395a3b10c5c6c0891b2ac6d864e53c8ebbf0c2217fea7fb456"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0x101"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d2c648"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0xb2c917bde93079154b66dfe3778d70e19f283a25cfdd952cff667990ba2bad13"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m
+[1;39m][0m
+[SUCCESS---] Found 3 verification event(s) for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+--- summary ---
+block=0xc5 tx=0x77bae77c05dfaed1ebd2bdab009d7e461187e92e3ae54d99d3ecb99ff5dba74a logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+block=0xe3 tx=0xdfdf757bc314035e278d57be3500f04b0cb946cf66919ed3d609647b089f9312 logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+block=0x101 tx=0xb2c917bde93079154b66dfe3778d70e19f283a25cfdd952cff667990ba2bad13 logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+---- 2025-09-23T16:11:07+00:00 END contracts-002 rc=0 ----
+---- 2025-09-24T06:56:31+00:00 BEGIN contracts-002 ----
+Using container: contracts-002--6e9d2260fe06421b9f25b8e757f22543
+Copying ./check_verification.sh -> contracts-002--6e9d2260fe06421b9f25b8e757f22543:/tmp/check_verification.sh
+ROLLUP_MANAGER=0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Scanning blocks 163 → 263 on http://el-1-geth-lighthouse:8545
+  contract (rollup manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+  event: VerifyBatchesTrustedAggregator(uint32,uint64,bytes32,bytes32,address)
+  lookback: 100 blocks
+[1;39m[
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ceb7f6e62944637164dfcf1717119149da86828ffd6eab32e5432cdd97a9102f"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0xc48801012e400c7688793707d7a82af19756f0436567f285cece59fff628b955"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0xc5"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d392fe"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0x82fbf9b2010a65945a652947ca0877d1006a91240d4a5b2d855561df1935fe94"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m,
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000be7e01fb909c32fe365d8ffab46287d516bf21bf80ef359eb2dfd35fa9de8b0a"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0x39766577d8929e8a5d549f88135816676834335a30404c43d3bc351b59290e08"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0xe3"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d39466"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0x56fa7ced88c6e382df0bf4eee820b08c0dc2801d904761f731dfcb3aab6e5254"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m,
+  [1;39m{
+    [0m[34;1m"address"[0m[1;39m: [0m[0;32m"0x6c6c009cc348976db4a908c92b24433d4f6eda43"[0m[1;39m,
+    [0m[34;1m"topics"[0m[1;39m: [0m[1;39m[
+      [0;32m"0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3"[0m[1;39m,
+      [0;32m"0x0000000000000000000000000000000000000000000000000000000000000001"[0m[1;39m,
+      [0;32m"0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"[0m[1;39m
+    [1;39m][0m[1;39m,
+    [0m[34;1m"data"[0m[1;39m: [0m[0;32m"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009d517fc20741bb180598a0d5e1da4cd6aaead79bc9c2376b9ef3e6211f097f53"[0m[1;39m,
+    [0m[34;1m"blockHash"[0m[1;39m: [0m[0;32m"0x74410cbbf1b672971dc240bd90c49c9e9f872162d5159f67af3a7ce21ec09145"[0m[1;39m,
+    [0m[34;1m"blockNumber"[0m[1;39m: [0m[0;32m"0x101"[0m[1;39m,
+    [0m[34;1m"blockTimestamp"[0m[1;39m: [0m[0;32m"0x68d395ce"[0m[1;39m,
+    [0m[34;1m"transactionHash"[0m[1;39m: [0m[0;32m"0x120cd8bcabc14c0de41c32fc28934c375999f5c024bb6688bdb940df7a6840a8"[0m[1;39m,
+    [0m[34;1m"transactionIndex"[0m[1;39m: [0m[0;32m"0x0"[0m[1;39m,
+    [0m[34;1m"logIndex"[0m[1;39m: [0m[0;32m"0x2"[0m[1;39m,
+    [0m[34;1m"removed"[0m[1;39m: [0m[0;39mfalse[0m[1;39m
+  [1;39m}[0m[1;39m
+[1;39m][0m
+[SUCCESS---] Found 3 verification event(s) for 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 in the last 100 blocks.
+--- summary ---
+block=0xc5 tx=0x82fbf9b2010a65945a652947ca0877d1006a91240d4a5b2d855561df1935fe94 logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+block=0xe3 tx=0x56fa7ced88c6e382df0bf4eee820b08c0dc2801d904761f731dfcb3aab6e5254 logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+block=0x101 tx=0x120cd8bcabc14c0de41c32fc28934c375999f5c024bb6688bdb940df7a6840a8 logIndex=0x2 rollupIdTopic=0x0000000000000000000000000000000000000000000000000000000000000001 aggregatorTopic=0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d
+---- 2025-09-24T06:56:31+00:00 END contracts-002 rc=0 ----
