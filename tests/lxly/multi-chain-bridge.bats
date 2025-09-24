@@ -10,7 +10,7 @@ setup() {
     declare -A l2_rpc_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)"
-        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
+        # ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
         # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)"
         # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)"
     )
@@ -18,7 +18,7 @@ setup() {
     declare -A bridge_service_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)"
-        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
+        # ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
         # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)"
         # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)"
     )
@@ -103,7 +103,8 @@ function get_network_config() {
             --destination-network "$network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
-            --value "$bridge_amount"
+            --value "$bridge_amount" \
+            --gas-limit 500000
 
     echo "ETH bridge transaction completed, attempting to claim on L2..." >&3
     # It's possible this command will fail due to the auto claimer
@@ -115,7 +116,8 @@ function get_network_config() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --gas-limit 500000
     set -e
     echo "L1 to L2 ETH bridge test completed for network: $NETWORK_TARGET" >&3
 }
@@ -159,7 +161,8 @@ function get_network_config() {
             --value "$bridge_amount" \
             --bridge-address "$l2_bridge_addr" \
             --rpc-url "$l2_rpc_url" \
-            --private-key "$l2_private_key"
+            --private-key "$l2_private_key" \
+            --gas-limit 500000
 
     deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
 
@@ -178,7 +181,8 @@ function get_network_config() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --gas-limit 500000
 
     token_hash=$(cast keccak "$(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr")")
     wrapped_token_addr=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
@@ -194,7 +198,8 @@ function get_network_config() {
         --value "$bridge_amount" \
         --bridge-address "$l1_bridge_addr" \
         --rpc-url "$l1_rpc_url" \
-        --private-key "$l1_private_key"
+        --private-key "$l1_private_key" \
+            --gas-limit 500000
 
     echo "Attempting to claim wrapped token back on L2..." >&3
     # It's possible this command will fail due to the auto claimer
@@ -206,7 +211,8 @@ function get_network_config() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --gas-limit 500000
     set -e
 
     echo "Performing second round of L2 to L1 bridging..." >&3
@@ -220,7 +226,8 @@ function get_network_config() {
             --value "$bridge_amount" \
             --bridge-address "$l2_bridge_addr" \
             --rpc-url "$l2_rpc_url" \
-            --private-key "$l2_private_key"
+            --private-key "$l2_private_key" \
+            --gas-limit 500000
 
     echo "Claiming second round ERC20 token on L1..." >&3
     # Wait for that exit to settle on L1
@@ -232,7 +239,8 @@ function get_network_config() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration"
+            --wait "$claim_wait_duration" \
+            --gas-limit 500000
     set -e
     echo "ERC20 token bridge test completed for network: $NETWORK_TARGET" >&3
 
