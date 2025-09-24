@@ -2,15 +2,10 @@
 # bats file_tags=lxly,multi-chain-bridge
 
 setup() {
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
-    l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    # l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0x78908F7A87d589fdB46bdd5EfE7892C5aD6001b6"}
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
-    l2_private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    
     # Multi-chain network configurations
     declare -A l2_rpc_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
