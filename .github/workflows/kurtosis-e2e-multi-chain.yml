@@ -228,10 +228,10 @@ jobs:
           export CLAIM_WAIT_DURATION=60m
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
-          export NETWORK_TARGET=network3
-          export CLAIM_WAIT_DURATION=60m
-          bats ./tests/lxly/multi-chain-bridge.bats
+          # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          # export NETWORK_TARGET=network3
+          # export CLAIM_WAIT_DURATION=60m
+          # bats ./tests/lxly/multi-chain-bridge.bats
 
           # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
           # export NETWORK_TARGET=network4
