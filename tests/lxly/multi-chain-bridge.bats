@@ -10,7 +10,7 @@ setup() {
     declare -A l2_rpc_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)"
-        # ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
+        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
         # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)"
         # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)"
     )
@@ -18,7 +18,7 @@ setup() {
     declare -A bridge_service_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)"
-        # ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
+        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
         # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)"
         # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)"
     )
