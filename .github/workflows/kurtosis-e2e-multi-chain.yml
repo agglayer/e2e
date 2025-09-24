@@ -245,24 +245,10 @@ jobs:
 
           popd
 
-      - name: Upload bridge tests suite artifacts
-        if: always() && contains(matrix.testfile, 'bridge-tests-suite.bats')
-        uses: actions/upload-artifact@v4
-        with:
-          name: bridge_tests_suite_output_artifacts
-          path: /tmp/bridge_test_results_*
-          retention-days: 1
-
-      - name: Extract and sanitize filename
-        id: extract
-        run: |
-          base_filename=$(basename ${{ matrix.testfile }} .bats)
-          echo "filename=$base_filename" >> $GITHUB_OUTPUT
-
       - name: Post kurtosis run
         if: always()
         uses: ./kurtosis-cdk/.github/actions/kurtosis-post-run
         with:
           enclave_name: ${{ env.KURTOSIS_ENCLAVE_NAME }}
-          args_filename: ${{ steps.extract.outputs.filename }}-artifacts
+          args_filename: multi-chain-bridge
           retention-days: 1
