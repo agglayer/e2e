@@ -191,7 +191,7 @@ jobs:
             sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
 
             kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/sovereign.yml .
-            # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
+            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
             # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/sovereign.yml .
             # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/rollup.yml .
             # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/validium.yml .
@@ -223,10 +223,10 @@ jobs:
           export CLAIM_WAIT_DURATION=60m
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
-          # export NETWORK_TARGET=network2
-          # export CLAIM_WAIT_DURATION=60m
-          # bats ./tests/lxly/multi-chain-bridge.bats
+          export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          export NETWORK_TARGET=network2
+          export CLAIM_WAIT_DURATION=60m
+          bats ./tests/lxly/multi-chain-bridge.bats
 
           # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
           # export NETWORK_TARGET=network3
