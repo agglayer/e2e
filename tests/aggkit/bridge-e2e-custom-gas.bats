@@ -87,7 +87,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim withdrawals (settle them on the L1)
-    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
+    process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
 
     # Validate that the token of receiver on L1 has increased by the bridge tokens amount
     run verify_balance "$l1_rpc_url" "$gas_token_addr" "$destination_addr" "$initial_receiver_balance" "$ether_value"
