@@ -143,12 +143,9 @@ function claim_bridge() {
         log "🔍 Attempt ${attempt}/${max_attempts}"
 
         local global_index
-        if [[ "$manipulated_unused_bits" == "true" || "$manipulated_rollup_id" == "true" ]]; then
-            global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
-        else
-            global_index="$(echo "$bridge_info" | jq -r '.global_index')"
-        fi
-        log "🔍 Global index: $global_index"
+        global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
+        log "🔍 Bridge Info Global index: $(echo "$bridge_info" | jq -r '.global_index')"
+        log "🔍 Calculated Global index: $global_index"
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
         local request_result="$status"
