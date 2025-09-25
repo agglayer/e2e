@@ -2,11 +2,10 @@
 # shellcheck disable=SC2034
 # bats file_tags=op
 
-setup() {
-    kurtosis_enclave_name=${ENCLAVE_NAME:-"op"}
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 }
 
 # bats test_tags=cdk-op-geth
@@ -34,5 +33,9 @@ setup() {
         "0x"
 
     # Check if the command failed (non-zero exit status)
-    [[ "$status" -ne 0 ]]
+    if [[ "$status" -ne 0 ]]; then
+        echo "✅ Native bridge is disabled" >&3
+    else
+        echo "❌ Native bridge is enabled" >&3
+    fi
 }
