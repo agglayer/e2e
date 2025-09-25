@@ -38,9 +38,6 @@ setup() {
     erc20_token_symbol="E2E"
 
     fund_claim_tx_manager
-    bridge_initial_native_tokens "network1"
-    bridge_initial_native_tokens "network2"
-    bridge_initial_native_tokens "network3"
 }
 
 function fund_claim_tx_manager() {
@@ -272,6 +269,10 @@ function get_network_config() {
 
 # bats test_tags=bridge,multi-chain
 @test "cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET")" {
+    bridge_initial_native_tokens "network1"
+    bridge_initial_native_tokens "network2"
+    bridge_initial_native_tokens "network3"
+    
     # Define all possible network combinations (source -> target)
     declare -A network_combinations=(
         ["network1"]="network2"
