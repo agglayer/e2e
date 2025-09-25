@@ -10,7 +10,7 @@ setup() {
     declare -A l2_rpc_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)"
-        # ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
+        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
         # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)"
         # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)"
     )
@@ -18,7 +18,7 @@ setup() {
     declare -A bridge_service_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)"
-        # ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
+        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
         # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)"
         # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)"
     )
@@ -62,7 +62,7 @@ function get_network_config() {
             case $network_name in
                 "network1") echo "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)" ;;
                 "network2") echo "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)" ;;
-                # "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)" ;;
+                "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)" ;;
                 # "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)" ;;
                 # "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)" ;;
                 *) echo "" ;;
@@ -72,7 +72,7 @@ function get_network_config() {
             case $network_name in
                 "network1") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)" ;;
                 "network2") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)" ;;
-                # "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)" ;;
+                "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)" ;;
                 # "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)" ;;
                 # "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)" ;;
                 *) echo "" ;;
@@ -248,44 +248,62 @@ function get_network_config() {
     kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 }
 
-# # bats test_tags=bridge,multi-chain
-# @test "cross-chain bridge between different L2 networks (source: network1, target:"$NETWORK_TARGET")" {
-#     # Test bridging between network1 and network3
-#     local source_network="network1"
-#     local target_network="network3"
+# bats test_tags=bridge,multi-chain
+@test "cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET")" {
+    # Define all possible network combinations (source -> target)
+    declare -A network_combinations=(
+        ["network1"]="network2"
+        ["network2"]="network3" 
+        ["network3"]="network1"
+    )
     
-#     local source_rpc_url=$(get_network_config "$source_network" "rpc_url")
-#     local target_rpc_url=$(get_network_config "$target_network" "rpc_url")
-#     local source_bridge_service_url=$(get_network_config "$source_network" "bridge_service_url")
-#     local target_bridge_service_url=$(get_network_config "$target_network" "bridge_service_url")
+    # Use the combination based on NETWORK_TARGET, or default
+    local target_network="${NETWORK_TARGET:-network3}"
+    local source_network="${network_combinations[$target_network]:-network1}"
     
-#     # Get network IDs
-#     local source_network_id=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-#     local target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    # Ensure we have valid networks
+    if [[ -z "$source_network" ]]; then
+        source_network="network1"
+    fi
     
-#     echo "Bridging from network $source_network_id to network $target_network_id"
+    echo "Testing bridge combination: $source_network -> $target_network" >&3
     
-#     # Bridge from source to target network
-#     local initial_deposit_count=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
-#     local bridge_amount=$(date +%s)
+    local source_rpc_url=$(get_network_config "$source_network" "rpc_url")
+    local target_rpc_url=$(get_network_config "$target_network" "rpc_url")
+    local target_bridge_service_url=$(get_network_config "$target_network" "bridge_service_url")
     
-#     polycli ulxly bridge asset \
-#             --destination-network "$target_network_id" \
-#             --destination-address "$l2_eth_address" \
-#             --bridge-address "$l2_bridge_addr" \
-#             --rpc-url "$source_rpc_url" \
-#             --private-key "$l2_private_key" \
-#             --value "$bridge_amount"
+    # Validate that we can reach both networks
+    if [[ -z "$source_rpc_url" || -z "$target_rpc_url" ]]; then
+        skip "Required networks ($source_network, $target_network) are not available"
+    fi
     
-#     # Claim on target network
-#     set +e
-#     polycli ulxly claim asset \
-#             --bridge-address "$l2_bridge_addr" \
-#             --private-key "$l2_private_key" \
-#             --rpc-url "$target_rpc_url" \
-#             --deposit-count "$initial_deposit_count" \
-#             --deposit-network "$source_network_id" \
-#             --bridge-service-url "$target_bridge_service_url" \
-#             --wait "$claim_wait_duration"
-#     set -e
-# }
+    # Get network IDs
+    local source_network_id=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    local target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    
+    echo "Bridging from network $source_network_id to network $target_network_id" >&3
+    
+    # Bridge from source to target network
+    local initial_deposit_count=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    local bridge_amount=$(date +%s)
+    
+    polycli ulxly bridge asset \
+            --destination-network "$target_network_id" \
+            --destination-address "$l2_eth_address" \
+            --bridge-address "$l2_bridge_addr" \
+            --rpc-url "$source_rpc_url" \
+            --private-key "$l2_private_key" \
+            --value "$bridge_amount"
+    
+    # Claim on target network
+    set +e
+    polycli ulxly claim asset \
+            --bridge-address "$l2_bridge_addr" \
+            --private-key "$l2_private_key" \
+            --rpc-url "$target_rpc_url" \
+            --deposit-count "$initial_deposit_count" \
+            --deposit-network "$source_network_id" \
+            --bridge-service-url "$target_bridge_service_url" \
+            --wait "$claim_wait_duration"
+    set -e
+}
