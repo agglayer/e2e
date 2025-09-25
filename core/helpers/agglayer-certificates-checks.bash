@@ -64,6 +64,27 @@ agglayer_certificates_checks_setup() {
                     echo "Retrying block increase check..." >&"$output_file"
                     ;;
 
+                "height_increase")
+                    # Only set first_height once, outside the retry loop
+                    if [[ -z "$first_height" ]]; then
+                        local first_height
+                        first_height=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
+                        echo "Initial height: $first_height" >&"$output_file"
+                    fi
+
+                    sleep "$retry_interval"
+
+                    local second_height
+                    second_height=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
+                    echo "Latest height: $second_height" >&"$output_file"
+
+                    if [[ "$second_height" -gt "$first_height" ]]; then
+                        echo "$success_msg: $first_height to $second_height" >&"$output_file"
+                        return 0
+                    fi
+                    echo "Retrying height increase check..." >&"$output_file"
+                    ;;
+
                 *)
                     echo "Error: Unknown check type: $check_type" >&"$output_file"
                     return 1
@@ -147,5 +168,9 @@ agglayer_certificates_checks_setup() {
 
     check_block_increase() {
         wait_for_condition "block_increase" "$timeout" "$retry_interval" "Block number has increased" "Error: Timeout ($timeout s) waiting for block increase"
+    }
+
+    check_height_increase() {
+        wait_for_condition "height_increase" "$timeout" "$retry_interval" "Height number has increased" "Error: Timeout ($timeout s) waiting for height increase"
     }
 }

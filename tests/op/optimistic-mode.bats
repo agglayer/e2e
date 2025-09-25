@@ -9,7 +9,7 @@ setup() {
     l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http)"}
     rollup_manager_address=${ROLLUP_MANAGER_ADDRESS:-"0x6c6c009cC348976dB4A908c92B24433d4F6edA43"}
     rollup_address=${ROLLUP_ADDRESS:-"0x414e9E227e4b589aF92200508aF5399576530E4e"}
-    optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
+    optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     timeout=${TIMEOUT:-3000}
     retry_interval=${RETRY_INTERVAL:-15}
 
@@ -95,8 +95,8 @@ check_fep_consensus_version() {
     wait_for_null_cert >&3
 
     echo "Checking last settled certificate" >&3
-    latest_settled_l2_block=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
-    echo "Latest settled L2 block: $latest_settled_l2_block" >&3
+    latest_settled_agglayer_height=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
+    echo "Latest settled L2 height: $latest_settled_agglayer_height" >&3
 
     cast rpc --rpc-url "$l2_node_url" admin_stopSequencer >stop.out
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001 >&3
@@ -123,7 +123,7 @@ check_fep_consensus_version() {
     manage_bridge_spammer "start"
     kurtosis service start "$kurtosis_enclave_name" aggkit-001 >&3
 
-    check_block_increase >&3
+    check_height_increase >&3
     print_settlement_info >&3
 
     wait_for_null_cert >&3
