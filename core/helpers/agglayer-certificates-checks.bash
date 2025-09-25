@@ -1,6 +1,7 @@
 # This script contains a helper function to interact with the agglayer node for certificate and block checks.
 agglayer_certificates_checks_setup() {
     # Helper functions to check output conditions
+    # shellcheck disable=SC1009,SC1073,SC1064,SC1072
     check_non_null() [[ -n "$1" && "$1" != "null" ]]
     check_null() [[ -z "$1" || "$1" == "null" ]]
 
