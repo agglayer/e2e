@@ -80,7 +80,7 @@ jobs:
     env:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'jihwan/multi-chain-bridge-workflow' }}
-      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref  || 'jhilliard/aggsender-validator-committee' }}
+      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref  || 'main' }}
       KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name || 'cdk' }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.stack }}
     steps:

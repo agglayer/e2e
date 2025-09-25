@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=lxly,multi-chain-bridge
+# shellcheck disable=SC1091,SC2154
 
 setup() {
     # shellcheck source=core/helpers/common.bash
@@ -58,7 +59,8 @@ function fund_claim_tx_manager() {
 # Helper function to bridge sufficient initial funds to multi networks to avoid balance underflow revert.
 function bridge_initial_native_tokens() {
     local target_network="$1"
-    local target_rpc_url=$(get_network_config "$target_network" "rpc_url")
+    local target_rpc_url
+    target_rpc_url=$(get_network_config "$target_network" "rpc_url")
     target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
 
     echo "Initial funding $target_network to avoid balance underflow reverts" >&3
@@ -80,21 +82,21 @@ function get_network_config() {
     case $config_type in
         "rpc_url")
             case $network_name in
-                "network1") echo "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)" ;;
-                "network2") echo "$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)" ;;
-                "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)" ;;
-                # "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)" ;;
-                # "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)" ;;
+                "network1") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc ;;
+                "network2") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc ;;
+                "network3") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc ;;
+                # "network4") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc ;;
+                # "network5") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc ;;
                 *) echo "" ;;
             esac
             ;;
         "bridge_service_url")
             case $network_name in
-                "network1") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)" ;;
-                "network2") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)" ;;
-                "network3") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)" ;;
-                # "network4") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)" ;;
-                # "network5") echo "$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)" ;;
+                "network1") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc ;;
+                "network2") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc ;;
+                "network3") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc ;;
+                # "network4") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc ;;
+                # "network5") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc ;;
                 *) echo "" ;;
             esac
             ;;
@@ -288,9 +290,12 @@ function get_network_config() {
     
     echo "Testing bridge combination: $source_network -> $target_network" >&3
     
-    local source_rpc_url=$(get_network_config "$source_network" "rpc_url")
-    local target_rpc_url=$(get_network_config "$target_network" "rpc_url")
-    local target_bridge_service_url=$(get_network_config "$target_network" "bridge_service_url")
+    local source_rpc_url
+    source_rpc_url=$(get_network_config "$source_network" "rpc_url")
+    local target_rpc_url
+    target_rpc_url=$(get_network_config "$target_network" "rpc_url")
+    local target_bridge_service_url
+    target_bridge_service_url=$(get_network_config "$target_network" "bridge_service_url")
     
     # Validate that we can reach both networks
     if [[ -z "$source_rpc_url" || -z "$target_rpc_url" ]]; then
@@ -298,14 +303,18 @@ function get_network_config() {
     fi
     
     # Get network IDs
-    local source_network_id=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    local target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    local source_network_id
+    source_network_id=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    local target_network_id
+    target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
     
     echo "Bridging from network $source_network_id to network $target_network_id" >&3
     
     # Bridge from source to target network
-    local initial_deposit_count=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
-    local bridge_amount=$(date +%s)
+    local initial_deposit_count
+    initial_deposit_count=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    local bridge_amount
+    bridge_amount=$(date +%s)
     
     polycli ulxly bridge asset \
             --destination-network "$target_network_id" \
