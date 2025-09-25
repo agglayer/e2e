@@ -37,6 +37,9 @@ setup() {
     erc20_token_symbol="E2E"
 
     fund_claim_tx_manager
+    bridge_initial_native_tokens "network1"
+    bridge_initial_native_tokens "network2"
+    bridge_initial_native_tokens "network3"
 }
 
 function fund_claim_tx_manager() {
@@ -50,6 +53,23 @@ function fund_claim_tx_manager() {
          --rpc-url "$l2_rpc_url" \
          --private-key "$l2_private_key" \
          "$claimtxmanager_addr"
+}
+
+# Helper function to bridge sufficient initial funds to multi networks to avoid balance underflow revert.
+function bridge_initial_native_tokens() {
+    local target_network="$1"
+    local target_rpc_url=$(get_network_config "$target_network" "rpc_url")
+    target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+
+    echo "Initial funding $target_network to avoid balance underflow reverts" >&3
+    polycli ulxly bridge asset \
+            --bridge-address "$l1_bridge_addr" \
+            --destination-address "$l2_eth_address" \
+            --destination-network "$target_network_id" \
+            --private-key "$l1_private_key" \
+            --rpc-url "$l1_rpc_url" \
+            --value 10000000000000000000000 \
+            --gas-limit 500000
 }
 
 # Helper function to get network configuration
@@ -258,7 +278,7 @@ function get_network_config() {
     )
     
     # Use the combination based on NETWORK_TARGET, or default
-    local target_network="${NETWORK_TARGET:-network3}"
+    local target_network="${NETWORK_TARGET:-network3}"  
     local source_network="${network_combinations[$target_network]:-network1}"
     
     # Ensure we have valid networks
