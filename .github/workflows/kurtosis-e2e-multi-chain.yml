@@ -84,6 +84,17 @@ jobs:
       KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name || 'cdk' }}
     #   DEFAULT_L2_CLIENT: ${{ inputs.stack }}
     steps:
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true  # Prunes Docker if present
+          swap-storage: true
+
       - name: Debug environment variables
         run: |
           env | grep -E 'AGGLAYER_E2E_REF|KURTOSIS_CDK_REF|KURTOSIS_ENCLAVE_NAME|DEFAULT_L2_CLIENT'
@@ -190,17 +201,17 @@ jobs:
             pushd kurtosis-cdk || exit 1
             sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
 
-            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/sovereign.yml .
-            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
-            kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/sovereign.yml .
-            # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/rollup.yml .
-            # kurtosis run --enclave ${{ env.KURTOSIS_ENCLAVE_NAME }} --args-file=/tmp/cdk-erigon/validium.yml .
+            kurtosis run --enclave cdk --args-file=/tmp/op-geth/sovereign.yml .
+            kurtosis run --enclave cdk --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
+            kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/sovereign.yml .
+            # kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/rollup.yml .
+            # kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/validium.yml .
 
             popd
 
       - name: Inspect Kurtosis enclave
         run: |
-          kurtosis enclave inspect ${{ env.KURTOSIS_ENCLAVE_NAME }}
+          kurtosis enclave inspect cdk
 
       - name: Validate test file existence
         run: |
@@ -218,27 +229,27 @@ jobs:
         run: |
           pushd agglayer-e2e || exit 1
                     
-          export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          export ENCLAVE_NAME=cdk
           export NETWORK_TARGET=network1
           export CLAIM_WAIT_DURATION=60m
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          export ENCLAVE_NAME=cdk
           export NETWORK_TARGET=network2
           export CLAIM_WAIT_DURATION=60m
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          # export ENCLAVE_NAME=cdk
           # export NETWORK_TARGET=network3
           # export CLAIM_WAIT_DURATION=60m
           # bats ./tests/lxly/multi-chain-bridge.bats
 
-          # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          # export ENCLAVE_NAME=cdk
           # export NETWORK_TARGET=network4
           # export CLAIM_WAIT_DURATION=60m
           # bats ./tests/lxly/multi-chain-bridge.bats
 
-          # export ENCLAVE_NAME=${{ env.KURTOSIS_ENCLAVE_NAME }}
+          # export ENCLAVE_NAME=cdk
           # export NETWORK_TARGET=network5
           # export CLAIM_WAIT_DURATION=60m
           # bats ./tests/lxly/multi-chain-bridge.bats
