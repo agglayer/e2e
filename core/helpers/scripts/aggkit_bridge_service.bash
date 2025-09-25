@@ -143,16 +143,21 @@ function claim_bridge() {
         log "🔍 Attempt ${attempt}/${max_attempts}"
 
         local global_index
-        global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
-        log "🔍 Bridge Info Global index: $(echo "$bridge_info" | jq -r '.global_index')"
-        log "🔍 Calculated Global index: $global_index"
+        if [[ "$manipulated_unused_bits" == "true" || "$manipulated_rollup_id" == "true" ]]; then
+            global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
+            log "🔍 Generated Global index (manipulated): $global_index"
+        else
+            global_index=$(echo "$bridge_info" | jq -r '.global_index')
+            log "🔍 Extracted Global index: $global_index"
+        fi
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
         local request_result="$status"
         log "💡 claim_call returns $request_result"
+
         if [ "$request_result" -eq 0 ]; then
             log "🎉 Claim successful"
-            echo $global_index
+            echo "$global_index"
             return 0
         fi
 
@@ -168,7 +173,6 @@ function claim_bridge() {
         fi
 
         log "⏳ Claim failed this time. We'll retry in $poll_frequency seconds"
-        # Sleep before the next attempt
         sleep "$poll_frequency"
     done
 }
