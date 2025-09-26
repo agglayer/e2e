@@ -266,7 +266,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L24) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L74) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L103) | |
+| Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L274) | |
+| Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L347) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L477) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L69) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1355) | |
