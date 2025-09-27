@@ -209,6 +209,7 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - pectra
 - pessimistic
 - polycli-loadtests
+- pos
 - prover-stress
 - standard
 - standard-kurtosis
@@ -246,6 +247,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - evm-stress
 - forced-txs
 - gnosis-safe
+- hv2
 - katana
 - loadtest
 - native-gas-token
@@ -255,6 +257,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - pos-delegate
 - pos-undelegate
 - pos-validator
+- prune
 - railgun
 - smooth-crypto-lib
 - transaction-eoa
