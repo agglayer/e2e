@@ -10,7 +10,7 @@ add_rollup_rpc_to_agglayer() {
 
     kurtosis service exec cdk agglayer '
       set -eu
-      file=/etc/agglayer/agglayer-config.toml
+      file=/etc/zkevm/agglayer-config.toml
       if ! grep -q "2 = http://op-el-1-op-geth-op-node-002:8545" "$file"; then
           sed -i "/1 = \"http:\/\/op-el-1-op-geth-op-node-001:8545\"/a 2 = \"http://op-el-1-op-geth-op-node-002:8545\"" "$file"
           sed -i "/2 = \"http:\/\/op-el-1-op-geth-op-node-002:8545\"/a 3 = \"http://cdk-erigon-rpc-003:8123\"" "$file"
