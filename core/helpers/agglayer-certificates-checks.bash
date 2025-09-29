@@ -167,9 +167,6 @@ agglayer_certificates_checks_setup() {
         wait_for_condition "settled_cert" "$timeout" "$retry_interval" "Non-null latest settled certificate" "Error: Timeout ($timeout s) for settled certificate"
     }
 
-    check_block_increase() {
-        wait_for_condition "block_increase" "$timeout" "$retry_interval" "Block number has increased" "Error: Timeout ($timeout s) waiting for block increase"
-    }
 
     check_height_increase() {
         wait_for_condition "height_increase" "$timeout" "$retry_interval" "Height number has increased" "Error: Timeout ($timeout s) waiting for height increase"
