@@ -7,11 +7,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L68) | |
-| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L88) | |
-| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L310) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L562) | |
-| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L531) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L67) | |
+| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L87) | |
+| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L309) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L561) | |
+| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L530) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L60) | |
 | bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L33) | |
 
@@ -19,27 +19,27 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Agglayer random cert test | [Link](./tests/agglayer/cert-tests.bats#L154) | |
-| Agglayer valid cert fake deposit test | [Link](./tests/agglayer/cert-tests.bats#L111) | |
-| Agglayer valid cert test | [Link](./tests/agglayer/cert-tests.bats#L70) | |
-| admin_getCertificate returns certificate data for valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L49) | |
-| admin_getCertificate returns error for invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L107) | |
-| admin_removePendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L187) | |
-| admin_removePendingProof with invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L203) | |
-| admin_setLatestPendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L123) | |
-| admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L139) | |
-| admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L264) | |
-| admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L280) | |
-| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L119) | |
-| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L43) | |
-| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L84) | |
-| compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L220) | |
-| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L203) | |
-| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L168) | |
-| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L184) | |
-| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L244) | |
-| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L263) | |
-| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L225) | |
+| Agglayer random cert test | [Link](./tests/agglayer/cert-tests.bats#L157) | |
+| Agglayer valid cert fake deposit test | [Link](./tests/agglayer/cert-tests.bats#L114) | |
+| Agglayer valid cert test | [Link](./tests/agglayer/cert-tests.bats#L73) | |
+| admin_getCertificate returns certificate data for valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L43) | |
+| admin_getCertificate returns error for invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L101) | |
+| admin_removePendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L181) | |
+| admin_removePendingProof with invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L197) | |
+| admin_setLatestPendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L117) | |
+| admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
+| admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
+| admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
+| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L112) | |
+| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L36) | |
+| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L77) | |
+| compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L214) | |
+| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L196) | |
+| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L161) | |
+| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L177) | |
+| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L237) | |
+| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L256) | |
+| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L218) | |
 
 ## CDK Erigon Tests
 
@@ -218,19 +218,19 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | Check L2 OP Isthmus operator fees | [Link](./tests/op/check-isthmus-fees.bats#L12) | |
-| Check L2 OP native bridge is disabled | [Link](./tests/op/check-op-native-bridge.bats#L13) | |
+| Check L2 OP native bridge is disabled | [Link](./tests/op/check-op-native-bridge.bats#L12) | |
 | Check L2 OP vaults totalProcessed wei | [Link](./tests/op/check-isthmus-fees.bats#L55) | |
-| Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L35) | |
-| Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L239) | |
+| Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L39) | |
+| Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
 | Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L113) | |
 | Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L89) | |
-| Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L182) | |
-| Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L114) | |
-| check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L60) | |
-| send concurrent transactions and verify DA fee handling | [Link](./tests/op/simple-op-checks.bats#L47) | |
-| sweep account with precise gas and DA fee estimation | [Link](./tests/op/simple-op-checks.bats#L13) | |
-| test custom gas token bridge from L1 to L2 | [Link](./tests/op/custom-gas-token.bats#L66) | |
-| test custom gas token bridge from L2 to L1 | [Link](./tests/op/custom-gas-token.bats#L194) | |
+| Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
+| Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
+| check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
+| send concurrent transactions and verify DA fee handling | [Link](./tests/op/simple-op-checks.bats#L53) | |
+| sweep account with precise gas and DA fee estimation | [Link](./tests/op/simple-op-checks.bats#L19) | |
+| test custom gas token bridge from L1 to L2 | [Link](./tests/op/custom-gas-token.bats#L50) | |
+| test custom gas token bridge from L2 to L1 | [Link](./tests/op/custom-gas-token.bats#L178) | |
 
 ## Full System Tests
 
