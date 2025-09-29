@@ -256,7 +256,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L77) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L28) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L108) | |
-| Global Index PP old contracts | [Link](./tests/aggkit/global-index-pp-old-contracts.bats#L40) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L62) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L188) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L139) | |
