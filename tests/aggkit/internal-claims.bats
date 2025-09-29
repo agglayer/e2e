@@ -298,7 +298,7 @@ setup() {
         tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
-        # Validate the bridge_getClaims API to verify all claims were processed
+        # Validate the bridge service get claims API to verify all claims were processed
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
         run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"

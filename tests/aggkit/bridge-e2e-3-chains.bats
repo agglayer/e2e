@@ -91,7 +91,7 @@ setup() {
     # Claim deposits (settle them on the Rollup 1)
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$rollup_1_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
 
@@ -115,7 +115,7 @@ setup() {
     # Claim deposits (settle them on the Rollup 2)
     run process_bridge_claim "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
@@ -229,7 +229,7 @@ setup() {
     # Claim deposits (settle them on the Rollup 1)
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$rollup_1_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
 
@@ -281,7 +281,7 @@ setup() {
     # Claim deposits (settle them on the Rollup 2)
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
@@ -317,7 +317,7 @@ setup() {
     # Claim deposits (settle them on the Rollup 3)
     run process_bridge_claim "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$rollup_3_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_3_url"
     assert_success
 
@@ -351,7 +351,7 @@ setup() {
     # Claim deposits (settle them on the Rollup 3)
     run process_bridge_claim "$rollup_3_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 

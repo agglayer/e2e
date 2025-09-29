@@ -65,7 +65,7 @@ setup() {
     run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
     local claim_global_index="$output"
 
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
     run get_claim "$l2_rpc_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_url"
     assert_success
 
