@@ -37,7 +37,7 @@ check_certificate_height() {
     done
 }
 
-@test "Global Index PP old contracts: " {
+@test "Global Index PP old contracts" {
     echo "----------- Test mainnet flag 1, unused bits != 0 -----------" >&3
 
     destination_addr=$sender_addr
