@@ -57,7 +57,6 @@ _setup_contract_addresses() {
     export pp_weth_address="${TEST_PP_WETH_ADDRESS:-$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')}"
     # pp_weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
     export pol_address="${POL_ADDRESS:-0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E}"
-    export gas_token_address="${GAS_TOKEN_ADDRESS:-0x0000000000000000000000000000000000000000}"
 }
 
 
