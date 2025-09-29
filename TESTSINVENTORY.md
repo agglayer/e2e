@@ -30,16 +30,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L139) | |
 | admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L264) | |
 | admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L280) | |
-| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L139) | |
-| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L61) | |
-| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L103) | |
+| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L119) | |
+| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L43) | |
+| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L84) | |
 | compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L220) | |
-| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L225) | |
-| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L190) | |
-| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L206) | |
-| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L266) | |
-| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L285) | |
-| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L247) | |
+| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L203) | |
+| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L168) | |
+| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L184) | |
+| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L244) | |
+| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L263) | |
+| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L225) | |
 
 ## CDK Erigon Tests
 
