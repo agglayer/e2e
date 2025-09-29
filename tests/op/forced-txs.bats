@@ -1,56 +1,14 @@
 #!/usr/bin/env bats
 # bats file_tags=op,forced-txs
 
-setup() {
-    load '../../core/helpers/scripts/fund.bash'
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 }
 
-setup_file() {
-    kurtosis_enclave_name=${ENCLAVE_NAME:-"cdk"}
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-
-    export l1_rpc_url l2_rpc_url l1_private_key l2_private_key
-
-    l1_optimism_portal_addr=${L1_OPTIMISM_PORTAL_ADDR:-""}
-    if [[ -z "$l1_optimism_portal_addr" ]]; then
-        l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http)"}
-        if [[ -z "$l2_node_url" ]]; then
-            echo "❌ We need L1_OPTIMISM_PORTAL_ADDR or L2_NODE_URL to retrieve this information" >&3
-            exit 1
-        else
-            run cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig
-            if [[ "$status" -ne 0 ]]; then
-                echo "❌ Failed to retrieve rollup config from l2 node" >&3
-                exit 1
-            else
-                l1_system_config_addr=$(echo $output | jq -r '.l1_system_config_address')
-                if [[ -z "$l1_system_config_addr" ]]; then
-                    echo "❌ Failed to retrieve L1 system config address from Rollup Config: $output" >&3
-                    exit 1
-                else
-                    echo "✅ L1 system config address: $l1_system_config_addr" >&3
-                fi
-            fi
-
-            run cast call "$l1_system_config_addr" "optimismPortal()(address)" --rpc-url "$l1_rpc_url"
-            if [[ "$status" -ne 0 ]]; then
-                echo "❌ Failed to retrieve L1 Optimism Portal address from L1 System Config: $output" >&3
-                exit 1
-            else
-                l1_optimism_portal_addr=$output
-                if [[ -z "$l1_optimism_portal_addr" ]]; then
-                    echo "❌ Failed to retrieve L1 Optimism Portal address from L1 System Config: $output" >&3
-                    exit 1
-                else
-                    echo "✅ L1 Optimism Portal address: $l1_optimism_portal_addr" >&3
-                fi
-            fi
-        fi
-    fi
-    export l1_optimism_portal_addr
+setup() {
+    load '../../core/helpers/scripts/fund.bash'
 }
 
 function send_forced_tx() {

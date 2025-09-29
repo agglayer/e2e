@@ -2,10 +2,10 @@
 # shellcheck disable=SC2034
 # bats file_tags=op
 
-setup() {
-    kurtosis_enclave_name=${ENCLAVE_NAME:-"op"}
-    # l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_rpc_url="https://rpc.katana.network"
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 }
 
 # bats test_tags=cdk-op-geth,operator-fee

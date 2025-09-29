@@ -1,11 +1,17 @@
 #!/usr/bin/env bats
 # bats file_tags=op
 
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
+}
+
 setup() {
-    rpc_url=${L2_RPC_URL:-"$(kurtosis port print cdk cdk-erigon-rpc-001 rpc)"}
+    rpc_url=$l2_rpc_url
     # bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print cdk zkevm-bridge-service-001 rpc)"}
-    private_key=${L2_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    eth_address=$(cast wallet address --private-key "$private_key")
+    private_key=$l2_private_key
+    eth_address=$l2_eth_address
     export ETH_RPC_URL="$rpc_url"
 }
 
