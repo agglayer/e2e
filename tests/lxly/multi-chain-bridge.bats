@@ -9,19 +9,13 @@ setup() {
 
     # Multi-chain network configurations
     declare -A l2_rpc_urls=(
-        ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
-        ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)"
-        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc)"
-        # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc)"
-        # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc)"
+        ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc)"
+        ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
     )
     
     declare -A bridge_service_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)"
-        ["network3"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc)"
-        # ["network4"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc)"
-        # ["network5"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc)"
     )
     
     # Default to network1 for backward compatibility
@@ -59,16 +53,23 @@ function bridge_initial_native_tokens() {
     local target_rpc_url
     target_rpc_url=$(get_network_config "$target_network" "rpc_url")
     target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-
-    echo "Initial funding $target_network to avoid balance underflow reverts" >&3
+    gas_token_address=$(cast call "$l2_bridge_addr" "gasTokenAddress()(address)" --rpc-url $target_rpc_url)
+    
+    if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
+        echo "Initial funding $target_network to avoid balance underflow reverts (Custom Gas Token)" >&3
+        echo "Gas token at: $gas_token_address" >&3
+    else
+        echo "Initial funding $target_network to avoid balance underflow reverts (Native ETH)" >&3
+    fi
     polycli ulxly bridge asset \
-            --bridge-address "$l1_bridge_addr" \
-            --destination-address "$l2_eth_address" \
-            --destination-network "$target_network_id" \
-            --private-key "$l1_private_key" \
-            --rpc-url "$l1_rpc_url" \
-            --value 10000000000000000000000 \
-            --gas-limit 500000
+        --bridge-address "$l1_bridge_addr" \
+        --destination-address "$l2_eth_address" \
+        --destination-network "$target_network_id" \
+        --private-key "$l1_private_key" \
+        --rpc-url "$l1_rpc_url" \
+        --value 10000000000000000000000 \
+        --token-address $gas_token_address \
+        --gas-limit 500000
 }
 
 # Helper function to get network configuration
@@ -79,11 +80,8 @@ function get_network_config() {
     case $config_type in
         "rpc_url")
             case $network_name in
-                "network1") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc ;;
-                "network2") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc ;;
-                "network3") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-003 rpc ;;
-                # "network4") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-004 rpc ;;
-                # "network5") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-005 rpc ;;
+                "network1") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc ;;
+                "network2") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc ;;
                 *) echo "" ;;
             esac
             ;;
@@ -91,9 +89,6 @@ function get_network_config() {
             case $network_name in
                 "network1") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc ;;
                 "network2") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc ;;
-                "network3") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-003 rpc ;;
-                # "network4") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-004 rpc ;;
-                # "network5") kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-005 rpc ;;
                 *) echo "" ;;
             esac
             ;;
@@ -271,17 +266,15 @@ function get_network_config() {
 @test "cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET")" {
     bridge_initial_native_tokens "network1"
     bridge_initial_native_tokens "network2"
-    bridge_initial_native_tokens "network3"
     
     # Define all possible network combinations (source -> target)
     declare -A network_combinations=(
         ["network1"]="network2"
-        ["network2"]="network3" 
-        ["network3"]="network1"
+        ["network2"]="network1" 
     )
     
     # Use the combination based on NETWORK_TARGET, or default
-    local target_network="${NETWORK_TARGET:-network3}"  
+    local target_network="${NETWORK_TARGET:-network2}"  
     local source_network="${network_combinations[$target_network]:-network1}"
     
     # Ensure we have valid networks
@@ -293,10 +286,12 @@ function get_network_config() {
     
     local source_rpc_url
     source_rpc_url=$(get_network_config "$source_network" "rpc_url")
+    local source_bridge_service_url
+    source_bridge_service_url=$(get_network_config "$source_network" "bridge_service_url")
     local target_rpc_url
     target_rpc_url=$(get_network_config "$target_network" "rpc_url")
-    local target_bridge_service_url
-    target_bridge_service_url=$(get_network_config "$target_network" "bridge_service_url")
+    # local target_bridge_service_url
+    # target_bridge_service_url=$(get_network_config "$target_network" "bridge_service_url")
     
     # Validate that we can reach both networks
     if [[ -z "$source_rpc_url" || -z "$target_rpc_url" ]]; then
@@ -325,6 +320,8 @@ function get_network_config() {
             --private-key "$l2_private_key" \
             --value "$bridge_amount"
     
+    echo "Claiming bridged L2 token on another L2..." >&3
+
     # Claim on target network
     set +e
     polycli ulxly claim asset \
@@ -333,7 +330,7 @@ function get_network_config() {
             --rpc-url "$target_rpc_url" \
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$source_network_id" \
-            --bridge-service-url "$target_bridge_service_url" \
+            --bridge-service-url "$source_bridge_service_url" \
             --wait "$claim_wait_duration"
     set -e
 }

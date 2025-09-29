@@ -164,35 +164,20 @@ jobs:
             mkdir -p /tmp/cdk-erigon
 
             # To prepare the setup to attach multiple networks in a single enclave, we need to make sure the network_params and deployment_suffix, rollup_id and chain_id are unique.
-            cp ./.github/tests/op-geth/sovereign.yml /tmp/op-geth/sovereign.yml
+            cp ./.github/tests/cdk-erigon/aggchain-ecdsa-multisig.yml /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
             cp ./.github/tests/op-geth/aggchain-ecdsa-multisig.yml /tmp/op-geth/aggchain-ecdsa-multisig.yml
-            cp ./.github/tests/cdk-erigon/sovereign.yml /tmp/cdk-erigon/sovereign.yml
-            cp ./.github/tests/cdk-erigon/rollup.yml /tmp/cdk-erigon/rollup.yml
-            cp ./.github/tests/cdk-erigon/validium.yml /tmp/cdk-erigon/validium.yml
 
             # Remove agglayer_contracts_image from all config files
             # This is critical to maintain consistent contract versions, and contract addresses
-            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/sovereign.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
             /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
-            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/sovereign.yml
-            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/rollup.yml
-            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/validium.yml
 
             # Modify YAML files directly with yq
-            # sovereign.yml (network 001)
-            /usr/bin/yq eval '.optimism_package.chains[0].network_params.name = "001" | .optimism_package.chains[0].network_params.network_id = "2151908" | .args.zkevm_rollup_chain_id = 2151908 | .args.deployment_suffix = "-001" | .args.zkevm_rollup_id = 1' -i /tmp/op-geth/sovereign.yml
+            # cdk-erigon/aggchain-ecdsa-multisig.yml (network 001)
+            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151908 | .args.gas_token_enabled = true | .args.gas_token_address = "" | .args.deployment_suffix = "-001" | .args.zkevm_rollup_id = 1' -i /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
 
-            # aggchain-ecdsa-multisig.yml (network 002)
+            # op-geth/aggchain-ecdsa-multisig.yml (network 002)
             /usr/bin/yq eval '.optimism_package.chains[0].network_params.name = "002" | .optimism_package.chains[0].network_params.network_id = "2151909" | .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.zkevm_rollup_chain_id = 2151909 | .args.deployment_suffix = "-002" | .args.zkevm_rollup_id = 2' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
-
-            # sovereign.yml (network 003)
-            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151910 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-003" | .args.zkevm_rollup_id = 3' -i /tmp/cdk-erigon/sovereign.yml
-
-            # rollup.yml (network 004)
-            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151911 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-004" | .args.zkevm_rollup_id = 4' -i /tmp/cdk-erigon/rollup.yml
-
-            # validium.yml (network 005)
-            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151912 |  .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.deployment_suffix = "-005" | .args.zkevm_rollup_id = 5' -i /tmp/cdk-erigon/validium.yml
 
             popd
 
@@ -201,11 +186,8 @@ jobs:
             pushd kurtosis-cdk || exit 1
             # sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
 
-            kurtosis run --enclave cdk --args-file=/tmp/op-geth/sovereign.yml .
+            kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/aggchain-ecdsa-multisig.yml .
             kurtosis run --enclave cdk --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
-            kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/sovereign.yml .
-            # kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/rollup.yml .
-            # kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/validium.yml .
 
             popd
 
@@ -234,23 +216,8 @@ jobs:
           export CLAIM_WAIT_DURATION=60m
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          export ENCLAVE_NAME=cdk
-          export NETWORK_TARGET=network2
-          export CLAIM_WAIT_DURATION=60m
-          bats ./tests/lxly/multi-chain-bridge.bats
-
-          export ENCLAVE_NAME=cdk
-          export NETWORK_TARGET=network3
-          export CLAIM_WAIT_DURATION=60m
-          bats ./tests/lxly/multi-chain-bridge.bats
-
           # export ENCLAVE_NAME=cdk
-          # export NETWORK_TARGET=network4
-          # export CLAIM_WAIT_DURATION=60m
-          # bats ./tests/lxly/multi-chain-bridge.bats
-
-          # export ENCLAVE_NAME=cdk
-          # export NETWORK_TARGET=network5
+          # export NETWORK_TARGET=network2
           # export CLAIM_WAIT_DURATION=60m
           # bats ./tests/lxly/multi-chain-bridge.bats
 
