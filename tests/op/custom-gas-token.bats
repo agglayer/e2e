@@ -8,31 +8,15 @@ setup() {
 
 
 setup_file() {
-    export kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cgt"}
-
-    export l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l1_eth_address
-    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    export l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    export l1_bridge_addr=${L1_BRIDGE_ADDR:-"$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined-001.json | jq -r .polygonZkEVMBridgeAddress')"}
-
-    export l2_private_key=${L2_PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    export l2_eth_address
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    export l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    export l2_bridge_addr=${L2_BRIDGE_ADDR:-"$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 'cat /opt/zkevm/combined-001.json | jq -r .polygonZkEVML2BridgeAddress')"}
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
     export bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
-    export network_id
-    network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
+    export network_id=$l2_network_id
     export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
     export autoclaim_timeout_seconds=${AUTCLAIM_TIMEOUT_SECONDS:-"300"}
     export l1_claim_timeout_seconds=${L1_CLAIM_TIMEOUT_SECONDS:-"900"}
-
-    export gas_token_address
-    gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
-    export weth_address
-    weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
 
     export zero_address
     zero_address=$(cast address-zero)

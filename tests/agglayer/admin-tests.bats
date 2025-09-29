@@ -2,19 +2,13 @@
 # bats file_tags=agglayer
 
 setup_file() {
-    kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
     agglayer_admin_url=${AGGLAYER_ADMIN_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-admin)"}
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
     export agglayer_admin_url agglayer_rpc_url
-
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)"}
-    contracts_rpc=$(kurtosis port print $kurtosis_enclave_name contracts-001 http)
-    chain_id=$(curl -s "${contracts_rpc}/opt/zkevm/combined.json" | jq -r .rollupChainID)
-    rollup_mgr=$(curl -s "${contracts_rpc}/opt/zkevm/combined.json" | jq -r .polygonRollupManagerAddress)
-
-    rollup_id=$(cast call $rollup_mgr 'chainIDToRollupID(uint64)' $chain_id --rpc-url $l1_rpc_url | cast to-dec)
-    export rollup_id
 
     export invalid_cert_id="0x0000000000000000000000000000000000000000000000000000000000000000"
     export invalid_height=999999

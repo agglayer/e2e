@@ -1,47 +1,22 @@
 #!/usr/bin/env bats
 # bats file_tags=agglayer
 
-setup() {
-    kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
-
-    l1_private_key=${L1_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
-    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l1_bridge_addr=${L1_BRIDGE_ADDR:-"0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae"}
-    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
-        echo "Replacing empty bridge contract address..." >&3
-        l2_bridge_addr=$(_get_bridge_address)
-    fi
-
-    l2_private_key=${L2_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0xD779d520D2F8DdD71Eb131f509f2f8Fa355362ae"}
-    if [[ $(cast code $l2_bridge_addr --rpc-url $l2_rpc_url) == "0x" ]]; then
-        echo "Replacing empty bridge contract address..." >&3
-        l2_bridge_addr=$(_get_bridge_address)
-    fi
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
 
     bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"}
-    network_id=$(cast call  --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
-    claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
-    tx_receipt_timeout_seconds=${TX_RECEIPT_TIMEOUT_SECONDS:-"60"}
+    export bridge_service_url
+
+    export network_id=$l2_network_id
+    export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
+    export claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
-
-    gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
-    weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
+    export agglayer_rpc_url
 
     _fund_claim_tx_manager
-}
-
-
-_get_bridge_address() {
-    # L1 and L2 bridge address should be identical
-    local bridge_addr
-    bridge_addr=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "jq -r '.polygonZkEVMBridgeAddress' /opt/zkevm/combined.json")
-    echo "$bridge_addr"
 }
 
 
@@ -59,7 +34,7 @@ _fund_claim_tx_manager() {
 
 # bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L1 to L2" {
-    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
 
     initial_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
     if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
@@ -70,11 +45,11 @@ _fund_claim_tx_manager() {
     polycli ulxly bridge asset \
             --bridge-address "$l1_bridge_addr" \
             --destination-address "$l2_eth_address" \
-            --destination-network "$network_id" \
+            --destination-network "$l2_network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount" \
-            --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
+            --gas-limit 500000
 
     set +e
     polycli ulxly claim asset \
@@ -84,8 +59,7 @@ _fund_claim_tx_manager() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration" \
-            --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
+            --wait "$claim_wait_duration"
     set -e
 
     final_l2_balance=$(cast balance --rpc-url "$l2_rpc_url" "$l2_eth_address")
@@ -101,7 +75,7 @@ _fund_claim_tx_manager() {
 
 # bats test_tags=native-gas-token,bridge
 @test "bridge native ETH from L2 to L1" {
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     initial_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
 
     bridge_amount=$(cast to-wei 0.05)
@@ -113,20 +87,19 @@ _fund_claim_tx_manager() {
             --rpc-url "$l2_rpc_url" \
             --value "$bridge_amount" \
             --token-address "$weth_address" \
-            --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
+            --gas-limit 500000
 
     tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
+    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$l2_network_id" > "$tmp_file"
 
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
-            --deposit-network "$network_id" \
+            --deposit-network "$l2_network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration" \
-            --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
+            --wait "$claim_wait_duration"
 
     final_l1_balance=$(cast balance --rpc-url "$l1_rpc_url" "$l1_eth_address")
     if [[ $initial_l1_balance == "$final_l1_balance" ]]; then
@@ -164,7 +137,7 @@ _fund_claim_tx_manager() {
          "approve(address spender, uint256 value)" \
          "$l2_bridge_addr" 100000000000000000000
 
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
+    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     polycli ulxly bridge asset \
             --bridge-address "$l2_bridge_addr" \
             --destination-address "$l1_eth_address" \
@@ -172,18 +145,16 @@ _fund_claim_tx_manager() {
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
             --value "100" \
-            --token-address "$erc20_addr" \
-            --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
+            --token-address "$erc20_addr"
 
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
-            --deposit-network "$network_id" \
+            --deposit-network "$l2_network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --wait "$claim_wait_duration" \
-            --transaction-receipt-timeout "$tx_receipt_timeout_seconds"
+            --wait "$claim_wait_duration"
 }
 
 # bats test_tags=agglayer-rpc
@@ -205,7 +176,7 @@ _fund_claim_tx_manager() {
 # bats test_tags=agglayer-rpc
 @test "query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$network_id" > "$tmp_file"
+    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$l2_network_id" > "$tmp_file"
 
     # Skip the test if for whatever reason there hasn't been a certificate at any point
     if jq -e '. == null' "$tmp_file" ; then
@@ -224,7 +195,7 @@ _fund_claim_tx_manager() {
 # bats test_tags=agglayer-rpc
 @test "query interop_getCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$network_id" > "$tmp_file"
+    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$l2_network_id" > "$tmp_file"
 
     # Skip the test if there is no known certificate
     if jq -e '. == null' "$tmp_file" ; then
@@ -246,7 +217,7 @@ _fund_claim_tx_manager() {
 # bats test_tags=agglayer-rpc
 @test "query interop_getTxStatus on agglayer RPC for latest settled certificate returns done" {
     tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$network_id" > "$tmp_file"
+    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$l2_network_id" > "$tmp_file"
 
     # Skip the test if there is no known certificate
     if jq -e '. == null' "$tmp_file" ; then
@@ -265,7 +236,7 @@ _fund_claim_tx_manager() {
 # bats test_tags=agglayer-rpc
 @test "query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$network_id" > "$tmp_file"
+    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$l2_network_id" > "$tmp_file"
 
     # Skip the test if there is no pending certificate
     if jq -e '. == null' "$tmp_file" ; then
@@ -284,7 +255,7 @@ _fund_claim_tx_manager() {
 # bats test_tags=agglayer-rpc
 @test "query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$network_id" > "$tmp_file"
+    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$l2_network_id" > "$tmp_file"
 
     if jq -e '. == null' "$tmp_file" ; then
         skip

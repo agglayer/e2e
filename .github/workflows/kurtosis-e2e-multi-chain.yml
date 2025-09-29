@@ -169,7 +169,7 @@ jobs:
 
             # Remove agglayer_contracts_image from all config files
             # This is critical to maintain consistent contract versions, and contract addresses
-            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
+            # /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
             /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
 
             # Modify YAML files directly with yq

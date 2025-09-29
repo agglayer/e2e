@@ -143,15 +143,21 @@ function claim_bridge() {
         log "🔍 Attempt ${attempt}/${max_attempts}"
 
         local global_index
-        global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
-        log "🔍 Global index: $global_index"
+        if [[ "$manipulated_unused_bits" == "true" || "$manipulated_rollup_id" == "true" ]]; then
+            global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
+            log "🔍 Generated Global index (manipulated): $global_index"
+        else
+            global_index=$(echo "$bridge_info" | jq -r '.global_index')
+            log "🔍 Extracted Global index: $global_index"
+        fi
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
         local request_result="$status"
         log "💡 claim_call returns $request_result"
+
         if [ "$request_result" -eq 0 ]; then
             log "🎉 Claim successful"
-            echo $global_index
+            echo "$global_index"
             return 0
         fi
 
@@ -167,7 +173,6 @@ function claim_bridge() {
         fi
 
         log "⏳ Claim failed this time. We'll retry in $poll_frequency seconds"
-        # Sleep before the next attempt
         sleep "$poll_frequency"
     done
 }
@@ -346,11 +351,11 @@ function get_claim() {
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt $attempt"
-        log "get claim global index: $expected_global_index"
+        log "🔍 Attempt $attempt/$max_attempts"
+        log "Expected claim global index: $expected_global_index"
 
         # Build the query URL with optional from_address parameter
-        local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true"
+        local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true&global_index=$expected_global_index"
         if [[ -n "$from_address" ]]; then
             query_url="$query_url&from_address=$from_address"
         fi
@@ -360,12 +365,19 @@ function get_claim() {
         log "$claims_result"
         log "------ claims_result ------"
 
-        for row in $(echo "$claims_result" | jq -c '.claims[]'); do
+        # Extract the single claim (or null if not found)
+        local row
+        row=$(echo "$claims_result" | jq -c '.claims[0]')
+
+        if [[ "$row" != "null" ]]; then
+            local global_index
             global_index=$(jq -r '.global_index' <<<"$row")
 
             if [[ "$global_index" == "$expected_global_index" ]]; then
                 log "🎉 Success: Expected global_index '$expected_global_index' found. Exiting loop."
-                required_fields=(
+
+                # Required fields validation
+                local required_fields=(
                     "block_num"
                     "block_timestamp"
                     "tx_hash"
@@ -383,13 +395,11 @@ function get_claim() {
                     "proof_local_exit_root"
                     "proof_rollup_exit_root"
                 )
-                # Check that all required fields exist (and are not null) in claims[0]
                 for field in "${required_fields[@]}"; do
                     value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$row")
                     if [ "$value" = "null" ] || [ -z "$value" ]; then
                         log "🔍 Claims result:"
                         log "$claims_result"
-
                         echo "❌ Error: Assertion failed missing or null '$field' in the claim object." >&2
                         return 1
                     fi
@@ -398,18 +408,17 @@ function get_claim() {
                 echo "$row"
                 return 0
             fi
-        done
+        fi
 
         # Fail test if max attempts are reached
-        if [[ "$attempt" -ge "$max_attempts" ]]; then
+        if (( attempt >= max_attempts )); then
             log "🔍 Claims result:"
             log "$claims_result"
-
             echo "❌ Error: Reached max attempts ($max_attempts) without finding expected claim with global index ($expected_global_index)." >&2
             return 1
         fi
 
-        # Sleep before the next attempt
+        log "⏳ Claim not found yet. Retrying in $poll_frequency seconds..."
         sleep "$poll_frequency"
     done
 }

@@ -7,6 +7,7 @@ declare status output
 function _setup_vars() {
 
     # These vars are set when calling this function:
+    #   kurtosis_enclave_name: Set from ENCLAVE_NAME or default to "cdk"
     #   l2_rpc_url: Set from L2_RPC_URL or from kurtosis enclave if ENCLAVE_NAME is set
     #   l1_rpc_url: Set from L1_RPC_URL or from kurtosis enclave if ENCLAVE_NAME is set
     #   l2_private_key: Set from L2_PRIVATE_KEY or default value
@@ -19,11 +20,15 @@ function _setup_vars() {
     #   l2_node_url: Set to the L2 node URL if using op-geth and ENCLAVE_NAME is set
     #   l1_system_config_addr: Set to the L1SystemConfig address if using op-geth and ENCLAVE_NAME is set
     #   l1_optimism_portal_addr: Set to the L1OptimismPortal address if using op-geth and ENCLAVE_NAME is set and l1_system_config_addr is set and l1_rpc_url is set
-    #   kurtosis_enclave_name: Set from ENCLAVE_NAME or default to "cdk"
     #   l1_bridge_addr: Set from L1_BRIDGE_ADDR or from kurtosis enclave if ENCLAVE_NAME is set
     #   l2_bridge_addr: Set from L2_BRIDGE_ADDR or from kurtosis enclave if ENCLAVE_NAME is set
     #   l1_network_id: Set from network id from l1_rpc_url if set
     #   l2_network_id: Set from network id from l2_rpc_url if set
+    #   rollup_manager_address: Set from rollup manager address from combined.json if set
+    #   rollup_id: Set from rollup id from rollup manager address if set
+    #   rollup_address: Set from rollup address from combined.json if set
+    #   gas_token_address: Set from gas token address from l2_rpc_url if set
+    #   weth_address: Set from weth address from l2_rpc_url if set
 
 
     # Paths for libs, etc
@@ -119,14 +124,28 @@ function _setup_vars() {
     #
     # default private keys and addresses
     #
-    l1_private_key="${L1_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
-    l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-    l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-    export l1_private_key l2_private_key l1_eth_address l2_eth_address
+    if [[ -n "$L1_PRIVATE_KEY" ]]; then
+        l1_private_key="$L1_PRIVATE_KEY"
+    elif [[ -n "$kurtosis_enclave_name" ]]; then
+        l1_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/contract-deploy/input_args.json" | jq -r '.args.l1_preallocated_private_key')
+    fi
 
-    echo "ℹ️ l1_eth_address=$l1_eth_address l1_private_key=$l1_private_key" >&3
-    echo "ℹ️ l2_eth_address=$l2_eth_address l2_private_key=$l2_private_key" >&3
+    if [[ -n "$L2_PRIVATE_KEY" ]]; then
+        l2_private_key="$L2_PRIVATE_KEY"
+    elif [[ -n "$kurtosis_enclave_name" ]]; then
+        l2_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/contract-deploy/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')
+    fi
+
+    if [[ -n "$l1_private_key" ]]; then
+        l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
+        export l1_eth_address l1_private_key
+        echo "ℹ️ l1_eth_address=$l1_eth_address l1_private_key=$l1_private_key" >&3
+    fi
+    if [[ -n "$l2_private_key" ]]; then
+        l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
+        export l2_eth_address l2_private_key
+        echo "ℹ️ l2_eth_address=$l2_eth_address l2_private_key=$l2_private_key" >&3
+    fi
 
 
     #
@@ -144,15 +163,19 @@ function _setup_vars() {
                         l1_optimism_portal_addr=$output
                         if [[ -n "$l1_optimism_portal_addr" ]]; then
                             echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr l1_optimism_portal_addr=$l1_optimism_portal_addr" >&3
+                            export l2_node_url l1_system_config_addr l1_optimism_portal_addr
                         fi
                     else
                         echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr" >&3
+                        export l2_node_url l1_system_config_addr
                     fi
                 else
                     echo "ℹ️ l2_node_url=$l2_node_url" >&3
+                    export l2_node_url
                 fi
             else
                 echo "ℹ️ l2_node_url=$l2_node_url" >&3
+                export l2_node_url
             fi
         else
             echo "ℹ️ Could not determine L2 node URL" >&3
@@ -240,4 +263,41 @@ function _setup_vars() {
         echo "ℹ️ l2_network_id=$l2_network_id" >&3
     fi
 
+
+    #
+    # GAS/WETH Token Address
+    #
+    if [[ -n "$l2_rpc_url" && -n "$l2_bridge_addr" ]]; then
+        gas_token_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'gasTokenAddress()(address)')
+        weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
+        export gas_token_address weth_address
+        echo "ℹ️ gas_token_address=$gas_token_address weth_address=$weth_address" >&3
+    fi
+
+
+    #
+    # Rollup Manager Address, Rollup ID, Rollup Address
+    #
+    if [[ -n "$combined_json_data" ]]; then
+        rollup_manager_address=$(echo "$combined_json_data" | jq -r .polygonRollupManagerAddress)
+        if [[ -n "$rollup_manager_address" && -n "$l2_chain_id" && -n "$l1_rpc_url" ]]; then
+            rollup_id=$(cast call $rollup_manager_address 'chainIDToRollupID(uint64)(uint32)' $l2_chain_id --rpc-url $l1_rpc_url)
+        fi
+
+        rollup_address=$(echo "$combined_json_data" | jq -r .rollupAddress)
+ 
+        if [[ -n $rollup_manager_address && -n "$rollup_id" && -n "$rollup_address" ]]; then
+            export rollup_manager_address rollup_id rollup_address
+            echo "ℹ️ rollup_manager_address=$rollup_manager_address rollup_id=$rollup_id rollup_address=$rollup_address" >&3
+        elif [[ -n "$rollup_manager_address" &&  -n "$rollup_address" ]]; then
+            export rollup_manager_address rollup_address
+            echo "ℹ️ rollup_manager_address=$rollup_manager_address rollup_address=$rollup_address" >&3
+        elif [[ -n "$rollup_manager_address" ]]; then
+            export rollup_manager_address
+            echo "ℹ️ rollup_manager_address=$rollup_manager_address" >&3
+        elif [[ -n "$rollup_address" ]]; then
+            export rollup_address
+            echo "ℹ️ rollup_address=$rollup_address" >&3
+        fi
+    fi
 }
