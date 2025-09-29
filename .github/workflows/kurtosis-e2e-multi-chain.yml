@@ -199,7 +199,7 @@ jobs:
       - name: Run multiple Kurtosis CDK in single enclave (bridge claimer disabled)
         run: |
             pushd kurtosis-cdk || exit 1
-            sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
+            # sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
 
             kurtosis run --enclave cdk --args-file=/tmp/op-geth/sovereign.yml .
             kurtosis run --enclave cdk --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
