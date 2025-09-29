@@ -10,7 +10,7 @@ setup() {
     # Multi-chain network configurations
     declare -A l2_rpc_urls=(
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc)"
-        ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
+        ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc)"
     )
     
     declare -A bridge_service_urls=(
@@ -81,7 +81,7 @@ function get_network_config() {
         "rpc_url")
             case $network_name in
                 "network1") kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc ;;
-                "network2") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc ;;
+                "network2") kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-002 rpc ;;
                 *) echo "" ;;
             esac
             ;;
