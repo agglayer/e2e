@@ -93,6 +93,22 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
 
 # monitor timelock?
 
+# function genTimelockOperation(target: any, value: any, data: any, predecessor: any, salt: any) {
+#     const abiEncoded = ethers.AbiCoder.defaultAbiCoder().encode(
+#         ['address', 'uint256', 'bytes', 'uint256', 'bytes32'],
+#         [target, value, data, predecessor, salt],
+#     );
+#     const id = ethers.keccak256(abiEncoded);
+#     return {
+#         id,
+#         target,
+#         value,
+#         data,
+#         predecessor,
+#         salt,
+#     };
+# }
+# WE NEED TO CALCULATE THE ID FOLLOWING THE ABOVE FORMAT, and REPLACE $(echo 1 | cast to-bytes32) with the right ID
 
 while [ $(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' $(echo 1 | cast to-bytes32)") == "false" ]; do
     echo "Operation not ready. Retrying in 10 seconds..."
