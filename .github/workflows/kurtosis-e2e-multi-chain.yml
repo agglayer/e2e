@@ -1,0 +1,226 @@
+name: Kurtosis E2E Multichain Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      agglayer-e2e-ref:
+        description: "agglayer/e2e repo ref (branch, tag, or commit)"
+        default: "main"
+        required: true
+        type: string
+      kurtosis-cdk-ref:
+        description: "kurtosis-cdk repo ref (branch, tag, or commit)"
+        default: "main"
+        required: true
+        type: string
+      kurtosis-enclave-name:
+        description: "name of the kurtosis enclave to use"
+        default: "cdk"
+        required: false
+        type: string
+    #   stack:
+    #     description: "name of the l2 cdk client"
+    #     default: "cdk-op-geth-pessimistic"
+    #     required: true
+    #     type: choice
+    #     options:
+    #       - cdk-op-geth-pessimistic
+    #       - cdk-erigon-pessimistic
+    #       - cdk-erigon-rollup
+    #       - cdk-erigon-validium
+    #       - aggchain-ecdsa-multisig
+    #       - aggchain-fep
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  discover-standard-tests:
+    runs-on: ubuntu-latest
+    env:
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref }}
+    outputs:
+      testfiles: ${{ steps.set-matrix.outputs.testfiles }}
+    steps:
+      - name: Checkout agglayer-e2e
+        uses: actions/checkout@v4
+        with:
+          repository: agglayer/e2e
+          ref: ${{ env.AGGLAYER_E2E_REF }}
+          path: agglayer-e2e
+
+      - name: Find standard-tagged bats files
+        id: set-matrix
+        run: |
+            pushd agglayer-e2e || exit 1
+            files=$(grep -rl '# bats file_tags=.*multi-chain-bridge*' ./tests | grep '\.bats$' || true)
+            echo "Found files:"
+            echo "$files"
+            # Remove empty lines and ensure valid JSON array without trailing empty string
+            files_json=$(echo "$files" | awk NF | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "Files array:"
+            echo "$files_json"
+            echo "testfiles=$files_json" >> $GITHUB_OUTPUT
+            popd
+
+  run-standard-battery-tests:
+    runs-on: ubuntu-latest
+    needs: discover-standard-tests
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
+    env:
+      POLYCLI_VERSION: v0.1.84
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'jihwan/multi-chain-bridge-workflow' }}
+      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref  || 'jihwan/fund-custom-gas-token-network' }}
+      KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name || 'cdk' }}
+    #   DEFAULT_L2_CLIENT: ${{ inputs.stack }}
+    steps:
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true  # Prunes Docker if present
+          swap-storage: true
+
+      - name: Debug environment variables
+        run: |
+          env | grep -E 'AGGLAYER_E2E_REF|KURTOSIS_CDK_REF|KURTOSIS_ENCLAVE_NAME|DEFAULT_L2_CLIENT'
+
+      - name: Checkout agglayer-e2e
+        uses: actions/checkout@v4
+        with:
+          repository: agglayer/e2e
+          ref: ${{ env.AGGLAYER_E2E_REF }}
+          path: agglayer-e2e
+
+      - name: Checkout kurtosis-cdk
+        uses: actions/checkout@v4
+        with:
+          repository: 0xPolygon/kurtosis-cdk
+          ref: ${{ env.KURTOSIS_CDK_REF }}
+          path: kurtosis-cdk
+
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+        with:
+          support-path: "${{ github.workspace }}/lib/bats-support"
+          assert-path: "${{ github.workspace }}/lib/bats-assert"
+          detik-path: "${{ github.workspace }}/lib/bats-detik"
+          file-path: "${{ github.workspace }}/lib/bats-file"
+
+      - name: Install polycli
+        run: |
+            polycli_version="${{ env.POLYCLI_VERSION }}"
+            pushd $(mktemp -d) || exit 1
+            curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+            tar xf polycli.tar.gz
+            mv polycli_* /usr/local/bin/polycli
+            polycli version
+            popd
+
+      - name: Install yq
+        run: |
+            # Remove any existing yq installations to avoid conflicts
+            sudo pip3 uninstall -y yq || true
+            # Remove any yq in /usr/local/bin that might be from pip
+            sudo rm -f /usr/local/bin/yq
+            # Install the Go version of yq
+            sudo wget https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64 -O /usr/bin/yq
+            sudo chmod +x /usr/bin/yq
+            # Make sure /usr/bin comes before /usr/local/bin in PATH
+            export PATH="/usr/bin:$PATH"
+            # Verify it's the correct version and test the syntax
+            yq --version
+
+      - name: Install Kurtosis CLI and Foundry
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        with:
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Write args input to a file
+        run: |
+            pushd kurtosis-cdk || exit 1
+
+            # Remove existing directories
+            rm -rf /tmp/op-geth
+            rm -rf /tmp/cdk-erigon
+
+            # Create destination directories
+            mkdir -p /tmp/op-geth
+            mkdir -p /tmp/cdk-erigon
+
+            # To prepare the setup to attach multiple networks in a single enclave, we need to make sure the network_params and deployment_suffix, rollup_id and chain_id are unique.
+            cp ./.github/tests/cdk-erigon/aggchain-ecdsa-multisig.yml /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
+            cp ./.github/tests/op-geth/aggchain-ecdsa-multisig.yml /tmp/op-geth/aggchain-ecdsa-multisig.yml
+
+            # Remove agglayer_contracts_image from all config files
+            # This is critical to maintain consistent contract versions, and contract addresses
+            # /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
+            /usr/bin/yq eval 'del(.args.agglayer_contracts_image)' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
+
+            # Modify YAML files directly with yq
+            # cdk-erigon/aggchain-ecdsa-multisig.yml (network 001)
+            /usr/bin/yq eval '.args.zkevm_rollup_chain_id = 2151908 | .args.gas_token_enabled = true | .args.gas_token_address = "" | .args.deployment_suffix = "-001" | .args.zkevm_rollup_id = 1' -i /tmp/cdk-erigon/aggchain-ecdsa-multisig.yml
+
+            # op-geth/aggchain-ecdsa-multisig.yml (network 002)
+            /usr/bin/yq eval '.optimism_package.chains[0].network_params.name = "002" | .optimism_package.chains[0].network_params.network_id = "2151909" | .deployment_stages.deploy_agglayer = false | .deployment_stages.deploy_l1 = false | .args.zkevm_rollup_chain_id = 2151909 | .args.deployment_suffix = "-002" | .args.zkevm_rollup_id = 2' -i /tmp/op-geth/aggchain-ecdsa-multisig.yml
+
+            popd
+
+      - name: Run multiple Kurtosis CDK in single enclave (bridge claimer disabled)
+        run: |
+            pushd kurtosis-cdk || exit 1
+            # sed -i '/^\[ClaimTxManager\]/,/^\[/{s/Enabled = true/Enabled = false/}' templates/bridge-infra/bridge-config.toml
+
+            kurtosis run --enclave cdk --args-file=/tmp/cdk-erigon/aggchain-ecdsa-multisig.yml .
+            kurtosis run --enclave cdk --args-file=/tmp/op-geth/aggchain-ecdsa-multisig.yml .
+
+            popd
+
+      - name: Inspect Kurtosis enclave
+        run: |
+          kurtosis enclave inspect cdk
+
+      - name: Validate test file existence
+        run: |
+          pushd agglayer-e2e || exit 1
+
+          testfile="${{ matrix.testfile }}"
+          if [[ ! -f "$testfile" ]]; then
+            echo "Test file $testfile does not exist"
+            exit 1
+          fi
+
+          popd
+
+      - name: Run e2e tests
+        run: |
+          pushd agglayer-e2e || exit 1
+
+          export L1_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625
+          export ENCLAVE_NAME=cdk
+          export NETWORK_TARGET=network1
+          export CLAIM_WAIT_DURATION=10m
+          bats ./tests/lxly/multi-chain-bridge.bats
+
+          export L1_PRIVATE_KEY=0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625
+          export ENCLAVE_NAME=cdk
+          export NETWORK_TARGET=network2
+          export CLAIM_WAIT_DURATION=10m
+          bats ./tests/lxly/multi-chain-bridge.bats
+
+          popd
