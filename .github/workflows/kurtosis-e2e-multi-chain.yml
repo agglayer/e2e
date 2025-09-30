@@ -217,9 +217,9 @@ jobs:
           export CLAIM_WAIT_DURATION=10m
           bats ./tests/lxly/multi-chain-bridge.bats
 
-          # export ENCLAVE_NAME=cdk
-          # export NETWORK_TARGET=network2
-          # export CLAIM_WAIT_DURATION=10m
-          # bats ./tests/lxly/multi-chain-bridge.bats
+          export ENCLAVE_NAME=cdk
+          export NETWORK_TARGET=network2
+          export CLAIM_WAIT_DURATION=10m
+          bats ./tests/lxly/multi-chain-bridge.bats
 
           popd
