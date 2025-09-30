@@ -2,7 +2,7 @@
 # bats file_tags=lxly,multi-chain-bridge
 # shellcheck disable=SC1091,SC2154
 
-setup() {
+setup_file() {
     # shellcheck source=core/helpers/common.bash
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
