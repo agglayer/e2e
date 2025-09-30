@@ -47,31 +47,6 @@ function fund_claim_tx_manager() {
          "$claimtxmanager_addr"
 }
 
-# Helper function to bridge sufficient initial funds to multi networks to avoid balance underflow revert.
-function bridge_initial_native_tokens() {
-    local target_network="$1"
-    local target_rpc_url
-    target_rpc_url=$(get_network_config "$target_network" "rpc_url")
-    target_network_id=$(cast call --rpc-url "$target_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    gas_token_address=$(cast call "$l2_bridge_addr" "gasTokenAddress()(address)" --rpc-url $target_rpc_url)
-    
-    if [[ $gas_token_address != "0x0000000000000000000000000000000000000000" ]]; then
-        echo "Initial funding $target_network to avoid balance underflow reverts (Custom Gas Token)" >&3
-        echo "Gas token at: $gas_token_address" >&3
-    else
-        echo "Initial funding $target_network to avoid balance underflow reverts (Native ETH)" >&3
-    fi
-    polycli ulxly bridge asset \
-        --bridge-address "$l1_bridge_addr" \
-        --destination-address "$l2_eth_address" \
-        --destination-network "$target_network_id" \
-        --private-key "$l1_private_key" \
-        --rpc-url "$l1_rpc_url" \
-        --value 10000000000000000000000 \
-        --token-address $gas_token_address \
-        --gas-limit 500000
-}
-
 # Helper function to get network configuration
 function get_network_config() {
     local network_name="$1"
@@ -263,10 +238,7 @@ function get_network_config() {
 }
 
 # bats test_tags=bridge,multi-chain
-@test "cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET")" {
-    bridge_initial_native_tokens "network1"
-    bridge_initial_native_tokens "network2"
-    
+@test "cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET")" {    
     # Define all possible network combinations (source -> target)
     declare -A network_combinations=(
         ["network1"]="network2"
