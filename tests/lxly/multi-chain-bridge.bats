@@ -34,21 +34,14 @@ setup_file() {
     export erc20_token_name="e2e test"
     export erc20_token_symbol="E2E"
 
+    load "$BATS_TEST_DIRNAME/../../core/helpers/scripts/bridging.bash"
     fund_claim_tx_manager
 }
 
-function fund_claim_tx_manager() {
-    local balance
-
-    balance=$(cast balance --rpc-url "$l2_rpc_url" "$claimtxmanager_addr")
-    if [[ $balance != "0" ]]; then
-        return
-    fi
-    cast send --legacy --value 1ether \
-         --rpc-url "$l2_rpc_url" \
-         --private-key "$l2_private_key" \
-         "$claimtxmanager_addr"
+setup() {
+    load "$BATS_TEST_DIRNAME/../../core/helpers/scripts/bridging.bash"
 }
+
 
 # Helper function to get network configuration
 function get_network_config() {
@@ -83,19 +76,25 @@ function get_network_config() {
     echo "L2 RPC URL: $l2_rpc_url" >&3
     echo "Network ID: $network_id" >&3
     
-    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
-    echo "Initial L1 deposit count: $initial_deposit_count" >&3
-
     bridge_amount=$(date +%s)
     echo "Bridge amount: $bridge_amount wei" >&3
     echo "Bridging ETH from L1 to L2..." >&3
-    polycli ulxly bridge asset \
+    run polycli ulxly bridge asset \
             --bridge-address "$l1_bridge_addr" \
             --destination-address "$l2_eth_address" \
             --destination-network "$network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount"
+
+    run polycli_bridge_asset_get_info "$output" "$l1_rpc_url" "$l1_bridge_addr"
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to get deposit info" >&3
+        echo "$output" >&3
+        exit 1
+    fi
+    deposit_count=$(echo "$output" | jq -r '.depositCount')
+    echo "Deposit count: $deposit_count" >&3
 
     echo "ETH bridge transaction completed, attempting to claim on L2..." >&3
     # It's possible this command will fail due to the auto claimer
@@ -104,7 +103,7 @@ function get_network_config() {
             --bridge-address "$l2_bridge_addr" \
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
-            --deposit-count "$initial_deposit_count" \
+            --deposit-count "$deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
@@ -139,13 +138,11 @@ function get_network_config() {
         echo "ERC20 token deployed and approved for bridge" >&3
     fi
 
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     bridge_amount=$(date +%s)
-    echo "Initial L2 deposit count: $initial_deposit_count" >&3
     echo "Bridge amount: $bridge_amount" >&3
     echo "Bridging ERC20 token from L2 to L1..." >&3
     # Bridge some funds from L2 to L1
-    polycli ulxly bridge asset \
+    run polycli ulxly bridge asset \
             --destination-network 0 \
             --token-address  "$test_erc20_addr" \
             --value "$bridge_amount" \
@@ -153,13 +150,14 @@ function get_network_config() {
             --rpc-url "$l2_rpc_url" \
             --private-key "$l2_private_key"
 
-    deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
-
-    if [[ $initial_deposit_count -eq $deposit_count ]]; then
-        echo "ERROR: the deposit count didn't increase" >&3
+    run polycli_bridge_asset_get_info "$output" "$l2_rpc_url" "$l2_bridge_addr"
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to get deposit info" >&3
+        echo "$output" >&3
         exit 1
     fi
-    echo "Deposit count increased from $initial_deposit_count to $deposit_count" >&3
+    deposit_count=$(echo "$output" | jq -r '.depositCount')
+    echo "Deposit count: $deposit_count" >&3
 
     echo "Claiming ERC20 token on L1..." >&3
 
@@ -167,7 +165,7 @@ function get_network_config() {
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
-            --deposit-count "$initial_deposit_count" \
+            --deposit-count "$deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
@@ -176,17 +174,24 @@ function get_network_config() {
     wrapped_token_addr=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'tokenInfoToWrappedToken(bytes32)(address)' "$token_hash")
     echo "Wrapped token address on L1: $wrapped_token_addr" >&3
 
-    initial_deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)')
-    echo "Initial L1 deposit count for return bridge: $initial_deposit_count" >&3
     echo "Bridging wrapped token from L1 back to L2..." >&3
 
-    polycli ulxly bridge asset \
+    run polycli ulxly bridge asset \
         --destination-network "$network_id" \
         --token-address "$wrapped_token_addr" \
         --value "$bridge_amount" \
         --bridge-address "$l1_bridge_addr" \
         --rpc-url "$l1_rpc_url" \
         --private-key "$l1_private_key"
+
+    run polycli_bridge_asset_get_info "$output" "$l1_rpc_url" "$l1_bridge_addr"
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to get deposit info" >&3
+        echo "$output" >&3
+        exit 1
+    fi
+    deposit_count=$(echo "$output" | jq -r '.depositCount')
+    echo "Deposit count: $deposit_count" >&3
 
     echo "Attempting to claim wrapped token back on L2..." >&3
     # It's possible this command will fail due to the auto claimer
@@ -195,7 +200,7 @@ function get_network_config() {
             --bridge-address "$l2_bridge_addr" \
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
-            --deposit-count "$initial_deposit_count" \
+            --deposit-count "$deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
@@ -203,16 +208,24 @@ function get_network_config() {
 
     echo "Performing second round of L2 to L1 bridging..." >&3
     # repeat the first step again to trigger another exit of l2 but with the added claim
-    initial_deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     bridge_amount=$(date +%s)
-    echo "Second round - Initial deposit count: $initial_deposit_count, Bridge amount: $bridge_amount" >&3
-    polycli ulxly bridge asset \
+    echo "Second round - Bridge amount: $bridge_amount" >&3
+    run polycli ulxly bridge asset \
             --destination-network 0 \
             --token-address  "$test_erc20_addr" \
             --value "$bridge_amount" \
             --bridge-address "$l2_bridge_addr" \
             --rpc-url "$l2_rpc_url" \
             --private-key "$l2_private_key"
+
+    run polycli_bridge_asset_get_info "$output" "$l2_rpc_url" "$l2_bridge_addr"
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to get deposit info" >&3
+        echo "$output" >&3
+        exit 1
+    fi
+    deposit_count=$(echo "$output" | jq -r '.depositCount')
+    echo "Deposit count: $deposit_count" >&3
 
     echo "Claiming second round ERC20 token on L1..." >&3
     # Wait for that exit to settle on L1
@@ -221,7 +234,7 @@ function get_network_config() {
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
-            --deposit-count "$initial_deposit_count" \
+            --deposit-count "$deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
             --wait "$claim_wait_duration"
@@ -274,18 +287,24 @@ function get_network_config() {
     echo "Bridging from network $source_network_id to network $target_network_id" >&3
     
     # Bridge from source to target network
-    local initial_deposit_count
-    initial_deposit_count=$(cast call --rpc-url "$source_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)')
     local bridge_amount
     bridge_amount=$(date +%s)
     
-    polycli ulxly bridge asset \
+    run polycli ulxly bridge asset \
             --destination-network "$target_network_id" \
             --destination-address "$l2_eth_address" \
             --bridge-address "$l2_bridge_addr" \
             --rpc-url "$source_rpc_url" \
             --private-key "$l2_private_key" \
             --value "$bridge_amount"
+
+    run polycli_bridge_asset_get_info "$output" "$source_rpc_url" "$l2_bridge_addr"
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to get deposit info" >&3
+        echo "$output" >&3
+        exit 1
+    fi
+    deposit_count=$(echo "$output" | jq -r '.depositCount')
     
     echo "Claiming bridged L2 token on another L2..." >&3
 
@@ -295,7 +314,7 @@ function get_network_config() {
             --bridge-address "$l2_bridge_addr" \
             --private-key "$l2_private_key" \
             --rpc-url "$target_rpc_url" \
-            --deposit-count "$initial_deposit_count" \
+            --deposit-count "$deposit_count" \
             --deposit-network "$source_network_id" \
             --bridge-service-url "$source_bridge_service_url" \
             --wait "$claim_wait_duration"

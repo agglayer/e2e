@@ -18,22 +18,6 @@ on:
         default: "cdk"
         required: false
         type: string
-    #   stack:
-    #     description: "name of the l2 cdk client"
-    #     default: "cdk-op-geth-pessimistic"
-    #     required: true
-    #     type: choice
-    #     options:
-    #       - cdk-op-geth-pessimistic
-    #       - cdk-erigon-pessimistic
-    #       - cdk-erigon-rollup
-    #       - cdk-erigon-validium
-    #       - aggchain-ecdsa-multisig
-    #       - aggchain-fep
-
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
@@ -79,10 +63,9 @@ jobs:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
       POLYCLI_VERSION: v0.1.84
-      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'jihwan/multi-chain-bridge-workflow' }}
-      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref  || 'jihwan/fund-custom-gas-token-network' }}
+      AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
+      KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref  || 'main' }}
       KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name || 'cdk' }}
-    #   DEFAULT_L2_CLIENT: ${{ inputs.stack }}
     steps:
       - name: Free up disk space
         uses: jlumbroso/free-disk-space@main
