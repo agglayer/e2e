@@ -2,7 +2,7 @@
 # bats file_tags=lxly,multi-chain-bridge
 # shellcheck disable=SC1091,SC2154
 
-setup() {
+setup_file() {
     # shellcheck source=core/helpers/common.bash
     source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
     _setup_vars
@@ -17,19 +17,22 @@ setup() {
         ["network1"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)"
         ["network2"]="$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc)"
     )
+    export l2_rpc_urls
+    export bridge_service_urls
     
     # Default to network1 for backward compatibility
-    default_network=${NETWORK_TARGET:-"network1"}
-    l2_rpc_url=${L2_RPC_URL:-"${l2_rpc_urls[$default_network]}"}
-    l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x78908F7A87d589fdB46bdd5EfE7892C5aD6001b6"}
-    bridge_service_url=${BRIDGE_SERVICE_URL:-"${bridge_service_urls[$default_network]}"}
+    export default_network=${NETWORK_TARGET:-"network1"}
+    export l2_rpc_url=${L2_RPC_URL:-"${l2_rpc_urls[$default_network]}"}
+    export l2_bridge_addr=${L2_BRIDGE_ADDR:-"0x78908F7A87d589fdB46bdd5EfE7892C5aD6001b6"}
+    export bridge_service_url=${BRIDGE_SERVICE_URL:-"${bridge_service_urls[$default_network]}"}
     
     network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)')
-    claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
-    claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
+    export network_id
+    export claimtxmanager_addr=${CLAIMTXMANAGER_ADDR:-"0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"}
+    export claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
 
-    erc20_token_name="e2e test"
-    erc20_token_symbol="E2E"
+    export erc20_token_name="e2e test"
+    export erc20_token_symbol="E2E"
 
     fund_claim_tx_manager
 }

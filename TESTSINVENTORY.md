@@ -12,11 +12,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L309) | |
 | Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L561) | |
 | Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L530) | |
-| bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L113) | |
+| bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L116) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L60) | |
-| bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L74) | |
+| bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L77) | |
 | bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L33) | |
-| cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L233) | |
+| cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L236) | |
 
 ## AggLayer Tests
 
