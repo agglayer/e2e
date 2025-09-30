@@ -632,47 +632,48 @@ function process_bridge_claim() {
     local destination_rpc_url="$7"
     local from_address="${8:-}"
 
-    # Fetch bridge details using the transaction hash and extract the deposit count.
-    run get_bridge "$origin_network_id" "$bridge_tx_hash" 100 10 "$origin_aggkit_bridge_url" "$from_address" || {
+    # 1. Fetch bridge details
+    local bridge
+    bridge="$(get_bridge "$origin_network_id" "$bridge_tx_hash" 100 10 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
-        return $?
+        return 1
     }
-    local bridge="$output"
 
-    # Find the L1 info tree index for the given deposit count.
+    # 2. Find the L1 info tree index
     local deposit_count
     deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
-    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$origin_aggkit_bridge_url" || {
+    local l1_info_tree_index
+    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$origin_aggkit_bridge_url")" || {
         log "❌ process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
-        return $?
+        return 1
     }
-    local l1_info_tree_index="$output"
 
-    # Retrieve the injected L1 info leaf using the L1 info tree index.
-    run find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$destination_aggkit_bridge_url" || {
+    # 3. Retrieve the injected L1 info leaf
+    local injected_info
+    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$destination_aggkit_bridge_url")" || {
         log "❌ process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
-        return $?
+        return 1
     }
-    local injected_info="$output"
 
-    # Generate the claim proof based on the network ID, deposit count, and L1 info tree index.
-    l1_info_tree_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
-    run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url" || {
+    # 4. Generate the claim proof
+    l1_info_tree_index="$(echo "$injected_info" | jq -r '.l1_info_tree_index')"
+    local proof
+    proof="$(generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url")" || {
         log "❌ process_bridge_claim failed at 🛡️ generate_claim_proof (index: $l1_info_tree_index)"
-        return $?
+        return 1
     }
-    local proof="$output"
 
-    # Submit the claim using the generated proof and bridge details.
-    run claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr" || {
+    # 5. Submit the claim
+    local global_index
+    global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr")" || {
         log "❌ process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
-        return $?
+        return 1
     }
-    local global_index="$output"
 
     log "✅ process_bridge_claim succeeded! (global_index: $global_index)"
     echo "$global_index"
 }
+
 
 function get_legacy_token_migrations() {
     local network_id="$1"
