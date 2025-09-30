@@ -167,7 +167,6 @@ function get_network_config() {
             --deposit-count "$initial_deposit_count" \
             --deposit-network "$network_id" \
             --bridge-service-url "$bridge_service_url" \
-            --destination-address "$l2_eth_address" \
             --wait "$claim_wait_duration"
 
     token_hash=$(cast keccak "$(cast abi-encode --packed 'f(uint32, address)' "$network_id" "$test_erc20_addr")")
