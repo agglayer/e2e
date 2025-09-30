@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Variables set by test environment setup functions - disable shellcheck warnings
+# shellcheck disable=SC2154
+declare l2_rpc_url l2_private_key claimtxmanager_addr
+
 function fund_claim_tx_manager() {
     local balance
 
