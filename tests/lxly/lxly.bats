@@ -33,6 +33,12 @@ setup() {
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount"
 
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to bridge asset from L1 to L2" >&3
+        echo "$output" >&3
+        exit 1
+    fi
+
     run polycli_bridge_asset_get_info "$output" "$l1_rpc_url" "$l1_bridge_addr"
     if [[ $status -ne 0 ]]; then
         echo "Failed to get deposit info" >&3
@@ -87,6 +93,12 @@ setup() {
             --rpc-url "$l2_rpc_url" \
             --private-key "$l2_private_key"
 
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to bridge asset from L2 to L1" >&3
+        echo "$output" >&3
+        exit 1
+    fi
+
     run polycli_bridge_asset_get_info "$output" "$l2_rpc_url" "$l2_bridge_addr"
     if [[ $status -ne 0 ]]; then
         echo "Failed to get deposit info" >&3
@@ -96,7 +108,7 @@ setup() {
     deposit_count=$(echo "$output" | jq -r '.depositCount')
     echo "Deposit count: $deposit_count" >&3
 
-    run polycli ulxly claim asset \
+    polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
@@ -116,6 +128,12 @@ setup() {
         --bridge-address "$l1_bridge_addr" \
         --rpc-url "$l1_rpc_url" \
         --private-key "$l1_private_key"
+
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to bridge asset from L1 to L2" >&3
+        echo "$output" >&3
+        exit 1
+    fi
 
     run polycli_bridge_asset_get_info "$output" "$l1_rpc_url" "$l1_bridge_addr"
     if [[ $status -ne 0 ]]; then
@@ -148,6 +166,12 @@ setup() {
             --bridge-address "$l2_bridge_addr" \
             --rpc-url "$l2_rpc_url" \
             --private-key "$l2_private_key"
+
+    if [[ $status -ne 0 ]]; then
+        echo "Failed to bridge asset from L2 to L1" >&3
+        echo "$output" >&3
+        exit 1
+    fi
 
     run polycli_bridge_asset_get_info "$output" "$l2_rpc_url" "$l2_bridge_addr"
     if [[ $status -ne 0 ]]; then
