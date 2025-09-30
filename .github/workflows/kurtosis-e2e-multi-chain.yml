@@ -210,15 +210,15 @@ jobs:
       - name: Run e2e tests
         run: |
           pushd agglayer-e2e || exit 1
-                    
+
           export ENCLAVE_NAME=cdk
           export NETWORK_TARGET=network1
-          export CLAIM_WAIT_DURATION=60m
+          export CLAIM_WAIT_DURATION=10m
           bats ./tests/lxly/multi-chain-bridge.bats
 
           # export ENCLAVE_NAME=cdk
           # export NETWORK_TARGET=network2
-          # export CLAIM_WAIT_DURATION=60m
+          # export CLAIM_WAIT_DURATION=10m
           # bats ./tests/lxly/multi-chain-bridge.bats
 
           popd
