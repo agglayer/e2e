@@ -13,7 +13,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L561) | |
 | Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L530) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
-| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L59) | |
+| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L65) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
 | bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L26) | |
 | cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L249) | |
