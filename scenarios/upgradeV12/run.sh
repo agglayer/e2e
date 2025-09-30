@@ -91,30 +91,28 @@ timelock_address=$(curl -s $(kurtosis port print $kurtosis_enclave_name contract
 
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$scheduleData'"
 
-# monitor timelock?
+# function hashOperationBatch(
+#         address[] calldata targets,
+#         uint256[] calldata values,
+#         bytes[] calldata payloads,
+#         bytes32 predecessor,
+#         bytes32 salt
+#     ) public pure virtual returns (bytes32 hash) {
+#         return keccak256(abi.encode(targets, values, payloads, predecessor, salt));
+#     }
 
-# function genTimelockOperation(target: any, value: any, data: any, predecessor: any, salt: any) {
-#     const abiEncoded = ethers.AbiCoder.defaultAbiCoder().encode(
-#         ['address', 'uint256', 'bytes', 'uint256', 'bytes32'],
-#         [target, value, data, predecessor, salt],
-#     );
-#     const id = ethers.keccak256(abiEncoded);
-#     return {
-#         id,
-#         target,
-#         value,
-#         data,
-#         predecessor,
-#         salt,
-#     };
-# }
-# WE NEED TO CALCULATE THE ID FOLLOWING THE ABOVE FORMAT, and REPLACE $(echo 1 | cast to-bytes32) with the right ID
+targets=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.targets | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+values=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.values | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+payloads=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.payloads | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+predecessor=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.predecessor")
+salt=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.salt")
 
-while [ $(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' $(echo 1 | cast to-bytes32)") == "false" ]; do
+operationId=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'hashOperationBatch(address[],uint256[],bytes[],bytes32,bytes32)(bytes32)' '$targets' '$values' '$payloads' '$predecessor' '$salt'")
+
+while [ $(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' '$operationId'") == "false" ]; do
     echo "Operation not ready. Retrying in 10 seconds..."
     sleep 10
 done
 
 executeData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .executeData")
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$executeData'"
-
