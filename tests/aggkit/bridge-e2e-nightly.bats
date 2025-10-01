@@ -231,7 +231,8 @@ setup() {
 
     # Claim Asset A on L2
     echo "==== 🔐 Claiming deposit A on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_a" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_a" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     # Wait for token mapping for Asset A
     run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -253,7 +254,8 @@ setup() {
 
     # Claim Asset B on L2
     echo "==== 🔐 Claiming deposit B on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_b" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_b" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     # Wait for token mapping for Asset B
     run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -315,7 +317,8 @@ setup() {
 
     # Claim Asset A on L2
     echo "==== 🔐 Claiming deposit A on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_a" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_a" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     # Wait for token mapping for Asset A
     run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -331,7 +334,8 @@ setup() {
 
     # Claim Asset B on L2
     echo "==== 🔐 Claiming deposit B on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_b" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_b" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     # Wait for token mapping for Asset B
     run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -393,7 +397,8 @@ setup() {
 
     # Claim Asset B on L2 (claiming B first)
     echo "==== 🔐 Claiming deposit B on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_b" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_b" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     # Wait for token mapping for Asset B
     run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -409,7 +414,8 @@ setup() {
 
     # Claim Asset A on L2 (claiming A second)
     echo "==== 🔐 Claiming deposit A on L2 ($L2_RPC_URL)" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_a" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_a" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    assert_success
 
     # Wait for token mapping for Asset A
     run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"

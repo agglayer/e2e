@@ -107,7 +107,7 @@ _resolve_required_urls() {
 
     # AGGKIT_BRIDGE_URL
     aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
-        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "aggkit-001-bridge" "rest" "cdk-node-001" "rest" \
         "Failed to resolve aggkit bridge url from all fallback nodes" true)
     export aggkit_bridge_url
 
@@ -432,37 +432,37 @@ _agglayer_cdk_common_multi_setup() {
 
     # Resolve L2 RPC URLs
     l2_rpc_url_1=$(_resolve_url_or_use_env L2_RPC_URL_1 \
-        "cdk-erigon-rpc-001" "rpc" \
-        "Failed to resolve L2 RPC URL (rollup 1) " true)
+        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL (Rollup 1) " true)
     readonly l2_rpc_url_1
 
     l2_rpc_url_2=$(_resolve_url_or_use_env L2_RPC_URL_2 \
-        "cdk-erigon-rpc-002" "rpc" \
-        "Failed to resolve L2 RPC URL (rollup 2) " true)
+        "op-el-1-op-geth-op-node-002" "rpc" "cdk-erigon-rpc-002" "rpc" \
+        "Failed to resolve L2 RPC URL (Rollup 2) " true)
     readonly l2_rpc_url_2
 
     if [[ $number_of_chains -eq 3 ]]; then
         l2_rpc_url_3=$(_resolve_url_or_use_env L2_RPC_URL_3 \
-            "cdk-erigon-rpc-003" "rpc" \
-            "Failed to resolve L2 RPC URL (rollup 3) " true)
+            "op-el-1-op-geth-op-node-003" "rpc" "cdk-erigon-rpc-003" "rpc" \
+            "Failed to resolve L2 RPC URL (Rollup 3) " true)
         readonly l2_rpc_url_3
     fi
 
     # Resolve Aggkit Bridge URLs
     aggkit_bridge_1_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_1_URL \
-        "aggkit-001" "rest" "cdk-node-001" "rest" \
-        "Failed to resolve PP1 aggkit bridge url from all fallback nodes" true)
+        "aggkit-001-bridge" "rest" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve Rollup 1 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_1_url
 
     aggkit_bridge_2_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_2_URL \
-        "aggkit-002" "rest" "cdk-node-002" "rest" \
-        "Failed to resolve PP2 aggkit bridge url from all fallback nodes" true)
+        "aggkit-002-bridge" "rest" "cdk-node-002" "rest" \
+        "Failed to resolve Rollup 2 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_2_url
 
     if [[ $number_of_chains -eq 3 ]]; then
         aggkit_bridge_3_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_3_URL \
-            "aggkit-003" "rest" "cdk-node-003" "rest" \
-            "Failed to resolve PP3 aggkit bridge url from all fallback nodes" true)
+            "aggkit-003-bridge" "rest" "cdk-node-003" "rest" \
+            "Failed to resolve Rollup 3 aggkit bridge url from all fallback nodes" true)
         readonly aggkit_bridge_3_url
     fi
 
@@ -498,28 +498,28 @@ _agglayer_cdk_common_multi_setup() {
 
     # Gas token addresses
     gas_token_rollup_1=$(_get_gas_token_address "001")
-    echo "Gas token address (rollup 1)=$gas_token_rollup_1" >&3
+    echo "Gas token address (Rollup 1)=$gas_token_rollup_1" >&3
 
     gas_token_rollup_2=$(_get_gas_token_address "002")
-    echo "Gas token address (rollup 2)=$gas_token_rollup_2" >&3
+    echo "Gas token address (Rollup 2)=$gas_token_rollup_2" >&3
 
     if [[ $number_of_chains -eq 3 ]]; then
         gas_token_rollup_3=$(_get_gas_token_address "003")
-        echo "Gas token address (rollup 3)=$gas_token_rollup_3" >&3
+        echo "Gas token address (Rollup 3)=$gas_token_rollup_3" >&3
     fi
 
     echo "=== L1 network id=$l1_rpc_network_id ===" >&3
-    echo "=== L2 rollup 1 network id=$rollup_1_network_id ===" >&3
-    echo "=== L2 rollup 2 network id=$rollup_2_network_id ===" >&3
     echo "=== L1 RPC URL=$l1_rpc_url ===" >&3
-    echo "=== L2 rollup 1 URL=$l2_rpc_url_1 ===" >&3
-    echo "=== L2 rollup 2 URL=$l2_rpc_url_2 ===" >&3
-    echo "=== Aggkit Bridge 1 URL=$aggkit_bridge_1_url ===" >&3
-    echo "=== Aggkit Bridge 2 URL=$aggkit_bridge_2_url ===" >&3
+    echo "=== L2 Rollup 1 ID=$rollup_1_network_id ===" >&3
+    echo "=== L2 Rollup 1 URL=$l2_rpc_url_1 ===" >&3
+    echo "=== Rollup 1 Bridge Service URL=$aggkit_bridge_1_url ===" >&3
+    echo "=== L2 Rollup 2 ID=$rollup_2_network_id ===" >&3
+    echo "=== L2 Rollup 2 URL=$l2_rpc_url_2 ===" >&3
+    echo "=== Rollup 2 Bridge Service URL=$aggkit_bridge_2_url ===" >&3
     if [[ $number_of_chains -eq 3 ]]; then
-        echo "=== L2 rollup 3 network id=$rollup_3_network_id ===" >&3
-        echo "=== L2 rollup 3 URL=$l2_rpc_url_3 ===" >&3
-        echo "=== Aggkit Bridge 3 URL=$aggkit_bridge_3_url ===" >&3
+        echo "=== L2 Rollup 3 ID=$rollup_3_network_id ===" >&3
+        echo "=== L2 Rollup 3 URL=$l2_rpc_url_3 ===" >&3
+        echo "=== Rollup 3 Bridge Service URL=$aggkit_bridge_3_url ===" >&3
     fi
 
     receiver1_private_key="0x9eece9566497455837334ad4d2cc1f81e24ea4fc532c5d9ac2c471df8560f5dd"

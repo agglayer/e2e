@@ -249,23 +249,22 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L272) | |
-| Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L350) | |
+| Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L274) | |
+| Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L354) | |
 | Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L194) | |
 | Bridge message A → Bridge asset B → Claim asset A → Claim message B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L10) | |
 | Bridge message A → Bridge asset B → Claim message A → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L71) | |
 | Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L132) | |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
-| Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L77) | |
+| Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L28) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L98) | |
-| Global Index PP old contracts:  | [Link](./tests/aggkit/global-index-pp-old-contracts.bats#L40) | |
-| L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L62) | |
-| L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L188) | |
-| L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L139) | |
+| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L108) | |
+| L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
+| L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L194) | |
+| L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L143) | |
 | L1 → Rollup 3 (native/WETH) → Rollup 1 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L16) | |
-| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L158) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L108) | |
+| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L274) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L224) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L24) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
@@ -277,7 +276,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L516) | |
 | Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L62) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
-| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L70) | |
+| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L10) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
