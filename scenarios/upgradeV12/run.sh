@@ -57,8 +57,10 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-cont
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY="$l2_admin_private_key" > /opt/zkevm-contracts/.env"
 
 rollup_manager_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r .polygonRollupManagerAddress")
+version=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'ROLLUP_MANAGER_VERSION()' | cast to-ascii")
+
 upgrade_parameters='{
-    "tagSCPreviousVersion": "v1.1.0",
+    "tagSCPreviousVersion": "'$version'",
     "rollupManagerAddress": "'$rollup_manager_address'",
     "timelockDelay": 3600,
     "timelockSalt": "",
@@ -116,3 +118,4 @@ done
 
 executeData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .executeData")
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$executeData'"
+
