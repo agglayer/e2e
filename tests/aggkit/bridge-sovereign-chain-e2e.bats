@@ -18,7 +18,8 @@ setup() {
   readonly migrate_legacy_token_func_sig="function migrateLegacyToken(address, uint256, bytes)"
   readonly remove_legacy_sovereign_token_address_func_sig="function removeLegacySovereignTokenAddress(address)"
 
-  readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
+  readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+  readonly l2_sovereign_admin_public_key=$(cast wallet address --private-key "$l2_sovereign_admin_private_key")
 }
 
 @test "Test GlobalExitRoot removal" {
@@ -73,6 +74,13 @@ setup() {
 
 @test "Test Sovereign Chain Bridge Events" {
   log "=== 🧑‍💻 Running Sovereign Chain Bridge Events" >&3
+  # Sanity check, the l2_sovereign_admin_private_key must match the bridgeManager address
+  brdigeManagerAddr=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "bridgeManager()(address)")
+  if [ "$l2_sovereign_admin_public_key" != "$brdigeManagerAddr" ]; then
+  log "brdigeManagerAddr missmatch: local: $l2_sovereign_admin_public_key contract.bridgeManager: $brdigeManagerAddr" >& 3
+    fail 
+  fi
+
   run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
   assert_success
 
@@ -87,6 +95,18 @@ setup() {
   run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
   assert_success
 
+  # cut --------------
+
+  #local FUNDING_AMOUNT_ETH
+  #FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 10 ETH if not provided
+  #local FUNDING_AMOUNT_WEI
+  #  FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
+  #log "== funding $l2_sovereign_admin_public_key with $FUNDING_AMOUNT_ETH L2_RPC_URL=$L2_RPC_URL" >&3
+  #run cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$L2_PRIVATE_KEY" --value "$FUNDING_AMOUNT_WEI" "$l2_sovereign_admin_public_key"
+  #assert_success
+  
+  # cut --------------
+  
   # Assert that balance of gas token (on the L1) is correct
   run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
   assert_success
@@ -126,7 +146,7 @@ setup() {
   local l2_token_addr_sovereign
   l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
   log "L2 Token address sovereign: $l2_token_addr_sovereign"
-
+  
   # event SetSovereignTokenAddress
   log "Emitting SetSovereignTokenAddress event"
   arg1='[0]'
