@@ -53,7 +53,7 @@ _setup_contract_addresses() {
     tester_contract_address="${TESTER_CONTRACT_ADDRESS:-0xc54E34B55EF562FE82Ca858F70D1B73244e86388}"
     export test_erc20_buggy_addr="${TEST_ERC20_BUGGY_ADDRESS:-0x22939b3A4dFD9Fc6211F99Cdc6bd9f6708ae2956}"
     test_lxly_proxy_addr="${TEST_LXLY_PROXY_ADDRESS:-0x8Cf49821aAFC2859ACEa047a1ee845A76D5C4191}"
-    export test_erc20_addr="${TEST_ERC20_ADDRESS:-0x6E3AD1d922fe009dc3Eb267827004ccAA4f23f3d}"
+    export test_erc20_addr="${TEST_ERC20_ADDRESS:-0xDE3F1241Fdc115167412FEBbC03Ad8Ba48f70e64}"
     export pp_weth_address="${TEST_PP_WETH_ADDRESS:-$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')}"
     # pp_weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
     export pol_address="${POL_ADDRESS:-0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E}"
@@ -125,7 +125,7 @@ _setup_contract_addresses() {
         local progress_percent=$((index * 100 / total_scenarios))
         _log_file_descriptor "3" "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log"
         
-        if ! _setup_single_test_account "$index" "$scenario" "L2_TO_L1" 2>>"$output_dir/setup_debug_${index}.log"; then
+        if ! _setup_single_test_account "$index" "$scenario" "L1_TO_L2" 2>>"$output_dir/setup_debug_${index}.log"; then
             _log_file_descriptor "3" "❌ Failed to set up account for test $index" | tee -a "$setup_log"
             setup_failures=$((setup_failures + 1))
         else

@@ -38,7 +38,7 @@
         "ForceUpdate": "True",
         "Amount": "1",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x37e391c3"
+        "ExpectedResultClaim": ["0x37e391c3","0x6f625c40"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -68,7 +68,7 @@
         "ForceUpdate": "False",
         "Amount": "Random",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultClaim": ["Success","0x6f625c40"]
     },
     {
         "DestinationAddress": "EOA",
