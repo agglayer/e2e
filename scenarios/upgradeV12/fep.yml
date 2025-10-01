@@ -15,23 +15,18 @@ args:
   # just to ensure we use appropiate priv key on run.sh
   l1_preallocated_mnemonic: "giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"
 
-
-  # Arbitrary key for the SP1 prover. This will not work if op_succinct_mock is set to false. Replace with a valid SPN key if you want to use the network provers.
-  # cast wallet private-key --mnemonic "giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"
-  # NOTE: for sp1 early version the network prover key not support '0x' prefix
-  sp1_prover_key: "15697dec162680447e56c46ceefb0eb8225ec2e9404e9ce48128c8954b7be272" # XXX: Replace with an active key
   # Valid values are: "network-prover", "mock-prover"
-  agglayer_prover_primary_prover: "network-prover"
+  agglayer_prover_primary_prover: "mock-prover"
   # Valid values are: "network-prover", "mock-prover"
-  aggkit_prover_primary_prover: "network-prover"
+  aggkit_prover_primary_prover: "mock-prover"
   consensus_contract_type: fep
   # aggkit_prover_image: "ghcr.io/agglayer/aggkit-prover:feat-rust-proposer"
   # false = network
   # Using the network provers will use the real SP1 verifier contract which is also deployed together in the Kurtosis devnet.
   # A mock verifier is used otherwise.
-  op_succinct_mock: false
+  op_succinct_mock: true
   # Enable real (non-mock) verifier on contracts
-  zkevm_use_real_verifier: true
+  zkevm_use_real_verifier: false
   # Enable the integration with the Agglayer
   op_succinct_agglayer: true
   # Proof type. Must match the verifier gateway contract type. Options: "plonk", "groth16", "compressed", "core"
@@ -52,7 +47,7 @@ args:
   # OP Networks rely on L1 blocks to have finalization on L2. This means if the L1 blocktime is very fast, OP Succinct proof requests will have to bundle many L1 blocks into a single proof.
   # This will significantly increase cycles even if the L2 network is empty. Instead of having 2s, for OP Succinct deployments, we recommend 12s.
   # Note this will noticeably increase the deployment time because of the increased L1 finality.
-  l1_seconds_per_slot: 12
+  l1_seconds_per_slot: 2
 
 optimism_package:
   # We need this for pre-deployed allocs https://github.com/ethpandaops/optimism-package/compare/main...xavier-romero:optimism-package:main#diff-c479a5b20e37b19a976045939f01e8a6deb6a062a147e08b81049469d512d00cR235
