@@ -54,6 +54,7 @@ _fund_claim_tx_manager() {
     set +e
     polycli ulxly claim asset \
             --bridge-address "$l2_bridge_addr" \
+            --destination-address "$l2_eth_address" \
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
             --deposit-count "$initial_deposit_count" \
@@ -94,6 +95,7 @@ _fund_claim_tx_manager() {
 
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
+            --destination-address "$l1_eth_address" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
@@ -149,6 +151,7 @@ _fund_claim_tx_manager() {
 
     polycli ulxly claim asset \
             --bridge-address "$l1_bridge_addr" \
+            --destination-address "$l1_eth_address" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --deposit-count "$initial_deposit_count" \
