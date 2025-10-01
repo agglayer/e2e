@@ -1101,7 +1101,14 @@ _run_single_bridge_test() {
 
     # Add token address
     local token_addr
-    token_addr=$(_get_token_address "$test_token" "$bridge_direction")
+    # For custom gas token networks, when bridging from L2 -> L1, the gas token should always be 0x0.
+    # But when we derive the gas token address from the bridge contract, it will return the gas token contract address on L1.
+    # This will cause "no contract code at given address" error when bridging from L2.
+    if [[ $bridge_direction == "L2_TO_L1" && $test_token == "GasToken" ]]; then
+        token_addr="0x0000000000000000000000000000000000000000"
+    else
+        token_addr=$(_get_token_address "$test_token" "$bridge_direction")
+    fi
     bridge_command="$bridge_command --token-address $token_addr"
 
     # Add metadata with test_index and token_type parameters
