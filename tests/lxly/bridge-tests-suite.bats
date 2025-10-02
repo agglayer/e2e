@@ -27,6 +27,7 @@ setup_file() {
     export log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
     global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
     export global_timeout
+    export max_concurrent="${MAX_CONCURRENT:-10}"
 }
 
 setup() {
@@ -183,7 +184,6 @@ _calculate_test_erc20_address() {
     echo "========================================" | tee -a "$bridge_log" >&3
 
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    local max_concurrent=5
     if [[ $successful_count -lt 5 ]]; then
         max_concurrent=$successful_count
     fi
@@ -408,7 +408,6 @@ _calculate_test_erc20_address() {
     echo "========================================" | tee -a "$bridge_log" >&3
 
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    local max_concurrent=5
     if [[ $successful_count -lt 5 ]]; then
         max_concurrent=$successful_count
     fi
