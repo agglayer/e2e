@@ -10,7 +10,7 @@ args:
   agglayer_image: "ghcr.io/agglayer/agglayer:0.3.5"
   op_succinct_proposer_image: "ghcr.io/agglayer/op-succinct/op-succinct:v2.3.4-agglayer"
   zkevm_bridge_service_image: "hermeznetwork/zkevm-bridge-service:v0.6.2-RC3"
-
+  agglayer_contracts_image: "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v11.0.0-rc.2-fork.12"
 
   # just to ensure we use appropiate priv key on run.sh
   l1_preallocated_mnemonic: "giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"

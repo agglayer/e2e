@@ -5,7 +5,7 @@ load_env
 
 # kurtosis
 kurtosis_enclave_name="upgradeV12"
-kurtosis_repo_tag="v0.4.18"
+kurtosis_repo_tag="main"
 docker_network_name="kt-$kurtosis_enclave_name"
 
 # preallocated variables to make things coherent and easier
@@ -122,7 +122,11 @@ executeData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$executeData'"
 
 
--- ADD ROUTES TO AGL
+agglayergw_address=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)//opt/zkevm/combined.json | jq -r .aggLayerGatewayAddress)
+
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '0x00000000'"
+# addPessimisticVKeyRoute
+# -- ADD ROUTES TO AGLAYER GW
 
 --. selectedOpSuccinctConfigName
 
