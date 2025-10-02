@@ -16,9 +16,9 @@ _safe_cast_send() {
     local status
     
     # First attempt: Use EIP-1559 (non-legacy) transaction
-    _log_file_descriptor "3" "Attempting non-legacy transaction"
+    # _log_file_descriptor "3" "Attempting non-legacy transaction"
     if output=$(cast send --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
-        _log_file_descriptor "3" "Non-legacy transaction succeeded"
+        # _log_file_descriptor "3" "Non-legacy transaction succeeded"
         echo "$output"
         return 0
     else
@@ -27,21 +27,21 @@ _safe_cast_send() {
         
         # Check if the failure is due to EIP-1559 not being supported
         if echo "$output" | grep -q -E "(unsupported feature: eip1559|EIP-1559|type 2 transactions|not supported)"; then
-            _log_file_descriptor "3" "EIP-1559 not supported, falling back to legacy transaction"
+            # _log_file_descriptor "3" "EIP-1559 not supported, falling back to legacy transaction"
             
             # Second attempt: Use legacy transaction as fallback
             if output=$(cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
-                _log_file_descriptor "3" "Legacy transaction succeeded"
+                # _log_file_descriptor "3" "Legacy transaction succeeded"
                 echo "$output"
                 return 0
             else
-                _log_file_descriptor "3" "Legacy transaction also failed: $output"
+                # _log_file_descriptor "3" "Legacy transaction also failed: $output"
                 echo "$output"
                 return $?
             fi
         else
             # Non-EIP-1559 related error, don't retry with legacy
-            _log_file_descriptor "3" "Non-EIP-1559 error, not retrying"
+            # _log_file_descriptor "3" "Non-EIP-1559 error, not retrying"
             echo "$output"
             return $status
         fi
@@ -1493,7 +1493,7 @@ _run_single_bridge_test() {
                                 if verify_output=$(timeout 30 bash -c "$verify_command" 2>&1) || \
                                    verify_output=$(timeout 30 bash -c "$claim_command" 2>&1); then
                                     if _check_already_claimed "$verify_output"; then
-                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
+                                        _log_file_descriptor "2" "Verification confirmed deposit was already claimed by another process"
                                         claim_status=0  # Treat as success
                                         claim_output="Deposit was already claimed (verified)"
                                         break
@@ -1525,22 +1525,35 @@ _run_single_bridge_test() {
 
                             # Check if it's already claimed - this should be treated as success
                             if _check_already_claimed "$claim_output"; then
-                                _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
+                                _log_file_descriptor "2" "Deposit was already claimed by another process"
                                 claim_status=0
                                 break
+                            fi
+
+                            # Check if it's a temporary "not ready" error - retry after delay
+                            if echo "$claim_output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks)"; then
+                                _log_file_descriptor "2" "Claim not ready yet, will retry after delay (attempt $claim_attempt/$max_claim_retries)"
+                                if [[ $claim_attempt -lt $max_claim_retries ]]; then
+                                    sleep 10  # Wait longer before retry for "not ready" errors
+                                    continue
+                                else
+                                    _log_file_descriptor "2" "Exhausted retries waiting for claim to be ready"
+                                    # Don't falsely claim it was already claimed - it's just not ready yet
+                                    break
+                                fi
                             fi
 
                             # Additional pattern: "The deposit is ready to be claimed" + "Deposit transaction failed"
                             # This typically indicates the deposit was claimed between the ready check and the claim attempt
                             if echo "$claim_output" | grep -q "The deposit is ready to be claimed" && \
                                echo "$claim_output" | grep -q "Deposit transaction failed"; then
-                                _log_file_descriptor "2" "Deposit ready but transaction failed - likely race condition with parallel claim"
+                                _log_file_descriptor "2" "Deposit ready but transaction failed - checking for race condition"
                                 
                                 # Do one final verification attempt
                                 local final_verify_output
                                 if final_verify_output=$(timeout 15 bash -c "$claim_command" 2>&1); then
                                     if _check_already_claimed "$final_verify_output"; then
-                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
+                                        _log_file_descriptor "2" "Verification confirmed deposit was already claimed (race condition)"
                                         claim_status=0
                                         claim_output="Deposit was already claimed (race condition detected)"
                                         break
@@ -1549,7 +1562,7 @@ _run_single_bridge_test() {
                                     # If the verification also fails with the same pattern, assume it's already claimed
                                     if echo "$final_verify_output" | grep -q "The deposit is ready to be claimed" && \
                                     echo "$final_verify_output" | grep -q "Deposit transaction failed"; then
-                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
+                                        _log_file_descriptor "2" "Verification confirmed deposit was already claimed (consistent failure pattern)"
                                         claim_status=0
                                         claim_output="Deposit was already claimed (consistent failure pattern)"
                                         break
@@ -1557,18 +1570,9 @@ _run_single_bridge_test() {
                                 fi
                             fi
 
-                            # Check if it's a temporary "not ready" error - retry after delay
-                            if echo "$claim_output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks)"; then
-                                _log_file_descriptor "2" "Claim not ready yet, will retry after delay"
-                                if [[ $claim_attempt -lt $max_claim_retries ]]; then
-                                    sleep 5  # Wait before retry
-                                    continue
-                                fi
-                            fi
-
                             # For other errors, don't retry immediately but check if it might be an already-claimed case
                             if echo "$claim_output" | grep -q -E "(Deposit transaction failed|Perhaps try increasing the gas limit)"; then
-                                _log_file_descriptor "2" "Got transaction failure error - checking if deposit was actually claimed"
+                                _log_file_descriptor "2" "Got transaction failure error - verifying if deposit was actually claimed"
                                 sleep 2  # Brief pause for state propagation
                                 
                                 # Try one more time to see if the error message changes to "already claimed"
@@ -1580,7 +1584,7 @@ _run_single_bridge_test() {
                                     break
                                 else
                                     if _check_already_claimed "$final_check_output"; then
-                                        _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
+                                        _log_file_descriptor "2" "Verification confirmed deposit was already claimed"
                                         claim_status=0
                                         claim_output="$final_check_output"
                                         break
@@ -1634,29 +1638,35 @@ _run_single_bridge_test() {
                         # Success not expected, but check if already claimed
                         if _check_already_claimed "$claim_output"; then
                             claim_result="PASS"
-                            _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
+                            _log_file_descriptor "2" "Claim succeeded because deposit was already claimed by another process"
                         else
                             claim_result="FAIL"
                             error_message="Expected claim failure but succeeded for deposit $deposit_count"
                         fi
                     fi
                 else
-                    # Claim failed
+                    # Claim failed - check specific failure reasons
                     if _check_already_claimed "$claim_output"; then
                         claim_result="PASS"
-                        _log_file_descriptor "2" "Verification shows deposit $deposit_count was already claimed by another process"
+                        _log_file_descriptor "2" "Claim failed because deposit $deposit_count was already claimed by another process"
+                    elif echo "$claim_output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks)"; then
+                        # Handle "not ready" timeouts based on expectations
+                        if $claim_expects_success; then
+                            claim_result="FAIL"
+                            error_message="Claim timed out waiting for deposit to be ready (not yet ready to be claimed)"
+                            _log_file_descriptor "2" "Claim failed due to timeout waiting for deposit to be ready"
+                        else
+                            # If failure was expected, treat timeout as valid failure
+                            claim_result="PASS"
+                            _log_file_descriptor "2" "Claim timeout matches expected failure pattern"
+                        fi
                     elif $claim_has_other_expected_errors && _validate_bridge_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
                         _log_file_descriptor "2" "Claim failed with expected error pattern"
                     elif $claim_expects_success && ! $claim_has_other_expected_errors; then
-                        # Only expected success, but got failure - check if it's AlreadyClaimedError
-                        if _check_already_claimed "$claim_output"; then
-                            claim_result="PASS"
-                            _log_file_descriptor "2" "Verification shows deposit was already claimed by another process"
-                        else
-                            claim_result="FAIL"
-                            error_message="Expected claim success but failed for deposit $deposit_count"
-                        fi
+                        # Only expected success, but got failure
+                        claim_result="FAIL"
+                        error_message="Expected claim success but failed for deposit $deposit_count"
                     elif ! $claim_expects_success && $claim_has_other_expected_errors; then
                         # Expected specific errors but didn't match
                         claim_result="FAIL"

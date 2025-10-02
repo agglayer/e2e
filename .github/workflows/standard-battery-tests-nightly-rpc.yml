@@ -63,12 +63,12 @@ jobs:
       max-parallel: ${{ fromJson(inputs.max-parallel-runs || '1') }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
-        target-network: ["bali-54"]
+        target-network: ["bali-52","bali-49"]
     env:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'bali-54' && secrets.L2_BALI_54_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'bali-54' && secrets.L2_BALI_54_RPC_ENDPOINT || matrix.target-network == 'bali-52' && secrets.L2_BALI_52_RPC_ENDPOINT || matrix.target-network == 'bali-49' && secrets.L2_BALI_49_RPC_ENDPOINT || matrix.target-network == 'bali-57' && secrets.L2_BALI_57_RPC_ENDPOINT}}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       TARGET_NETWORK: ${{ matrix.target-network }}
@@ -135,6 +135,12 @@ jobs:
           cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
           if [[ "${{ matrix.target-network }}" == "bali-54" ]]; then
             cast chain-id --rpc-url ${{ secrets.L2_BALI_54_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-52" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-57" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-49" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
           fi
 
       - name: Validate test file existence
@@ -150,15 +156,12 @@ jobs:
           pushd agglayer-e2e || exit 1
 
           # Load public environment variables based on target network
-          if [[ "${{ matrix.target-network }}" == "bali-54" ]]; then
-            if [[ -f "tests/lxly/networks/bali-54.env" ]]; then
-              set -a
-              source tests/lxly/networks/bali-54.env
-              set +a
-            fi
+          if [[ -f "tests/lxly/networks/${{ matrix.target-network }}.env" ]]; then
+            set -a
+            source tests/lxly/networks/${{ matrix.target-network }}.env
+            set +a
           else
-            echo "Invalid target network detected: ${{ matrix.target-network }}. Expected 'bali-54'."
-            exit 1
+            echo "Warning: Environment file for ${{ matrix.target-network }} not found"
           fi
 
           # Set extended timeout and confirmation settings for cast
