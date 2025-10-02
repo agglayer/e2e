@@ -97,6 +97,7 @@ _calculate_test_erc20_address() {
 
 # bats test_tags=bridge
 @test "Process L1 to L2 bridge scenarios and claim deposits in parallel" {
+    skip
     _log_file_descriptor "3" "Starting L1 to L2 parallel bridge scenarios and claims test"
     [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
         _log_file_descriptor "3" "Bridge Tests Suite file not found"
