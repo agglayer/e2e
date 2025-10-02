@@ -26,10 +26,11 @@ function polycli_bridge_asset_get_info() {
     clean_output=$(echo "$bridge_asset_output" | sed -r 's/\x1B\[[0-9;]*[JKmsu]//g')
 
     # get the deposit count from the output
-    depositCount=$(grep -oP 'depositCount=\K[0-9]+' <<< "$clean_output")
+    depositCount=$(sed -n 's/.*depositCount=\([0-9][0-9]*\).*/\1/p' <<< "$clean_output")
+
     if [[ -z "$depositCount" ]]; then
         # if that's ano old version of polycli, get the txhash for the bridge asset
-        bridge_tx_hash=$(grep -oP 'txHash=\K0x[a-fA-F0-9]+' <<< "$clean_output")
+        bridge_tx_hash=$(sed -n 's/.*txHash=\(0x[a-fA-F0-9][a-fA-F0-9]*\).*/\1/p' <<< "$clean_output")
         if [[ -z "$bridge_tx_hash" ]]; then
             echo "Bridge tx hash is empty"
             exit 1
