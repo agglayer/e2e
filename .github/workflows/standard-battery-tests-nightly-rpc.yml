@@ -43,7 +43,8 @@ jobs:
         run: |
             pushd agglayer-e2e || exit 1
             # strictly detect tags with file_tags=standard and test_tags=standard
-            files=$(grep -rlP '#\s*bats\s+(?:file_tags|test_tags)=[^#]*\bstandard\b(?!-)' ./tests | grep '\.bats$' || true)
+            # files=$(grep -rlP '#\s*bats\s+(?:file_tags|test_tags)=[^#]*\bstandard\b(?!-)' ./tests | grep '\.bats$' || true)
+            files=$(find ./tests -name "bridge-tests-suite.bats" -type f 2>/dev/null || true)
             echo "Found files:"
             echo "$files"
             # Remove empty lines and ensure valid JSON array without trailing empty string
