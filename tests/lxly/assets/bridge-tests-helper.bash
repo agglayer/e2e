@@ -920,12 +920,21 @@ _cleanup_max_amount_setup() {
 _check_already_claimed() {
     local output="$1"
     
-    # Check for "already claimed" patterns first - these should generally be treated as success
-    # We will not return 1 if this is false, because we will first need to attempt to claim it
-    if echo "$output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed)"; then
-        _log_file_descriptor "2" "Found 'already claimed' pattern - indicates success"
+    # Only check for explicit "already claimed" patterns, not retries or timeouts
+    # Be very specific to avoid false positives from retry/timeout scenarios
+    if echo "$output" | grep -q -E "(already been claimed|AlreadyClaimedError|the claim transaction has already been claimed|already claimed \(verified\)|already claimed \(race condition detected\)|already claimed \(consistent failure pattern\)|Deposit was already claimed|was already claimed by another process)"; then
+        _log_file_descriptor "2" "Found explicit 'already claimed' pattern - indicates success"
         return 0
     fi
+    
+    # Explicitly exclude retry/timeout patterns that should NOT be considered as "already claimed"
+    if echo "$output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks|retrying\.\.\.|unable to retrieve bridge deposit|Wait timer.*exceeded|timeout|connection refused)"; then
+        _log_file_descriptor "2" "Found retry/timeout pattern - NOT an 'already claimed' case"
+        return 1
+    fi
+    
+    # If no explicit "already claimed" pattern found, return false
+    return 1
 }
 
 _validate_bridge_error() {
