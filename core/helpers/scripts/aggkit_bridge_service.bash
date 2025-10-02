@@ -634,7 +634,7 @@ function process_bridge_claim() {
 
     # 1. Fetch bridge details
     local bridge
-    bridge="$(get_bridge "$origin_network_id" "$bridge_tx_hash" 100 10 "$origin_aggkit_bridge_url" "$from_address")" || {
+    bridge="$(get_bridge "$origin_network_id" "$bridge_tx_hash" 10 100 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         return 1
     }
@@ -643,14 +643,14 @@ function process_bridge_claim() {
     local deposit_count
     deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     local l1_info_tree_index
-    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 100 5 "$origin_aggkit_bridge_url")" || {
+    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 10 50 "$origin_aggkit_bridge_url")" || {
         log "❌ process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
         return 1
     }
 
     # 3. Retrieve the injected L1 info leaf
     local injected_info
-    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 100 5 "$destination_aggkit_bridge_url")" || {
+    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 10 50 "$destination_aggkit_bridge_url")" || {
         log "❌ process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
         return 1
     }
