@@ -187,16 +187,39 @@ _fund_ephemeral_account() {
         return 1
     fi
     
-    # Send native token with timeout (no nonce management needed for sequential execution)
+    # Send native token with timeout - try non-legacy first, then fallback to legacy
     local tx_output
+    
+    # First attempt: Use EIP-1559 (non-legacy) transaction
+    _log_file_descriptor "2" "Attempting non-legacy (EIP-1559) transaction"
     if tx_output=$(cast send --rpc-url "$rpc_url" --private-key "$funding_private_key" \
          "$target_address" --value "$amount" 2>&1); then
-        _log_file_descriptor "2" "Successfully funded $target_address"
+        _log_file_descriptor "2" "Successfully funded $target_address with non-legacy transaction"
         return 0
     else
-        _log_file_descriptor "2" "Failed to fund $target_address"
-        _log_file_descriptor "2" "Transaction error: $tx_output"
-        return 1
+        _log_file_descriptor "2" "Non-legacy transaction failed: $tx_output"
+        
+        # Check if the failure is due to EIP-1559 not being supported
+        if echo "$tx_output" | grep -q -E "(unsupported feature: eip1559|EIP-1559|type 2 transactions|not supported)"; then
+            _log_file_descriptor "2" "EIP-1559 not supported, falling back to legacy transaction"
+            
+            # Second attempt: Use legacy transaction as fallback
+            if tx_output=$(cast send --legacy --rpc-url "$rpc_url" --private-key "$funding_private_key" \
+                 "$target_address" --value "$amount" 2>&1); then
+                _log_file_descriptor "2" "Successfully funded $target_address with legacy transaction"
+                return 0
+            else
+                _log_file_descriptor "2" "Legacy transaction also failed: $tx_output"
+                _log_file_descriptor "2" "Failed to fund $target_address"
+                _log_file_descriptor "2" "Transaction error: $tx_output"
+                return 1
+            fi
+        else
+            # Non-EIP-1559 related error, don't retry with legacy
+            _log_file_descriptor "2" "Failed to fund $target_address"
+            _log_file_descriptor "2" "Transaction error: $tx_output"
+            return 1
+        fi
     fi
 }
 
@@ -821,7 +844,7 @@ _setup_single_test_account() {
     
     # Fund ephemeral account with native tokens on source network (where bridging happens from)
     _log_file_descriptor "2" "Funding source network account for test $test_index ($bridge_direction)"
-    if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "100000000000000000"; then
+    if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "10000000000000000"; then
         _log_file_descriptor "2" "Failed to fund source network account for test $test_index"
         return 1
     fi
