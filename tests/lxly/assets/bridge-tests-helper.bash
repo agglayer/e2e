@@ -35,9 +35,10 @@ _safe_cast_send() {
                 echo "$output"
                 return 0
             else
+                local legacy_status=$?
                 # _log_file_descriptor "3" "Legacy transaction also failed: $output"
                 echo "$output"
-                return $?
+                return $legacy_status
             fi
         else
             # Non-EIP-1559 related error, don't retry with legacy
