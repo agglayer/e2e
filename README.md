@@ -213,7 +213,6 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - prover-stress
 - standard
 - standard-kurtosis
-- transaction-erc20
 - zkevm
 - zkevm-batch
 
@@ -232,6 +231,8 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - agglayer-cert
 - agglayer-rpc
 - bridge
+- bridge-erc20
+- bridge-eth
 - cdk-op-geth
 - check-hardfork
 - custom-gas-token
