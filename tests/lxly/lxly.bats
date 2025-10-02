@@ -8,6 +8,7 @@ setup_file() {
 
     export bridge_service_url=${BRIDGE_SERVICE_URL:-"$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)"}
     export claim_wait_duration=${CLAIM_WAIT_DURATION:-"10m"}
+    export transaction_receipt_timeout=${TRANSACTION_RECEIPT_TIMEOUT:-"60"}
 
     export erc20_token_name="e2e test"
     export erc20_token_symbol="E2E"
@@ -26,7 +27,7 @@ setup() {
 }
 
 
-# bats test_tags=regular
+# bats test_tags=bridge-eth
 @test "bridge native eth from l1 to l2" {
     bridge_amount=$(date +%s)
     run polycli ulxly bridge asset \
@@ -35,6 +36,7 @@ setup() {
             --destination-network "$l2_network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
+            --transaction-receipt-timeout "$transaction_receipt_timeout" \
             --value "$bridge_amount"
 
     if [[ $status -ne 0 ]]; then
@@ -61,6 +63,7 @@ setup() {
             --deposit-count "$deposit_count" \
             --deposit-network "0" \
             --bridge-service-url "$bridge_service_url" \
+            --transaction-receipt-timeout "$transaction_receipt_timeout" \
             --wait "$claim_wait_duration"
     set -e
 
@@ -73,6 +76,7 @@ setup() {
             --destination-network "$l1_network_id" \
             --private-key "$l2_private_key" \
             --rpc-url "$l2_rpc_url" \
+            --transaction-receipt-timeout "$transaction_receipt_timeout" \
             --value 1
 
     if [[ $status -ne 0 ]]; then
@@ -97,6 +101,7 @@ setup() {
             --deposit-count "$deposit_count" \
             --deposit-network "$l2_network_id" \
             --bridge-service-url "$bridge_service_url" \
+            --transaction-receipt-timeout "$transaction_receipt_timeout" \
             --wait "$claim_wait_duration"
 
     if [[ $status -ne 0 ]]; then
@@ -108,7 +113,7 @@ setup() {
     echo "Claim on L1 successful" >&3
 }
 
-# bats test_tags=erc20
+# bats test_tags=bridge-erc20
 @test "bridge l2 originated token from L2 to L1 and back to L2" {
     salt="0x0000000000000000000000000000000000000000000000000000000000000000"
     deterministic_deployer_addr=0x4e59b44847b379578588920ca78fbf26c0b4956c
