@@ -430,7 +430,7 @@ function get_bridge() {
     while ((attempt < max_attempts)); do
         ((attempt++))
         log "🔎 Attempt $attempt/$max_attempts: fetching bridge \ 
-(network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url)"
+(network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url from_address=$from_address)"
 
         # Build the query URL with optional from_address parameter
         local query_url="$aggkit_url/bridge/v1/bridges?network_id=$network_id"
@@ -440,8 +440,8 @@ function get_bridge() {
 
         # Capture both stdout (bridge result) and stderr (error message)
         bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "------ bridges_result ------"
-        log "$bridges_result"
+        log "------ bridges_result (20 lines)------"
+        log "$bridges_result" | head -n 20
         log "------ bridges_result ------"
 
         # Check if the response contains an error
