@@ -121,3 +121,27 @@ done
 executeData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .executeData")
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$executeData'"
 
+
+-- ADD ROUTES TO AGL
+
+--. selectedOpSuccinctConfigName
+
+-- addopsuccinct config, execute with new params
+# update rollup
+
+add_rollup_type_json='{
+    "type": "EOA",
+    "consensusContract": "AggchainFEP",
+    "description": "V12 upgrade",
+    "deployerPvtKey": "$l2_admin_private_key",
+    "programVKey": "0x374ee73950cdb07d1b8779d90a8467df232639c13f9536b03f1ba76a2aa5dac6",
+    "polygonRollupManagerAddress": "$rollup_manager_address"
+}'
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$add_rollup_type_json' > /opt/zkevm-contracts/tools/addRollupType/add_rollup_type.json"
+# Workaround for HardhatEthersProvider.resolveName not implemented error
+# Use a different approach to avoid the resolveName issue
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost" || {
+    echo "First attempt failed, trying alternative approach..."
+    kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npx hardhat run ./tools/addRollupType/addRollupType.ts --network hardhat"
+}
