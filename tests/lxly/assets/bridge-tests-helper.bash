@@ -23,7 +23,7 @@ _safe_cast_send() {
         return 0
     else
         status=$?
-        _log_file_descriptor "3" "Non-legacy transaction failed: $output"
+        # _log_file_descriptor "3" "Non-legacy transaction failed: $output"
         
         # Check if the failure is due to EIP-1559 not being supported
         if echo "$output" | grep -q -E "(unsupported feature: eip1559|EIP-1559|type 2 transactions|not supported)"; then
