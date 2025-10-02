@@ -19,7 +19,7 @@ _safe_cast_send() {
     # _log_file_descriptor "3" "Attempting non-legacy transaction"
     if output=$(cast send --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
         # _log_file_descriptor "3" "Non-legacy transaction succeeded"
-        echo "$output"
+        # echo "$output"
         return 0
     else
         status=$?
@@ -32,18 +32,18 @@ _safe_cast_send() {
             # Second attempt: Use legacy transaction as fallback
             if output=$(cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
                 # _log_file_descriptor "3" "Legacy transaction succeeded"
-                echo "$output"
+                # echo "$output"
                 return 0
             else
                 local legacy_status=$?
                 # _log_file_descriptor "3" "Legacy transaction also failed: $output"
-                echo "$output"
+                # echo "$output"
                 return $legacy_status
             fi
         else
             # Non-EIP-1559 related error, don't retry with legacy
             # _log_file_descriptor "3" "Non-EIP-1559 error, not retrying"
-            echo "$output"
+            # echo "$output"
             return $status
         fi
     fi
