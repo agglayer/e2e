@@ -184,9 +184,9 @@ _calculate_test_erc20_address() {
     echo "========================================" | tee -a "$bridge_log" >&3
 
     # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    if [[ $successful_count -lt 5 ]]; then
-        max_concurrent=$successful_count
-    fi
+    # Set concurrency to match number of tests to avoid deadlock scenarios
+    # where all concurrent slots are occupied by stuck/retrying tests
+    max_concurrent=$successful_count
 
     echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log" >&3
     echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log" >&3
