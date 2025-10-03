@@ -1680,11 +1680,11 @@ _run_single_bridge_test() {
                     elif ! $claim_expects_success && $claim_has_other_expected_errors; then
                         # Expected specific errors but didn't match
                         claim_result="FAIL"
-                        error_message="Expected claim errors $expected_result_claim not found in output"
+                        error_message="Expected claim errors $(echo "$expected_result_claim" | tr -d '\n') not found in output"
                     else
                         # Mixed expectations (success + errors) but failure didn't match expected patterns
                         claim_result="FAIL"
-                        error_message="Claim failed but error doesn't match expected patterns: $expected_result_claim"
+                        error_message="Claim failed but error doesn't match expected patterns: $(echo "$expected_result_claim" | tr -d '\n')"
                     fi
                 fi
             fi
@@ -1705,11 +1705,11 @@ _run_single_bridge_test() {
         elif ! $bridge_expects_success && $bridge_has_other_expected_errors; then
             # Expected specific errors but didn't match
             bridge_result="FAIL"
-            error_message="Expected bridge errors $expected_result_process not found in output"
+            error_message="Expected bridge errors $(echo "$expected_result_process" | tr -d '\n') not found in output"
         else
             # Mixed expectations (success + errors) but failure didn't match expected patterns
             bridge_result="FAIL"
-            error_message="Bridge failed but error doesn't match expected patterns: $expected_result_process"
+            error_message="Bridge failed but error doesn't match expected patterns: $(echo "$expected_result_process" | tr -d '\n')"
         fi
     fi
     
