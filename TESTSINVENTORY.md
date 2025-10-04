@@ -8,10 +8,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L80) | |
-| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L100) | |
-| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L325) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L579) | |
-| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L548) | |
+| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L102) | |
+| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L327) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L581) | |
+| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L550) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L65) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
