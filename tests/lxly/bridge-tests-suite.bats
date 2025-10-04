@@ -25,7 +25,7 @@ setup_file() {
     _setup_contract_addresses
 
     export log_root_dir="${LOG_ROOT_DIR:-"/tmp"}"
-    global_timeout="$(echo "${ETH_RPC_TIMEOUT:-2400}" | sed 's/[smh]$//')"
+    global_timeout="$(echo "$ETH_RPC_TIMEOUT" | sed 's/[smh]$//')"
     export global_timeout
     export max_concurrent="${MAX_CONCURRENT:-10}"
 }
@@ -82,6 +82,8 @@ _calculate_test_erc20_address() {
         _log_file_descriptor "3" "Bridge Tests Suite file not found"
         skip "Bridge Tests Suite file not found"
     }
+
+    echo "ETH_RPC_TIMEOUT: $ETH_RPC_TIMEOUT" >&3
 
     # Deploy contracts to L1
     deploy_buggy_erc20 "$l1_rpc_url" "$l1_private_key" "$l1_eth_address" "$l1_bridge_addr"
