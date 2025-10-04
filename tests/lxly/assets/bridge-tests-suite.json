@@ -87,8 +87,9 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"]
+        "ExpectedResultProcess": ["Success","not found"],
+        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"],
+        "_comments": "Depending on the RPC, the transaction might not get mined at all"
     },
     {
         "DestinationAddress": "Precompile",
@@ -251,8 +252,9 @@
         "MetaData": "Max",
         "ForceUpdate": "False",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "oversized data"
+        "ExpectedResultProcess": ["Success","not found"],
+        "ExpectedResultClaim": "oversized data",
+        "_comments": "Depending on the RPC, the transaction might not get mined at all"
     },
     {
         "DestinationAddress": "Precompile",
