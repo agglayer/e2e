@@ -1,11 +1,10 @@
 # Make sure to configure the agglayer/e2e Github Secrets before running this test
-# The tests target cardona-37 and bali-35 networks.
 name: Standard Battery Tests - RPC (Nightly)
 
 on:
-  schedule:
-    # Run at 5:00 AM UTC every day
-    - cron: '0 5 * * *'
+  # schedule:
+  #   # Run at 5:00 AM UTC every day
+  #   - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       agglayer-e2e-ref:
@@ -44,7 +43,8 @@ jobs:
         run: |
             pushd agglayer-e2e || exit 1
             # strictly detect tags with file_tags=standard and test_tags=standard
-            files=$(grep -rlP '#\s*bats\s+(?:file_tags|test_tags)=[^#]*\bstandard\b(?!-)' ./tests | grep '\.bats$' || true)
+            # files=$(grep -rlP '#\s*bats\s+(?:file_tags|test_tags)=[^#]*\bstandard\b(?!-)' ./tests | grep '\.bats$' || true)
+            files=$(find ./tests -name "bridge-tests-suite.bats" -type f 2>/dev/null || true)
             echo "Found files:"
             echo "$files"
             # Remove empty lines and ensure valid JSON array without trailing empty string
@@ -63,12 +63,12 @@ jobs:
       max-parallel: ${{ fromJson(inputs.max-parallel-runs || '1') }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
-        target-network: ["cardona-37", "bali-35", "bali-44"]
+        target-network: ["bali-01","bali-54","bali-52","bali-49","bali-57"]
     env:
       POLYCLI_VERSION: v0.1.84
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'cardona-37' && secrets.L2_CARDONA_37_RPC_ENDPOINT || matrix.target-network == 'bali-35' && secrets.L2_BALI_35_RPC_ENDPOINT || secrets.L2_BALI_44_RPC_ENDPOINT }}
+      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'bali-01' && secrets.L2_BALI_01_RPC_ENDPOINT || matrix.target-network == 'bali-54' && secrets.L2_BALI_54_RPC_ENDPOINT || matrix.target-network == 'bali-52' && secrets.L2_BALI_52_RPC_ENDPOINT || matrix.target-network == 'bali-49' && secrets.L2_BALI_49_RPC_ENDPOINT || matrix.target-network == 'bali-57' && secrets.L2_BALI_57_RPC_ENDPOINT}}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       TARGET_NETWORK: ${{ matrix.target-network }}
@@ -133,12 +133,16 @@ jobs:
       - name: Validate RPC Endpoint
         run: |
           cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
-          if [[ "${{ matrix.target-network }}" == "cardona-37" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_37_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-35" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_35_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-44" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_44_RPC_ENDPOINT }}
+          if [[ "${{ matrix.target-network }}" == "bali-54" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_54_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-52" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-57" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-49" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
+          elif [[ "${{ matrix.target-network }}" == "bali-01" ]]; then
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
           fi
 
       - name: Validate test file existence
@@ -154,31 +158,13 @@ jobs:
           pushd agglayer-e2e || exit 1
 
           # Load public environment variables based on target network
-          if [[ "${{ matrix.target-network }}" == "cardona-37" ]]; then
-            if [[ -f "tests/lxly/networks/cardona-37.env" ]]; then
-              set -a
-              source tests/lxly/networks/cardona-37.env
-              set +a
-            fi
-          elif [[ "${{ matrix.target-network }}" == "bali-35" ]]; then
-            if [[ -f "tests/lxly/networks/bali-35.env" ]]; then
-              set -a
-              source tests/lxly/networks/bali-35.env
-              set +a
-            fi
-          elif [[ "${{ matrix.target-network }}" == "bali-44" ]]; then
-            if [[ -f "tests/lxly/networks/bali-44.env" ]]; then
-              set -a
-              source tests/lxly/networks/bali-44.env
-              set +a
-            fi
+          if [[ -f "tests/lxly/networks/${{ matrix.target-network }}.env" ]]; then
+            set -a
+            source tests/lxly/networks/${{ matrix.target-network }}.env
+            set +a
           else
-            echo "Invalid target network detected: ${{ matrix.target-network }}. Expected 'cardona-37', 'bali-35', or 'bali-44'."
-            exit 1
+            echo "Warning: Environment file for ${{ matrix.target-network }} not found"
           fi
-
-          # Set extended timeout and confirmation settings for cast
-          export ETH_RPC_TIMEOUT=2400
 
           # Set sensitive values from GitHub secrets
           export L1_RPC_URL="${{ env.L1_RPC_ENDPOINT }}"

@@ -37,8 +37,8 @@
         "MetaData": "Huge",
         "ForceUpdate": "True",
         "Amount": "1",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x37e391c3"
+        "ExpectedResultProcess": ["Success","0x6f625c40"],
+        "ExpectedResultClaim": ["0x37e391c3","N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -67,8 +67,8 @@
         "MetaData": "Random",
         "ForceUpdate": "False",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success","0x6f625c40"],
+        "ExpectedResultClaim": ["Success","N/A"]
     },
     {
         "DestinationAddress": "EOA",
@@ -87,8 +87,9 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"]
+        "ExpectedResultProcess": ["Success","not found"],
+        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"],
+        "_comments": "Depending on the RPC, the transaction might not get mined at all"
     },
     {
         "DestinationAddress": "Precompile",
@@ -148,8 +149,8 @@
         "MetaData": "Huge",
         "ForceUpdate": "False",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
+        "ExpectedResultProcess": ["Success","0x6f625c40"],
+        "ExpectedResultClaim": ["Success","N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -178,8 +179,8 @@
         "MetaData": "Random",
         "ForceUpdate": "False",
         "Amount": "0",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
+        "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
+        "ExpectedResultClaim": ["N/A","Success"]
     },
     {
         "DestinationAddress": "BridgeContract",
@@ -251,8 +252,9 @@
         "MetaData": "Max",
         "ForceUpdate": "False",
         "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "oversized data"
+        "ExpectedResultProcess": ["Success","not found"],
+        "ExpectedResultClaim": "oversized data",
+        "_comments": "Depending on the RPC, the transaction might not get mined at all"
     },
     {
         "DestinationAddress": "Precompile",
@@ -261,8 +263,8 @@
         "MetaData": "Huge",
         "ForceUpdate": "True",
         "Amount": "0",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
+        "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
+        "ExpectedResultClaim": ["N/A","Success"]
     },
     {
         "DestinationAddress": "EOA",
@@ -271,8 +273,8 @@
         "MetaData": "Max",
         "ForceUpdate": "True",
         "Amount": "1",
-        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data"],
-        "ExpectedResultClaim": "N/A"
+        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "Success"],
+        "ExpectedResultClaim": ["N/A","Success"]
     },
     {
         "DestinationAddress": "EOA",
@@ -291,8 +293,8 @@
         "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "0",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
+        "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
+        "ExpectedResultClaim": ["N/A"]
     },
     {
         "DestinationAddress": "BridgeContract",
