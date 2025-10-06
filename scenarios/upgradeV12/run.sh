@@ -110,7 +110,9 @@ predecessor=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /
 salt=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.salt")
 
 # Get operation id (hashOperationBatch)
+echo "Calling hashOperationBatch with params: $targets, $values, $payloads, $predecessor, $salt"
 operationId=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'hashOperationBatch(address[],uint256[],bytes[],bytes32,bytes32)(bytes32)' '$targets' '$values' '$payloads' '$predecessor' '$salt'")
+echo "Operation id: $operationId"
 
 # wait for operation to be ready
 while [ $(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' '$operationId'") == "false" ]; do
@@ -244,7 +246,7 @@ new_rollup_type_id=$(kurtosis service exec "$kurtosis_enclave_name" contracts-00
  ##:  .:#  ##   ###  ######  ###      ##:  :####  #####.##.#####  ######  ######  :####:  :#####  :##  ##   ##:  .:# 
  ##### .   ##   ##.  .####.  .##     ##.     ##.  .#### ## ####.  .####.  .####    ############    ##  ##   ##### .  
   ######:  ##   ##    ####    ##     ##      ##    #### ## ####    ####    ####    ############    ##  ##   .######: 
-    .: ##  ##   ##.  .####.  .##     ##.     ##.  .#### ## ####.  .####.  .####    ####      ##    ##  ##      .: ## 
+       ##  ##   ##.  .####.  .##     ##.     ##.  .#### ## ####.  .####.  .####    ####      ##    ##  ##      .: ## 
  #:.  :##  ##.  ###  ######  ###      ##:  .####  ##### ## #####  ######  #####    #####.  :###    ##  ##.  #:.  :## 
  ########  #####.######.#######:      #######.######.## ## #########:.######.##    ##.#########    ##  ############# 
    ####    .#### .####. ##.###:         ####: .####. ## ## ####.###:  .####. ##    ## .#####:##    ##  .####. ####   
@@ -253,11 +255,13 @@ new_rollup_type_id=$(kurtosis service exec "$kurtosis_enclave_name" contracts-00
                         ##                                   ##                                                      
 
 # TO CONFIRM IF WE NEED TO STOP SERVICES
-# kurtosis service stop "$kurtosis_enclave_name" aggkit-001
-# kurtosis service stop "$kurtosis_enclave_name" aggkit-prover-001
-# kurtosis service stop "$kurtosis_enclave_name" agglayer-001
-# kurtosis service stop "$kurtosis_enclave_name" agglayer-prover
-# kurtosis service stop "$kurtosis_enclave_name" op-succinct-proposer-001
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+kurtosis service stop "$kurtosis_enclave_name" aggkit-001-bridge
+kurtosis service stop "$kurtosis_enclave_name" aggkit-001
+kurtosis service stop "$kurtosis_enclave_name" aggkit-prover-001
+kurtosis service stop "$kurtosis_enclave_name" agglayer
+kurtosis service stop "$kurtosis_enclave_name" agglayer-prover
+kurtosis service stop "$kurtosis_enclave_name" op-succinct-proposer-001
 
 
                                              ##                          #### ####                    
@@ -283,6 +287,7 @@ new_rollup_type_id=$(kurtosis service exec "$kurtosis_enclave_name" contracts-00
 # )
 upgradeData=$(cast calldata "upgradeFromPreviousFEP()")
 rollup_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r '.rollupAddress'")
+echo "Calling updateRollup with params: $rollup_address, $new_rollup_type_id, $upgradeData"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'updateRollup(address,uint32,bytes)' '$rollup_address' '$new_rollup_type_id' '$upgradeData'"
 
 
@@ -372,8 +377,13 @@ agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.14
 aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta8
 aggkit_prover_image=ghcr.io/agglayer/aggkit-prover:1.4.2
 
-kurtosis service update --image $agglayer_image upgradeV12 agglayer
 kurtosis service update --image $agglayer_image upgradeV12 agglayer-prover
+kurtosis service update --image $agglayer_image upgradeV12 agglayer
+
+# Raw config name here, not the keccak hash
+kurtosis service update --image $op_succinct_image --env "OP_SUCCINCT_CONFIG_NAME=$op_succinct_image" upgradeV12 op-succinct-proposer-001
 
 kurtosis service update --image $aggkit_prover_image upgradeV12 aggkit-prover-001
-kurtosis service update --image $aggkit_image upgradeV12 aggkit-001
+
+# To review: something may be wrong on kurtosis, because when updating services, aggkit fails, we need to set all files on /etc/aggkit
+kurtosis service update --image $aggkit_image --files "/etc/aggkit/:aggkit-config-artifact|aggkit-sequencer-keystore|aggkit-claimtxmanager-keystore|aggoracle-keystore" upgradeV12 aggkit-001

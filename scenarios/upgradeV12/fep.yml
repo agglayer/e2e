@@ -4,6 +4,8 @@ deployment_stages:
 
 args:
 
+  sp1_prover_key: "set_your_key_here"
+
   # these image versions have been taken from kurtosis tag v0.4.18
   aggkit_image: "ghcr.io/agglayer/aggkit:0.5.3"
   aggkit_prover_image: "ghcr.io/agglayer/aggkit-prover:1.1.3"
@@ -16,17 +18,17 @@ args:
   l1_preallocated_mnemonic: "giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"
 
   # Valid values are: "network-prover", "mock-prover"
-  agglayer_prover_primary_prover: "mock-prover"
+  agglayer_prover_primary_prover: "network-prover"
   # Valid values are: "network-prover", "mock-prover"
-  aggkit_prover_primary_prover: "mock-prover"
+  aggkit_prover_primary_prover: "network-prover"
   consensus_contract_type: fep
   # aggkit_prover_image: "ghcr.io/agglayer/aggkit-prover:feat-rust-proposer"
   # false = network
   # Using the network provers will use the real SP1 verifier contract which is also deployed together in the Kurtosis devnet.
   # A mock verifier is used otherwise.
-  op_succinct_mock: true
+  op_succinct_mock: false
   # Enable real (non-mock) verifier on contracts
-  zkevm_use_real_verifier: false
+  zkevm_use_real_verifier: true
   # Enable the integration with the Agglayer
   op_succinct_agglayer: true
   # Proof type. Must match the verifier gateway contract type. Options: "plonk", "groth16", "compressed", "core"
@@ -43,11 +45,15 @@ args:
   deployment_suffix: "-001"
   zkevm_rollup_id: 1
   # Size of the range proof.
-  op_succinct_range_proof_interval: "1800"
+  op_succinct_range_proof_interval: "600"
   # OP Networks rely on L1 blocks to have finalization on L2. This means if the L1 blocktime is very fast, OP Succinct proof requests will have to bundle many L1 blocks into a single proof.
   # This will significantly increase cycles even if the L2 network is empty. Instead of having 2s, for OP Succinct deployments, we recommend 12s.
   # Note this will noticeably increase the deployment time because of the increased L1 finality.
-  l1_seconds_per_slot: 2
+  l1_seconds_per_slot: 6
+
+  # Looks like we need the bridge for newer version for port 5577 to work after upgrade
+  aggkit_components: "aggsender,aggoracle,bridge"
+
 
 optimism_package:
   # We need this for pre-deployed allocs https://github.com/ethpandaops/optimism-package/compare/main...xavier-romero:optimism-package:main#diff-c479a5b20e37b19a976045939f01e8a6deb6a062a147e08b81049469d512d00cR235
