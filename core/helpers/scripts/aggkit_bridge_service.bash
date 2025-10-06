@@ -441,7 +441,7 @@ function get_bridge() {
         # Capture both stdout (bridge result) and stderr (error message)
         bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "------ bridges_result (20 lines)------"
-        log "$bridges_result" | jq . | head -n 20
+        log "$(echo "$bridges_result" | jq . | head -n 20)"
         log "------ bridges_result ------"
 
         # Check if the response contains an error
@@ -523,6 +523,21 @@ function generate_claim_proof() {
     log "❌ Failed to generate a claim proof for $deposit_count after $max_attempts attempts."
     return 1
 }
+function update_l1_info_tree() {
+    # This is a required action in FEP op-succinct
+    # To be able to claim on L1 it's required an external update of L1infotree in L1
+    # because needs to be included in a certificate and the certificate require a proof of
+    # block Range that is anchored to the block of last l1infotree update
+    log "🪤 Sleeping 240 seconds before doing a bridge L1->L2 to update l1InfoTree" >&3
+    sleep 240
+    log "🪤 Doing a bridge L1->L2 to update l1InfoTree" >&3
+    local push_destination_net
+    push_destination_net=$destination_net
+    destination_net=$l2_rpc_network_id
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    destination_net=$push_destination_net
+}
 
 function find_l1_info_tree_index_for_bridge() {
     local network_id="$1"
@@ -562,7 +577,7 @@ function find_l1_info_tree_index_for_bridge() {
         echo "$index"
         return 0
     done
-
+    log "curl -s -H "Content-Type: application/json" $aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count"
     log "❌ Failed to find L1 info tree index after $max_attempts attempts"
     return 1
 }
