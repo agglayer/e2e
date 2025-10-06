@@ -83,7 +83,7 @@ check_block_pruned() {
 }
 
 # bats test_tags=pos,hv2,prune
-@test "txIndexerPrune works" {
+@test "prune TxIndexer" {
   echo "Step 1: Get current height"
   local latest_height
   latest_height="$(get_latest_height)"
