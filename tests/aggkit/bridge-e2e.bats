@@ -185,8 +185,8 @@ setup() {
     l2_erc20_token_sender_balance=$(echo "$output" | tail -n 1 | awk '{print $1}')
     log "💰 Sender balance ($sender_addr) (ERC20 token L2): $l2_erc20_token_sender_balance [weis]"
 
-    echo "=== 🪤 Running L1 bridge to update l1infotree (sleep 180 secs)" >&3
-    run update_l1_info_tree
+    echo "=== 🪤 Running L1 bridge to update l1infotree (sleep 300 secs)" >&3
+    run update_l1_info_tree 300
     assert_success
     
 
@@ -243,7 +243,7 @@ setup() {
     log "💰 Sender balance ($sender_addr) (wrapped ERC20 token L1): $l1_wrapped_token_balance [weis]"
 
     # Deposit on L2
-    echo "==== 🚀 Depositing ERC20 token on L2 ($L2_RPC_URL)" >&3
+    echo "==== 🚀 2nd: Depositing ERC20 token on L2 ($L2_RPC_URL)" >&3
     destination_addr=$sender_addr
     destination_net=$l1_rpc_network_id
     tokens_amount="1ether"
@@ -253,19 +253,20 @@ setup() {
     assert_success
     bridge_tx_hash=$output
 
-     echo "=== 🪤 Running L1 bridge to update l1infotree (sleep 180 secs)" >&3
-    run update_l1_info_tree
+     echo "=== 🪤 2nd: Running L1 bridge to update l1infotree (sleep 500 secs)" >&3
+    run update_l1_info_tree 500
     assert_success
-    
+
     # Claim deposit (settle it on the L1)
-    echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
+    echo "==== 🔐 2nd: Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
     run process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
     assert_success
 
-    echo "==== 💰 Verifying balance on L1 ($l1_rpc_url)" >&3
+    echo "==== 💰 2nd: Verifying balance on L1 ($l1_rpc_url)" >&3
     run verify_balance "$l1_rpc_url" "$l1_wrapped_token_addr" "$destination_addr" "$l1_wrapped_token_balance" "$tokens_amount"
     assert_success
 }
+
 
 
 

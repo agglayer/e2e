@@ -528,15 +528,20 @@ function update_l1_info_tree() {
     # To be able to claim on L1 it's required an external update of L1infotree in L1
     # because needs to be included in a certificate and the certificate require a proof of
     # block Range that is anchored to the block of last l1infotree update
-    log "🪤 Sleeping 240 seconds before doing a bridge L1->L2 to update l1InfoTree" >&3
-    sleep 240
+    local sleep_time="${1:-300}" # default 300 seconds
+    log "🪤 Sleeping $sleep_time seconds before doing a bridge L1->L2 to update l1InfoTree" >&3
+    sleep $sleep_time
     log "🪤 Doing a bridge L1->L2 to update l1InfoTree" >&3
     local push_destination_net
     push_destination_net=$destination_net
+    local push_amount
+    push_amount=$amount
+    amount=$(cast --to-unit 0.00001ether wei)
     destination_net=$l2_rpc_network_id
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     destination_net=$push_destination_net
+    amount=$push_amount
 }
 
 function find_l1_info_tree_index_for_bridge() {
@@ -658,7 +663,7 @@ function process_bridge_claim() {
     local deposit_count
     deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     local l1_info_tree_index
-    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 10 50 "$origin_aggkit_bridge_url")" || {
+    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 8 120 "$origin_aggkit_bridge_url")" || {
         log "❌ process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
         return 1
     }
