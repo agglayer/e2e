@@ -7,22 +7,16 @@ sudo rm -rf aggkit aggkit-bridge chaindata jwt.txt op-deployer-output opgeth-dat
 kurtosis clean --all
 
 kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/cdk-erigon/sovereign.yml github.com/0xPolygon/kurtosis-cdk
-if [ $? -ne 0 ]; then
-  echo "❌ ERROR: Failed to run kurtosis environment"
-  exit 1
-fi
+
 sleep 60 # Wait for the bridge spammer to generate some traffic
 kurtosis service stop cdk bridge-spammer-001
 sleep 30
-docker cp $(docker ps --filter "name=cdk-erigon-sequencer-001" --format "{{.ID}}"):/home/erigon/data/dynamic-kurtosis-sequencer/chaindata .
+
+docker cp "$(docker ps --filter "name=cdk-erigon-sequencer-001" --format "{{.ID}}")":/home/erigon/data/dynamic-kurtosis-sequencer/chaindata .
 kurtosis service stop cdk cdk-erigon-sequencer-001
 wget https://github.com/ARR552/regenesisTool/releases/download/v0.0.1/regenesisTool
 chmod +x regenesisTool
 ./regenesisTool --action=regenesis --chaindata="./chaindata" --output=./
-if [ $? -ne 0 ]; then
-  echo "❌ ERROR: Failed to run regenesis tool"
-  exit 1
-fi
 
 jq '.config = {
   chainId: 2151908,
@@ -74,7 +68,7 @@ docker run -d \
 
 docker cp op-deployer:. ./op-deployer-output
 
-cd op-deployer-output
+cd op-deployer-output || exit 1
 
 # Init op-deployer env
 ./op-deployer init --intent-config-type custom --l1-chain-id 271828 --l2-chain-ids 2151908 --workdir ./
@@ -136,7 +130,7 @@ useInterop = false
 EOF
 
 # Apply chain state
-./op-deployer apply --l1-rpc-url http://$(kurtosis port print cdk el-1-geth-lighthouse rpc) --private-key 0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31 --workdir ./
+./op-deployer apply --l1-rpc-url "http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)" --private-key 0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31 --workdir ./
 
 # Generate genesis.json
 ./op-deployer inspect genesis 2151909 --workdir ./ > genesis.json
@@ -146,7 +140,7 @@ EOF
 
 mv rollup.json ../rollup.json
 
-cd ..
+cd .. || exit 1
 
 # Fix the l2_chain_id in rollup.json
 jq '.l2_chain_id = 2151908' rollup.json > rollup.json.tmp && mv rollup.json.tmp rollup.json
@@ -210,7 +204,7 @@ jq --arg h "$L2_GENESIS_HASH" '.genesis.l2.hash = $h' rollup.json > rollup.tmp &
 
 # Run op-node
 BEACON="$(kurtosis port print cdk cl-1-lighthouse-geth http | sed 's/127\.0\.0\.1/host.docker.internal/')"
-RPC="http://$(echo "$(kurtosis port print cdk el-1-geth-lighthouse rpc)" | sed 's/^http:\/\///' | sed 's/127\.0\.0\.1/host.docker.internal/')"
+RPC="http://$(kurtosis port print cdk el-1-geth-lighthouse rpc | sed -e 's#^http://##' -e 's#127\.0\.0\.1#host.docker.internal#')"
 docker run -d --name external-op-node \
   --network kt-cdk \
   --add-host=host.docker.internal:host-gateway \
@@ -232,18 +226,18 @@ docker run -d --name external-op-node \
 
 # Extract the aggkit files and dbs
 mkdir -p aggkit aggkit-bridge
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1):/etc/aggkit/config.toml ./aggkit/
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1):/etc/aggkit/sequencer.keystore ./aggkit/
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1):/etc/aggkit/aggoracle.keystore ./aggkit/
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1):/tmp ./aggkit/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1)":/etc/aggkit/config.toml ./aggkit/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1)":/etc/aggkit/sequencer.keystore ./aggkit/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1)":/etc/aggkit/aggoracle.keystore ./aggkit/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001--' | awk '{print $1}' | head -n1)":/tmp ./aggkit/
 chmod 777 aggkit/tmp/*
 
 kurtosis service stop cdk aggkit-001
 
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1):/etc/aggkit/config.toml ./aggkit-bridge/
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1):/etc/aggkit/sequencer.keystore ./aggkit-bridge/
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1):/etc/aggkit/aggoracle.keystore ./aggkit-bridge/
-docker cp $(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1):/tmp ./aggkit-bridge/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1)":/etc/aggkit/config.toml ./aggkit-bridge/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1)":/etc/aggkit/sequencer.keystore ./aggkit-bridge/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1)":/etc/aggkit/aggoracle.keystore ./aggkit-bridge/
+docker cp "$(docker ps --format '{{.ID}} {{.Names}}' | grep ' aggkit-001-bridge--' | awk '{print $1}' | head -n1)":/tmp ./aggkit-bridge/
 chmod 777 aggkit-bridge/tmp/*
 
 kurtosis service stop cdk aggkit-001-bridge
@@ -292,7 +286,7 @@ docker run -d --name aggkit-bridge \
 polycli ulxly bridge asset \
     --value 1 \
     --gas-limit 1250000 \
-    --bridge-address $(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVML2BridgeAddress" | awk -F'"' '{print $4}') \
+    --bridge-address "$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVML2BridgeAddress" | awk -F'"' '{print $4}')" \
     --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
     --destination-network 0 \
     --rpc-url "http://localhost:8545" \
