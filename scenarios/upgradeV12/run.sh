@@ -150,6 +150,17 @@ newAggchainVKey=0x374ee73950cdb07d1b8779d90a8467df232639c13f9536b03f1ba76a2aa5da
 echo "Adding default Aggchain VKey: $defaultAggchainSelector, $newAggchainVKey"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'addDefaultAggchainVKey(bytes4,bytes32)()' '$defaultAggchainSelector' '$newAggchainVKey'"
 
+echo "kurtosis_enclave_name: $kurtosis_enclave_name"
+echo "agglayergw_address: $agglayergw_address"
+echo "defaultAggchainSelector: $defaultAggchainSelector"
+echo "newAggchainVKey: $newAggchainVKey"
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'getDefaultAggchainVKey(bytes4)(bytes32)' '0x00060001'"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '0x00060001'"
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'getDefaultAggchainVKey(bytes4)(bytes32)' '0x00040001'"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '0x00040001'"
+
 
                ##      ##                    ##:  :####   ###                 
                ##      ##                    ##    ####   ##                  
@@ -292,6 +303,25 @@ echo "Calling updateRollup with params: $rollup_address, $new_rollup_type_id, $u
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'updateRollup(address,uint32,bytes)' '$rollup_address' '$new_rollup_type_id' '$upgradeData'"
 
 
+                         ##    ####                      ##          :####             ####        ##:  :####                              
+                         ##    ####                      ##          #####             ####   ##   ##    ####                              
+                         ##      ##                      ##          ##                  ##   ##   :##  ##:##                              
+   ####: ##.####  :####  ##.###: ##    .####:       :###.## .####: #######:####  ##    #### #######:##  ##:##   ##:.####: ##    ## :#####. 
+  ######:#######  ###### #######:##   .######:     :#######.######:############# ##    #### ####### ## .## ##  ##:.######::##  ## ######## 
+ ##:  :#####  :## #:  :#####  #####   ##:  :##     ###  #####:  :##  ##   #:  :####    ####   ##    ##::## ##:##: ##:  :## ##: ##.##:  .:# 
+ ##########    ##  :#######.  .####   ########     ##.  .##########  ##    :#######    ####   ##    ##::## ####   ######## ###:## ##### .  
+ ##########    ##.#########    ####   ########     ##    ##########  ##  .#########    ####   ##    :####: #####  ######## .## #  .######: 
+ ##      ##    #### .  ####.  .####   ##           ##.  .####        ##  ## .  ####    ####   ##    .####. ##.### ##        ####.    .: ## 
+ ###.  :###    ####:  ######  #####:  ###.  :#     ###  ######.  :#  ##  ##:  #####:  #####:  ##.    ####  ##  ##:###.  :#  :###  #:.  :## 
+  #########    #################:#####.#######     :#######.#######  ##  ######## #################  ####  ##  :##.#######   ##   ######## 
+   #####:##    ##  ###.####.###: .#### .#####:      :###.## .#####:  ##    ###.##  ###.##.####.####   ##   ##   ###.#####:   ##.  . ####   
+                                                                                                                             ##            
+                                                                                                                           ###:            
+                                                                                                                           ###             
+# TODO: It should be already enabled, so some previous step may be missing something.
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_address' 'enableUseDefaultVkeysFlag()'"
+
+
                                                                  ##                                                                ##            
                ##      ##                                        ##                                                         :####  ##            
                ##      ##                                        ##                     ##                                  #####  ##            
@@ -375,7 +405,7 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
                                                         ##                                                      
                                                         ##                                                      
 agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.15
-aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta9
+aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta8
 aggkit_prover_image=ghcr.io/agglayer/aggkit-prover:1.4.2
 
 kurtosis service update --image $agglayer_image $kurtosis_enclave_name agglayer-prover
