@@ -256,6 +256,7 @@ new_rollup_type_id=$(kurtosis service exec "$kurtosis_enclave_name" contracts-00
 
 # TO CONFIRM IF WE NEED TO STOP SERVICES
 kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+sleep 10
 kurtosis service stop "$kurtosis_enclave_name" aggkit-001-bridge
 kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 kurtosis service stop "$kurtosis_enclave_name" aggkit-prover-001
@@ -373,19 +374,51 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
                                                         ##                                                      
                                                         ##                                                      
                                                         ##                                                      
-agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.14
-aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta8
+agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.15
+aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta9
 aggkit_prover_image=ghcr.io/agglayer/aggkit-prover:1.4.2
 
-kurtosis service update --image $agglayer_image upgradeV12 agglayer-prover
-kurtosis service update --image $agglayer_image upgradeV12 agglayer
+kurtosis service update --image $agglayer_image $kurtosis_enclave_name agglayer-prover
 
+# Agglayer state is stored in /etc/agglayer, which is not preserved by doing a kurtosis service update
+agglayer_etc_agglayer=$(docker inspect agglayer--$(kurtosis service inspect $kurtosis_enclave_name agglayer --full-uuid | grep UUID | sed  's/.*: //') | jq -r .[0].Mounts[0].Source)
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name agglayer \
+    -v $agglayer_etc_agglayer:/etc/agglayer \
+    "$agglayer_image" \
+    agglayer \
+    run \
+    --cfg \
+    /etc/agglayer/agglayer-config.toml
+
+# Op-succinct-proposer
 # Raw config name here, not the keccak hash
-kurtosis service update --image $op_succinct_image --env "OP_SUCCINCT_CONFIG_NAME=$op_succinct_image" upgradeV12 op-succinct-proposer-001
+kurtosis service update --image $op_succinct_image --env "OP_SUCCINCT_CONFIG_NAME=$op_succinct_image" $kurtosis_enclave_name op-succinct-proposer-001
 
-kurtosis service update --image $aggkit_prover_image upgradeV12 aggkit-prover-001
+# Aggkit-prover
+kurtosis service update --image $aggkit_prover_image $kurtosis_enclave_name aggkit-prover-001
+
+# Aggkit state is stored in /etc/aggkit and /tmp, which is not preserved by doing a kurtosis service update
+aggkit_etc_aggkit=$(docker inspect aggkit-001--$(kurtosis service inspect $kurtosis_enclave_name aggkit-001 --full-uuid | grep UUID | sed  's/.*: //') | jq -r '.[0].Mounts[] | select(.Destination == "/etc/aggkit") | .Source')
+aggkit_tmp=$(docker inspect aggkit-001--$(kurtosis service inspect $kurtosis_enclave_name aggkit-001 --full-uuid | grep UUID | sed  's/.*: //') | jq -r '.[0].Mounts[] | select(.Destination == "/tmp") | .Source')
+
+mkdir aggkit_tmp
+sudo bash -c "cp -r \"$aggkit_tmp\"/* aggkit_tmp/"
+sudo chmod -R 777 aggkit_tmp
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name aggkit-001 \
+    -v $aggkit_etc_aggkit:/etc/aggkit \
+    -v aggkit_tmp:/tmp \
+    "$aggkit_image" \
+    run \
+    --cfg=/etc/aggkit/config.toml \
+    --components=aggsender,aggoracle
 
 # To review: something may be wrong on kurtosis, because when updating services, aggkit fails, we need to set all files on /etc/aggkit
-kurtosis service update --image $aggkit_image --files "/etc/aggkit/:aggkit-config-artifact|aggkit-sequencer-keystore|aggkit-claimtxmanager-keystore|aggoracle-keystore" upgradeV12 aggkit-001
+# kurtosis service update --image $aggkit_image --files "/etc/aggkit/:aggkit-config-artifact|aggkit-sequencer-keystore|aggkit-claimtxmanager-keystore|aggoracle-keystore" upgradeV12 aggkit-001
 
 kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
