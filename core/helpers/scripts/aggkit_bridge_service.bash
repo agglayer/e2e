@@ -41,8 +41,11 @@ function bridge_asset() {
 
         local bridge_tx_hash
         bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
+        local bridge_tx_block_number
+        bridge_tx_block_number=$(echo "$response" | grep "^blockNumber" | cut -f 2- -d ' ' | sed 's/ //g')
+        
         if [[ -n "$bridge_tx_hash" ]]; then
-            log "🎉 Success: Tx Hash → $bridge_tx_hash"
+            log "🎉 Success: Tx Hash → $bridge_tx_hash (bn: $bridge_tx_block_number)"
             echo "$bridge_tx_hash"
         else
             log "❌ Error: Transaction failed (no hash returned)"
@@ -529,9 +532,14 @@ function update_l1_info_tree() {
     # because needs to be included in a certificate and the certificate require a proof of
     # block Range that is anchored to the block of last l1infotree update
     local sleep_time="${1:-300}" # default 300 seconds
-    log "🪤 Sleeping $sleep_time seconds before doing a bridge L1->L2 to update l1InfoTree" >&3
+    local msg="${2:-}"
+    if [ $aggsender_mode_is_fep == 0 ]; then
+        log "🪤 $msg skipped bridge L1->L2 to update l1InfoTree, because in PP mode is not required" >&3
+        return
+    fi
+    log "🪤 $msg Sleeping $sleep_time seconds before doing a bridge L1->L2 to update l1InfoTree" >&3
     sleep $sleep_time
-    log "🪤 Doing a bridge L1->L2 to update l1InfoTree" >&3
+    log "🪤 $msg Doing a bridge L1->L2 to update l1InfoTree" >&3
     local push_destination_net
     push_destination_net=$destination_net
     local push_amount
