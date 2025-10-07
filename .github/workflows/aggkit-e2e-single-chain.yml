@@ -83,6 +83,17 @@ jobs:
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
 
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
       - name: Download binary
         if: inputs.aggsender-find-imported-bridge-artifact != ''
         uses: actions/download-artifact@v4
@@ -125,6 +136,8 @@ jobs:
           fi
           echo '${{ inputs.kurtosis-cdk-args }}'
           echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
+
+      
 
       - name: Startup the kurtosis-cdk package
         run: |
