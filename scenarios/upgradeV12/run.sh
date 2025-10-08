@@ -405,7 +405,7 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
                                                         ##                                                      
                                                         ##                                                      
 agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.15
-aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta8
+aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta10
 aggkit_prover_image=ghcr.io/agglayer/aggkit-prover:1.4.2
 
 kurtosis service update --image $agglayer_image $kurtosis_enclave_name agglayer-prover
