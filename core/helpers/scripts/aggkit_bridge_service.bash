@@ -559,7 +559,7 @@ function find_l1_info_tree_index_for_bridge() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
-    local debug_msg="${6:-}"
+    local debug_msg="[${6:-}]"
     local attempt=0
     local index=""
 
@@ -571,9 +571,9 @@ function find_l1_info_tree_index_for_bridge() {
         # Capture both stdout (index) and stderr (error message)
         index=$(curl -s -H "Content-Type: application/json" \
             "$aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
-        log "------ index ------ $debug_msg "
+        log "$debug_msg ------ index ------"
         log "$index"
-        log "------ index ------ $debug_msg "
+        log "$debug_msg ------ index ------"
 
         # Check if the response contains an error
         if [[ "$index" == *"error"* || "$index" == *"Error"* ]]; then
@@ -653,6 +653,7 @@ function find_injected_l1_info_leaf() {
 #   $8 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
 #   $9 - from_address (optional): The address used to filter bridge transactions (if empty, no filtering is applied).
 function process_bridge_claim() {
+    local debug_msg_clean="$1"
     local debug_msg="[$1]"
     local origin_network_id="$2"
     local bridge_tx_hash="$3"
@@ -666,7 +667,7 @@ function process_bridge_claim() {
 
     # 1. Fetch bridge details
     local bridge
-    bridge="$(get_bridge "$debug_msg" "$origin_network_id" "$bridge_tx_hash" 10 100 "$origin_aggkit_bridge_url" "$from_address")" || {
+    bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 10 100 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         return 1
     }
@@ -675,7 +676,7 @@ function process_bridge_claim() {
     local deposit_count
     deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     local l1_info_tree_index
-    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 8 120 "$origin_aggkit_bridge_url" "$debug_msg")" || {
+    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 8 120 "$origin_aggkit_bridge_url" "$debug_msg_clean")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
         return 1
     }

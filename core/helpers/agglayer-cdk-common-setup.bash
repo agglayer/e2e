@@ -543,7 +543,8 @@ _resolve_aggsender_mode(){
             echo "Failed to resolve aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&2
             exit 1
         fi
-    export aggsender_mode=$(echo $mode | tr -d '"')
+    aggsender_mode=$(echo $mode | tr -d '"')
+    export aggsender_mode
     fi
     if [ $aggsender_mode == "AggchainProof" ]; then
         export aggsender_mode_is_fep=1

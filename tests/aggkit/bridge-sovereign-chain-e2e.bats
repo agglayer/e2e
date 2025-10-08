@@ -75,9 +75,9 @@ setup() {
 @test "Test Sovereign Chain Bridge Events" {
   log "=== 🧑‍💻 Running Sovereign Chain Bridge Events" >&3
   # Sanity check, the l2_sovereign_admin_private_key must match the bridgeManager address
-  brdigeManagerAddr=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "bridgeManager()(address)")
-  if [ "$l2_sovereign_admin_public_key" != "$brdigeManagerAddr" ]; then
-  log "brdigeManagerAddr missmatch: local: $l2_sovereign_admin_public_key contract.bridgeManager: $brdigeManagerAddr" >& 3
+  bridgeManagerAddr=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "bridgeManager()(address)")
+  if [ "$l2_sovereign_admin_public_key" != "$bridgeManagerAddr" ]; then
+  log "bridgeManagerAddr missmatch: local: $l2_sovereign_admin_public_key contract.bridgeManager: $bridgeManagerAddr" >& 3
     fail 
   fi
 
@@ -94,18 +94,6 @@ setup() {
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
   run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
   assert_success
-
-  # cut --------------
-
-  #local FUNDING_AMOUNT_ETH
-  #FUNDING_AMOUNT_ETH="${FUNDING_AMOUNT_ETH:-10}" # Default to 10 ETH if not provided
-  #local FUNDING_AMOUNT_WEI
-  #  FUNDING_AMOUNT_WEI=$(cast to-wei "$FUNDING_AMOUNT_ETH" ether)
-  #log "== funding $l2_sovereign_admin_public_key with $FUNDING_AMOUNT_ETH L2_RPC_URL=$L2_RPC_URL" >&3
-  #run cast send --legacy --rpc-url "$L2_RPC_URL" --private-key "$L2_PRIVATE_KEY" --value "$FUNDING_AMOUNT_WEI" "$l2_sovereign_admin_public_key"
-  #assert_success
-  
-  # cut --------------
   
   # Assert that balance of gas token (on the L1) is correct
   run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
@@ -126,7 +114,7 @@ setup() {
   local bridge_tx_hash=$output
 
   # Claim deposits (settle them on the L2)
-  run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "Sovereign Chain Bridge: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
 
   run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
