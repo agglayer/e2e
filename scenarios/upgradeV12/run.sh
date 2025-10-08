@@ -7,7 +7,6 @@ docker_network_name="kt-$kurtosis_enclave_name"
 
 # preallocated variables to make things coherent and easier
 l1_preallocated_mnemonic="giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"
-l1_preallocated_private_key=$(cast wallet private-key --mnemonic "$l1_preallocated_mnemonic")
 l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
 l2_admin_address=$(cast wallet address --private-key "$l2_admin_private_key")
 l2_trusted_sequencer="0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
@@ -50,7 +49,7 @@ kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-c
 
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && git fetch && git stash push -m \"kurtosis\" && git checkout v12.1.0 && git stash pop"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npm i"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY="$l2_admin_private_key" > /opt/zkevm-contracts/.env"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$l2_admin_private_key\" > /opt/zkevm-contracts/.env"
 
 rollup_manager_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r .polygonRollupManagerAddress")
 timelock_ctrl_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r .timelockContractAddress")
@@ -89,7 +88,7 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$upgrade_par
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npx hardhat run ./upgrade/upgradeV12/upgradeV12.ts --network localhost"
 
 scheduleData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .scheduleData")
-timelock_address=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)//opt/zkevm/combined.json | jq -r .timelockContractAddress)
+timelock_address=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/zkevm/combined.json | jq -r .timelockContractAddress)
 
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$scheduleData'"
 
@@ -115,7 +114,7 @@ operationId=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast
 echo "Operation id: $operationId"
 
 # wait for operation to be ready
-while [ $(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' '$operationId'") == "false" ]; do
+while [ "$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' '$operationId'")" == "false" ]; do
     echo "Operation not ready. Retrying in 10 seconds..."
     sleep 10
 done
@@ -142,7 +141,7 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
                                        ######  ######                                                                 ###:    
                                         ####:  :####:                                                                 ###     
 
-agglayergw_address=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)//opt/zkevm/combined.json | jq -r .aggLayerGatewayAddress)
+agglayergw_address=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/zkevm/combined.json | jq -r .aggLayerGatewayAddress)
 
 # https://github.com/agglayer/provers/releases/tag/v1.4.2
 defaultAggchainSelector=0x00060001
@@ -411,7 +410,7 @@ aggkit_prover_image=ghcr.io/agglayer/aggkit-prover:1.4.2
 kurtosis service update --image $agglayer_image $kurtosis_enclave_name agglayer-prover
 
 # Agglayer state is stored in /etc/agglayer, which is not preserved by doing a kurtosis service update
-agglayer_etc_agglayer=$(docker inspect agglayer--$(kurtosis service inspect $kurtosis_enclave_name agglayer --full-uuid | grep UUID | sed  's/.*: //') | jq -r .[0].Mounts[0].Source)
+agglayer_etc_agglayer=$(docker inspect agglayer--"$(kurtosis service inspect $kurtosis_enclave_name agglayer --full-uuid | grep UUID | sed  's/.*: //')" | jq -r .[0].Mounts[0].Source)
 docker run -it \
     --detach \
     --network $docker_network_name \
@@ -431,8 +430,8 @@ kurtosis service update --image $op_succinct_image --env "OP_SUCCINCT_CONFIG_NAM
 kurtosis service update --image $aggkit_prover_image $kurtosis_enclave_name aggkit-prover-001
 
 # Aggkit state is stored in /etc/aggkit and /tmp, which is not preserved by doing a kurtosis service update
-aggkit_etc_aggkit=$(docker inspect aggkit-001--$(kurtosis service inspect $kurtosis_enclave_name aggkit-001 --full-uuid | grep UUID | sed  's/.*: //') | jq -r '.[0].Mounts[] | select(.Destination == "/etc/aggkit") | .Source')
-aggkit_tmp=$(docker inspect aggkit-001--$(kurtosis service inspect $kurtosis_enclave_name aggkit-001 --full-uuid | grep UUID | sed  's/.*: //') | jq -r '.[0].Mounts[] | select(.Destination == "/tmp") | .Source')
+aggkit_etc_aggkit=$(docker inspect aggkit-001--"$(kurtosis service inspect $kurtosis_enclave_name aggkit-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/etc/aggkit") | .Source')
+aggkit_tmp=$(docker inspect aggkit-001--"$(kurtosis service inspect $kurtosis_enclave_name aggkit-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/tmp") | .Source')
 
 mkdir aggkit_tmp
 sudo bash -c "cp -r \"$aggkit_tmp\"/* aggkit_tmp/"
