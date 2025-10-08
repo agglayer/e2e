@@ -558,31 +558,31 @@ function find_l1_info_tree_index_for_bridge() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
-
+    local debug_msg="${6:-}"
     local attempt=0
     local index=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching L1 info tree index for bridge \
+        log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching L1 info tree index for bridge \
 (network id = $network_id, deposit count = $expected_deposit_count, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (index) and stderr (error message)
         index=$(curl -s -H "Content-Type: application/json" \
             "$aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
-        log "------ index ------"
+        log "------ index ------ $debug_msg "
         log "$index"
-        log "------ index ------"
+        log "------ index ------ $debug_msg "
 
         # Check if the response contains an error
         if [[ "$index" == *"error"* || "$index" == *"Error"* ]]; then
-            log "⚠️ Error: $index"
+            log "⚠️ $debug_msg  Error: $index"
             sleep "$poll_frequency"
             continue
         fi
 
         if [[ "$index" == "" ]]; then
-            log "Empty index retrieved, retrying in ${poll_frequency}s..."
+            log "$debug_msg  Empty index retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -590,8 +590,8 @@ function find_l1_info_tree_index_for_bridge() {
         echo "$index"
         return 0
     done
-    log "curl -s -H "Content-Type: application/json" $aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count"
-    log "❌ Failed to find L1 info tree index after $max_attempts attempts"
+    log "$debug_msg  curl -s -H "Content-Type: application/json" $aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count"
+    log "❌ $debug_msg  Failed to find L1 info tree index after $max_attempts attempts"
     return 1
 }
 
@@ -659,11 +659,12 @@ function process_bridge_claim() {
     local destination_aggkit_bridge_url="$6"
     local destination_rpc_url="$7"
     local from_address="${8:-}"
+    local debug_msg="${9:-}"
 
     # 1. Fetch bridge details
     local bridge
     bridge="$(get_bridge "$origin_network_id" "$bridge_tx_hash" 10 100 "$origin_aggkit_bridge_url" "$from_address")" || {
-        log "❌ process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
+        log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         return 1
     }
 
@@ -671,15 +672,15 @@ function process_bridge_claim() {
     local deposit_count
     deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     local l1_info_tree_index
-    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 8 120 "$origin_aggkit_bridge_url")" || {
-        log "❌ process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
+    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 8 120 "$origin_aggkit_bridge_url" "$debug_msg")" || {
+        log "❌ $debug_msg process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
         return 1
     }
 
     # 3. Retrieve the injected L1 info leaf
     local injected_info
     injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 10 50 "$destination_aggkit_bridge_url")" || {
-        log "❌ process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
+        log "❌ $debug_msg process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
         return 1
     }
 
@@ -687,18 +688,18 @@ function process_bridge_claim() {
     l1_info_tree_index="$(echo "$injected_info" | jq -r '.l1_info_tree_index')"
     local proof
     proof="$(generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url")" || {
-        log "❌ process_bridge_claim failed at 🛡️ generate_claim_proof (index: $l1_info_tree_index)"
+        log "❌ $debug_msg process_bridge_claim failed at 🛡️ generate_claim_proof (index: $l1_info_tree_index)"
         return 1
     }
 
     # 5. Submit the claim
     local global_index
     global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr")" || {
-        log "❌ process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
+        log "❌ $debug_msg process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
         return 1
     }
 
-    log "✅ process_bridge_claim succeeded! (global_index: $global_index)"
+    log "✅ $debug_msg process_bridge_claim succeeded! (global_index: $global_index)"
     echo "$global_index"
 }
 
