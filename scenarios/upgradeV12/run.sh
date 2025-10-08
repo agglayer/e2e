@@ -6,7 +6,6 @@ kurtosis_repo_tag="main"
 docker_network_name="kt-$kurtosis_enclave_name"
 
 # preallocated variables to make things coherent and easier
-l1_preallocated_mnemonic="giant issue aisle success illegal bike spike question tent bar rely arctic volcano long crawl hungry vocal artwork sniff fantasy very lucky have athlete"
 l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
 l2_admin_address=$(cast wallet address --private-key "$l2_admin_private_key")
 l2_trusted_sequencer="0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
