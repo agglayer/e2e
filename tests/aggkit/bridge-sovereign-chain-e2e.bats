@@ -134,7 +134,6 @@ setup() {
   local l2_token_addr_sovereign
   l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
   log "L2 Token address sovereign: $l2_token_addr_sovereign"
-  
   # event SetSovereignTokenAddress
   log "Emitting SetSovereignTokenAddress event"
   arg1='[0]'
