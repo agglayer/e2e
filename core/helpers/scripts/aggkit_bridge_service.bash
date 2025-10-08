@@ -420,19 +420,20 @@ function get_claim() {
 }
 
 function get_bridge() {
-    local network_id="$1"
-    local expected_tx_hash="$2"
-    local max_attempts="$3"
-    local poll_frequency="$4"
-    local aggkit_url="$5"
-    local from_address="${6:-}"
+    local debug_msg="[$1]"
+    local network_id="$2"
+    local expected_tx_hash="$3"
+    local max_attempts="$4"
+    local poll_frequency="$5"
+    local aggkit_url="$6"
+    local from_address="${7:-}"
 
     local attempt=0
     local bridges_result=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 Attempt $attempt/$max_attempts: fetching bridge \ 
+        log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching bridge \ 
 (network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url from_address=$from_address)"
 
         # Build the query URL with optional from_address parameter
@@ -443,19 +444,19 @@ function get_bridge() {
 
         # Capture both stdout (bridge result) and stderr (error message)
         bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "------ bridges_result (20 lines)------"
+        log "$debug_msg ------ bridges_result (20 lines)------"
         log "$(echo "$bridges_result" | jq . | head -n 20)"
-        log "------ bridges_result ------"
+        log "$debug_msg ------ bridges_result ------"
 
         # Check if the response contains an error
         if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* ]]; then
-            log "⚠️ Error: $bridges_result"
+            log "⚠️ $debug_msg Error: $bridges_result , retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
 
         if [[ "$bridges_result" == "" ]]; then
-            log "Empty bridges response retrieved, retrying in ${poll_frequency}s..."
+            log "$debug_msg Empty bridges response retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
@@ -466,7 +467,7 @@ function get_bridge() {
             tx_hash=$(echo "$row" | jq -r '.tx_hash')
 
             if [[ "$tx_hash" == "$expected_tx_hash" ]]; then
-                log "🎉 Found expected bridge with tx hash: $tx_hash"
+                log "🎉 $debug_msg Found expected bridge with tx hash: $tx_hash"
                 echo "$row"
                 return 0
             fi
@@ -475,7 +476,7 @@ function get_bridge() {
         sleep "$poll_frequency"
     done
 
-    log "❌ Failed to find bridge after $max_attempts attempts."
+    log "❌ $debug_msg Failed to find bridge after $max_attempts attempts."
     return 1
 }
 
@@ -642,28 +643,30 @@ function find_injected_l1_info_leaf() {
 # finding the L1 info tree index, generating a claim proof, and submitting the claim.
 #
 # Arguments:
-#   $1 - origin_network_id: The origin network ID where the bridge transaction occurred.
-#   $2 - bridge_tx_hash: The transaction hash of the bridge interaction.
-#   $3 - destination_network_id: The destination network ID for bridge transaction.
-#   $4 - bridge_addr: The bridge contract address where the claim will be submitted.
-#   $5 - origin_aggkit_bridge_url: The base URL of the bridge service of origin network.
-#   $6 - destination_aggkit_bridge_url: The base URL of the bridge service of destination network.
-#   $7 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
-#   $8 - from_address (optional): The address used to filter bridge transactions (if empty, no filtering is applied).
+#   $1 - message to show on logs
+#   $2 - origin_network_id: The origin network ID where the bridge transaction occurred.
+#   $3 - bridge_tx_hash: The transaction hash of the bridge interaction.
+#   $4 - destination_network_id: The destination network ID for bridge transaction.
+#   $5 - bridge_addr: The bridge contract address where the claim will be submitted.
+#   $6 - origin_aggkit_bridge_url: The base URL of the bridge service of origin network.
+#   $7 - destination_aggkit_bridge_url: The base URL of the bridge service of destination network.
+#   $8 - destination_rpc_url: The RPC URL of execution client used to interact with the network for submitting the claim.
+#   $9 - from_address (optional): The address used to filter bridge transactions (if empty, no filtering is applied).
 function process_bridge_claim() {
-    local origin_network_id="$1"
-    local bridge_tx_hash="$2"
-    local destination_network_id="$3"
-    local bridge_addr="$4"
-    local origin_aggkit_bridge_url="$5"
-    local destination_aggkit_bridge_url="$6"
-    local destination_rpc_url="$7"
-    local from_address="${8:-}"
-    local debug_msg="${9:-}"
+    local debug_msg="[$1]"
+    local origin_network_id="$2"
+    local bridge_tx_hash="$3"
+    local destination_network_id="$4"
+    local bridge_addr="$5"
+    local origin_aggkit_bridge_url="$6"
+    local destination_aggkit_bridge_url="$7"
+    local destination_rpc_url="$8"
+    local from_address="${9:-}"
+    
 
     # 1. Fetch bridge details
     local bridge
-    bridge="$(get_bridge "$origin_network_id" "$bridge_tx_hash" 10 100 "$origin_aggkit_bridge_url" "$from_address")" || {
+    bridge="$(get_bridge "$debug_msg" "$origin_network_id" "$bridge_tx_hash" 10 100 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         return 1
     }
@@ -804,7 +807,7 @@ function extract_claim_parameters_json() {
     local from_address="${3:-}"
 
     log "📋 Getting ${asset_number} bridge details"
-    run get_bridge "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
+    run get_bridge "-" "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
     assert_success
     local bridge_response="$output"
     log "📝 ${asset_number} bridge response: $bridge_response"
