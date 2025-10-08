@@ -258,7 +258,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L31) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-joan.bats#L13) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L112) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L194) | |
@@ -278,7 +277,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L62) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
-| Transfer message | [Link](./tests/aggkit/bridge-e2e-joan-v1.bats#L12) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L12) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
