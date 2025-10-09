@@ -13,6 +13,16 @@ It is designed to:
   kurtosis enclave rm cdk --force
   ```
 
+- Test file: https://github.com/agglayer/e2e/actions/runs/17996146694/workflow?pr=168
+- Reference: https://github.com/agglayer/e2e/blob/main/tests/lxly/lxly.bats
+- Branch-seen: (https://github.com/agglayer/e2e/blob/jihwan/multi-chain-bridge-workflow/tests/lxly/multi-chain-bridge.bats)
+- Branch-sug: https://github.com/agglayer/e2e/blob/main/tests/lxly/lxly.bats
+- Branch-seen: jihwan/multi-chain-bridge-workflow 
+- Kurtosis-branch: jhilliard/aggsender-validator-committee
+- . ./common.sh && _setup_vars
+# shellcheck source=./lxly.sh
+# source "$SCRIPT_DIR/lxly.sh"
+# main native
 ---
 
 ##  Scripts
