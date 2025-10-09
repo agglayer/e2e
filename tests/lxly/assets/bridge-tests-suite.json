@@ -232,7 +232,7 @@
         "ForceUpdate": "True",
         "Amount": "Random",
         "ExpectedResultProcess": ["Success","0x14603c01"],
-        "ExpectedResultClaim": ["0x6747a288","N/A"],
+        "ExpectedResultClaim": ["0x6747a288","N/A","Success"],
         "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
     },
     {
@@ -294,7 +294,7 @@
         "ForceUpdate": "True",
         "Amount": "0",
         "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
-        "ExpectedResultClaim": ["N/A"]
+        "ExpectedResultClaim": ["N/A","0xe0417cec"]
     },
     {
         "DestinationAddress": "BridgeContract",

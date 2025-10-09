@@ -942,18 +942,17 @@ _validate_bridge_error() {
     local expected_result="$1"
     local output="$2"
     
-    # Check for "already claimed" patterns first - these should generally be treated as success
-    _check_already_claimed "$output"
     _log_file_descriptor "2" "Validating bridge error - Expected: $expected_result"
     _log_file_descriptor "2" "Bridge output: $output"
     
-    # Check if expected_result_claim is an array or a single string
+    # Check if expected_result is an array or a single string
     if [[ "$expected_result" =~ ^\[.*\]$ ]]; then
         # Handle array of expected results
         _log_file_descriptor "2" "Processing array of expected results"
         local match_found=false
         while read -r expected_error; do
-            expected_error=$(echo "$expected_error" | jq -r '.')
+            # Remove quotes and parse properly
+            expected_error=$(echo "$expected_error" | jq -r '.' 2>/dev/null || echo "$expected_error" | sed 's/^"//;s/"$//')
             _log_file_descriptor "2" "Checking for expected error: $expected_error"
             
             # Special handling for "Success" in array
@@ -966,7 +965,7 @@ _validate_bridge_error() {
                 match_found=true
                 break
             fi
-        done < <(echo "$expected_result" | jq -c '.[]')
+        done < <(echo "$expected_result" | jq -c '.[]' 2>/dev/null)
         
         if $match_found; then
             _log_file_descriptor "2" "Match found in array validation"
@@ -976,9 +975,16 @@ _validate_bridge_error() {
             return 1
         fi
     else
-        # Handle single expected error
+        # Handle single expected error - remove surrounding quotes if present
         local expected_error
-        expected_error=$(echo "$expected_result" | jq -r '.')
+        if echo "$expected_result" | jq -e . >/dev/null 2>&1; then
+            # Valid JSON, use jq to parse
+            expected_error=$(echo "$expected_result" | jq -r '.')
+        else
+            # Not valid JSON, treat as plain string and remove quotes
+            expected_error=$(echo "$expected_result" | sed 's/^"//;s/"$//')
+        fi
+        
         _log_file_descriptor "2" "Processing single expected result: $expected_error"
         
         if [[ "$expected_error" == "Success" ]]; then
