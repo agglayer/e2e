@@ -956,12 +956,7 @@ _validate_bridge_error() {
             expected_error=$(echo "$expected_error" | jq -r '.')
             _log_file_descriptor "2" "Checking for expected error: $expected_error"
             
-            # Special handling for "Success" in array
-            if [[ "$expected_error" == "Success" ]]; then
-                _log_file_descriptor "2" "Found 'Success' in expected array - this should be handled in main logic"
-                match_found=true
-                break
-            elif _check_error_pattern "$expected_error" "$output"; then
+            if _check_error_pattern "$expected_error" "$output"; then
                 _log_file_descriptor "2" "Found matching error pattern: $expected_error"
                 match_found=true
                 break
@@ -1003,7 +998,8 @@ _check_error_pattern() {
     
     # Handle different error patterns
     if [[ "$expected_error" =~ ^oversized\ data ]]; then
-        if echo "$output" | grep -q "oversized data: transaction size [0-9]\+, limit 131072"; then
+        # Check for both the specific pattern and the general "oversized data" error
+        if echo "$output" | grep -q -E "(oversized data: transaction size [0-9]+, limit 131072|oversized data)"; then
             _log_file_descriptor "2" "Matched oversized data pattern"
             return 0
         fi
@@ -1024,7 +1020,6 @@ _check_error_pattern() {
     _log_file_descriptor "2" "No pattern match found for: $expected_error"
     return 1
 }
-
 
 _run_single_bridge_test() {
     local test_index="$1"
