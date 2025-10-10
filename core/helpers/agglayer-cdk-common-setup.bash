@@ -107,7 +107,7 @@ _resolve_required_urls() {
 
     # AGGKIT_BRIDGE_URL
     aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
-        "aggkit-001-bridge" "rest" "cdk-node-001" "rest" \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
         "Failed to resolve aggkit bridge url from all fallback nodes" true)
     export aggkit_bridge_url
 
