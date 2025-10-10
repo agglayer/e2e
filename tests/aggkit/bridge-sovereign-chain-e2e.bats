@@ -18,7 +18,8 @@ setup() {
   readonly migrate_legacy_token_func_sig="function migrateLegacyToken(address, uint256, bytes)"
   readonly remove_legacy_sovereign_token_address_func_sig="function removeLegacySovereignTokenAddress(address)"
 
-  readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
+  readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
+  readonly l2_sovereign_admin_public_key=$(cast wallet address --private-key "$l2_sovereign_admin_private_key")
 }
 
 @test "Test GlobalExitRoot removal" {
@@ -73,6 +74,13 @@ setup() {
 
 @test "Test Sovereign Chain Bridge Events" {
   log "=== 🧑‍💻 Running Sovereign Chain Bridge Events" >&3
+  # Sanity check, the l2_sovereign_admin_private_key must match the bridgeManager address
+  bridgeManagerAddr=$(cast call --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "bridgeManager()(address)")
+  if [ "$l2_sovereign_admin_public_key" != "$bridgeManagerAddr" ]; then
+  log "bridgeManagerAddr missmatch: local: $l2_sovereign_admin_public_key contract.bridgeManager: $bridgeManagerAddr" >& 3
+    fail 
+  fi
+
   run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
   assert_success
 
@@ -86,7 +94,7 @@ setup() {
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
   run mint_and_approve_erc20_tokens "$l1_rpc_url" "$l1_erc20_addr" "$sender_private_key" "$sender_addr" "$tokens_amount" "$l1_bridge_addr"
   assert_success
-
+  
   # Assert that balance of gas token (on the L1) is correct
   run query_contract "$l1_rpc_url" "$l1_erc20_addr" "$BALANCE_OF_FN_SIG" "$sender_addr"
   assert_success
@@ -106,7 +114,7 @@ setup() {
   local bridge_tx_hash=$output
 
   # Claim deposits (settle them on the L2)
-  run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "Sovereign Chain Bridge: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
 
   run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
@@ -126,7 +134,6 @@ setup() {
   local l2_token_addr_sovereign
   l2_token_addr_sovereign=$(echo "$output" | tail -n 1)
   log "L2 Token address sovereign: $l2_token_addr_sovereign"
-
   # event SetSovereignTokenAddress
   log "Emitting SetSovereignTokenAddress event"
   arg1='[0]'
