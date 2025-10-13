@@ -93,8 +93,8 @@ l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth
 timeout=2000
 retry_interval=20
 
-check_non_null() [[ -n "$1" && "$1" != "null" ]]
-check_null() [[ "$1" == "null" ]]
+check_non_null() { [[ -n "$1" && "$1" != "null" ]] }
+check_null() { [[ "$1" == "null" ]] }
 
 # TOOD We should add some pause here to make sure that there are some bridges sent... we can check that the pending certificate is not null
 echo "Checking non-null certificate..."
