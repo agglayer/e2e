@@ -357,7 +357,7 @@ function get_claim() {
         fi
 
         claims_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "------ claims_result ------"
+        log "------ claims_result ------ $query_url"
         log "$claims_result"
         log "------ claims_result ------"
 
