@@ -165,7 +165,7 @@ echo ' #  #   ## #   #   # #    # #      #  #     #         #    #  #    # #    
 echo '### #    # #   #   # #    # ###### # ###### ######    #     #  ####  ###### ######  ####  #    '
 
 
-docker cp $contracts_container_name:/opt/contract-deploy/create_new_rollup.json initialize_rollup.json
+docker cp $contracts_container_name:/opt/input/create_new_rollup.json initialize_rollup.json
 
 # TRYFIX - Maybe we can read the block number from the last settled PP
 # current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')

@@ -127,13 +127,13 @@ function _setup_vars() {
     if [[ -n "$L1_PRIVATE_KEY" ]]; then
         l1_private_key="$L1_PRIVATE_KEY"
     elif [[ -n "$kurtosis_enclave_name" ]]; then
-        l1_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/contract-deploy/input_args.json" | jq -r '.args.l1_preallocated_private_key')
+        l1_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/input/input_args.json" | jq -r '.args.l1_preallocated_private_key')
     fi
 
     if [[ -n "$L2_PRIVATE_KEY" ]]; then
         l2_private_key="$L2_PRIVATE_KEY"
     elif [[ -n "$kurtosis_enclave_name" ]]; then
-        l2_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/contract-deploy/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')
+        l2_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')
     fi
 
     if [[ -n "$l1_private_key" ]]; then
