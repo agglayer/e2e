@@ -52,7 +52,7 @@ echo '#     # #####  #####     #     #  ####  ###### ######  ####  #            
 contracts_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep contracts-001 | awk '{print $1}')
 contracts_container_name=contracts-001--$contracts_uuid
 
-agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep agglayer[^-] | awk '{print $1}')
+agglayer_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep "agglayer[^-]" | awk '{print $1}')
 agglayer_container_name=agglayer--$agglayer_uuid
 
 aggkit_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep aggkit-001 | awk '{print $1}')
@@ -86,20 +86,24 @@ echo ' #####  #      #####  #    #   #   ######    #     #  ####  ###### ###### 
 
 # Set the urls
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
-l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
+# l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
 # The timeout might be too large, but it should allow sufficient time for the certificates to settle.
 # TODO this timeout approach allows us to run the script without needing to manually check and continue the next steps. But there might be better approaches.
 timeout=2000
 retry_interval=20
 
-check_non_null() { [[ -n "$1" && "$1" != "null" ]] }
-check_null() { [[ "$1" == "null" ]] }
+check_non_null() {
+  [[ -n "$1" && "$1" != "null" ]]
+}
+check_null() {
+  [[ "$1" == "null" ]]
+}
 
 # TOOD We should add some pause here to make sure that there are some bridges sent... we can check that the pending certificate is not null
 echo "Checking non-null certificate..."
 start=$((SECONDS))
-while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_non_null "$output"; do
+while ! output=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_non_null "$output"; do
   [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for non-null certificate"; exit 1; }
   echo "Retrying..."
   sleep $retry_interval
@@ -114,7 +118,7 @@ echo "Spammer stopped."
 # TODO use this in the future to block the upgrade This should be `null`... Basically we want to make sure everything is settled
 echo "Checking null last pending certificate..."
 start=$((SECONDS))
-while ! output=$(cast rpc --rpc-url $(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_null "$output"; do
+while ! output=$(cast rpc --rpc-url "$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)" interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null) || ! check_null "$output"; do
   [[ $((SECONDS - start)) -ge $timeout ]] && { echo "Error: Timeout ($timeout s) for null certificate"; exit 1; }
   echo "Retrying: $output"
   sleep $retry_interval
@@ -122,7 +126,7 @@ done
 echo "Null latest pending certificate confirmed"
 
 echo "Checking last settled certificate"
-latest_settled_l2_block=$(cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+latest_settled_l2_block=$(cast rpc --rpc-url "$(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
 echo $latest_settled_l2_block
 
 # FIXME We should probably stop the agg kit at this point? Is there a risk that a certificate is sent / settled during the upgrade process
@@ -134,7 +138,7 @@ docker exec -u root -it "$aggkit_container_name" sed -i 's/Mode="PessimisticProo
 kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 
 # Get the current rollup type count and make sure that it make sense
-rollup_type_count=$(cast call --rpc-url "$l1_rpc_url" $(jq -r '.polygonRollupManagerAddress' combined.json) 'rollupTypeCount() external view returns (uint32)')
+rollup_type_count=$(cast call --rpc-url "$l1_rpc_url" "$(jq -r '.polygonRollupManagerAddress' combined.json)" 'rollupTypeCount() external view returns (uint32)')
 if [[ $rollup_type_count -ne 2 ]]; then
     printf "Expected a rollup type count of 2 but got %d\n" "$rollup_type_count"
     exit 1
@@ -170,7 +174,7 @@ docker cp $contracts_container_name:/opt/input/create_new_rollup.json initialize
 # TRYFIX - Maybe we can read the block number from the last settled PP
 # current_unsafe_block=$(cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock 0x0 | jq '.syncStatus.unsafe_l2.number')
 
-cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock $(printf "0x%x" $latest_settled_l2_block) | jq '.' > output.json
+cast rpc --rpc-url "$l2_node_url" optimism_outputAtBlock "$(printf "0x%x" $latest_settled_l2_block)" | jq '.' > output.json
 
 # TODO this is very hacky.. There are some things in this that don't actually come from rollup config. And then some values are formatted differently
 cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig | jq '.' | jq --indent 2 '{
@@ -275,7 +279,7 @@ echo '######  ###### ###### #       ####    #      ### #    # #      #    # #   
 # TODO figure out what the input should be
 # https://github.com/ethereum-optimism/optimism/blob/6d9d43cb6f2721c9638be9fe11d261c0602beb54/op-node/node/api.go#L63
 # start it back up
-cast rpc --rpc-url "$l2_node_url" admin_startSequencer $(cat stop.out)
+cast rpc --rpc-url "$l2_node_url" admin_startSequencer "$(cat stop.out)"
 
 echo "Starting up aggkit service..."
 kurtosis service start "$kurtosis_enclave_name" aggkit-001
@@ -292,13 +296,13 @@ kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
 exit
 
 # TODO use this in the future to block the upgrade This should be `null`
-cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestPendingCertificateHeader 1 | jq '.'
+cast rpc --rpc-url "$(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc)" interop_getLatestPendingCertificateHeader 1 | jq '.'
 
-cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq '.'
-cast rpc --rpc-url $(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc) interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
+cast rpc --rpc-url "$(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq '.'
+cast rpc --rpc-url "$(kurtosis port print $kurtosis_enclave_name agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata'  | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o'
 
 cast abi-encode --packed 'f(bytes,uint64,uint64,uint64,bytes)' 0x00 1 1 1 0xFFFFFFFFFFFFFF
 
-cast tx --rpc-url http://$(kurtosis port print $kurtosis_enclave_name  el-1-geth-lighthouse rpc) 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
+cast tx --rpc-url http://"$(kurtosis port print $kurtosis_enclave_name  el-1-geth-lighthouse rpc)" 0x793b0deb01dc2e6d679752a636e8774d4ba6c433beee3609855d5b78cefe560e
 
 docker compose down
