@@ -57,13 +57,13 @@ function _setup_vars() {
             unset kurtosis_l2_rpc_url
         fi
 
-        run curl -s -o /dev/null -w "%{http_code}" $(kurtosis port print $kurtosis_enclave_name contracts-001 http)/opt/input/input_args.json
+        run curl -s -o /dev/null -w "%{http_code}" "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/input/input_args.json
         if [[ "$output" -eq 200 ]]; then
-            input_args=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)/opt/input/input_args.json)
+            input_args=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/input/input_args.json)
         else
-            run curl -s -o /dev/null -w "%{http_code}" $(kurtosis port print $kurtosis_enclave_name contracts-001 http)/opt/contract-deploy/input_args.json
+            run curl -s -o /dev/null -w "%{http_code}" "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/contract-deploy/input_args.json
             if [[ "$output" -eq 200 ]]; then
-                input_args=$(curl -s $(kurtosis port print $kurtosis_enclave_name contracts-001 http)/opt/contract-deploy/input_args.json)
+                input_args=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/contract-deploy/input_args.json)
             fi
         fi
     fi
