@@ -71,7 +71,7 @@ jobs:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
         stack: ["cdk-op-geth", "cdk-erigon"]
     env:
-      POLYCLI_VERSION: v0.1.84
+      POLYCLI_VERSION: v0.1.90
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref || 'main' }}
       KURTOSIS_ENCLAVE_NAME: ${{ inputs.kurtosis-enclave-name || format('{0}-{1}', 'cdk', matrix.stack) }}
@@ -193,7 +193,7 @@ jobs:
       matrix:
         stack: ["cdk-op-geth", "cdk-erigon"]
     env:
-      POLYCLI_VERSION: v0.1.84
+      POLYCLI_VERSION: v0.1.90
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref || 'main' }}
       KURTOSIS_ENCLAVE_NAME: ${{ format('cdk-chaos-{0}', matrix.stack) }}

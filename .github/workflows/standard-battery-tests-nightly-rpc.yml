@@ -65,7 +65,7 @@ jobs:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
         target-network: ["bali-01","bali-37","bali-48","bali-49","bali-52","bali-57"]
     env:
-      POLYCLI_VERSION: v0.1.89
+      POLYCLI_VERSION: v0.1.90
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
       L2_RPC_ENDPOINT: ${{ matrix.target-network == 'bali-01' && secrets.L2_BALI_01_RPC_ENDPOINT || matrix.target-network == 'bali-37' && secrets.L2_BALI_37_RPC_ENDPOINT || matrix.target-network == 'bali-48' && secrets.L2_BALI_48_RPC_ENDPOINT || matrix.target-network == 'bali-52' && secrets.L2_BALI_52_RPC_ENDPOINT || matrix.target-network == 'bali-49' && secrets.L2_BALI_49_RPC_ENDPOINT || matrix.target-network == 'bali-57' && secrets.L2_BALI_57_RPC_ENDPOINT}}
