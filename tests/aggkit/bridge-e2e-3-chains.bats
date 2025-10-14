@@ -95,6 +95,7 @@ setup() {
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_1_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
 
@@ -120,6 +121,7 @@ setup() {
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
@@ -237,6 +239,7 @@ setup() {
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_1_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
 
@@ -290,6 +293,7 @@ setup() {
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
@@ -328,6 +332,7 @@ setup() {
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_3_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_3_url"
     assert_success
 
@@ -363,6 +368,7 @@ setup() {
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 

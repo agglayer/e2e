@@ -159,7 +159,7 @@ function claim_bridge() {
         log "💡 claim_call returns $request_result"
 
         if [ "$request_result" -eq 0 ]; then
-            log "🎉 Claim successful"
+            log "🎉 Claim successful global_index: $global_index"
             echo "$global_index"
             return 0
         fi

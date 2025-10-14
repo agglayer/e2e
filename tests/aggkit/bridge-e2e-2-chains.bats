@@ -43,7 +43,7 @@ setup() {
     local bridge_tx_hash=$output
 
     echo "=== Running LxLy claim L2(Rollup 2) to L2(Rollup 1) for: $bridge_tx_hash" >&3
-    run process_bridge_claim "2chain.L2L2 claim L2: $LINENO"  "$rollup_2_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l2_bridge_addr" "$aggkit_bridge_2_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    run process_bridge_claim "bridge-e2e-2-chains: $LINENO"  "$rollup_2_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l2_bridge_addr" "$aggkit_bridge_2_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
     assert_success
     global_index_pp2_to_pp1=$output
 
@@ -58,7 +58,7 @@ setup() {
     bridge_tx_hash=$output
 
     echo "=== Running LxLy claim L2(Rollup 1) to L1 for $bridge_tx_hash" >&3
-    run process_bridge_claim "2chain.L2L2 claim L2: $LINENO"  "$rollup_1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
+    run process_bridge_claim "bridge-e2e-2-chains: $LINENO"  "$rollup_1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
     assert_success
 
     if [[ "$ENCLAVE_NAME" == "aggkit" ]]; then
@@ -84,7 +84,7 @@ setup() {
     log "Bridge transaction hash: $bridge_tx_hash"
 
     echo "====== Claim Message (L2 Rollup 2)" >&3
-    run process_bridge_claim "2chain.TL2L2 claim L2: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    run process_bridge_claim "bridge-e2e-2-chains: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
     assert_success
     claim_global_index=$output
     log "Claim global index: $claim_global_index"
