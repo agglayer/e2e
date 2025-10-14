@@ -815,7 +815,7 @@ _setup_ephemeral_accounts_in_bulk() {
     fi
 
     # Fund 0.01ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
-    polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 10000000000000000 >/dev/null 2>&1
+    polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 10000000000000000 >/dev/null 2>&1
 
     # Bulk fund and approve ERC20 tokens to ephemeral accounts
     # _log_file_descriptor "2" "Bulk funding and approving ERC20 tokens for $total_scenarios ephemeral accounts"
@@ -823,13 +823,13 @@ _setup_ephemeral_accounts_in_bulk() {
     # Fund and approve LocalERC20 tokens
     if [[ -n "$test_erc20_addr" && "$test_erc20_addr" != "0x0000000000000000000000000000000000000000" ]]; then
         # _log_file_descriptor "2" "Bulk funding LocalERC20 tokens ($test_erc20_addr) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_addr" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_addr" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
     fi
     
     # Fund and approve Buggy ERC20 tokens
     if [[ -n "$test_erc20_buggy_addr" && "$test_erc20_buggy_addr" != "0x0000000000000000000000000000000000000000" ]]; then
         # _log_file_descriptor "2" "Bulk funding Buggy ERC20 tokens ($test_erc20_buggy_addr) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_buggy_addr" --token-amount 1000000000000000000000000000000000000000000000000000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount $(cast max-uint) >/dev/null 2>&1
+        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_buggy_addr" --token-amount 1000000000000000000000000000000000000000000000000000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount "$(cast max-uint)" >/dev/null 2>&1
     fi
     
     # Fund and approve POL tokens (commented out as in original)
@@ -841,13 +841,13 @@ _setup_ephemeral_accounts_in_bulk() {
     # Fund and approve GasToken if available
     if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" ]]; then
         # _log_file_descriptor "2" "Bulk funding GasToken tokens ($gas_token_address) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$gas_token_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$gas_token_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
     fi
     
     # Fund and approve WETH tokens if available
     if [[ -n "$pp_weth_address" && "$pp_weth_address" != "0x0000000000000000000000000000000000000000" ]]; then
         # _log_file_descriptor "2" "Bulk funding WETH tokens ($pp_weth_address) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pp_weth_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pp_weth_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
     fi
 }
 
