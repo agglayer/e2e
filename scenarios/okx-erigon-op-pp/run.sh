@@ -3,7 +3,7 @@
 for c in op-deployer external-op-node external-op-geth-sequencer aggkit-bridge aggkit; do
   docker rm -f "$c" >/dev/null 2>&1 || true
 done
-sudo rm -rf aggkit aggkit-bridge chaindata jwt.txt op-deployer-output opgeth-data regenesis.json rollup.json regenesis.json.tmp rollup.json.tmp regenesisTool op-deployer-work
+sudo rm -rf aggkit aggkit-bridge chaindata jwt.txt op-deployer-output opgeth-data regenesis.json rollup.json regenesis.json.tmp rollup.json.tmp regenesisTool op-deployer-work agglayer-contracts
 kurtosis clean --all
 
 kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/cdk-erigon/sovereign.yml github.com/0xPolygon/kurtosis-cdk
@@ -11,6 +11,64 @@ kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolyg
 sleep 60 # Wait for the bridge spammer to generate some traffic
 kurtosis service stop cdk bridge-spammer-001
 sleep 30
+
+### Update L2 smc
+git clone https://github.com/agglayer/agglayer-contracts.git
+cd agglayer-contracts || exit 1
+git checkout v11.0.0-rc.3
+npm install
+npx hardhat compile
+# Deploy new L2 smc implementation
+private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+rpc_url="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
+l2_GER_proxy_addr=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVMGlobalExitRootL2Address" | awk -F'"' '{print $4}')
+l2_bridge_proxy_addr=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVML2BridgeAddress" | awk -F'"' '{print $4}')
+from=$(cast wallet address --private-key $private_key)
+nonce=$(cast nonce $from --rpc-url "$rpc_url" --block pending)
+target_nonce=$nonce # We need to skip the proxy admin deployment tx
+
+ger_smc_bytecode=$(cat artifacts/contracts/v2/sovereignChains/GlobalExitRootManagerL2SovereignChain.sol/GlobalExitRootManagerL2SovereignChain.json | jq -r '.bytecode')
+ger_constructor_args=$(cast abi-encode 'constructor(address)' $l2_bridge_proxy_addr | sed 's/0x//')
+new_ger_impl_addr=$(cast compute-address --nonce "$target_nonce" "$from" | grep -Eo '0x[0-9a-fA-F]{40}')
+echo "new_ger_impl_addr deploy address: $new_ger_impl_addr"
+cast send --legacy -r "$rpc_url" --private-key "$private_key" --nonce "$target_nonce" --create "$ger_smc_bytecode$ger_constructor_args"
+
+IMPL_SLOT=0x360894A13ba1a3210667c828492db98DCA3E2076CC3735A920A3CA505D382BBC
+ADMIN_SLOT=0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
+
+CURRENT_GER_IMPL=$(cast storage "$l2_GER_proxy_addr" $IMPL_SLOT --rpc-url "$rpc_url" | grep -Eo '0x[0-9a-fA-F]{64}' | tail -c 41 | sed 's/^/0x/')
+GER_ADMIN=$(cast storage "$l2_GER_proxy_addr" $ADMIN_SLOT --rpc-url "$rpc_url" | grep -Eo '0x[0-9a-fA-F]{64}' | tail -c 41 | sed 's/^/0x/')
+echo "l2_GER_proxy_addr: $l2_GER_proxy_addr"
+echo "GER_ADMIN (ProxyAdmin): $GER_ADMIN"
+echo "Current GER Impl: $CURRENT_GER_IMPL"
+echo "New GER impl: $new_ger_impl_addr"
+
+TIMELOCK=$(cast call $GER_ADMIN "owner()(address)" --rpc-url $rpc_url)
+TIMELOCK_DELAY=$(cast call $TIMELOCK "getMinDelay()(uint256)" --rpc-url $rpc_url)
+
+GER_INIT_DATA=$(cast abi-encode "initialize(address,address)" $from $from )
+DATA_GER=$(cast calldata "upgrade(address,address)" $l2_GER_proxy_addr $new_ger_impl_addr)
+SALT="0x0000000000000000000000000000000000000000000000000000000000000000"
+cast send $TIMELOCK "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)" "[$GER_ADMIN]" "[0]" "[$DATA_GER]" \
+  0x0000000000000000000000000000000000000000000000000000000000000000 \
+  $SALT \
+  $TIMELOCK_DELAY \
+  --rpc-url $rpc_url --private-key $private_key --legacy
+
+sleep $(($TIMELOCK_DELAY + 15))
+
+cast send $TIMELOCK \
+  "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)" \
+  "[$GER_ADMIN]" \
+  "[0]" \
+  "[$DATA_GER]" \
+  0x0000000000000000000000000000000000000000000000000000000000000000 \
+  $SALT \
+  --rpc-url $rpc_url --private-key $private_key
+
+cast call --rpc-url "$rpc_url" $l2_GER_proxy_addr 'GER_SOVEREIGN_VERSION()(string)' || exit 1
+cd .. || exit 1
+#########
 
 docker cp "$(docker ps --filter "name=cdk-erigon-sequencer-001" --format "{{.ID}}")":/home/erigon/data/dynamic-kurtosis-sequencer/chaindata .
 kurtosis service stop cdk cdk-erigon-sequencer-001
@@ -290,7 +348,7 @@ polycli ulxly bridge asset \
     --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
     --destination-network 0 \
     --rpc-url "http://localhost:8545" \
-    --private-key "0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31"
+    --private-key "$private_key"
 
 ### Wait for the cert to be settled
 CONTAINER="aggkit"
