@@ -309,6 +309,7 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
+        echo "curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id"
         token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
@@ -326,7 +327,11 @@ function wait_for_expected_token() {
 
         # Fail test if max attempts are reached
         if [[ "$attempt" -ge "$max_attempts" ]]; then
-            echo "Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&3
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
+            echo "--- token_mappings_result"
+            echo "$token_mappings_result"
+            echo "--- token_mappings_result"
             return 1
         fi
 
