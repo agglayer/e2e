@@ -387,3 +387,24 @@ else
 fi
 
 
+
+
+# native run
+LOG_FILE="logs/run_native_bridging_$(date +%F).log"
+PID_FILE="logs/run_native_bridging.pid"
+
+nohup ./lxly.sh native >>"$LOG_FILE" 2>&1 &
+echo "Started native → $LOG_FILE (PID $(cat logs/run_native_bridging.pid))"
+echo $! > "$PID_FILE"
+echo "Started ./lxly.sh native (PID $(cat "$PID_FILE")) → $LOG_FILE"
+
+# erc20 roundtrip
+LOG_FILE="logs/run_roundtrip_bridging_$(date +%F).log"
+PID_FILE="logs/run_roundtrip_bridging.pid"
+
+nohup ./lxly.sh erc20-roundtrip >>"$LOG_FILE" 2>&1 &
+echo "Started erc20-roundtrip → $LOG_FILE_RT (PID $(cat logs/run_roundtrip_bridging.pid))"
+echo $! > "$PID_FILE"
+echo "Started ./lxly.sh erc20-roundtrip (PID $(cat "$PID_FILE")) → $LOG_FILE"
+
+echo "Output of bridging can be found in teh /logs folder you need to wait for it to finish executing"

@@ -234,9 +234,3 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "l1_private_key=${l1_private_key:-}"
     echo "l2_private_key=${l2_private_key:-}"
 fi
-
-
-
-
-
-

@@ -19,8 +19,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # --- config defaults (override via env) ---
 : "${CLAIMTXMANAGER_ADDR:=0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8}"
-: "${CLAIM_WAIT_DURATION:=10m}"            # e.g., 10m, 120s, or just 600
-: "${TRANSACTION_RECEIPT_TIMEOUT:=60}"     # seconds
+: "${CLAIM_WAIT_DURATION:=1h}"            # e.g., 10m, 120s, or just 600 also 1h
+: "${TRANSACTION_RECEIPT_TIMEOUT:=3600}"     # 1h = 3600 or 60 seconds 
 : "${ERC20_TOKEN_NAME:=e2e test}"
 : "${ERC20_TOKEN_SYMBOL:=E2E}"
 
