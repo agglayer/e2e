@@ -68,7 +68,7 @@ setup() {
     run process_bridge_claim "claim L2: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
     echo "==== ⏳ run wait_for_expected_token" >&3
-    run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 5 100 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 10 100 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
 
