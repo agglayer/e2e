@@ -1,8 +1,528 @@
 [
     {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "Buggy",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "NativeEther",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "Buggy",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
         "DestinationAddress": "Precompile",
         "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
         "Token": "WETH",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "1",
@@ -11,6 +531,306 @@
     },
     {
         "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "WETH",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
         "BridgeType": "Asset",
         "Token": "LocalERC20",
         "MetaData": "Random",
@@ -20,31 +840,31 @@
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "GasToken",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "Max",
-        "ExpectedResultProcess": "TransferAmountExceedsBalance",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
+        "DestinationAddress": "BridgeContract",
         "BridgeType": "Weth",
-        "Token": "NativeEther",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "Random",
+        "Token": "Buggy",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "0",
         "ExpectedResultProcess": "BridgeWETHNotAllowed",
         "ExpectedResultClaim": "N/A"
     },
     {
         "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
         "BridgeType": "Asset",
         "Token": "Buggy",
         "MetaData": "0x",
-        "ForceUpdate": "True",
+        "ForceUpdate": "False",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
         "ExpectedResultClaim": "Success"
@@ -55,197 +875,17 @@
         "Token": "Buggy",
         "MetaData": "Random",
         "ForceUpdate": "False",
-        "Amount": "1",
+        "Amount": "0",
         "ExpectedResultProcess": "0xe282c0ba",
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Asset",
-        "Token": "WETH",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "Max",
-        "ExpectedResultProcess": "TransferAmountExceedsBalance",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
         "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "LocalERC20",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Asset",
-        "Token": "GasToken",
-        "MetaData": "0x",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "NativeEther",
-        "MetaData": "0x",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Weth",
-        "Token": "Buggy",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "WETH",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "LocalERC20",
-        "MetaData": "Huge",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Weth",
-        "Token": "GasToken",
-        "MetaData": "Max",
-        "ForceUpdate": "False",
-        "Amount": "Max",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Message",
-        "Token": "NativeEther",
-        "MetaData": "Random",
-        "ForceUpdate": "True",
-        "Amount": "Max",
-        "ExpectedResultProcess": "TransferAmountExceedsBalance",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "GasToken",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "WETH",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Weth",
-        "Token": "NativeEther",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "Buggy",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "LocalERC20",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Message",
-        "Token": "NativeEther",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Max",
-        "ExpectedResultProcess": "TransferAmountExceedsBalance",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Weth",
-        "Token": "GasToken",
-        "MetaData": "0x",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "Buggy",
-        "MetaData": "0x",
-        "ForceUpdate": "True",
-        "Amount": "Max",
-        "ExpectedResultProcess": "BridgeWETHNotAllowed",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Message",
-        "Token": "WETH",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "Precompile",
         "BridgeType": "Asset",
         "Token": "LocalERC20",
         "MetaData": "Random",
         "ForceUpdate": "True",
-        "Amount": "0",
+        "Amount": "1",
         "ExpectedResultProcess": "0xe282c0ba",
         "ExpectedResultClaim": "N/A"
     },
@@ -260,10 +900,10 @@
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "Precompile",
+        "DestinationAddress": "EOA",
         "BridgeType": "Message",
-        "Token": "Buggy",
-        "MetaData": "0x",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
         "ForceUpdate": "False",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
@@ -271,10 +911,10 @@
     },
     {
         "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "GasToken",
-        "MetaData": "Huge",
-        "ForceUpdate": "True",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
         "Amount": "Max",
         "ExpectedResultProcess": "TransferAmountExceedsBalance",
         "ExpectedResultClaim": "N/A"
@@ -282,8 +922,68 @@
     {
         "DestinationAddress": "Precompile",
         "BridgeType": "Message",
-        "Token": "GasToken",
+        "Token": "NativeEther",
         "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "NativeEther",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "1",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
+        "Token": "GasToken",
+        "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "Max",
         "ExpectedResultProcess": "TransferAmountExceedsBalance",
