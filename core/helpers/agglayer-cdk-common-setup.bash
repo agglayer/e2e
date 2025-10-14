@@ -35,6 +35,9 @@ _agglayer_cdk_common_setup() {
 
     # ✅ Set and export variables
     _set_and_export_bridge_vars
+
+    # ✅ Resolve aggsender mode and expport aggsender_mode
+    _resolve_aggsender_mode
 }
 
 # Loads required BATS testing libraries, such as bats-support and bats-assert.
@@ -526,4 +529,27 @@ _agglayer_cdk_common_multi_setup() {
     readonly receiver1_private_key
     receiver1_addr="$(cast wallet address --private-key $receiver1_private_key)"
     export receiver1_addr
+}
+
+_resolve_aggsender_mode(){
+    local mode
+    mode=${aggsender_mode:-}
+    if [ $mode != "" ]; then
+        echo "Using aggsender_mode from environment: $aggsender_mode" >&3
+    else 
+        echo "Resolving aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&3
+        mode=$(curl -X POST $aggkit_rpc_url --header "Content-Type: application/json"  -d '{"method":"aggsender_status", "params":[], "id":1}' | jq .result.mode)
+        if [ "$mode" == "null" ] || [ -z "$mode" ]; then
+            echo "Failed to resolve aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&2
+            exit 1
+        fi
+    aggsender_mode=$(echo $mode | tr -d '"')
+    export aggsender_mode
+    fi
+    if [ $aggsender_mode == "AggchainProof" ]; then
+        export aggsender_mode_is_fep=1
+    else
+        export aggsender_mode_is_fep=0
+    fi
+    echo "=== Resolved aggsender_mode: $aggsender_mode (aggsender_mode_is_fep=$aggsender_mode_is_fep)" >&3
 }

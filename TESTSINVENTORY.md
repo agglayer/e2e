@@ -7,11 +7,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L67) | |
-| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L87) | |
-| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L309) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L561) | |
-| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L530) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L80) | |
+| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L102) | |
+| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L327) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L581) | |
+| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L550) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L117) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
@@ -124,11 +124,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | add new validator | [Link](./tests/pos/validator.bats#L20) | |
-| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L50) | |
-| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L187) | |
-| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L138) | |
-| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L94) | |
+| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L51) | |
+| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L188) | |
+| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L139) | |
+| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L95) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
+| prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
 | undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
 | update signer | [Link](./tests/pos/validator.bats#L147) | |
@@ -257,18 +258,18 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L132) | |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
-| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L28) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L108) | |
+| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L31) | |
+| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L112) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L194) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L143) | |
 | L1 → Rollup 3 (native/WETH) → Rollup 1 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L16) | |
-| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L274) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L224) | |
+| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L291) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L240) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
-| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L24) | |
+| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L25) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L74) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L75) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L477) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L69) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1355) | |
@@ -277,7 +278,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L62) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
-| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L10) | |
+| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L12) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
