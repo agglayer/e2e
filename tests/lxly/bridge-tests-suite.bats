@@ -28,6 +28,7 @@ setup_file() {
     global_timeout="$(echo "$ETH_RPC_TIMEOUT" | sed 's/[smh]$//')"
     export global_timeout
     export max_concurrent="${MAX_CONCURRENT:-10}"
+    export setup_max_concurrent="${SETUP_MAX_CONCURRENT:-1}"
 }
 
 setup() {
@@ -46,7 +47,7 @@ teardown() {
     rm -f "/tmp/huge_data_${test_index}.hex" "/tmp/max_data_${test_index}.hex"
 
     # Clean up result files
-    rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
+    rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex /tmp/setup_result_*.txt
 }
 
 
@@ -129,68 +130,51 @@ _calculate_test_erc20_address() {
 
     echo "" | tee "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
-    echo "      PHASE 1: SEQUENTIAL SETUP         " | tee -a "$setup_log" >&3
+    echo "      BULK SETUP PHASE                  " | tee -a "$setup_log" >&3
     echo "              L1 -> L2                  " | tee -a "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
     
-    # Phase 1: Sequential setup of all test accounts
-    local index=0
-    local setup_failures=0
-    local successful_setups=()  # Array to track successfully set up test indices
-
-    _log_file_descriptor "3" "Setting up $total_scenarios test accounts..." | tee -a "$setup_log"
-
-    while read -r scenario; do
-        local progress_percent=$((index * 100 / total_scenarios))
-        _log_file_descriptor "3" "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log"
-        
-        if ! _setup_single_test_account "$index" "$scenario" "L1_TO_L2" 2>>"$output_dir/setup_debug_${index}.log"; then
-            _log_file_descriptor "3" "❌ Failed to set up account for test $index" | tee -a "$setup_log"
-            setup_failures=$((setup_failures + 1))
-        else
-            _log_file_descriptor "3" "✅ Successfully set up account for test $index" | tee -a "$setup_log"
-            successful_setups+=("$index")  # Track successful setup
-        fi
-        
-        index=$((index + 1))
-    done < <(echo "$scenarios" | jq -c '.[]')
-
-    local successful_count=${#successful_setups[@]}
-
-    _log_file_descriptor "3" "" | tee -a "$setup_log"
-    _log_file_descriptor "3" "Setup Phase Complete:" | tee -a "$setup_log"
-    _log_file_descriptor "3" "  ✅ Successful setups: $successful_count" | tee -a "$setup_log"
-    _log_file_descriptor "3" "  ❌ Failed setups: $setup_failures" | tee -a "$setup_log"
-
-    if [[ $setup_failures -gt 0 ]]; then
-        echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log" >&3
-        echo "Successfully set up $successful_count accounts" | tee -a "$setup_log" >&3
-        echo "Setup logs saved to: $output_dir/setup_*.log" | tee -a "$setup_log" >&3
-        
-        # Continue with successful setups if we have any
-        if [[ $successful_count -eq 0 ]]; then
-            echo "No accounts were successfully set up, aborting test" | tee -a "$setup_log" >&3
-            return 1
-        fi
-    else
-        echo "All $total_scenarios test accounts set up successfully" | tee -a "$setup_log" >&3
+    # Bulk setup: Fund all ephemeral accounts and approve tokens in one go
+    _log_file_descriptor "3" "Setting up $total_scenarios ephemeral accounts with bulk funding..." | tee -a "$setup_log"
+    
+    # Bulk fund ephemeral accounts on both networks with token funding and approvals
+    if ! _setup_ephemeral_accounts_in_bulk "L1" "$total_scenarios" "$l1_bridge_addr"; then
+        _log_file_descriptor "3" "Failed to bulk setup accounts on L1" | tee -a "$setup_log"
+        return 1
     fi
+    
+    if ! _setup_ephemeral_accounts_in_bulk "L2" "$total_scenarios" "$l2_bridge_addr"; then
+        _log_file_descriptor "3" "Failed to bulk setup accounts on L2" | tee -a "$setup_log"
+        return 1
+    fi
+
+    _log_file_descriptor "3" "✅ Successfully bulk funded and approved tokens for all $total_scenarios ephemeral accounts" | tee -a "$setup_log"
+    
+    # Create array of all test indices since bulk setup means all accounts are ready
+    local successful_setups=()
+    for ((i=0; i<total_scenarios; i++)); do
+        successful_setups+=("$i")
+    done
+    
+    local successful_count=${#successful_setups[@]}
+    
+    _log_file_descriptor "3" "" | tee -a "$setup_log"
+    _log_file_descriptor "3" "Bulk Setup Phase Complete:" | tee -a "$setup_log"
+    _log_file_descriptor "3" "  ✅ All $successful_count accounts ready for bridge tests" | tee -a "$setup_log"
 
     # Save detailed bridge test log
     local bridge_log="$output_dir/bridge_phase.log"
 
     echo "" | tee "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
-    echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log" >&3
+    echo "      PARALLEL BRIDGE TESTS             " | tee -a "$bridge_log" >&3
     echo "              L1 -> L2                  " | tee -a "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
 
-    # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    # Set concurrency to match number of tests to avoid deadlock scenarios
-    # where all concurrent slots are occupied by stuck/retrying tests
+    # Run bridge tests in parallel for all accounts
     max_concurrent=$successful_count
 
-    echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log" >&3
+    echo "Running bridge tests for $successful_count accounts" | tee -a "$bridge_log" >&3
     echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log" >&3
 
     _log_file_descriptor "3" ""
@@ -276,7 +260,6 @@ _calculate_test_erc20_address() {
         local new_completions=0
         for i in "${!pids[@]}"; do
             if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                echo "Bridge test process ${pids[$i]} completed" | tee -a "$bridge_log"
                 unset 'pids[$i]'
                 new_completions=$((new_completions + 1))
             fi
@@ -306,16 +289,11 @@ _calculate_test_erc20_address() {
     _log_file_descriptor "3" ""
     _log_file_descriptor "3" "All bridge tests completed! Collecting results..."
     
-    # Collect and report results - pass the successful count instead of total
+    # Collect and report results
     _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
     local failed_tests=$?
     
-    # Report setup failures in the final summary but don't fail the test for them
-    if [[ $setup_failures -gt 0 ]]; then
-        _log_file_descriptor "3" "Note: $setup_failures accounts failed setup and were skipped"
-    fi
-    
-    # Fail the test only if bridge tests failed (not setup failures)
+    # No setup failures since bulk setup either succeeds completely or fails completely
     [[ $failed_tests -eq 0 ]] || {
         _log_file_descriptor "3" "Some bridge tests failed. Check the detailed logs in $output_dir"
         return 1
@@ -342,7 +320,6 @@ _calculate_test_erc20_address() {
     
     _log_file_descriptor "3" "Test results will be saved to: $output_dir"
 
-    
     # Get total number of scenarios
     local total_scenarios
     total_scenarios=$(echo "$scenarios" | jq '. | length')
@@ -353,68 +330,51 @@ _calculate_test_erc20_address() {
     
     echo "" | tee "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
-    echo "      PHASE 1: SEQUENTIAL SETUP         " | tee -a "$setup_log" >&3
+    echo "      BULK SETUP PHASE                  " | tee -a "$setup_log" >&3
     echo "              L2 -> L1                  " | tee -a "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
     
-    # Phase 1: Sequential setup of all test accounts
-    local index=0
-    local setup_failures=0
-    local successful_setups=()  # Array to track successfully set up test indices
-
-    echo "Setting up $total_scenarios test accounts..." | tee -a "$setup_log" >&3
-
-    while read -r scenario; do
-        local progress_percent=$((index * 100 / total_scenarios))
-        echo "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log" >&3
-        
-        if ! _setup_single_test_account "$index" "$scenario" "L2_TO_L1" 2>>"$output_dir/setup_debug_${index}.log"; then
-            echo "❌ Failed to set up account for test $index" | tee -a "$setup_log" >&3
-            setup_failures=$((setup_failures + 1))
-        else
-            echo "✅ Successfully set up account for test $index" | tee -a "$setup_log" >&3
-            successful_setups+=("$index")  # Track successful setup
-        fi
-        
-        index=$((index + 1))
-    done < <(echo "$scenarios" | jq -c '.[]')
-
-    local successful_count=${#successful_setups[@]}
-
-    echo "" | tee -a "$setup_log" >&3
-    echo "Setup Phase Complete:" | tee -a "$setup_log" >&3
-    echo "  ✅ Successful setups: $successful_count" | tee -a "$setup_log" >&3
-    echo "  ❌ Failed setups: $setup_failures" | tee -a "$setup_log" >&3
-
-    if [[ $setup_failures -gt 0 ]]; then
-        echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log" >&3
-        echo "Successfully set up $successful_count accounts" | tee -a "$setup_log" >&3
-        echo "Setup logs saved to: $output_dir/setup_*.log" | tee -a "$setup_log" >&3
-        
-        # Continue with successful setups if we have any
-        if [[ $successful_count -eq 0 ]]; then
-            echo "No accounts were successfully set up, aborting test" | tee -a "$setup_log" >&3
-            return 1
-        fi
-    else
-        echo "All $total_scenarios test accounts set up successfully" | tee -a "$setup_log" >&3
+    # Bulk setup: Fund all ephemeral accounts and approve tokens in one go
+    echo "Setting up $total_scenarios ephemeral accounts with bulk funding..." | tee -a "$setup_log" >&3
+    
+    # Bulk fund ephemeral accounts on both networks with token funding and approvals
+    if ! _setup_ephemeral_accounts_in_bulk "L1" "$total_scenarios" "$l1_bridge_addr"; then
+        echo "Failed to bulk setup accounts on L1" | tee -a "$setup_log" >&3
+        return 1
     fi
+    
+    if ! _setup_ephemeral_accounts_in_bulk "L2" "$total_scenarios" "$l2_bridge_addr"; then
+        echo "Failed to bulk setup accounts on L2" | tee -a "$setup_log" >&3
+        return 1
+    fi
+
+    echo "✅ Successfully bulk funded and approved tokens for all $total_scenarios ephemeral accounts" | tee -a "$setup_log" >&3
+    
+    # Create array of all test indices since bulk setup means all accounts are ready
+    local successful_setups=()
+    for ((i=0; i<total_scenarios; i++)); do
+        successful_setups+=("$i")
+    done
+    
+    local successful_count=${#successful_setups[@]}
+    
+    echo "" | tee -a "$setup_log" >&3
+    echo "Bulk Setup Phase Complete:" | tee -a "$setup_log" >&3
+    echo "  ✅ All $successful_count accounts ready for bridge tests" | tee -a "$setup_log" >&3
 
     # Save detailed bridge test log
     local bridge_log="$output_dir/bridge_phase.log"
 
     echo "" | tee "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
-    echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log" >&3
+    echo "      PARALLEL BRIDGE TESTS             " | tee -a "$bridge_log" >&3
     echo "              L2 -> L1                  " | tee -a "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
 
-    # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    # Set concurrency to match number of tests to avoid deadlock scenarios
-    # where all concurrent slots are occupied by stuck/retrying tests
+    # Run bridge tests in parallel for all accounts
     max_concurrent=$successful_count
 
-    echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log" >&3
+    echo "Running bridge tests for $successful_count accounts" | tee -a "$bridge_log" >&3
     echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log" >&3
 
     echo "" | tee -a "$bridge_log" >&3
@@ -530,16 +490,11 @@ _calculate_test_erc20_address() {
     _log_file_descriptor "3" ""
     _log_file_descriptor "3" "All bridge tests completed! Collecting results..."
     
-    # Collect and report results - pass the successful count instead of total
+    # Collect and report results
     _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
     local failed_tests=$?
     
-    # Report setup failures in the final summary but don't fail the test for them
-    if [[ $setup_failures -gt 0 ]]; then
-        _log_file_descriptor "3" "Note: $setup_failures accounts failed setup and were skipped"
-    fi
-    
-    # Fail the test only if bridge tests failed (not setup failures)
+    # No setup failures since bulk setup either succeeds completely or fails completely
     [[ $failed_tests -eq 0 ]] || {
         _log_file_descriptor "3" "Some bridge tests failed. Check the detailed logs in $output_dir"
         return 1

@@ -1,110 +1,48 @@
 [
     {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "Buggy",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "Buggy",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Max",
-        "ExpectedResultProcess": ["Success","0x4e487b71"],
-        "ExpectedResultClaim": ["Success", "0x23d72133", "0x4e487b71"],
-        "_comments": "Expected to pass in the first ever attempt, but fail from the second run onwards"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Asset",
-        "Token": "LocalERC20",
-        "MetaData": "0x",
-        "ForceUpdate": "True",
-        "Amount": "Random",
-        "ExpectedResultProcess": ["Success", "transfer amount exceeds balance"],
-        "ExpectedResultClaim": ["Success","N/A"]
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Message",
-        "Token": "NativeEther",
-        "MetaData": "Huge",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": ["Success","0x6f625c40"],
-        "ExpectedResultClaim": ["0x37e391c3","N/A"]
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Asset",
-        "Token": "LocalERC20",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "0",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "GasToken",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
         "DestinationAddress": "Precompile",
         "BridgeType": "Message",
-        "Token": "NativeEther",
-        "MetaData": "Random",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": ["Success","0x6f625c40"],
-        "ExpectedResultClaim": ["Success","N/A"]
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Asset",
-        "Token": "GasToken",
-        "MetaData": "0x",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "Success"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "NativeEther",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": ["Success","not found"],
-        "ExpectedResultClaim": ["INVALID: RLPTooLong", "oversized data"],
-        "_comments": "Depending on the RPC, the transaction might not get mined at all"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
         "Token": "WETH",
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "1",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
     },
     {
         "DestinationAddress": "BridgeContract",
         "BridgeType": "Asset",
         "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "GasToken",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Asset",
+        "Token": "Buggy",
         "MetaData": "0x",
         "ForceUpdate": "True",
         "Amount": "0",
@@ -112,64 +50,63 @@
         "ExpectedResultClaim": "Success"
     },
     {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Asset",
-        "Token": "Buggy",
-        "MetaData": "0x",
-        "ForceUpdate": "False",
-        "Amount": "Max",
-        "ExpectedResultProcess": ["Success", "0x4e487b71"],
-        "ExpectedResultClaim": ["Success", "0x23d72133", "0x4e487b71"],
-        "_comments": "Expected to pass in the first ever attempt, but fail from the second run onwards"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Asset",
-        "Token": "LocalERC20",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data"],
-        "ExpectedResultClaim": "N/A"
-    },
-    {
         "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "NativeEther",
-        "MetaData": "Max",
-        "ForceUpdate": "False",
-        "Amount": "1",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Message",
-        "Token": "GasToken",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": ["Success","0x6f625c40"],
-        "ExpectedResultClaim": ["Success","N/A"]
-    },
-    {
-        "DestinationAddress": "BridgeContract",
         "BridgeType": "Asset",
         "Token": "Buggy",
         "MetaData": "Random",
-        "ForceUpdate": "True",
+        "ForceUpdate": "False",
         "Amount": "1",
         "ExpectedResultProcess": "0xe282c0ba",
         "ExpectedResultClaim": "N/A"
     },
     {
         "DestinationAddress": "BridgeContract",
-        "BridgeType": "Weth",
+        "BridgeType": "Asset",
+        "Token": "WETH",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Message",
+        "Token": "LocalERC20",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
         "Token": "GasToken",
         "MetaData": "0x",
         "ForceUpdate": "True",
-        "Amount": "Max",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
+        "Amount": "0",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Asset",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
         "ExpectedResultClaim": "N/A"
     },
     {
@@ -179,17 +116,117 @@
         "MetaData": "Random",
         "ForceUpdate": "False",
         "Amount": "0",
-        "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
-        "ExpectedResultClaim": ["N/A","Success"]
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Huge",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
     },
     {
         "DestinationAddress": "BridgeContract",
         "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Max",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "Random",
+        "ForceUpdate": "False",
+        "Amount": "Random",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
         "Token": "WETH",
         "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "NativeEther",
+        "MetaData": "Huge",
+        "ForceUpdate": "False",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "EOA",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "Max",
         "ForceUpdate": "True",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "LocalERC20",
+        "MetaData": "Max",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Message",
+        "Token": "NativeEther",
+        "MetaData": "0x",
+        "ForceUpdate": "False",
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "BridgeContract",
+        "BridgeType": "Weth",
+        "Token": "GasToken",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "1",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Weth",
+        "Token": "Buggy",
+        "MetaData": "0x",
+        "ForceUpdate": "True",
+        "Amount": "Max",
+        "ExpectedResultProcess": "BridgeWETHNotAllowed",
         "ExpectedResultClaim": "N/A"
     },
     {
@@ -198,112 +235,58 @@
         "Token": "WETH",
         "MetaData": "0x",
         "ForceUpdate": "False",
-        "Amount": "1",
-        "ExpectedResultProcess": ["Success","0x14603c01"],
-        "ExpectedResultClaim": ["Success","N/A"],
-        "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
+        "Amount": "Random",
+        "ExpectedResultProcess": "Success",
+        "ExpectedResultClaim": "Success"
     },
     {
-        "DestinationAddress": "EOA",
+        "DestinationAddress": "Precompile",
         "BridgeType": "Asset",
         "Token": "LocalERC20",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "Max",
-        "ExpectedResultProcess": "bridge transaction failed",
-        "ExpectedResultClaim": "N/A",
-        "_comments": "The gas required for this transaction is too large to fit into a single block"
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "0",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Message",
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Asset",
         "Token": "LocalERC20",
+        "MetaData": "Random",
+        "ForceUpdate": "True",
+        "Amount": "Random",
+        "ExpectedResultProcess": "0xe282c0ba",
+        "ExpectedResultClaim": "N/A"
+    },
+    {
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Message",
+        "Token": "Buggy",
         "MetaData": "0x",
         "ForceUpdate": "False",
         "Amount": "0",
         "ExpectedResultProcess": "Success",
-        "ExpectedResultClaim": "0x37e391c3"
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Asset",
-        "Token": "NativeEther",
-        "MetaData": "Huge",
-        "ForceUpdate": "True",
-        "Amount": "Random",
-        "ExpectedResultProcess": ["Success","0x14603c01"],
-        "ExpectedResultClaim": ["0x6747a288","N/A","Success"],
-        "_comments": "Depending on the network state, this may fail with LocalBalanceTreeUnderflow"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "LocalERC20",
-        "MetaData": "Random",
-        "ForceUpdate": "True",
-        "Amount": "Random",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
-        "ExpectedResultClaim": "N/A"
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Message",
-        "Token": "Buggy",
-        "MetaData": "Max",
-        "ForceUpdate": "False",
-        "Amount": "Random",
-        "ExpectedResultProcess": ["Success","not found"],
-        "ExpectedResultClaim": "oversized data",
-        "_comments": "Depending on the RPC, the transaction might not get mined at all"
-    },
-    {
-        "DestinationAddress": "Precompile",
-        "BridgeType": "Weth",
-        "Token": "Buggy",
-        "MetaData": "Huge",
-        "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
-        "ExpectedResultClaim": ["N/A","Success"]
+        "ExpectedResultClaim": "Success"
     },
     {
         "DestinationAddress": "EOA",
         "BridgeType": "Asset",
         "Token": "GasToken",
-        "MetaData": "Max",
-        "ForceUpdate": "True",
-        "Amount": "1",
-        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "Success"],
-        "ExpectedResultClaim": ["N/A","Success"]
-    },
-    {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "Buggy",
-        "MetaData": "0x",
+        "MetaData": "Huge",
         "ForceUpdate": "True",
         "Amount": "Max",
-        "ExpectedResultProcess": "Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
         "ExpectedResultClaim": "N/A"
     },
     {
-        "DestinationAddress": "EOA",
-        "BridgeType": "Weth",
-        "Token": "NativeEther",
-        "MetaData": "0x",
+        "DestinationAddress": "Precompile",
+        "BridgeType": "Message",
+        "Token": "GasToken",
+        "MetaData": "Max",
         "ForceUpdate": "True",
-        "Amount": "0",
-        "ExpectedResultProcess": ["Error: bridge WETH not allowed. Native ETH token configured in this network. This tx will fail","Success"],
-        "ExpectedResultClaim": ["N/A","0xe0417cec"]
-    },
-    {
-        "DestinationAddress": "BridgeContract",
-        "BridgeType": "Asset",
-        "Token": "LocalERC20",
-        "MetaData": "Huge",
-        "ForceUpdate": "False",
-        "Amount": "1",
-        "ExpectedResultProcess": ["INVALID: RLPTooLong", "oversized data", "0xe282c0ba"],
+        "Amount": "Max",
+        "ExpectedResultProcess": "TransferAmountExceedsBalance",
         "ExpectedResultClaim": "N/A"
     }
 ]

@@ -43,7 +43,7 @@ _safe_cast_send() {
         else
             # Non-EIP-1559 related error, don't retry with legacy
             # _log_file_descriptor "3" "Non-EIP-1559 error, not retrying"
-            # echo "$output"
+             _log_file_descriptor "3" "$output"
             return $status
         fi
     fi
@@ -311,311 +311,311 @@ _reclaim_funds_after_test() {
 }
 
 
-_setup_token_for_ephemeral_account() {
-    local target_address="$1"
-    local token_type="$2"
-    local amount="$3"
-    local rpc_url="$4"
-    local bridge_addr="$5"
+# _setup_token_for_ephemeral_account() {
+#     local target_address="$1"
+#     local token_type="$2"
+#     local amount="$3"
+#     local rpc_url="$4"
+#     local bridge_addr="$5"
     
-    _log_file_descriptor "2" "Setting up token $token_type for $target_address"
+#     _log_file_descriptor "2" "Setting up token $token_type for $target_address"
     
-    case "$token_type" in
-        "Buggy"|"LocalERC20")
-            local token_addr
-            token_addr=$(_get_token_address "$token_type")
-            _log_file_descriptor "2" "Token address for $token_type: $token_addr"
+#     case "$token_type" in
+#         "Buggy"|"LocalERC20")
+#             local token_addr
+#             token_addr=$(_get_token_address "$token_type")
+#             _log_file_descriptor "2" "Token address for $token_type: $token_addr"
             
-            # Check if target address already has sufficient balance
-            local current_balance
-            if current_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
-                _log_file_descriptor "2" "Current token balance for $target_address: $current_balance"
+#             # Check if target address already has sufficient balance
+#             local current_balance
+#             if current_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
+#                 _log_file_descriptor "2" "Current token balance for $target_address: $current_balance"
                 
-                # Define minimum required balance (use the requested amount as threshold)
-                local required_balance="$amount"
+#                 # Define minimum required balance (use the requested amount as threshold)
+#                 local required_balance="$amount"
                 
-                # For Max amount requests, check against a reasonable threshold
-                if [[ "$amount" == "$(cast max-uint)" ]]; then
-                    case "$token_type" in
-                        "LocalERC20")
-                            required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                            ;;
-                        "Buggy")
-                            # For Buggy token with max-uint, check if balance is already very large
-                            # If current balance is greater than 1e75, consider it sufficient
-                            required_balance="1000000000000000000000000000000000000000000000000000000000000000000000000000"  # 1e75
-                            ;;
-                        *)
-                            required_balance="1000000000000000000000000"  # 1 million tokens as threshold
-                            ;;
-                    esac
-                fi
+#                 # For Max amount requests, check against a reasonable threshold
+#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
+#                     case "$token_type" in
+#                         "LocalERC20")
+#                             required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
+#                             ;;
+#                         "Buggy")
+#                             # For Buggy token with max-uint, check if balance is already very large
+#                             # If current balance is greater than 1e75, consider it sufficient
+#                             required_balance="1000000000000000000000000000000000000000000000000000000000000000000000000000"  # 1e75
+#                             ;;
+#                         *)
+#                             required_balance="1000000000000000000000000"  # 1 million tokens as threshold
+#                             ;;
+#                     esac
+#                 fi
                 
-                # Use safer comparison logic for very large numbers
-                local has_sufficient_balance=false
+#                 # Use safer comparison logic for very large numbers
+#                 local has_sufficient_balance=false
                 
-                # Special handling for max-uint amounts
-                if [[ "$amount" == "$(cast max-uint)" ]]; then
-                    # For max-uint requests, use string length comparison as a rough estimate
-                    local current_length=${#current_balance}
-                    local required_length=${#required_balance}
+#                 # Special handling for max-uint amounts
+#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
+#                     # For max-uint requests, use string length comparison as a rough estimate
+#                     local current_length=${#current_balance}
+#                     local required_length=${#required_balance}
                     
-                    _log_file_descriptor "2" "Comparing balance lengths - current: $current_length, required: $required_length"
-                    # shellcheck disable=SC2071
-                    if [[ $current_length -gt $required_length ]] || \
-                       [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
-                        has_sufficient_balance=true
-                        _log_file_descriptor "2" "Large number comparison: sufficient balance detected"
-                    elif [[ "$token_type" == "Buggy" && $current_length -ge 75 ]]; then
-                        # For Buggy token, if we have a very large number (75+ digits), it's probably sufficient
-                        has_sufficient_balance=true
-                        _log_file_descriptor "2" "Buggy token has very large balance (${current_length} digits), considering sufficient"
-                    fi
-                else
-                    # For normal amounts, use bc if available, otherwise bash arithmetic
-                    if command -v bc >/dev/null 2>&1; then
-                        # Only use bc for smaller numbers to avoid syntax errors
-                        local current_length=${#current_balance}
-                        local required_length=${#required_balance}
+#                     _log_file_descriptor "2" "Comparing balance lengths - current: $current_length, required: $required_length"
+#                     # shellcheck disable=SC2071
+#                     if [[ $current_length -gt $required_length ]] || \
+#                        [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
+#                         has_sufficient_balance=true
+#                         _log_file_descriptor "2" "Large number comparison: sufficient balance detected"
+#                     elif [[ "$token_type" == "Buggy" && $current_length -ge 75 ]]; then
+#                         # For Buggy token, if we have a very large number (75+ digits), it's probably sufficient
+#                         has_sufficient_balance=true
+#                         _log_file_descriptor "2" "Buggy token has very large balance (${current_length} digits), considering sufficient"
+#                     fi
+#                 else
+#                     # For normal amounts, use bc if available, otherwise bash arithmetic
+#                     if command -v bc >/dev/null 2>&1; then
+#                         # Only use bc for smaller numbers to avoid syntax errors
+#                         local current_length=${#current_balance}
+#                         local required_length=${#required_balance}
                         
-                        if [[ $current_length -le 20 && $required_length -le 20 ]]; then
-                            # Safe to use bc for numbers <= 20 digits
-                            if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
-                                has_sufficient_balance=true
-                            fi
-                        else
-                            # Use string comparison for very large numbers
-                            # shellcheck disable=SC2071
-                            if [[ $current_length -gt $required_length ]] || \
-                               [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
-                                has_sufficient_balance=true
-                            fi
-                        fi
-                    else
-                        # Fallback: if current balance is not zero and we're not dealing with max-uint, assume sufficient
-                        if [[ "$current_balance" != "0" ]]; then
-                            has_sufficient_balance=true
-                        fi
-                    fi
-                fi
+#                         if [[ $current_length -le 20 && $required_length -le 20 ]]; then
+#                             # Safe to use bc for numbers <= 20 digits
+#                             if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
+#                                 has_sufficient_balance=true
+#                             fi
+#                         else
+#                             # Use string comparison for very large numbers
+#                             # shellcheck disable=SC2071
+#                             if [[ $current_length -gt $required_length ]] || \
+#                                [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
+#                                 has_sufficient_balance=true
+#                             fi
+#                         fi
+#                     else
+#                         # Fallback: if current balance is not zero and we're not dealing with max-uint, assume sufficient
+#                         if [[ "$current_balance" != "0" ]]; then
+#                             has_sufficient_balance=true
+#                         fi
+#                     fi
+#                 fi
                 
-                if $has_sufficient_balance; then
-                    _log_file_descriptor "2" "Target address already has sufficient $token_type balance ($current_balance >= $required_balance), skipping minting"
-                    return 0
-                fi
-            else
-                _log_file_descriptor "2" "Could not check token balance, proceeding with minting"
-            fi
+#                 if $has_sufficient_balance; then
+#                     _log_file_descriptor "2" "Target address already has sufficient $token_type balance ($current_balance >= $required_balance), skipping minting"
+#                     return 0
+#                 fi
+#             else
+#                 _log_file_descriptor "2" "Could not check token balance, proceeding with minting"
+#             fi
             
-            # For Max amount with LocalERC20, use a large but safe amount instead of max-uint
-            local mint_amount="$amount"
-            if [[ "$amount" == "$(cast max-uint)" && "$token_type" == "LocalERC20" ]]; then
-                # Use 1 billion tokens instead of max-uint to avoid overflow
-                mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for LocalERC20"
-            fi
+#             # For Max amount with LocalERC20, use a large but safe amount instead of max-uint
+#             local mint_amount="$amount"
+#             if [[ "$amount" == "$(cast max-uint)" && "$token_type" == "LocalERC20" ]]; then
+#                 # Use 1 billion tokens instead of max-uint to avoid overflow
+#                 mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
+#                 _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for LocalERC20"
+#             fi
             
-            _log_file_descriptor "2" "Minting $mint_amount of $token_type to $target_address"
+#             _log_file_descriptor "2" "Minting $mint_amount of $token_type to $target_address"
             
-            # Mint tokens with timeout using the safe cast send helper
-            if _safe_cast_send "$rpc_url" "$l1_private_key" "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount"; then
-                _log_file_descriptor "2" "Successfully minted $token_type tokens"
-                return 0
-            else
-                _log_file_descriptor "2" "Failed to mint $token_type tokens"
-                return 1
-            fi
-            ;;
-        "GasToken")
-            _log_file_descriptor "2" "Minting GasToken to $target_address"
+#             # Mint tokens with timeout using the safe cast send helper
+#             if _safe_cast_send "$rpc_url" "$l1_private_key" "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount"; then
+#                 _log_file_descriptor "2" "Successfully minted $token_type tokens"
+#                 return 0
+#             else
+#                 _log_file_descriptor "2" "Failed to mint $token_type tokens"
+#                 return 1
+#             fi
+#             ;;
+#         "GasToken")
+#             _log_file_descriptor "2" "Minting GasToken to $target_address"
             
-            # Check if target address already has sufficient GasToken balance
-            local current_balance
-            if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
-                _log_file_descriptor "2" "Current GasToken balance for $target_address: $current_balance"
+#             # Check if target address already has sufficient GasToken balance
+#             local current_balance
+#             if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
+#                 _log_file_descriptor "2" "Current GasToken balance for $target_address: $current_balance"
                 
-                # Define minimum required balance
-                local required_balance="$amount"
-                if [[ "$amount" == "$(cast max-uint)" ]]; then
-                    required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                fi
+#                 # Define minimum required balance
+#                 local required_balance="$amount"
+#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
+#                     required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
+#                 fi
                 
-                # Check if sufficient balance exists
-                local has_sufficient_balance=false
-                if [[ "$amount" == "$(cast max-uint)" ]]; then
-                    local current_length=${#current_balance}
-                    local required_length=${#required_balance}
-                    # shellcheck disable=SC2071
-                    if [[ $current_length -gt $required_length ]] || \
-                       [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
-                        has_sufficient_balance=true
-                    fi
-                else
-                    if command -v bc >/dev/null 2>&1; then
-                        if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
-                            has_sufficient_balance=true
-                        fi
-                    elif [[ "$current_balance" != "0" ]]; then
-                        has_sufficient_balance=true
-                    fi
-                fi
+#                 # Check if sufficient balance exists
+#                 local has_sufficient_balance=false
+#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
+#                     local current_length=${#current_balance}
+#                     local required_length=${#required_balance}
+#                     # shellcheck disable=SC2071
+#                     if [[ $current_length -gt $required_length ]] || \
+#                        [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
+#                         has_sufficient_balance=true
+#                     fi
+#                 else
+#                     if command -v bc >/dev/null 2>&1; then
+#                         if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
+#                             has_sufficient_balance=true
+#                         fi
+#                     elif [[ "$current_balance" != "0" ]]; then
+#                         has_sufficient_balance=true
+#                     fi
+#                 fi
                 
-                if $has_sufficient_balance; then
-                    _log_file_descriptor "2" "Target address already has sufficient GasToken balance, skipping minting"
-                    return 0
-                fi
-            fi
+#                 if $has_sufficient_balance; then
+#                     _log_file_descriptor "2" "Target address already has sufficient GasToken balance, skipping minting"
+#                     return 0
+#                 fi
+#             fi
             
-            # Determine mint amount
-            local mint_amount="$amount"
-            if [[ "$amount" == "$(cast max-uint)" ]]; then
-                mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for GasToken"
-            fi
+#             # Determine mint amount
+#             local mint_amount="$amount"
+#             if [[ "$amount" == "$(cast max-uint)" ]]; then
+#                 mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
+#                 _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for GasToken"
+#             fi
             
-            _log_file_descriptor "2" "Minting $mint_amount GasToken to $target_address"
+#             _log_file_descriptor "2" "Minting $mint_amount GasToken to $target_address"
             
-            # Mint GasToken with timeout using the safe cast send helper
-            if _safe_cast_send "$rpc_url" "$l1_private_key" "$gas_token_address" 'mint(address,uint256)' "$target_address" "$mint_amount"; then
-                _log_file_descriptor "2" "Successfully minted GasToken"
-                return 0
-            else
-                _log_file_descriptor "2" "Failed to mint GasToken"
-                return 1
-            fi
-            ;;
-        "POL")
-            _log_file_descriptor "2" "Transferring $amount POL to $target_address"
-            _log_file_descriptor "2" "POL address: $pol_address"
+#             # Mint GasToken with timeout using the safe cast send helper
+#             if _safe_cast_send "$rpc_url" "$l1_private_key" "$gas_token_address" 'mint(address,uint256)' "$target_address" "$mint_amount"; then
+#                 _log_file_descriptor "2" "Successfully minted GasToken"
+#                 return 0
+#             else
+#                 _log_file_descriptor "2" "Failed to mint GasToken"
+#                 return 1
+#             fi
+#             ;;
+#         "POL")
+#             _log_file_descriptor "2" "Transferring $amount POL to $target_address"
+#             _log_file_descriptor "2" "POL address: $pol_address"
             
-            # For POL transfers with max amount, use a safe amount instead
-            local transfer_amount="$amount"
-            if [[ "$amount" == "$(cast max-uint)" ]]; then
-                # Check the available balance and use a reasonable portion
-                local pol_balance
-                pol_balance=$(cast call --rpc-url "$rpc_url" "$pol_address" 'balanceOf(address)(uint256)' "$(cast wallet address --private-key "$l1_private_key")")
-                if [[ -n "$pol_balance" && "$pol_balance" != "0" ]]; then
-                    # Use 90% of available balance to avoid transfer amount exceeds balance error
-                    transfer_amount=$((pol_balance * 9 / 10))
-                    _log_file_descriptor "2" "Using safe transfer amount $transfer_amount (90% of available $pol_balance) instead of max-uint for POL"
-                else
-                    # Fallback to a reasonable amount if balance check fails
-                    transfer_amount="1000000000000000000000000000"  # 1 billion tokens
-                    _log_file_descriptor "2" "Using fallback amount $transfer_amount for POL transfer"
-                fi
-            fi
+#             # For POL transfers with max amount, use a safe amount instead
+#             local transfer_amount="$amount"
+#             if [[ "$amount" == "$(cast max-uint)" ]]; then
+#                 # Check the available balance and use a reasonable portion
+#                 local pol_balance
+#                 pol_balance=$(cast call --rpc-url "$rpc_url" "$pol_address" 'balanceOf(address)(uint256)' "$(cast wallet address --private-key "$l1_private_key")")
+#                 if [[ -n "$pol_balance" && "$pol_balance" != "0" ]]; then
+#                     # Use 90% of available balance to avoid transfer amount exceeds balance error
+#                     transfer_amount=$((pol_balance * 9 / 10))
+#                     _log_file_descriptor "2" "Using safe transfer amount $transfer_amount (90% of available $pol_balance) instead of max-uint for POL"
+#                 else
+#                     # Fallback to a reasonable amount if balance check fails
+#                     transfer_amount="1000000000000000000000000000"  # 1 billion tokens
+#                     _log_file_descriptor "2" "Using fallback amount $transfer_amount for POL transfer"
+#                 fi
+#             fi
             
-            # For POL, transfer from main account with timeout using the safe cast send helper
-            if _safe_cast_send "$rpc_url" "$l1_private_key" "$pol_address" 'transfer(address,uint256)' "$target_address" "$transfer_amount"; then
-                _log_file_descriptor "2" "Successfully transferred POL tokens"
-                return 0
-            else
-                _log_file_descriptor "2" "Failed to transfer POL tokens"
-                return 1
-            fi
-            ;;
-        "NativeEther"|"WETH")
-            _log_file_descriptor "2" "Skipping token setup for $token_type (native token or special handling)"
-            return 0
-            ;;
-        *)
-            _log_file_descriptor "2" "Unknown token type $token_type, skipping"
-            return 0
-            ;;
-    esac
-}
+#             # For POL, transfer from main account with timeout using the safe cast send helper
+#             if _safe_cast_send "$rpc_url" "$l1_private_key" "$pol_address" 'transfer(address,uint256)' "$target_address" "$transfer_amount"; then
+#                 _log_file_descriptor "2" "Successfully transferred POL tokens"
+#                 return 0
+#             else
+#                 _log_file_descriptor "2" "Failed to transfer POL tokens"
+#                 return 1
+#             fi
+#             ;;
+#         "NativeEther"|"WETH")
+#             _log_file_descriptor "2" "Skipping token setup for $token_type (native token or special handling)"
+#             return 0
+#             ;;
+#         *)
+#             _log_file_descriptor "2" "Unknown token type $token_type, skipping"
+#             return 0
+#             ;;
+#     esac
+# }
 
 
-_approve_token_for_ephemeral_account() {
-    local ephemeral_private_key="$1"
-    local token_type="$2"
-    local amount="$3"
-    local rpc_url="$4"
-    local bridge_addr="$5"
+# _approve_token_for_ephemeral_account() {
+#     local ephemeral_private_key="$1"
+#     local token_type="$2"
+#     local amount="$3"
+#     local rpc_url="$4"
+#     local bridge_addr="$5"
     
-    _log_file_descriptor "2" "Approving $token_type tokens for bridge"
+#     _log_file_descriptor "2" "Approving $token_type tokens for bridge"
     
-    # Skip approval for native tokens and special cases
-    if [[ "$token_type" == "NativeEther" || "$token_type" == "WETH" ]]; then
-        _log_file_descriptor "2" "Skipping approval for $token_type (native token or special handling)"
-        return 0
-    fi
+#     # Skip approval for native tokens and special cases
+#     if [[ "$token_type" == "NativeEther" || "$token_type" == "WETH" ]]; then
+#         _log_file_descriptor "2" "Skipping approval for $token_type (native token or special handling)"
+#         return 0
+#     fi
     
-    local token_addr
-    token_addr=$(_get_token_address "$token_type")
+#     local token_addr
+#     token_addr=$(_get_token_address "$token_type")
     
-    # Validate token address
-    if [[ "$token_addr" == "0x0000000000000000000000000000000000000000" ]]; then
-        _log_file_descriptor "2" "Skipping approval for zero address token $token_type"
-        return 0
-    fi
+#     # Validate token address
+#     if [[ "$token_addr" == "0x0000000000000000000000000000000000000000" ]]; then
+#         _log_file_descriptor "2" "Skipping approval for zero address token $token_type"
+#         return 0
+#     fi
     
-    local ephemeral_address
-    ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
+#     local ephemeral_address
+#     ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
     
-    _log_file_descriptor "2" "Approving $amount of token $token_addr for bridge $bridge_addr"
-    _log_file_descriptor "2" "Approval from ephemeral address: $ephemeral_address"
+#     _log_file_descriptor "2" "Approving $amount of token $token_addr for bridge $bridge_addr"
+#     _log_file_descriptor "2" "Approval from ephemeral address: $ephemeral_address"
     
-    # Check if ephemeral account has native tokens for gas
-    local ephemeral_balance
-    ephemeral_balance=$(cast balance --rpc-url "$rpc_url" "$ephemeral_address")
-    _log_file_descriptor "2" "Ephemeral account native balance: $ephemeral_balance"
+#     # Check if ephemeral account has native tokens for gas
+#     local ephemeral_balance
+#     ephemeral_balance=$(cast balance --rpc-url "$rpc_url" "$ephemeral_address")
+#     _log_file_descriptor "2" "Ephemeral account native balance: $ephemeral_balance"
     
-    if [[ "$ephemeral_balance" == "0" ]]; then
-        _log_file_descriptor "2" "Ephemeral account has no native tokens for gas fees"
-        return 1
-    fi
+#     if [[ "$ephemeral_balance" == "0" ]]; then
+#         _log_file_descriptor "2" "Ephemeral account has no native tokens for gas fees"
+#         return 1
+#     fi
     
-    # Check if token contract exists
-    local code_size
-    code_size=$(cast code --rpc-url "$rpc_url" "$token_addr" | wc -c)
-    if [[ $code_size -le 2 ]]; then  # "0x" is 2 characters
-        _log_file_descriptor "2" "Token contract $token_addr has no code, skipping approval"
-        return 0
-    fi
+#     # Check if token contract exists
+#     local code_size
+#     code_size=$(cast code --rpc-url "$rpc_url" "$token_addr" | wc -c)
+#     if [[ $code_size -le 2 ]]; then  # "0x" is 2 characters
+#         _log_file_descriptor "2" "Token contract $token_addr has no code, skipping approval"
+#         return 0
+#     fi
     
-    # Check token balance before approval
-    local token_balance
-    if token_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$ephemeral_address" 2>/dev/null); then
-        _log_file_descriptor "2" "Ephemeral account token balance: $token_balance"
-    else
-        _log_file_descriptor "2" "Failed to check token balance, proceeding with approval anyway"
-    fi
+#     # Check token balance before approval
+#     local token_balance
+#     if token_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$ephemeral_address" 2>/dev/null); then
+#         _log_file_descriptor "2" "Ephemeral account token balance: $token_balance"
+#     else
+#         _log_file_descriptor "2" "Failed to check token balance, proceeding with approval anyway"
+#     fi
     
-    # Use the same safe amount logic for approval
-    local approve_amount="$amount"
-    if [[ "$amount" == "$(cast max-uint)" ]]; then
-        case "$token_type" in
-            "LocalERC20"|"GasToken")
-                approve_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-                _log_file_descriptor "2" "Using safe approval amount $approve_amount instead of max-uint for $token_type"
-                ;;
-            "POL")
-                # Use the actual token balance for approval
-                if [[ -n "$token_balance" && "$token_balance" != "0" ]]; then
-                    approve_amount="$token_balance"
-                    _log_file_descriptor "2" "Using token balance $approve_amount for POL approval"
-                else
-                    approve_amount="1000000000000000000000000000"  # 1 billion tokens fallback
-                    _log_file_descriptor "2" "Using fallback approval amount $approve_amount for POL"
-                fi
-                ;;
-            *)
-                # Keep max-uint for other tokens like Buggy
-                approve_amount="$(cast max-uint)"
-                ;;
-        esac
-    fi
+#     # Use the same safe amount logic for approval
+#     local approve_amount="$amount"
+#     if [[ "$amount" == "$(cast max-uint)" ]]; then
+#         case "$token_type" in
+#             "LocalERC20"|"GasToken")
+#                 approve_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
+#                 _log_file_descriptor "2" "Using safe approval amount $approve_amount instead of max-uint for $token_type"
+#                 ;;
+#             "POL")
+#                 # Use the actual token balance for approval
+#                 if [[ -n "$token_balance" && "$token_balance" != "0" ]]; then
+#                     approve_amount="$token_balance"
+#                     _log_file_descriptor "2" "Using token balance $approve_amount for POL approval"
+#                 else
+#                     approve_amount="1000000000000000000000000000"  # 1 billion tokens fallback
+#                     _log_file_descriptor "2" "Using fallback approval amount $approve_amount for POL"
+#                 fi
+#                 ;;
+#             *)
+#                 # Keep max-uint for other tokens like Buggy
+#                 approve_amount="$(cast max-uint)"
+#                 ;;
+#         esac
+#     fi
     
-    local approve_output
-    if _safe_cast_send "$rpc_url" "$ephemeral_private_key" "$token_addr" 'approve(address,uint256)' "$bridge_addr" "$approve_amount"; then
-        _log_file_descriptor "2" "Successfully approved tokens"
-        return 0
-    else
-        _log_file_descriptor "2" "Failed to approve tokens"
-        return 1
-    fi
-}
+#     local approve_output
+#     if _safe_cast_send "$rpc_url" "$ephemeral_private_key" "$token_addr" 'approve(address,uint256)' "$bridge_addr" "$approve_amount"; then
+#         _log_file_descriptor "2" "Successfully approved tokens"
+#         return 0
+#     else
+#         _log_file_descriptor "2" "Failed to approve tokens"
+#         return 1
+#     fi
+# }
 
 
 # =============================================================================
@@ -795,6 +795,61 @@ _setup_amount_and_add_to_command() {
     esac
 }
 
+_setup_ephemeral_accounts_in_bulk() {
+    local network_to_fund="$1" # L1 or L2
+    local total_scenarios="$2"
+    local bridge_addr="$3"  # Add bridge address parameter for approvals
+
+    if [[ "$network_to_fund" == "L2" ]]; then
+        # Fund accounts on L2
+        target_rpc_url="$l2_rpc_url"
+        target_private_key="$l2_private_key"
+        
+        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L2"
+    else
+        # Fund accounts on L1
+        target_rpc_url="$l1_rpc_url"
+        target_private_key="$l1_private_key"
+        
+        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1"
+    fi
+
+    # Fund 0.01ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+    polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 10000000000000000 >/dev/null 2>&1
+
+    # Bulk fund and approve ERC20 tokens to ephemeral accounts
+    # _log_file_descriptor "2" "Bulk funding and approving ERC20 tokens for $total_scenarios ephemeral accounts"
+    
+    # Fund and approve LocalERC20 tokens
+    if [[ -n "$test_erc20_addr" && "$test_erc20_addr" != "0x0000000000000000000000000000000000000000" ]]; then
+        # _log_file_descriptor "2" "Bulk funding LocalERC20 tokens ($test_erc20_addr) with approvals for bridge ($bridge_addr)"
+        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_addr" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+    fi
+    
+    # Fund and approve Buggy ERC20 tokens
+    if [[ -n "$test_erc20_buggy_addr" && "$test_erc20_buggy_addr" != "0x0000000000000000000000000000000000000000" ]]; then
+        # _log_file_descriptor "2" "Bulk funding Buggy ERC20 tokens ($test_erc20_buggy_addr) with approvals for bridge ($bridge_addr)"
+        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_buggy_addr" --token-amount 1000000000000000000000000000000000000000000000000000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount $(cast max-uint) >/dev/null 2>&1
+    fi
+    
+    # Fund and approve POL tokens (commented out as in original)
+    # if [[ -n "$pol_address" && "$pol_address" != "0x0000000000000000000000000000000000000000" ]]; then
+    #     _log_file_descriptor "2" "Bulk funding POL tokens ($pol_address) with approvals for bridge ($bridge_addr)"
+    #     polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pol_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+    # fi
+    
+    # Fund and approve GasToken if available
+    if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" ]]; then
+        # _log_file_descriptor "2" "Bulk funding GasToken tokens ($gas_token_address) with approvals for bridge ($bridge_addr)"
+        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$gas_token_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+    fi
+    
+    # Fund and approve WETH tokens if available
+    if [[ -n "$pp_weth_address" && "$pp_weth_address" != "0x0000000000000000000000000000000000000000" ]]; then
+        # _log_file_descriptor "2" "Bulk funding WETH tokens ($pp_weth_address) with approvals for bridge ($bridge_addr)"
+        polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pp_weth_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+    fi
+}
 
 _setup_single_test_account() {
     local test_index="$1"
@@ -860,51 +915,10 @@ _setup_single_test_account() {
         return 1
     fi
     
-    # Fund ephemeral account with native tokens on source network (where bridging happens from)
-    _log_file_descriptor "2" "Funding source network account for test $test_index ($bridge_direction)"
-    if ! _fund_ephemeral_account "$ephemeral_address" "$source_rpc_url" "$source_private_key" "10000000000000000"; then
-        _log_file_descriptor "2" "Failed to fund source network account for test $test_index"
-        return 1
-    fi
+    # Both token funding and approvals are now handled in bulk by _setup_ephemeral_accounts_in_bulk()
+    # No individual token setup or approval is needed here
     
-    # Fund ephemeral account with native tokens on destination network (for claims later)
-    _log_file_descriptor "2" "Funding destination network account for test $test_index ($bridge_direction)"
-    if ! _fund_ephemeral_account "$ephemeral_address" "$dest_rpc_url" "$dest_private_key" "10000000000000000"; then
-        _log_file_descriptor "2" "Failed to fund destination network account for test $test_index"
-        return 1
-    fi
-    
-    # Setup tokens for ephemeral account on source network
-    local amount_for_setup="100000000000000000000"
-    if [[ "$test_amount" == "Max" ]]; then
-        # Special handling for POL with max amount and max metadata
-        if [[ "$test_token" == "POL" && "$test_meta_data" == "Max" ]]; then
-            # Use even smaller amount for this problematic combination
-            amount_for_setup="100000000000000000000000"
-            _log_file_descriptor "2" "Using reduced amount $amount_for_setup for POL Max+Max combination"
-        elif [[ "$test_token" == "LocalERC20" || "$test_token" == "POL" ]]; then
-            amount_for_setup="1000000000000000000000000000"
-        else
-            amount_for_setup="$(cast max-uint)"
-        fi
-    fi
-    
-    _log_file_descriptor "2" "Setting up tokens for test $test_index on source network (token: $test_token, amount: $amount_for_setup)"
-    if ! _setup_token_for_ephemeral_account "$ephemeral_address" "$test_token" "$amount_for_setup" "$source_rpc_url" "$source_bridge_addr"; then
-        _log_file_descriptor "2" "Failed to setup tokens for test $test_index on source network"
-        return 1
-    fi
-    
-    # Small delay to let transaction propagate
-    sleep 0.5
-    
-    _log_file_descriptor "2" "Approving tokens for test $test_index on source network"
-    if ! _approve_token_for_ephemeral_account "$ephemeral_private_key" "$test_token" "$amount_for_setup" "$source_rpc_url" "$source_bridge_addr"; then
-        _log_file_descriptor "2" "Failed to approve tokens for test $test_index on source network"
-        return 1
-    fi
-    
-    _log_file_descriptor "2" "Successfully set up account for test $test_index ($bridge_direction)"
+    _log_file_descriptor "2" "Account setup completed for test $test_index ($bridge_direction) - tokens and approvals handled in bulk"
     return 0
 }
 
