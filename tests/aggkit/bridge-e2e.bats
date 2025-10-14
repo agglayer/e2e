@@ -8,6 +8,12 @@ setup() {
     prefix_start_test="=== 🕵️‍♂️🕵️‍♂️🕵️‍♂️🕵️‍♂️"
 }
 
+teardown() {
+  if [[ "$BATS_TEST_COMPLETED" -eq 0 ]]; then
+    echo "❌ failed!, exiting due fail-fast..."
+    exit 1
+  fi
+}
 
 @test "Transfer message" {
     echo "$prefix_start_test Transfer message" >&3
