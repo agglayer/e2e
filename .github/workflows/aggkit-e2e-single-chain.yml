@@ -151,7 +151,7 @@ jobs:
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats \
                  || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
-            bats --jobs 5 ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats  ./tests/aggkit/bridge-e2e.bats || exit 1
             bats  ./tests/op/optimistic-mode.bats || exit 1
             bats  ./tests/aggkit/e2e-pp.bats || exit 1
             bats  ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
