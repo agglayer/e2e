@@ -23,7 +23,6 @@ setup() {
     assert_success
     local claim_global_index="$output"
     echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
-    exit 1
 
     echo "====== bridgeMessage L2 -> L1" >&3
     destination_net=0
