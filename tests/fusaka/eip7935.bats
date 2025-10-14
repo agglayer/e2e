@@ -29,7 +29,7 @@ setup_file() {
             exit 1
         else
             txhashes+=("$output")
-            echo "✅ Successfully submitted transaction, nonce=$nonce, txhash=$output" >&3
+            echo "✅ Successfully submitted transaction $i, nonce=$nonce, txhash=$output" >&3
             nonce=$((nonce + 1))
         fi
     done
@@ -42,7 +42,8 @@ setup_file() {
             echo "❌ Failed to get receipt for transaction $txhash, output: $output" >&3
             exit 1
         fi
-        if [ "$(echo "$output" | jq -r '.status') | cast to-dec" -ne 1 ]; then
+        tx_status=$(echo "$output" | jq -r '.status' | cast to-dec)
+        if [ "$tx_status" -ne 1 ]; then
             echo "❌ Transaction $txhash was not successful, output: $output" >&3
             exit 1
         fi
