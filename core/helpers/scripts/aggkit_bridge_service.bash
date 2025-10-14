@@ -309,7 +309,8 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
-        echo "curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id"
+        echo "curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id"
+            
         token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
