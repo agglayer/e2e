@@ -445,7 +445,7 @@ function get_bridge() {
         # Capture both stdout (bridge result) and stderr (error message)
         bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "$debug_msg ------ bridges_result (20 lines)------"
-        log "$(echo "$bridges_result" | jq . | head -n 20)"
+        log "$bridges_result"
         log "$debug_msg ------ bridges_result ------"
 
         # Check if the response contains an error

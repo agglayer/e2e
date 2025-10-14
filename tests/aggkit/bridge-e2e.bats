@@ -21,6 +21,9 @@ setup() {
     echo "====== claimMessage (L2) :$LINENO" >&3
     run process_bridge_claim "claim L2: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
+    local claim_global_index="$output"
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
+    exit 1
 
     echo "====== bridgeMessage L2 -> L1" >&3
     destination_net=0
