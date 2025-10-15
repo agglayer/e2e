@@ -6,7 +6,6 @@ setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     log_setup_test
     _agglayer_cdk_common_setup
-    export test_log_prefix="$(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME"
 }
 
 
