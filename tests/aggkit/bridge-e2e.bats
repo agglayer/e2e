@@ -6,6 +6,7 @@ setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     log_setup_test
     _agglayer_cdk_common_setup
+    export test_log_prefix="$(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME"
 }
 
 
@@ -170,7 +171,7 @@ setup() {
     run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 30 2 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
-
+     echo "==== 📃 token_mappings_result: $token_mappings_result" >&3
     local origin_token_addr
     origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l2_erc20_addr" "$origin_token_addr"
