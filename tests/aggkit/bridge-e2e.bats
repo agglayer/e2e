@@ -4,6 +4,7 @@
 
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
+    log_setup_test
     _agglayer_cdk_common_setup
 }
 
