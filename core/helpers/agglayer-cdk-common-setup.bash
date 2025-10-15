@@ -534,7 +534,7 @@ _agglayer_cdk_common_multi_setup() {
 _resolve_aggsender_mode(){
     local mode
     mode=${aggsender_mode:-}
-    if [ ! -z $mode  ]; then
+    if [ ! -z "$mode"  ]; then
         echo "Using aggsender_mode from environment: $aggsender_mode" >&3
     else 
         echo "Resolving aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&3
