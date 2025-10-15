@@ -13,11 +13,16 @@ ForceUpdate (boolean): True, False
 Amount (enum): 0, 1, Max, Random
 ExpectedResultProcess (enum): Success, 0x4e487b71, 0x6f625c40, 0x37e391c3, 0x14603c01, 0xe282c0ba, 0x23d72133, 0x6747a288, 0xe0417cec, TransferAmountExceedsBalance, BridgeWETHNotAllowed, BridgeTransactionFailed, InvalidRLPTooLong, OversizedData, NotFound
 ExpectedResultClaim (enum): Success, N/A, 0x4e487b71, 0x37e391c3, 0x23d72133, 0x14603c01, 0x6747a288, 0xe0417cec, InvalidRLPTooLong, OversizedData
+-- FromNetwork (int): 0, 1, 37, 48, 49, 52, 57
+-- ToNetwork (int):   0, 1, 37, 48, 49, 52, 57
+FromNetwork (int): 0, 1, 2
+ToNetwork (int):   0, 1, 2
 
 [Constraint]
 -- Basic logical constraints
 ExpectedResultProcess != "Success" => ExpectedResultClaim == "N/A"
 ExpectedResultProcess == "Success" => ExpectedResultClaim != "N/A"
+FromNetwork != ToNetwork
 
 -- WETH bridge type is absolutely not allowed
 BridgeType == "Weth" => ExpectedResultProcess == "BridgeWETHNotAllowed" && ExpectedResultClaim == "N/A"
@@ -54,6 +59,14 @@ Token == "LocalERC20" && Amount == "Max" && MetaData == "Max" && BridgeType == "
 Token == "NativeEther" && Amount == "0" && MetaData == "Max" && BridgeType == "Message" => ExpectedResultProcess == "Success"
 Token == "WETH" && Amount == "Random" && MetaData == "Max" && BridgeType == "Message" => ExpectedResultProcess == "Success"
 Token == "WETH" && Amount == "0" && MetaData == "Huge" && BridgeType == "Asset" => ExpectedResultProcess == "Success"
+
+-- Multinetwork localbalancetree underflow handling
+Token == "WETH" && FromNetwork != 0 && ToNetwork != 0 => ExpectedResultProcess == "0x14603c01"
+Token == "GasToken" && MetaData == "Huge" && BridgeType == "Asset" && FromNetwork != 0 && ToNetwork == 0 => ExpectedResultProcess == "0x14603c01"
+Token == "NativeEther" && FromNetwork != 0 && ToNetwork == 0 => ExpectedResultProcess == "0x14603c01"
+Token == "NativeEther" && FromNetwork != 0 && ToNetwork != 0 => ExpectedResultProcess == "0x14603c01"
+Token == "GasToken" && FromNetwork != 0 && ToNetwork == 0 => ExpectedResultProcess == "0x14603c01"
+Token == "GasToken" && FromNetwork != 0 && ToNetwork != 0 => ExpectedResultProcess == "0x14603c01"
 
 -- NotValidSignature patterns
 ExpectedResultProcess == "Success" && Amount == "Max" && MetaData == "Huge" && Token == "LocalERC20" => ExpectedResultProcess == "0xe282c0ba"

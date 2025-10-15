@@ -1,9 +1,371 @@
 #!/bin/bash
 # shellcheck disable=SC2154,SC2034
 
+# =============================================================================
+# Bridge Tests Helper - Multi-Network Support with Auto-Derivation
+# =============================================================================
+#
+# This script supports dynamic network configuration for bridge testing.
+# Network ID and ETH addresses are automatically derived to reduce redundancy.
+# 
+# USAGE EXAMPLES:
+# 
+# 1. Using existing L1/L2 networks (backward compatible):
+#    The script automatically maps network IDs to existing variables:
+#    - Network 0 -> l1_rpc_url, l1_bridge_addr, l1_private_key
+#    - Network 1 -> l2_rpc_url, l2_bridge_addr, l2_private_key
+#    - network_id: derived via "cast call <rpc> <bridge> 'networkID()'"
+#    - eth_address: derived via "cast wallet address --private-key <key>"
+#
+# 2. Adding new Bali networks (only essential variables needed):
+#    You only need to define these 3 essential variables:
+#    
+#    # For bali-37 (network ID 37):
+#    export bali_01_rpc_url="https://rpc.bali-01.example.com"
+#    export bali_01_bridge_addr="0x..."
+#    export bali_01_private_key="0x..."
+#    
+#    # The following are derived automatically:
+#    # - network_id: queried from bridge contract
+#    # - eth_address: derived from private key
+#    
+#    # Alternative naming patterns are also supported:
+#    export BALI_37_RPC_URL="https://rpc.bali-37.example.com"
+#    export NETWORK_37_BRIDGE_ADDR="0x..."
+#    export NETWORK_37_PRIVATE_KEY="0x..."
+#
+# 3. Registering networks dynamically (simplified):
+#    _register_network "49" "bali_49" "https://rpc.bali-49.com" "0xbridge..." "0xkey..."
+#
+# 4. Listing configured networks (shows derived values):
+#    _list_networks
+#
+# =============================================================================
+
 # Source the logger functions
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/helpers/logger.bash"
+
+# =============================================================================
+# Network Configuration Functions
+# =============================================================================
+# =============================================================================
+
+# Initialize network configuration
+_initialize_network_config() {
+    # Define network ID to name mapping
+    # This can be extended to support more networks
+    declare -gA NETWORK_ID_TO_NAME=(
+        ["0"]="kurtosis_l1"
+        ["1"]="kurtosis_network_1"
+        ["2"]="kurtosis_network_2"
+        ["11155111"]="sepolia"
+        # ["1"]="bali_01"
+        # ["48"]="bali_48"
+        # ["49"]="bali_49"
+        # ["52"]="bali_52"
+        # ["57"]="bali_57"
+    )
+    
+    # You can also define network name to ID mapping for reverse lookup
+    declare -gA NETWORK_NAME_TO_ID=(
+        ["sepolia"]="11155111"
+        ["kurtosis_l1"]="0"
+        ["kurtosis_network_1"]="1"
+        ["kurtosis_network_2"]="2"
+        # ["bali_01"]="1"
+        # ["bali_48"]="48"
+        # ["bali_49"]="49"
+        # ["bali_52"]="52"
+        # ["bali_57"]="57"
+    )
+    
+    # Cache for derived values to avoid repeated RPC calls
+    declare -gA DERIVED_NETWORK_ID_CACHE=()
+    declare -gA DERIVED_ETH_ADDRESS_CACHE=()
+}
+
+_get_network_config() {
+    local network_id="$1"
+    local config_type="$2"  # rpc_url, bridge_addr, private_key | network_id, eth_address (derived)
+    
+    # Handle backward compatibility for hardcoded network 0 (L1) and 1 (L2)
+    if [[ "$network_id" == "0" ]]; then
+        case "$config_type" in
+            "rpc_url") 
+                echo "${l1_rpc_url:-}"
+                return 0
+                ;;
+            "bridge_addr") 
+                echo "${l1_bridge_addr:-}"
+                return 0
+                ;;
+            "private_key") 
+                echo "${l1_private_key:-}"
+                return 0
+                ;;
+            "eth_address") 
+                if [[ -n "${l1_eth_address:-}" ]]; then
+                    echo "$l1_eth_address"
+                    return 0
+                elif [[ -n "${l1_private_key:-}" ]]; then
+                    # Derive from private key
+                    local derived_address
+                    if derived_address=$(cast wallet address --private-key "$l1_private_key" 2>/dev/null); then
+                        echo "$derived_address"
+                        return 0
+                    fi
+                fi
+                ;;
+            "network_id")
+                if [[ -n "${l1_network_id:-}" ]]; then
+                    echo "$l1_network_id"
+                    return 0
+                elif [[ -n "${l1_rpc_url:-}" && -n "${l1_bridge_addr:-}" ]]; then
+                    # Derive from RPC
+                    local derived_network_id
+                    if derived_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)' 2>/dev/null); then
+                        echo "$derived_network_id"
+                        return 0
+                    fi
+                fi
+                # Fallback
+                echo "0"
+                return 0
+                ;;
+        esac
+    elif [[ "$network_id" == "1" ]]; then
+        case "$config_type" in
+            "rpc_url") 
+                echo "${l2_rpc_url:-}"
+                return 0
+                ;;
+            "bridge_addr") 
+                echo "${l2_bridge_addr:-}"
+                return 0
+                ;;
+            "private_key") 
+                echo "${l2_private_key:-}"
+                return 0
+                ;;
+            "eth_address") 
+                if [[ -n "${l2_eth_address:-}" ]]; then
+                    echo "$l2_eth_address"
+                    return 0
+                elif [[ -n "${l2_private_key:-}" ]]; then
+                    # Derive from private key
+                    local derived_address
+                    if derived_address=$(cast wallet address --private-key "$l2_private_key" 2>/dev/null); then
+                        echo "$derived_address"
+                        return 0
+                    fi
+                fi
+                ;;
+            "network_id")
+                if [[ -n "${l2_network_id:-}" ]]; then
+                    echo "$l2_network_id"
+                    return 0
+                elif [[ -n "${l2_rpc_url:-}" && -n "${l2_bridge_addr:-}" ]]; then
+                    # Derive from RPC
+                    local derived_network_id
+                    if derived_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)' 2>/dev/null); then
+                        echo "$derived_network_id"
+                        return 0
+                    fi
+                fi
+                # Fallback
+                echo "1"
+                return 0
+                ;;
+        esac
+    fi
+    
+    # Initialize network configuration if not done already
+    if [[ -z "${NETWORK_ID_TO_NAME[$network_id]:-}" ]]; then
+        _initialize_network_config
+    fi
+    
+    # Get the network name from network ID
+    local network_name="${NETWORK_ID_TO_NAME[$network_id]:-}"
+    
+    if [[ -z "$network_name" ]]; then
+        echo "Unsupported network ID: $network_id" >&3
+        return 1
+    fi
+    
+    # Handle derived values first
+    case "$config_type" in
+        "network_id")
+            # Check cache first
+            local cache_key="$network_id"
+            if [[ -n "${DERIVED_NETWORK_ID_CACHE[$cache_key]:-}" ]]; then
+                echo "${DERIVED_NETWORK_ID_CACHE[$cache_key]}"
+                return 0
+            fi
+            
+            # For network_id, we can derive it from the RPC URL by calling the contract
+            local rpc_url
+            rpc_url=$(_get_network_config "$network_id" "rpc_url")
+            local bridge_addr
+            bridge_addr=$(_get_network_config "$network_id" "bridge_addr")
+            
+            if [[ -n "$rpc_url" && -n "$bridge_addr" ]]; then
+                # Try to get network ID from the bridge contract
+                local derived_network_id
+                if derived_network_id=$(cast call --rpc-url "$rpc_url" "$bridge_addr" 'networkID()(uint32)' 2>/dev/null); then
+                    # Cache the result
+                    DERIVED_NETWORK_ID_CACHE["$cache_key"]="$derived_network_id"
+                    echo "$derived_network_id"
+                    return 0
+                fi
+            fi
+            
+            # Fallback: return the provided network_id and cache it
+            DERIVED_NETWORK_ID_CACHE["$cache_key"]="$network_id"
+            echo "$network_id"
+            return 0
+            ;;
+        "eth_address")
+            # Check cache first
+            local cache_key="${network_name}_eth"
+            if [[ -n "${DERIVED_ETH_ADDRESS_CACHE[$cache_key]:-}" ]]; then
+                echo "${DERIVED_ETH_ADDRESS_CACHE[$cache_key]}"
+                return 0
+            fi
+            
+            # For eth_address, derive it from the private key
+            local private_key
+            private_key=$(_get_network_config "$network_id" "private_key")
+            
+            if [[ -n "$private_key" ]]; then
+                local derived_address
+                if derived_address=$(cast wallet address --private-key "$private_key" 2>/dev/null); then
+                    # Cache the result
+                    DERIVED_ETH_ADDRESS_CACHE["$cache_key"]="$derived_address"
+                    echo "$derived_address"
+                    return 0
+                fi
+            fi
+            
+            # Fallback: try to get stored eth_address
+            ;;
+    esac
+    
+    # For non-derived values or fallback cases, use stored configuration
+    local var_name="${network_name}_${config_type}"
+    local value="${!var_name:-}"
+    
+    if [[ -z "$value" ]]; then
+        # Fallback: try some common patterns for backward compatibility
+        case "$config_type" in
+            "rpc_url"|"bridge_addr"|"private_key"|"eth_address")
+                # Special handling for Kurtosis networks
+                if [[ "$network_name" =~ ^kurtosis_ ]]; then
+                    case "$network_name" in
+                        "kurtosis_l1")
+                            case "$config_type" in
+                                "rpc_url") value="${KURTOSIS_L1_RPC_URL:-}" ;;
+                                "bridge_addr") value="${KURTOSIS_L1_BRIDGE_ADDR:-}" ;;
+                                "private_key") value="${KURTOSIS_L1_PRIVATE_KEY:-}" ;;
+                            esac
+                            ;;
+                        "kurtosis_network_1")
+                            case "$config_type" in
+                                "rpc_url") value="${KURTOSIS_NETWOWRK_1_RPC_URL:-}" ;;  # Note: typo in env file
+                                "bridge_addr") value="${KURTOSIS_NETWOWRK_1_BRIDGE_ADDR:-}" ;;
+                                "private_key") value="${KURTOSIS_NETWOWRK_1_PRIVATE_KEY:-}" ;;
+                            esac
+                            ;;
+                        "kurtosis_network_2")
+                            case "$config_type" in
+                                "rpc_url") value="${KURTOSIS_NETWOWRK_2_RPC_URL:-}" ;;  # Note: typo in env file
+                                "bridge_addr") value="${KURTOSIS_NETWOWRK_2_BRIDGE_ADDR:-}" ;;
+                                "private_key") value="${KURTOSIS_NETWOWRK_2_PRIVATE_KEY:-}" ;;
+                            esac
+                            ;;
+                    esac
+                fi
+                
+                # For networks like bali_XX, try alternative naming patterns
+                if [[ "$network_name" =~ ^bali_ ]]; then
+                    # Try pattern: BALI_XX_RPC_URL, etc.
+                    local alt_var_name
+                    alt_var_name="$(echo "$network_name" | tr '[:lower:]' '[:upper:]')_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                    value="${!alt_var_name:-}"
+                    
+                    if [[ -z "$value" ]]; then
+                        # Try pattern: NETWORK_XX_RPC_URL, etc.
+                        local network_num="${network_name#bali_}"
+                        alt_var_name="NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                        value="${!alt_var_name:-}"
+                    fi
+                fi
+                ;;
+        esac
+    fi
+    
+    if [[ -z "$value" ]]; then
+        echo "Configuration not found for network $network_id ($network_name) config $config_type" >&3
+        return 1
+    fi
+    
+    echo "$value"
+}
+
+# Helper function to register a new network dynamically
+_register_network() {
+    local network_id="$1"
+    local network_name="$2"
+    local rpc_url="$3"
+    local bridge_addr="$4"
+    local private_key="$5"
+    # Note: network_id and eth_address will be derived
+    
+    # Initialize if needed
+    _initialize_network_config
+    
+    # Register the network
+    NETWORK_ID_TO_NAME["$network_id"]="$network_name"
+    NETWORK_NAME_TO_ID["$network_name"]="$network_id"
+    
+    # Set only the essential configuration variables (others will be derived)
+    declare -g "${network_name}_rpc_url=$rpc_url"
+    declare -g "${network_name}_bridge_addr=$bridge_addr"
+    declare -g "${network_name}_private_key=$private_key"
+    
+    _log_file_descriptor "2" "Registered network: $network_name (ID: $network_id)"
+    _log_file_descriptor "2" "  RPC URL: $rpc_url"
+    _log_file_descriptor "2" "  Bridge Address: $bridge_addr"
+    _log_file_descriptor "2" "  Network ID and ETH address will be derived"
+}
+
+# Helper function to list all configured networks
+_list_networks() {
+    _initialize_network_config
+    
+    echo "Configured networks:" >&3
+    for network_id in "${!NETWORK_ID_TO_NAME[@]}"; do
+        local network_name="${NETWORK_ID_TO_NAME[$network_id]}"
+        local rpc_url
+        rpc_url=$(_get_network_config "$network_id" "rpc_url" 2>/dev/null || echo "Not configured")
+        local derived_network_id
+        derived_network_id=$(_get_network_config "$network_id" "network_id" 2>/dev/null || echo "Unable to derive")
+        local eth_address
+        eth_address=$(_get_network_config "$network_id" "eth_address" 2>/dev/null || echo "Unable to derive")
+        
+        echo "  Network ID $network_id ($network_name):" >&3
+        echo "    RPC URL: $rpc_url" >&3
+        echo "    Derived Network ID: $derived_network_id" >&3
+        echo "    Derived ETH Address: $eth_address" >&3
+    done
+}
+
+# Initialize network configurations on script load
+_initialize_network_config
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
 
 # Add a helper function for safe cast send operations
 _safe_cast_send() {
@@ -127,59 +489,6 @@ deploy_test_erc20() {
     fi
 }
 
-
-deploy_lxly_proxy() {
-    local rpc_url=$1
-    local private_key=$2
-    local bridge_address=$3
-    _log_file_descriptor "3" "Deploying LxLy Proxy - RPC: $rpc_url, Bridge: $bridge_address"
-
-    salt="0x0000000000000000000000000000000000000000000000000000000000000000"
-    deterministic_deployer_addr="0x4e59b44847b379578588920ca78fbf26c0b4956c"
-    lxly_proxy_bytecode=608060405234801561001057600080fd5b50604051610acb380380610acb83398101604081905261002f91610054565b600080546001600160a01b0319166001600160a01b0392909216919091179055610084565b60006020828403121561006657600080fd5b81516001600160a01b038116811461007d57600080fd5b9392505050565b610a38806100936000396000f3fe6080604052600436106100955760003560e01c8063b8b284d011610059578063b8b284d014610196578063ccaa2d11146101c9578063cd586579146101e9578063dd96eab7146101fc578063f5efcd79146101fc57610116565b80631c253d72146101965780631eb5f7aa146101b6578063240ff378146101b65780632c4422ca146101c95780635ea89907146101e957610116565b366101165760008054604051630481fe6f60e31b815263ffffffff34166004820152326024820152600160448201526080606482015260848101929092526001600160a01b03169063240ff3789060a401600060405180830381600087803b15801561010057600080fd5b505af1158015610114573d6000803e3d6000fd5b005b60008054604051630481fe6f60e31b815236916060916001600160a01b039091169063240ff37890610155903490329060019089908990600401610436565b600060405180830381600087803b15801561016f57600080fd5b505af1158015610183573d6000803e3d6000fd5b5050604080516020810190915260009052005b3480156101a257600080fd5b506101146101b136600461056f565b61021c565b6101146101c43660046105e8565b61028d565b3480156101d557600080fd5b506101146101e43660046106c5565b6102fb565b6101146101f7366004610799565b61037e565b34801561020857600080fd5b506101146102173660046106c5565b6103f2565b600054604051630b8b284d60e41b81526001600160a01b039091169063b8b284d0906102549088908890889088908890600401610867565b600060405180830381600087803b15801561026e57600080fd5b505af1158015610282573d6000803e3d6000fd5b505050505050505050565b600054604051630481fe6f60e31b81526001600160a01b039091169063240ff378906102c39087908790879087906004016108ad565b600060405180830381600087803b1580156102dd57600080fd5b505af11580156102f1573d6000803e3d6000fd5b5050505050505050565b60005460405163ccaa2d1160e01b81526001600160a01b039091169063ccaa2d119061033f908e908e908e908e908e908e908e908e908e908e908e9060040161091c565b600060405180830381600087803b15801561035957600080fd5b505af115801561036d573d6000803e3d6000fd5b505050505050505050505050505050565b60005460405163cd58657960e01b81526001600160a01b039091169063cd586579906103b8908990899089908990899089906004016109af565b600060405180830381600087803b1580156103d257600080fd5b505af11580156103e6573d6000803e3d6000fd5b50505050505050505050565b60005460405163f5efcd7960e01b81526001600160a01b039091169063f5efcd799061033f908e908e908e908e908e908e908e908e908e908e908e9060040161091c565b63ffffffff861681526001600160a01b038516602082015283151560408201526080606082018190528101829052818360a0830137600081830160a090810191909152601f909201601f19160101949350505050565b803563ffffffff811681146104a057600080fd5b919050565b80356001600160a01b03811681146104a057600080fd5b803580151581146104a057600080fd5b634e487b7160e01b600052604160045260246000fd5b600082601f8301126104f357600080fd5b813567ffffffffffffffff8082111561050e5761050e6104cc565b604051601f8301601f19908116603f01168101908282118183101715610536576105366104cc565b8160405283815286602085880101111561054f57600080fd5b836020870160208301376000602085830101528094505050505092915050565b600080600080600060a0868803121561058757600080fd5b6105908661048c565b945061059e602087016104a5565b9350604086013592506105b3606087016104bc565b9150608086013567ffffffffffffffff8111156105cf57600080fd5b6105db888289016104e2565b9150509295509295909350565b600080600080608085870312156105fe57600080fd5b6106078561048c565b9350610615602086016104a5565b9250610623604086016104bc565b9150606085013567ffffffffffffffff81111561063f57600080fd5b61064b878288016104e2565b91505092959194509250565b600082601f83011261066857600080fd5b60405161040080820182811067ffffffffffffffff8211171561068d5761068d6104cc565b604052830181858211156106a057600080fd5b845b828110156106ba5780358252602091820191016106a2565b509195945050505050565b60008060008060008060008060008060006109208c8e0312156106e757600080fd5b6106f18d8d610657565b9a506107018d6104008e01610657565b99506108008c013598506108208c013597506108408c013596506107286108608d0161048c565b95506107376108808d016104a5565b94506107466108a08d0161048c565b93506107556108c08d016104a5565b92506108e08c013591506109008c013567ffffffffffffffff81111561077a57600080fd5b6107868e828f016104e2565b9150509295989b509295989b9093969950565b60008060008060008060c087890312156107b257600080fd5b6107bb8761048c565b95506107c9602088016104a5565b9450604087013593506107de606088016104a5565b92506107ec608088016104bc565b915060a087013567ffffffffffffffff81111561080857600080fd5b61081489828a016104e2565b9150509295509295509295565b6000815180845260005b818110156108475760208185018101518683018201520161082b565b506000602082860101526020601f19601f83011685010191505092915050565b63ffffffff8616815260018060a01b0385166020820152836040820152821515606082015260a0608082015260006108a260a0830184610821565b979650505050505050565b63ffffffff851681526001600160a01b038416602082015282151560408201526080606082018190526000906108e590830184610821565b9695505050505050565b8060005b60208082106109025750610916565b8251855293840193909101906001016108f3565b50505050565b600061092061092b838f6108ef565b61093961040084018e6108ef565b61080083018c905261082083018b905261084083018a905263ffffffff8981166108608501526001600160a01b038981166108808601529088166108a085015286166108c08401526108e08301859052610900830181905261099d81840185610821565b9e9d5050505050505050505050505050565b63ffffffff871681526001600160a01b0386811660208301526040820186905284166060820152821515608082015260c060a082018190526000906109f690830184610821565b9897505050505050505056fea264697066735822122039bc970ca2f710f9cd459c16defc9d953d5144267b6adc04ad3c5020fc68003964736f6c63430008140033
-    
-    constructor_args=$(cast abi-encode 'f(address)' "$bridge_address" | sed 's/0x//')
-    test_lxly_proxy_addr=$(cast create2 --salt $salt --init-code $lxly_proxy_bytecode"$constructor_args")
-    _log_file_descriptor "3" "Calculated LxLy Proxy address: $test_lxly_proxy_addr"
-
-    if [[ $(cast code --rpc-url "$rpc_url" "$test_lxly_proxy_addr") != "0x" ]]; then
-        _log_file_descriptor "3" "The network on $rpc_url already has the LxLy Proxy deployed. Skipping deployment..."
-    else
-        _log_file_descriptor "3" "Deploying LxLy Proxy to $rpc_url..."
-        if ! _safe_cast_send "$rpc_url" "$private_key" $deterministic_deployer_addr $salt$lxly_proxy_bytecode"$constructor_args"; then
-            _log_file_descriptor "3" "Failed to deploy LxLy Proxy"
-            return 1
-        fi
-        _log_file_descriptor "3" "Deployment transaction sent."
-    fi
-}
-
-
-deploy_tester_contract() {
-    local rpc_url=$1
-    local private_key=$2
-    _log_file_descriptor "3" "Deploying Tester Contract - RPC: $rpc_url"
-
-    salt="0x0000000000000000000000000000000000000000000000000000000000000000"
-    deterministic_deployer_addr="0x4e59b44847b379578588920ca78fbf26c0b4956c"
-    address_tester_bytecode=6300000dac63000000156000396300000dac6000F3366060811015610032577f6e6f7420656e6f7567682063616c6c6461746100000000000000000000000000805f5260205ffd5b5f356020356040356060840380606060c0375f845f528360205282604052600185612000116110008711161561006f576110008603915061100195505b85613000116120008711161561008c576120008603915061200195505b85600181146101a057600281146101b057600381146101c057600481146101cf57601181146101de57601281146101fe576013811461021e576014811461023e576021811461025e576022811461027e576023811461029e57602481146102be57603181146102de57603281146102fd576033811461031c576034811461033b576041811461035a5760428114610379576043811461039857604481146103b75761010181146103d657610201811461041a57610301811461045e5761040181146104a25761050181146104e657610601811461052a57610701811461056d5761080181146105b15761090181146105f557611001811461063857612001811461067f575f9150644641494c215f526106c3565b5f808560c0888a5af191506106c3565b5f808560c0888a5af291506106c3565b5f808560c0895af491506106c3565b5f808560c0895afa91506106c3565b6001606052856080528460a0525f8085606001606088305af191506106c3565b6002606052856080528460a0525f8085606001606088305af191506106c3565b6003606052856080528460a0525f8085606001606088305af191506106c3565b6004606052856080528460a0525f8085606001606088305af191506106c3565b6001606052856080528460a0525f8085606001606088305af291506106c3565b6002606052856080528460a0525f8085606001606088305af291506106c3565b6003606052856080528460a0525f8085606001606088305af291506106c3565b6004606052856080528460a0525f8085606001606088305af291506106c3565b6001606052856080528460a0525f80856060016060305af491506106c3565b6002606052856080528460a0525f80856060016060305af491506106c3565b6003606052856080528460a0525f80856060016060305af491506106c3565b6004606052856080528460a0525f80856060016060305af491506106c3565b6001606052856080528460a0525f80856060016060305afa91506106c3565b6002606052856080528460a0525f80856060016060305afa91506106c3565b6003606052856080528460a0525f80856060016060305afa91506106c3565b6004606052856080528460a0525f80856060016060305afa91506106c3565b7f600e600c600039600e6000f3600160015b8101906300000004560000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6009600c60003960096000f3fe60005260206000f300000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6001600c60003960016000f350000000000000000000000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6007600c60003960076000f35b63ffffffff56000000000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6008600c60003960086000f35b5f6300000000560000000000000000000000005f5260205f80f05f805f805f8561c350f1505f808660c0898b5af19250506106c3565b7f6003600c60003960036000f35f5f5500000000000000000000000000000000005f5260205f80f05f805f808461c350fa505f808660c0898b5af19250506106c3565b7f6008600c60003960086000f360015f5560025f550000000000000000000000005f5260205f80f05f805f805f856156c2f1505f808660c0898b5af19250506106c3565b7f6002600c60003960026000f332ff0000000000000000000000000000000000005f5260205f80f05f805f805f856156c2f1505f808660c0898b5af19250506106c3565b7f6002600c60003960026000f332ff0000000000000000000000000000000000005f5260205f80f05f805f80846156c2fa505f808660c0898b5af19250506106c3565b82606052856080528460a0527f333b5f5f333c595ff300000000000000000000000000000000000000000000005f5260205f80f05f8086606001606089855af150506106c3565b82606052856080528460a0527f333b5f5f333c595ff300000000000000000000000000000000000000000000005f524460205f80f55f8086606001606089855af150505b50806106ce5760205ffd5b50505050505050
-    
-    tester_contract_address=$(cast create2 --salt $salt --init-code $address_tester_bytecode)
-    _log_file_descriptor "3" "Calculated Tester Contract address: $tester_contract_address"
-
-    if [[ $(cast code --rpc-url "$rpc_url" "$tester_contract_address") != "0x" ]]; then
-        _log_file_descriptor "3" "The network on $rpc_url already has the Tester Contract deployed. Skipping deployment..."
-    else
-        _log_file_descriptor "3" "Deploying Tester Contract to $rpc_url..."
-        if ! _safe_cast_send "$rpc_url" "$private_key" $deterministic_deployer_addr $salt$address_tester_bytecode; then
-            _log_file_descriptor "3" "Failed to deploy Tester Contract"
-            return 1
-        fi
-        _log_file_descriptor "3" "Deployment transaction sent."
-    fi
-}
-
-
 # =============================================================================
 # Ephemeral Account Management
 # =============================================================================
@@ -289,7 +598,7 @@ _reclaim_funds_after_test() {
                 
                 # Only proceed if we have enough balance to cover gas
                 if [[ $adjusted_balance -gt 0 ]]; then
-                    _log_file_descriptor "2" "  Balance: $(cast to-unit $balance ether) ETH"
+                    _log_file_descriptor "2" "  Balance: $(cast to-unit "$balance" ether) ETH"
                     _log_file_descriptor "2" "  Gas cost: $(cast to-unit $gas_cost ether) ETH"
                     _log_file_descriptor "2" "  Sending: $(cast to-unit $adjusted_balance ether) ETH"
                     
@@ -310,314 +619,6 @@ _reclaim_funds_after_test() {
     done
 }
 
-
-# _setup_token_for_ephemeral_account() {
-#     local target_address="$1"
-#     local token_type="$2"
-#     local amount="$3"
-#     local rpc_url="$4"
-#     local bridge_addr="$5"
-    
-#     _log_file_descriptor "2" "Setting up token $token_type for $target_address"
-    
-#     case "$token_type" in
-#         "Buggy"|"LocalERC20")
-#             local token_addr
-#             token_addr=$(_get_token_address "$token_type")
-#             _log_file_descriptor "2" "Token address for $token_type: $token_addr"
-            
-#             # Check if target address already has sufficient balance
-#             local current_balance
-#             if current_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
-#                 _log_file_descriptor "2" "Current token balance for $target_address: $current_balance"
-                
-#                 # Define minimum required balance (use the requested amount as threshold)
-#                 local required_balance="$amount"
-                
-#                 # For Max amount requests, check against a reasonable threshold
-#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
-#                     case "$token_type" in
-#                         "LocalERC20")
-#                             required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
-#                             ;;
-#                         "Buggy")
-#                             # For Buggy token with max-uint, check if balance is already very large
-#                             # If current balance is greater than 1e75, consider it sufficient
-#                             required_balance="1000000000000000000000000000000000000000000000000000000000000000000000000000"  # 1e75
-#                             ;;
-#                         *)
-#                             required_balance="1000000000000000000000000"  # 1 million tokens as threshold
-#                             ;;
-#                     esac
-#                 fi
-                
-#                 # Use safer comparison logic for very large numbers
-#                 local has_sufficient_balance=false
-                
-#                 # Special handling for max-uint amounts
-#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
-#                     # For max-uint requests, use string length comparison as a rough estimate
-#                     local current_length=${#current_balance}
-#                     local required_length=${#required_balance}
-                    
-#                     _log_file_descriptor "2" "Comparing balance lengths - current: $current_length, required: $required_length"
-#                     # shellcheck disable=SC2071
-#                     if [[ $current_length -gt $required_length ]] || \
-#                        [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
-#                         has_sufficient_balance=true
-#                         _log_file_descriptor "2" "Large number comparison: sufficient balance detected"
-#                     elif [[ "$token_type" == "Buggy" && $current_length -ge 75 ]]; then
-#                         # For Buggy token, if we have a very large number (75+ digits), it's probably sufficient
-#                         has_sufficient_balance=true
-#                         _log_file_descriptor "2" "Buggy token has very large balance (${current_length} digits), considering sufficient"
-#                     fi
-#                 else
-#                     # For normal amounts, use bc if available, otherwise bash arithmetic
-#                     if command -v bc >/dev/null 2>&1; then
-#                         # Only use bc for smaller numbers to avoid syntax errors
-#                         local current_length=${#current_balance}
-#                         local required_length=${#required_balance}
-                        
-#                         if [[ $current_length -le 20 && $required_length -le 20 ]]; then
-#                             # Safe to use bc for numbers <= 20 digits
-#                             if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
-#                                 has_sufficient_balance=true
-#                             fi
-#                         else
-#                             # Use string comparison for very large numbers
-#                             # shellcheck disable=SC2071
-#                             if [[ $current_length -gt $required_length ]] || \
-#                                [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
-#                                 has_sufficient_balance=true
-#                             fi
-#                         fi
-#                     else
-#                         # Fallback: if current balance is not zero and we're not dealing with max-uint, assume sufficient
-#                         if [[ "$current_balance" != "0" ]]; then
-#                             has_sufficient_balance=true
-#                         fi
-#                     fi
-#                 fi
-                
-#                 if $has_sufficient_balance; then
-#                     _log_file_descriptor "2" "Target address already has sufficient $token_type balance ($current_balance >= $required_balance), skipping minting"
-#                     return 0
-#                 fi
-#             else
-#                 _log_file_descriptor "2" "Could not check token balance, proceeding with minting"
-#             fi
-            
-#             # For Max amount with LocalERC20, use a large but safe amount instead of max-uint
-#             local mint_amount="$amount"
-#             if [[ "$amount" == "$(cast max-uint)" && "$token_type" == "LocalERC20" ]]; then
-#                 # Use 1 billion tokens instead of max-uint to avoid overflow
-#                 mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-#                 _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for LocalERC20"
-#             fi
-            
-#             _log_file_descriptor "2" "Minting $mint_amount of $token_type to $target_address"
-            
-#             # Mint tokens with timeout using the safe cast send helper
-#             if _safe_cast_send "$rpc_url" "$l1_private_key" "$token_addr" 'mint(address,uint256)' "$target_address" "$mint_amount"; then
-#                 _log_file_descriptor "2" "Successfully minted $token_type tokens"
-#                 return 0
-#             else
-#                 _log_file_descriptor "2" "Failed to mint $token_type tokens"
-#                 return 1
-#             fi
-#             ;;
-#         "GasToken")
-#             _log_file_descriptor "2" "Minting GasToken to $target_address"
-            
-#             # Check if target address already has sufficient GasToken balance
-#             local current_balance
-#             if current_balance=$(cast call --rpc-url "$rpc_url" "$gas_token_address" 'balanceOf(address)(uint256)' "$target_address" 2>/dev/null); then
-#                 _log_file_descriptor "2" "Current GasToken balance for $target_address: $current_balance"
-                
-#                 # Define minimum required balance
-#                 local required_balance="$amount"
-#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
-#                     required_balance="1000000000000000000000000000"  # 1 billion tokens (1e27)
-#                 fi
-                
-#                 # Check if sufficient balance exists
-#                 local has_sufficient_balance=false
-#                 if [[ "$amount" == "$(cast max-uint)" ]]; then
-#                     local current_length=${#current_balance}
-#                     local required_length=${#required_balance}
-#                     # shellcheck disable=SC2071
-#                     if [[ $current_length -gt $required_length ]] || \
-#                        [[ $current_length -eq $required_length && "$current_balance" > "$required_balance" ]]; then
-#                         has_sufficient_balance=true
-#                     fi
-#                 else
-#                     if command -v bc >/dev/null 2>&1; then
-#                         if [[ $(echo "$current_balance >= $required_balance" | bc 2>/dev/null) -eq 1 ]]; then
-#                             has_sufficient_balance=true
-#                         fi
-#                     elif [[ "$current_balance" != "0" ]]; then
-#                         has_sufficient_balance=true
-#                     fi
-#                 fi
-                
-#                 if $has_sufficient_balance; then
-#                     _log_file_descriptor "2" "Target address already has sufficient GasToken balance, skipping minting"
-#                     return 0
-#                 fi
-#             fi
-            
-#             # Determine mint amount
-#             local mint_amount="$amount"
-#             if [[ "$amount" == "$(cast max-uint)" ]]; then
-#                 mint_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-#                 _log_file_descriptor "2" "Using safe amount $mint_amount instead of max-uint for GasToken"
-#             fi
-            
-#             _log_file_descriptor "2" "Minting $mint_amount GasToken to $target_address"
-            
-#             # Mint GasToken with timeout using the safe cast send helper
-#             if _safe_cast_send "$rpc_url" "$l1_private_key" "$gas_token_address" 'mint(address,uint256)' "$target_address" "$mint_amount"; then
-#                 _log_file_descriptor "2" "Successfully minted GasToken"
-#                 return 0
-#             else
-#                 _log_file_descriptor "2" "Failed to mint GasToken"
-#                 return 1
-#             fi
-#             ;;
-#         "POL")
-#             _log_file_descriptor "2" "Transferring $amount POL to $target_address"
-#             _log_file_descriptor "2" "POL address: $pol_address"
-            
-#             # For POL transfers with max amount, use a safe amount instead
-#             local transfer_amount="$amount"
-#             if [[ "$amount" == "$(cast max-uint)" ]]; then
-#                 # Check the available balance and use a reasonable portion
-#                 local pol_balance
-#                 pol_balance=$(cast call --rpc-url "$rpc_url" "$pol_address" 'balanceOf(address)(uint256)' "$(cast wallet address --private-key "$l1_private_key")")
-#                 if [[ -n "$pol_balance" && "$pol_balance" != "0" ]]; then
-#                     # Use 90% of available balance to avoid transfer amount exceeds balance error
-#                     transfer_amount=$((pol_balance * 9 / 10))
-#                     _log_file_descriptor "2" "Using safe transfer amount $transfer_amount (90% of available $pol_balance) instead of max-uint for POL"
-#                 else
-#                     # Fallback to a reasonable amount if balance check fails
-#                     transfer_amount="1000000000000000000000000000"  # 1 billion tokens
-#                     _log_file_descriptor "2" "Using fallback amount $transfer_amount for POL transfer"
-#                 fi
-#             fi
-            
-#             # For POL, transfer from main account with timeout using the safe cast send helper
-#             if _safe_cast_send "$rpc_url" "$l1_private_key" "$pol_address" 'transfer(address,uint256)' "$target_address" "$transfer_amount"; then
-#                 _log_file_descriptor "2" "Successfully transferred POL tokens"
-#                 return 0
-#             else
-#                 _log_file_descriptor "2" "Failed to transfer POL tokens"
-#                 return 1
-#             fi
-#             ;;
-#         "NativeEther"|"WETH")
-#             _log_file_descriptor "2" "Skipping token setup for $token_type (native token or special handling)"
-#             return 0
-#             ;;
-#         *)
-#             _log_file_descriptor "2" "Unknown token type $token_type, skipping"
-#             return 0
-#             ;;
-#     esac
-# }
-
-
-# _approve_token_for_ephemeral_account() {
-#     local ephemeral_private_key="$1"
-#     local token_type="$2"
-#     local amount="$3"
-#     local rpc_url="$4"
-#     local bridge_addr="$5"
-    
-#     _log_file_descriptor "2" "Approving $token_type tokens for bridge"
-    
-#     # Skip approval for native tokens and special cases
-#     if [[ "$token_type" == "NativeEther" || "$token_type" == "WETH" ]]; then
-#         _log_file_descriptor "2" "Skipping approval for $token_type (native token or special handling)"
-#         return 0
-#     fi
-    
-#     local token_addr
-#     token_addr=$(_get_token_address "$token_type")
-    
-#     # Validate token address
-#     if [[ "$token_addr" == "0x0000000000000000000000000000000000000000" ]]; then
-#         _log_file_descriptor "2" "Skipping approval for zero address token $token_type"
-#         return 0
-#     fi
-    
-#     local ephemeral_address
-#     ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
-    
-#     _log_file_descriptor "2" "Approving $amount of token $token_addr for bridge $bridge_addr"
-#     _log_file_descriptor "2" "Approval from ephemeral address: $ephemeral_address"
-    
-#     # Check if ephemeral account has native tokens for gas
-#     local ephemeral_balance
-#     ephemeral_balance=$(cast balance --rpc-url "$rpc_url" "$ephemeral_address")
-#     _log_file_descriptor "2" "Ephemeral account native balance: $ephemeral_balance"
-    
-#     if [[ "$ephemeral_balance" == "0" ]]; then
-#         _log_file_descriptor "2" "Ephemeral account has no native tokens for gas fees"
-#         return 1
-#     fi
-    
-#     # Check if token contract exists
-#     local code_size
-#     code_size=$(cast code --rpc-url "$rpc_url" "$token_addr" | wc -c)
-#     if [[ $code_size -le 2 ]]; then  # "0x" is 2 characters
-#         _log_file_descriptor "2" "Token contract $token_addr has no code, skipping approval"
-#         return 0
-#     fi
-    
-#     # Check token balance before approval
-#     local token_balance
-#     if token_balance=$(cast call --rpc-url "$rpc_url" "$token_addr" 'balanceOf(address)(uint256)' "$ephemeral_address" 2>/dev/null); then
-#         _log_file_descriptor "2" "Ephemeral account token balance: $token_balance"
-#     else
-#         _log_file_descriptor "2" "Failed to check token balance, proceeding with approval anyway"
-#     fi
-    
-#     # Use the same safe amount logic for approval
-#     local approve_amount="$amount"
-#     if [[ "$amount" == "$(cast max-uint)" ]]; then
-#         case "$token_type" in
-#             "LocalERC20"|"GasToken")
-#                 approve_amount="1000000000000000000000000000"  # 1 billion tokens (1e27)
-#                 _log_file_descriptor "2" "Using safe approval amount $approve_amount instead of max-uint for $token_type"
-#                 ;;
-#             "POL")
-#                 # Use the actual token balance for approval
-#                 if [[ -n "$token_balance" && "$token_balance" != "0" ]]; then
-#                     approve_amount="$token_balance"
-#                     _log_file_descriptor "2" "Using token balance $approve_amount for POL approval"
-#                 else
-#                     approve_amount="1000000000000000000000000000"  # 1 billion tokens fallback
-#                     _log_file_descriptor "2" "Using fallback approval amount $approve_amount for POL"
-#                 fi
-#                 ;;
-#             *)
-#                 # Keep max-uint for other tokens like Buggy
-#                 approve_amount="$(cast max-uint)"
-#                 ;;
-#         esac
-#     fi
-    
-#     local approve_output
-#     if _safe_cast_send "$rpc_url" "$ephemeral_private_key" "$token_addr" 'approve(address,uint256)' "$bridge_addr" "$approve_amount"; then
-#         _log_file_descriptor "2" "Successfully approved tokens"
-#         return 0
-#     else
-#         _log_file_descriptor "2" "Failed to approve tokens"
-#         return 1
-#     fi
-# }
-
-
 # =============================================================================
 # Utility Functions
 # =============================================================================
@@ -636,14 +637,11 @@ _get_bridge_type_command() {
 _get_destination_address() {
     local dest_type="$1"
     local ephemeral_address="$2"
-    local bridge_direction="${3:-L1_TO_L2}"  # Add direction parameter
+    local to_network="${3:-1}"  # Add network parameter, default to network 1
     case "$dest_type" in
         "BridgeContract") 
-            if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
-                echo "$l1_bridge_addr"  # Destination is L1
-            else
-                echo "$l2_bridge_addr"  # Destination is L2
-            fi
+            # Return the bridge address for the destination network
+            _get_network_config "$to_network" "bridge_addr"
             ;;
         "Precompile") echo "0x0000000000000000000000000000000000000004" ;;
         "EOA") echo "$ephemeral_address" ;;
@@ -654,16 +652,18 @@ _get_destination_address() {
 
 _get_token_address() {
     local token_type="$1"
-    local bridge_direction="${2:-L1_TO_L2}"  # Add direction parameter
+    local from_network="${2:-0}"  # Add network parameter, default to network 0
     case "$token_type" in
         "POL") echo "$pol_address" ;;  # Should be the same on both networks
         "LocalERC20") echo "$test_erc20_addr" ;;  # Should be deployed on both
         "WETH") 
-            # WETH addresses might be different on L1 vs L2
-            if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
-                echo "$pp_weth_address"  # L2 WETH for bridging from L2
+            # For WETH, we need network-specific addresses
+            if [[ "$from_network" == "0" ]]; then
+                # L1 WETH address - you may need to set this properly
+                echo "$pp_weth_address"
             else
-                echo "$pp_weth_address"  # L1 WETH for bridging from L1
+                # L2 WETH address
+                echo "$pp_weth_address"
             fi
             ;;
         "Buggy") echo "$test_erc20_buggy_addr" ;;
@@ -745,6 +745,7 @@ _setup_amount_and_add_to_command() {
     local test_index="$5"
     local metadata_type="$6"  # Add metadata parameter to consider combinations
     local base_gas_limit="$7"  # Add base gas limit parameter
+    local from_network="$8"  # Add from_network parameter for dynamic configuration
     
     # Extract just the gas limit value from the base_gas_limit string
     local gas_limit_value
@@ -766,8 +767,13 @@ _setup_amount_and_add_to_command() {
                 # Use ephemeral account to manipulate buggy token
                 local ephemeral_address
                 ephemeral_address=$(cast wallet address --private-key "$ephemeral_private_key")
-                _safe_cast_send "$l1_rpc_url" "$ephemeral_private_key" \
-                    "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0 >/dev/null 2>&1 || true
+                # Use source network (from where we're bridging) for the buggy token manipulation
+                local source_rpc_url
+                source_rpc_url=$(_get_network_config "$from_network" "rpc_url")
+                local source_bridge_addr  
+                source_bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
+                _safe_cast_send "$source_rpc_url" "$ephemeral_private_key" \
+                    "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$source_bridge_addr" 0 >/dev/null 2>&1 || true
                 # Use higher gas limit for Max amounts, but respect metadata-based limits
                 local max_gas_limit=$((gas_limit_value * 2))
                 echo "$command --value $(cast max-uint) --gas-limit $max_gas_limit"
@@ -796,22 +802,32 @@ _setup_amount_and_add_to_command() {
 }
 
 _setup_ephemeral_accounts_in_bulk() {
-    local network_to_fund="$1" # L1 or L2
+    local network_designation="$1" # NETWORK_X format or legacy L1/L2
     local total_scenarios="$2"
     local bridge_addr="$3"  # Add bridge address parameter for approvals
 
-    if [[ "$network_to_fund" == "L2" ]]; then
-        # Fund accounts on L2
-        target_rpc_url="$l2_rpc_url"
-        target_private_key="$l2_private_key"
-        
-        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L2"
+    # Extract network ID from designation
+    local network_id=""
+    local target_rpc_url target_private_key
+    
+    if [[ "$network_designation" =~ ^NETWORK_([0-9]+)$ ]]; then
+        # New dynamic format: NETWORK_0, NETWORK_1, etc.
+        network_id="${BASH_REMATCH[1]}"
+        target_rpc_url=$(_get_network_config "$network_id" "rpc_url")
+        target_private_key=$(_get_network_config "$network_id" "private_key")
+        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on network $network_id"
+    elif [[ "$network_designation" == "L2" ]]; then
+        # Legacy L2 support
+        network_id="1"
+        target_rpc_url=$(_get_network_config "1" "rpc_url")
+        target_private_key=$(_get_network_config "1" "private_key")
+        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L2 (network 1)"
     else
-        # Fund accounts on L1
-        target_rpc_url="$l1_rpc_url"
-        target_private_key="$l1_private_key"
-        
-        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1"
+        # Legacy L1 support or default
+        network_id="0"
+        target_rpc_url=$(_get_network_config "0" "rpc_url")
+        target_private_key=$(_get_network_config "0" "private_key")
+        # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1 (network 0)"
     fi
 
     # Fund 0.01ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
@@ -854,49 +870,38 @@ _setup_ephemeral_accounts_in_bulk() {
 _setup_single_test_account() {
     local test_index="$1"
     local scenario="$2"
-    local bridge_direction="${3:-L1_TO_L2}"  # Default to L1->L2 for backward compatibility
     
-    _log_file_descriptor "2" "Setting up account for test $test_index (direction: $bridge_direction)"
+    _log_file_descriptor "2" "Setting up account for test $test_index"
     
-    # Extract scenario parameters
+    # Extract scenario parameters including network information
     local test_token
     test_token=$(echo "$scenario" | jq -r '.Token')
     local test_amount
     test_amount=$(echo "$scenario" | jq -r '.Amount')
     local test_meta_data
     test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
+    local from_network
+    from_network=$(echo "$scenario" | jq -r '.FromNetwork')
+    local to_network
+    to_network=$(echo "$scenario" | jq -r '.ToNetwork')
     
-    # Set source and destination networks based on bridge direction
+    # Set source and destination networks based on FromNetwork and ToNetwork
     local source_rpc_url source_network_id source_bridge_addr source_private_key
     local dest_rpc_url dest_network_id dest_bridge_addr dest_private_key
     
-    if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
-        # Bridge from L2 to L1 - setup tokens on L2 (source)
-        source_rpc_url="$l2_rpc_url"
-        source_network_id="$l2_network_id"
-        source_bridge_addr="$l2_bridge_addr"
-        source_private_key="$l2_private_key"
-        
-        dest_rpc_url="$l1_rpc_url"
-        dest_network_id="$l1_network_id"
-        dest_bridge_addr="$l1_bridge_addr"
-        dest_private_key="$l1_private_key"
-        
-        _log_file_descriptor "2" "Configured for L2->L1 bridge setup"
-    else
-        # Bridge from L1 to L2 (default) - setup tokens on L1 (source)
-        source_rpc_url="$l1_rpc_url"
-        source_network_id="$l1_network_id"
-        source_bridge_addr="$l1_bridge_addr"
-        source_private_key="$l1_private_key"
-        
-        dest_rpc_url="$l2_rpc_url"
-        dest_network_id="$l2_network_id"
-        dest_bridge_addr="$l2_bridge_addr"
-        dest_private_key="$l2_private_key"
-        
-        _log_file_descriptor "2" "Configured for L1->L2 bridge setup"
-    fi
+    # Get source network configuration
+    source_rpc_url=$(_get_network_config "$from_network" "rpc_url")
+    source_network_id=$(_get_network_config "$from_network" "network_id")
+    source_bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
+    source_private_key=$(_get_network_config "$from_network" "private_key")
+    
+    # Get destination network configuration
+    dest_rpc_url=$(_get_network_config "$to_network" "rpc_url")
+    dest_network_id=$(_get_network_config "$to_network" "network_id")
+    dest_bridge_addr=$(_get_network_config "$to_network" "bridge_addr")
+    dest_private_key=$(_get_network_config "$to_network" "private_key")
+    
+    _log_file_descriptor "2" "Configured for network $from_network -> network $to_network bridge setup"
     
     # Generate ephemeral account
     local ephemeral_data
@@ -918,16 +923,21 @@ _setup_single_test_account() {
     # Both token funding and approvals are now handled in bulk by _setup_ephemeral_accounts_in_bulk()
     # No individual token setup or approval is needed here
     
-    _log_file_descriptor "2" "Account setup completed for test $test_index ($bridge_direction) - tokens and approvals handled in bulk"
+    _log_file_descriptor "2" "Account setup completed for test $test_index (network $from_network -> $to_network) - tokens and approvals handled in bulk"
     return 0
 }
 
 
 _cleanup_max_amount_setup() {
     local amount_type="$1"
+    local from_network="${2:-0}"  # Default to network 0 if not provided
     if [[ "$amount_type" = "Max" ]]; then
-        _safe_cast_send "$l1_rpc_url" "$l1_private_key" \
-            "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$l1_bridge_addr" 0 >/dev/null 2>&1 || true
+        local source_rpc_url source_private_key source_bridge_addr
+        source_rpc_url=$(_get_network_config "$from_network" "rpc_url")
+        source_private_key=$(_get_network_config "$from_network" "private_key")
+        source_bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
+        _safe_cast_send "$source_rpc_url" "$source_private_key" \
+            "$test_erc20_buggy_addr" 'setBalanceOf(address,uint256)' "$source_bridge_addr" 0 >/dev/null 2>&1 || true
     fi
 }
 
@@ -943,7 +953,7 @@ _check_already_claimed() {
     fi
     
     # Explicitly exclude retry/timeout patterns that should NOT be considered as "already claimed"
-    if echo "$output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks|retrying\.\.\.|unable to retrieve bridge deposit|Wait timer.*exceeded|timeout|connection refused)"; then
+    if echo "$output" | grep -q -E "(not yet ready to be claimed|Try again in a few blocks|retrying\.\.\.|unable to retrieve bridge deposit|Wait timer.*exceeded|timeout|connection refused|the Merkle Proofs cannot be retrieved|error getting merkle proofs)"; then
         _log_file_descriptor "2" "Found retry/timeout pattern - NOT an 'already claimed' case"
         return 1
     fi
@@ -1038,12 +1048,11 @@ _check_error_pattern() {
 _run_single_bridge_test() {
     local test_index="$1"
     local scenario="$2"
-    local bridge_direction="${3:-L1_TO_L2}"  # Default to L1->L2 for backward compatibility
     local result_file="/tmp/test_result_${test_index}.txt"
     
-    _log_file_descriptor "2" "Starting bridge test $test_index (direction: $bridge_direction)"
+    _log_file_descriptor "2" "Starting bridge test $test_index"
     
-    # Extract scenario parameters
+    # Extract scenario parameters including network information
     local test_bridge_type
     test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
     local test_destination_address
@@ -1060,49 +1069,34 @@ _run_single_bridge_test() {
     expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
     local expected_result_claim
     expected_result_claim=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
+    local from_network
+    from_network=$(echo "$scenario" | jq -r '.FromNetwork')
+    local to_network
+    to_network=$(echo "$scenario" | jq -r '.ToNetwork')
     
-    # Set source and destination networks based on bridge direction
+    # Set source and destination networks based on FromNetwork and ToNetwork
     local source_rpc_url source_network_id source_bridge_addr source_private_key
     local dest_rpc_url dest_network_id dest_bridge_addr dest_private_key
     local claim_rpc_url claim_bridge_addr claim_private_key
     
-    if [[ "$bridge_direction" == "L2_TO_L1" ]]; then
-        # Bridge from L2 to L1
-        source_rpc_url="$l2_rpc_url"
-        source_network_id="$l2_network_id"
-        source_bridge_addr="$l2_bridge_addr"
-        source_private_key="$l2_private_key"
-        
-        dest_rpc_url="$l1_rpc_url"
-        dest_network_id="$l1_network_id"
-        dest_bridge_addr="$l1_bridge_addr"
-        dest_private_key="$l1_private_key"
-        
-        # Claims happen on destination (L1)
-        claim_rpc_url="$l1_rpc_url"
-        claim_bridge_addr="$l1_bridge_addr"
-        claim_private_key="$l1_private_key"
-        
-        _log_file_descriptor "2" "Configured for L2->L1 bridge"
-    else
-        # Bridge from L1 to L2 (default)
-        source_rpc_url="$l1_rpc_url"
-        source_network_id="$l1_network_id"
-        source_bridge_addr="$l1_bridge_addr"
-        source_private_key="$l1_private_key"
-        
-        dest_rpc_url="$l2_rpc_url"
-        dest_network_id="$l2_network_id"
-        dest_bridge_addr="$l2_bridge_addr"
-        dest_private_key="$l2_private_key"
-        
-        # Claims happen on destination (L2)
-        claim_rpc_url="$l2_rpc_url"
-        claim_bridge_addr="$l2_bridge_addr"
-        claim_private_key="$l2_private_key"
-        
-        _log_file_descriptor "2" "Configured for L1->L2 bridge"
-    fi
+    # Get source network configuration
+    source_rpc_url=$(_get_network_config "$from_network" "rpc_url")
+    source_network_id=$(_get_network_config "$from_network" "network_id")
+    source_bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
+    source_private_key=$(_get_network_config "$from_network" "private_key")
+    
+    # Get destination network configuration
+    dest_rpc_url=$(_get_network_config "$to_network" "rpc_url")
+    dest_network_id=$(_get_network_config "$to_network" "network_id")
+    dest_bridge_addr=$(_get_network_config "$to_network" "bridge_addr")
+    dest_private_key=$(_get_network_config "$to_network" "private_key")
+    
+    # Set claim network configuration (same as destination)
+    claim_rpc_url="$dest_rpc_url"
+    claim_bridge_addr="$dest_bridge_addr"
+    claim_private_key="$dest_private_key"
+    
+    _log_file_descriptor "2" "Configured for network $from_network -> network $to_network bridge"
     
     _log_file_descriptor "2" "Test $test_index - Token: $test_token, Amount: $test_amount, Metadata: $test_meta_data"
     
@@ -1155,7 +1149,7 @@ _run_single_bridge_test() {
 
     # Add destination address
     local dest_addr
-    dest_addr=$(_get_destination_address "$test_destination_address" "$ephemeral_address" "$bridge_direction")
+    dest_addr=$(_get_destination_address "$test_destination_address" "$ephemeral_address" "$to_network")
     bridge_command="$bridge_command --destination-address $dest_addr"
 
     # Add token address
@@ -1163,32 +1157,30 @@ _run_single_bridge_test() {
     # For custom gas token networks, when bridging from L2 -> L1, the gas token should always be 0x0.
     # But when we derive the gas token address from the bridge contract, it will return the gas token contract address on L1.
     # This will cause "no contract code at given address" error when bridging from L2.
-    if [[ $bridge_direction == "L2_TO_L1" && $test_token == "GasToken" ]]; then
+    if [[ "$from_network" != "0" && "$to_network" == "0" && "$test_token" == "GasToken" ]]; then
+        # Bridging from any non-L1 network to L1 with GasToken should use 0x0
         token_addr="0x0000000000000000000000000000000000000000"
     else
-        token_addr=$(_get_token_address "$test_token" "$bridge_direction")
+        token_addr=$(_get_token_address "$test_token" "$from_network")
     fi
     bridge_command="$bridge_command --token-address $token_addr"
 
     # Add metadata with test_index and token_type parameters
-    bridge_command=$(_add_metadata_to_command "$bridge_command" "$test_meta_data" "$test_index" "$test_token")
-    if [[ $? -ne 0 ]]; then
+    if ! bridge_command=$(_add_metadata_to_command "$bridge_command" "$test_meta_data" "$test_index" "$test_token"); then
         _log_file_descriptor "2" "Failed to add metadata to command"
         echo "TEST_$test_index|FAIL|N/A|Failed to add metadata" > "$result_file"
         return 1
     fi
 
     # Add force update flag
-    bridge_command=$(_add_force_update_to_command "$bridge_command" "$test_force_update")
-    if [[ $? -ne 0 ]]; then
+    if ! bridge_command=$(_add_force_update_to_command "$bridge_command" "$test_force_update"); then
         _log_file_descriptor "2" "Failed to add force update to command"
         echo "TEST_$test_index|FAIL|N/A|Failed to add force update flag" > "$result_file"
         return 1
     fi
 
     # Setup amount and add to command (now with metadata parameter)
-    bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit")
-    if [[ $? -ne 0 ]]; then
+    if ! bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit" "$from_network"); then
         _log_file_descriptor "2" "Failed to add amount to command"
         echo "TEST_$test_index|FAIL|N/A|Failed to add amount" > "$result_file"
         return 1
@@ -1483,12 +1475,16 @@ _run_single_bridge_test() {
                 esac
 
                 # Use destination network parameters for the claim command
-                claim_command="$claim_command --destination-address $dest_addr --bridge-address $claim_bridge_addr --private-key $ephemeral_private_key --rpc-url $claim_rpc_url --deposit-count $deposit_count --deposit-network $source_network_id --bridge-service-url $bridge_service_url --wait $claim_wait_duration"
+                # Get bridge service URL using proper selection logic
+                local selected_bridge_service_url
+                selected_bridge_service_url=$(_select_bridge_service_url "$source_network_id" "$dest_network_id")
+                _log_file_descriptor "2" "Using selected bridge service URL: $selected_bridge_service_url"
+                claim_command="$claim_command --destination-address $dest_addr --bridge-address $claim_bridge_addr --private-key $ephemeral_private_key --rpc-url $claim_rpc_url --deposit-count $deposit_count --deposit-network $source_network_id --bridge-service-url $selected_bridge_service_url --wait $claim_wait_duration"
                 
                 # Execute claim command
                 _log_file_descriptor "2" "Running claim command for test $test_index: $claim_command"
                 local claim_output claim_status
-                local max_claim_retries=3
+                local max_claim_retries=5  # Increased from 3 to handle Merkle proof retrieval delays
                 local claim_attempt=0
 
                 while [[ $claim_attempt -lt $max_claim_retries ]]; do
@@ -1558,6 +1554,18 @@ _run_single_bridge_test() {
                                 else
                                     _log_file_descriptor "2" "Exhausted retries waiting for claim to be ready"
                                     # Don't falsely claim it was already claimed - it's just not ready yet
+                                    break
+                                fi
+                            fi
+
+                            # Check if it's a Merkle proof retrieval issue - retry after longer delay
+                            if echo "$claim_output" | grep -q -E "(the Merkle Proofs cannot be retrieved|error getting merkle proofs)"; then
+                                _log_file_descriptor "2" "Merkle proof retrieval failed, will retry after delay (attempt $claim_attempt/$max_claim_retries)"
+                                if [[ $claim_attempt -lt $max_claim_retries ]]; then
+                                    sleep 15  # Wait longer for bridge service to index the deposit
+                                    continue
+                                else
+                                    _log_file_descriptor "2" "Exhausted retries waiting for Merkle proofs to be available"
                                     break
                                 fi
                             fi
@@ -1679,6 +1687,17 @@ _run_single_bridge_test() {
                             claim_result="PASS"
                             _log_file_descriptor "2" "Claim timeout matches expected failure pattern"
                         fi
+                    elif echo "$claim_output" | grep -q -E "(the Merkle Proofs cannot be retrieved|error getting merkle proofs)"; then
+                        # Handle Merkle proof retrieval timeouts based on expectations
+                        if $claim_expects_success; then
+                            claim_result="FAIL"
+                            error_message="Claim timed out waiting for Merkle proofs to be available"
+                            _log_file_descriptor "2" "Claim failed due to timeout waiting for Merkle proofs"
+                        else
+                            # If failure was expected, treat Merkle proof timeout as valid failure
+                            claim_result="PASS"
+                            _log_file_descriptor "2" "Merkle proof timeout matches expected failure pattern"
+                        fi
                     elif $claim_has_other_expected_errors && _validate_bridge_error "$expected_result_claim" "$claim_output"; then
                         claim_result="PASS"
                         _log_file_descriptor "2" "Claim failed with expected error pattern"
@@ -1778,12 +1797,14 @@ _collect_and_report_results() {
         local expected_result_process
         expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
         
-        echo "Test $i:" >> "$detailed_results"
-        echo "  Bridge Type: $test_bridge_type" >> "$detailed_results"
-        echo "  Token: $test_token" >> "$detailed_results"
-        echo "  Amount: $test_amount" >> "$detailed_results"
-        echo "  Metadata: $test_meta_data" >> "$detailed_results"
-        echo "  Expected: $expected_result_process" >> "$detailed_results"
+        {
+            echo "Test $i:"
+            echo "  Bridge Type: $test_bridge_type"
+            echo "  Token: $test_token"
+            echo "  Amount: $test_amount"
+            echo "  Metadata: $test_meta_data"
+            echo "  Expected: $expected_result_process"
+        } >> "$detailed_results"
         
         if [[ -f "$result_file" ]]; then
             local result_line
@@ -1868,4 +1889,128 @@ EOF
     
     # Return failure count for test result
     return $failed_tests
+}
+
+# Helper function to select the appropriate bridge service URL based on network configuration
+_select_bridge_service_url() {
+    local from_network_id="$1"
+    local to_network_id="$2"
+    
+    _log_file_descriptor "2" "Selecting bridge service URL for bridge: network $from_network_id -> network $to_network_id"
+    
+    # Rule 1: When one of the network_id is 0 (L1), use the bridge_service_url of the other network
+    if [[ "$from_network_id" == "0" && "$to_network_id" != "0" ]]; then
+        _log_file_descriptor "2" "L1 -> L2 bridge: using destination network ($to_network_id) bridge service URL"
+        _get_bridge_service_url "$to_network_id"
+    elif [[ "$to_network_id" == "0" && "$from_network_id" != "0" ]]; then
+        _log_file_descriptor "2" "L2 -> L1 bridge: using source network ($from_network_id) bridge service URL"
+        _get_bridge_service_url "$from_network_id"
+    else
+        # Rule 2: When both networks are not 0 (both are L2s), use the FromNetwork bridge_service_url
+        _log_file_descriptor "2" "L2 -> L2 bridge: using source network ($from_network_id) bridge service URL"
+        _get_bridge_service_url "$from_network_id"
+    fi
+}
+
+# Helper function to get bridge service URL for a specific network
+_get_bridge_service_url() {
+    local network_id="$1"
+    
+    # Initialize network configuration if not done already
+    if [[ -z "${NETWORK_ID_TO_NAME[$network_id]:-}" ]]; then
+        _initialize_network_config
+    fi
+    
+    # Get the network name from network ID
+    local network_name="${NETWORK_ID_TO_NAME[$network_id]:-}"
+    
+    if [[ -z "$network_name" ]]; then
+        # Fallback to global bridge_service_url if network not found
+        _log_file_descriptor "2" "No network name found for network ID $network_id, using global bridge service URL"
+        echo "${bridge_service_url:-}"
+        return 0
+    fi
+    
+    _log_file_descriptor "2" "Looking up bridge service URL for network $network_id ($network_name)"
+    
+    # Try to get network-specific bridge service URL
+    local bridge_service_var="${network_name}_bridge_service_url"
+    local bridge_service="${!bridge_service_var:-}"
+    
+    if [[ -n "$bridge_service" ]]; then
+        _log_file_descriptor "2" "Found network-specific bridge service URL: $bridge_service"
+        echo "$bridge_service"
+        return 0
+    fi
+    
+    # For Kurtosis networks, try to determine bridge service URL based on network
+    case "$network_name" in
+        "kurtosis_l1")
+            # L1 (network 0) should never provide its own bridge service URL
+            # The bridge service URL is always determined by the other (non-L1) network
+            _log_file_descriptor "2" "L1 network should not provide bridge service URL - this should be handled by _select_bridge_service_url()"
+            echo ""
+            ;;
+        "kurtosis_network_1")
+            # Network 1 uses specific bridge service environment variable
+            local kurtosis_net1_bridge_service="${KURTOSIS_NETWOWRK_1_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-}}"
+            if [[ -z "$kurtosis_net1_bridge_service" ]]; then
+                kurtosis_net1_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc 2>/dev/null || echo "")}"
+            fi
+            _log_file_descriptor "2" "Kurtosis network 1 bridge service URL: $kurtosis_net1_bridge_service"
+            echo "$kurtosis_net1_bridge_service"
+            ;;
+        "kurtosis_network_2")
+            # Network 2 uses specific bridge service environment variable
+            local kurtosis_net2_bridge_service="${KURTOSIS_NETWOWRK_2_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-}}"
+            if [[ -z "$kurtosis_net2_bridge_service" ]]; then
+                kurtosis_net2_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc 2>/dev/null || echo "")}"
+            fi
+            _log_file_descriptor "2" "Kurtosis network 2 bridge service URL: $kurtosis_net2_bridge_service"
+            echo "$kurtosis_net2_bridge_service"
+            ;;
+        *)
+            # For other networks, try multiple environment variable patterns
+            _log_file_descriptor "2" "Non-Kurtosis network detected: $network_name"
+            local env_value=""
+            
+            # Try network-specific variable first (e.g., bali_48_bridge_service_url)
+            local specific_var="${network_name}_bridge_service_url"
+            env_value="${!specific_var:-}"
+            _log_file_descriptor "2" "Tried $specific_var: ${env_value:-'not set'}"
+            
+            if [[ -z "$env_value" ]]; then
+                # Try uppercase pattern (e.g., BALI_48_BRIDGE_SERVICE_URL)
+                local env_var_name="${network_name^^}_BRIDGE_SERVICE_URL"
+                env_value="${!env_var_name:-}"
+                _log_file_descriptor "2" "Tried $env_var_name: ${env_value:-'not set'}"
+            fi
+            
+            if [[ -z "$env_value" ]]; then
+                # For Bali networks, try NETWORK_XX pattern (e.g., NETWORK_48_BRIDGE_SERVICE_URL)
+                if [[ "$network_name" =~ ^bali_([0-9]+)$ ]]; then
+                    local network_num="${BASH_REMATCH[1]}"
+                    local alt_var_name="NETWORK_${network_num}_BRIDGE_SERVICE_URL"
+                    env_value="${!alt_var_name:-}"
+                    _log_file_descriptor "2" "Tried $alt_var_name: ${env_value:-'not set'}"
+                fi
+            fi
+            
+            if [[ -z "$env_value" ]]; then
+                # Try generic pattern based on network ID (e.g., BRIDGE_SERVICE_URL_48)
+                local id_based_var="BRIDGE_SERVICE_URL_${network_id}"
+                env_value="${!id_based_var:-}"
+                _log_file_descriptor "2" "Tried $id_based_var: ${env_value:-'not set'}"
+            fi
+            
+            if [[ -n "$env_value" ]]; then
+                _log_file_descriptor "2" "Found bridge service URL for $network_name: $env_value"
+                echo "$env_value"
+            else
+                # Fallback to global bridge service URL
+                _log_file_descriptor "2" "No specific bridge service URL found for $network_name, using global: ${bridge_service_url:-'not set'}"
+                echo "${bridge_service_url:-}"
+            fi
+            ;;
+    esac
 }

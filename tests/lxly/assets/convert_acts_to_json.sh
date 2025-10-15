@@ -63,7 +63,9 @@ BEGIN {
         print "        \"ForceUpdate\": \"" force_update "\","
         print "        \"Amount\": \"" amount "\","
         print "        \"ExpectedResultProcess\": \"" expected_process "\","
-        print "        \"ExpectedResultClaim\": \"" expected_claim "\""
+        print "        \"ExpectedResultClaim\": \"" expected_claim "\","
+        print "        \"FromNetwork\": \"" from_network "\","
+        print "        \"ToNetwork\": \"" to_network "\""
         printf "    }"
         
         config_count++
@@ -110,6 +112,14 @@ in_config && /^[0-9]+ = / {
         gsub(/^ExpectedResultClaim=/, "", line)
         expected_claim = line
     }
+    else if (line ~ /^FromNetwork=/) {
+        gsub(/^FromNetwork=/, "", line)
+        from_network = line
+    }
+    else if (line ~ /^ToNetwork=/) {
+        gsub(/^ToNetwork=/, "", line)
+        to_network = line
+    }
 }
 
 END {
@@ -126,7 +136,9 @@ END {
         print "        \"ForceUpdate\": \"" force_update "\","
         print "        \"Amount\": \"" amount "\","
         print "        \"ExpectedResultProcess\": \"" expected_process "\","
-        print "        \"ExpectedResultClaim\": \"" expected_claim "\""
+        print "        \"ExpectedResultClaim\": \"" expected_claim "\","
+        print "        \"FromNetwork\": \"" from_network "\","
+        print "        \"ToNetwork\": \"" to_network "\""
         printf "    }"
     }
     print ""
