@@ -10,7 +10,7 @@ setup() {
     sender_private_key=$(echo "$sender" | jq -r .private_key)
 
     source "$BATS_TEST_DIRNAME/../../core/helpers/scripts/fund.bash"
-    fund_up_to $l1_private_key $sender_address $(cast to-wei 10) $l1_rpc_url
+    fund_up_to $l1_private_key $sender_address "$(cast to-wei 10)" $l1_rpc_url
 
     export sender_private_key
     export sender_address
@@ -43,7 +43,7 @@ gen_zero_bytecode(){
     nonce=$(cast nonce --rpc-url "$l1_rpc_url" "$sender_address")
 
     for i in $(seq 1 $txs_to_submit); do
-        cast send --gas-limit 16_000_000 --rpc-url "$l1_rpc_url" --private-key "$sender_private_key" --async --nonce "$nonce" --create $bytecode
+        cast send --gas-limit 16_000_000 --rpc-url "$l1_rpc_url" --private-key "$sender_private_key" --value $i --async --nonce "$nonce" --create $bytecode
         nonce=$((nonce + 1))
     done
 
