@@ -10,7 +10,7 @@ setup() {
     sender_private_key=$(echo "$sender" | jq -r .private_key)
 
     source "$BATS_TEST_DIRNAME/../../core/helpers/scripts/fund.bash"
-    fund_up_to $l1_private_key $sender_address $(cast to-wei 100) $l1_rpc_url
+    fund_up_to $l1_private_key $sender_address $(cast to-wei 10) $l1_rpc_url
 
     export sender_private_key
     export sender_address
@@ -49,7 +49,7 @@ gen_zero_bytecode(){
 
     echo "✅ Successfully submitted $txs_to_submit transactions to L1" >&3
 
-    sleep 24 # wait for the blocks to be mined
+    sleep 16 # wait for the blocks to be mined
     ending_block=$(cast bn --rpc-url "$l1_rpc_url")
 
     for block in $(seq $starting_block $ending_block); do
@@ -64,6 +64,11 @@ gen_zero_bytecode(){
         hexstr=${rawhex#0x}
         bytes=$(( ${#hexstr} / 2 ))
         echo "RLP encoded block size for block $block (bytes): $bytes" >&3
+
+        if [ "$bytes" -gt 10485760 ]; then
+            echo "❌ Block $block has RLP encoded size greater than 10M, output: $output" >&3
+            exit 1
+        fi
 
     done
 }
