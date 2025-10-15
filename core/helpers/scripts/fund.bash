@@ -79,8 +79,8 @@ function fund_up_to() {
     balance=$(cast balance --rpc-url "$rpc_url" "$receiver_addr")
     gap=$(echo "$amount - $balance" | bc -l | cut -f 1 -d '.')
 
-    if [[ $gap -le 0 ]]; then
-        echo "✅ No need to fund $receiver_addr, current balance is sufficient. ($balance)" >&3
+    if [[ "$(echo "$gap <= 0" | bc)" -eq 1 ]]; then
+        echo "✅ No need to fund $receiver_addr, current balance ($balance) is sufficient. Amount: $amount, Gap: $gap" >&3
         return 0
     else
         echo "⚠️ Funding $receiver_addr with additional $gap wei to reach desired amount of $amount wei." >&3
