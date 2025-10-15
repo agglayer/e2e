@@ -201,7 +201,7 @@ setup() {
 
     # Claim deposit (settle it on the L2)
     echo "==== 🔐 Claiming deposit on L2 ($L2_RPC_URL) :$LINENO" >&3
-    run process_bridge_claim "claim L2 ERC20: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "claim L2 ERC20: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     echo "==== 💰 Verifying balance on L2 ($L2_RPC_URL) :$LINENO" >&3
