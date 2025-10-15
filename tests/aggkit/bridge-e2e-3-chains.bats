@@ -328,7 +328,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposit (settle it on the Rollup 3)
-    run process_bridge_claim  "3bridge-e2e-3-chains: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
     assert_success
     local claim_global_index="$output"
     # Validate the bridge service get claims API
