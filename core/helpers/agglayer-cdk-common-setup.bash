@@ -39,7 +39,8 @@ _agglayer_cdk_common_setup() {
     # ✅ Resolve aggsender mode and expport aggsender_mode
     _resolve_aggsender_mode
 
-    export test_log_prefix="$(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME"
+    test_log_prefix="$(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME"
+    export test_log_prefix
 }
 
 # Loads required BATS testing libraries, such as bats-support and bats-assert.
