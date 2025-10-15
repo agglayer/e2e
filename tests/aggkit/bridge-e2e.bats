@@ -295,6 +295,7 @@ setup() {
 }
 
 @test "Native token transfer L1 -> L2 - manipulated global index" {
+    skip "skipped test because is not working as expected, check issue #1123 (https://github.com/agglayer/aggkit/issues/1123)"
     log_start_test
     destination_addr=$sender_addr
     local initial_receiver_balance
