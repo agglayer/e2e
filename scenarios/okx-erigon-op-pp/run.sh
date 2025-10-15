@@ -46,8 +46,8 @@ echo "New GER impl: $new_ger_impl_addr"
 TIMELOCK=$(cast call $GER_ADMIN "owner()(address)" --rpc-url $rpc_url)
 TIMELOCK_DELAY=$(cast call $TIMELOCK "getMinDelay()(uint256)" --rpc-url $rpc_url)
 
-GER_INIT_DATA=$(cast abi-encode "initialize(address,address)" $from $from )
-DATA_GER=$(cast calldata "upgrade(address,address)" $l2_GER_proxy_addr $new_ger_impl_addr)
+GER_INIT_DATA=$(cast calldata "initialize(address,address)" "0x0b68058E5b2592b1f472AdFe106305295A332A7C" $from)
+DATA_GER=$(cast calldata "upgradeAndCall(address,address,bytes)" $l2_GER_proxy_addr $new_ger_impl_addr $GER_INIT_DATA)
 SALT="0x0000000000000000000000000000000000000000000000000000000000000000"
 cast send $TIMELOCK "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)" "[$GER_ADMIN]" "[0]" "[$DATA_GER]" \
   0x0000000000000000000000000000000000000000000000000000000000000000 \
@@ -67,6 +67,7 @@ cast send $TIMELOCK \
   --rpc-url $rpc_url --private-key $private_key
 
 cast call --rpc-url "$rpc_url" $l2_GER_proxy_addr 'GER_SOVEREIGN_VERSION()(string)' || exit 1
+echo "L2 GER updated successfully. L2GERUpdater: $(cast call $l2_GER_proxy_addr 'globalExitRootUpdater()(address)' --rpc-url $rpc_url)"
 cd .. || exit 1
 #########
 
