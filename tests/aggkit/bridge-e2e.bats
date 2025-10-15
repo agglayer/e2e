@@ -171,14 +171,14 @@ setup() {
     run wait_for_expected_token "$l2_erc20_addr" "$l1_rpc_network_id" 30 2 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result=$output
-     echo "==== 📃 token_mappings_result: $token_mappings_result" >&3
+    echo "==== 📃 token_mappings_result: $token_mappings_result" >&3
     local origin_token_addr
     origin_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
     assert_equal "$l2_erc20_addr" "$origin_token_addr"
 
     local l1_wrapped_token_addr
     l1_wrapped_token_addr=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].wrapped_token_address')
-    log "🪙 L1 wrapped token address $l1_wrapped_token_addr"
+    log "==== 🪙 L1 wrapped token address $l1_wrapped_token_addr"
 
     run verify_balance "$l1_rpc_url" "$l1_wrapped_token_addr" "$destination_addr" 0 "$tokens_amount"
     assert_success
