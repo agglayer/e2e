@@ -553,3 +553,15 @@ _resolve_aggsender_mode(){
     fi
     echo "=== Resolved aggsender_mode: $aggsender_mode (aggsender_mode_is_fep=$aggsender_mode_is_fep)" >&3
 }
+
+log_start_test(){
+    echo "=====================================================================" >&3
+    echo "=== 🕵️‍♂️🕵️‍♂️🕵️‍♂️🕵️‍♂️ start: $(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME " >&3
+    echo "=====================================================================" >&3
+}
+
+log_end_test(){
+    echo "=====================================================================" >&3
+    echo "=== ✅✅✅✅ end: $(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME " >&3
+    echo "=====================================================================" >&3
+}

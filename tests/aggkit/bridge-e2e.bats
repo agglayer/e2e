@@ -5,11 +5,11 @@
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     _agglayer_cdk_common_setup
-    prefix_start_test="=== 🕵️‍♂️🕵️‍♂️🕵️‍♂️🕵️‍♂️"
 }
 
+
 @test "Transfer message" {
-    echo "$prefix_start_test Transfer message" >&3
+    log_start_test
     echo "====== bridgeMessage L1 -> L2 :$LINENO" >&3
     destination_addr=$sender_addr
     destination_net=$l2_rpc_network_id
@@ -27,10 +27,11 @@ setup() {
     destination_net=0
     run bridge_message "$destination_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
+    log_end_test
 }
 
 @test "ERC20 token deposit L1 -> L2" {
-    echo "$prefix_start_test ERC20 token deposit L1 -> L2" >&3
+    log_start_test
     run deploy_contract "$l1_rpc_url" "$sender_private_key" "$erc20_artifact_path"
     assert_success
     local l1_erc20_addr
@@ -108,10 +109,11 @@ setup() {
     echo "Sender balance ($sender_addr) (ERC20 token L1) after duplicate claim: $l1_erc20_token_sender_balance_after_duplicate_claim [weis]" >&3
     # Assert it stayed at zero (because it was already claimed)
     assert_equal "$l1_erc20_token_sender_balance_after_duplicate_claim" 0
+    log_end_test
 }
 
 @test "ERC20 token deposit L2 -> L1" {
-    echo "$prefix_start_test ERC20 token deposit L2 -> L1" >&3
+    log_start_test
     run deploy_contract $L2_RPC_URL $sender_private_key $erc20_artifact_path
     assert_success
     local l2_erc20_addr
@@ -236,10 +238,11 @@ setup() {
     echo "==== 💰 2nd: Verifying balance on L1 ($l1_rpc_url) :$LINENO" >&3
     run verify_balance "$l1_rpc_url" "$l1_wrapped_token_addr" "$destination_addr" "$l1_wrapped_token_balance" "$tokens_amount"
     assert_success
+    log_end_test
 }
 
 @test "Native token transfer L1 -> L2" {
-    echo "$prefix_start_test Native token transfer L1 -> L2" >&3
+    log_start_test
     destination_addr=$receiver
     local initial_receiver_balance
     initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
@@ -287,10 +290,11 @@ setup() {
     destination_net=0
     run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
+    log_end_test
 }
 
 @test "Native token transfer L1 -> L2 - manipulated global index" {
-    echo "$prefix_start_test Native token transfer L1 -> L2 - manipulated global index" >&3
+    log_start_test
     destination_addr=$sender_addr
     local initial_receiver_balance
     initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
@@ -305,4 +309,5 @@ setup() {
     # Claim deposit (claim will fail because global index is manipulated)
     run process_bridge_claim "claim global index is manipulated: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true" "$sender_addr"
     assert_success
+    log_end_test
 }
