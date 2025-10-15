@@ -309,7 +309,7 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
-        local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id"
+        local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id\""
             
         token_mappings_result=$($cmd)
 
