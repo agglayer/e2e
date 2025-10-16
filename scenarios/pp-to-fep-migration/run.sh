@@ -87,7 +87,7 @@ echo ' #####  #      #####  #    #   #   ######    #     #  ####  ###### ###### 
 # Set the urls
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 # l2_rpc_url=$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
-l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 http)
+l2_node_url=$(kurtosis port print $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 rpc)
 # The timeout might be too large, but it should allow sufficient time for the certificates to settle.
 # TODO this timeout approach allows us to run the script without needing to manually check and continue the next steps. But there might be better approaches.
 timeout=2000

@@ -226,8 +226,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Check L2 OP vaults totalProcessed wei | [Link](./tests/op/check-isthmus-fees.bats#L55) | |
 | Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L39) | |
 | Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
-| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L113) | |
-| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L89) | |
+| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L110) | |
+| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L86) | |
 | Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
 | Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
 | check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
