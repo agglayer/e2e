@@ -38,6 +38,9 @@ _agglayer_cdk_common_setup() {
 
     # ✅ Resolve aggsender mode and expport aggsender_mode
     _resolve_aggsender_mode
+
+    test_log_prefix="$(basename $BATS_TEST_FILENAME) - $BATS_TEST_NAME"
+    export test_log_prefix
 }
 
 # Loads required BATS testing libraries, such as bats-support and bats-assert.
@@ -534,7 +537,7 @@ _agglayer_cdk_common_multi_setup() {
 _resolve_aggsender_mode(){
     local mode
     mode=${aggsender_mode:-}
-    if [ $mode != "" ]; then
+    if [ ! -z "$mode"  ]; then
         echo "Using aggsender_mode from environment: $aggsender_mode" >&3
     else 
         echo "Resolving aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&3
@@ -552,4 +555,22 @@ _resolve_aggsender_mode(){
         export aggsender_mode_is_fep=0
     fi
     echo "=== Resolved aggsender_mode: $aggsender_mode (aggsender_mode_is_fep=$aggsender_mode_is_fep)" >&3
+}
+log_setup_test(){
+    log_prefix_test "🛠️🛠️🛠️🛠️ setup:"
+}
+log_start_test(){
+    start_test_time=$(date +%s)
+    log_prefix_test "🕵️‍♂️🕵️‍♂️🕵️‍♂️🕵️‍♂️ start:"
+}
+log_end_test(){
+    end_test_time=$(date +%s)
+    duration=$((end_test_time - start_test_time))
+    log_prefix_test "✅✅✅✅ end: (duration: $duration seconds) "
+}
+
+log_prefix_test(){
+    echo "=====================================================================" >&3
+    echo "=== $1  $test_log_prefix" >&3
+    echo "=====================================================================" >&3
 }
