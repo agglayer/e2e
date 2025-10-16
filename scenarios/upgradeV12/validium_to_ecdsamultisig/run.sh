@@ -2,13 +2,8 @@
 
 # kurtosis
 kurtosis_enclave_name="upgradeV12"
-kurtosis_repo_tag="main"
+kurtosis_repo_tag="1d26548a5917f24282fc97ecb25594238c2a4104"  # main at 16/Oct/2025
 docker_network_name="kt-$kurtosis_enclave_name"
-
-# preallocated variables to make things coherent and easier
-l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
-l2_admin_address=$(cast wallet address --private-key "$l2_admin_private_key")
-l2_trusted_sequencer="0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
 
 
  ##                                               ##                      ##              ####                                                    
@@ -27,7 +22,13 @@ l2_trusted_sequencer="0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
                                                                                     ##                    ###:                                    
                                                                                     ##                    ###                                     
 
-kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_repo_tag" --args-file=fep.yml
+kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_repo_tag" --args-file=validium.yml
+
+contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
+
+l2_admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
+l2_admin_address=$(cast wallet address --private-key "$l2_admin_private_key")
+l2_trusted_sequencer="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_sequencer_address')"
 
 
                                                                                                                       ##         
@@ -46,12 +47,12 @@ kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-c
                                                                                   ##       ######                                
                                                                                   ##       :####:                                
 
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && git fetch && git stash push -m \"kurtosis\" && git checkout v12.1.0 && git stash pop"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npm i"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$l2_admin_private_key\" > /opt/zkevm-contracts/.env"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && git fetch && git stash push -m \"kurtosis\" && git checkout v12.1.0 && git stash pop"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npm i"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$l2_admin_private_key\" > /opt/agglayer-contracts/.env"
 
-rollup_manager_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r .polygonRollupManagerAddress")
-timelock_ctrl_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r .timelockContractAddress")
+rollup_manager_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polygonRollupManagerAddress')
+timelock_ctrl_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.timelockContractAddress')
 
 # Get current min delay
 min_delay=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_ctrl_address' 'getMinDelay()' | cast to-dec")
@@ -83,11 +84,11 @@ upgrade_parameters='{
     }
 }'
 
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$upgrade_parameters' > /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_parameters.json"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npx hardhat run ./upgrade/upgradeV12/upgradeV12.ts --network localhost"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$upgrade_parameters' > /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_parameters.json"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./upgrade/upgradeV12/upgradeV12.ts --network localhost"
 
-scheduleData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .scheduleData")
-timelock_address=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/zkevm/combined.json | jq -r .timelockContractAddress)
+scheduleData=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json" | jq -r '.scheduleData')
+timelock_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.timelockContractAddress')
 
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$scheduleData'"
 
@@ -101,11 +102,11 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
 #         return keccak256(abi.encode(targets, values, payloads, predecessor, salt));
 #     }
 
-targets=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.targets | \"[\" + (map(.) | join(\", \")) + \"]\"'")
-values=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.values | \"[\" + (map(.) | join(\", \")) + \"]\"'")
-payloads=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.payloads | \"[\" + (map(.) | join(\", \")) + \"]\"'")
-predecessor=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.predecessor")
-salt=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.salt")
+targets=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.targets | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+values=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.values | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+payloads=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.payloads | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+predecessor=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.predecessor")
+salt=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.salt")
 
 # Get operation id (hashOperationBatch)
 echo "Calling hashOperationBatch with params: $targets, $values, $payloads, $predecessor, $salt"
@@ -119,7 +120,7 @@ while [ "$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cast call
 done
 
 # Execute operation
-executeData=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && cat /opt/zkevm-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .executeData")
+executeData=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json" | jq -r '.executeData')
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$executeData'"
 
 
