@@ -203,7 +203,7 @@ pessimisticVKey=0x000055f14384bdb5bb092fd7e5152ec31856321c5a30306ab95836bdf5cdb6
 # https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v5.0.0/SP1VerifierPlonk.sol
 echo "Adding new Pessimistic VKey: $pessimisticVKeySelector, $pessimisticVKey, $vkey_route_verifier"
 # It's throwing a reverted because already exists - Ignore error, I'd need to find out why it exists
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'addPessimisticVKeyRoute(bytes4,address,bytes32)()' '$pessimisticVKeySelector' '$vkey_route_verifier' '$pessimisticVKey'"
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'addPessimisticVKeyRoute(bytes4,address,bytes32)()' '$pessimisticVKeySelector' '$vkey_route_verifier' '$pessimisticVKey'"
 
 
                                                                                                 #### ####                ########                     ###########:   
@@ -247,6 +247,69 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-c
 new_rollup_type_id=$(curl -s "${contracts_url}/opt/agglayer-contracts/tools/addRollupType/add_rollup_type_output_ecdsamultisig.json" | jq -r '.rollupTypeID')
 
 
+                  ##                                                                 ##            
+                  ##                                                          :####  ##            
+                  ##                                                          #####  ##            
+                                                                              ##                   
+   ####: ##.########    :###:## .####. ##.####         ####: .####. ##.#### ###########    :###:## 
+  ######:###########   .#######.######.#######       #######.######.####### ###########   .####### 
+ ##:  :#####.     ##   ###  ######  ######  :##      ##:  :####  ######  :##  ##     ##   ###  ### 
+ ##########       ##   ##.  .####.  .####    ##     ##.     ##.  .####    ##  ##     ##   ##.  .## 
+ ##########       ##   ##    ####    ####    ##     ##      ##    ####    ##  ##     ##   ##    ## 
+ ##      ##       ##   ##.  .####.  .####    ##     ##.     ##.  .####    ##  ##     ##   ##.  .## 
+ ###.  :###       ##   ###  ######  #####    ##      ##:  .####  #####    ##  ##     ##   ###  ### 
+  #########    ########.#######.######.##    ##      #######.######.##    ##  ##  ########.####### 
+   #####:##    ######## :###:## .####. ##    ##        ####: .####. ##    ##  ##  ######## :###:## 
+                        #.  :##                                                            #.  :## 
+                        ######                                                             ######  
+                         ####:                                                             :####:  
+
+# cdk-erigon config file changes required
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "cp /etc/cdk-erigon/config.yaml /etc/cdk-erigon/config.yaml.bak"
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "cp /etc/cdk-erigon/config.yaml /etc/cdk-erigon/config.yaml.bak"
+
+# erigon_strict_mode goes from true to false:
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i '/^zkevm.executor-urls:/ s/^/# /' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i 's/^zkevm.executor-strict: true$/zkevm.executor-strict: false/' /etc/cdk-erigon/config.yaml"
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i '/^zkevm.executor-urls:/ s/^/# /' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.executor-strict: true$/zkevm.executor-strict: false/' /etc/cdk-erigon/config.yaml"
+
+
+# enable_normalcy changes from false to true:
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i 's/^zkevm.reject-low-gas-price-transactions: true$/zkevm.reject-low-gas-price-transactions: false/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i 's/^zkevm.disable-virtual-counters: false$/zkevm.disable-virtual-counters: true/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "echo 'zkevm.honour-chainspec: true' >> /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "echo 'zkevm.initial-commitment: pmt' >> /etc/cdk-erigon/config.yaml"
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.reject-low-gas-price-transactions: true$/zkevm.reject-low-gas-price-transactions: false/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.disable-virtual-counters: false$/zkevm.disable-virtual-counters: true/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'zkevm.honour-chainspec: true' >> /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'zkevm.initial-commitment: pmt' >> /etc/cdk-erigon/config.yaml"
+
+
+                    ##                                                                 ##          ##                            ##                    
+                    ##               :####                                             ##   :####  ##                            ##                    
+                    ##   ##          #####                                             ##   #####  ##                    ##      ##                    
+                         ##          ##                                                     ##                           ##                            
+##      ##:####   #### #######     ####### .####. ##.####     ##:  :## .####: ##.######## ###########     ####: :####  ####### ####    .####. ##.####  
+##.    .########  #### #######     #######.######.#######      ##  ## .######:########### ###########   ####### ###### ####### ####   .######.#######  
+ #: ## :# #:  :##   ##   ##          ##   ###  ######.        :##  ##:##:  :#####.     ##   ##     ##   ##:  :# #:  :##  ##      ##   ###  ######  :## 
+ #:.##.:#: :#####   ##   ##          ##   ##.  .####           ##..## ##########       ##   ##     ##  ##.       :#####  ##      ##   ##.  .####    ## 
+ # :##:##.#######   ##   ##          ##   ##    ####           ##::## ##########       ##   ##     ##  ##      .#######  ##      ##   ##    ####    ## 
+ ## ## #### .  ##   ##   ##          ##   ##.  .####           :####: ##      ##       ##   ##     ##  ##.     ## .  ##  ##      ##   ##.  .####    ## 
+ ###::## ##:  ###   ##   ##.         ##   ###  #####            ####  ###.  :###       ##   ##     ##   ##:  .###:  ###  ##.     ##   ###  #####    ## 
+  ##..##:#####################       ##   .######.##            ####  .#########    ##########  #######################  #############.######.##    ## 
+  ##  ##   ###.##########.####       ##    .####. ##            :##:   .#####:##    ##########  ########  ####:  ###.##  .############ .####. ##    ## 
+                                                                                                                                                       
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+sleep 300
+# these will be started again later
+kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-rpc-001
+sleep 600
+
+
            ##                                                                                          ##            
            ##                                                                                          ##            
    #####.####### .####. ##.###:         ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
@@ -262,15 +325,13 @@ new_rollup_type_id=$(curl -s "${contracts_url}/opt/agglayer-contracts/tools/addR
                         ##                                   ##                                                      
                         ##                                   ##                                                      
 
-# TO CONFIRM IF WE NEED TO STOP SERVICES
-kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
-sleep 10
-kurtosis service stop "$kurtosis_enclave_name" aggkit-001-bridge
-kurtosis service stop "$kurtosis_enclave_name" aggkit-001
-kurtosis service stop "$kurtosis_enclave_name" aggkit-prover-001
 kurtosis service stop "$kurtosis_enclave_name" agglayer
 kurtosis service stop "$kurtosis_enclave_name" agglayer-prover
-kurtosis service stop "$kurtosis_enclave_name" op-succinct-proposer-001
+kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+# these won't be started again
+kurtosis service stop "$kurtosis_enclave_name" cdk-node-001
+kurtosis service stop "$kurtosis_enclave_name" zkevm-prover-001
+kurtosis service stop "$kurtosis_enclave_name" zkevm-stateless-executor-001
 
 
                                              ##                          #### ####                    
@@ -294,10 +355,10 @@ kurtosis service stop "$kurtosis_enclave_name" op-succinct-proposer-001
 #         uint32 newRollupTypeID,
 #         bytes memory upgradeData
 # )
-upgradeData=$(cast calldata "upgradeFromPreviousFEP()")
-rollup_address=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm/combined-001.json | jq -r '.rollupAddress'")
-echo "Calling updateRollup with params: $rollup_address, $new_rollup_type_id, $upgradeData"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'updateRollup(address,uint32,bytes)' '$rollup_address' '$new_rollup_type_id' '$upgradeData'"
+upgradeData=$(cast calldata "migrateLegacyConsensus()")
+rollup_address=$(curl -s "${contracts_url}/opt/zkevm/combined-001.json" | jq -r '.rollupAddress')
+echo "Calling initMigration with params: 1, $new_rollup_type_id, $upgradeData"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'initMigration(uint32,uint32,bytes)' '1' '$new_rollup_type_id' '$upgradeData'"
 
 
                          ##    ####                      ##          :####             ####        ##:  :####                              
