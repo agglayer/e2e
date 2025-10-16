@@ -83,6 +83,17 @@ jobs:
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
 
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
       - name: Download binary
         if: inputs.aggsender-find-imported-bridge-artifact != ''
         uses: actions/download-artifact@v4
@@ -132,6 +143,17 @@ jobs:
           kurtosis run --enclave '${{ inputs.kurtosis-cdk-enclave-name }}' --args-file /tmp/kurtosis-args.json .
           popd
 
+      - name: Print container sizes before tests
+        run: |
+          echo "📦 Docker container sizes before tests:"
+          printf "%-15s %-20s %-30s\n" "SizeRw(Bytes)" "SizeRootFs(Bytes)" "Name"
+          echo "-----------------------------------------------------------------------"
+          docker container ls --format json \
+            | jq -r '.ID' \
+            | xargs -I xxx docker container inspect --size -f '{{ .SizeRw }} {{ .SizeRootFs }} {{ .Name }}' xxx \
+            | awk '{printf "%-15s %-20s %-30s\n", $1, $2, $3}' \
+            || echo "⚠️ No containers found or inspect failed"
+
       - name: Run e2e tests
         run: |
           set -eo pipefail
@@ -151,11 +173,10 @@ jobs:
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats \
                  || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
-            bats ./tests/op/optimistic-mode.bats \
-                 ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
-                 || exit 1
+            bats  ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats  ./tests/op/optimistic-mode.bats || exit 1
+            bats  ./tests/aggkit/e2e-pp.bats || exit 1
+            bats  ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
 
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
               bats ./tests/aggkit/bridge-e2e-nightly.bats \
@@ -164,10 +185,9 @@ jobs:
                    || exit 1
             fi
           else
-            bats ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 || exit 1
-
+            bats ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats ./tests/aggkit/e2e-pp.bats || exit 1
+                 
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
               bats ./tests/aggkit/bridge-e2e-nightly.bats \
                    ./tests/aggkit/internal-claims.bats \
@@ -176,6 +196,18 @@ jobs:
             fi
           fi
           popd
+
+      - name: Print container sizes after tests
+        if: always()
+        run: |
+          echo "📦 Docker container sizes after tests:"
+          printf "%-15s %-20s %-30s\n" "SizeRw(Bytes)" "SizeRootFs(Bytes)" "Name"
+          echo "-----------------------------------------------------------------------"
+          docker container ls --format json \
+            | jq -r '.ID' \
+            | xargs -I xxx docker container inspect --size -f '{{ .SizeRw }} {{ .SizeRootFs }} {{ .Name }}' xxx \
+            | awk '{printf "%-15s %-20s %-30s\n", $1, $2, $3}' \
+            || echo "⚠️ No containers found or inspect failed"
 
       - name: Dump enclave logs
         if: ${{ failure() }}

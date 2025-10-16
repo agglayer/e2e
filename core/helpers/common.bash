@@ -47,16 +47,26 @@ function _setup_vars() {
             ENCLAVE_NAME="cdk"
         fi
 
-        if [[ -n "$ENCLAVE_NAME" ]]; then
-            export kurtosis_enclave_name=$ENCLAVE_NAME
-            if kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
-                l2_type="op-geth"
-            elif kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
-                l2_type="cdk-erigon"
-            else
-                unset kurtosis_l2_rpc_url
+    if [[ -n "$ENCLAVE_NAME" ]]; then
+        export kurtosis_enclave_name=$ENCLAVE_NAME
+        if kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
+            l2_type="op-geth"
+        elif kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
+            l2_type="cdk-erigon"
+        else
+            unset kurtosis_l2_rpc_url
+        fi
+
+        run curl -s -o /dev/null -w "%{http_code}" "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/input/input_args.json
+        if [[ "$output" -eq 200 ]]; then
+            input_args=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/input/input_args.json)
+        else
+            run curl -s -o /dev/null -w "%{http_code}" "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/contract-deploy/input_args.json
+            if [[ "$output" -eq 200 ]]; then
+                input_args=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/contract-deploy/input_args.json)
             fi
         fi
+    fi
 
         # if we have both l2_rpc_url and kurtosis_l2_rpc_url, check they match, otherwise throw an error
         if [[ -n "$l2_rpc_url" && -n "$kurtosis_l2_rpc_url" ]]; then
@@ -121,20 +131,20 @@ function _setup_vars() {
         fi
 
 
-        #
-        # default private keys and addresses
-        #
-        if [[ -n "$L1_PRIVATE_KEY" ]]; then
-            l1_private_key="$L1_PRIVATE_KEY"
-        elif [[ -n "$kurtosis_enclave_name" ]]; then
-            l1_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/contract-deploy/input_args.json" | jq -r '.args.l1_preallocated_private_key')
-        fi
+    #
+    # default private keys and addresses
+    #
+    if [[ -n "$L1_PRIVATE_KEY" ]]; then
+        l1_private_key="$L1_PRIVATE_KEY"
+    elif [[ -n "$input_args" ]]; then
+        l1_private_key=$(echo "$input_args" | jq -r '.args.l1_preallocated_private_key')
+    fi
 
-        if [[ -n "$L2_PRIVATE_KEY" ]]; then
-            l2_private_key="$L2_PRIVATE_KEY"
-        elif [[ -n "$kurtosis_enclave_name" ]]; then
-            l2_private_key=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/contract-deploy/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')
-        fi
+    if [[ -n "$L2_PRIVATE_KEY" ]]; then
+        l2_private_key="$L2_PRIVATE_KEY"
+    elif [[ -n "$input_args" ]]; then
+        l2_private_key=$(echo "$input_args" | jq -r '.args.zkevm_l2_admin_private_key')
+    fi
 
         if [[ -n "$l1_private_key" ]]; then
             l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
@@ -148,42 +158,52 @@ function _setup_vars() {
         fi
 
 
-        #
-        # OP stack specific vars
-        #
-        if [[ "$l2_type" == "op-geth" && -n "$kurtosis_enclave_name" ]]; then
-            l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http)"}
-            if [[ -n "$l2_node_url" ]]; then
-                run cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig
-                if [[ "$status" -eq 0 ]]; then
-                    l1_system_config_addr=$(echo $output | jq -r '.l1_system_config_address')
-                    if [[ -n "$l1_system_config_addr" && -n "$l1_rpc_url" ]]; then
-                        run cast call "$l1_system_config_addr" "optimismPortal()(address)" --rpc-url "$l1_rpc_url"
-                        if [[ "$status" -eq 0 ]]; then
-                            l1_optimism_portal_addr=$output
-                            if [[ -n "$l1_optimism_portal_addr" ]]; then
-                                echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr l1_optimism_portal_addr=$l1_optimism_portal_addr" >&3
-                                export l2_node_url l1_system_config_addr l1_optimism_portal_addr
-                            fi
-                        else
-                            echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr" >&3
-                            export l2_node_url l1_system_config_addr
+    #
+    # OP stack specific vars
+    #
+    if [[ "$l2_type" == "op-geth" && -n "$kurtosis_enclave_name" ]]; then
+        if [[ -n "$L2_NODE_URL" ]]; then
+            l2_node_url=$L2_NODE_URL
+        else
+            run kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http
+            if [[ "$status" -eq 0 ]]; then
+                l2_node_url=$output
+            else
+                l2_node_url=$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 rpc)
+            fi
+        fi
+
+        if [[ -n "$l2_node_url" ]]; then
+            run cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig
+            if [[ "$status" -eq 0 ]]; then
+                l1_system_config_addr=$(echo $output | jq -r '.l1_system_config_address')
+                if [[ -n "$l1_system_config_addr" && -n "$l1_rpc_url" ]]; then
+                    run cast call "$l1_system_config_addr" "optimismPortal()(address)" --rpc-url "$l1_rpc_url"
+                    if [[ "$status" -eq 0 ]]; then
+                        l1_optimism_portal_addr=$output
+                        if [[ -n "$l1_optimism_portal_addr" ]]; then
+                            echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr l1_optimism_portal_addr=$l1_optimism_portal_addr" >&3
+                            export l2_node_url l1_system_config_addr l1_optimism_portal_addr
                         fi
                     else
-                        echo "ℹ️ l2_node_url=$l2_node_url" >&3
-                        export l2_node_url
+                        echo "ℹ️ l2_node_url=$l2_node_url l1_system_config_addr=$l1_system_config_addr" >&3
+                        export l2_node_url l1_system_config_addr
                     fi
                 else
                     echo "ℹ️ l2_node_url=$l2_node_url" >&3
                     export l2_node_url
                 fi
             else
-                echo "ℹ️ Could not determine L2 node URL" >&3
+                echo "ℹ️ l2_node_url=$l2_node_url" >&3
+                export l2_node_url
             fi
         else
-            # Not op geth or not kurtosis, so don't set any OP stack specific vars
-            true
+            echo "ℹ️ Could not determine L2 node URL" >&3
         fi
+    else
+        # Not op geth or not kurtosis, so don't set any OP stack specific vars
+        true
+    fi
 
 
         #

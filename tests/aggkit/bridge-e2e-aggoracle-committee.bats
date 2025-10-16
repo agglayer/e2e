@@ -44,7 +44,7 @@ manage_aggkit_nodes() {
     assert_success
     local bridge_tx_hash=$output
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "aggoracle_committee: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     echo "Step 2: Stopping aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
@@ -75,7 +75,7 @@ manage_aggkit_nodes() {
     manage_aggkit_nodes "aggkit-001-aggoracle-committee-002" "start"
 
     echo "Step 6: Attempting to claim the second bridge transaction..., should succeed" >&3
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "aggoracle_committee: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
 
     echo "=== ✅ GER validation test completed successfully" >&3

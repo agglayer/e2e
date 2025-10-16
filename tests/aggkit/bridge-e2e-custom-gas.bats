@@ -62,7 +62,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the L2)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
+    run process_bridge_claim "custom_gas_token: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL"
     assert_success
     local claim_global_index="$output"
 
@@ -88,7 +88,7 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim withdrawals (settle them on the L1)
-    run process_bridge_claim "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
+    run process_bridge_claim "custom_gas_token: $LINENO" "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url"
     assert_success
 
     # Validate that the token of receiver on L1 has increased by the bridge tokens amount
