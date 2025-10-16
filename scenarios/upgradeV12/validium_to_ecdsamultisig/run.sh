@@ -141,7 +141,7 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
                                        ######  ######                                                                 ###:    
                                         ####:  :####:                                                                 ###     
 
-agglayergw_address=$(curl -s "$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"/opt/zkevm/combined.json | jq -r .aggLayerGatewayAddress)
+agglayergw_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.aggLayerGatewayAddress')
 
 # https://github.com/agglayer/provers/releases/tag/v1.4.2
 defaultAggchainSelector=0x00060001
@@ -154,11 +154,8 @@ echo "agglayergw_address: $agglayergw_address"
 echo "defaultAggchainSelector: $defaultAggchainSelector"
 echo "newAggchainVKey: $newAggchainVKey"
 
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'getDefaultAggchainVKey(bytes4)(bytes32)' '0x00060001'"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '0x00060001'"
-
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'getDefaultAggchainVKey(bytes4)(bytes32)' '0x00040001'"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '0x00040001'"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'getDefaultAggchainVKey(bytes4)(bytes32)' '$defaultAggchainSelector'"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '$defaultAggchainSelector'"
 
 
                ##      ##                    ##:  :####   ###                 
