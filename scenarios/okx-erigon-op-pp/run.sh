@@ -19,13 +19,13 @@ git checkout v11.0.0-rc.3
 npm install
 npx hardhat compile
 # Deploy new L2 smc implementation
-private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+private_key=$(curl -fsSL https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/input_parser.star | sed -nE 's/.*"zkevm_l2_admin_private_key"[[:space:]]*:[[:space:]]*"(0x[0-9a-fA-F]{64})".*/\1/p')
 rpc_url="$(kurtosis port print cdk cdk-erigon-sequencer-001 rpc)"
 l2_GER_proxy_addr=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVMGlobalExitRootL2Address" | awk -F'"' '{print $4}')
 l2_bridge_proxy_addr=$(kurtosis service exec cdk contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVML2BridgeAddress" | awk -F'"' '{print $4}')
 from=$(cast wallet address --private-key $private_key)
 nonce=$(cast nonce $from --rpc-url "$rpc_url" --block pending)
-target_nonce=$nonce # We need to skip the proxy admin deployment tx
+target_nonce=$nonce
 
 ger_smc_bytecode=$(cat artifacts/contracts/v2/sovereignChains/GlobalExitRootManagerL2SovereignChain.sol/GlobalExitRootManagerL2SovereignChain.json | jq -r '.bytecode')
 ger_constructor_args=$(cast abi-encode 'constructor(address)' $l2_bridge_proxy_addr | sed 's/0x//')
@@ -326,7 +326,7 @@ docker run -d --name aggkit \
   -v "./aggkit/aggoracle.keystore:/etc/aggkit/aggoracle.keystore" \
   -v "./aggkit/tmp:/tmp:rw" \
   ghcr.io/agglayer/aggkit:0.5.4 \
-  run -cfg /config/aggkit.toml -components aggsender,bridge
+  run -cfg /config/aggkit.toml -components aggsender,bridge,aggoracle
 
 # Run aggkit-bridge only
 docker run -d --name aggkit-bridge \
