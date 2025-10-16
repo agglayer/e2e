@@ -162,7 +162,17 @@ function _setup_vars() {
     # OP stack specific vars
     #
     if [[ "$l2_type" == "op-geth" && -n "$kurtosis_enclave_name" ]]; then
-        l2_node_url=${L2_NODE_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 rpc)"}
+        if [[ -n "$L2_NODE_URL" ]]; then
+            l2_node_url=$L2_NODE_URL
+        else
+            run kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http
+            if [[ "$status" -eq 0 ]]; then
+                l2_node_url=$output
+            else
+                l2_node_url=$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 rpc)
+            fi
+        fi
+
         if [[ -n "$l2_node_url" ]]; then
             run cast rpc --rpc-url "$l2_node_url" optimism_rollupConfig
             if [[ "$status" -eq 0 ]]; then

@@ -159,7 +159,7 @@ function claim_bridge() {
         log "💡 claim_call returns $request_result"
 
         if [ "$request_result" -eq 0 ]; then
-            log "🎉 Claim successful"
+            log "🎉 Claim successful global_index: $global_index"
             echo "$global_index"
             return 0
         fi
@@ -309,6 +309,8 @@ function wait_for_expected_token() {
         ((attempt++))
 
         # Fetch token mappings from the RPC
+        local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id\""
+            
         token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
@@ -326,7 +328,12 @@ function wait_for_expected_token() {
 
         # Fail test if max attempts are reached
         if [[ "$attempt" -ge "$max_attempts" ]]; then
-            echo "Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&3
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
+            echo "command: $cmd" 
+            echo "--- token_mappings_result"
+            echo "$token_mappings_result"
+            echo "--- token_mappings_result"
             return 1
         fi
 
@@ -357,7 +364,7 @@ function get_claim() {
         fi
 
         claims_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "------ claims_result ------"
+        log "------ claims_result ------ $query_url"
         log "$claims_result"
         log "------ claims_result ------"
 
@@ -444,8 +451,8 @@ function get_bridge() {
 
         # Capture both stdout (bridge result) and stderr (error message)
         bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "$debug_msg ------ bridges_result (20 lines)------"
-        log "$(echo "$bridges_result" | jq . | head -n 20)"
+        log "$debug_msg ------ bridges_result ------"
+        log "$bridges_result"
         log "$debug_msg ------ bridges_result ------"
 
         # Check if the response contains an error
