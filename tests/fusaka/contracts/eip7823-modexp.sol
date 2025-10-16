@@ -120,7 +120,13 @@ contract PreModExp {
             let p := mload(0x40)
             let inSize := add(0x60, add(baseLen, add(expLen, modLen))) // 96 + sum
             let ok := call(gas(), 0x05, 0x00, p, inSize, p, modLen)
-            // ignore ok here; if modLen==0 the precompile returns empty per spec
+            if iszero(ok) {
+                // Propagate revert data if any (precompile likely returns none on failure, but be correct)
+                let rds := returndatasize()
+                let rptr := mload(0x40)
+                returndatacopy(rptr, 0, rds)
+                revert(rptr, rds)
+            }
             outFirst32 := mload(p) // first 32 bytes of output (or zero if modLen==0)
         }
         return outFirst32;
