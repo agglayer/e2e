@@ -202,6 +202,7 @@ pessimisticVKey=0x000055f14384bdb5bb092fd7e5152ec31856321c5a30306ab95836bdf5cdb6
 # Verifier is the same that we already had, since SP1 v5 is still used (it may change if we were using a newer SP1 version)
 # https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v5.0.0/SP1VerifierPlonk.sol
 echo "Adding new Pessimistic VKey: $pessimisticVKeySelector, $pessimisticVKey, $vkey_route_verifier"
+# It's throwing a reverted because already exists - Ignore error, I'd need to find out why it exists
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'addPessimisticVKeyRoute(bytes4,address,bytes32)()' '$pessimisticVKeySelector' '$vkey_route_verifier' '$pessimisticVKey'"
 
 
@@ -224,11 +225,11 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
 # 0x0 fields are not used but needs to be set
 add_rollup_type_json='{
   "type": "EOA",
-  "consensusContract": "AggchainFEP",
+  "consensusContract": "AggchainECDSAMultisig",
   "consensusContractAddress": "",
   "polygonRollupManagerAddress": "'$rollup_manager_address'",
   "verifierAddress": "0x0000000000000000000000000000000000000000",
-  "description": "Type: AggchainFEPv3",
+  "description": "Type: AggchainECDSAMultisig",
   "forkID": 0,
   "deployerPvtKey": "'$l2_admin_private_key'",
   "maxFeePerGas": "",
@@ -236,14 +237,14 @@ add_rollup_type_json='{
   "multiplierGas": "",
   "genesisRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "programVKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "outputPath": "add_rollup_type_output_fep_v3.json"
+  "outputPath": "add_rollup_type_output_ecdsamultisig.json"
 }'
 
 echo "Adding new rollup type for FEP v3"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$add_rollup_type_json' > /opt/zkevm-contracts/tools/addRollupType/add_rollup_type.json"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/zkevm-contracts/ && npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$add_rollup_type_json' > /opt/agglayer-contracts/tools/addRollupType/add_rollup_type.json"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost"
 
-new_rollup_type_id=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cat /opt/zkevm-contracts/tools/addRollupType/add_rollup_type_output_fep_v3.json | jq -r '.rollupTypeID'")
+new_rollup_type_id=$(curl -s "${contracts_url}/opt/agglayer-contracts/tools/addRollupType/add_rollup_type_output_ecdsamultisig.json" | jq -r '.rollupTypeID')
 
 
            ##                                                                                          ##            
