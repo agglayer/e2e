@@ -64,7 +64,7 @@ jobs:
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
     env:
-      POLYCLI_VERSION: v0.1.90
+      POLYCLI_VERSION: v0.1.92
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
       # Sensitive information from GitHub secrets
       SEPOLIA_RPC_ENDPOINT: ${{ secrets.L1_SEPOLIA_RPC_ENDPOINT }}
