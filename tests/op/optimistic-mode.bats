@@ -2,16 +2,16 @@
 # bats file_tags=op-fep
 # shellcheck disable=SC2034
 
-setup_file() {
+setup() {
     # shellcheck source=core/helpers/common.bash
-    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    source "${BATS_TEST_DIRNAME}/../../core/helpers/common.bash"
     _setup_vars
 
     optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     timeout=${TIMEOUT:-3000}
     retry_interval=${RETRY_INTERVAL:-15}
 
-    load "../../core/helpers/agglayer-certificates-checks.bash"
+    load "${BATS_TEST_DIRNAME}/../../core/helpers/agglayer-certificates-checks.bash"
     agglayer_certificates_checks_setup
 }
 
