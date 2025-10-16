@@ -12,7 +12,6 @@ setup() {
     retry_interval=${RETRY_INTERVAL:-15}
 
     load "${BATS_TEST_DIRNAME}/../../core/helpers/agglayer-certificates-checks.bash"
-    agglayer_certificates_checks_setup
 }
 
 # Helper function to manage bridge spammer service
