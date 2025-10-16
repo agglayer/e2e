@@ -202,11 +202,12 @@ _get_env_var_directly() {
             if [[ "$network_name" =~ ^bali_ ]]; then
                 # For Bali networks, use BALI_NETWORK_XX_* pattern (must match env file)
                 local network_num="${network_name#bali_}"
-                local env_var_name="BALI_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                env_var_name="BALI_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
                 value="${!env_var_name:-}"
             elif [[ "$network_name" == "sepolia" ]]; then
                 # For Sepolia, use SEPOLIA_* pattern
-                local env_var_name="SEPOLIA_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                local env_var_name
+                env_var_name="SEPOLIA_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
                 value="${!env_var_name:-}"
             else
                 # For other networks (like kurtosis), use the direct network_name_config pattern
