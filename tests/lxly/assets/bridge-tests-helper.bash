@@ -55,30 +55,41 @@ source "$PROJECT_ROOT/core/helpers/logger.bash"
 _initialize_network_config() {
     # Define network ID to name mapping
     # This can be extended to support more networks
-    declare -gA NETWORK_ID_TO_NAME=(
-        ["0"]="kurtosis_l1"
-        ["1"]="kurtosis_network_1"
-        ["2"]="kurtosis_network_2"
-        ["11155111"]="sepolia"
-        # ["1"]="bali_01"
-        # ["48"]="bali_48"
-        # ["49"]="bali_49"
-        # ["52"]="bali_52"
-        # ["57"]="bali_57"
-    )
-    
-    # You can also define network name to ID mapping for reverse lookup
-    declare -gA NETWORK_NAME_TO_ID=(
-        ["sepolia"]="11155111"
-        ["kurtosis_l1"]="0"
-        ["kurtosis_network_1"]="1"
-        ["kurtosis_network_2"]="2"
-        # ["bali_01"]="1"
-        # ["bali_48"]="48"
-        # ["bali_49"]="49"
-        # ["bali_52"]="52"
-        # ["bali_57"]="57"
-    )
+    if $RUN_WITH_KURTOSIS_ENV; then
+        declare -gA NETWORK_ID_TO_NAME=(
+            ["0"]="kurtosis_l1"
+            ["1"]="kurtosis_network_1"
+            ["2"]="kurtosis_network_2"
+        )
+        
+        # You can also define network name to ID mapping for reverse lookup
+        declare -gA NETWORK_NAME_TO_ID=(
+            ["kurtosis_l1"]="0"
+            ["kurtosis_network_1"]="1"
+            ["kurtosis_network_2"]="2"
+        )
+    else
+        declare -gA NETWORK_ID_TO_NAME=(
+            ["0"]="sepolia"
+            ["1"]="bali_1"
+            ["37"]="bali_37"
+            ["48"]="bali_48"
+            ["49"]="bali_49"
+            ["52"]="bali_52"
+            ["57"]="bali_57"
+        )
+        
+        # You can also define network name to ID mapping for reverse lookup
+        declare -gA NETWORK_NAME_TO_ID=(
+            ["sepolia"]="0"
+            ["bali_1"]="1"
+            ["bali_37"]="37"
+            ["bali_48"]="48"
+            ["bali_49"]="49"
+            ["bali_52"]="52"
+            ["bali_57"]="57"
+        )
+    fi
     
     # Cache for derived values to avoid repeated RPC calls
     declare -gA DERIVED_NETWORK_ID_CACHE=()
@@ -88,97 +99,6 @@ _initialize_network_config() {
 _get_network_config() {
     local network_id="$1"
     local config_type="$2"  # rpc_url, bridge_addr, private_key | network_id, eth_address (derived)
-    
-    # Handle backward compatibility for hardcoded network 0 (L1) and 1 (L2)
-    if [[ "$network_id" == "0" ]]; then
-        case "$config_type" in
-            "rpc_url") 
-                echo "${l1_rpc_url:-}"
-                return 0
-                ;;
-            "bridge_addr") 
-                echo "${l1_bridge_addr:-}"
-                return 0
-                ;;
-            "private_key") 
-                echo "${l1_private_key:-}"
-                return 0
-                ;;
-            "eth_address") 
-                if [[ -n "${l1_eth_address:-}" ]]; then
-                    echo "$l1_eth_address"
-                    return 0
-                elif [[ -n "${l1_private_key:-}" ]]; then
-                    # Derive from private key
-                    local derived_address
-                    if derived_address=$(cast wallet address --private-key "$l1_private_key" 2>/dev/null); then
-                        echo "$derived_address"
-                        return 0
-                    fi
-                fi
-                ;;
-            "network_id")
-                if [[ -n "${l1_network_id:-}" ]]; then
-                    echo "$l1_network_id"
-                    return 0
-                elif [[ -n "${l1_rpc_url:-}" && -n "${l1_bridge_addr:-}" ]]; then
-                    # Derive from RPC
-                    local derived_network_id
-                    if derived_network_id=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'networkID()(uint32)' 2>/dev/null); then
-                        echo "$derived_network_id"
-                        return 0
-                    fi
-                fi
-                # Fallback
-                echo "0"
-                return 0
-                ;;
-        esac
-    elif [[ "$network_id" == "1" ]]; then
-        case "$config_type" in
-            "rpc_url") 
-                echo "${l2_rpc_url:-}"
-                return 0
-                ;;
-            "bridge_addr") 
-                echo "${l2_bridge_addr:-}"
-                return 0
-                ;;
-            "private_key") 
-                echo "${l2_private_key:-}"
-                return 0
-                ;;
-            "eth_address") 
-                if [[ -n "${l2_eth_address:-}" ]]; then
-                    echo "$l2_eth_address"
-                    return 0
-                elif [[ -n "${l2_private_key:-}" ]]; then
-                    # Derive from private key
-                    local derived_address
-                    if derived_address=$(cast wallet address --private-key "$l2_private_key" 2>/dev/null); then
-                        echo "$derived_address"
-                        return 0
-                    fi
-                fi
-                ;;
-            "network_id")
-                if [[ -n "${l2_network_id:-}" ]]; then
-                    echo "$l2_network_id"
-                    return 0
-                elif [[ -n "${l2_rpc_url:-}" && -n "${l2_bridge_addr:-}" ]]; then
-                    # Derive from RPC
-                    local derived_network_id
-                    if derived_network_id=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'networkID()(uint32)' 2>/dev/null); then
-                        echo "$derived_network_id"
-                        return 0
-                    fi
-                fi
-                # Fallback
-                echo "1"
-                return 0
-                ;;
-        esac
-    fi
     
     # Initialize network configuration if not done already
     if [[ -z "${NETWORK_ID_TO_NAME[$network_id]:-}" ]]; then
@@ -204,10 +124,10 @@ _get_network_config() {
             fi
             
             # For network_id, we can derive it from the RPC URL by calling the contract
-            local rpc_url
-            rpc_url=$(_get_network_config "$network_id" "rpc_url")
-            local bridge_addr
-            bridge_addr=$(_get_network_config "$network_id" "bridge_addr")
+            # Get rpc_url and bridge_addr directly from environment variables (no recursion)
+            local rpc_url bridge_addr
+            rpc_url=$(_get_env_var_directly "$network_name" "rpc_url")
+            bridge_addr=$(_get_env_var_directly "$network_name" "bridge_addr")
             
             if [[ -n "$rpc_url" && -n "$bridge_addr" ]]; then
                 # Try to get network ID from the bridge contract
@@ -234,8 +154,9 @@ _get_network_config() {
             fi
             
             # For eth_address, derive it from the private key
+            # Get private_key directly from environment variables (no recursion)
             local private_key
-            private_key=$(_get_network_config "$network_id" "private_key")
+            private_key=$(_get_env_var_directly "$network_name" "private_key")
             
             if [[ -n "$private_key" ]]; then
                 local derived_address
@@ -247,67 +168,53 @@ _get_network_config() {
                 fi
             fi
             
-            # Fallback: try to get stored eth_address
+            # Fallback: try to get stored eth_address directly
+            local value
+            value=$(_get_env_var_directly "$network_name" "eth_address")
+            if [[ -n "$value" ]]; then
+                echo "$value"
+                return 0
+            fi
+            ;;
+        *)
+            # For non-derived values, get them directly from environment variables
+            local value
+            value=$(_get_env_var_directly "$network_name" "$config_type")
+            if [[ -n "$value" ]]; then
+                echo "$value"
+                return 0
+            fi
             ;;
     esac
     
-    # For non-derived values or fallback cases, use stored configuration
-    local var_name="${network_name}_${config_type}"
-    local value="${!var_name:-}"
+    echo "Configuration not found for network $network_id ($network_name) config $config_type" >&3
+    return 1
+}
+
+_get_env_var_directly() {
+    local network_name="$1"
+    local config_type="$2"
     
-    if [[ -z "$value" ]]; then
-        # Fallback: try some common patterns for backward compatibility
-        case "$config_type" in
-            "rpc_url"|"bridge_addr"|"private_key"|"eth_address")
-                # Special handling for Kurtosis networks
-                if [[ "$network_name" =~ ^kurtosis_ ]]; then
-                    case "$network_name" in
-                        "kurtosis_l1")
-                            case "$config_type" in
-                                "rpc_url") value="${KURTOSIS_L1_RPC_URL:-}" ;;
-                                "bridge_addr") value="${KURTOSIS_L1_BRIDGE_ADDR:-}" ;;
-                                "private_key") value="${KURTOSIS_L1_PRIVATE_KEY:-}" ;;
-                            esac
-                            ;;
-                        "kurtosis_network_1")
-                            case "$config_type" in
-                                "rpc_url") value="${KURTOSIS_NETWOWRK_1_RPC_URL:-}" ;;  # Note: typo in env file
-                                "bridge_addr") value="${KURTOSIS_NETWOWRK_1_BRIDGE_ADDR:-}" ;;
-                                "private_key") value="${KURTOSIS_NETWOWRK_1_PRIVATE_KEY:-}" ;;
-                            esac
-                            ;;
-                        "kurtosis_network_2")
-                            case "$config_type" in
-                                "rpc_url") value="${KURTOSIS_NETWOWRK_2_RPC_URL:-}" ;;  # Note: typo in env file
-                                "bridge_addr") value="${KURTOSIS_NETWOWRK_2_BRIDGE_ADDR:-}" ;;
-                                "private_key") value="${KURTOSIS_NETWOWRK_2_PRIVATE_KEY:-}" ;;
-                            esac
-                            ;;
-                    esac
-                fi
-                
-                # For networks like bali_XX, try alternative naming patterns
-                if [[ "$network_name" =~ ^bali_ ]]; then
-                    # Try pattern: BALI_XX_RPC_URL, etc.
-                    local alt_var_name
-                    alt_var_name="$(echo "$network_name" | tr '[:lower:]' '[:upper:]')_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
-                    value="${!alt_var_name:-}"
-                    
-                    if [[ -z "$value" ]]; then
-                        # Try pattern: NETWORK_XX_RPC_URL, etc.
-                        local network_num="${network_name#bali_}"
-                        alt_var_name="NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
-                        value="${!alt_var_name:-}"
-                    fi
-                fi
-                ;;
-        esac
-    fi
+    local value=""
     
-    if [[ -z "$value" ]]; then
-        echo "Configuration not found for network $network_id ($network_name) config $config_type" >&3
-        return 1
-    fi
+    case "$config_type" in
+        "rpc_url"|"bridge_addr"|"private_key"|"bridge_service_url"|"eth_address")
+            if [[ "$network_name" =~ ^bali_ ]]; then
+                # For Bali networks, use BALI_NETWORK_XX_* pattern (must match env file)
+                local network_num="${network_name#bali_}"
+                local env_var_name="BALI_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                value="${!env_var_name:-}"
+            elif [[ "$network_name" == "sepolia" ]]; then
+                # For Sepolia, use SEPOLIA_* pattern
+                local env_var_name="SEPOLIA_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                value="${!env_var_name:-}"
+            else
+                # For other networks (like kurtosis), use the direct network_name_config pattern
+                local var_name="${network_name}_${config_type}"
+                value="${!var_name:-}"
+            fi
+            ;;
+    esac
     
     echo "$value"
 }
@@ -387,9 +294,9 @@ _safe_cast_send() {
         status=$?
         # _log_file_descriptor "3" "Non-legacy transaction failed: $output"
         
-        # Check if the failure is due to EIP-1559 not being supported
-        if echo "$output" | grep -q -E "(unsupported feature: eip1559|EIP-1559|type 2 transactions|not supported)"; then
-            # _log_file_descriptor "3" "EIP-1559 not supported, falling back to legacy transaction"
+        # Check if the failure is due to EIP-1559 not being supported or EIP-1559 related errors
+        if echo "$output" | grep -q -E "(unsupported feature: eip1559|EIP-1559|type 2 transactions|not supported|tip higher than fee cap|priority fee higher|gasFeeCap.*tip)"; then
+            # _log_file_descriptor "3" "EIP-1559 not supported or EIP-1559 error detected, falling back to legacy transaction"
             
             # Second attempt: Use legacy transaction as fallback
             if output=$(cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
@@ -576,44 +483,85 @@ _fund_ephemeral_account() {
 _reclaim_funds_after_test() {
     local target_address="$1"
     local rpc_url="$2"
+    local total_scenarios="$3"
 
-    # Iteration count should be changed based on number of ephemeral accounts generated
-    for i in {0..30}; do
-            result=$(_generate_ephemeral_account "$i")
-            private_key=$(echo "$result" | cut -d' ' -f1)
-            address=$(echo "$result" | cut -d' ' -f2)
-            balance=$(cast balance "$address" --rpc-url "$rpc_url")
-            if [[ "$balance" != "0" ]]; then
-                _log_file_descriptor "2" "Transferring from $address..."
-                
-                # Get gas price and estimate gas for the transaction
-                gas_price=$(cast gas-price --rpc-url "$rpc_url")
-                gas_limit=21000  
-                
-                # Calculate total gas cost
-                gas_cost=$((gas_price * gas_limit))
-                
-                # Calculate adjusted balance (balance - gas cost)
-                adjusted_balance=$((balance - gas_cost))
-                
-                # Only proceed if we have enough balance to cover gas
-                if [[ $adjusted_balance -gt 0 ]]; then
-                    _log_file_descriptor "2" "  Balance: $(cast to-unit "$balance" ether) ETH"
-                    _log_file_descriptor "2" "  Gas cost: $(cast to-unit $gas_cost ether) ETH"
-                    _log_file_descriptor "2" "  Sending: $(cast to-unit $adjusted_balance ether) ETH"
-                    
-                    # Try safe cast send with EIP-1559/legacy fallback
-                    if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance" --confirmations 3; then
-                        _log_file_descriptor "2" "Successfully reclaimed funds"
-                    elif _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance" --gas-price "$((gas_price + 20000000))" --confirmations 3; then
-                        _log_file_descriptor "2" "Successfully reclaimed funds with higher gas price"
-                    elif _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value 0.999ether --confirmations 3; then
-                        _log_file_descriptor "2" "Successfully reclaimed funds with reduced value"
-                    else
-                        _log_file_descriptor "2" "All reclaim attempts failed"
-                    fi
+    _log_file_descriptor "3" "Reclaiming funds from $total_scenarios ephemeral accounts..."
+
+    for i in $(seq 0 $((total_scenarios - 1))); do
+        result=$(_generate_ephemeral_account "$i")
+        private_key=$(echo "$result" | cut -d' ' -f1)
+        address=$(echo "$result" | cut -d' ' -f2)
+        balance=$(cast balance "$address" --rpc-url "$rpc_url" 2>/dev/null || echo "0")
+        
+        if [[ "$balance" != "0" ]]; then
+            _log_file_descriptor "2" "Transferring from $address..."
+            _log_file_descriptor "2" "  Balance: $(cast to-unit "$balance" ether) ETH"
+            
+            # Get gas price (with fallback)
+            local gas_price
+            gas_price=$(cast gas-price --rpc-url "$rpc_url" 2>/dev/null || echo "20000000000")  # 20 gwei fallback
+            
+            # Use a smaller, more reasonable gas limit for simple transfers
+            local gas_limit=42000  # Standard ETH transfer gas limit
+            
+            # Check if balance is very small (less than 0.001 ETH)
+            local min_balance="1000000000000000"  # 0.001 ETH in wei
+            if [[ "$balance" -lt "$min_balance" ]]; then
+                _log_file_descriptor "2" "  Balance too small to reclaim (< 0.001 ETH), skipping"
+                continue
+            fi
+            
+            # Calculate gas cost with safety checks
+            local gas_cost
+            if command -v bc >/dev/null 2>&1; then
+                # Use bc for precise calculation if available
+                gas_cost=$(echo "$gas_price * $gas_limit" | bc 2>/dev/null || echo "$gas_price")
             else
-                _log_file_descriptor "2" "  Insufficient balance to cover gas fees"
+                # Simple bash arithmetic with overflow protection
+                if [[ "$gas_price" -lt 1000000000000 ]]; then  # Less than 1000 gwei
+                    gas_cost=$((gas_price * gas_limit))
+                else
+                    # For very high gas prices, use a conservative estimate
+                    gas_cost=$((balance / 10))  # Reserve 10% for gas
+                fi
+            fi
+            
+            # Calculate adjusted balance (balance - gas cost)
+            local adjusted_balance
+            if [[ "$balance" -gt "$gas_cost" ]]; then
+                adjusted_balance=$((balance - gas_cost))
+            else
+                _log_file_descriptor "2" "  Insufficient balance to cover gas fees (balance: $balance, estimated gas: $gas_cost)"
+                continue
+            fi
+            
+            # Only proceed if we have a meaningful amount left to transfer
+            local min_transfer="100000000000000"  # 0.0001 ETH minimum transfer
+            if [[ "$adjusted_balance" -lt "$min_transfer" ]]; then
+                _log_file_descriptor "2" "  Remaining balance after gas too small to transfer, skipping"
+                continue
+            fi
+            
+            _log_file_descriptor "2" "  Gas cost: $(cast to-unit $gas_cost ether) ETH"
+            _log_file_descriptor "2" "  Sending: $(cast to-unit $adjusted_balance ether) ETH"
+            
+            # Try reclaim with progressive fallbacks
+            if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance"; then
+                _log_file_descriptor "2" "  Successfully reclaimed funds"
+            elif _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance" --gas-price "$((gas_price * 2))"; then
+                _log_file_descriptor "2" "  Successfully reclaimed funds with higher gas price"
+            else
+                # Final attempt with very conservative amount
+                local conservative_amount=$((balance * 8 / 10))  # Use 80% of balance
+                if [[ "$conservative_amount" -gt "$min_transfer" ]]; then
+                    if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$conservative_amount"; then
+                        _log_file_descriptor "2" "  Successfully reclaimed funds with conservative amount"
+                    else
+                        _log_file_descriptor "2" "  All reclaim attempts failed for $address"
+                    fi
+                else
+                    _log_file_descriptor "2" "  Balance too small for conservative reclaim attempt"
+                fi
             fi
         fi
     done
@@ -752,7 +700,7 @@ _setup_amount_and_add_to_command() {
     if [[ "$base_gas_limit" =~ --gas-limit\ ([0-9]+) ]]; then
         gas_limit_value="${BASH_REMATCH[1]}"
     else
-        gas_limit_value="3000000"  # Default fallback
+        gas_limit_value="1500000"  # Default fallback
     fi
     
     case "$amount_type" in
@@ -802,7 +750,7 @@ _setup_amount_and_add_to_command() {
 }
 
 _setup_ephemeral_accounts_in_bulk() {
-    local network_designation="$1" # NETWORK_X format or legacy L1/L2
+    local network_designation="$1"
     local total_scenarios="$2"
     local bridge_addr="$3"  # Add bridge address parameter for approvals
 
@@ -830,22 +778,42 @@ _setup_ephemeral_accounts_in_bulk() {
         # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1 (network 0)"
     fi
 
-    # Fund 0.01ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
-    polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 10000000000000000 >/dev/null 2>&1
+    # Fund 0.001ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+    local eth_fund_output
+    if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
+        _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
+        _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
+        return 1
+    fi
 
     # Bulk fund and approve ERC20 tokens to ephemeral accounts
     # _log_file_descriptor "2" "Bulk funding and approving ERC20 tokens for $total_scenarios ephemeral accounts"
+    target_address=$(cast wallet address --private-key "$target_private_key")
     
     # Fund and approve LocalERC20 tokens
     if [[ -n "$test_erc20_addr" && "$test_erc20_addr" != "0x0000000000000000000000000000000000000000" ]]; then
+        # Fund private key to make sure it has enough balance to approve in multicall3 transaction
+        _safe_cast_send "$target_rpc_url" "$target_private_key" "$test_erc20_addr" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
         # _log_file_descriptor "2" "Bulk funding LocalERC20 tokens ($test_erc20_addr) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_addr" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+        local erc20_fund_output
+        if ! erc20_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_addr" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 2>&1); then
+            _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with LocalERC20 tokens"
+            _log_file_descriptor "2" "polycli fund output: $erc20_fund_output"
+            return 1
+        fi
     fi
     
     # Fund and approve Buggy ERC20 tokens
     if [[ -n "$test_erc20_buggy_addr" && "$test_erc20_buggy_addr" != "0x0000000000000000000000000000000000000000" ]]; then
+        # Fund private key to make sure it has enough balance to approve in multicall3 transaction
+        _safe_cast_send "$target_rpc_url" "$target_private_key" "$test_erc20_buggy_addr" 'mint(address,uint256)' "$target_address" "$(cast max-uint)"
         # _log_file_descriptor "2" "Bulk funding Buggy ERC20 tokens ($test_erc20_buggy_addr) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_buggy_addr" --token-amount 1000000000000000000000000000000000000000000000000000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount "$(cast max-uint)" >/dev/null 2>&1
+        local buggy_fund_output
+        if ! buggy_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_buggy_addr" --token-amount "$(cast max-uint)" --approve-spender "$bridge_addr" --approve-amount "$(cast max-uint)" 2>&1); then
+            _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with Buggy ERC20 tokens"
+            _log_file_descriptor "2" "polycli fund output: $buggy_fund_output"
+            return 1
+        fi
     fi
     
     # Fund and approve POL tokens (commented out as in original)
@@ -856,14 +824,24 @@ _setup_ephemeral_accounts_in_bulk() {
     
     # Fund and approve GasToken if available
     if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" ]]; then
+        # Fund private key to make sure it has enough balance to approve in multicall3 transaction
+        _safe_cast_send "$target_rpc_url" "$target_private_key" "$gas_token_address" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
         # _log_file_descriptor "2" "Bulk funding GasToken tokens ($gas_token_address) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$gas_token_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+        if ! polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$gas_token_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1; then
+            _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with GasToken tokens"
+            return 1
+        fi
     fi
     
     # Fund and approve WETH tokens if available
     if [[ -n "$pp_weth_address" && "$pp_weth_address" != "0x0000000000000000000000000000000000000000" ]]; then
+        # Fund private key to make sure it has enough balance to approve in multicall3 transaction
+        _safe_cast_send "$target_rpc_url" "$target_private_key" "$pp_weth_address" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
         # _log_file_descriptor "2" "Bulk funding WETH tokens ($pp_weth_address) with approvals for bridge ($bridge_addr)"
-        polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pp_weth_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
+        if ! polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pp_weth_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1; then
+            _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with WETH tokens"
+            return 1
+        fi
     fi
 }
 
@@ -1194,11 +1172,11 @@ _run_single_bridge_test() {
     if [[ "$test_meta_data" == "Max" ]]; then
         base_gas_limit="--gas-limit 25000000"  # Reduced from 30M to stay under block limit
     elif [[ "$test_meta_data" == "Huge" ]]; then
-        base_gas_limit="--gas-limit 15000000"  # Reduced from 25M
+        base_gas_limit="--gas-limit 15000000"
     elif [[ "$test_amount" == "Max" ]]; then
-        base_gas_limit="--gas-limit 12000000"  # Reduced from 20M
+        base_gas_limit="--gas-limit 12000000"
     else
-        base_gas_limit="--gas-limit 3000000"   # Reduced from 5M
+        base_gas_limit="--gas-limit 1500000"
     fi
     
     # Add base gas limit if not already set by amount function
@@ -1562,7 +1540,7 @@ _run_single_bridge_test() {
                             if echo "$claim_output" | grep -q -E "(the Merkle Proofs cannot be retrieved|error getting merkle proofs)"; then
                                 _log_file_descriptor "2" "Merkle proof retrieval failed, will retry after delay (attempt $claim_attempt/$max_claim_retries)"
                                 if [[ $claim_attempt -lt $max_claim_retries ]]; then
-                                    sleep 15  # Wait longer for bridge service to index the deposit
+                                    sleep 300  # Wait longer for bridge service to index the deposit
                                     continue
                                 else
                                     _log_file_descriptor "2" "Exhausted retries waiting for Merkle proofs to be available"
@@ -1933,9 +1911,9 @@ _get_bridge_service_url() {
     
     _log_file_descriptor "2" "Looking up bridge service URL for network $network_id ($network_name)"
     
-    # Try to get network-specific bridge service URL
-    local bridge_service_var="${network_name}_bridge_service_url"
-    local bridge_service="${!bridge_service_var:-}"
+    # Use the standardized _get_network_config function for consistency
+    local bridge_service
+    bridge_service=$(_get_network_config "$network_id" "bridge_service_url" 2>/dev/null)
     
     if [[ -n "$bridge_service" ]]; then
         _log_file_descriptor "2" "Found network-specific bridge service URL: $bridge_service"
@@ -1943,7 +1921,7 @@ _get_bridge_service_url() {
         return 0
     fi
     
-    # For Kurtosis networks, try to determine bridge service URL based on network
+    # For Kurtosis networks, handle special cases
     case "$network_name" in
         "kurtosis_l1")
             # L1 (network 0) should never provide its own bridge service URL
@@ -1970,47 +1948,9 @@ _get_bridge_service_url() {
             echo "$kurtosis_net2_bridge_service"
             ;;
         *)
-            # For other networks, try multiple environment variable patterns
-            _log_file_descriptor "2" "Non-Kurtosis network detected: $network_name"
-            local env_value=""
-            
-            # Try network-specific variable first (e.g., bali_48_bridge_service_url)
-            local specific_var="${network_name}_bridge_service_url"
-            env_value="${!specific_var:-}"
-            _log_file_descriptor "2" "Tried $specific_var: ${env_value:-'not set'}"
-            
-            if [[ -z "$env_value" ]]; then
-                # Try uppercase pattern (e.g., BALI_48_BRIDGE_SERVICE_URL)
-                local env_var_name="${network_name^^}_BRIDGE_SERVICE_URL"
-                env_value="${!env_var_name:-}"
-                _log_file_descriptor "2" "Tried $env_var_name: ${env_value:-'not set'}"
-            fi
-            
-            if [[ -z "$env_value" ]]; then
-                # For Bali networks, try NETWORK_XX pattern (e.g., NETWORK_48_BRIDGE_SERVICE_URL)
-                if [[ "$network_name" =~ ^bali_([0-9]+)$ ]]; then
-                    local network_num="${BASH_REMATCH[1]}"
-                    local alt_var_name="NETWORK_${network_num}_BRIDGE_SERVICE_URL"
-                    env_value="${!alt_var_name:-}"
-                    _log_file_descriptor "2" "Tried $alt_var_name: ${env_value:-'not set'}"
-                fi
-            fi
-            
-            if [[ -z "$env_value" ]]; then
-                # Try generic pattern based on network ID (e.g., BRIDGE_SERVICE_URL_48)
-                local id_based_var="BRIDGE_SERVICE_URL_${network_id}"
-                env_value="${!id_based_var:-}"
-                _log_file_descriptor "2" "Tried $id_based_var: ${env_value:-'not set'}"
-            fi
-            
-            if [[ -n "$env_value" ]]; then
-                _log_file_descriptor "2" "Found bridge service URL for $network_name: $env_value"
-                echo "$env_value"
-            else
-                # Fallback to global bridge service URL
-                _log_file_descriptor "2" "No specific bridge service URL found for $network_name, using global: ${bridge_service_url:-'not set'}"
-                echo "${bridge_service_url:-}"
-            fi
+            # For all other networks, fallback to global bridge service URL
+            _log_file_descriptor "2" "No specific bridge service URL found for $network_name, using global: ${bridge_service_url:-'not set'}"
+            echo "${bridge_service_url:-}"
             ;;
     esac
 }

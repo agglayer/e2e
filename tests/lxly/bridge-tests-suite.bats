@@ -15,7 +15,7 @@ setup_file() {
     source "$BATS_TEST_DIRNAME/../../core/helpers/logger.bash"
 
     export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-1800s}"
+    export claim_wait_duration="${ETH_RPC_TIMEOUT}s" # Append "s" to ETH_RPC_TIMEOUT which is integer
 
     # Load test scenarios from file
     scenarios=$(cat "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json")
@@ -169,8 +169,8 @@ _calculate_test_erc20_address() {
 
     echo "" | tee "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
-    echo "      BULK SETUP PHASE                  " | tee -a "$setup_log" >&3
-    echo "        Dynamic Networks                " | tee -a "$setup_log" >&3
+    echo "            BULK SETUP PHASE            " | tee -a "$setup_log" >&3
+    echo "            Dynamic Networks            " | tee -a "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
     
     # Bulk setup: Fund all ephemeral accounts and approve tokens in one go
@@ -194,7 +194,6 @@ _calculate_test_erc20_address() {
         
         _log_file_descriptor "3" "Setting up ephemeral accounts on network $network_id..." | tee -a "$setup_log"
         
-        # Use a generic network designation instead of hardcoded "L1"/"L2"
         if ! _setup_ephemeral_accounts_in_bulk "NETWORK_$network_id" "$total_scenarios" "$bridge_addr"; then
             _log_file_descriptor "3" "Failed to bulk setup accounts on network $network_id" | tee -a "$setup_log"
             return 1
@@ -220,8 +219,8 @@ _calculate_test_erc20_address() {
 
     echo "" | tee "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
-    echo "      PARALLEL BRIDGE TESTS             " | tee -a "$bridge_log" >&3
-    echo "        Dynamic Networks                " | tee -a "$bridge_log" >&3
+    echo "         PARALLEL BRIDGE TESTS          " | tee -a "$bridge_log" >&3
+    echo "           Dynamic Networks             " | tee -a "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
 
     # Run bridge tests in parallel for all accounts
@@ -361,6 +360,11 @@ _calculate_test_erc20_address() {
 
 # bats test_tags=bridge
 @test "Reclaim test funds" {
+    # Get total number of scenarios to calculate account count
+    local total_scenarios
+    total_scenarios=$(echo "$scenarios" | jq '. | length')
+    _log_file_descriptor "3" "Total scenarios used in tests: $total_scenarios"
+    
     # Get all unique networks from test scenarios that might have received funds
     local unique_networks
     unique_networks=$(echo "$scenarios" | jq -r '.[].FromNetwork, .[].ToNetwork' | sort -u)
@@ -389,7 +393,7 @@ _calculate_test_erc20_address() {
 
         if [[ ! "$rpc_url_check" =~ 127.0.0.1 ]]; then
             _log_file_descriptor "3" "Non-Kurtosis network $network_id detected, attempting to reclaim funds..."
-            _reclaim_funds_after_test "$eth_address" "$rpc_url_check"
+            _reclaim_funds_after_test "$eth_address" "$rpc_url_check" "$total_scenarios"
         else
             _log_file_descriptor "3" "Kurtosis network $network_id detected, skipping reclaiming funds..."
         fi

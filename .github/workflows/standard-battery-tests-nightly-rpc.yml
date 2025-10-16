@@ -63,19 +63,23 @@ jobs:
       max-parallel: ${{ fromJson(inputs.max-parallel-runs || '1') }}
       matrix:
         testfile: ${{ fromJson(needs.discover-standard-tests.outputs.testfiles) }}
-        target-network: ["bali-01","bali-37","bali-48","bali-49","bali-52","bali-57"]
     env:
       POLYCLI_VERSION: v0.1.90
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
-      L1_RPC_ENDPOINT: ${{ secrets.L1_RPC_ENDPOINT }}
-      L2_RPC_ENDPOINT: ${{ matrix.target-network == 'bali-01' && secrets.L2_BALI_01_RPC_ENDPOINT || matrix.target-network == 'bali-37' && secrets.L2_BALI_37_RPC_ENDPOINT || matrix.target-network == 'bali-48' && secrets.L2_BALI_48_RPC_ENDPOINT || matrix.target-network == 'bali-52' && secrets.L2_BALI_52_RPC_ENDPOINT || matrix.target-network == 'bali-49' && secrets.L2_BALI_49_RPC_ENDPOINT || matrix.target-network == 'bali-57' && secrets.L2_BALI_57_RPC_ENDPOINT}}
+      # Sensitive information from GitHub secrets
+      SEPOLIA_RPC_ENDPOINT: ${{ secrets.L1_SEPOLIA_RPC_ENDPOINT }}
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
-      TARGET_NETWORK: ${{ matrix.target-network }}
+      # Network-specific RPC endpoints from secrets
+      BALI_01_RPC_ENDPOINT: ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
+      BALI_37_RPC_ENDPOINT: ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
+      BALI_48_RPC_ENDPOINT: ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
+      BALI_49_RPC_ENDPOINT: ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
+      BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
     steps:
       - name: Debug environment variables
         run: |
-          env | grep -E 'AGGLAYER_E2E_REF|TARGET_NETWORK'
+          env | grep -E 'AGGLAYER_E2E_REF'
 
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v4
@@ -130,22 +134,33 @@ jobs:
           echo "$POLYGON_CERT" | sudo tee /usr/local/share/ca-certificates/local-ca.crt > /dev/null
           sudo update-ca-certificates
 
-      - name: Validate RPC Endpoint
+      - name: Validate all RPC Endpoints
         run: |
-          cast chain-id --rpc-url ${{ secrets.L1_RPC_ENDPOINT }}
-          if [[ "${{ matrix.target-network }}" == "bali-52" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-57" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-49" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-01" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-37" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
-          elif [[ "${{ matrix.target-network }}" == "bali-48" ]]; then
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
-          fi
+          # Validate Sepolia L1 endpoint
+          echo "Validating Sepolia L1 endpoint..."
+          cast chain-id --rpc-url ${{ secrets.L1_SEPOLIA_RPC_ENDPOINT }}
+          echo "Sepolia L1 chain ID validation passed"
+          
+          # Validate all Bali network endpoints
+          echo "Validating Bali-01 endpoint..."
+          cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
+          echo "Bali-01 chain ID validation passed"
+          
+          echo "Validating Bali-37 endpoint..."
+          cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
+          echo "Bali-37 chain ID validation passed"
+          
+          echo "Validating Bali-48 endpoint..."
+          cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
+          echo "Bali-48 chain ID validation passed"
+          
+          echo "Validating Bali-49 endpoint..."
+          cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
+          echo "Bali-49 chain ID validation passed"
+          
+          echo "Validating Bali-57 endpoint..."
+          cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+          echo "Bali-57 chain ID validation passed"
 
       - name: Validate test file existence
         run: |
@@ -159,21 +174,69 @@ jobs:
         run: |
           pushd agglayer-e2e || exit 1
 
-          # Load public environment variables based on target network
-          if [[ -f "tests/lxly/networks/${{ matrix.target-network }}.env" ]]; then
+          # First, source the centralized bali-networks.env configuration
+          if [[ -f "tests/lxly/networks/bali-networks.env" ]]; then
             set -a
-            source tests/lxly/networks/${{ matrix.target-network }}.env
+            source tests/lxly/networks/bali-networks.env
             set +a
+            echo "Loaded centralized bali-networks.env configuration"
           else
-            echo "Warning: Environment file for ${{ matrix.target-network }} not found"
+            echo "Warning: bali-networks.env not found"
+            exit 1
           fi
 
-          # Set sensitive values from GitHub secrets
-          export L1_RPC_URL="${{ env.L1_RPC_ENDPOINT }}"
+          # Override sensitive values from GitHub secrets for all networks
+          export SEPOLIA_RPC_URL="${{ env.SEPOLIA_RPC_ENDPOINT }}"
+          export SEPOLIA_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
+          
+          # For backward compatibility, also set L1 variables
+          export L1_RPC_URL="${{ env.SEPOLIA_RPC_ENDPOINT }}"
           export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
-          export L2_RPC_URL="${{ env.L2_RPC_ENDPOINT }}"
-          export L2_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          
+          # Set all Bali network configurations (bridge tests will use them dynamically)
+          export BALI_NETWORK_1_RPC_URL="${{ env.BALI_01_RPC_ENDPOINT }}"
+          export BALI_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          
+          export BALI_NETWORK_37_RPC_URL="${{ env.BALI_37_RPC_ENDPOINT }}"
+          export BALI_NETWORK_37_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          
+          export BALI_NETWORK_48_RPC_URL="${{ env.BALI_48_RPC_ENDPOINT }}"
+          export BALI_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          
+          export BALI_NETWORK_49_RPC_URL="${{ env.BALI_49_RPC_ENDPOINT }}"
+          export BALI_NETWORK_49_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          
+          export BALI_NETWORK_57_RPC_URL="${{ env.BALI_57_RPC_ENDPOINT }}"
+          export BALI_NETWORK_57_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
+          # Verify required environment variables are set
+          echo "Verifying environment setup for dynamic network bridge tests:"
+          echo "Sepolia L1 RPC URL: ${SEPOLIA_RPC_URL:0:20}..."
+          echo "L1 RPC URL (compat): ${L1_RPC_URL:0:20}..."
+          echo "ETH_RPC_TIMEOUT: $ETH_RPC_TIMEOUT"
+          
+          # Show all Bali network configurations
+          echo "Bali-01 RPC URL: ${BALI_NETWORK_1_RPC_URL:0:20}..."
+          echo "Bali-01 Bridge Address: $BALI_NETWORK_1_BRIDGE_ADDR"
+          echo "Bali-01 Bridge Service: $BALI_NETWORK_1_BRIDGE_SERVICE_URL"
+          
+          echo "Bali-37 RPC URL: ${BALI_NETWORK_37_RPC_URL:0:20}..."
+          echo "Bali-37 Bridge Address: $BALI_NETWORK_37_BRIDGE_ADDR"
+          echo "Bali-37 Bridge Service: $BALI_NETWORK_37_BRIDGE_SERVICE_URL"
+          
+          echo "Bali-48 RPC URL: ${BALI_NETWORK_48_RPC_URL:0:20}..."
+          echo "Bali-48 Bridge Address: $BALI_NETWORK_48_BRIDGE_ADDR"
+          echo "Bali-48 Bridge Service: $BALI_NETWORK_48_BRIDGE_SERVICE_URL"
+          
+          echo "Bali-49 RPC URL: ${BALI_NETWORK_49_RPC_URL:0:20}..."
+          echo "Bali-49 Bridge Address: $BALI_NETWORK_49_BRIDGE_ADDR"
+          echo "Bali-49 Bridge Service: $BALI_NETWORK_49_BRIDGE_SERVICE_URL"
+          
+          echo "Bali-57 RPC URL: ${BALI_NETWORK_57_RPC_URL:0:20}..."
+          echo "Bali-57 Bridge Address: $BALI_NETWORK_57_BRIDGE_ADDR"
+          echo "Bali-57 Bridge Service: $BALI_NETWORK_57_BRIDGE_SERVICE_URL"
+
+          # Run the bridge tests suite (no target-network filter needed)
           bats --filter-tags standard ${{ matrix.testfile }}
           popd
 
