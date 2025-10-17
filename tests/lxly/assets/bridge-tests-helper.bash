@@ -505,10 +505,10 @@ _reclaim_funds_after_test() {
             # Use a smaller, more reasonable gas limit for simple transfers
             local gas_limit=42000  # Standard ETH transfer gas limit
             
-            # Check if balance is very small (less than 0.0001 ETH)
-            local min_balance="100000000000000"  # 0.0001 ETH in wei
+            # Check if balance is very small (less than 0.001 ETH)
+            local min_balance="1000000000000000"  # 0.001 ETH in wei
             if [[ "$balance" -lt "$min_balance" ]]; then
-                _log_file_descriptor "2" "  Balance too small to reclaim (< 0.0001 ETH), skipping"
+                _log_file_descriptor "2" "  Balance too small to reclaim (< 0.001 ETH), skipping"
                 continue
             fi
             
@@ -537,7 +537,7 @@ _reclaim_funds_after_test() {
             fi
             
             # Only proceed if we have a meaningful amount left to transfer
-            local min_transfer="100000000000000"  # 0.0001 ETH minimum transfer
+            local min_transfer="1000000000000000"  # 0.001 ETH minimum transfer
             if [[ "$adjusted_balance" -lt "$min_transfer" ]]; then
                 _log_file_descriptor "2" "  Remaining balance after gas too small to transfer, skipping"
                 continue
@@ -779,9 +779,9 @@ _setup_ephemeral_accounts_in_bulk() {
         # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1 (network 0)"
     fi
 
-    # Fund 0.0001ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+    # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
     local eth_fund_output
-    if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 100000000000000 2>&1); then
+    if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
         _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
         _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
         return 1
