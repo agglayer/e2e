@@ -302,14 +302,34 @@ kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'z
  ###::## ##:  ###   ##   ##.         ##   ###  #####            ####  ###.  :###       ##   ##     ##   ##:  .###:  ###  ##.     ##   ###  #####    ## 
   ##..##:#####################       ##   .######.##            ####  .#########    ##########  #######################  #############.######.##    ## 
   ##  ##   ###.##########.####       ##    .####. ##            :##:   .#####:##    ##########  ########  ####:  ###.##  .############ .####. ##    ## 
-                                                                                                                                                       
+
 kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
-sleep 300
-# these will be started again later
-kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-rpc-001
-sleep 600
+kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001  # to avoid sequencing more batches
 
+            # address rollupContract,
+            # uint64 chainID,
+            # address verifier,
+            # uint64 forkID,
+            # bytes32 lastLocalExitRoot,
+            # uint64 lastBatchSequenced,
+            # uint64 lastVerifiedBatch,
+            # uint64 legacyLastPendingState,
+            # uint64 legacyLastPendingStateConsolidated,
+            # uint64 lastVerifiedBatchBeforeUpgrade,
+            # uint64 rollupTypeID,
+            # VerifierType rollupVerifierType
 
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+while [ $last_sequenced -gt $last_verified ]; do
+    echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
+    sleep 10
+    rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+    last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+    last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+done
+echo "Everything is verified. Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
            ##                                                                                          ##            
            ##                                                                                          ##            
    #####.####### .####. ##.###:         ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
@@ -325,13 +345,26 @@ sleep 600
                         ##                                   ##                                                      
                         ##                                   ##                                                      
 
+# these will be started again later
+# kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
 kurtosis service stop "$kurtosis_enclave_name" agglayer
 kurtosis service stop "$kurtosis_enclave_name" agglayer-prover
-kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-rpc-001
 # these won't be started again
 kurtosis service stop "$kurtosis_enclave_name" cdk-node-001
 kurtosis service stop "$kurtosis_enclave_name" zkevm-prover-001
 kurtosis service stop "$kurtosis_enclave_name" zkevm-stateless-executor-001
+
+# recheck everything is verified
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
+if [ $last_sequenced -gt $last_verified ]; then
+    echo "ERROR: Last sequenced batch is greater than last verified batch"
+else
+    echo "Everything is verified"
+fi
 
 
                                              ##                          #### ####                    
@@ -355,97 +388,32 @@ kurtosis service stop "$kurtosis_enclave_name" zkevm-stateless-executor-001
 #         uint32 newRollupTypeID,
 #         bytes memory upgradeData
 # )
-upgradeData=$(cast calldata "migrateLegacyConsensus()")
+upgradeData=$(cast calldata "migrateFromLegacyConsensus()")
 rollup_address=$(curl -s "${contracts_url}/opt/zkevm/combined-001.json" | jq -r '.rollupAddress')
 echo "Calling initMigration with params: 1, $new_rollup_type_id, $upgradeData"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'initMigration(uint32,uint32,bytes)' '1' '$new_rollup_type_id' '$upgradeData'"
 
 
-                         ##    ####                      ##          :####             ####        ##:  :####                              
-                         ##    ####                      ##          #####             ####   ##   ##    ####                              
-                         ##      ##                      ##          ##                  ##   ##   :##  ##:##                              
-   ####: ##.####  :####  ##.###: ##    .####:       :###.## .####: #######:####  ##    #### #######:##  ##:##   ##:.####: ##    ## :#####. 
-  ######:#######  ###### #######:##   .######:     :#######.######:############# ##    #### ####### ## .## ##  ##:.######::##  ## ######## 
- ##:  :#####  :## #:  :#####  #####   ##:  :##     ###  #####:  :##  ##   #:  :####    ####   ##    ##::## ##:##: ##:  :## ##: ##.##:  .:# 
- ##########    ##  :#######.  .####   ########     ##.  .##########  ##    :#######    ####   ##    ##::## ####   ######## ###:## ##### .  
- ##########    ##.#########    ####   ########     ##    ##########  ##  .#########    ####   ##    :####: #####  ######## .## #  .######: 
- ##      ##    #### .  ####.  .####   ##           ##.  .####        ##  ## .  ####    ####   ##    .####. ##.### ##        ####.    .: ## 
- ###.  :###    ####:  ######  #####:  ###.  :#     ###  ######.  :#  ##  ##:  #####:  #####:  ##.    ####  ##  ##:###.  :#  :###  #:.  :## 
-  #########    #################:#####.#######     :#######.#######  ##  ######## #################  ####  ##  :##.#######   ##   ######## 
-   #####:##    ##  ###.####.###: .#### .#####:      :###.## .#####:  ##    ###.##  ###.##.####.####   ##   ##   ###.#####:   ##.  . ####   
-                                                                                                                             ##            
-                                                                                                                           ###:            
-                                                                                                                           ###             
-# TODO: It should be already enabled, so some previous step may be missing something.
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_address' 'enableUseDefaultVkeysFlag()'"
-
-
-                                                                 ##                                                                ##            
-               ##      ##                                        ##                                                         :####  ##            
-               ##      ##                                        ##                     ##                                  #####  ##            
-               ##      ##                                                               ##                                  ##                   
-   ####   :###.## :###.##      :#####.##    ##   ####:   ####: ####   ##.####    ####:#######        ####: .####. ##.#### ###########    :###:## 
-  ###### :#######:#######     ##########    ## ####### ####### ####   #######  ##############      #######.######.####### ###########   .####### 
-  #:  :#####  ######  ###     ##:  .:###    ## ##:  :# ##:  :#   ##   ###  :## ##:  :#  ##         ##:  :####  ######  :##  ##     ##   ###  ### 
-    #######.  .####.  .##     ##### . ##    ####.     ##.        ##   ##    ####.       ##        ##.     ##.  .####    ##  ##     ##   ##.  .## 
-  #########    ####    ##     .######:##    ####      ##         ##   ##    ####        ##        ##      ##    ####    ##  ##     ##   ##    ## 
- ## .  ####.  .####.  .##        .: ####    ####.     ##.        ##   ##    ####.       ##        ##.     ##.  .####    ##  ##     ##   ##.  .## 
- ##:  ######  ######  ###     #:.  :####:  ### ##:  .# ##:  .#   ##   ##    ## ##:  .#  ##.        ##:  .####  #####    ##  ##     ##   ###  ### 
- ########:#######:#######     ######## ####### ####### #################    ## #######  #####      #######.######.##    ##  ##  ########.####### 
-   ###.## :###.## :###.##     . ####    ###.##   ####:   ####:##########    ##   ####:  .####        ####: .####. ##    ##  ##  ######## :###:## 
-                                                                                                                                         #.  :## 
-                                                                                                                                         ######  
-                                                                                                                                          ####:  
-
-op_succinct_image=ghcr.io/agglayer/op-succinct/op-succinct:v3.1.0-agglayer
-
-opsuccinctl2ooconfig=$(docker run --rm -it \
-  --network $docker_network_name \
-  --name op-succinct-tmp \
-  --env L1_RPC=http://el-1-geth-lighthouse:8545 \
-  --env L1_BEACON_RPC=http://el-1-geth-lighthouse:8545 \
-  --env L2_RPC=http://op-el-1-op-geth-op-node-001:8545 \
-  --env L2_NODE_RPC=http://op-cl-1-op-node-op-geth-001:8547 \
-  --env OP_SUCCINCT_MOCK="false" \
-  $op_succinct_image \
-  bash -c "fetch-l2oo-config --output-dir /tmp/output && cat /tmp/output/opsuccinctl2ooconfig.json"
-)
-
-
-# function addOpSuccinctConfig(
-#     bytes32 _configName,
-#     bytes32 _rollupConfigHash,
-#     bytes32 _aggregationVkey,
-#     bytes32 _rangeVkeyCommitment
-# )
-config_name=$(cast keccak $op_succinct_image)
-rollup_config_hah=$(echo $opsuccinctl2ooconfig | jq -r '.rollupConfigHash')
-aggregation_vkey=$(echo $opsuccinctl2ooconfig | jq -r '.aggregationVkey')
-range_vkey_commitment=$(echo $opsuccinctl2ooconfig | jq -r '.rangeVkeyCommitment')
-
-echo "Calling addOpSuccinctConfig with params: $config_name, $rollup_config_hah, $aggregation_vkey, $range_vkey_commitment"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_address' 'addOpSuccinctConfig(bytes32,bytes32,bytes32,bytes32)' '$config_name' '$rollup_config_hah' '$aggregation_vkey' '$range_vkey_commitment'"
-
-
-                                                                                     ##                                                                ##            
-               ####                                                                  ##                                                         :####  ##            
-               ####                     ##                                           ##                     ##                                  #####  ##            
-                 ##                     ##                                                                  ##                                  ##                   
-   #####. .####: ##    .####:    ####:#######      :#####.##    ##   ####:   ####: ####   ##.####    ####:#######        ####: .####. ##.#### ###########    :###:## 
- ########.######:##   .######: ##############     ##########    ## ####### ####### ####   #######  ##############      #######.######.####### ###########   .####### 
- ##:  .:###:  :####   ##:  :## ##:  :#  ##        ##:  .:###    ## ##:  :# ##:  :#   ##   ###  :## ##:  :#  ##         ##:  :####  ######  :##  ##     ##   ###  ### 
- ##### . ##########   ##########.       ##        ##### . ##    ####.     ##.        ##   ##    ####.       ##        ##.     ##.  .####    ##  ##     ##   ##.  .## 
-  ######:##########   ##########        ##        .######:##    ####      ##         ##   ##    ####        ##        ##      ##    ####    ##  ##     ##   ##    ## 
-       ####      ##   ##      ##.       ##           .: ####    ####.     ##.        ##   ##    ####.       ##        ##.     ##.  .####    ##  ##     ##   ##.  .## 
- #:.  :#####.  :###:  ###.  :# ##:  .#  ##.       #:.  :####:  ### ##:  .# ##:  .#   ##   ##    ## ##:  .#  ##.        ##:  .####  #####    ##  ##     ##   ###  ### 
- ########.############.####### #######  #####     ######## ####### ####### #################    ## #######  #####      #######.######.##    ##  ##  ########.####### 
-   ####   .#####:.#### .#####:   ####:  .####     . ####    ###.##   ####:   ####:##########    ##   ####:  .####        ####: .####. ##    ##  ##  ######## :###:## 
-                                                                                                                                                             #.  :## 
-                                                                                                                                                             ######  
-                                                                                                                                                              ####:  
-
-echo "Selecteing OpSuccinctConfig: $config_name"
-kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_address' 'selectOpSuccinctConfig(bytes32)()' '$config_name'"
+                                                                                                                           
+                                                                                                                           
+                                                                                                                           
+                                                                                                                           
+           ##                    ##                                                                          ##            
+           ##                    ##                                                                          ##            
+   #####.####### :####  ##.###########        ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
+ ############### ###### ##############      #######.######.###############:.######.####### .######:####### ############### 
+ ##:  .:#  ##    #:  :#####.     ##         ##:  :####  #####.##.#####  ######  ######  :####:  :#####  :##  ##   ##:  .:# 
+ ##### .   ##     :#######       ##        ##.     ##.  .#### ## ####.  .####.  .####    ############    ##  ##   ##### .  
+  ######:  ##   .#########       ##        ##      ##    #### ## ####    ####    ####    ############    ##  ##   .######: 
+       ##  ##   ## .  ####       ##        ##.     ##.  .#### ## ####.  .####.  .####    ####      ##    ##  ##      .: ## 
+ #:.  :##  ##.  ##:  #####       ##.        ##:  .####  ##### ## #####  ######  #####    #####.  :###    ##  ##.  #:.  :## 
+ ########  ###############       #####      #######.######.## ## #########:.######.##    ##.#########    ##  ############# 
+   ####    .####  ###.####       .####        ####: .####. ## ## ####.###:  .####. ##    ## .#####:##    ##  .####. ####   
+                                                                   ##                                                      
+                                                                   ##                                                      
+                                                                   ##                                                      
+kurtosis service start "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+kurtosis service start "$kurtosis_enclave_name" cdk-erigon-rpc-001
 
 
                                                                                                   ##            
@@ -481,9 +449,12 @@ docker run -it \
     --cfg \
     /etc/agglayer/agglayer-config.toml
 
-# Op-succinct-proposer
-# Raw config name here, not the keccak hash
-kurtosis service update --image $op_succinct_image --env "OP_SUCCINCT_CONFIG_NAME=$op_succinct_image" $kurtosis_enclave_name op-succinct-proposer-001
+
+
+
+
+
+
 
 # Aggkit-prover
 kurtosis service update --image $aggkit_prover_image $kurtosis_enclave_name aggkit-prover-001
