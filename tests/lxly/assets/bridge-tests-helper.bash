@@ -1862,6 +1862,7 @@ EOF
     _log_file_descriptor "3" "Total Tests: $total_tests"
     _log_file_descriptor "3" "Bridge Success: $passed_bridge/$total_tests"
     _log_file_descriptor "3" "Failed Tests: $failed_tests"
+    _log_file_descriptor "3" "Monitor the test results and try manually claiming bridges when they're ready for claim where applicable"
     _log_file_descriptor "3" ""
     _log_file_descriptor "3" "Detailed results saved to: $output_dir"
     _log_file_descriptor "3" "Quick summary: cat $summary_file"
