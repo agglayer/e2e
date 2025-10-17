@@ -6,7 +6,7 @@ done
 sudo rm -rf aggkit aggkit-bridge chaindata jwt.txt op-deployer-output opgeth-data regenesis.json rollup.json regenesis.json.tmp rollup.json.tmp regenesisTool op-deployer-work agglayer-contracts
 kurtosis clean --all
 
-kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/cdk-erigon/sovereign.yml github.com/0xPolygon/kurtosis-cdk
+kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/v0.5.2/.github/tests/cdk-erigon/sovereign.yml github.com/0xPolygon/kurtosis-cdk@v0.5.2
 
 sleep 60 # Wait for the bridge spammer to generate some traffic
 kurtosis service stop cdk bridge-spammer-001
@@ -15,7 +15,7 @@ sleep 30
 ### Update L2 smc
 git clone https://github.com/agglayer/agglayer-contracts.git
 cd agglayer-contracts || exit 1
-git checkout v11.0.0-rc.3
+git checkout feature/upgrade-etrog-sovereign #v12.1.1
 npm install
 npx hardhat compile
 # Deploy new L2 smc implementation
@@ -27,7 +27,13 @@ from=$(cast wallet address --private-key $private_key)
 nonce=$(cast nonce $from --rpc-url "$rpc_url" --block pending)
 target_nonce=$nonce
 
-ger_smc_bytecode=$(cat artifacts/contracts/v2/sovereignChains/GlobalExitRootManagerL2SovereignChain.sol/GlobalExitRootManagerL2SovereignChain.json | jq -r '.bytecode')
+bridge_smc_bytecode=$(cat artifacts/contracts/sovereignChains/AgglayerBridgeL2.sol/AgglayerBridgeL2.json | jq -r '.bytecode')
+new_bridge_impl_addr=$(cast compute-address --nonce "$target_nonce" "$from" | grep -Eo '0x[0-9a-fA-F]{40}')
+echo "new_bridge_impl_addr deploy address: $new_bridge_impl_addr"
+cast send --legacy -r "$rpc_url" --private-key "$private_key" --nonce "$target_nonce" --create "$bridge_smc_bytecode"
+
+target_nonce=$((nonce + 1)) # We need to skip the proxy admin deployment tx
+ger_smc_bytecode=$(cat artifacts/contracts/sovereignChains/AgglayerGERL2.sol/AgglayerGERL2.json | jq -r '.bytecode')
 ger_constructor_args=$(cast abi-encode 'constructor(address)' $l2_bridge_proxy_addr | sed 's/0x//')
 new_ger_impl_addr=$(cast compute-address --nonce "$target_nonce" "$from" | grep -Eo '0x[0-9a-fA-F]{40}')
 echo "new_ger_impl_addr deploy address: $new_ger_impl_addr"
@@ -35,6 +41,13 @@ cast send --legacy -r "$rpc_url" --private-key "$private_key" --nonce "$target_n
 
 IMPL_SLOT=0x360894A13ba1a3210667c828492db98DCA3E2076CC3735A920A3CA505D382BBC
 ADMIN_SLOT=0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
+
+CURRENT_BRIDGE_IMPL=$(cast storage "$l2_bridge_proxy_addr" $IMPL_SLOT --rpc-url "$rpc_url" | grep -Eo '0x[0-9a-fA-F]{64}' | tail -c 41 | sed 's/^/0x/')
+BRIDGE_ADMIN=$(cast storage "$l2_bridge_proxy_addr" $ADMIN_SLOT --rpc-url "$rpc_url" | grep -Eo '0x[0-9a-fA-F]{64}' | tail -c 41 | sed 's/^/0x/')
+echo "l2_bridge_proxy_addr: $l2_bridge_proxy_addr"
+echo "BRIDGE_ADMIN (ProxyAdmin): $BRIDGE_ADMIN"
+echo "Current Bridge Impl: $CURRENT_BRIDGE_IMPL"
+echo "New bridge impl: $new_bridge_impl_addr"
 
 CURRENT_GER_IMPL=$(cast storage "$l2_GER_proxy_addr" $IMPL_SLOT --rpc-url "$rpc_url" | grep -Eo '0x[0-9a-fA-F]{64}' | tail -c 41 | sed 's/^/0x/')
 GER_ADMIN=$(cast storage "$l2_GER_proxy_addr" $ADMIN_SLOT --rpc-url "$rpc_url" | grep -Eo '0x[0-9a-fA-F]{64}' | tail -c 41 | sed 's/^/0x/')
@@ -46,27 +59,53 @@ echo "New GER impl: $new_ger_impl_addr"
 TIMELOCK=$(cast call $GER_ADMIN "owner()(address)" --rpc-url $rpc_url)
 TIMELOCK_DELAY=$(cast call $TIMELOCK "getMinDelay()(uint256)" --rpc-url $rpc_url)
 
+if [ "$TIMELOCK" != "$(cast call $BRIDGE_ADMIN "owner()(address)" --rpc-url $rpc_url)" ]; then
+  echo "The L2Bridge admin owner must be the same to the L2GerManager admin owner"
+  exit 1
+fi
+
 GER_INIT_DATA=$(cast calldata "initialize(address,address)" "0x0b68058E5b2592b1f472AdFe106305295A332A7C" $from)
 DATA_GER=$(cast calldata "upgradeAndCall(address,address,bytes)" $l2_GER_proxy_addr $new_ger_impl_addr $GER_INIT_DATA)
+
+BRIDGE_INIT_DATA=$(
+  cast calldata \
+  "initialize(uint32,address,uint32,address,address,bytes,address,address,bool,address,address,address)" \
+  $(cast call $l2_bridge_proxy_addr "networkID()(uint32)" --rpc-url $rpc_url) \
+  $(cast call $l2_bridge_proxy_addr "gasTokenAddress()(address)" --rpc-url $rpc_url) \
+  $(cast call $l2_bridge_proxy_addr "gasTokenNetwork()(uint32)" --rpc-url $rpc_url) \
+  $(cast call $l2_bridge_proxy_addr "globalExitRootManager()(address)" --rpc-url $rpc_url) \
+  $(cast call $l2_bridge_proxy_addr "polygonRollupManager()(address)" --rpc-url $rpc_url) \
+  $(cast call $l2_bridge_proxy_addr "gasTokenMetadata()(bytes)" --rpc-url $rpc_url) \
+  $from \
+  $(cast call $l2_bridge_proxy_addr "WETHToken()(address)" --rpc-url $rpc_url) \
+  "false" \
+  $from \
+  $from \
+  $(cast call $l2_bridge_proxy_addr "proxiedTokensManager()(address)" --rpc-url $rpc_url))
+DATA_BRIDGE=$(cast calldata "upgrade(address,address)" $l2_bridge_proxy_addr $new_bridge_impl_addr)
+
 SALT="0x0000000000000000000000000000000000000000000000000000000000000000"
-cast send $TIMELOCK "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)" "[$GER_ADMIN]" "[0]" "[$DATA_GER]" \
+cast send $TIMELOCK "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)" "[$GER_ADMIN,$BRIDGE_ADMIN]" "[0,0]" "[$DATA_GER,$DATA_BRIDGE]" \
   0x0000000000000000000000000000000000000000000000000000000000000000 \
   $SALT \
   $TIMELOCK_DELAY \
   --rpc-url $rpc_url --private-key $private_key --legacy
 
-sleep $(($TIMELOCK_DELAY + 15))
+sleep $(($TIMELOCK_DELAY + 30))
 
 cast send $TIMELOCK \
   "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)" \
-  "[$GER_ADMIN]" \
-  "[0]" \
-  "[$DATA_GER]" \
+  "[$GER_ADMIN,$BRIDGE_ADMIN]" \
+  "[0,0]" \
+  "[$DATA_GER,$DATA_BRIDGE]" \
   0x0000000000000000000000000000000000000000000000000000000000000000 \
   $SALT \
   --rpc-url $rpc_url --private-key $private_key
 
+cast send $l2_bridge_proxy_addr $BRIDGE_INIT_DATA --private-key $private_key --rpc-url $rpc_url || exit 1
+
 cast call --rpc-url "$rpc_url" $l2_GER_proxy_addr 'GER_SOVEREIGN_VERSION()(string)' || exit 1
+cast call --rpc-url "$rpc_url" $l2_bridge_proxy_addr 'BRIDGE_SOVEREIGN_VERSION()(string)' || exit 1
 echo "L2 GER updated successfully. L2GERUpdater: $(cast call $l2_GER_proxy_addr 'globalExitRootUpdater()(address)' --rpc-url $rpc_url)"
 cd .. || exit 1
 #########
