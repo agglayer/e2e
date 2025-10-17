@@ -18,8 +18,17 @@ setup_file() {
     export claim_wait_duration="${ETH_RPC_TIMEOUT}s" # Append "s" to ETH_RPC_TIMEOUT which is integer
 
     # Load test scenarios from file
-    scenarios=$(cat "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json")
-    export scenarios
+    # Instead of storing large JSON in a variable, use a temp file
+    local json_temp_file
+    json_temp_file=$(mktemp)
+    cp "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json" "$json_temp_file"
+    export scenarios_file="$json_temp_file"
+    
+    # Clean up function
+    cleanup_temp_files() {
+        rm -f "$scenarios_file"
+    }
+    trap cleanup_temp_files EXIT
 
     # Contract addresses
     _setup_contract_addresses
@@ -97,7 +106,7 @@ _calculate_test_erc20_address() {
 
     # Get all unique network IDs from the test scenarios
     local unique_networks
-    unique_networks=$(echo "$scenarios" | jq -r '.[].FromNetwork, .[].ToNetwork' | sort -u)
+    unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
     
     _log_file_descriptor "3" "Deploying contracts to networks: $(echo "$unique_networks" | tr '\n' ' ')"
     
@@ -161,7 +170,7 @@ _calculate_test_erc20_address() {
     
     # Get total number of scenarios
     local total_scenarios
-    total_scenarios=$(echo "$scenarios" | jq '. | length')
+    total_scenarios=$(jq '. | length' "$scenarios_file")
     _log_file_descriptor "3" "Total scenarios to process: $total_scenarios"
     
     # Save detailed setup log
@@ -178,7 +187,7 @@ _calculate_test_erc20_address() {
     
     # Get all unique networks from test scenarios and bulk fund on each
     local unique_networks
-    unique_networks=$(echo "$scenarios" | jq -r '.[].FromNetwork, .[].ToNetwork' | sort -u)
+    unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
     
     _log_file_descriptor "3" "Networks requiring funding: $(echo "$unique_networks" | tr '\n' ' ')" | tee -a "$setup_log"
     
@@ -237,7 +246,7 @@ _calculate_test_erc20_address() {
     scenario_array=()
     while IFS= read -r line; do
         scenario_array+=("$line")
-    done < <(echo "$scenarios" | jq -c '.[]')
+    done < <(jq -c '.[]' "$scenarios_file")
     
     # Track progress
     local started_tests=0
@@ -348,7 +357,7 @@ _calculate_test_erc20_address() {
     _log_file_descriptor "3" "All bridge tests completed! Collecting results..."
     
     # Collect and report results
-    _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
+    _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count" "$scenarios_file"
     local failed_tests=$?
     
     # No setup failures since bulk setup either succeeds completely or fails completely
@@ -362,12 +371,12 @@ _calculate_test_erc20_address() {
 @test "Reclaim test funds" {
     # Get total number of scenarios to calculate account count
     local total_scenarios
-    total_scenarios=$(echo "$scenarios" | jq '. | length')
+    total_scenarios=$(jq '. | length' "$scenarios_file")
     _log_file_descriptor "3" "Total scenarios used in tests: $total_scenarios"
     
     # Get all unique networks from test scenarios that might have received funds
     local unique_networks
-    unique_networks=$(echo "$scenarios" | jq -r '.[].FromNetwork, .[].ToNetwork' | sort -u)
+    unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
     
     _log_file_descriptor "3" "Checking for funds to reclaim on networks: $(echo "$unique_networks" | tr '\n' ' ')"
     
