@@ -49,12 +49,14 @@ jobs:
           password: ${{ env.DOCKER_TOKEN }}
 
        # Install kurtosis
-      - name: Install Kurtosis
+      - name: Install Kurtosis (fallback)
         run: |
-          set -euxo pipefail
-          curl -fsSL https://get.kurtosis.com | bash
-          echo "$HOME/.kurtosis/bin" >> "$GITHUB_PATH"
-          kurtosis --version || kurtosis version
+            set -euxo pipefail
+            KURTOSIS_VERSION="1.1.6"   # or the latest stable
+            curl -L "https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/download/${KURTOSIS_VERSION}/kurtosis_${KURTOSIS_VERSION}_linux_amd64.tar.gz" -o kurtosis.tar.gz
+            tar -xzf kurtosis.tar.gz
+            sudo mv kurtosis /usr/local/bin/
+            kurtosis version
 
        # Install foundry
       - name: Install Foundry (forge/cast/anvil)
