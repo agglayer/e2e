@@ -49,25 +49,32 @@ jobs:
           password: ${{ env.DOCKER_TOKEN }}
 
        # Install kurtosis
-      - name: Install Kurtosis (fallback)
+      - name: Install Kurtosis (retry + fallback)
+        env:
+            KURTOSIS_VERSION: v1.1.6
         run: |
             set -euxo pipefail
-            KURTOSIS_VERSION="v1.1.6"   # or the latest stable
-            curl -L "https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/download/${KURTOSIS_VERSION}/kurtosis_${KURTOSIS_VERSION}_linux_amd64.tar.gz" -o kurtosis.tar.gz
-            tar -xzf kurtosis.tar.gz
-            sudo mv kurtosis /usr/local/bin/
-            kurtosis version
+            # Try the official installer (with retries)
+            for i in {1..5}; do
+            if curl -fsSL https://get.kurtosis.com | bash; then
+                echo "$HOME/.kurtosis/bin" >> "$GITHUB_PATH"
+                kurtosis version || kurtosis --version
+                exit 0
+            fi
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+            done
 
-       # Install foundry
-      - name: Install Foundry (forge/cast/anvil)
-        run: |
-          set -euxo pipefail
-          curl -L https://foundry.paradigm.xyz | bash
-          echo "$HOME/.foundry/bin" >> "$GITHUB_PATH"
-          "$HOME/.foundry/bin/foundryup"
-          forge --version
-          cast --version
-          anvil --version
+            # Fallback to GitHub release asset
+            VER_NO_V="${KURTOSIS_VERSION#v}"
+            ASSET="kurtosis_${VER_NO_V}_linux_amd64.tar.gz"
+            URL="https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/download/${KURTOSIS_VERSION}/${ASSET}"
+            curl -fsSLI "$URL" | head -n 1
+            curl -fsSL -o "$ASSET" "$URL"
+            tar -tzf "$ASSET" >/dev/null
+            tar -xzf "$ASSET"
+            sudo install -m 0755 kurtosis /usr/local/bin/kurtosis
+            kurtosis version || kurtosis --version
 
        # Install polycli
       - name: Install polycli
