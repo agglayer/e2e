@@ -111,6 +111,7 @@ run_verification_in_container() (
 # ----------------------------------------------------------------------
 # Load environment
 # ----------------------------------------------------------------------
+
 if [ -f .env ]; then
     source .env
 else
@@ -202,15 +203,13 @@ echo ":-action:= $ACTION"
 # ' ./assets/erigon-sovereign.yml > initial-erigon-sovereign.yml
 
 
+export SP1_NETWORK_KEY="$SP1_NETWORK_KEY"
+yq e '.args.sp1_prover_key = strenv(SP1_NETWORK_KEY)' ./assets/opgeth-soverign.yml > initial-opgeth-soverign.yml
 
-yq eval --arg sp1key "$SP1_NETWORK_KEY" '.args.sp1_prover_key = $sp1key' ./assets/opgeth-soverign.yml > initial-opgeth-soverign.yml
+yq e '.args.agglayer_prover_sp1_key = strenv(SP1_NETWORK_KEY)' ./assets/opgeth-ecdsa.yml > initial-opgeth-ecdsa.yml
 
-yq eval --arg sp1key "$SP1_NETWORK_KEY" '.args.agglayer_prover_sp1_key = $sp1key' ./assets/opgeth-ecdsa.yml > initial-opgeth-ecdsa.yml
+yq e '.args.agglayer_prover_sp1_key = strenv(SP1_NETWORK_KEY) | .args.sp1_prover_key = strenv(SP1_NETWORK_KEY)' ./assets/erigon-sovereign.yml > initial-erigon-sovereign.yml
 
-yq eval --arg sp1key "$SP1_NETWORK_KEY" '
-  .args.agglayer_prover_sp1_key = $sp1key | 
-  .args.sp1_prover_key = $sp1key
-' ./assets/erigon-sovereign.yml > initial-erigon-sovereign.yml
 
 
 
