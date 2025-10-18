@@ -71,32 +71,40 @@ jobs:
             popd
 
       # Install yq & jq
-      - name: Install jq 1.6 and yq 3.4.3
+      - name: Install jq 1.6 and yq 3.4.3 (pinned)
         run: |
             set -euxo pipefail
 
-            # jq 1.6 (Ubuntu runners already have it, but ensure it)
-            sudo apt-get update -y
-            sudo apt-get install -y jq
-            jq --version  # -> jq-1.6
+            # --- jq 1.6 ---
+            # Get the official static binary from the jqlang release
+            tmpdir="$(mktemp -d)"
+            curl -fsSL -o "$tmpdir/jq" \
+            https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux64
+            echo "Installing jq 1.6 to /usr/local/bin"
+            sudo install -m 0755 "$tmpdir/jq" /usr/local/bin/jq
+            jq --version  # expect: jq-1.6
 
-            # Remove any conflicting yq (pip/python or v4 binaries)
+            # --- yq 3.4.3 ---
+            # Remove any conflicting yq (pip v3 wrapper or v4 binary) so we control the version
             sudo pip3 uninstall -y yq || true
-            sudo rm -f /usr/local/bin/yq /usr/bin/yq || true
+            sudo rm -f /usr/bin/yq /usr/local/bin/yq || true
 
-            # Install Mike Farah yq v3.4.3 (older releases sometimes omit the 'v' in the tag)
-            url1="https://github.com/mikefarah/yq/releases/download/3.4.3/yq_linux_amd64"
-            url2="https://github.com/mikefarah/yq/releases/download/v3.4.3/yq_linux_amd64"
+            # Download yq v3.4.3 (older release line). Some tags omit the 'v', try both.
+            YQ_URL_A="https://github.com/mikefarah/yq/releases/download/3.4.3/yq_linux_amd64"
+            YQ_URL_B="https://github.com/mikefarah/yq/releases/download/v3.4.3/yq_linux_amd64"
 
-            if curl -fsSLI "$url1" >/dev/null 2>&1; then
-            sudo wget -qO /usr/bin/yq "$url1"
+            # Probe which URL exists, then download with curl to avoid wget exit 8 issues
+            if curl -fsSLI "$YQ_URL_A" >/dev/null 2>&1; then
+            curl -fsSL -o "$tmpdir/yq" "$YQ_URL_A"
             else
-            sudo wget -qO /usr/bin/yq "$url2"
+            curl -fsSL -o "$tmpdir/yq" "$YQ_URL_B"
             fi
 
-            sudo chmod +x /usr/bin/yq
-            yq --version  # -> yq 3.4.3
+            echo "Installing yq 3.4.3 to /usr/local/bin"
+            sudo install -m 0755 "$tmpdir/yq" /usr/local/bin/yq
+            yq --version   # expect: yq 3.4.3
 
+            rm -rf "$tmpdir"
 
       - name: Prepare /tmp run folder
         run: |
