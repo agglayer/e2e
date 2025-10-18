@@ -71,19 +71,31 @@ jobs:
             popd
 
       # Install yq & jq
-      - name: Install yq
+      - name: Install jq 1.6 and yq 3.4.3
         run: |
-            # Remove any existing yq installations to avoid conflicts
+            set -euxo pipefail
+
+            # jq 1.6 (Ubuntu runners already have it, but ensure it)
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+            jq --version  # -> jq-1.6
+
+            # Remove any conflicting yq (pip/python or v4 binaries)
             sudo pip3 uninstall -y yq || true
-            # Remove any yq in /usr/local/bin that might be from pip
-            sudo rm -f /usr/local/bin/yq
-            # Install the Go version of yq
-            sudo wget https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64 -O /usr/bin/yq
+            sudo rm -f /usr/local/bin/yq /usr/bin/yq || true
+
+            # Install Mike Farah yq v3.4.3 (older releases sometimes omit the 'v' in the tag)
+            url1="https://github.com/mikefarah/yq/releases/download/3.4.3/yq_linux_amd64"
+            url2="https://github.com/mikefarah/yq/releases/download/v3.4.3/yq_linux_amd64"
+
+            if curl -fsSLI "$url1" >/dev/null 2>&1; then
+            sudo wget -qO /usr/bin/yq "$url1"
+            else
+            sudo wget -qO /usr/bin/yq "$url2"
+            fi
+
             sudo chmod +x /usr/bin/yq
-            # Make sure /usr/bin comes before /usr/local/bin in PATH
-            export PATH="/usr/bin:$PATH"
-            # Verify it's the correct version and test the syntax
-            yq --version
+            yq --version  # -> yq 3.4.3
 
 
       - name: Prepare /tmp run folder
@@ -116,6 +128,8 @@ jobs:
           test -f run.sh
           test -f lxly.sh
           test -d assets
+          jq --version
+          yq --version
 
       - name: Run nightly
         working-directory: /tmp/agglayer-run
