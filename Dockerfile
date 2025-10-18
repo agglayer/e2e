@@ -1,9 +1,9 @@
-FROM golang:1.23-bookworm AS polycli-builder
+FROM golang:1.24-bookworm AS polycli-builder
 
 WORKDIR /opt/polygon-cli
-ARG POLYCLI_VERSION="v0.1.84"
+ARG POLYCLI_VERSION="v0.1.90"
 RUN apt-get update --yes \
-  && git clone --branch ${POLYCLI_VERSION} https://github.com/maticnetwork/polygon-cli.git . \
+  && git clone --branch ${POLYCLI_VERSION} https://github.com/0xPolygon/polygon-cli.git . \
   && make build
 
 

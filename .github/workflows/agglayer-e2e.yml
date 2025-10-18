@@ -105,7 +105,7 @@ permissions:
   id-token: write
 
 env:
-  POLYCLI_VERSION: v0.1.84
+  POLYCLI_VERSION: v0.1.90
 
 jobs:
   run-kurtosis-image:
