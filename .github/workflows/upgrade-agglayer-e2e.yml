@@ -96,25 +96,25 @@ jobs:
 
     #         rm -rf "$tmpdir"
 
-      - name: Force install yq 3.4.3 (legacy)
+      - name: Install jq 1.6 and yq v4
         run: |
             set -euxo pipefail
+
+            # Create a temp directory
             tmpdir="$(mktemp -d)"
 
-            echo "Removing any existing yq installation"
-            sudo rm -f /usr/bin/yq /usr/local/bin/yq || true
+            # Install jq 1.6
+            curl -L -o "$tmpdir/jq" "https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux64"
+            sudo install -m 0755 "$tmpdir/jq" /usr/local/bin/jq
+            jq --version  # should print jq-1.6
 
-            echo "Downloading yq 3.4.3 binary from mikefarah/yq"
-            curl -fsSL -o "$tmpdir/yq" https://github.com/mikefarah/yq/releases/download/3.4.3/yq_linux_amd64
-
-            echo "Installing yq 3.4.3 to /usr/local/bin"
+            # Install yq v4 (example version v4.43.1, change if needed)
+            YQ_VERSION="v4.43.1"
+            curl -L -o "$tmpdir/yq" "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
             sudo install -m 0755 "$tmpdir/yq" /usr/local/bin/yq
+            yq --version  # should print yq version 4.x
 
-            echo "Checking yq version"
-            which yq
-            yq --version
-
-            echo "Cleaning up temp dir"
+            # Clean up temp dir
             rm -rf "$tmpdir"
 
 

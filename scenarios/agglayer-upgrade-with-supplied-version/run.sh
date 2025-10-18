@@ -187,20 +187,30 @@ echo ":-action:= $ACTION"
 
 
 
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.sp1_prover_key = $sp1key
-' ./assets/opgeth-soverign.yml > initial-opgeth-soverign.yml
+# yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+# .args.sp1_prover_key = $sp1key
+# ' ./assets/opgeth-soverign.yml > initial-opgeth-soverign.yml
 
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key
-' ./assets/opgeth-ecdsa.yml > initial-opgeth-ecdsa.yml
+# yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+# .args.agglayer_prover_sp1_key = $sp1key
+# ' ./assets/opgeth-ecdsa.yml > initial-opgeth-ecdsa.yml
 
 
-yq -y --arg sp1key "$SP1_NETWORK_KEY" '
-.args.agglayer_prover_sp1_key = $sp1key |
-.args.sp1_prover_key = $sp1key
+# yq -y --arg sp1key "$SP1_NETWORK_KEY" '
+# .args.agglayer_prover_sp1_key = $sp1key |
+# .args.sp1_prover_key = $sp1key
+# ' ./assets/erigon-sovereign.yml > initial-erigon-sovereign.yml
+
+
+
+yq eval --arg sp1key "$SP1_NETWORK_KEY" '.args.sp1_prover_key = $sp1key' ./assets/opgeth-soverign.yml > initial-opgeth-soverign.yml
+
+yq eval --arg sp1key "$SP1_NETWORK_KEY" '.args.agglayer_prover_sp1_key = $sp1key' ./assets/opgeth-ecdsa.yml > initial-opgeth-ecdsa.yml
+
+yq eval --arg sp1key "$SP1_NETWORK_KEY" '
+  .args.agglayer_prover_sp1_key = $sp1key | 
+  .args.sp1_prover_key = $sp1key
 ' ./assets/erigon-sovereign.yml > initial-erigon-sovereign.yml
-
 
 
 
