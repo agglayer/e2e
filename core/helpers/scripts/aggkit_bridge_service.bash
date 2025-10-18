@@ -137,8 +137,6 @@ function claim_bridge() {
     local poll_frequency="$5"
     local source_network_id="$6"
     local bridge_addr="$7"
-    local manipulated_unused_bits="${8:-false}"
-    local manipulated_rollup_id="${9:-false}"
     local attempt=0
 
     while true; do
@@ -146,13 +144,8 @@ function claim_bridge() {
         log "🔍 Attempt ${attempt}/${max_attempts}: generate global index"
 
         local global_index
-        if [[ "$manipulated_unused_bits" == "true" || "$manipulated_rollup_id" == "true" ]]; then
-            global_index=$(generate_global_index "$bridge_info" "$source_network_id" "$manipulated_unused_bits" "$manipulated_rollup_id")
-            log "🔍 Generated Global index (manipulated): $global_index"
-        else
-            global_index=$(echo "$bridge_info" | jq -r '.global_index')
-            log "🔍 Extracted Global index: $global_index"
-        fi
+        global_index=$(echo "$bridge_info" | jq -r '.global_index')
+        log "🔍 Extracted Global index: $global_index"
 
         run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
         local request_result="$status"
@@ -161,11 +154,6 @@ function claim_bridge() {
         if [ "$request_result" -eq 0 ]; then
             log "🎉 Claim successful global_index: $global_index"
             echo "$global_index"
-            return 0
-        fi
-
-        if [ "$request_result" -eq 3 ] && [ "$manipulated_unused_bits" == "true" ]; then
-            log "🎉 Test success: InvalidGlobalIndex() (revert code 0x071389e9)"
             return 0
         fi
 
@@ -247,8 +235,6 @@ function claim_call() {
 function generate_global_index() {
     local bridge_info="$1"
     local source_network_id="$2"
-    local manipulated_unused_bits="${3:-false}"
-    local manipulated_rollup_id="${4:-false}"
     # Extract values from JSON
     deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
 
@@ -262,30 +248,12 @@ function generate_global_index() {
     # 192nd bit: (if mainnet is 0, then 1, otherwise 0)
     if [ "$source_network_id" -eq 0 ]; then
         final_value=$(echo "$final_value + 2^64" | bc)
-        if [ "$manipulated_unused_bits" == "true" ]; then
-            log "🔍 -------------------------- Manipulated unused bits: true"
-            # Offset for manipulated unused bits on mainnet (10 * 2^128)
-            MAINNET_UNUSED_BITS_OFFSET=$(echo "10 * 2^128" | bc)
-            final_value=$(echo "$final_value + $MAINNET_UNUSED_BITS_OFFSET" | bc)
-        fi
-        if [ "$manipulated_rollup_id" == "true" ]; then
-            log "🔍 -------------------------- Manipulated rollup id: true"
-            # Offset for manipulated rollup id on mainnet (10 * 2^32)
-            MAINNET_ROLLUP_ID_OFFSET=$(echo "10 * 2^32" | bc)
-            final_value=$(echo "$final_value + $MAINNET_ROLLUP_ID_OFFSET" | bc)
-        fi
     fi
 
     # 193-224 bits: (if mainnet is 0, 0; otherwise source_network_id - 1)
     if [ "$source_network_id" -ne 0 ]; then
         dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
         final_value=$(echo "$final_value + $dest_shifted" | bc)
-        if [ "$manipulated_unused_bits" == "true" ]; then
-            log "🔍 -------------------------- Manipulated unused bits: true"
-            # Offset for manipulated unused bits on mainnet (10 * 2^128)
-            MAINNET_UNUSED_BITS_OFFSET=$(echo "10 * 2^128" | bc)
-            final_value=$(echo "$final_value + $MAINNET_UNUSED_BITS_OFFSET" | bc)
-        fi
     fi
 
     # 225-256 bits: deposit_count (32 bits)

@@ -267,7 +267,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
 | Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
 | Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
-| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L297) | |
 | Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L245) | |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
