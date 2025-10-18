@@ -779,12 +779,23 @@ _setup_ephemeral_accounts_in_bulk() {
         # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1 (network 0)"
     fi
 
-    # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
-    local eth_fund_output
-    if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
-        _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
-        _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
-        return 1
+    # Check if network is using custom gas token on L2 - in this case, we'll sufficiently fund the ephemeral accounts with the custom ERC20 gas tokens.
+    if [[ $(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url") != "0x0000000000000000000000000000000000000000" ]]; then
+        # Fund 1 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+        local eth_fund_output
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000000 2>&1); then
+            _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with custom gas token"
+            _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
+            return 1
+        fi
+    else
+        # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+        local eth_fund_output
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
+            _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
+            _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
+            return 1
+        fi
     fi
 
     # Bulk fund and approve ERC20 tokens to ephemeral accounts
