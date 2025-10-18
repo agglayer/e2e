@@ -270,10 +270,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L297) | |
 | Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L245) | |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
-| Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
-| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L25) | |
+| Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
+| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L31) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L75) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L105) | |
+| Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
+| Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L477) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |

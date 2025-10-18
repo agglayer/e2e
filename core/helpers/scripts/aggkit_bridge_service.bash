@@ -43,7 +43,7 @@ function bridge_asset() {
         bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
         local bridge_tx_block_number
         bridge_tx_block_number=$(echo "$response" | grep "^blockNumber" | cut -f 2- -d ' ' | sed 's/ //g')
-        
+
         if [[ -n "$bridge_tx_hash" ]]; then
             log "🎉 Success: Tx Hash → $bridge_tx_hash (bn: $bridge_tx_block_number)"
             echo "$bridge_tx_hash"
@@ -310,7 +310,7 @@ function wait_for_expected_token() {
 
         # Fetch token mappings from the RPC
         local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id\""
-            
+
         token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
@@ -330,7 +330,7 @@ function wait_for_expected_token() {
         if [[ "$attempt" -ge "$max_attempts" ]]; then
             echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&3
             echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
-            echo "command: $cmd" 
+            echo "command: $cmd"
             echo "--- token_mappings_result"
             echo "$token_mappings_result"
             echo "--- token_mappings_result"
@@ -440,7 +440,7 @@ function get_bridge() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching bridge \ 
+        log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching bridge \
 (network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url from_address=$from_address)"
 
         # Build the query URL with optional from_address parameter
@@ -670,7 +670,7 @@ function process_bridge_claim() {
     local destination_aggkit_bridge_url="$7"
     local destination_rpc_url="$8"
     local from_address="${9:-}"
-    
+
 
     # 1. Fetch bridge details
     local bridge
@@ -876,4 +876,61 @@ function extract_claim_parameters_json() {
     # Return all parameters as a JSON object
     echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
     log "✅ ${asset_number} asset claim parameters extracted successfully"
+}
+
+function manage_aggkit_nodes() {
+    local service="$1"
+    local action="$2"  # start or stop
+    local kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
+
+    if [[ "$action" == "stop" ]]; then
+        if docker ps | grep "$service"; then
+            echo "Stopping $service..." >&3
+            kurtosis service stop "$kurtosis_enclave_name" "$service" || {
+                echo "Error: Failed to stop $service" >&3
+                return 1
+            }
+            echo "$service stopped." >&3
+        else
+            echo "Error: $service does not exist in enclave $kurtosis_enclave_name" >&3
+            return 1
+        fi
+    elif [[ "$action" == "start" ]]; then
+        echo "Starting $service..." >&3
+        kurtosis service start "$kurtosis_enclave_name" "$service" || {
+            echo "Error: Failed to start $service" >&3
+            return 1
+        }
+        echo "$service started." >&3
+    fi
+}
+
+function get_certificate_height() {
+    local aggkit_rpc_url=$1
+    height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
+    echo "$height"
+    return 0
+}
+
+function check_certificate_height() {
+    local expected_height=$1
+    local max_retries=${2:-10}
+    local retry_delay=${3:-5}
+
+    echo "=== Getting certificate height (expected: $expected_height, retry: $max_retries) ===" >&3
+    local retry_count=0
+    local height=0
+
+    while [ $retry_count -lt $max_retries ]; do
+        height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
+        echo "Certificate height: $height" >&3
+
+        if [ "$height" -eq "$expected_height" ]; then
+            echo "Certificate height: $height" >&3
+            return 0
+        fi
+
+        sleep $retry_delay
+        retry_count=$((retry_count + 1))
+    done
 }
