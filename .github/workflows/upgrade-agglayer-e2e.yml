@@ -89,7 +89,7 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p /tmp/agglayer-run
-          rsync -a scenarios/agglayer-upgrade-with-supplied/ /tmp/agglayer-run/
+          rsync -a scenarios/agglayer-upgrade-with-supplied-version/ /tmp/agglayer-run/
           chmod +x /tmp/agglayer-run/run.sh || true
           chmod +x /tmp/agglayer-run/lxly.sh || true
           chmod +x /tmp/agglayer-run/check_verification.sh || true
