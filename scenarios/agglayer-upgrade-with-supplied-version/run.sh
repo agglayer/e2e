@@ -111,13 +111,6 @@ run_verification_in_container() (
 # ----------------------------------------------------------------------
 # Load environment
 # ----------------------------------------------------------------------
-if [[ -f ../common/load-env.sh ]]; then
-    source ../common/load-env.sh
-else
-    echo "load-env.sh not found!"
-    exit 1
-fi
-
 if [ -f .env ]; then
     source .env
 else
