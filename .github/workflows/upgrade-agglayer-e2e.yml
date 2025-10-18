@@ -26,12 +26,13 @@ jobs:
 
     # Defaults for scheduled runs; inputs override on manual runs
     env:
-      FROM_TAG:              ${{ inputs.FROM_TAG || vars.NIGHTLY_FROM_TAG }}
-      TO_TAG:                ${{ inputs.TO_TAG   || vars.NIGHTLY_TO_TAG }}
-      ACTION:                ${{ inputs.ACTION   || vars.NIGHTLY_ACTION || 'upgrade' }}
-      KURTOSIS_PACKAGE_HASH: ${{ inputs.KURTOSIS_PACKAGE_HASH || vars.KURTOSIS_PACKAGE_HASH }}
-      ENCLAVE_NAME:          ${{ inputs.ENCLAVE_NAME          || vars.KURTOSIS_ENCLAVE_NAME }}
-      SP1_NETWORK_KEY:       ${{ inputs.SP1_NETWORK_KEY       || secrets.SP1_NETWORK_KEY }}
+      # Inputs (manual) → Repo Variables (nightly) → hard default (always)
+      FROM_TAG:              ${{ inputs.FROM_TAG || vars.NIGHTLY_FROM_TAG || '0.3.0-rc.21' }}
+      TO_TAG:                ${{ inputs.TO_TAG   || vars.NIGHTLY_TO_TAG   || '0.3.5' }}
+      ACTION:                ${{ inputs.ACTION   || vars.NIGHTLY_ACTION   || 'upgrade' }}
+      KURTOSIS_PACKAGE_HASH: ${{ inputs.KURTOSIS_PACKAGE_HASH || vars.KURTOSIS_PACKAGE_HASH || '' }}
+      ENCLAVE_NAME:          ${{ inputs.ENCLAVE_NAME          || vars.KURTOSIS_ENCLAVE_NAME || 'cdk' }}
+      SP1_NETWORK_KEY:       ${{ inputs.SP1_NETWORK_KEY       || secrets.SP1_NETWORK_KEY    || '' }}
       DOCKER_USERNAME:       ${{ secrets.DOCKER_USERNAME || '' }}
       DOCKER_TOKEN:          ${{ secrets.DOCKER_TOKEN || '' }}
       POLYCLI_VERSION:       v0.1.84
