@@ -49,31 +49,12 @@ jobs:
           password: ${{ env.DOCKER_TOKEN }}
 
        # Install kurtosis
-      - name: Install Kurtosis (retry + fallback)
-        env:
-            KURTOSIS_VERSION: v1.1.6
+      - name: Install Kurtosis (via apt.fury.io)
         run: |
             set -euxo pipefail
-            # Try the official installer (with retries)
-            for i in {1..5}; do
-            if curl -fsSL https://get.kurtosis.com | bash; then
-                echo "$HOME/.kurtosis/bin" >> "$GITHUB_PATH"
-                kurtosis version || kurtosis --version
-                exit 0
-            fi
-            echo "Attempt $i failed, retrying in 10s..."
-            sleep 10
-            done
-
-            # Fallback to GitHub release asset
-            VER_NO_V="${KURTOSIS_VERSION#v}"
-            ASSET="kurtosis_${VER_NO_V}_linux_amd64.tar.gz"
-            URL="https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/download/${KURTOSIS_VERSION}/${ASSET}"
-            curl -fsSLI "$URL" | head -n 1
-            curl -fsSL -o "$ASSET" "$URL"
-            tar -tzf "$ASSET" >/dev/null
-            tar -xzf "$ASSET"
-            sudo install -m 0755 kurtosis /usr/local/bin/kurtosis
+            echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+            sudo apt update
+            sudo apt install -y kurtosis-cli
             kurtosis version || kurtosis --version
 
        # Install polycli
