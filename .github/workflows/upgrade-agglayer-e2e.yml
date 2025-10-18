@@ -96,29 +96,27 @@ jobs:
 
     #         rm -rf "$tmpdir"
 
-
-      - name: Install jq 1.6 and yq v4 (compatible with your script)
+      - name: Force install yq 3.4.3 (legacy)
         run: |
             set -euxo pipefail
             tmpdir="$(mktemp -d)"
 
-            # --- jq 1.6 (override Ubuntu's jq 1.7) ---
-            curl -fsSL -o "$tmpdir/jq" \
-            https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux64
-            sudo install -m 0755 "$tmpdir/jq" /usr/local/bin/jq
-            jq --version   # -> jq-1.6
+            echo "Removing any existing yq installation"
+            sudo rm -f /usr/bin/yq /usr/local/bin/yq || true
 
-            # --- yq v4.x (Mike Farah) ---
-            # remove any older yq (v3) so the right one is used
-            sudo rm -f /usr/local/bin/yq /usr/bin/yq || true
+            echo "Downloading yq 3.4.3 binary from mikefarah/yq"
+            curl -fsSL -o "$tmpdir/yq" https://github.com/mikefarah/yq/releases/download/3.4.3/yq_linux_amd64
 
-            YQ_VERSION="v4.44.3"   # pick a specific v4 version
-            curl -fsSL -o "$tmpdir/yq" \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+            echo "Installing yq 3.4.3 to /usr/local/bin"
             sudo install -m 0755 "$tmpdir/yq" /usr/local/bin/yq
-            yq --version   # -> yq 4.44.3 (or your chosen v4)
 
+            echo "Checking yq version"
+            which yq
+            yq --version
+
+            echo "Cleaning up temp dir"
             rm -rf "$tmpdir"
+
 
       - name: Prepare /tmp run folder
         run: |
