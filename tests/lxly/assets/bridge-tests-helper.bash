@@ -402,6 +402,8 @@ deploy_test_erc20() {
 # =============================================================================
 
 _generate_ephemeral_account() {
+    # Fix date to specific timezone for consistency
+    export TZ='Asia/Seoul'
     local test_index="$1"
     
     # Generate a deterministic but unique private key based on test index
@@ -789,9 +791,9 @@ _setup_ephemeral_accounts_in_bulk() {
             return 1
         fi
     else
-        # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+        # Fund 0.005 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
-        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 5000000000000000 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
             _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
             return 1
