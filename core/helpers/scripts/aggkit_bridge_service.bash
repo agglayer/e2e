@@ -43,7 +43,7 @@ function bridge_asset() {
         bridge_tx_hash=$(echo "$response" | grep "^transactionHash" | cut -f 2- -d ' ' | sed 's/ //g')
         local bridge_tx_block_number
         bridge_tx_block_number=$(echo "$response" | grep "^blockNumber" | cut -f 2- -d ' ' | sed 's/ //g')
-        
+
         if [[ -n "$bridge_tx_hash" ]]; then
             log "🎉 Success: Tx Hash → $bridge_tx_hash (bn: $bridge_tx_block_number)"
             echo "$bridge_tx_hash"
@@ -310,7 +310,7 @@ function wait_for_expected_token() {
 
         # Fetch token mappings from the RPC
         local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id\""
-            
+
         token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
 
         # Extract the first origin_token_address (if available)
@@ -330,7 +330,7 @@ function wait_for_expected_token() {
         if [[ "$attempt" -ge "$max_attempts" ]]; then
             echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&3
             echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
-            echo "command: $cmd" 
+            echo "command: $cmd"
             echo "--- token_mappings_result"
             echo "$token_mappings_result"
             echo "--- token_mappings_result"
@@ -440,7 +440,7 @@ function get_bridge() {
 
     while ((attempt < max_attempts)); do
         ((attempt++))
-        log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching bridge \ 
+        log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching bridge \
 (network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url from_address=$from_address)"
 
         # Build the query URL with optional from_address parameter
@@ -484,6 +484,53 @@ function get_bridge() {
     done
 
     log "❌ $debug_msg Failed to find bridge after $max_attempts attempts."
+    return 1
+}
+
+function get_total_bridges() {
+    local network_id="$1"
+    local aggkit_url="$2"
+    local max_attempts="$3"
+    local poll_frequency="$4"
+
+    local attempt=0
+    local bridges_result=""
+
+    while ((attempt < max_attempts)); do
+        ((attempt++))
+        log "🔎 Attempt $attempt/$max_attempts: fetching total bridges \
+(network id = $network_id, bridge indexer url = $aggkit_url)"
+
+        # Capture both stdout (bridges result) and stderr (error message)
+        bridges_result=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
+
+        # Check if the response contains an error
+        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* ]]; then
+            log "⚠️ Error: $bridges_result"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$bridges_result" == "" ]]; then
+            log "Empty bridges response retrieved, retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Extract the total number of bridges
+        local total_bridges
+        total_bridges=$(echo "$bridges_result" | jq -r '.count')
+
+        if [[ "$total_bridges" != "null" && "$total_bridges" != "" ]]; then
+            echo "$total_bridges"
+            return 0
+        fi
+
+        sleep "$poll_frequency"
+    done
+
+    log "❌ Failed to find total bridges after $max_attempts attempts."
     return 1
 }
 
@@ -670,7 +717,7 @@ function process_bridge_claim() {
     local destination_aggkit_bridge_url="$7"
     local destination_rpc_url="$8"
     local from_address="${9:-}"
-    
+
 
     # 1. Fetch bridge details
     local bridge
