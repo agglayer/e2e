@@ -73,7 +73,7 @@ jobs:
       # Network-specific RPC endpoints from secrets
       BALI_01_RPC_ENDPOINT: ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
       BALI_37_RPC_ENDPOINT: ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
-      BALI_48_RPC_ENDPOINT: ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
+      # BALI_48_RPC_ENDPOINT: ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
       BALI_49_RPC_ENDPOINT: ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
       BALI_52_RPC_ENDPOINT: ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
       BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
@@ -151,9 +151,9 @@ jobs:
           cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
           echo "Bali-37 chain ID validation passed"
           
-          echo "Validating Bali-48 endpoint..."
-          cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
-          echo "Bali-48 chain ID validation passed"
+          # echo "Validating Bali-48 endpoint..."
+          # cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
+          # echo "Bali-48 chain ID validation passed"
           
           echo "Validating Bali-49 endpoint..."
           cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
@@ -205,8 +205,8 @@ jobs:
           export BALI_NETWORK_37_RPC_URL="${{ env.BALI_37_RPC_ENDPOINT }}"
           export BALI_NETWORK_37_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
           
-          export BALI_NETWORK_48_RPC_URL="${{ env.BALI_48_RPC_ENDPOINT }}"
-          export BALI_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          # export BALI_NETWORK_48_RPC_URL="${{ env.BALI_48_RPC_ENDPOINT }}"
+          # export BALI_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
           
           export BALI_NETWORK_49_RPC_URL="${{ env.BALI_49_RPC_ENDPOINT }}"
           export BALI_NETWORK_49_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
@@ -232,9 +232,9 @@ jobs:
           echo "Bali-37 Bridge Address: $BALI_NETWORK_37_BRIDGE_ADDR"
           echo "Bali-37 Bridge Service: $BALI_NETWORK_37_BRIDGE_SERVICE_URL"
           
-          echo "Bali-48 RPC URL: ${BALI_NETWORK_48_RPC_URL:0:20}..."
-          echo "Bali-48 Bridge Address: $BALI_NETWORK_48_BRIDGE_ADDR"
-          echo "Bali-48 Bridge Service: $BALI_NETWORK_48_BRIDGE_SERVICE_URL"
+          # echo "Bali-48 RPC URL: ${BALI_NETWORK_48_RPC_URL:0:20}..."
+          # echo "Bali-48 Bridge Address: $BALI_NETWORK_48_BRIDGE_ADDR"
+          # echo "Bali-48 Bridge Service: $BALI_NETWORK_48_BRIDGE_SERVICE_URL"
           
           echo "Bali-49 RPC URL: ${BALI_NETWORK_49_RPC_URL:0:20}..."
           echo "Bali-49 Bridge Address: $BALI_NETWORK_49_BRIDGE_ADDR"

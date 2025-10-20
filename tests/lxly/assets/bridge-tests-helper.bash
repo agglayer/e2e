@@ -73,7 +73,7 @@ _initialize_network_config() {
             ["0"]="sepolia"
             ["1"]="bali_1"
             ["37"]="bali_37"
-            ["48"]="bali_48"
+            # ["48"]="bali_48"
             ["49"]="bali_49"
             ["52"]="bali_52"
             ["57"]="bali_57"
@@ -84,7 +84,7 @@ _initialize_network_config() {
             ["sepolia"]="0"
             ["bali_1"]="1"
             ["bali_37"]="37"
-            ["bali_48"]="48"
+            # ["bali_48"]="48"
             ["bali_49"]="49"
             ["bali_52"]="52"
             ["bali_57"]="57"
@@ -791,9 +791,9 @@ _setup_ephemeral_accounts_in_bulk() {
             return 1
         fi
     else
-        # Fund 0.005 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+        # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
-        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 5000000000000000 2>&1); then
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
             _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
             return 1
