@@ -303,41 +303,48 @@ function wait_for_expected_token() {
 
     local attempt=0
     local token_mappings_result
-    local origin_token_address
+    local found_match=false
 
     while true; do
         ((attempt++))
 
-        # Fetch token mappings from the RPC
+        # Construct and run the curl command
         local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id\""
-            
-        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
+        token_mappings_result=$(eval "$cmd")
 
-        # Extract the first origin_token_address (if available)
-        origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+        # Extract all origin_token_address entries
+        local all_tokens
+        mapfile -t all_tokens < <(echo "$token_mappings_result" | jq -r '.token_mappings[].origin_token_address // empty')
 
-        echo "🔍 Attempt $attempt/$max_attempts: found origin_token_address = $origin_token_address \
-(expected origin token = $expected_origin_token, network id = $network_id, bridge indexer url = $aggkit_url)" >&3
+        echo "🔍 Attempt $attempt/$max_attempts: checking ${#all_tokens[@]} token(s) for expected origin token '$expected_origin_token' \
+(network id = $network_id, bridge indexer url = $aggkit_url)" >&3
 
-        # Break loop if the expected token is found (case-insensitive)
-        if [[ "${origin_token_address,,}" == "${expected_origin_token,,}" ]]; then
-            echo "Success: Expected origin_token_address '$expected_origin_token' found. Exiting loop." >&3
+        # Check if expected token exists among the results (case-insensitive)
+        for token in "${all_tokens[@]}"; do
+            if [[ "${token,,}" == "${expected_origin_token,,}" ]]; then
+                found_match=true
+                break
+            fi
+        done
+
+        if [[ "$found_match" == true ]]; then
+            echo "✅ Success: Expected origin_token_address '$expected_origin_token' found among token_mappings." >&3
             echo "$token_mappings_result"
             return 0
         fi
 
-        # Fail test if max attempts are reached
-        if [[ "$attempt" -ge "$max_attempts" ]]; then
-            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&3
-            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
-            echo "command: $cmd" 
-            echo "--- token_mappings_result"
+        # Fail if max attempts reached
+        if (( attempt >= max_attempts )); then
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address '$expected_origin_token'." >&3
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address '$expected_origin_token'." >&2
+            echo "Command: $cmd"
+            echo "--- token_mappings_result ---"
             echo "$token_mappings_result"
-            echo "--- token_mappings_result"
+            echo "--- token_mappings_result ---"
             return 1
         fi
 
-        # Sleep before the next attempt
+        # Wait before the next poll
         sleep "$poll_frequency"
     done
 }

@@ -321,7 +321,7 @@ setup() {
     assert_success
 
     # Wait for token mapping for Asset A
-    run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 10 100 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_a=$output
     local l2_token_addr_a
@@ -401,7 +401,7 @@ setup() {
     assert_success
 
     # Wait for token mapping for Asset B
-    run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 10 100 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l1_erc20_addr_b" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_b=$output
     local l2_token_addr_b
@@ -418,7 +418,7 @@ setup() {
     assert_success
 
     # Wait for token mapping for Asset A
-    run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 10 100 "$aggkit_bridge_url"
+    run wait_for_expected_token "$l1_erc20_addr_a" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
     assert_success
     local token_mappings_result_a=$output
     local l2_token_addr_a
