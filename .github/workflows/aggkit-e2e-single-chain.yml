@@ -83,6 +83,12 @@ jobs:
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
 
+      - name: Install Kurtosis CLI and Foundry
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        with:
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}
+
       - name: Download binary
         if: inputs.aggsender-find-imported-bridge-artifact != ''
         uses: actions/download-artifact@v4
@@ -103,12 +109,6 @@ jobs:
               docker load --input /tmp/${{ inputs.docker-artifact-name }}.tar
               docker images
           fi
-
-      - name: Install Kurtosis CLI and Foundry
-        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
-        with:
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_token: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Install jq
         run: sudo apt-get install jq -y
@@ -151,11 +151,10 @@ jobs:
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats \
                  || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
-            bats ./tests/op/optimistic-mode.bats \
-                 ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
-                 || exit 1
+            bats  ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats  ./tests/op/optimistic-mode.bats || exit 1
+            bats  ./tests/aggkit/e2e-pp.bats || exit 1
+            bats  ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
 
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
               bats ./tests/aggkit/bridge-e2e-nightly.bats \
@@ -164,10 +163,9 @@ jobs:
                    || exit 1
             fi
           else
-            bats ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 || exit 1
-
+            bats ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats ./tests/aggkit/e2e-pp.bats || exit 1
+                 
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
               bats ./tests/aggkit/bridge-e2e-nightly.bats \
                    ./tests/aggkit/internal-claims.bats \

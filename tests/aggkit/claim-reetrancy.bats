@@ -227,7 +227,7 @@ setup() {
     # ========================================
     log "🌉 STEP 7: Claiming second asset (should succeed)"
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "claim_reentrancy: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
     local global_index_2_claimed=$output
     log "✅ Second asset claimed successfully, global index: $global_index_2_claimed"
