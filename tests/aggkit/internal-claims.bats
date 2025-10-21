@@ -301,7 +301,7 @@ setup() {
         # Validate the bridge service get claims API to verify all claims were processed
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
-        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
@@ -366,7 +366,7 @@ setup() {
         log "✅ First claim all fields validated successfully"
 
         log "🔍 Validating second asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -431,7 +431,7 @@ setup() {
         log "✅ Second claim all fields validated successfully"
 
         log "🔍 Validating third asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
@@ -770,7 +770,7 @@ setup() {
 
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
-        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
@@ -836,7 +836,7 @@ setup() {
 
         log "🔍 Validating third asset claim was processed"
         log "Global index: $global_index_3"
-        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
@@ -1215,7 +1215,7 @@ setup() {
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -1620,7 +1620,7 @@ setup() {
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed (should succeed with global_index_2)"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
