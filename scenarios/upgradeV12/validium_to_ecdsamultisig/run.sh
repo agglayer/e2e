@@ -640,7 +640,5 @@ docker run -it \
     --components=aggsender
 
 
-# To review: something may be wrong on kurtosis, because when updating services, aggkit fails, we need to set all files on /etc/aggkit
-# kurtosis service update --image $aggkit_image --files "/etc/aggkit/:aggkit-config-artifact|aggkit-sequencer-keystore|aggkit-claimtxmanager-keystore|aggoracle-keystore" upgradeV12 aggkit-001
+kurtosis service update --env L2_RPC_URL=http://cdk-erigon-sequencer-001:8123 $kurtosis_enclave_name bridge-spammer-001
 
-kurtosis service start "$kurtosis_enclave_name" bridge-spammer-001
