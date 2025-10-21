@@ -143,7 +143,7 @@ function claim_bridge() {
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt ${attempt}/${max_attempts}: generate global index"
+        log "🔍 Attempt ${attempt}/${max_attempts}: claim bridge"
 
         local global_index
         if [[ "$manipulated_unused_bits" == "true" || "$manipulated_rollup_id" == "true" ]]; then
@@ -678,10 +678,9 @@ function process_bridge_claim() {
     local destination_rpc_url="$8"
     local from_address="${9:-}"
     
-
     # 1. Fetch bridge details
     local bridge
-    # n_attempts= 40 / sleep=30s -> around 15mins max wait time
+    # n_attempts=34 / sleep=30s -> 17 mins max wait time
     bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 34 30 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         return 1
@@ -829,6 +828,9 @@ function extract_claim_parameters_json() {
     log "📝 ${asset_number} bridge response: $bridge_response"
     local deposit_count
     deposit_count=$(echo "$bridge_response" | jq -r '.deposit_count')
+    local global_index
+    global_index=$(echo "$bridge_response" | jq -r '.global_index')
+    log "📝 ${asset_number} global index: $global_index"
 
     log "🌳 Getting L1 info tree index for ${asset_number} bridge"
     run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
@@ -858,11 +860,6 @@ function extract_claim_parameters_json() {
     proof_local_exit_root=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
     local proof_rollup_exit_root
     proof_rollup_exit_root=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_response" "$l1_rpc_network_id"
-    assert_success
-    local global_index
-    global_index=$output
-    log "📝 ${asset_number} global index: $global_index"
     local mainnet_exit_root
     mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     local rollup_exit_root
@@ -882,5 +879,4 @@ function extract_claim_parameters_json() {
 
     # Return all parameters as a JSON object
     echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
-    log "✅ ${asset_number} asset claim parameters extracted successfully"
 }
