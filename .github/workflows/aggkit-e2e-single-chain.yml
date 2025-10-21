@@ -156,6 +156,7 @@ jobs:
               bats ./tests/aggkit/internal-claims.bats || exit 1
               bats ./tests/aggkit/claim-reetrancy.bats || exit 1
             fi
+          fi
           popd
 
       - name: Dump enclave logs
