@@ -115,8 +115,8 @@ echo "Operation id: $operationId"
 
 # wait for operation to be ready
 while [ "$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' '$operationId'")" == "false" ]; do
-    echo "Operation not ready. Retrying in 10 seconds..."
-    sleep 10
+    echo "Timelock operation not ready. Retrying in 15 seconds... (mindelay is $min_delay seconds)"
+    sleep 15
 done
 
 # Execute operation
@@ -240,61 +240,33 @@ add_rollup_type_json='{
   "outputPath": "add_rollup_type_output_ecdsamultisig.json"
 }'
 
-echo "Adding new rollup type for FEP v3"
+echo "Adding new rollup type for Multisig ECDSA"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$add_rollup_type_json' > /opt/agglayer-contracts/tools/addRollupType/add_rollup_type.json"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost"
 
 new_rollup_type_id=$(curl -s "${contracts_url}/opt/agglayer-contracts/tools/addRollupType/add_rollup_type_output_ecdsamultisig.json" | jq -r '.rollupTypeID')
 
 
-                    ##                                                                 ##          ##                            ##                    
-                    ##               :####                                             ##   :####  ##                            ##                    
-                    ##   ##          #####                                             ##   #####  ##                    ##      ##                    
-                         ##          ##                                                     ##                           ##                            
-##      ##:####   #### #######     ####### .####. ##.####     ##:  :## .####: ##.######## ###########     ####: :####  ####### ####    .####. ##.####  
-##.    .########  #### #######     #######.######.#######      ##  ## .######:########### ###########   ####### ###### ####### ####   .######.#######  
- #: ## :# #:  :##   ##   ##          ##   ###  ######.        :##  ##:##:  :#####.     ##   ##     ##   ##:  :# #:  :##  ##      ##   ###  ######  :## 
- #:.##.:#: :#####   ##   ##          ##   ##.  .####           ##..## ##########       ##   ##     ##  ##.       :#####  ##      ##   ##.  .####    ## 
- # :##:##.#######   ##   ##          ##   ##    ####           ##::## ##########       ##   ##     ##  ##      .#######  ##      ##   ##    ####    ## 
- ## ## #### .  ##   ##   ##          ##   ##.  .####           :####: ##      ##       ##   ##     ##  ##.     ## .  ##  ##      ##   ##.  .####    ## 
- ###::## ##:  ###   ##   ##.         ##   ###  #####            ####  ###.  :###       ##   ##     ##   ##:  .###:  ###  ##.     ##   ###  #####    ## 
-  ##..##:#####################       ##   .######.##            ####  .#########    ##########  #######################  #############.######.##    ## 
-  ##  ##   ###.##########.####       ##    .####. ##            :##:   .#####:##    ##########  ########  ####:  ###.##  .############ .####. ##    ## 
-
-kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
-
-            # address rollupContract,
-            # uint64 chainID,
-            # address verifier,
-            # uint64 forkID,
-            # bytes32 lastLocalExitRoot,
-            # uint64 lastBatchSequenced,
-            # uint64 lastVerifiedBatch,
-            # uint64 legacyLastPendingState,
-            # uint64 legacyLastPendingStateConsolidated,
-            # uint64 lastVerifiedBatchBeforeUpgrade,
-            # uint64 rollupTypeID,
-            # VerifierType rollupVerifierType
+ ##            ####                                  ##                            ##       
+ ##            ####   ##                             ##                ##          ##       
+ ##              ##   ##                             ##                ##          ##       
+ ##.####  :####  ## #######      .####. ##.####      ##.###:  :####  #######  ####:##.####  
+ #######  ###### ## #######     .######.#######      #######: ###### #####################  
+ ###  :## #:  :####   ##        ###  ######  :##     ###  ### #:  :##  ##   ##:  :####  :## 
+ ##    ##  :#######   ##        ##.  .####    ##     ##.  .##  :#####  ##  ##.     ##    ## 
+ ##    ##.#########   ##        ##    ####    ##     ##    ##.#######  ##  ##      ##    ## 
+ ##    #### .  ####   ##        ##.  .####    ##     ##.  .#### .  ##  ##  ##.     ##    ## 
+ ##    ####:  #####:  ##.       ###  #####    ##     ###  #####:  ###  ##.  ##:  .###    ## 
+ ##    ####################     .######.##    ##     #######:########  ##############    ## 
+ ##    ##  ###.##.####.####      .####. ##    ##     ##.###:   ###.##  .####  ####:##    ## 
 
 rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
-rollup_address=$(echo "$rollupdata" | jq -r '.[0]')
-chain_id=$(echo "$rollupdata" | jq -r '.[1]')
 last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
-last_verified=$(echo "$rollupdata" | jq -r '.[6]')
-halt_on_batch_number=$((last_sequenced + 5))
+halt_on_batch_number=$((last_sequenced + 20))
 
 kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.sequencer-halt-on-batch-number: 0$/zkevm.sequencer-halt-on-batch-number: $halt_on_batch_number/' /etc/cdk-erigon/config.yaml"
 kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
 kurtosis service start "$kurtosis_enclave_name" cdk-erigon-sequencer-001
-
-while [ $last_sequenced -gt $last_verified ]; do
-    echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified, Halt on batch number: $halt_on_batch_number"
-    sleep 10
-    rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
-    last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
-    last_verified=$(echo "$rollupdata" | jq -r '.[6]')
-done
-echo "Everything is verified. Last sequenced batch: $last_sequenced, Last verified batch: $last_verified halt on batch number: $halt_on_batch_number"
 
 
                   ##                                                                 ##            
@@ -341,6 +313,65 @@ kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'z
 # kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'zkevm.initial-commitment: pmt' >> /etc/cdk-erigon/config.yaml"
 
 
+                    ##                                                                 ##          ##                            ##                    
+                    ##               :####                                             ##   :####  ##                            ##                    
+                    ##   ##          #####                                             ##   #####  ##                    ##      ##                    
+                         ##          ##                                                     ##                           ##                            
+##      ##:####   #### #######     ####### .####. ##.####     ##:  :## .####: ##.######## ###########     ####: :####  ####### ####    .####. ##.####  
+##.    .########  #### #######     #######.######.#######      ##  ## .######:########### ###########   ####### ###### ####### ####   .######.#######  
+ #: ## :# #:  :##   ##   ##          ##   ###  ######.        :##  ##:##:  :#####.     ##   ##     ##   ##:  :# #:  :##  ##      ##   ###  ######  :## 
+ #:.##.:#: :#####   ##   ##          ##   ##.  .####           ##..## ##########       ##   ##     ##  ##.       :#####  ##      ##   ##.  .####    ## 
+ # :##:##.#######   ##   ##          ##   ##    ####           ##::## ##########       ##   ##     ##  ##      .#######  ##      ##   ##    ####    ## 
+ ## ## #### .  ##   ##   ##          ##   ##.  .####           :####: ##      ##       ##   ##     ##  ##.     ## .  ##  ##      ##   ##.  .####    ## 
+ ###::## ##:  ###   ##   ##.         ##   ###  #####            ####  ###.  :###       ##   ##     ##   ##:  .###:  ###  ##.     ##   ###  #####    ## 
+  ##..##:#####################       ##   .######.##            ####  .#########    ##########  #######################  #############.######.##    ## 
+  ##  ##   ###.##########.####       ##    .####. ##            :##:   .#####:##    ##########  ########  ####:  ###.##  .############ .####. ##    ## 
+
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+
+            # address rollupContract,
+            # uint64 chainID,
+            # address verifier,
+            # uint64 forkID,
+            # bytes32 lastLocalExitRoot,
+            # uint64 lastBatchSequenced,
+            # uint64 lastVerifiedBatch,
+            # uint64 legacyLastPendingState,
+            # uint64 legacyLastPendingStateConsolidated,
+            # uint64 lastVerifiedBatchBeforeUpgrade,
+            # uint64 rollupTypeID,
+            # VerifierType rollupVerifierType
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+rollup_address=$(echo "$rollupdata" | jq -r '.[0]')
+chain_id=$(echo "$rollupdata" | jq -r '.[1]')
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+
+target_batch=$((halt_on_batch_number - 1))
+
+timeout=600  # we wait for 10 minutes
+while [ $target_batch -gt $last_verified ] && [ $timeout -gt 0 ]; do
+    echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified, Halt on batch number: $halt_on_batch_number (time left: $timeout seconds)"
+    sleep 20
+    rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+    last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+    last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+    timeout=$((timeout - 20))
+done
+
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+
+if [ $last_sequenced -gt $last_verified ]; then
+    echo "ERROR: Last sequenced batch is greater than last verified batch: $last_sequenced > $last_verified"
+    exit 1
+else
+    echo "Everything is verified. Last sequenced batch: $last_sequenced, Last verified batch: $last_verified halt on batch number: $halt_on_batch_number"
+    kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+fi
+
+
            ##                                                                                          ##            
            ##                                                                                          ##            
    #####.####### .####. ##.###:         ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
@@ -357,7 +388,6 @@ kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'z
                         ##                                   ##                                                      
 
 # these will be started again later
-kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
 kurtosis service stop "$kurtosis_enclave_name" agglayer
 kurtosis service stop "$kurtosis_enclave_name" agglayer-prover
 kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-rpc-001
@@ -366,15 +396,16 @@ kurtosis service stop "$kurtosis_enclave_name" cdk-node-001
 kurtosis service stop "$kurtosis_enclave_name" zkevm-prover-001
 kurtosis service stop "$kurtosis_enclave_name" zkevm-stateless-executor-001
 
-# recheck everything is verified
+# recheck everything is verified once more time
 rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
 last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
 last_verified=$(echo "$rollupdata" | jq -r '.[6]')
 echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
 if [ $last_sequenced -gt $last_verified ]; then
-    echo "ERROR: Last sequenced batch is greater than last verified batch"
+    echo "ERROR: Last sequenced batch is greater than last verified batch: $last_sequenced > $last_verified"
+    exit 1
 else
-    echo "Everything is verified"
+    echo "Everything is verified. Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
 fi
 
 
@@ -420,8 +451,10 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --privat
                                                                    ##                                                      
                                                                    ##                                                      
 
-# version required to support zkevm.honour-chainspec and zkevm.initial-commitment flags
-cdk_erigon_node_image=hermeznetwork/cdk-erigon:v2.63.0-rc4
+# version required to support zkevm.honour-chainspec
+# bug in this version does not allow rpc to sync:
+# cdk_erigon_node_image=hermeznetwork/cdk-erigon:v2.63.0-rc4
+cdk_erigon_node_image=hermeznetwork/cdk-erigon:v2.64.0-RC6
 
 cdk_erigon_sequencer_data=$(docker inspect cdk-erigon-sequencer-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-sequencer-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/home/erigon/data/dynamic-kurtosis-sequencer") | .Source')
 cdk_erigon_sequencer_etc=$(docker inspect cdk-erigon-sequencer-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-sequencer-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/etc/cdk-erigon") | .Source')
@@ -467,20 +500,20 @@ sudo bash -c "cp -r \"$cdk_erigon_rpc_prunner\"/* ${tmp_folder}/prunner/"
 
 # replace "old" sequenccer ip by the name
 sed -i -E 's|^(zkevm\.l2-datastreamer-url:\s*)[^:#[:space:]]+:6900\s*$|\1cdk-erigon-sequencer-001:6900|' ${tmp_folder}/etc/config.yaml
+sed -i -E 's|^(zkevm\.l2-sequencer-rpc-url:\s*http://)[^:/[:space:]]+:8123\s*$|\1cdk-erigon-sequencer-001:8123|' ${tmp_folder}/etc/config.yaml
+
 
 docker stop cdk-erigon-rpc-001 && docker rm cdk-erigon-rpc-001
-# ERRORS ON RPC FOR EVERY BLOCK:
-# EROR[10-20|11:59:39.025] [8/16 IntermediateHashesV3] Wrong trie root of block 1852: 0ce866f9e307c2b9efec98e3e2b69aa4143a2bf6b6a0b4adf67ee40425ee47c0, expected (from header): 602718d913bdcf6b6ba91fb21aa304f30d48ce094612750bddacc29aaa272537. Block hash: e2b8b027a0661f6d6242c636043dad674152e60f2f33350c11f0d440698a7d11
-# docker run -it \
-#     --detach \
-#     --network $docker_network_name \
-#     --name cdk-erigon-rpc-001 \
-#     -v $(pwd)/${tmp_folder}/etc:/etc/cdk-erigon \
-#     -v $(pwd)/${tmp_folder}/home:/home/erigon/dynamic-configs \
-#     -v $(pwd)/${tmp_folder}/prunner:/usr/local/share/proc-runner \
-#     --entrypoint /usr/local/share/proc-runner/proc-runner.sh \
-#     "$cdk_erigon_node_image" \
-#     "cdk-erigon --config /etc/cdk-erigon/config.yaml"
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name cdk-erigon-rpc-001 \
+    -v $(pwd)/${tmp_folder}/etc:/etc/cdk-erigon \
+    -v $(pwd)/${tmp_folder}/home:/home/erigon/dynamic-configs \
+    -v $(pwd)/${tmp_folder}/prunner:/usr/local/share/proc-runner \
+    --entrypoint /usr/local/share/proc-runner/proc-runner.sh \
+    "$cdk_erigon_node_image" \
+    "cdk-erigon --config /etc/cdk-erigon/config.yaml"
 
 
 # kurtosis service update --image $cdk_erigon_node_image $kurtosis_enclave_name cdk-erigon-sequencer-001
@@ -631,6 +664,7 @@ sed -i 's/REPLACE_BRIDGE_L2_ADDRESS/'$bridge_l2_address'/' aggkit/etc/aggkit-con
 
 docker stop aggkit-001 && docker rm aggkit-001
 docker run -it \
+    --detach \
     --network $docker_network_name \
     --name aggkit-001 \
     -v "$(pwd)"/aggkit/etc:/etc/aggkit \
@@ -641,4 +675,3 @@ docker run -it \
 
 
 kurtosis service update --env L2_RPC_URL=http://cdk-erigon-sequencer-001:8123 $kurtosis_enclave_name bridge-spammer-001
-
