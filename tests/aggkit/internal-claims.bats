@@ -908,7 +908,7 @@ setup() {
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
         local all_claims_result
-        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
         log "📝 All claims response: $all_claims_result"
 
         # Check if second claim (failed) is present in the API response
@@ -1287,7 +1287,7 @@ setup() {
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
         local all_claims_result
-        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) with global_index_1 is present in the API response
@@ -1692,7 +1692,7 @@ setup() {
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
         local all_claims_result
-        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) with global_index_1 is present in the API response

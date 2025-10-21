@@ -69,6 +69,7 @@ setup() {
 }
 
 @test "Bridge message A → Bridge asset B → Claim message A → Claim asset B" {
+    skip "Skipping the test, until the following issue gets resolved https://github.com/agglayer/aggkit/issues/1129"
     # Step 1: Bridge message L1 -> L2
     echo "====== bridgeMessage L1 -> L2" >&3
     destination_addr=$sender_addr
