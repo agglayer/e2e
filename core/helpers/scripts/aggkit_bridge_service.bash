@@ -141,7 +141,7 @@ function claim_bridge() {
 
     while true; do
         ((attempt++))
-        log "🔍 Attempt ${attempt}/${max_attempts}: generate global index"
+        log "🔍 Attempt ${attempt}/${max_attempts}: claim bridge"
 
         local global_index
         global_index=$(echo "$bridge_info" | jq -r '.global_index')
@@ -271,41 +271,48 @@ function wait_for_expected_token() {
 
     local attempt=0
     local token_mappings_result
-    local origin_token_address
+    local found_match=false
 
     while true; do
         ((attempt++))
 
-        # Fetch token mappings from the RPC
+        # Construct and run the curl command
         local cmd="curl -s -H \"Content-Type: application/json\" \"$aggkit_url/bridge/v1/token-mappings?network_id=$network_id\""
+        token_mappings_result=$(eval "$cmd")
 
-        token_mappings_result=$(curl -s -H "Content-Type: application/json" "$aggkit_url/bridge/v1/token-mappings?network_id=$network_id")
+        # Extract all origin_token_address entries
+        local all_tokens
+        mapfile -t all_tokens < <(echo "$token_mappings_result" | jq -r '.token_mappings[].origin_token_address // empty')
 
-        # Extract the first origin_token_address (if available)
-        origin_token_address=$(echo "$token_mappings_result" | jq -r '.token_mappings[0].origin_token_address')
+        echo "🔍 Attempt $attempt/$max_attempts: checking ${#all_tokens[@]} token(s) for expected origin token '$expected_origin_token' \
+(network id = $network_id, bridge indexer url = $aggkit_url)" >&3
 
-        echo "🔍 Attempt $attempt/$max_attempts: found origin_token_address = $origin_token_address \
-(expected origin token = $expected_origin_token, network id = $network_id, bridge indexer url = $aggkit_url)" >&3
+        # Check if expected token exists among the results (case-insensitive)
+        for token in "${all_tokens[@]}"; do
+            if [[ "${token,,}" == "${expected_origin_token,,}" ]]; then
+                found_match=true
+                break
+            fi
+        done
 
-        # Break loop if the expected token is found (case-insensitive)
-        if [[ "${origin_token_address,,}" == "${expected_origin_token,,}" ]]; then
-            echo "Success: Expected origin_token_address '$expected_origin_token' found. Exiting loop." >&3
+        if [[ "$found_match" == true ]]; then
+            echo "✅ Success: Expected origin_token_address '$expected_origin_token' found among token_mappings." >&3
             echo "$token_mappings_result"
             return 0
         fi
 
-        # Fail test if max attempts are reached
-        if [[ "$attempt" -ge "$max_attempts" ]]; then
-            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&3
-            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address." >&2
-            echo "command: $cmd"
-            echo "--- token_mappings_result"
+        # Fail if max attempts reached
+        if (( attempt >= max_attempts )); then
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address '$expected_origin_token'." >&3
+            echo "❌ Error: Reached max attempts ($max_attempts) without finding expected origin_token_address '$expected_origin_token'." >&2
+            echo "Command: $cmd"
+            echo "--- token_mappings_result ---"
             echo "$token_mappings_result"
-            echo "--- token_mappings_result"
+            echo "--- token_mappings_result ---"
             return 1
         fi
 
-        # Sleep before the next attempt
+        # Wait before the next poll
         sleep "$poll_frequency"
     done
 }
@@ -340,45 +347,42 @@ function get_claim() {
         local row
         row=$(echo "$claims_result" | jq -c '.claims[0]')
 
+        # In case row is not empty, we found the expected claim
         if [[ "$row" != "null" ]]; then
-            local global_index
-            global_index=$(jq -r '.global_index' <<<"$row")
+            log "🎉 Success: Expected global_index '$expected_global_index' found. Exiting loop."
 
-            if [[ "$global_index" == "$expected_global_index" ]]; then
-                log "🎉 Success: Expected global_index '$expected_global_index' found. Exiting loop."
+            # Required fields validation
+            local required_fields=(
+                "block_num"
+                "block_timestamp"
+                "tx_hash"
+                "global_index"
+                "origin_address"
+                "origin_network"
+                "destination_address"
+                "destination_network"
+                "amount"
+                "from_address"
+                "global_exit_root"
+                "rollup_exit_root"
+                "mainnet_exit_root"
+                "metadata"
+                "proof_local_exit_root"
+                "proof_rollup_exit_root"
+            )
 
-                # Required fields validation
-                local required_fields=(
-                    "block_num"
-                    "block_timestamp"
-                    "tx_hash"
-                    "global_index"
-                    "origin_address"
-                    "origin_network"
-                    "destination_address"
-                    "destination_network"
-                    "amount"
-                    "from_address"
-                    "global_exit_root"
-                    "rollup_exit_root"
-                    "mainnet_exit_root"
-                    "metadata"
-                    "proof_local_exit_root"
-                    "proof_rollup_exit_root"
-                )
-                for field in "${required_fields[@]}"; do
-                    value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$row")
-                    if [ "$value" = "null" ] || [ -z "$value" ]; then
-                        log "🔍 Claims result:"
-                        log "$claims_result"
-                        echo "❌ Error: Assertion failed missing or null '$field' in the claim object." >&2
-                        return 1
-                    fi
-                done
+            for field in "${required_fields[@]}"; do
+                value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$row")
+                if [ "$value" = "null" ] || [ -z "$value" ]; then
+                    log "🔍 Claims result:"
+                    log "$claims_result"
+                    echo "❌ Error: Assertion failed missing or null '$field' in the claim object." >&2
+                    return 1
+                fi
+            done
 
-                echo "$row"
-                return 0
-            fi
+            echo "$row"
+            return 0
         fi
 
         # Fail test if max attempts are reached
@@ -639,10 +643,9 @@ function process_bridge_claim() {
     local destination_rpc_url="$8"
     local from_address="${9:-}"
 
-
     # 1. Fetch bridge details
     local bridge
-    # n_attempts= 40 / sleep=30s -> around 15mins max wait time
+    # n_attempts=34 / sleep=30s -> 17 mins max wait time
     bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 34 30 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         return 1
@@ -790,6 +793,9 @@ function extract_claim_parameters_json() {
     log "📝 ${asset_number} bridge response: $bridge_response"
     local deposit_count
     deposit_count=$(echo "$bridge_response" | jq -r '.deposit_count')
+    local global_index
+    global_index=$(echo "$bridge_response" | jq -r '.global_index')
+    log "📝 ${asset_number} global index: $global_index"
 
     log "🌳 Getting L1 info tree index for ${asset_number} bridge"
     run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
@@ -819,11 +825,6 @@ function extract_claim_parameters_json() {
     proof_local_exit_root=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
     local proof_rollup_exit_root
     proof_rollup_exit_root=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    run generate_global_index "$bridge_response" "$l1_rpc_network_id"
-    assert_success
-    local global_index
-    global_index=$output
-    log "📝 ${asset_number} global index: $global_index"
     local mainnet_exit_root
     mainnet_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     local rollup_exit_root
@@ -843,7 +844,6 @@ function extract_claim_parameters_json() {
 
     # Return all parameters as a JSON object
     echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
-    log "✅ ${asset_number} asset claim parameters extracted successfully"
 }
 
 function manage_aggkit_nodes() {
