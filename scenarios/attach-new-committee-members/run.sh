@@ -1,4 +1,65 @@
 #!/bin/env bash
+#
+# Attach New Committee Members Scenario Test
+# =================================
+#
+# This script tests the process of attaching new AggOracle Committee members
+# and AggSender Validators to an existing Kurtosis CDK network.
+#
+# Prerequisites:
+# -------------
+#
+# 1. Set up environment variables in ../common/.env or export them:
+#    - KURTOSIS_PACKAGE_HASH: Git hash of the kurtosis-cdk package to use
+#    - ENCLAVE_NAME: Name for the Kurtosis enclave (e.g., "op")
+#    - AGGSENDER_VALIDATOR_NUMBER: Total number of validators (e.g., 5)
+#    - AGGSENDER_MULTISIG_THRESHOLD: Multisig threshold (e.g., 3)
+#    - AGGORACLE_COMMITTEE_QUORUM: Committee quorum (e.g., 1)
+#    - AGGORACLE_COMMITTEE_NUMBER: Total committee members (e.g., 4)
+#    - KEYSTORE_PASSWORD: Password for keystore files
+#    - ADMIN_PRIVATE_KEY: Private key with admin permissions
+#
+# 2. Prepare configuration directories with keystore files:
+#    You can also use the existing configs. Add more if needed.
+#    - ./configs-aggoracle-committee-002/
+#    - ./configs-aggoracle-committee-003/
+#    - ./configs-aggoracle-committee-004/
+#    - ./configs-aggsender-validator-003/
+#    - ./configs-aggsender-validator-004/
+#    - ./configs-aggsender-validator-005/
+#
+# What this script does:
+# ---------------------
+# 1. Downloads and modifies Kurtosis CDK configuration
+# 2. Spins up a CDK network with AggSender Validators and AggOracle Committee enabled
+# 3. Extracts contract addresses and configures new committee members
+# 4. Adds new AggOracle Committee members to the contract
+# 5. Starts AggOracle Committee containers
+# 6. Updates AggSender Validator signers and threshold
+# 7. Starts AggSender Validator containers
+#
+# Usage:
+# ------
+# 1. Navigate to the script directory:
+#    cd scenarios/attach-new-committee-members/
+#
+# 2. Make sure the script is executable if not already:
+#    chmod +x run.sh
+#
+# 3. Source the env file
+#    set -a
+#    source env.example
+#    set +a
+#
+# 4. Run the script:
+#    ./run.sh
+#
+# Expected Output:
+# ---------------
+# The script will output progress logs showing each step.
+# It will create a Kurtosis enclave, deploy contracts, and start Docker
+# containers for the new committee members and validators.
+#
 set -e
 # shellcheck source=scenarios/common/load-env.sh
 source ../common/load-env.sh
