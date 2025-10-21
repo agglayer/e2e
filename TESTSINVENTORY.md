@@ -7,9 +7,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L99) | |
-| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L142) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L371) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L104) | |
+| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L147) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L376) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L117) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |

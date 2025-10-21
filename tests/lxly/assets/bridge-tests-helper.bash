@@ -73,7 +73,7 @@ _initialize_network_config() {
             ["0"]="sepolia"
             ["1"]="bali_1"
             ["37"]="bali_37"
-            # ["48"]="bali_48"
+            # ["48"]="bali_48" # Bali-48 seems to have a higher gas fee, so it burns a lot of gas.
             ["49"]="bali_49"
             ["52"]="bali_52"
             ["57"]="bali_57"
@@ -84,7 +84,7 @@ _initialize_network_config() {
             ["sepolia"]="0"
             ["bali_1"]="1"
             ["bali_37"]="37"
-            # ["bali_48"]="48"
+            # ["bali_48"]="48" # Bali-48 seems to have a higher gas fee, so it burns a lot of gas.
             ["bali_49"]="49"
             ["bali_52"]="52"
             ["bali_57"]="57"
@@ -782,7 +782,7 @@ _setup_ephemeral_accounts_in_bulk() {
     fi
 
     # Check if network is using custom gas token on L2 - in this case, we'll sufficiently fund the ephemeral accounts with the custom ERC20 gas tokens.
-    if [[ $(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url") != "0x0000000000000000000000000000000000000000" ]]; then
+    if [[ $(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000") != "0x0000000000000000000000000000000000000000" ]]; then
         # Fund 1 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
         if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000000 2>&1); then
@@ -1947,7 +1947,7 @@ _get_bridge_service_url() {
             ;;
         "kurtosis_network_1")
             # Network 1 uses specific bridge service environment variable
-            local kurtosis_net1_bridge_service="${KURTOSIS_NETWOWRK_1_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-}}"
+            local kurtosis_net1_bridge_service="${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-}}"
             if [[ -z "$kurtosis_net1_bridge_service" ]]; then
                 kurtosis_net1_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc 2>/dev/null || echo "")}"
             fi
@@ -1956,7 +1956,7 @@ _get_bridge_service_url() {
             ;;
         "kurtosis_network_2")
             # Network 2 uses specific bridge service environment variable
-            local kurtosis_net2_bridge_service="${KURTOSIS_NETWOWRK_2_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-}}"
+            local kurtosis_net2_bridge_service="${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-}}"
             if [[ -z "$kurtosis_net2_bridge_service" ]]; then
                 kurtosis_net2_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc 2>/dev/null || echo "")}"
             fi

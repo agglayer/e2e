@@ -126,7 +126,7 @@ in_config && /^[0-9]+ = / {
 
 END {
     # Handle last configuration if file doesn'\''t end with separator
-    if (in_config && dest_addr != "") {
+    if (in_config && length(dest_addr) > 0) {
         if (config_count > 0) {
             print ","
         }

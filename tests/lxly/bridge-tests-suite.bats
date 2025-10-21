@@ -15,7 +15,12 @@ setup_file() {
     source "$BATS_TEST_DIRNAME/../../core/helpers/logger.bash"
 
     export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
-    export claim_wait_duration="${ETH_RPC_TIMEOUT}s" # Append "s" to ETH_RPC_TIMEOUT which is integer
+    # If ETH_RPC_TIMEOUT ends with a valid time unit (s, m, h), use as-is; otherwise, append "s"
+    if [[ "$ETH_RPC_TIMEOUT" =~ [0-9]+[smh]$ ]]; then
+        export claim_wait_duration="$ETH_RPC_TIMEOUT"
+    else
+        export claim_wait_duration="${ETH_RPC_TIMEOUT}s"
+    fi
 
     # Load test scenarios from file
     # Instead of storing large JSON in a variable, use a temp file
