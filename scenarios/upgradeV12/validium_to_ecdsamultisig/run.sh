@@ -508,9 +508,9 @@ docker run -it \
     --detach \
     --network $docker_network_name \
     --name cdk-erigon-rpc-001 \
-    -v $(pwd)/${tmp_folder}/etc:/etc/cdk-erigon \
-    -v $(pwd)/${tmp_folder}/home:/home/erigon/dynamic-configs \
-    -v $(pwd)/${tmp_folder}/prunner:/usr/local/share/proc-runner \
+    -v "$(pwd)"/${tmp_folder}/etc:/etc/cdk-erigon \
+    -v "$(pwd)"/${tmp_folder}/home:/home/erigon/dynamic-configs \
+    -v "$(pwd)"/${tmp_folder}/prunner:/usr/local/share/proc-runner \
     --entrypoint /usr/local/share/proc-runner/proc-runner.sh \
     "$cdk_erigon_node_image" \
     "cdk-erigon --config /etc/cdk-erigon/config.yaml"
