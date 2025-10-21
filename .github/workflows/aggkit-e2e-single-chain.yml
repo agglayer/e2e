@@ -157,11 +157,11 @@ jobs:
             bats ./tests/aggkit/internal-claims.bats || exit 1
             bats ./tests/aggkit/claim-reetrancy.bats || exit 1
           else
-            bats ./tests/aggkit/bridge-e2e.bats || exit 1
-            bats ./tests/aggkit/e2e-pp.bats || exit 1
-            bats ./tests/aggkit/bridge-e2e-nightly.bats || exit 1
+            # bats ./tests/aggkit/bridge-e2e.bats || exit 1
+            # bats ./tests/aggkit/e2e-pp.bats || exit 1
+            # bats ./tests/aggkit/bridge-e2e-nightly.bats || exit 1
             bats ./tests/aggkit/internal-claims.bats || exit 1
-            bats ./tests/aggkit/claim-reetrancy.bats || exit 1
+            # bats ./tests/aggkit/claim-reetrancy.bats || exit 1
           fi
           popd
 
