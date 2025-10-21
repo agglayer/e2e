@@ -286,7 +286,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
 | Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
 | Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
-| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
+| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L12) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
