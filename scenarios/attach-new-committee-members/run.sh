@@ -93,6 +93,23 @@ docker run -d --name aggkit-001-aggoracle-committee-002 \
   ghcr.io/agglayer/aggkit:0.7.0-beta8 \
   run --cfg=/etc/aggkit/config.toml --components=aggoracle
 
+# Depending on the desired number of aggoracle-committee members, we can spin up more
+# docker run -d --name aggkit-001-aggoracle-committee-003 \
+#   --network "$kurtosis_network" \
+#   -v ./configs-aggoracle-committee-003:/etc/aggkit \
+#   -p 5576 \
+#   -p 6060 \
+#   ghcr.io/agglayer/aggkit:0.7.0-beta8 \
+#   run --cfg=/etc/aggkit/config.toml --components=aggoracle
+
+# docker run -d --name aggkit-001-aggoracle-committee-004 \
+#   --network "$kurtosis_network" \
+#   -v ./configs-aggoracle-committee-004:/etc/aggkit \
+#   -p 5576 \
+#   -p 6060 \
+#   ghcr.io/agglayer/aggkit:0.7.0-beta8 \
+#   run --cfg=/etc/aggkit/config.toml --components=aggoracle
+
 # Fetch rollup contract address and insert it into the configs
 echo "📄 Fetching AggLayer Gateway contract address..."
 agglayer_gateway_address=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "jq -r .aggLayerGatewayAddress /opt/zkevm/combined.json")
@@ -139,6 +156,25 @@ docker run -d --name aggkit-001-aggsender-validator-003 \
   -p 6060 \
   ghcr.io/agglayer/aggkit:0.7.0-beta8 \
   run --cfg=/etc/aggkit/config.toml --components=aggsender-validator
+
+# Depending on the desired number of aggsender-validators, we can spin up more
+# docker run -d --name aggkit-001-aggsender-validator-004 \
+#   --network "$kurtosis_network" \
+#   -v ./configs-aggsender-validator-004:/etc/aggkit \
+#   -p 5576 \
+#   -p 5578 \
+#   -p 6060 \
+#   ghcr.io/agglayer/aggkit:0.7.0-beta8 \
+#   run --cfg=/etc/aggkit/config.toml --components=aggsender-validator
+
+# docker run -d --name aggkit-001-aggsender-validator-005 \
+#   --network "$kurtosis_network" \
+#   -v ./configs-aggsender-validator-005:/etc/aggkit \
+#   -p 5576 \
+#   -p 5578 \
+#   -p 6060 \
+#   ghcr.io/agglayer/aggkit:0.7.0-beta8 \
+#   run --cfg=/etc/aggkit/config.toml --components=aggsender-validator
 
 echo "✅ Script completed successfully!"
 exit
