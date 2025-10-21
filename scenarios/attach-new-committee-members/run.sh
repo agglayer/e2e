@@ -72,9 +72,6 @@ agg_sender_validator_total_number="$AGGSENDER_VALIDATOR_NUMBER"
 agg_sender_multisig_threshold="$AGGSENDER_MULTISIG_THRESHOLD"
 agg_oracle_committee_quorum="$AGGORACLE_COMMITTEE_QUORUM"
 agg_oracle_committee_total_members="$AGGORACLE_COMMITTEE_NUMBER"
-keystore_password="$KEYSTORE_PASSWORD"
-admin_private_key="$ADMIN_PRIVATE_KEY"
-
 
 # curl aggchain-ecdsa-multisig.yml file
 echo "📥 Downloading aggchain-ecdsa-multisig.yml file..."
@@ -101,6 +98,11 @@ kurtosis run \
          --enclave "$kurtosis_enclave_name" \
          --args-file "initial-aggchain-ecdsa-multisig.yml" \
          "github.com/0xPolygon/kurtosis-cdk@$kurtosis_hash"
+
+echo "🔗 Getting admin_private_key and keystore_password values..."
+contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
+admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
+keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
 
 echo "🔗 Getting L1 and L2 RPC URLs..."
 l1_rpc_url="http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)"
@@ -131,7 +133,7 @@ aggoracle_committee_003_address=$(cast wallet address --keystore "./configs-aggo
 aggoracle_committee_004_address=$(cast wallet address --keystore "./configs-aggoracle-committee-004/aggoracle-4.keystore" --password "$keystore_password")
 
 echo "AggOracle Committee 002 Address: $aggoracle_committee_002_address"
-echo "AggOracle Committee 003 Address: $aggoracle_committee_003_address"
+echo "AggOracle Committee 003 Address: $aggoracle_committee_003_address"  
 echo "AggOracle Committee 004 Address: $aggoracle_committee_004_address"
 
 # Add new aggoracle-committee member
