@@ -435,10 +435,10 @@ docker run -it \
     --network $docker_network_name \
     --name cdk-erigon-sequencer-001 \
     --env CDK_ERIGON_SEQUENCER=1 \
-    -v $(pwd)/${tmp_folder}/data:/home/erigon/data/dynamic-kurtosis-sequencer \
-    -v $(pwd)/${tmp_folder}/etc:/etc/cdk-erigon \
-    -v $(pwd)/${tmp_folder}/home:/home/erigon/dynamic-configs \
-    -v $(pwd)/${tmp_folder}/prunner:/usr/local/share/proc-runner \
+    -v "$(pwd)"/${tmp_folder}/data:/home/erigon/data/dynamic-kurtosis-sequencer \
+    -v "$(pwd)"/${tmp_folder}/etc:/etc/cdk-erigon \
+    -v "$(pwd)"/${tmp_folder}/home:/home/erigon/dynamic-configs \
+    -v "$(pwd)"/${tmp_folder}/prunner:/usr/local/share/proc-runner \
     --entrypoint /usr/local/share/proc-runner/proc-runner.sh \
     "$cdk_erigon_node_image" \
     "cdk-erigon --config /etc/cdk-erigon/config.yaml"
@@ -494,7 +494,6 @@ docker stop cdk-erigon-rpc-001 && docker rm cdk-erigon-rpc-001
                                                         ##                                                      
 agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.15
 aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta10
-aggkit_prover_image=ghcr.io/agglayer/aggkit-prover:1.4.2
 
 
 kurtosis service update --image $agglayer_image $kurtosis_enclave_name agglayer-prover
@@ -628,7 +627,7 @@ docker stop aggkit-001 && docker rm aggkit-001
 docker run -it \
     --network $docker_network_name \
     --name aggkit-001 \
-    -v $(pwd)/aggkit/etc:/etc/aggkit \
+    -v "$(pwd)"/aggkit/etc:/etc/aggkit \
     "$aggkit_image" \
     run \
     --cfg=/etc/aggkit/aggkit-config.toml \
