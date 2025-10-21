@@ -379,45 +379,42 @@ function get_claim() {
         local row
         row=$(echo "$claims_result" | jq -c '.claims[0]')
 
+        # In case row is not empty, we found the expected claim
         if [[ "$row" != "null" ]]; then
-            local global_index
-            global_index=$(jq -r '.global_index' <<<"$row")
+            log "🎉 Success: Expected global_index '$expected_global_index' found. Exiting loop."
 
-            if [[ "$global_index" == "$expected_global_index" ]]; then
-                log "🎉 Success: Expected global_index '$expected_global_index' found. Exiting loop."
+            # Required fields validation
+            local required_fields=(
+                "block_num"
+                "block_timestamp"
+                "tx_hash"
+                "global_index"
+                "origin_address"
+                "origin_network"
+                "destination_address"
+                "destination_network"
+                "amount"
+                "from_address"
+                "global_exit_root"
+                "rollup_exit_root"
+                "mainnet_exit_root"
+                "metadata"
+                "proof_local_exit_root"
+                "proof_rollup_exit_root"
+            )
 
-                # Required fields validation
-                local required_fields=(
-                    "block_num"
-                    "block_timestamp"
-                    "tx_hash"
-                    "global_index"
-                    "origin_address"
-                    "origin_network"
-                    "destination_address"
-                    "destination_network"
-                    "amount"
-                    "from_address"
-                    "global_exit_root"
-                    "rollup_exit_root"
-                    "mainnet_exit_root"
-                    "metadata"
-                    "proof_local_exit_root"
-                    "proof_rollup_exit_root"
-                )
-                for field in "${required_fields[@]}"; do
-                    value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$row")
-                    if [ "$value" = "null" ] || [ -z "$value" ]; then
-                        log "🔍 Claims result:"
-                        log "$claims_result"
-                        echo "❌ Error: Assertion failed missing or null '$field' in the claim object." >&2
-                        return 1
-                    fi
-                done
+            for field in "${required_fields[@]}"; do
+                value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$row")
+                if [ "$value" = "null" ] || [ -z "$value" ]; then
+                    log "🔍 Claims result:"
+                    log "$claims_result"
+                    echo "❌ Error: Assertion failed missing or null '$field' in the claim object." >&2
+                    return 1
+                fi
+            done
 
-                echo "$row"
-                return 0
-            fi
+            echo "$row"
+            return 0
         fi
 
         # Fail test if max attempts are reached
