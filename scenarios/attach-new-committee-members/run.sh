@@ -131,7 +131,7 @@ aggoracle_committee_003_address=$(cast wallet address --keystore "./configs-aggo
 aggoracle_committee_004_address=$(cast wallet address --keystore "./configs-aggoracle-committee-004/aggoracle-4.keystore" --password "$keystore_password")
 
 echo "AggOracle Committee 002 Address: $aggoracle_committee_002_address"
-echo "AggOracle Committee 003 Address: $aggoracle_committee_003_address"  
+echo "AggOracle Committee 003 Address: $aggoracle_committee_003_address"
 echo "AggOracle Committee 004 Address: $aggoracle_committee_004_address"
 
 # Add new aggoracle-committee member
