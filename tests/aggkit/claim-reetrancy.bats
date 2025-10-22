@@ -44,8 +44,6 @@ setup() {
     local deploy_output
     deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
         --create "$deploy_bytecode" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -191,8 +189,7 @@ setup() {
         "$amount_1" \
         "$metadata_1" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update contract parameters"
@@ -258,9 +255,8 @@ setup() {
     local revert_result
 
     # Attempt reentrant claim and capture any errors
-    cast send --legacy --gas-price $comp_gas_price \
+    cast send --private-key $sender_private_key \
         --rpc-url $L2_RPC_URL \
-        --private-key $sender_private_key \
         $l2_bridge_addr "claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
         "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" $global_index_1 $mainnet_exit_root_1 $rollup_exit_root_1 \
         $origin_network_1 $origin_address_1 $destination_network_1 $destination_address_1 $amount_1 $metadata_1 2>$tmp_response || {
@@ -664,8 +660,7 @@ setup() {
         "$amount_2" \
         "$metadata_2" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update contract parameters"
@@ -760,14 +755,6 @@ setup() {
 
     log "📦 claim_data_2: $claim_data_2"
 
-    # Calculate gas price for testClaim
-    local test_claim_gas_price
-    test_claim_gas_price=$(bc -l <<<"$gas_price * 2" | sed 's/\..*//')
-    if [[ $? -ne 0 ]]; then
-        log "❌ Failed to calculate gas price"
-        return 1
-    fi
-
     log "⏳ Calling testClaim..."
     if ! test_claim_output=$(cast send \
         "$claim_reentrancy_sc_addr" \
@@ -777,7 +764,6 @@ setup() {
         "$claim_data_2" \
         --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
-        --gas-price "$test_claim_gas_price" \
         --value "$amount_bridge_wei" \
         --json 2>&1); then
 
