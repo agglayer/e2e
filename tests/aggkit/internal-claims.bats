@@ -30,9 +30,6 @@ setup() {
     # Concatenate bytecode and encoded constructor args
     local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
 
-    # Set a fixed gas price (1 gwei)
-    local gas_price=1000000000
-
     # Deploy the contract
     local deploy_output
     deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
