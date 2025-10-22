@@ -26,19 +26,14 @@ function _set_vars() {
     echo "📄 Fetching AggLayer Gateway contract address..." >&3
     agglayer_gateway_address=$(kurtosis service exec $ENCLAVE_NAME $contracts_container "jq -r .aggLayerGatewayAddress /opt/zkevm/combined.json")
     echo "AggLayer Gateway Address: $agglayer_gateway_address" >&3
-
-    # $l1_rpc_url
-    # $L2_RPC_URL
 }
 
 @test "Add single validator to committee" {
     log "📝 Updating signers and threshold on AggLayer Gateway..."
     
-    aggsender_validator_004_config_path="../../scenarios/attach-new-committee-members/configs-aggsender-validator-004"
-    aggsender_validator_004_keystore_path="${aggsender_validator_004_config_path}/aggsendervalidator-4.keystore"
-    aggsender_validator_004_address=$(cast wallet address \
-        --keystore "$aggsender_validator_004_keystore_path" \
-        --password "$keystore_password")
+    aggsender_validator_004_config_path="${BATS_TEST_DIRNAME}/../../scenarios/attach-new-committee-members/configs-aggsender-validator-004"
+    aggsender_validator_004_keystore_path=${aggsender_validator_004_config_path}/aggsendervalidator-4.keystore
+    aggsender_validator_004_address=$(cast wallet address --keystore "$aggsender_validator_004_keystore_path" --password "$keystore_password")
 
     # Query the current threshold and increment by 1
     current_threshold=$(cast call "$agglayer_gateway_address" 'getThreshold() (uint256)' --rpc-url $l1_rpc_url)
@@ -61,7 +56,7 @@ function _set_vars() {
     log "🐳 Starting additional AggSender Validator container..."
     docker run -d --name aggkit-001-aggsender-validator-004 \
     --network "$kurtosis_network" \
-    -v .$aggsender_validator_004_config_path:/etc/aggkit \
+    -v "${aggsender_validator_004_config_path}:/etc/aggkit" \
     -p 5576 \
     -p 5578 \
     -p 6060 \
