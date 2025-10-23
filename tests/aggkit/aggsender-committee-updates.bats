@@ -129,10 +129,14 @@ function verify_threshold_updated() {
         echo "Error: Signer $aggsender_validator_004_address not found in signers list." >&3
         return 1
     fi
-    aggsender_validator_004_index=$(echo "$signers" | grep -n "$aggsender_validator_004_address" | cut -d: -f1)
+    
+    # Calculate the correct array index by counting parentheses before our address
+    # The format is [(addr1, url1), (addr2, url2), ...] so we count opening parentheses before our address
+    signers_before_target=$(echo "$signers" | sed "s/$aggsender_validator_004_address.*//" | grep -o '(' | wc -l)
+    aggsender_validator_004_index=$((signers_before_target - 1))
 
     # Update signers and threshold using the new function by removing the validator
-    update_signers_and_threshold "[(\"$aggsender_validator_004_address\", $aggsender_validator_004_index)]" "[]" "$new_threshold"
+    update_signers_and_threshold "[($aggsender_validator_004_address, $aggsender_validator_004_index)]" "[]" "$new_threshold"
 
     # Verify that the signer is removed
     log "✅ Verifying signers were updated..."
