@@ -13,12 +13,21 @@ kurtosis_tag=${KURTOSIS_PACKAGE_TAG:-"11aad0a28a2d6000f5506d9f4344e768dd1ba49d"}
 docker_network_name="kt-$kurtosis_enclave_name"
 
 
-echo '██╗     ██╗                   █████╗  ██████╗ ██╗                   ██████╗ ███╗   ███╗'
-echo '██║    ███║                  ██╔══██╗██╔════╝ ██║                   ██╔══██╗████╗ ████║'
-echo '██║    ╚██║    █████╗        ███████║██║  ███╗██║         █████╗    ██████╔╝██╔████╔██║'
-echo '██║     ██║    ╚════╝        ██╔══██║██║   ██║██║         ╚════╝    ██╔══██╗██║╚██╔╝██║'
-echo '███████╗██║                  ██║  ██║╚██████╔╝███████╗              ██║  ██║██║ ╚═╝ ██║'
-echo '╚══════╝╚═╝                  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝              ╚═╝  ╚═╝╚═╝     ╚═╝'
+ ##                                               ##                      ##              ####                                                    
+ ##                       ##                      ##                      ##              ####                                             ##     
+ ##                       ##                                              ##                ##                                             ##     
+ ##   ##:##    ####.########### .####.  :#####. ####    :#####.      :###.## .####: ##.###: ##    .####. ##    #### #:##: .####: ##.#### #######  
+ ##  ##: ##    ################.######.######## ####   ########     :#######.######:#######:##   .######.:##  ## ########.######:####### #######  
+ ##:##:  ##    #####.     ##   ###  #####:  .:#   ##   ##:  .:#     ###  #####:  :#####  #####   ###  ### ##: ##.##.##.####:  :#####  :##  ##     
+ ####    ##    ####       ##   ##.  .####### .    ##   ##### .      ##.  .############.  .####   ##.  .## ###:## ## ## ############    ##  ##     
+ #####   ##    ####       ##   ##    ##.######:   ##   .######:     ##    ############    ####   ##    ## .## #  ## ## ############    ##  ##     
+ ##.###  ##    ####       ##   ##.  .##   .: ##   ##      .: ##     ##.  .####      ##.  .####   ##.  .##  ####. ## ## ####      ##    ##  ##     
+ ##  ##: ##:  #####       ##.  ###  ####:.  :##   ##   #:.  :##     ###  ######.  :####  #####:  ###  ###  :###  ## ## #####.  :###    ##  ##.    
+ ##  :##  #########       #####.######.########################     :#######.##############:#####.######.   ##   ## ## ##.#########    ##  #####  
+ ##   ###  ###.####       .#### .####. . ####  ########. ####        :###.## .#####:##.###: .#### .####.    ##.  ## ## ## .#####:##    ##  .####  
+                                                                                    ##                     :##                                    
+                                                                                    ##                    ###:                                    
+                                                                                    ##                    ###
 
 kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_tag"
 
@@ -133,6 +142,9 @@ fi
                                      ##                    ###:                               ##                               
                                      ##                    ###                                ##                               
 
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$base_private_key\" > /opt/agglayer-contracts/.env"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo CUSTOM_PROVIDER=\"$base_rpc_url\" >> /opt/agglayer-contracts/.env"
+
 deploy_parameters_json='{
     "network": {
         "chainID": '"$base_chain_id"',
@@ -162,85 +174,17 @@ deploy_parameters_json='{
     }
 }'
 
-# Let's check it has at least 1 ether
-one_ether=$(cast to-wei 1)
-base_admin_balance=$(cast balance --rpc-url $base_rpc_url $base_admin)
-base_admin_nonce=$(cast nonce --rpc-url $base_rpc_url $base_admin)
+echo "Executing L2 deploy outpost tool"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$deploy_parameters_json' > /opt/agglayer-contracts/tools/deployOutpostChain/deploy_parameters.json"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./tools/deployOutpostChain/deployOutpostChain.ts --network custom"
 
-if [[ $(echo "$base_admin_balance < $one_ether" | bc -l) -eq 1 ]]; then
-    echo "Base admin balance is less than 1 ether: $base_admin_balance"
-    exit 1
-else
-    echo "Base admin balance is sufficient: $base_admin_balance, Nonce: $base_admin_nonce"
-fi
+deploy_output=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cat /opt/agglayer-contracts/tools/deployOutpostChain/deploy_output_*.json")
 
-# Get addresses that will be deployed, nonce is used to fund the bridge, so we start from +1
-bridge_impl_addr=$(cast compute-address --nonce $((base_admin_nonce + 0)) $base_admin | sed 's/.*: //')
-ger_impl_addr=$(cast compute-address --nonce $((base_admin_nonce + 1)) $base_admin | sed 's/.*: //')
-ger_proxy_addr=$(cast compute-address --nonce $((base_admin_nonce + 2)) $base_admin | sed 's/.*: //')
-bridge_proxy_addr=$(cast compute-address --nonce $((base_admin_nonce + 3)) $base_admin | sed 's/.*: //')
+ger_proxy_addr=$(echo $deploy_output | jq -r .contracts.globalExitRootManagerL2SovereignChainAddress)
+bridge_proxy_addr=$(echo $deploy_output | jq -r .contracts.bridgeL2SovereignChainAddress)
+gas_token_addr=$(echo $deploy_output | jq -r .network.gasTokenAddress)
 
-# Fund the bridge
-# EVM error: CreateCollision
-# cast send --legacy --rpc-url $base_rpc_url --value $(cast to-wei 0.5) --private-key $base_private_key $bridge_proxy_addr
-
-# Deploy the contracts
-echo "Deploying BridgeL2SovereignChain at $bridge_impl_addr"
-cmd="cd agglayer-contracts && forge create --json --via-ir --optimize --optimizer-runs 200 --legacy --broadcast --rpc-url $base_rpc_url --private-key $base_private_key BridgeL2SovereignChain"
-bridge_impl_addr_deployed=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "$cmd" | jq -r .deployedTo)
-if [[ "$bridge_impl_addr_deployed" != "$bridge_impl_addr" ]]; then
-    echo "BridgeL2SovereignChain deployment failed! Expected address: $bridge_impl_addr, got: $bridge_impl_addr_deployed"
-    # exit 1
-else
-    echo "BridgeL2SovereignChain deployment successful! Deployed address: $bridge_impl_addr_deployed"
-fi
-
-echo "Deploying GlobalExitRootManagerL2SovereignChain at $ger_impl_addr"
-cmd="cd agglayer-contracts && forge create --json --via-ir --optimize --optimizer-runs 200 --legacy --broadcast --rpc-url $base_rpc_url --private-key $base_private_key GlobalExitRootManagerL2SovereignChain --constructor-args \"$bridge_proxy_addr\""
-ger_impl_addr_deployed=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "$cmd" | jq -r .deployedTo)
-if [[ "$ger_impl_addr_deployed" != "$ger_impl_addr" ]]; then
-    echo "GlobalExitRootManagerL2SovereignChain deployment failed! Expected address: $ger_impl_addr, got: $ger_impl_addr_deployed"
-    # exit 1
-else
-    echo "GlobalExitRootManagerL2SovereignChain deployment successful! Deployed address: $ger_impl_addr_deployed"
-fi
-
-echo "Deploying TransparentUpgradeableProxy for GlobalExitRootManagerL2SovereignChain at $ger_proxy_addr"
-calldata=$(cast calldata 'initialize(address _globalExitRootUpdater, address _globalExitRootRemover)' $aggkit_addr $aggkit_addr)
-cmd="cd agglayer-contracts && forge create --json --via-ir --optimize --optimizer-runs 200 --legacy --broadcast --rpc-url $base_rpc_url --private-key $base_private_key TransparentUpgradeableProxy --constructor-args \"$ger_impl_addr\" $base_admin \"$calldata\""
-ger_proxy_addr_deployed=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "$cmd" | jq -r .deployedTo)
-if [[ "$ger_proxy_addr_deployed" != "$ger_proxy_addr" ]]; then
-    echo "TransparentUpgradeableProxy for GlobalExitRootManagerL2SovereignChain deployment failed! Expected address: $ger_proxy_addr, got: $ger_proxy_addr_deployed"
-    # exit 1
-else
-    echo "TransparentUpgradeableProxy for GlobalExitRootManagerL2SovereignChain deployment successful! Deployed address: $ger_proxy_addr_deployed"
-fi
-
-echo "Deploying TransparentUpgradeableProxy for BridgeL2SovereignChain at $bridge_proxy_addr"
-_networkID=$rollupId
-_gasTokenAddress=$(cast address-zero)
-_gasTokenNetwork=0
-_globalExitRootManager=$ger_proxy_addr
-_polygonRollupManager=$rollupManagerAddress
-_gasTokenMetadata=0x
-_bridgeManager=$base_admin
-_sovereignWETHAddress=$(cast address-zero)
-_sovereignWETHAddressIsNotMintable=false
-_emergencyBridgePauser=$base_admin
-_emergencyBridgeUnpauser=$base_admin
-_proxiedTokensManager=$base_admin
-calldata=$(cast calldata 'function initialize(uint32,address,uint32,address,address,bytes,address,address,bool,address,address,address)' \
-    $_networkID "$_gasTokenAddress" $_gasTokenNetwork "$_globalExitRootManager" "$_polygonRollupManager" $_gasTokenMetadata $_bridgeManager \
-    "$_sovereignWETHAddress" $_sovereignWETHAddressIsNotMintable "$_emergencyBridgePauser" "$_emergencyBridgeUnpauser" "$_proxiedTokensManager")
-
-cmd="cd agglayer-contracts && forge create --json --via-ir --optimize --optimizer-runs 200 --legacy --broadcast --rpc-url $base_rpc_url --private-key $base_private_key TransparentUpgradeableProxy --constructor-args $bridge_impl_addr $base_admin $calldata"
-bridge_proxy_addr_deployed=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "$cmd" | jq -r .deployedTo)
-if [[ "$bridge_proxy_addr_deployed" != "$bridge_proxy_addr" ]]; then
-    echo "TransparentUpgradeableProxy for BridgeL2SovereignChain deployment failed! Expected address: $bridge_proxy_addr, got: $bridge_proxy_addr_deployed"
-    # exit 1
-else
-    echo "TransparentUpgradeableProxy for BridgeL2SovereignChain deplotment successful! Deployed address: $bridge_proxy_addr_deployed"
-fi
+echo "Base Outpost Chain deployed! GER Proxy Address: $ger_proxy_addr, Bridge Proxy Address: $bridge_proxy_addr, Gas Token Address: $gas_token_addr"
 
 
 echo " ██████╗ ██╗   ██╗███╗   ██╗     █████╗  ██████╗  ██████╗ ██╗  ██╗██╗████████╗"
