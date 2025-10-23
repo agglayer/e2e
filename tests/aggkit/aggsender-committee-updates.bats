@@ -6,14 +6,14 @@ setup() {
     log_setup_test
     _agglayer_cdk_common_setup
     _set_vars
-    
-    export kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
-    timeout=${TIMEOUT:-3000}
+        timeout=${TIMEOUT:-3000}
     retry_interval=${RETRY_INTERVAL:-15}
     load "${BATS_TEST_DIRNAME}/../../core/helpers/agglayer-certificates-checks.bash"
 }
 
 function _set_vars() {
+    export kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
+
     echo "🔗 Getting admin_private_key and keystore_password values..." >&3
     local contracts_url="$(kurtosis port print $ENCLAVE_NAME $contracts_container http)"
 
@@ -21,7 +21,6 @@ function _set_vars() {
     export admin_private_key
 
     keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
-    export keystore_password
 
     log "🔍 Finding Docker network for Kurtosis enclave..." >&3
     kurtosis_network=$(docker ps --filter "name=${ENCLAVE_NAME}" --format "table {{.Names}}\t{{.Networks}}" | grep -v NETWORKS | head -1 | awk '{print $2}')
@@ -31,6 +30,13 @@ function _set_vars() {
     echo "📄 Fetching Rollup contract address..." >&3
     rollup_address=$(kurtosis service exec $ENCLAVE_NAME $contracts_container "jq -r .rollupAddress /opt/zkevm/combined.json")
     echo "Rollup Address: $rollup_address" >&3
+
+    echo "📄 Fetching AggSender Validator 004 address..." >&3
+    aggsender_validator_004_config_path="${BATS_TEST_DIRNAME}/../../scenarios/attach-new-committee-members/configs-aggsender-validator-004"
+    aggsender_validator_004_keystore_path=${aggsender_validator_004_config_path}/aggsendervalidator-4.keystore
+    aggsender_validator_004_address=$(cast wallet address --keystore "$aggsender_validator_004_keystore_path" --password "$keystore_password")
+    export aggsender_validator_004_address
+    echo "AggSender Validator 004 Address: $aggsender_validator_004_address" >&3
 }
 
 function update_signers_and_threshold() {
@@ -75,10 +81,6 @@ function verify_threshold_updated() {
 @test "Add single validator to committee" {
     # Lets wait for the old committee to settle at least one certificate first
     ensure_non_null_cert >&3
-    
-    aggsender_validator_004_config_path="${BATS_TEST_DIRNAME}/../../scenarios/attach-new-committee-members/configs-aggsender-validator-004"
-    aggsender_validator_004_keystore_path=${aggsender_validator_004_config_path}/aggsendervalidator-4.keystore
-    aggsender_validator_004_address=$(cast wallet address --keystore "$aggsender_validator_004_keystore_path" --password "$keystore_password")
 
     # Query the current threshold and increment by 1
     current_threshold=$(get_current_threshold)
