@@ -88,7 +88,7 @@ jobs:
       BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
       # Cardona-specific RPC endpoints from secrets
       # CARDONA_01_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_01_RPC_ENDPOINT }}
-      CARDONA_48_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
+      # CARDONA_48_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
       CARDONA_50_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_50_RPC_ENDPOINT }}
       CARDONA_51_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_51_RPC_ENDPOINT }}
       CARDONA_52_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_52_RPC_ENDPOINT }}
@@ -190,9 +190,9 @@ jobs:
             # cast chain-id --rpc-url ${{ secrets.L2_CARDONA_01_RPC_ENDPOINT }}
             # echo "Cardona-01 chain ID validation passed"
 
-            echo "Validating Cardona-48 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
-            echo "Cardona-48 chain ID validation passed"
+            # echo "Validating Cardona-48 endpoint..."
+            # cast chain-id --rpc-url ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
+            # echo "Cardona-48 chain ID validation passed"
 
             echo "Validating Cardona-50 endpoint..."
             cast chain-id --rpc-url ${{ secrets.L2_CARDONA_50_RPC_ENDPOINT }}
@@ -304,8 +304,8 @@ jobs:
             # export CARDONA_NETWORK_1_RPC_URL="${{ env.CARDONA_01_RPC_ENDPOINT }}"
             # export CARDONA_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-            export CARDONA_NETWORK_48_RPC_URL="${{ env.CARDONA_48_RPC_ENDPOINT }}"
-            export CARDONA_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            # export CARDONA_NETWORK_48_RPC_URL="${{ env.CARDONA_48_RPC_ENDPOINT }}"
+            # export CARDONA_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
             export CARDONA_NETWORK_50_RPC_URL="${{ env.CARDONA_50_RPC_ENDPOINT }}"
             export CARDONA_NETWORK_50_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
@@ -322,9 +322,9 @@ jobs:
             # echo "Cardona-01 Bridge Address: $CARDONA_NETWORK_1_BRIDGE_ADDR"
             # echo "Cardona-01 Bridge Service: $CARDONA_NETWORK_1_BRIDGE_SERVICE_URL"
 
-            echo "Cardona-48 RPC URL: ${CARDONA_NETWORK_48_RPC_URL:0:20}..."
-            echo "Cardona-48 Bridge Address: $CARDONA_NETWORK_48_BRIDGE_ADDR"
-            echo "Cardona-48 Bridge Service: $CARDONA_NETWORK_48_BRIDGE_SERVICE_URL"
+            # echo "Cardona-48 RPC URL: ${CARDONA_NETWORK_48_RPC_URL:0:20}..."
+            # echo "Cardona-48 Bridge Address: $CARDONA_NETWORK_48_BRIDGE_ADDR"
+            # echo "Cardona-48 Bridge Service: $CARDONA_NETWORK_48_BRIDGE_SERVICE_URL"
 
             echo "Cardona-50 RPC URL: ${CARDONA_NETWORK_50_RPC_URL:0:20}..."
             echo "Cardona-50 Bridge Address: $CARDONA_NETWORK_50_BRIDGE_ADDR"

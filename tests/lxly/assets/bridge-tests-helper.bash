@@ -95,7 +95,7 @@ _initialize_network_config() {
             declare -gA NETWORK_ID_TO_NAME=(
                 ["0"]="sepolia"
                 # ["1"]="cardona_1"
-                ["48"]="cardona_48"
+                # ["48"]="cardona_48"
                 ["50"]="cardona_50"
                 ["51"]="cardona_51"
                 ["52"]="cardona_52"
@@ -105,7 +105,7 @@ _initialize_network_config() {
             declare -gA NETWORK_NAME_TO_ID=(
                 ["sepolia"]="0"
                 # ["cardona_1"]="1"
-                ["cardona_48"]="48"
+                # ["cardona_48"]="48"
                 ["cardona_50"]="50"
                 ["cardona_51"]="51"
                 ["cardona_52"]="52"
