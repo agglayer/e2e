@@ -12,6 +12,14 @@ on:
         default: "main"
         required: true
         type: string
+      network-environment:
+        description: "Target network environment (bali, cardona)"
+        default: "bali"
+        required: true
+        type: choice
+        options:
+          - bali
+          - cardona
       max-parallel-runs:
         description: "strategy.max-parallel - how many matrix tests to run in parallel"
         default: 1
@@ -28,6 +36,7 @@ jobs:
     runs-on: gke-shared-dev-runners
     env:
       AGGLAYER_E2E_REF: ${{ inputs.agglayer-e2e-ref || 'main' }}
+      NETWORK_ENVIRONMENT: ${{ inputs.network-environment || 'bali' }}
     outputs:
       testfiles: ${{ steps.set-matrix.outputs.testfiles }}
     steps:
@@ -77,6 +86,12 @@ jobs:
       BALI_49_RPC_ENDPOINT: ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
       BALI_52_RPC_ENDPOINT: ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
       BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+      # Cardona-specific RPC endpoints from secrets
+      CARDONA_01_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_01_RPC_ENDPOINT }}
+      CARDONA_48_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
+      CARDONA_50_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_50_RPC_ENDPOINT }}
+      CARDONA_51_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_51_RPC_ENDPOINT }}
+      CARDONA_52_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_52_RPC_ENDPOINT }}
     steps:
       - name: Debug environment variables
         run: |
@@ -142,30 +157,55 @@ jobs:
           cast chain-id --rpc-url ${{ secrets.L1_SEPOLIA_RPC_ENDPOINT }}
           echo "Sepolia L1 chain ID validation passed"
           
-          # Validate all Bali network endpoints
-          echo "Validating Bali-01 endpoint..."
-          cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
-          echo "Bali-01 chain ID validation passed"
-          
-          echo "Validating Bali-37 endpoint..."
-          cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
-          echo "Bali-37 chain ID validation passed"
-          
-          # echo "Validating Bali-48 endpoint..."
-          # cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
-          # echo "Bali-48 chain ID validation passed"
-          
-          echo "Validating Bali-49 endpoint..."
-          cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
-          echo "Bali-49 chain ID validation passed"
+          # Validate Bali network endpoints (if using bali environment)
+          if [[ "${{ inputs.network-environment || 'bali' }}" == "bali" ]]; then
+            echo "Validating Bali-01 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
+            echo "Bali-01 chain ID validation passed"
+            
+            echo "Validating Bali-37 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
+            echo "Bali-37 chain ID validation passed"
+            
+            # echo "Validating Bali-48 endpoint..."
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
+            # echo "Bali-48 chain ID validation passed"
 
-          echo "Validating Bali-52 endpoint..."
-          cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
-          echo "Bali-52 chain ID validation passed"
+            echo "Validating Bali-49 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
+            echo "Bali-49 chain ID validation passed"
 
-          echo "Validating Bali-57 endpoint..."
-          cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
-          echo "Bali-57 chain ID validation passed"
+            echo "Validating Bali-52 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
+            echo "Bali-52 chain ID validation passed"
+
+            echo "Validating Bali-57 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+            echo "Bali-57 chain ID validation passed"
+          fi
+          
+          # Validate Cardona network endpoints (if using cardona environment)
+          if [[ "${{ inputs.network-environment || 'bali' }}" == "cardona" ]]; then
+            echo "Validating Cardona-01 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_01_RPC_ENDPOINT }}
+            echo "Cardona-01 chain ID validation passed"
+
+            echo "Validating Cardona-48 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
+            echo "Cardona-48 chain ID validation passed"
+
+            echo "Validating Cardona-50 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_50_RPC_ENDPOINT }}
+            echo "Cardona-50 chain ID validation passed"
+
+            echo "Validating Cardona-51 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_51_RPC_ENDPOINT }}
+            echo "Cardona-51 chain ID validation passed"
+            
+            echo "Validating Cardona-52 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_CARDONA_52_RPC_ENDPOINT }}
+            echo "Cardona-52 chain ID validation passed"
+          fi
 
       - name: Validate test file existence
         run: |
@@ -179,14 +219,28 @@ jobs:
         run: |
           pushd agglayer-e2e || exit 1
 
-          # First, source the centralized bali-networks.env configuration
-          if [[ -f "tests/lxly/networks/bali-networks.env" ]]; then
-            set -a
-            source tests/lxly/networks/bali-networks.env
-            set +a
-            echo "Loaded centralized bali-networks.env configuration"
+          # Set the network environment
+          NETWORK_ENV="${{ inputs.network-environment || 'bali' }}"
+          echo "Running tests for network environment: $NETWORK_ENV"
+
+          # Load the appropriate network configuration based on environment
+          if [[ "$NETWORK_ENV" == "bali" ]]; then
+            CONFIG_FILE="tests/lxly/networks/bali-networks.env"
+          elif [[ "$NETWORK_ENV" == "cardona" ]]; then
+            CONFIG_FILE="tests/lxly/networks/cardona-networks.env"
           else
-            echo "Warning: bali-networks.env not found"
+            echo "Error: Unsupported network environment: $NETWORK_ENV"
+            exit 1
+          fi
+
+          # Source the centralized network configuration
+          if [[ -f "$CONFIG_FILE" ]]; then
+            set -a
+            source "$CONFIG_FILE"
+            set +a
+            echo "Loaded $CONFIG_FILE configuration"
+          else
+            echo "Error: Configuration file $CONFIG_FILE not found"
             exit 1
           fi
 
@@ -198,55 +252,106 @@ jobs:
           export L1_RPC_URL="${{ env.SEPOLIA_RPC_ENDPOINT }}"
           export L1_PRIVATE_KEY="${{ env.L1_FUNDED_PRIVATE_KEY }}"
           
-          # Set all Bali network configurations (bridge tests will use them dynamically)
-          export BALI_NETWORK_1_RPC_URL="${{ env.BALI_01_RPC_ENDPOINT }}"
-          export BALI_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-          
-          export BALI_NETWORK_37_RPC_URL="${{ env.BALI_37_RPC_ENDPOINT }}"
-          export BALI_NETWORK_37_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-          
-          # export BALI_NETWORK_48_RPC_URL="${{ env.BALI_48_RPC_ENDPOINT }}"
-          # export BALI_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-          
-          export BALI_NETWORK_49_RPC_URL="${{ env.BALI_49_RPC_ENDPOINT }}"
-          export BALI_NETWORK_49_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+          # Set network-specific configurations based on environment
+          if [[ "$NETWORK_ENV" == "bali" ]]; then
+            # Set all Bali network configurations
+            export BALI_NETWORK_1_RPC_URL="${{ env.BALI_01_RPC_ENDPOINT }}"
+            export BALI_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            
+            export BALI_NETWORK_37_RPC_URL="${{ env.BALI_37_RPC_ENDPOINT }}"
+            export BALI_NETWORK_37_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            
+            # export BALI_NETWORK_48_RPC_URL="${{ env.BALI_48_RPC_ENDPOINT }}"
+            # export BALI_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-          export BALI_NETWORK_52_RPC_URL="${{ env.BALI_52_RPC_ENDPOINT }}"
-          export BALI_NETWORK_52_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            export BALI_NETWORK_49_RPC_URL="${{ env.BALI_49_RPC_ENDPOINT }}"
+            export BALI_NETWORK_49_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-          export BALI_NETWORK_57_RPC_URL="${{ env.BALI_57_RPC_ENDPOINT }}"
-          export BALI_NETWORK_57_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            export BALI_NETWORK_52_RPC_URL="${{ env.BALI_52_RPC_ENDPOINT }}"
+            export BALI_NETWORK_52_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-          # Verify required environment variables are set
-          echo "Verifying environment setup for dynamic network bridge tests:"
+            export BALI_NETWORK_57_RPC_URL="${{ env.BALI_57_RPC_ENDPOINT }}"
+            export BALI_NETWORK_57_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
+            # Verify Bali environment setup
+            echo "Verifying Bali environment setup:"
+            echo "Bali-01 RPC URL: ${BALI_NETWORK_1_RPC_URL:0:20}..."
+            echo "Bali-01 Bridge Address: $BALI_NETWORK_1_BRIDGE_ADDR"
+            echo "Bali-01 Bridge Service: $BALI_NETWORK_1_BRIDGE_SERVICE_URL"
+            
+            echo "Bali-37 RPC URL: ${BALI_NETWORK_37_RPC_URL:0:20}..."
+            echo "Bali-37 Bridge Address: $BALI_NETWORK_37_BRIDGE_ADDR"
+            echo "Bali-37 Bridge Service: $BALI_NETWORK_37_BRIDGE_SERVICE_URL"
+            
+            # echo "Bali-48 RPC URL: ${BALI_NETWORK_48_RPC_URL:0:20}..."
+            # echo "Bali-48 Bridge Address: $BALI_NETWORK_48_BRIDGE_ADDR"
+            # echo "Bali-48 Bridge Service: $BALI_NETWORK_48_BRIDGE_SERVICE_URL"
+
+            echo "Bali-49 RPC URL: ${BALI_NETWORK_49_RPC_URL:0:20}..."
+            echo "Bali-49 Bridge Address: $BALI_NETWORK_49_BRIDGE_ADDR"
+            echo "Bali-49 Bridge Service: $BALI_NETWORK_49_BRIDGE_SERVICE_URL"
+
+            echo "Bali-52 RPC URL: ${BALI_NETWORK_52_RPC_URL:0:20}..."
+            echo "Bali-52 Bridge Address: $BALI_NETWORK_52_BRIDGE_ADDR"
+            echo "Bali-52 Bridge Service: $BALI_NETWORK_52_BRIDGE_SERVICE_URL"
+            
+            echo "Bali-57 RPC URL: ${BALI_NETWORK_57_RPC_URL:0:20}..."
+            echo "Bali-57 Bridge Address: $BALI_NETWORK_57_BRIDGE_ADDR"
+            echo "Bali-57 Bridge Service: $BALI_NETWORK_57_BRIDGE_SERVICE_URL"
+
+          elif [[ "$NETWORK_ENV" == "cardona" ]]; then
+            # Set all Cardona network configurations
+            export CARDONA_NETWORK_1_RPC_URL="${{ env.CARDONA_01_RPC_ENDPOINT }}"
+            export CARDONA_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
+            export CARDONA_NETWORK_48_RPC_URL="${{ env.CARDONA_48_RPC_ENDPOINT }}"
+            export CARDONA_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
+            export CARDONA_NETWORK_50_RPC_URL="${{ env.CARDONA_50_RPC_ENDPOINT }}"
+            export CARDONA_NETWORK_50_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
+            export CARDONA_NETWORK_51_RPC_URL="${{ env.CARDONA_51_RPC_ENDPOINT }}"
+            export CARDONA_NETWORK_51_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            
+            export CARDONA_NETWORK_52_RPC_URL="${{ env.CARDONA_52_RPC_ENDPOINT }}"
+            export CARDONA_NETWORK_52_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
+            # Verify Cardona environment setup
+            echo "Verifying Cardona environment setup:"
+            echo "Cardona-01 RPC URL: ${CARDONA_NETWORK_1_RPC_URL:0:20}..."
+            echo "Cardona-01 Bridge Address: $CARDONA_NETWORK_1_BRIDGE_ADDR"
+            echo "Cardona-01 Bridge Service: $CARDONA_NETWORK_1_BRIDGE_SERVICE_URL"
+
+            echo "Cardona-48 RPC URL: ${CARDONA_NETWORK_48_RPC_URL:0:20}..."
+            echo "Cardona-48 Bridge Address: $CARDONA_NETWORK_48_BRIDGE_ADDR"
+            echo "Cardona-48 Bridge Service: $CARDONA_NETWORK_48_BRIDGE_SERVICE_URL"
+
+            echo "Cardona-50 RPC URL: ${CARDONA_NETWORK_50_RPC_URL:0:20}..."
+            echo "Cardona-50 Bridge Address: $CARDONA_NETWORK_50_BRIDGE_ADDR"
+            echo "Cardona-50 Bridge Service: $CARDONA_NETWORK_50_BRIDGE_SERVICE_URL"
+
+            echo "Cardona-51 RPC URL: ${CARDONA_NETWORK_51_RPC_URL:0:20}..."
+            echo "Cardona-51 Bridge Address: $CARDONA_NETWORK_51_BRIDGE_ADDR"
+            echo "Cardona-51 Bridge Service: $CARDONA_NETWORK_51_BRIDGE_SERVICE_URL"
+            
+            echo "Cardona-52 RPC URL: ${CARDONA_NETWORK_52_RPC_URL:0:20}..."
+            echo "Cardona-52 Bridge Address: $CARDONA_NETWORK_52_BRIDGE_ADDR"
+            echo "Cardona-52 Bridge Service: $CARDONA_NETWORK_52_BRIDGE_SERVICE_URL"
+
+          elif [[ "$NETWORK_ENV" == "kurtosis" ]]; then
+            # For kurtosis, the configuration should be set from local-kurtosis.env
+            echo "Verifying Kurtosis environment setup:"
+            echo "Kurtosis L1 RPC URL: ${KURTOSIS_L1_RPC_URL:-not_set}"
+            echo "Kurtosis Network 1 RPC URL: ${KURTOSIS_NETWOWRK_1_RPC_URL:-not_set}"
+            echo "Kurtosis Network 2 RPC URL: ${KURTOSIS_NETWOWRK_2_RPC_URL:-not_set}"
+          fi
+
+          # Common verification
+          echo "Common environment verification:"
           echo "Sepolia L1 RPC URL: ${SEPOLIA_RPC_URL:0:20}..."
           echo "L1 RPC URL (compat): ${L1_RPC_URL:0:20}..."
           echo "ETH_RPC_TIMEOUT: $ETH_RPC_TIMEOUT"
-          
-          # Show all Bali network configurations
-          echo "Bali-01 RPC URL: ${BALI_NETWORK_1_RPC_URL:0:20}..."
-          echo "Bali-01 Bridge Address: $BALI_NETWORK_1_BRIDGE_ADDR"
-          echo "Bali-01 Bridge Service: $BALI_NETWORK_1_BRIDGE_SERVICE_URL"
-          
-          echo "Bali-37 RPC URL: ${BALI_NETWORK_37_RPC_URL:0:20}..."
-          echo "Bali-37 Bridge Address: $BALI_NETWORK_37_BRIDGE_ADDR"
-          echo "Bali-37 Bridge Service: $BALI_NETWORK_37_BRIDGE_SERVICE_URL"
-          
-          # echo "Bali-48 RPC URL: ${BALI_NETWORK_48_RPC_URL:0:20}..."
-          # echo "Bali-48 Bridge Address: $BALI_NETWORK_48_BRIDGE_ADDR"
-          # echo "Bali-48 Bridge Service: $BALI_NETWORK_48_BRIDGE_SERVICE_URL"
-          
-          echo "Bali-49 RPC URL: ${BALI_NETWORK_49_RPC_URL:0:20}..."
-          echo "Bali-49 Bridge Address: $BALI_NETWORK_49_BRIDGE_ADDR"
-          echo "Bali-49 Bridge Service: $BALI_NETWORK_49_BRIDGE_SERVICE_URL"
-
-          echo "Bali-52 RPC URL: ${BALI_NETWORK_52_RPC_URL:0:20}..."
-          echo "Bali-52 Bridge Address: $BALI_NETWORK_52_BRIDGE_ADDR"
-          echo "Bali-52 Bridge Service: $BALI_NETWORK_52_BRIDGE_SERVICE_URL"
-          
-          echo "Bali-57 RPC URL: ${BALI_NETWORK_57_RPC_URL:0:20}..."
-          echo "Bali-57 Bridge Address: $BALI_NETWORK_57_BRIDGE_ADDR"
-          echo "Bali-57 Bridge Service: $BALI_NETWORK_57_BRIDGE_SERVICE_URL"
+          echo "NETWORK_ENVIRONMENT: $NETWORK_ENVIRONMENT"
 
           # Run the bridge tests suite (no target-network filter needed)
           bats --filter-tags standard ${{ matrix.testfile }}
@@ -256,6 +361,6 @@ jobs:
         if: always() && contains(matrix.testfile, 'bridge-tests-suite.bats')
         uses: actions/upload-artifact@v4
         with:
-          name: bridge_tests_suite_output_artifacts_${{ matrix.target-network }}
+          name: bridge_tests_suite_output_artifacts_${{ inputs.network-environment || 'bali' }}
           path: /tmp/bridge_test_results_*
           retention-days: 7

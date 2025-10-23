@@ -55,41 +55,63 @@ source "$PROJECT_ROOT/core/helpers/logger.bash"
 _initialize_network_config() {
     # Define network ID to name mapping
     # This can be extended to support more networks
-    if $RUN_WITH_KURTOSIS_ENV; then
-        declare -gA NETWORK_ID_TO_NAME=(
-            ["0"]="kurtosis_l1"
-            ["1"]="kurtosis_network_1"
-            ["2"]="kurtosis_network_2"
-        )
-        
-        # You can also define network name to ID mapping for reverse lookup
-        declare -gA NETWORK_NAME_TO_ID=(
-            ["kurtosis_l1"]="0"
-            ["kurtosis_network_1"]="1"
-            ["kurtosis_network_2"]="2"
-        )
-    else
-        declare -gA NETWORK_ID_TO_NAME=(
-            ["0"]="sepolia"
-            ["1"]="bali_1"
-            ["37"]="bali_37"
-            # ["48"]="bali_48" # Bali-48 seems to have a higher gas fee, so it burns a lot of gas.
-            ["49"]="bali_49"
-            ["52"]="bali_52"
-            ["57"]="bali_57"
-        )
-        
-        # You can also define network name to ID mapping for reverse lookup
-        declare -gA NETWORK_NAME_TO_ID=(
-            ["sepolia"]="0"
-            ["bali_1"]="1"
-            ["bali_37"]="37"
-            # ["bali_48"]="48" # Bali-48 seems to have a higher gas fee, so it burns a lot of gas.
-            ["bali_49"]="49"
-            ["bali_52"]="52"
-            ["bali_57"]="57"
-        )
-    fi
+    case "${NETWORK_ENVIRONMENT:-kurtosis}" in
+        "kurtosis")
+            declare -gA NETWORK_ID_TO_NAME=(
+                ["0"]="kurtosis_l1"
+                ["1"]="kurtosis_network_1"
+                ["2"]="kurtosis_network_2"
+            )
+            # You can also define network name to ID mapping for reverse lookup
+            declare -gA NETWORK_NAME_TO_ID=(
+                ["kurtosis_l1"]="0"
+                ["kurtosis_network_1"]="1"
+                ["kurtosis_network_2"]="2"
+            )
+        ;;
+        "bali")
+            declare -gA NETWORK_ID_TO_NAME=(
+                ["0"]="sepolia"
+                ["1"]="bali_1"
+                ["37"]="bali_37"
+                # ["48"]="bali_48" # Bali-48 seems to have a higher gas fee, so it burns a lot of gas.
+                ["49"]="bali_49"
+                ["52"]="bali_52"
+                ["57"]="bali_57"
+            )
+            
+            # You can also define network name to ID mapping for reverse lookup
+            declare -gA NETWORK_NAME_TO_ID=(
+                ["sepolia"]="0"
+                ["bali_1"]="1"
+                ["bali_37"]="37"
+                # ["bali_48"]="48" # Bali-48 seems to have a higher gas fee, so it burns a lot of gas.
+                ["bali_49"]="49"
+                ["bali_52"]="52"
+                ["bali_57"]="57"
+            )
+        ;;
+        "cardona")
+            declare -gA NETWORK_ID_TO_NAME=(
+                ["0"]="sepolia"
+                ["1"]="cardona_1"
+                ["48"]="cardona_48"
+                ["50"]="cardona_50"
+                ["51"]="cardona_51"
+                ["52"]="cardona_52"
+            )
+            
+            # You can also define network name to ID mapping for reverse lookup
+            declare -gA NETWORK_NAME_TO_ID=(
+                ["sepolia"]="0"
+                ["cardona_1"]="1"
+                ["cardona_48"]="48"
+                ["cardona_50"]="50"
+                ["cardona_51"]="51"
+                ["cardona_52"]="52"
+            )
+        ;;
+    esac
     
     # Cache for derived values to avoid repeated RPC calls
     declare -gA DERIVED_NETWORK_ID_CACHE=()
@@ -203,6 +225,11 @@ _get_env_var_directly() {
                 # For Bali networks, use BALI_NETWORK_XX_* pattern (must match env file)
                 local network_num="${network_name#bali_}"
                 env_var_name="BALI_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                value="${!env_var_name:-}"
+            elif [[ "$network_name" =~ ^cardona_ ]]; then
+                # For Cardona networks, use CARDONA_NETWORK_XX_* pattern (must match env file)
+                local network_num="${network_name#cardona_}"
+                env_var_name="CARDONA_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
                 value="${!env_var_name:-}"
             elif [[ "$network_name" == "sepolia" ]]; then
                 # For Sepolia, use SEPOLIA_* pattern

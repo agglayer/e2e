@@ -36,10 +36,7 @@ function _setup_vars() {
     export PROJECT_ROOT=${PROJECT_ROOT:-$HERE/../..}
     echo "ℹ️ PROJECT_ROOT=$PROJECT_ROOT BATS_LIB_PATH=$BATS_LIB_PATH" >&3
 
-    if ${RUN_WITH_KURTOSIS_ENV:-true}; then
-        #
-        # l2_rpc_url
-        #
+    if [[ "${NETWORK_ENVIRONMENT:-kurtosis}" != "bali" && "${NETWORK_ENVIRONMENT:-kurtosis}" != "cardona" ]]; then
         if [[ -n "$L2_RPC_URL" ]]; then
             l2_rpc_url="$L2_RPC_URL"
         elif [[ -z "$ENCLAVE_NAME" ]]; then
