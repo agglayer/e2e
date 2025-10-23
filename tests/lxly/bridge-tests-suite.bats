@@ -22,11 +22,35 @@ setup_file() {
         export claim_wait_duration="${ETH_RPC_TIMEOUT}s"
     fi
 
-    # Load test scenarios from file
+    # Load test scenarios from file based on NETWORK_ENVIRONMENT
     # Instead of storing large JSON in a variable, use a temp file
     local json_temp_file
     json_temp_file=$(mktemp)
-    cp "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json" "$json_temp_file"
+    
+    # Determine which test suite to load based on NETWORK_ENVIRONMENT
+    local test_suite_file=""
+    case "${NETWORK_ENVIRONMENT:-kurtosis}" in
+        "bali")
+            test_suite_file="bali-bridge-tests-suite.json"
+            ;;
+        "cardona")
+            test_suite_file="cardona-bridge-tests-suite.json"
+            ;;
+        *)
+            # Default to bali for kurtosis and any other environment
+            test_suite_file="bali-bridge-tests-suite.json"
+            ;;
+    esac
+    
+    local source_file="$BATS_TEST_DIRNAME/../lxly/assets/$test_suite_file"
+    if [[ -f "$source_file" ]]; then
+        cp "$source_file" "$json_temp_file"
+        echo "Using test suite: $test_suite_file (NETWORK_ENVIRONMENT=${NETWORK_ENVIRONMENT:-kurtosis})" >&3
+    else
+        echo "Warning: Test suite file $test_suite_file not found, exitting test..." >&3
+        exit 1
+    fi
+    
     export scenarios_file="$json_temp_file"
     
     # Clean up function
@@ -102,8 +126,9 @@ _calculate_test_erc20_address() {
 # =============================================================================
 # bats test_tags=bridge
 @test "Initial setup" {
-    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
-        _log_file_descriptor "3" "Bridge Tests Suite file not found"
+    # Test scenarios file is already set up in setup_file(), so we just check if it exists
+    [[ -f "$scenarios_file" ]] || {
+        _log_file_descriptor "3" "Bridge Tests Suite file not found: $scenarios_file"
         skip "Bridge Tests Suite file not found"
     }
 
@@ -146,8 +171,8 @@ _calculate_test_erc20_address() {
 # bats test_tags=bridge
 @test "Process bridge scenarios with dynamic network routing and claim deposits in parallel" {
     _log_file_descriptor "3" "Starting parallel bridge scenarios with dynamic network routing"
-    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
-        _log_file_descriptor "3" "Bridge Tests Suite file not found"
+    [[ -f "$scenarios_file" ]] || {
+        _log_file_descriptor "3" "Bridge Tests Suite file not found: $scenarios_file"
         skip "Bridge Tests Suite file not found"
     }
 
