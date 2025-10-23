@@ -50,8 +50,8 @@ wait_for_condition() {
 
             "block_increase")
                 # Only set first_block once, outside the retry loop
+                local first_block
                 if [[ -z "$first_block" ]]; then
-                    local first_block
                     first_block=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
                     echo "Initial block: $first_block" >&"$output_file"
                 fi
@@ -71,8 +71,8 @@ wait_for_condition() {
 
             "height_increase")
                 # Only set first_height once, outside the retry loop
+                local first_height
                 if [[ -z "$first_height" ]]; then
-                    local first_height
                     first_height=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
                     echo "Initial height: $first_height" >&"$output_file"
                 fi
