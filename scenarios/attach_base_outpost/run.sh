@@ -117,12 +117,50 @@ else
 fi
 
 
-echo '██╗     ██████╗      ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  █████╗  ██████╗████████╗███████╗'
-echo '██║     ╚════██╗    ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔══██╗██╔══██╗██╔════╝╚══██╔══╝██╔════╝'
-echo '██║      █████╔╝    ██║     ██║   ██║██╔██╗ ██║   ██║   ██████╔╝███████║██║        ██║   ███████╗'
-echo '██║     ██╔═══╝     ██║     ██║   ██║██║╚██╗██║   ██║   ██╔══██╗██╔══██║██║        ██║   ╚════██║'
-echo '███████╗███████╗    ╚██████╗╚██████╔╝██║ ╚████║   ██║   ██║  ██║██║  ██║╚██████╗   ██║   ███████║'
-echo '╚══════╝╚══════╝     ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚══════╝'
+ ####   . ####:            ##              ####                                                                                
+ ####   #######:           ##              ####                                          ##                             ##     
+   ##   #:.   ##           ##                ##                                          ##                             ##     
+   ##         ##      :###.## .####: ##.###: ##    .####. ##    ##      .####. ##    ###########.###:  .####.  :#####.#######  
+   ##        :#      :#######.######:#######:##   .######.:##  ##      .######.##    ################:.######.###############  
+   ##        ##      ###  #####:  :#####  #####   ###  ### ##: ##.     ###  #####    ##  ##   ###  ######  #####:  .:#  ##     
+   ##      .##:      ##.  .############.  .####   ##.  .## ###:##      ##.  .####    ##  ##   ##.  .####.  .####### .   ##     
+   ##     .##:       ##    ############    ####   ##    ## .## #       ##    ####    ##  ##   ##    ####    ##.######:  ##     
+   ##    :##:        ##.  .####      ##.  .####   ##.  .##  ####.      ##.  .####    ##  ##   ##.  .####.  .##   .: ##  ##     
+   ##:  :##:         ###  ######.  :####  #####:  ###  ###  :###       ###  #####:  ###  ##.  ###  ######  ####:.  :##  ##.    
+   #############     :#######.##############:#####.######.   ##        .######. #######  ############:.######.########  #####  
+    ############      :###.## .#####:##.###: .#### .####.    ##.        .####.   ###.##  .######.###:  .####. . ####    .####  
+                                     ##                     :##                               ##                               
+                                     ##                    ###:                               ##                               
+                                     ##                    ###                                ##                               
+
+deploy_parameters_json='{
+    "network": {
+        "chainID": '"$base_chain_id"',
+        "rollupID": '"$rollupId"',
+        "networkName": "BaseOutpostChain",
+        "tokenName": "BaseETH",
+        "tokenSymbol": "BASEETH",
+        "tokenDecimals": 18
+    },
+    "timelock": {
+        "timelockDelay": 60,
+        "timelockAdminAddress": "'"$base_admin"'"
+    },
+    "bridge": {
+        "bridgeManager": "'"$base_admin"'",
+        "sovereignWETHAddress": "'"$(cast address-zero)"'",
+        "sovereignWETHAddressIsNotMintable": false,
+        "emergencyBridgePauser": "'"$base_admin"'",
+        "emergencyBridgeUnpauser": "'"$base_admin"'"
+    },
+    "globalExitRoot": {
+        "globalExitRootUpdater": "'"$aggkit_addr"'",
+        "globalExitRootRemover": "'"$aggkit_addr"'"
+    },
+    "aggOracleCommittee": {
+        "useAggOracleCommittee": false
+    }
+}'
 
 # Let's check it has at least 1 ether
 one_ether=$(cast to-wei 1)
@@ -402,6 +440,16 @@ polycli ulxly bridge asset \
     --rpc-url $l1_rpc_url \
     --private-key $test_pkey \
     --chain-id $l1_chainid
+
+
+    polycli ulxly claim-everything \
+        --bridge-address $bridge_proxy_addr \
+        --destination-address $test_addr \
+        --rpc-url $base_rpc_url \
+        --private-key $test_pkey \
+        --bridge-service-map '0='$bridge_url',1='$bridge_url',2='$bridge_url
+
+
 
 sleep 10
 expected_l2_balance=$((l2_balance_before + wei_deposit_amount))
