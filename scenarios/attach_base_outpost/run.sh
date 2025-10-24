@@ -29,7 +29,8 @@ docker_network_name="kt-$kurtosis_enclave_name"
                                                                                     ##                    ###:                                    
                                                                                     ##                    ###
 
-kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_tag"
+# Have to run it locally now due to custom bridge modifications
+# kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_tag"
 
 echo "🔗 Getting admin_private_key and keystore_password values..."
 contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
@@ -39,7 +40,7 @@ keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -
 
 l1_preallocated_mnemonic="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.l1_preallocated_mnemonic')"
 l1_preallocated_private_key=$(cast wallet private-key --mnemonic "$l1_preallocated_mnemonic")
-#l1_preallocated_address=$(cast wallet address --mnemonic "$l1_preallocated_mnemonic")
+l1_preallocated_address=$(cast wallet address --mnemonic "$l1_preallocated_mnemonic")
 
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 l1_rpc_url_kurtosis="http://el-1-geth-lighthouse:8545"
@@ -141,6 +142,10 @@ fi
                                      ##                     :##                               ##                               
                                      ##                    ###:                               ##                               
                                      ##                    ###                                ##                               
+
+# We will use this block for the bridge to avoid syncing the whole network
+base_init_block=$(cast block-number --rpc-url $base_rpc_url)
+echo "Base init block: $base_init_block"
 
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$base_private_key\" > /opt/agglayer-contracts/.env"
 kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo CUSTOM_PROVIDER=\"$base_rpc_url\" >> /opt/agglayer-contracts/.env"
@@ -282,7 +287,7 @@ PrivateKeys = [{Path = "/etc/aggkit/aggkit.keystore", Password = "secret"}]
 
 [AggOracle.EVMSender.EthTxManager.Etherman]
 # For some weird reason that needs to be set to L2 chainid, not L1
-L1ChainID = "$pos_chain_id"
+L1ChainID = "$base_chain_id"
 
 [BridgeL2Sync]
 BridgeAddr = "$bridge_proxy_addr"
@@ -296,6 +301,11 @@ Enabled = false
 EOF
 
 # run aggkit
+# first, stop and remove any existing container with the same name
+if docker ps -q --filter "name=aggkit-base" | grep -q .; then
+    docker stop aggkit-base
+fi
+
 docker run -it \
     --rm \
     --detach \
@@ -334,6 +344,7 @@ kurtosis service exec $kurtosis_enclave_name zkevm-bridge-service-001 'sed -i -E
 kurtosis service exec $kurtosis_enclave_name zkevm-bridge-service-001 'sed -i -E "s#(RequireSovereignChainSmcs = \[.*)(\])#\1, true\2#" /etc/zkevm/bridge-config.toml'
 kurtosis service exec $kurtosis_enclave_name zkevm-bridge-service-001 'sed -i -E "s#(L2PolygonZkEVMGlobalExitRootAddresses = \[.*)(\])#\1, \"'${ger_proxy_addr}'\"\2#" /etc/zkevm/bridge-config.toml'
 kurtosis service exec $kurtosis_enclave_name zkevm-bridge-service-001 'sed -i -E "s#(L2PolygonBridgeAddresses = \[.*)(\])#\1, \"'${bridge_proxy_addr}'\"\2#" /etc/zkevm/bridge-config.toml'
+kurtosis service exec $kurtosis_enclave_name zkevm-bridge-service-001 'sed -i -E "s#(L2GenBlockNumbers = \[.*)(\])#\1, '${base_init_block}'\2#" /etc/zkevm/bridge-config.toml'
 
 # get kurtosis bridge docker name and restart it
 bridge_docker_name=zkevm-bridge-service-001--$(kurtosis service inspect $kurtosis_enclave_name zkevm-bridge-service-001 --full-uuid | grep UUID | sed  's/.*: //')
@@ -347,15 +358,17 @@ echo '██████╔╝██████╔╝██║██║  ██
 echo '██╔══██╗██╔══██╗██║██║  ██║██║   ██║██╔══╝  ╚════██║    ╚════╝       ██║    ██╔██╗ ╚════██║'
 echo '██████╔╝██║  ██║██║██████╔╝╚██████╔╝███████╗███████║                 ██║   ██╔╝ ██╗███████║'
 echo '╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝ ╚══════╝╚══════╝                 ╚═╝   ╚═╝  ╚═╝╚══════╝'
-# Create some activity on both l1 and l2 before attaching the outpost
+
+source ../../core/helpers/scripts/erc20.bash
+source ../../core/helpers/scripts/bridging.bash
+erc20_init "$gas_token_addr" "$base_rpc_url"
 
 bridge_url=$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)
 
+# Create and fund new wallet for bridge testing
 tmp_test_wallet_json=$(cast wallet new --json)
 test_addr=$(echo "$tmp_test_wallet_json" | jq -r '.[0].address')
 test_pkey=$(echo "$tmp_test_wallet_json" | jq -r '.[0].private_key')
-
-# Balance on L1
 cast send --rpc-url $l1_rpc_url --value 10ether --private-key $l1_preallocated_private_key $test_addr
 
 # amount to deposit
@@ -363,19 +376,12 @@ deposit_amount="0.01ether"
 wei_deposit_amount=$(echo "$deposit_amount" | sed 's/ether//g' | cast to-wei)
  
 l1_balance_before=$(cast balance --rpc-url $l1_rpc_url $test_addr)
-l2_balance_before=$(cast balance --rpc-url $base_rpc_url $test_addr)
-echo "L1 balance before: $l1_balance_before, L2 balance before: $l2_balance_before"
+l2_native_balance_before=$(cast balance --rpc-url $base_rpc_url $test_addr)
+l2_gas_token_balance_before=0
+echo "L1 balance before: $l1_balance_before, L2 native balance before: $l2_native_balance_before, L2 gas token balance before: $l2_gas_token_balance_before, Test wallet address: $test_addr"
 
-
-
-
-
-# WE HAVE NO BALANCE L2, EVERYTHING IS KINDA BLOCKED HERE
-
-
-
-# Deposit on L1 -- bridge to L2
-polycli ulxly bridge asset \
+# Deposit on L1
+deposit_output=$(polycli ulxly bridge asset \
     --value $wei_deposit_amount \
     --gas-limit 1250000 \
     --bridge-address $l1_bridge_addr \
@@ -383,21 +389,40 @@ polycli ulxly bridge asset \
     --destination-network $rollupId \
     --rpc-url $l1_rpc_url \
     --private-key $test_pkey \
-    --chain-id $l1_chainid
+    --chain-id $l1_chainid |& tee /dev/stderr)
+
+deposit_count=$(polycli_bridge_asset_get_info "$deposit_output" "$l1_rpc_url" "$l1_bridge_addr" | jq -r '.depositCount')
+echo "Waiting and then claiming on L2 deposit count: $deposit_count"
+sleep 60
+
+# claim everything on L2, it should be already claimed by the bridge service autoclaimer
+polycli ulxly claim-everything \
+    --bridge-address $bridge_proxy_addr \
+    --destination-address $test_addr \
+    --rpc-url $base_rpc_url \
+    --private-key $test_pkey \
+    --bridge-service-map '0='$bridge_url',1='$bridge_url',2='$bridge_url
+
+l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
+l2_native_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
+echo "L1 balance before: $l1_balance_before, L1 balance after : $l1_balance_after, L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
 
 
-    polycli ulxly claim-everything \
-        --bridge-address $bridge_proxy_addr \
-        --destination-address $test_addr \
-        --rpc-url $base_rpc_url \
-        --private-key $test_pkey \
-        --bridge-service-map '0='$bridge_url',1='$bridge_url',2='$bridge_url
 
 
+# Claim on L2
+bash -c "polycli ulxly claim asset \
+    --bridge-address $bridge_proxy_addr \
+    --private-key $test_pkey \
+    --rpc-url $base_rpc_url \
+    --deposit-count $deposit_count \
+    --deposit-network 0 \
+    --bridge-service-url $bridge_url" |& tee /dev/stderr
 
-sleep 10
-expected_l2_balance=$((l2_balance_before + wei_deposit_amount))
-l2_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
+expected_l2_native_balance=0
+expected_l2_gas_token_balance=$wei_deposit_amount
+l2_native_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
+l2_gas_token_balance_after=$(erc20_balance "$test_addr")
 
 while [ $((l2_balance_after == expected_l2_balance)) -eq 0 ]; do
     echo "Current L2 balance for $test_addr is $l2_balance_after, waiting..."
@@ -406,12 +431,16 @@ while [ $((l2_balance_after == expected_l2_balance)) -eq 0 ]; do
 done
 
 l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
-echo "L1 balance before: $l1_balance_before"
-echo "L1 balance after : $l1_balance_after"
-echo "L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
-echo "L2 balance before: $l2_balance_before"
-echo "L2 balance after : $l2_balance_after"
-echo "L2 Balance diff  : $(echo "$l2_balance_after - $l2_balance_before" | bc)"
+echo "L1 balance before: $l1_balance_before, L1 balance after : $l1_balance_after, L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
+echo "L2 balance before: $l2_balance_before, L2 balance after : $l2_balance_after, L2 Balance diff  : $(echo "$l2_balance_after - $l2_balance_before" | bc)"
+
+
+
+
+
+
+
+
 
 
 #
