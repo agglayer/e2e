@@ -13,12 +13,12 @@ setup() {
 }
 
 teardown_file() {
-    log "🧹 Cleaning up Docker containers..."
+    echo "🧹 Cleaning up Docker containers..." >&3
     # Stop and remove the additional validator container if it exists
     if docker ps -a --format "table {{.Names}}" | grep -q "aggkit-001-aggsender-validator-004"; then
         docker stop aggkit-001-aggsender-validator-004 2>/dev/null || true
         docker rm aggkit-001-aggsender-validator-004 2>/dev/null || true
-        log "✅ Removed aggkit-001-aggsender-validator-004 container"
+        echo "✅ Removed aggkit-001-aggsender-validator-004 container" >&3
     fi
 }
 
