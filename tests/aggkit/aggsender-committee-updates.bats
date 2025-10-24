@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 # bats file_tags=aggkit
+# shellcheck disable=SC2154,SC2034
 
 setup() {
     load '../../core/helpers/agglayer-cdk-common-setup'
     log_setup_test
     _agglayer_cdk_common_setup
     _set_vars
-        timeout=${TIMEOUT:-3000}
+    timeout=${TIMEOUT:-3000}
     retry_interval=${RETRY_INTERVAL:-15}
     load "${BATS_TEST_DIRNAME}/../../core/helpers/agglayer-certificates-checks.bash"
 }
@@ -25,7 +26,7 @@ function _set_vars() {
     export kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
 
     echo "🔗 Getting admin_private_key and keystore_password values..." >&3
-    local contracts_url="$(kurtosis port print $ENCLAVE_NAME $contracts_container http)"
+    contracts_url="$(kurtosis port print $ENCLAVE_NAME $contracts_container http)"
 
     admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
     export admin_private_key

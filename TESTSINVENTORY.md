@@ -250,7 +250,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L91) | |
+| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L92) | |
 | Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L275) | |
 | Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L355) | |
 | Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L195) | |
@@ -271,7 +271,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L296) | |
 | Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L244) | |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
-| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L131) | |
+| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L132) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L25) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
