@@ -226,8 +226,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Check L2 OP vaults totalProcessed wei | [Link](./tests/op/check-isthmus-fees.bats#L55) | |
 | Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L39) | |
 | Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
-| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L110) | |
-| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L86) | |
+| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L99) | |
+| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L75) | |
 | Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
 | Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
 | check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
@@ -250,6 +250,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
+| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L91) | |
 | Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L275) | |
 | Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L355) | |
 | Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L195) | |
@@ -258,8 +259,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L133) | |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
-| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L34) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L116) | |
+| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
+| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
@@ -267,9 +268,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
 | Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
 | Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
-| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L297) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L245) | |
+| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L296) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L244) | |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
+| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L131) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L25) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
@@ -286,7 +288,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
 | Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
-| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L12) | |
+| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
