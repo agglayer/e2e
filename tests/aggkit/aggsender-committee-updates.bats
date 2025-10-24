@@ -11,6 +11,16 @@ setup() {
     load "${BATS_TEST_DIRNAME}/../../core/helpers/agglayer-certificates-checks.bash"
 }
 
+teardown_file() {
+    log "🧹 Cleaning up Docker containers..."
+    # Stop and remove the additional validator container if it exists
+    if docker ps -a --format "table {{.Names}}" | grep -q "aggkit-001-aggsender-validator-004"; then
+        docker stop aggkit-001-aggsender-validator-004 2>/dev/null || true
+        docker rm aggkit-001-aggsender-validator-004 2>/dev/null || true
+        log "✅ Removed aggkit-001-aggsender-validator-004 container"
+    fi
+}
+
 function _set_vars() {
     export kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
 
@@ -69,13 +79,13 @@ function verify_threshold_updated() {
     local expected_threshold="$1"
     local updated_threshold
     
-    log "✅ Verifying threshold was updated..."
+    log "🔍 Verifying threshold was updated..."
     updated_threshold=$(get_current_threshold)
     if [[ "$updated_threshold" -ne "$expected_threshold" ]]; then
         echo "Error: Threshold not updated correctly. Expected $expected_threshold, got $updated_threshold." >&3
         return 1
     fi
-    log "Threshold updated successfully to $updated_threshold."
+    log "✅ Threshold updated successfully to $updated_threshold."
 }
 
 @test "Add single validator to committee" {
@@ -90,13 +100,13 @@ function verify_threshold_updated() {
     update_signers_and_threshold "[]" "[($aggsender_validator_004_address,\"http://aggkit-001-aggsender-validator-004:5578\")]" "$new_threshold"
 
     # Verify that the new signer is added
-    log "✅ Verifying signers were updated..."
+    log "🔍 Verifying signers were updated..."
     signers=$(cast call "$rollup_address" "getAggchainSignerInfos()((address,string)[])" --rpc-url "$l1_rpc_url")
     if [[ "$signers" != *"$aggsender_validator_004_address"* ]]; then
         echo "Error: New signer $aggsender_validator_004_address not found in signers list." >&3
         return 1
     fi
-    log "Signers updated successfully: $signers"
+    log "✅ Signers updated successfully: $signers"
 
     # Verify that the threshold is updated
     verify_threshold_updated "$new_threshold"
@@ -139,13 +149,13 @@ function verify_threshold_updated() {
     update_signers_and_threshold "[($aggsender_validator_004_address, $aggsender_validator_004_index)]" "[]" "$new_threshold"
 
     # Verify that the signer is removed
-    log "✅ Verifying signers were updated..."
+    log "🔍 Verifying signers were updated..."
     signers=$(cast call "$rollup_address" "getAggchainSignerInfos()((address,string)[])" --rpc-url "$l1_rpc_url")
     if [[ "$signers" == *"$aggsender_validator_004_address"* ]]; then
         echo "Error: Signer $aggsender_validator_004_address still found in signers list." >&3
         return 1
     fi
-    log "Signers updated successfully: $signers"
+    log "✅ Signers updated successfully: $signers"
 
     # Verify that the threshold is updated
     verify_threshold_updated "$new_threshold"
