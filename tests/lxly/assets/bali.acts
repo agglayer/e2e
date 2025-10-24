@@ -1,0 +1,65 @@
+-- java -Doutput=nist -Ddoi=2 -Dchandler=solver -jar ./acts_3.3.jar bali.acts
+-- java -Doutput=nist -Ddoi=2 -jar ./acts_3.3.jar bali.acts
+-- java -Doutput=nist -Ddoi=3 -jar ./acts_3.3.jar bali.acts
+-- jq '[.[] | select(.ExpectedResultClaim == "Success")]' bridge-tests-suite.json > temp.json && mv temp.json bridge-tests-suite.json
+-- jq 'length' bridge-tests-suite.json
+
+[System]
+-- specify system name
+Name: Bali Integration Tests
+
+[Parameter]
+bridgeType (enum): message, asset
+-- the 999999 is a fake network to represent 4294967295. That value is too big for acts
+-- 54 has been removed temporarily because the rpc is not available
+fromNetwork (int): 0, 1, 37, 48, 49, 52, 57
+toNetwork (int):   0, 1, 37, 48, 49, 52, 54, 57, 999999
+amount (enum): none, one, ten, rand, uint16, uint32, uint64, uint128, uint256, uint16b, uint32b, uint64b, uint128b
+-- 0x0000000000000000000000000000000000000000 native either
+-- 0x72293B2e981D4d0642531357F0792ae1b70Bf1aB seb gas token
+-- 0x030d2612fE5a52fb96801d95A997d6f5ea47d629 standard token
+-- 0x9a8EE8c86c0E72903e9861Af950dC8D51bD81A06 buggy token
+-- we should also include WETH9
+-- we should also include gas token WETH
+tokenAddress (enum): UNSPECIFIED, 0x0000000000000000000000000000000000000000, 0x030d2612fE5a52fb96801d95A997d6f5ea47d629, 0x9a8EE8c86c0E72903e9861Af950dC8D51bD81A06, 0x72293B2e981D4d0642531357F0792ae1b70Bf1aB
+tokenNetwork (int): -1, 0, 1, 48, 49, 52, 54, 57
+updateGER (boolean): TRUE, FALSE
+-- eventually we should include a permit type as well
+calldata (enum): 0x, random, huge
+txType (enum): no-chain-id, legacy, eip-1559
+
+[Constraint]
+-- a bridge can't be sent from a network to itself
+fromNetwork != toNetwork
+
+-- if we're using bridge message, we don't have a token address
+bridgeType == "message" => tokenAddress == "UNSPECIFIED"
+-- if we're doing a bridge message, we'll keep the amount smaller since it's going to be the native asset or a gas token
+bridgeType == "message" => amount == "none" || amount == "one" || amount == "ten" || amount == "rand"
+-- NoValueInMessagesOnGasTokenNetworks() - if we're on the gas token network and we're doing a bridge message, the transaction can't have value
+fromNetwork == 48 && bridgeType == "message" => amount == "none"
+fromNetwork == 49 && bridgeType == "message" => amount == "none"
+
+-- if we're doing a bridge asset, since we don't have any permit examples ready, we'll enforce empty calldata
+bridgeType == "asset" => calldata == "0x"
+
+-- if we're sending a huge bridge, this really only works with the buggy ERC20 contract
+amount == "uint256" || amount == "uint128" || amount == "uint128b" => tokenAddress == "0x9a8EE8c86c0E72903e9861Af950dC8D51bD81A06"
+
+-- if we're sending the native token or the SEB token, these live exclusively on L1
+tokenAddress == "0x0000000000000000000000000000000000000000" || tokenAddress == "0x72293B2e981D4d0642531357F0792ae1b70Bf1aB" => tokenNetwork == 0
+-- if we're sending the native token or the SEB token, we'll keep the amount smaller
+tokenAddress == "0x0000000000000000000000000000000000000000" || tokenAddress == "0x72293B2e981D4d0642531357F0792ae1b70Bf1aB" => amount == "none" || amount == "one" || amount == "ten" || amount == "rand"
+
+-- if the network that we're using is not the origin network of the token, we'll keep the amount small as well because we'll only have small amounts available from imported bridge exits
+fromNetwork != tokenNetwork => amount == "none" || amount == "one" || amount == "ten" || amount == "rand"
+
+-- if the token address is unspecified, then the bridge type must be a message
+tokenAddress == "UNSPECIFIED" => bridgeType == "message"
+
+-- For the erigon networks, we can only send legacy transactions
+fromNetwork == 1 || fromNetwork == 48 || fromNetwork == 49 || fromNetwork == 54 => txType == "legacy"
+
+-- If we're sending bridge asset, then the token network can't be -1 (unspecified)
+bridgeType == "asset" => tokenNetwork != -1
+
