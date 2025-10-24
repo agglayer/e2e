@@ -8,7 +8,6 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
-
 @test "Transfer message" {
     log_start_test
     echo "====== bridgeMessage L1 -> L2 :$LINENO" >&3

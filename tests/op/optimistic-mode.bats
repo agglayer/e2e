@@ -60,17 +60,6 @@ toggle_optimistic_mode() {
     fi
 }
 
-# Helper function for initial certificate checks
-ensure_non_null_cert() {
-    if check_for_null_cert >&3; then
-        if ! check_for_latest_settled_cert >&3; then
-            wait_for_non_null_cert >&3
-        fi
-    else
-        wait_for_non_null_cert >&3
-    fi
-}
-
 # Helper function to check network is using optimisticMode compatible FEP consensus
 check_fep_consensus_version() {
     contract_version=$(cast call --rpc-url "$l1_rpc_url" "$rollup_address" "version()(string)")
@@ -86,7 +75,7 @@ check_fep_consensus_version() {
 @test "Enable OptimisticMode" {
     check_fep_consensus_version
 
-    ensure_non_null_cert
+    ensure_non_null_cert >&3
     manage_bridge_spammer "stop"
     print_settlement_info >&3
     wait_for_null_cert >&3
@@ -108,7 +97,7 @@ check_fep_consensus_version() {
 
 # bats test_tags=optimistic-mode
 @test "Disable OptimisticMode" {
-    ensure_non_null_cert
+    ensure_non_null_cert >&3
     manage_bridge_spammer "stop"
     print_settlement_info >&3
     wait_for_null_cert >&3
