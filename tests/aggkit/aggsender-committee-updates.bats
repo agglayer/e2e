@@ -34,7 +34,14 @@ function _set_vars() {
     keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
 
     log "🔍 Finding Docker network for Kurtosis enclave..." >&3
-    kurtosis_network=$(docker ps --filter "name=${ENCLAVE_NAME}" --format "table {{.Names}}\t{{.Networks}}" | grep -v NETWORKS | head -1 | awk '{print $2}')
+    kurtosis_network=$(
+        docker ps \
+            --filter "name=${ENCLAVE_NAME}" \
+            --format "table {{.Names}}\t{{.Networks}}" |
+        grep -v NETWORKS |
+        head -1 |
+        awk '{print $2}'
+    )
     export kurtosis_network
     echo "Kurtosis network: $kurtosis_network" >&3
 
@@ -89,6 +96,17 @@ function verify_threshold_updated() {
     log "✅ Threshold updated successfully to $updated_threshold."
 }
 
+function verify_is_in_signers_list() {
+    local signers="$1"
+    local address="$2"
+    
+    if [[ "$signers" != *"$address"* ]]; then
+        echo "Error: Signer $address not found in signers list." >&3
+        return 1
+    fi
+    log "✅ Signer $address found in signers list."
+}
+
 @test "Add single validator to committee" {
     # Lets wait for the old committee to settle at least one certificate first
     ensure_non_null_cert >&3
@@ -103,14 +121,13 @@ function verify_threshold_updated() {
     # Verify that the new signer is added
     log "🔍 Verifying signers were updated..."
     signers=$(cast call "$rollup_address" "getAggchainSignerInfos()((address,string)[])" --rpc-url "$l1_rpc_url")
-    if [[ "$signers" != *"$aggsender_validator_004_address"* ]]; then
-        echo "Error: New signer $aggsender_validator_004_address not found in signers list." >&3
-        return 1
-    fi
+    run verify_is_in_signers_list "$signers" "$aggsender_validator_004_address"
+    assert_success
     log "✅ Signers updated successfully: $signers"
 
     # Verify that the threshold is updated
-    verify_threshold_updated "$new_threshold"
+    run verify_threshold_updated "$new_threshold"
+    assert_success
 
     log "🐳 Starting additional AggSender Validator container..."
     docker run -d --name aggkit-001-aggsender-validator-004 \
@@ -135,11 +152,8 @@ function verify_threshold_updated() {
     new_threshold=$((current_threshold - 1))
 
     # Get current signers and find aggsender_validator_004_address
-    signers=$(cast call "$rollup_address" "getAggchainSignerInfos()((address,string)[])" --rpc-url "$l1_rpc_url")
-    if [[ "$signers" != *"$aggsender_validator_004_address"* ]]; then
-        echo "Error: Signer $aggsender_validator_004_address not found in signers list." >&3
-        return 1
-    fi
+    run verify_is_in_signers_list "$signers" "$aggsender_validator_004_address"
+    assert_success
     
     # Calculate the correct array index by counting parentheses before our address
     # The format is [(addr1, url1), (addr2, url2), ...] so we count opening parentheses before our address
@@ -159,7 +173,8 @@ function verify_threshold_updated() {
     log "✅ Signers updated successfully: $signers"
 
     # Verify that the threshold is updated
-    verify_threshold_updated "$new_threshold"
+    run verify_threshold_updated "$new_threshold"
+    assert_success
 
     log "⏱️ Waiting for certificates to settle after removing committee member..."
     wait_for_null_cert >&3 # wait so that we do not have a pending certificate
