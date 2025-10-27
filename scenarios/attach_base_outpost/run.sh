@@ -546,6 +546,7 @@ bridge_url=$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001
 tmp_test_wallet_json=$(cast wallet new --json)
 test_addr=$(echo "$tmp_test_wallet_json" | jq -r '.[0].address')
 test_pkey=$(echo "$tmp_test_wallet_json" | jq -r '.[0].private_key')
+echo "Test wallet address: $test_addr, private key: $test_pkey"
 cast send --rpc-url $l1_rpc_url --value 10ether --private-key $l1_preallocated_private_key $test_addr
 
 # amount to deposit
@@ -600,6 +601,7 @@ fi
 
 # Bridge back to L1
 half_wei_deposit_amount=$((wei_deposit_amount / 2))
+quarter_wei_deposit_amount=$((wei_deposit_amount / 4))
 
 l1_balance_before=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 l2_native_balance_before=$(cast balance --rpc-url $base_rpc_url $test_addr)
