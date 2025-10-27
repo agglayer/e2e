@@ -71,6 +71,8 @@ jq --argjson names "$names_json" '
 aggkit_addr=$(echo $wallets | jq -r .aggkit.address)
 aggkit_pkey=$(echo $wallets | jq -r .aggkit.private_key)
 
+echo "Aggkit address: $aggkit_addr, private key: $aggkit_pkey"
+
 
 echo ' █████╗ ████████╗████████╗ █████╗  ██████╗██╗  ██╗    ███╗   ██╗███████╗████████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗'
 echo '██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗██╔════╝██║  ██║    ████╗  ██║██╔════╝╚══██╔══╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝'
@@ -277,37 +279,101 @@ cast send --legacy --rpc-url $base_rpc_url --private-key $base_private_key --val
 # checking the current set address:
 # cast call $ger_proxy_addr 'globalExitRootUpdater()' --rpc-url $base_rpc_url
 
-> ${datadir}/aggkit-config.toml cat <<EOF
+# > ${datadir}/aggkit-config.toml cat <<EOF
+# PathRWData = "/etc/aggkit/tmp/"
+# L1URL="$l1_rpc_url_kurtosis"
+# L2URL="$base_rpc_url"
+# # GRPC port for Aggkit v0.3
+# # readport for Aggkit v0.2
+# AggLayerURL="http://agglayer:4443"
+
+# # set var as number, not string
+# NetworkID = $rollupId
+
+# L2Coinbase =  "$base_admin"
+# SequencerPrivateKeyPath = ""
+# SequencerPrivateKeyPassword  = ""
+
+# AggregatorPrivateKeyPath = ""
+# AggregatorPrivateKeyPassword  = ""
+# SenderProofToL1Addr = ""
+# polygonBridgeAddr = "$l1_bridge_addr"
+
+# RPCURL = "$base_rpc_url"
+# WitnessURL = ""
+
+# rollupCreationBlockNumber = "$block_number"
+# rollupManagerCreationBlockNumber = "$block_number"
+# genesisBlockNumber = "$block_number"
+
+# [L1Config]
+# chainId = "$l1_chainid"
+# polygonZkEVMGlobalExitRootAddress = "$l1_ger_addr"
+# polygonRollupManagerAddress = "$rollupManagerAddress"
+# polTokenAddress = "$polTokenAddress"
+# polygonZkEVMAddress = "$rollup_addr"
+
+# [L2Config]
+# GlobalExitRootAddr = "$ger_proxy_addr"
+
+# [Log]
+# Environment = "development"
+# Level = "info"
+# Outputs = ["stderr"]
+
+# [RPC]
+# Port = 5576
+
+# [AggSender]
+# AggsenderPrivateKey = {Path = "/etc/aggkit/aggkit.keystore", Password = "secret"}
+# Mode="PessimisticProof"
+# RequireNoFEPBlockGap = true
+
+# [AggOracle]
+# WaitPeriodNextGER="5000ms"
+
+# [AggOracle.EVMSender]
+# GlobalExitRootL2 = "$ger_proxy_addr"
+
+# [AggOracle.EVMSender.EthTxManager]
+# PrivateKeys = [{Path = "/etc/aggkit/aggkit.keystore", Password = "secret"}]
+
+# [AggOracle.EVMSender.EthTxManager.Etherman]
+# # For some weird reason that needs to be set to L2 chainid, not L1
+# L1ChainID = "$base_chain_id"
+
+# [BridgeL2Sync]
+# BridgeAddr = "$bridge_proxy_addr"
+# BlockFinality = "FinalizedBlock"
+
+# [L1InfoTreeSync]
+# InitialBlock = "$block_number"
+
+# [Metrics]
+# Enabled = false
+# EOF
+
+> ${datadir}/aggkit-config-new.toml cat <<EOF
 PathRWData = "/etc/aggkit/tmp/"
-L1URL="$l1_rpc_url_kurtosis"
-L2URL="$base_rpc_url"
-# GRPC port for Aggkit v0.3
-# readport for Aggkit v0.2
-AggLayerURL="agglayer:4443"
+L1URL = "$l1_rpc_url_kurtosis"
+L2URL = "$base_rpc_url"
 
-ForkId = 12
-ContractVersions = "banana"
-IsValidiumMode = false
-# set var as number, not string
+AggLayerURL = "http://agglayer:4443"
+AggchainProofURL= "aggkit-prover-001:4446"
+
 NetworkID = $rollupId
+SequencerPrivateKeyPath = "/etc/aggkit/aggkit.keystore"
+SequencerPrivateKeyPassword  = "secret"
 
-L2Coinbase =  "$base_admin"
-SequencerPrivateKeyPath = ""
-SequencerPrivateKeyPassword  = ""
-
-AggregatorPrivateKeyPath = ""
-AggregatorPrivateKeyPassword  = ""
-SenderProofToL1Addr = ""
 polygonBridgeAddr = "$l1_bridge_addr"
-
 RPCURL = "$base_rpc_url"
-WitnessURL = ""
 
 rollupCreationBlockNumber = "$block_number"
 rollupManagerCreationBlockNumber = "$block_number"
 genesisBlockNumber = "$block_number"
 
 [L1Config]
+URL = "$l1_rpc_url_kurtosis"
 chainId = "$l1_chainid"
 polygonZkEVMGlobalExitRootAddress = "$l1_ger_addr"
 polygonRollupManagerAddress = "$rollupManagerAddress"
@@ -323,24 +389,46 @@ Level = "info"
 Outputs = ["stderr"]
 
 [RPC]
-Port = 5576
+Port = "5576"
+
+[REST]
+Port = "5577"
 
 [AggSender]
-AggsenderPrivateKey = {Path = "/etc/aggkit/aggkit.keystore", Password = "secret"}
-Mode="PessimisticProof"
-RequireNoFEPBlockGap = true
+AggSenderPrivateKey = {Path = "/etc/aggkit/aggkit.keystore", Password = "secret"}
+Mode = "PessimisticProof"
+CheckStatusCertificateInterval = "1s"
+
+[AggSender.AggkitProverClient]
+UseTLS = false
+BlockFinality = "LatestBlock"
+
+[AggSender.AgglayerClient]
+[[AggSender.AgglayerClient.APIRateLimits]]
+MethodName = "SendCertificate"
+[AggSender.AgglayerClient.APIRateLimits.RateLimit]
+NumRequests = 0
+[AggSender.AgglayerClient.GRPC]
+URL = "http://agglayer:4443"
+MinConnectTimeout = "5s"
+RequestTimeout = "300s"
+UseTLS = false
+[AggSender.AgglayerClient.GRPC.Retry]
+InitialBackoff = "1s"
+MaxBackoff = "10s"
+BackoffMultiplier = 2.0
+MaxAttempts = 20
+
 
 [AggOracle]
-WaitPeriodNextGER="5000ms"
-
+WaitPeriodNextGER = "10s"
+EnableAggOracleCommittee = false
 [AggOracle.EVMSender]
 GlobalExitRootL2 = "$ger_proxy_addr"
-
+WaitPeriodMonitorTx = "10s"
 [AggOracle.EVMSender.EthTxManager]
 PrivateKeys = [{Path = "/etc/aggkit/aggkit.keystore", Password = "secret"}]
-
 [AggOracle.EVMSender.EthTxManager.Etherman]
-# For some weird reason that needs to be set to L2 chainid, not L1
 L1ChainID = "$base_chain_id"
 
 [BridgeL2Sync]
@@ -350,8 +438,45 @@ BlockFinality = "FinalizedBlock"
 [L1InfoTreeSync]
 InitialBlock = "$block_number"
 
-[Metrics]
-Enabled = false
+[L2GERSync]
+BlockFinality = "LatestBlock"
+
+[ClaimSponsor]
+Enabled = "false"
+
+[AggchainProofGen]
+SovereignRollupAddr = "$rollup_addr"
+GlobalExitRootL2 = "$ger_proxy_addr"
+[AggchainProofGen.AggkitProverClient]
+[Profiling]
+ProfilingHost = "0.0.0.0"
+ProfilingPort = 6060
+ProfilingEnabled = true
+
+[Validator]
+EnableRPC = true
+Signer = { Method = "local", Path = "/etc/aggkit/aggkit.keystore", Password = "secret" }
+Mode = "PessimisticProof"
+
+[Validator.ServerConfig]
+Host = "0.0.0.0"
+Port = 5578
+MaxDecodingMessageSize = 1073741824  # 1GB
+
+[Validator.LerQuerierConfig]
+RollupManagerAddr = "$rollupManagerAddress"
+RollupCreationBlockL1 = "$block_number"
+
+[Validator.AgglayerClient]
+Cached = true
+
+[Validator.AgglayerClient.ConfigurationCache]
+TTL = "15m"
+Capacity = 100
+
+[Validator.AgglayerClient.GRPC]
+URL = "http://agglayer:4443"
+UseTLS = false
 EOF
 
 # run aggkit
@@ -368,10 +493,8 @@ docker run -it \
     -v $datadir:/etc/aggkit \
     "$aggkit_image" \
     run \
-    --cfg=/etc/aggkit/aggkit-config.toml \
+    --cfg=/etc/aggkit/aggkit-config-new.toml \
     --components=aggsender,aggoracle
-
-
 
 
 echo " ██████╗ ██╗   ██╗███╗   ██╗    ██████╗ ██████╗ ██╗██████╗  ██████╗ ███████╗"
