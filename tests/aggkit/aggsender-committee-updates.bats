@@ -152,6 +152,7 @@ function verify_is_in_signers_list() {
     new_threshold=$((current_threshold - 1))
 
     # Get current signers and find aggsender_validator_004_address
+    signers=$(cast call "$rollup_address" "getAggchainSignerInfos()((address,string)[])" --rpc-url "$l1_rpc_url")
     run verify_is_in_signers_list "$signers" "$aggsender_validator_004_address"
     assert_success
     
