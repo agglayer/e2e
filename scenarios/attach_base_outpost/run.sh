@@ -36,6 +36,7 @@ echo "🔗 Getting admin_private_key and keystore_password values..."
 contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
 
 admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
+admin_addr=$(cast wallet address --private-key $admin_private_key)
 keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
 
 l1_preallocated_mnemonic="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.l1_preallocated_mnemonic')"
@@ -91,13 +92,16 @@ echo "We have $rollupTypeCount rollup types and $rollupCount rollups on the L1 R
 #         [admin, sequencer, gasTokenAddress, sequencerURL, networkName],
 #     );
 # }
-initializeBytesAggchain=\
-$(cast abi-encode 'initializeBytesAggchain(address,address,address,string,string)' \
-    $base_admin \
-    $aggkit_addr \
-    "$(cast address-zero)" \
-    "$base_rpc_url" \
-    "base outpost")
+# initializeBytesAggchain=\
+# $(cast abi-encode 'initializeBytesAggchain(address,address,address,string,string)' \
+#     $base_admin \
+#     $aggkit_addr \
+#     "$(cast address-zero)" \
+#     "$base_rpc_url" \
+#     "base outpost")
+
+# Now the init bytes are just the aggchain manager address
+initializeBytesAggchain=$(cast abi-encode 'foo(address)' $admin_addr)
 
 base_chain_id=$(cast chain-id --rpc-url "$base_rpc_url")
 echo "Base chain ID: $base_chain_id"
@@ -188,8 +192,58 @@ deploy_output=$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cat 
 ger_proxy_addr=$(echo $deploy_output | jq -r .contracts.globalExitRootManagerL2SovereignChainAddress)
 bridge_proxy_addr=$(echo $deploy_output | jq -r .contracts.bridgeL2SovereignChainAddress)
 gas_token_addr=$(echo $deploy_output | jq -r .network.gasTokenAddress)
+wrapped_token_addr=$(echo $deploy_output | jq -r .contracts.WETH)
+wrapped_token_addr_live=$(cast call --rpc-url $base_rpc_url $bridge_proxy_addr 'WETHToken()' | cast parse-bytes32-address)
+if [[ "$wrapped_token_addr" != "$wrapped_token_addr_live" ]]; then
+    echo "Wrapped token address mismatch: $wrapped_token_addr != $wrapped_token_addr_live"
+    exit 1
+else
+    echo "Wrapped token address matches: $wrapped_token_addr == $wrapped_token_addr_live"
+fi
 
-echo "Base Outpost Chain deployed! GER Proxy Address: $ger_proxy_addr, Bridge Proxy Address: $bridge_proxy_addr, Gas Token Address: $gas_token_addr"
+echo -e "Base Outpost Chain deployed! \n\tGER Proxy Address: $ger_proxy_addr \n\tBridge Proxy Address: $bridge_proxy_addr \n\tGas Token Address: $gas_token_addr \n\tWrapped Token Address: $wrapped_token_addr"
+
+
+
+    ##              ##           ##                   ##                                                                  
+    ##              ##           ##         ####      ##                                     #### ####                    
+    ##              ##   ##      ##         ####      ##                                     #### ####                    
+                         ##                   ##                                               ##   ##                    
+  ####   ##.####  #### ####### ####    :####  ##    ####   ######## .####:      ##.#### .####. ##   ##   ##    ####.###:  
+  ####   #######  #### ####### ####    ###### ##    ####   ########.######:     #######.######.##   ##   ##    #########: 
+    ##   ###  :##   ##   ##      ##    #:  :####      ##       :##:##:  :##     ###.   ###  #####   ##   ##    #####  ### 
+    ##   ##    ##   ##   ##      ##     :#######      ##      :##: ########     ##     ##.  .####   ##   ##    ####.  .## 
+    ##   ##    ##   ##   ##      ##   .#########      ##     :##:  ########     ##     ##    ####   ##   ##    ####    ## 
+    ##   ##    ##   ##   ##      ##   ## .  ####      ##    :##:   ##           ##     ##.  .####   ##   ##    ####.  .## 
+    ##   ##    ##   ##   ##.     ##   ##:  #####:     ##   :##:    ###.  :#     ##     ###  #####:  ##:  ##:  ######  ### 
+ ##########    ####################################################.#######     ##     .######.########## ##############: 
+ ##########    ##########.############  ###.##.#################### .#####:     ##      .####. .####.####  ###.####.###:  
+                                                                                                                 ##       
+                                                                                                                 ##       
+                                                                                                                 ##       
+    # function initialize(
+    #     address _admin,
+    #     address _trustedSequencer,
+    #     address _gasTokenAddress,
+    #     string memory _trustedSequencerURL,
+    #     string memory _networkName,
+    #     bool _useDefaultSigners,
+    #     SignerInfo[] memory _signersToAdd,
+    #     uint256 _newThreshold
+    # )
+cast send \
+    --rpc-url $l1_rpc_url \
+    --private-key $admin_private_key \
+    $rollup_addr \
+    'initialize(address,address,address,string,string,bool,(address,string)[],uint256)' \
+    $admin_addr \
+    $aggkit_addr \
+    $gas_token_addr \
+    "$base_rpc_url" \
+    "BaseOutpostChain" \
+    false \
+    "[($aggkit_addr, localhost)]" \
+    1
 
 
 echo " ██████╗ ██╗   ██╗███╗   ██╗     █████╗  ██████╗  ██████╗ ██╗  ██╗██╗████████╗"
@@ -361,7 +415,7 @@ echo '╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝  
 
 source ../../core/helpers/scripts/erc20.bash
 source ../../core/helpers/scripts/bridging.bash
-erc20_init "$gas_token_addr" "$base_rpc_url"
+erc20_init "$wrapped_token_addr" "$base_rpc_url"
 
 bridge_url=$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)
 
@@ -377,10 +431,11 @@ wei_deposit_amount=$(echo "$deposit_amount" | sed 's/ether//g' | cast to-wei)
  
 l1_balance_before=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 l2_native_balance_before=$(cast balance --rpc-url $base_rpc_url $test_addr)
-l2_gas_token_balance_before=0
+l2_gas_token_balance_before=$(erc20_balance "$test_addr")
 echo "L1 balance before: $l1_balance_before, L2 native balance before: $l2_native_balance_before, L2 gas token balance before: $l2_gas_token_balance_before, Test wallet address: $test_addr"
 
-# Deposit on L1
+
+# Deposit on L1 - Bridge to L2
 deposit_output=$(polycli ulxly bridge asset \
     --value $wei_deposit_amount \
     --gas-limit 1250000 \
@@ -405,85 +460,79 @@ polycli ulxly claim-everything \
 
 l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 l2_native_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
-echo "L1 balance before: $l1_balance_before, L1 balance after : $l1_balance_after, L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
-
-
-
-
-# Claim on L2
-bash -c "polycli ulxly claim asset \
-    --bridge-address $bridge_proxy_addr \
-    --private-key $test_pkey \
-    --rpc-url $base_rpc_url \
-    --deposit-count $deposit_count \
-    --deposit-network 0 \
-    --bridge-service-url $bridge_url" |& tee /dev/stderr
-
-expected_l2_native_balance=0
-expected_l2_gas_token_balance=$wei_deposit_amount
-l2_native_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
 l2_gas_token_balance_after=$(erc20_balance "$test_addr")
-
-while [ $((l2_balance_after == expected_l2_balance)) -eq 0 ]; do
-    echo "Current L2 balance for $test_addr is $l2_balance_after, waiting..."
-    sleep 10
-    l2_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
-done
-
-l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 echo "L1 balance before: $l1_balance_before, L1 balance after : $l1_balance_after, L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
-echo "L2 balance before: $l2_balance_before, L2 balance after : $l2_balance_after, L2 Balance diff  : $(echo "$l2_balance_after - $l2_balance_before" | bc)"
+echo "L2 native balance before: $l2_native_balance_before, L2 native balance after : $l2_native_balance_after, L2 native Balance diff  : $(echo "$l2_native_balance_after - $l2_native_balance_before" | bc)"
+echo "L2 gas token balance before: $l2_gas_token_balance_before, L2 gas token balance after : $l2_gas_token_balance_after, L2 gas token Balance diff  : $(echo "$l2_gas_token_balance_after - $l2_gas_token_balance_before" | bc)"
+
+expected_l2_gas_token_balance=$wei_deposit_amount
+if [[ $(echo "$l2_gas_token_balance_after < $expected_l2_gas_token_balance" | bc -l) -eq 1 ]]; then
+    echo "ERROR: L2 gas token balance is not $expected_l2_gas_token_balance: $l2_gas_token_balance_afte"
+else
+    echo "L2 gas token balance is expected: $l2_gas_token_balance_after"
+fi
 
 
 
 
-
-
-
-
-
-
-#
-# The other way
-#
+# Bridge back to L1
+half_wei_deposit_amount=$((wei_deposit_amount / 2))
 
 l1_balance_before=$(cast balance --rpc-url $l1_rpc_url $test_addr)
-l2_balance_before=$(cast balance --rpc-url $pos_rpc_url $test_addr)
+l2_native_balance_before=$(cast balance --rpc-url $base_rpc_url $test_addr)
+l2_gas_token_balance_before=$(erc20_balance "$test_addr")
+echo "L1 balance before: $l1_balance_before, L2 native balance before: $l2_native_balance_before, L2 gas token balance before: $l2_gas_token_balance_before, Test wallet address: $test_addr"
 
-deposit_amount="1ether"
-wei_deposit_amount=$(echo "$deposit_amount" | sed 's/ether//g' | cast to-wei)
+# fund to pay gas cost on Base
+cast send --rpc-url $base_rpc_url --value 0.001ether --private-key $base_private_key $test_addr
 
 # Deposit on L2 -- bridge to L1, exit, that should trigger a certificate when finalized
-polycli ulxly bridge asset \
-    --value $wei_deposit_amount \
+polycli ulxly bridge weth \
+    --value $half_wei_deposit_amount \
     --gas-limit 1250000 \
     --bridge-address $bridge_proxy_addr \
     --destination-address $test_addr \
     --destination-network 0 \
-    --rpc-url $pos_rpc_url \
+    --token-address $wrapped_token_addr \
+    --rpc-url $base_rpc_url \
     --private-key $test_pkey \
-    --chain-id $pos_chain_id
+    --chain-id $base_chain_id
 
+echo "Waiting and then claiming"
+sleep 60
+
+# Claim on L1
+polycli ulxly claim-everything \
+    --bridge-address $l1_bridge_addr \
+    --destination-address $test_addr \
+    --rpc-url $l1_rpc_url \
+    --private-key $test_pkey \
+    --bridge-service-map '0='$bridge_url',1='$bridge_url',2='$bridge_url
 sleep 10
 l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 
-# lets loop while l1 balance is equal to l1_balance_before
-while [ $((l1_balance_after == l1_balance_before)) -eq 0 ]; do
-    echo "Current L1 balance for $test_addr is $l1_balance_after, waiting/claiming..."
+# lets loop until l1 balance is updated
+while [ $((l1_balance_after == l1_balance_before)) -eq 1 ]; do
+    echo "Current L1 balance for $test_addr is trhe same than before: $l1_balance_after == $l1_balance_before, waiting/claiming..."
+    sleep 10
     polycli ulxly claim-everything \
         --bridge-address $l1_bridge_addr \
         --destination-address $test_addr \
         --rpc-url $l1_rpc_url \
         --private-key $test_pkey \
         --bridge-service-map '0='$bridge_url',1='$bridge_url',2='$bridge_url
-    sleep 10
     l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 done
 
-l2_balance_after=$(cast balance --rpc-url $pos_rpc_url $test_addr)
-echo "L1 balance before: $l1_balance_before"
-echo "L1 balance after : $l1_balance_after"
-echo "L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
-echo "L2 balance before: $l2_balance_before"
-echo "L2 balance after : $l2_balance_after"
-echo "L2 Balance diff  : $(echo "$l2_balance_after - $l2_balance_before" | bc)"
+l2_native_balance_after=$(cast balance --rpc-url $base_rpc_url $test_addr)
+l2_gas_token_balance_after=$(erc20_balance "$test_addr")
+echo "L1 balance before: $l1_balance_before, L1 balance after : $l1_balance_after, L1 Balance diff  : $(echo "$l1_balance_after - $l1_balance_before" | bc)"
+echo "L2 native balance before: $l2_native_balance_before, L2 native balance after : $l2_native_balance_after, L2 native Balance diff  : $(echo "$l2_native_balance_after - $l2_native_balance_before" | bc)"
+echo "L2 gas token balance before: $l2_gas_token_balance_before, L2 gas token balance after : $l2_gas_token_balance_after, L2 gas token Balance diff  : $(echo "$l2_gas_token_balance_after - $l2_gas_token_balance_before" | bc)"
+
+expected_l1_balance=$((l1_balance_before + half_wei_deposit_amount))
+if [[ $(echo "$l1_balance_after < $expected_l1_balance" | bc -l) -eq 1 ]]; then
+    echo "ERROR: L1 balance is not $expected_l1_balance: $l1_balance_after"
+else
+    echo "L1 balance is expected: $l1_balance_after"
+fi
