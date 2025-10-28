@@ -80,12 +80,12 @@ echo '██╔══██║   ██║      ██║   ██╔══█�
 echo '██║  ██║   ██║      ██║   ██║  ██║╚██████╗██║  ██║    ██║ ╚████║███████╗   ██║   ╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗'
 echo '╚═╝  ╚═╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝'
 
-rollupTypeId=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .rollupTypeId)
-rollupManagerAddress=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .polygonRollupManagerAddress)
-rollupTypeCount=$(cast call $rollupManagerAddress 'rollupTypeCount() returns (uint32)' --rpc-url $l1_rpc_url)
-rollupCount=$(cast call $rollupManagerAddress 'rollupCount() returns (uint32)' --rpc-url $l1_rpc_url)
+rollup_type_id=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .rollupTypeId)
+rollup_manager_address=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .polygonRollupManagerAddress)
+rollup_type_count=$(cast call $rollup_manager_address 'rollupTypeCount() returns (uint32)' --rpc-url $l1_rpc_url)
+rollup_count=$(cast call $rollup_manager_address 'rollupCount() returns (uint32)' --rpc-url $l1_rpc_url)
 
-echo "We have $rollupTypeCount rollup types and $rollupCount rollups on the L1 RollupManager at $rollupManagerAddress"
+echo "We have $rollup_type_count rollup types and $rollup_count rollups on the L1 RollupManager at $rollup_manager_address"
 
 # export function encodeInitializeBytesLegacy(admin, sequencer, gasTokenAddress, sequencerURL, networkName) {
 #     return ethers.AbiCoder.defaultAbiCoder().encode(
@@ -102,32 +102,32 @@ echo "We have $rollupTypeCount rollup types and $rollupCount rollups on the L1 R
 #     "base outpost")
 
 # Now the init bytes are just the aggchain manager address
-initializeBytesAggchain=$(cast abi-encode 'foo(address)' $admin_addr)
+initialize_bytes_aggchain=$(cast abi-encode 'foo(address)' $admin_addr)
 
 base_chain_id=$(cast chain-id --rpc-url "$base_rpc_url")
 echo "Base chain ID: $base_chain_id"
 
 # attachAggchainToAL(rollupTypeID,chainID,initializeBytesAggchain)
-calldata=$(cast calldata 'attachAggchainToAL(uint32,uint64,bytes)' $rollupTypeId $base_chain_id "$initializeBytesAggchain")
+calldata=$(cast calldata 'attachAggchainToAL(uint32,uint64,bytes)' $rollup_type_id $base_chain_id "$initialize_bytes_aggchain")
 echo "Using calldata: $calldata"
 
 cast send \
     --rpc-url $l1_rpc_url \
     --private-key $admin_private_key \
-    $rollupManagerAddress \
+    $rollup_manager_address \
     'attachAggchainToAL(uint32,uint64,bytes)' \
-    $rollupTypeId \
+    $rollup_type_id \
     $base_chain_id \
-    "$initializeBytesAggchain"
+    "$initialize_bytes_aggchain"
 
-newRollupCount=$(cast call $rollupManagerAddress 'rollupCount() returns (uint32)' --rpc-url $l1_rpc_url)
-# Lëts check that the rollup was attached
-if [[ $newRollupCount -eq $((rollupCount + 1)) ]]; then
-    rollupId=$(cast call $rollupManagerAddress 'chainIDToRollupID(uint64)' $base_chain_id --rpc-url $l1_rpc_url | cast to-dec)
-    rollup_addr=$(cast decode-abi 'output() returns (address)' "$(cast call --rpc-url $l1_rpc_url $rollupManagerAddress 'rollupIDToRollupData(uint32)' $rollupId)")
-    echo "Rollup successfully attached! New rollup count: $newRollupCount, new Rollup ID: $rollupId, new Rollup Address: $rollup_addr"
+new_rollup_count=$(cast call $rollup_manager_address 'rollupCount() returns (uint32)' --rpc-url $l1_rpc_url)
+# Let's check that the rollup was attached
+if [[ $new_rollup_count -eq $((rollup_count + 1)) ]]; then
+    rollup_id=$(cast call $rollup_manager_address 'chainIDToRollupID(uint64)' $base_chain_id --rpc-url $l1_rpc_url | cast to-dec)
+    rollup_addr=$(cast decode-abi 'output() returns (address)' "$(cast call --rpc-url $l1_rpc_url $rollup_manager_address 'rollupIDToRollupData(uint32)' $rollup_id)")
+    echo "Rollup successfully attached! New rollup count: $new_rollup_count, new Rollup ID: $rollup_id, new Rollup Address: $rollup_addr"
 else
-    echo "Rollup attachment failed! Expected rollup count: $((rollupCount + 1)), got: $newRollupCount"
+    echo "Rollup attachment failed! Expected rollup count: $((rollup_count + 1)), got: $new_rollup_count"
     exit 1
 fi
 
@@ -158,7 +158,7 @@ kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo CUSTOM_PROVID
 deploy_parameters_json='{
     "network": {
         "chainID": '"$base_chain_id"',
-        "rollupID": '"$rollupId"',
+        "rollupID": '"$rollup_id"',
         "networkName": "BaseOutpostChain",
         "tokenName": "BaseETH",
         "tokenSymbol": "BASEETH",
@@ -266,7 +266,7 @@ chmod 777 $datadir/tmp
 # params required for aggkit
 l1_bridge_addr=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .polygonZkEVMBridgeAddress)
 l1_ger_addr=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .polygonZkEVMGlobalExitRootAddress)
-polTokenAddress=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .polTokenAddress)
+pol_token_address=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .polTokenAddress)
 block_number=$(curl -s "${contracts_url}/opt/output/combined.json" | jq -r .deploymentRollupManagerBlockNumber)
 
 # prepare keystore for aggsender and aggoracle
@@ -360,7 +360,7 @@ L2URL = "$base_rpc_url"
 AggLayerURL = "http://agglayer:4443"
 AggchainProofURL= "aggkit-prover-001:4446"
 
-NetworkID = $rollupId
+NetworkID = $rollup_id
 SequencerPrivateKeyPath = "/etc/aggkit/aggkit.keystore"
 SequencerPrivateKeyPassword  = "secret"
 
@@ -375,8 +375,8 @@ genesisBlockNumber = "$block_number"
 URL = "$l1_rpc_url_kurtosis"
 chainId = "$l1_chainid"
 polygonZkEVMGlobalExitRootAddress = "$l1_ger_addr"
-polygonRollupManagerAddress = "$rollupManagerAddress"
-polTokenAddress = "$polTokenAddress"
+polygonRollupManagerAddress = "$rollup_manager_address"
+polTokenAddress = "$pol_token_address"
 polygonZkEVMAddress = "$rollup_addr"
 
 [L2Config]
@@ -464,7 +464,7 @@ Port = 5578
 MaxDecodingMessageSize = 1073741824  # 1GB
 
 [Validator.LerQuerierConfig]
-RollupManagerAddr = "$rollupManagerAddress"
+RollupManagerAddr = "$rollup_manager_address"
 RollupCreationBlockL1 = "$block_number"
 
 [Validator.AgglayerClient]
@@ -565,7 +565,7 @@ deposit_output=$(polycli ulxly bridge asset \
     --gas-limit 1250000 \
     --bridge-address $l1_bridge_addr \
     --destination-address $test_addr \
-    --destination-network $rollupId \
+    --destination-network $rollup_id \
     --rpc-url $l1_rpc_url \
     --private-key $test_pkey \
     --chain-id $l1_chainid |& tee /dev/stderr)
@@ -637,7 +637,7 @@ l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
 
 # lets loop until l1 balance is updated
 while [ $((l1_balance_after == l1_balance_before)) -eq 1 ]; do
-    echo "Current L1 balance for $test_addr is trhe same than before: $l1_balance_after == $l1_balance_before, waiting/claiming..."
+    echo "Current L1 balance for $test_addr is the same than before: $l1_balance_after == $l1_balance_before, waiting/claiming..."
     sleep 10
     polycli ulxly claim-everything \
         --bridge-address $l1_bridge_addr \
