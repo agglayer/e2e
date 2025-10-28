@@ -36,11 +36,11 @@ contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
 
 admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
 admin_addr=$(cast wallet address --private-key $admin_private_key)
-keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
+# keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
 
 l1_preallocated_mnemonic="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.l1_preallocated_mnemonic')"
 l1_preallocated_private_key=$(cast wallet private-key --mnemonic "$l1_preallocated_mnemonic")
-l1_preallocated_address=$(cast wallet address --mnemonic "$l1_preallocated_mnemonic")
+# l1_preallocated_address=$(cast wallet address --mnemonic "$l1_preallocated_mnemonic")
 
 l1_rpc_url=http://$(kurtosis port print $kurtosis_enclave_name el-1-geth-lighthouse rpc)
 l1_rpc_url_kurtosis="http://el-1-geth-lighthouse:8545"
@@ -591,7 +591,7 @@ echo "L2 gas token balance before: $l2_gas_token_balance_before, L2 gas token ba
 
 expected_l2_gas_token_balance=$wei_deposit_amount
 if [[ $(echo "$l2_gas_token_balance_after < $expected_l2_gas_token_balance" | bc -l) -eq 1 ]]; then
-    echo "ERROR: L2 gas token balance is not $expected_l2_gas_token_balance: $l2_gas_token_balance_afte"
+    echo "ERROR: L2 gas token balance is not $expected_l2_gas_token_balance: $l2_gas_token_balance_after"
 else
     echo "L2 gas token balance is expected: $l2_gas_token_balance_after"
 fi
@@ -600,7 +600,6 @@ fi
 
 
 # Bridge back to L1
-half_wei_deposit_amount=$((wei_deposit_amount / 2))
 quarter_wei_deposit_amount=$((wei_deposit_amount / 4))
 
 l1_balance_before=$(cast balance --rpc-url $l1_rpc_url $test_addr)
@@ -613,7 +612,7 @@ cast send --rpc-url $base_rpc_url --value 0.001ether --private-key $base_private
 
 # Deposit on L2 -- bridge to L1, exit, that should trigger a certificate when finalized
 polycli ulxly bridge weth \
-    --value $half_wei_deposit_amount \
+    --value $quarter_wei_deposit_amount \
     --gas-limit 1250000 \
     --bridge-address $bridge_proxy_addr \
     --destination-address $test_addr \
@@ -655,7 +654,7 @@ echo "L1 balance before: $l1_balance_before, L1 balance after : $l1_balance_afte
 echo "L2 native balance before: $l2_native_balance_before, L2 native balance after : $l2_native_balance_after, L2 native Balance diff  : $(echo "$l2_native_balance_after - $l2_native_balance_before" | bc)"
 echo "L2 gas token balance before: $l2_gas_token_balance_before, L2 gas token balance after : $l2_gas_token_balance_after, L2 gas token Balance diff  : $(echo "$l2_gas_token_balance_after - $l2_gas_token_balance_before" | bc)"
 
-expected_l1_balance=$((l1_balance_before + half_wei_deposit_amount))
+expected_l1_balance=$((l1_balance_before + quarter_wei_deposit_amount))
 if [[ $(echo "$l1_balance_after < $expected_l1_balance" | bc -l) -eq 1 ]]; then
     echo "ERROR: L1 balance is not $expected_l1_balance: $l1_balance_after"
 else
