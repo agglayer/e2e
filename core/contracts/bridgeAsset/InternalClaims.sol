@@ -176,14 +176,9 @@ contract InternalClaims is IInternalClaims {
 
     /// @inheritdoc IInternalClaims
     function onMessageReceived(
-        address originAddress1,
-        uint32 originNetwork1,
-        bytes memory data1
     ) external payable {
-        data = data1;
-
         // First claim with first set of parameters
-        try bridgeAddress.claimAsset(
+        bridgeAddress.claimAsset(
             smtProofLocalExitRoot1,
             smtProofRollupExitRoot1,
             globalIndex1,
@@ -195,14 +190,10 @@ contract InternalClaims is IInternalClaims {
             destinationAddress1,
             amount1,
             metadata1
-        ) {
-            // First claim succeeded
-        } catch {
-            // First claim failed, continue with next claims
-        }
+        );
 
         // Second claim with second set of parameters
-        try bridgeAddress.claimAsset(
+        bridgeAddress.claimAsset(
             smtProofLocalExitRoot2,
             smtProofRollupExitRoot2,
             globalIndex2,
@@ -214,14 +205,10 @@ contract InternalClaims is IInternalClaims {
             destinationAddress2,
             amount2,
             metadata2
-        ) {
-            // Second claim succeeded
-        } catch {
-            // Second claim failed, continue with next claims
-        }
+        );
 
         // Third claim with third set of parameters
-        try bridgeAddress.claimAsset(
+        bridgeAddress.claimAsset(
             smtProofLocalExitRoot3,
             smtProofRollupExitRoot3,
             globalIndex3,
@@ -233,14 +220,10 @@ contract InternalClaims is IInternalClaims {
             destinationAddress3,
             amount3,
             metadata3
-        ) {
-            // Third claim succeeded
-        } catch {
-            // Third claim failed, continue with next claims
-        }
+	);
 
         // Fourth claim with fourth set of parameters
-        try bridgeAddress.claimAsset(
+        bridgeAddress.claimAsset(
             smtProofLocalExitRoot4,
             smtProofRollupExitRoot4,
             globalIndex4,
@@ -252,10 +235,6 @@ contract InternalClaims is IInternalClaims {
             destinationAddress4,
             amount4,
             metadata4
-        ) {
-            // Fourth claim succeeded
-        } catch {
-            // Fourth claim failed, transaction continues
-        }
+        );
     }
 }

@@ -259,9 +259,6 @@ interface IPolygonZkEVMBridgeV2 {
  */
 interface IInternalClaims {
     function onMessageReceived(
-        address originAddress,
-        uint32 originNetwork,
-        bytes memory data
     ) external payable;
 }
 
