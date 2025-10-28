@@ -13,7 +13,7 @@ setup() {
 
     # Get bytecode from the contract artifact
     local bytecode
-    bytecode=$(jq -r '.bytecode.object // .bytecode' "$internal_claims_artifact_path")
+    bytecode=$(jq -r '.contracts["InternalClaims.sol:InternalClaims"].bin' "$internal_claims_artifact_path")
     if [[ -z "$bytecode" || "$bytecode" == "null" ]]; then
         log "❌ Error: Failed to read bytecode from $internal_claims_artifact_path"
         exit 1
