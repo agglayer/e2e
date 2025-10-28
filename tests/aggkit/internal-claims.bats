@@ -95,6 +95,22 @@ setup() {
 
     log "✅ First asset claim parameters extracted successfully"
 
+
+    # ========================================
+    # STEP X: Bridge some random assets
+    # ========================================
+    log "🌉 STEP X: Bridging third asset from L1 to L2"
+
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+    assert_success
+
+
     # ========================================
     # STEP 2: Bridge second asset and get all claim parameters
     # ========================================
@@ -135,7 +151,7 @@ setup() {
     # ========================================
     # STEP 3: Bridge third asset and get all claim parameters
     # ========================================
-    log "🌉 STEP 3: Bridging third asset from L1 to L2"
+    log "🌉 STEP 4: Bridging third asset from L1 to L2"
     run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
     assert_success
     local bridge_tx_hash_3=$output
