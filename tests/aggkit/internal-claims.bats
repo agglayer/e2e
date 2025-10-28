@@ -337,8 +337,10 @@ setup() {
         claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
         local claim_1_proof_local_exit_root
         claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root')
+        claim_1_proof_local_exit_root=[hex(x) for x in claim_1_proof_local_exit_root]
         local claim_1_proof_rollup_exit_root
         claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root')
+        claim_1_proof_rollup_exit_root=[hex(x) for x in claim_1_proof_rollup_exit_root]
 
         log "🌳 First claim mainnet exit root: $claim_1_mainnet_exit_root (Expected: $mainnet_exit_root_1)"
         log "🌳 First claim rollup exit root: $claim_1_rollup_exit_root (Expected: $rollup_exit_root_1)"
@@ -410,8 +412,10 @@ setup() {
         claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
         local claim_2_proof_local_exit_root
         claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root')
+        claim_2_proof_local_exit_root=[hex(x) for x in claim_2_proof_local_exit_root]
         local claim_2_proof_rollup_exit_root
         claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root')
+        claim_2_proof_rollup_exit_root=[hex(x) for x in claim_2_proof_rollup_exit_root]
 
         log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
         log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
@@ -483,8 +487,12 @@ setup() {
         claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
         local claim_3_proof_local_exit_root
         claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root')
+        claim_3_proof_local_exit_root=[hex(x) for x in claim_3_proof_local_exit_root]
+
         local claim_3_proof_rollup_exit_root
         claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root')
+        claim_3_proof_rollup_exit_root=[hex(x) for x in claim_3_proof_rollup_exit_root]
+
 
         log "🌳 Third claim mainnet exit root: $claim_3_mainnet_exit_root (Expected: $mainnet_exit_root_3)"
         log "🌳 Third claim rollup exit root: $claim_3_rollup_exit_root (Expected: $rollup_exit_root_3)"
