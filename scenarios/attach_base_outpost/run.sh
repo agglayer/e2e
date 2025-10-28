@@ -9,7 +9,7 @@ base_private_key=${BASE_PRIVATE_KEY}
 base_admin=$(cast wallet address --private-key $base_private_key)
 
 kurtosis_enclave_name=${ENCLAVE_NAME:-"outpost"}
-kurtosis_tag=${KURTOSIS_PACKAGE_TAG:-"11aad0a28a2d6000f5506d9f4344e768dd1ba49d"}
+kurtosis_tag=${KURTOSIS_PACKAGE_TAG:-"3aae0ce50229402bdbc2149db59ad5c07633b6c4"}
 docker_network_name="kt-$kurtosis_enclave_name"
 
 
@@ -29,8 +29,7 @@ docker_network_name="kt-$kurtosis_enclave_name"
                                                                                     ##                    ###:                                    
                                                                                     ##                    ###
 
-# Have to run it locally now due to custom bridge modifications
-# kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_tag"
+kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_tag"
 
 echo "🔗 Getting admin_private_key and keystore_password values..."
 contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
