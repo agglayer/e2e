@@ -434,6 +434,7 @@ L1ChainID = "$base_chain_id"
 [BridgeL2Sync]
 BridgeAddr = "$bridge_proxy_addr"
 BlockFinality = "FinalizedBlock"
+InitialBlockNum = "$base_init_block"
 
 [L1InfoTreeSync]
 InitialBlock = "$block_number"
