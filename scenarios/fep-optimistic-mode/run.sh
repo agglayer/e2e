@@ -126,8 +126,8 @@ rollup_address=$(jq -r '.rollupAddress' combined.json)
 
 # The optimistic mode is enabled in the above script. The below command is left for reference to manually enable optimisticMode by calling the rollup contract.
 # sovereignadmin address, also the optimisticModeManager address
-# "zkevm_l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
-# "zkevm_l2_sovereignadmin_private_key": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
+# "l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
+# "l2_sovereignadmin_private_key": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
 cast send "$rollup_address" "enableOptimisticMode()" --rpc-url "$l1_rpc_url" --private-key "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"
 
 # Check optimisticMode enabled
@@ -171,8 +171,8 @@ kurtosis service stop "$kurtosis_enclave_name" aggkit-001
 
 # The optimistic mode is disabled in the above script. The below command is left for reference to manually enable optimisticMode by calling the rollup contract.
 # sovereignadmin address, also the optimisticModeManager address
-# "zkevm_l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
-# "zkevm_l2_sovereignadmin_private_key": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
+# "l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
+# "l2_sovereignadmin_private_key": "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0",
 cast send "$rollup_address" "disableOptimisticMode()" --rpc-url "$l1_rpc_url" --private-key "0xa574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"
 
 if [[ 'false' == $(cast call "$rollup_address" 'optimisticMode()(bool)' --rpc-url "$l1_rpc_url") ]]; then

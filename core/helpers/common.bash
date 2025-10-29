@@ -140,7 +140,7 @@ function _setup_vars() {
     if [[ -n "$L2_PRIVATE_KEY" ]]; then
         l2_private_key="$L2_PRIVATE_KEY"
     elif [[ -n "$input_args" ]]; then
-        l2_private_key=$(echo "$input_args" | jq -r '.args.zkevm_l2_admin_private_key')
+        l2_private_key=$(echo "$input_args" | jq -r 'if has (".args.l2_admin_private_key") then .args.l2_admin_private_key else .args.zkevm_l2_admin_private_key end')
     fi
 
         if [[ -n "$l1_private_key" ]]; then

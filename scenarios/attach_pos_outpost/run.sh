@@ -30,9 +30,9 @@ KURTOSIS_ARGS='{
 kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_cdk_tag" "$KURTOSIS_ARGS"
 
 # hardocoded for now, its used to attack network to rollupmanager
-zkevm_l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
-zkevm_l2_claimtxmanager_address="0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"
-#zkevm_l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934"
+l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+l2_claimtxmanager_address="0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"
+#l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934"
 
 contracts_rpc=$(kurtosis port print $kurtosis_enclave_name contracts-001 http)
 
@@ -132,7 +132,7 @@ echo "Using calldata: $calldata"
 
 cast send \
     --rpc-url $l1_rpc_url \
-    --private-key $zkevm_l2_admin_private_key \
+    --private-key $l2_admin_private_key \
     $rollupManagerAddress \
     'attachAggchainToAL(uint32,uint64,bytes)' \
     $rollupTypeId \
@@ -358,7 +358,7 @@ echo " ██║  ██║╚██████╔╝██║ ╚████�
 echo " ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝ ╚══════╝"
 
 # Fund the L2 claimtx manager
-cast send --rpc-url $pos_rpc_url --value 5ether --private-key $l1_preallocated_private_key $zkevm_l2_claimtxmanager_address
+cast send --rpc-url $pos_rpc_url --value 5ether --private-key $l1_preallocated_private_key $l2_claimtxmanager_address
 
 # add our network to the bridge config
 kurtosis service exec $kurtosis_enclave_name zkevm-bridge-service-001 'sed -i -E "s#(L2URLs = \[.*)(\])#\1, \"'${pos_rpc_url_kurtosis}'\"\2#" /etc/zkevm/bridge-config.toml'

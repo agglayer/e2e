@@ -17,11 +17,11 @@ ContractVersions = "banana"
 ContractVersions = "elderberry"
 {{end}}
 
-L2Coinbase =  "{{.zkevm_l2_sequencer_address}}"
-SequencerPrivateKeyPath = "{{or .zkevm_l2_sequencer_keystore_file "/etc/cdk/sequencer.keystore"}}"
-SequencerPrivateKeyPassword  = "{{.zkevm_l2_keystore_password}}"
+L2Coinbase =  "{{.l2_sequencer_address}}"
+SequencerPrivateKeyPath = "{{or .l2_sequencer_keystore_file "/etc/cdk/sequencer.keystore"}}"
+SequencerPrivateKeyPassword  = "{{.l2_keystore_password}}"
 
-SenderProofToL1Addr = "{{.zkevm_l2_agglayer_address}}"   
+SenderProofToL1Addr = "{{.l2_agglayer_address}}"   
 polygonBridgeAddr = "{{.zkevm_bridge_address}}" 
 
 WitnessURL = "http://{{.l2_rpc_name}}{{.deployment_suffix}}:{{.zkevm_rpc_http_port}}"
