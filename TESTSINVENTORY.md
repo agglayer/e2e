@@ -272,7 +272,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L31) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Remove Ger and Unset claims | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L463) | |
+| Test Remove Ger and Unset claims | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L457) | |
 | Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L105) | |
 | Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
 | Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
