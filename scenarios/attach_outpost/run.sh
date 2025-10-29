@@ -55,8 +55,8 @@ l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a
 # Gather required L1 params from deployed kurtosis enclave
 l1_rpc_url=http://$(kurtosis port print $kurtosis_agl_enclave_name el-1-geth-lighthouse rpc)
 l1_rpc_url_kurtosis="http://el-1-geth-lighthouse:8545"
-l1_ws_url=ws://$(kurtosis port print $kurtosis_agl_enclave_name el-1-geth-lighthouse ws)
-l1_beacon_url=$(kurtosis port print $kurtosis_agl_enclave_name cl-1-lighthouse-geth http)
+# l1_ws_url=ws://$(kurtosis port print $kurtosis_agl_enclave_name el-1-geth-lighthouse ws)
+# l1_beacon_url=$(kurtosis port print $kurtosis_agl_enclave_name cl-1-lighthouse-geth http)
 l1_beacon_url_kurtosis="http://cl-1-lighthouse-geth:4000"
 l1_chainid=$(cast chain-id --rpc-url "$l1_rpc_url")
 
@@ -378,6 +378,7 @@ echo "Test wallet address=$test_addr, l1balance=$test_l1_balance, l2balance=$tes
 # Random L1 -> L2 bridges
 echo "Sending random L1 -> L2 bridges..."
 for i in {1..25}; do
+    echo "Sending random L1 -> L2 bridge $i/25..."
     tmp_random_wallet_json=$(cast wallet new --json)
     random_addr=$(echo "$tmp_random_wallet_json" | jq -r '.[0].address')
     random_pkey=$(echo "$tmp_random_wallet_json" | jq -r '.[0].private_key')
@@ -388,6 +389,7 @@ done
 # Random L2 -> L1 bridges
 echo "Sending random L2 -> L1 bridges..."
 for i in {1..25}; do
+    echo "Sending random L2 -> L1 bridge $i/25..."
     tmp_random_wallet_json=$(cast wallet new --json)
     random_addr=$(echo "$tmp_random_wallet_json" | jq -r '.[0].address')
     random_pkey=$(echo "$tmp_random_wallet_json" | jq -r '.[0].private_key')
@@ -433,7 +435,7 @@ initializeBytesAggchain=\
 $(cast abi-encode 'initializeBytesAggchain(address,address,address,string,string)' \
     $l2_admin_addr \
     $sequencer_addr \
-    $(cast address-zero) \
+    "$(cast address-zero)" \
     "http://opnode" \
     "outpost")
 
@@ -467,7 +469,7 @@ else
     exit 1
 fi
 
-rollup_addr=$(cast decode-abi 'output() returns (address)' $(cast call --rpc-url $l1_rpc_url $rollupManagerAddress 'rollupIDToRollupData(uint32)' $rollupId))
+rollup_addr=$(cast decode-abi 'output() returns (address)' "$(cast call --rpc-url $l1_rpc_url $rollupManagerAddress 'rollupIDToRollupData(uint32)' $rollupId)")
 
 
 echo '██╗     ██████╗      ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  █████╗  ██████╗████████╗███████╗'
