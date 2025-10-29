@@ -872,10 +872,3 @@ function manage_aggkit_nodes() {
         echo "$service started." >&3
     fi
 }
-
-function get_certificate_height() {
-    local aggkit_rpc_url=$1
-    height=$(curl -X POST "$aggkit_rpc_url" -H "Content-Type: application/json" -d '{"method":"aggsender_getCertificateHeaderPerHeight", "params":[], "id":1}' | tail -n 1 | jq -r '.result.Header.Height')
-    echo "$height"
-    return 0
-}

@@ -355,9 +355,6 @@ setup() {
   local global_indexes=()
   local deposit_counts=()
 
-  local certificate_height=$(get_certificate_height "$aggkit_rpc_url")
-  log "Certificate height: $certificate_height"
-
   # Send 2 bridge transactions from L1 to L2
   log "🚀 Sending 2 bridge transactions from L1 to L2"
   for i in {1..2}; do
@@ -390,9 +387,6 @@ setup() {
   log "⏳ Waiting for certificate settlement containing global index: ${global_indexes[1]}"
   wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[1]}"
   log "✅ Certificate settlement completed for global index: ${global_indexes[1]}"
-
-  local certificate_height=$(get_certificate_height "$aggkit_rpc_url")
-  log "Certificate height: $certificate_height"
 
   log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
   local last_one_global_indexes=("${global_indexes[1]}")
@@ -465,9 +459,6 @@ setup() {
   local tokens_amount="0.1ether"
   local wei_amount
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
-
-  local certificate_height=$(get_certificate_height "$aggkit_rpc_url")
-  log "Certificate height: $certificate_height"
 
   log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
