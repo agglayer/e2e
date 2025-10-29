@@ -2,7 +2,7 @@
 
 # kurtosis
 kurtosis_enclave_name="upgradeV12"
-kurtosis_repo_tag="main"
+kurtosis_repo_tag="f31f3d51861199469d560582392fbd4409591b6b"  # main at 09/Oct/2025
 docker_network_name="kt-$kurtosis_enclave_name"
 
 # preallocated variables to make things coherent and easier

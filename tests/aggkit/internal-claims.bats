@@ -30,15 +30,10 @@ setup() {
     # Concatenate bytecode and encoded constructor args
     local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
 
-    # Set a fixed gas price (1 gwei)
-    local gas_price=1000000000
-
     # Deploy the contract
     local deploy_output
     deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
         --create "$deploy_bytecode" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -264,8 +259,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -287,8 +281,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -734,8 +727,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -757,8 +749,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -1180,8 +1171,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -1203,8 +1193,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -1585,8 +1574,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -1608,8 +1596,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 

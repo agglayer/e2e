@@ -7,11 +7,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L80) | |
-| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L102) | |
-| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L327) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L581) | |
-| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L550) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L128) | |
+| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L172) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L401) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L117) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
@@ -226,8 +224,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Check L2 OP vaults totalProcessed wei | [Link](./tests/op/check-isthmus-fees.bats#L55) | |
 | Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L39) | |
 | Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
-| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L110) | |
-| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L86) | |
+| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L99) | |
+| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L75) | |
 | Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
 | Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
 | check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
@@ -250,6 +248,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
+| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L110) | |
 | Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L275) | |
 | Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L355) | |
 | Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L195) | |
@@ -258,8 +257,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L133) | |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
-| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L34) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L116) | |
+| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
+| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
@@ -267,8 +266,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
 | Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
 | Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L245) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L244) | |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
+| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L149) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L31) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
@@ -277,18 +277,18 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
 | Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
-| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L477) | |
+| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L473) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
-| Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L69) | |
-| Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1355) | |
-| Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L955) | |
-| Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L516) | |
-| Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L62) | |
+| Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
+| Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
+| Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L946) | |
+| Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L509) | |
+| Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L57) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
 | Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
 | Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
-| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L12) | |
+| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
