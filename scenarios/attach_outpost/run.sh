@@ -41,16 +41,16 @@ kurtosis run \
     "github.com/0xPolygon/kurtosis-cdk@$kurtosis_agl_tag" \
     '{"l1_preallocated_mnemonic": "'"$l1_preallocated_mnemonic"'"}'
 
-# "zkevm_l2_admin_address": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
-# "zkevm_l2_admin_private_key": "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625",
+# "l2_admin_address": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+# "l2_admin_private_key": "0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625",
 # hardocoded for now, its used to attack network to rollupmanager
-zkevm_l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
+l2_admin_private_key="0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"
 
-# zkevm_l2_claimtxmanager_address": "0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8",
-# zkevm_l2_claimtxmanager_private_key": "0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934",
+# l2_claimtxmanager_address": "0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8",
+# l2_claimtxmanager_private_key": "0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934",
 # hardocded right now, we need to fund it on our l2
-zkevm_l2_claimtxmanager_address="0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"
-zkevm_l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934"
+l2_claimtxmanager_address="0x5f5dB0D4D58310F53713eF4Df80ba6717868A9f8"
+l2_claimtxmanager_private_key="0x8d5c9ecd4ba2a195db3777c8412f8e3370ae9adffac222a54a84e116c7f8b934"
 
 # Gather required L1 params from deployed kurtosis enclave
 l1_rpc_url=http://$(kurtosis port print $kurtosis_agl_enclave_name el-1-geth-lighthouse rpc)
@@ -450,7 +450,7 @@ echo "Using calldata: $calldata"
 
 cast send \
     --rpc-url $l1_rpc_url \
-    --private-key $zkevm_l2_admin_private_key \
+    --private-key $l2_admin_private_key \
     $rollupManagerAddress \
     'attachAggchainToAL(uint32,uint64,bytes)' \
     $rollupTypeId \
@@ -673,15 +673,15 @@ echo " ██║  ██║╚██████╔╝██║ ╚████�
 echo " ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝ ╚══════╝"
 
 # Fund the L2 claimtx manager
-cast send --rpc-url $l1_rpc_url --value 5ether --private-key $l1_preallocated_private_key $zkevm_l2_claimtxmanager_address
-cast send --rpc-url $l1_rpc_url --value 4ether --private-key $zkevm_l2_claimtxmanager_private_key $l1_op_bridge_addr
-l2_claimtx_balance=$(cast balance --rpc-url $l2_rpc_url $zkevm_l2_claimtxmanager_address)
+cast send --rpc-url $l1_rpc_url --value 5ether --private-key $l1_preallocated_private_key $l2_claimtxmanager_address
+cast send --rpc-url $l1_rpc_url --value 4ether --private-key $l2_claimtxmanager_private_key $l1_op_bridge_addr
+l2_claimtx_balance=$(cast balance --rpc-url $l2_rpc_url $l2_claimtxmanager_address)
 while [[ $l2_claimtx_balance == "0" ]]; do
     echo "Waiting for L2 balance to be updated..."
     sleep 5
-    l2_claimtx_balance=$(cast balance --rpc-url $l2_rpc_url $zkevm_l2_claimtxmanager_address)
+    l2_claimtx_balance=$(cast balance --rpc-url $l2_rpc_url $l2_claimtxmanager_address)
 done
-echo "L2 claimtx address=$zkevm_l2_claimtxmanager_address, l2balance=$l2_claimtx_balance"
+echo "L2 claimtx address=$l2_claimtxmanager_address, l2balance=$l2_claimtx_balance"
 
 # add our network to the bridge config
 kurtosis service exec $kurtosis_agl_enclave_name zkevm-bridge-service-001 'sed -i -E "s#(L2URLs = \[.*)(\])#\1, \"'${l2_rpc_url_docker}'\"\2#" /etc/zkevm/bridge-config.toml'
@@ -736,7 +736,7 @@ polycli ulxly claim-everything \
     --bridge-address $bridge_proxy_addr \
     --destination-address $test_addr \
     --rpc-url $l2_rpc_url \
-    --private-key $zkevm_l2_claimtxmanager_private_key \
+    --private-key $l2_claimtxmanager_private_key \
     --bridge-service-map '0='$bridge_url',1='$bridge_url',2='$bridge_url
 
 l1_balance_after=$(cast balance --rpc-url $l1_rpc_url $test_addr)
