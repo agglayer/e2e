@@ -7,7 +7,6 @@ setup() {
     source "${BATS_TEST_DIRNAME}/../../core/helpers/common.bash"
     _setup_vars
 
-    optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     timeout=${TIMEOUT:-3000}
     retry_interval=${RETRY_INTERVAL:-15}
 
@@ -48,7 +47,7 @@ toggle_optimistic_mode() {
     [[ "$enabled" == "false" ]] && method="disableOptimisticMode"
 
     echo "Executing $method..." >&3
-    cast send "$rollup_address" "$method()" --rpc-url "$l1_rpc_url" --private-key "$optimistic_mode_manager_pvk" >&3
+    cast send "$rollup_address" "$method()" --rpc-url "$l1_rpc_url" --private-key "$l2_sovereignadmin_private_key" >&3
 
     local result
     result=$(cast call "$rollup_address" "optimisticMode()(bool)" --rpc-url "$l1_rpc_url")
