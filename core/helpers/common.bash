@@ -29,6 +29,8 @@ function _setup_vars() {
     #   rollup_address: Set from rollup address from combined.json if set
     #   gas_token_address: Set from gas token address from l2_rpc_url if set
     #   weth_address: Set from weth address from l2_rpc_url if set
+    #   l2_sovereignadmin_address: Set from sovereign admin address from input_args if set
+    #   l2_sovereignadmin_private_key: Set from sovereign admin private key from input_args if set
 
     # Paths for libs, etc
     HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -143,16 +145,29 @@ function _setup_vars() {
         l2_private_key=$(echo "$input_args" | jq -r 'if has (".args.l2_admin_private_key") then .args.l2_admin_private_key else .args.zkevm_l2_admin_private_key end')
     fi
 
-        if [[ -n "$l1_private_key" ]]; then
-            l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
-            export l1_eth_address l1_private_key
-            echo "ℹ️ l1_eth_address=$l1_eth_address l1_private_key=$l1_private_key" >&3
-        fi
-        if [[ -n "$l2_private_key" ]]; then
-            l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
-            export l2_eth_address l2_private_key
-            echo "ℹ️ l2_eth_address=$l2_eth_address l2_private_key=$l2_private_key" >&3
-        fi
+    if [[ -n "$l1_private_key" ]]; then
+        l1_eth_address=$(cast wallet address --private-key "$l1_private_key")
+        export l1_eth_address l1_private_key
+        echo "ℹ️ l1_eth_address=$l1_eth_address l1_private_key=$l1_private_key" >&3
+    fi
+    if [[ -n "$l2_private_key" ]]; then
+        l2_eth_address=$(cast wallet address --private-key "$l2_private_key")
+        export l2_eth_address l2_private_key
+        echo "ℹ️ l2_eth_address=$l2_eth_address l2_private_key=$l2_private_key" >&3
+    fi
+
+    # sovereign admin private key and address
+    if [[ -n "$L2_SOVEREIGNADMIN_PRIVATE_KEY" ]]; then
+        l2_sovereignadmin_private_key="$L2_SOVEREIGNADMIN_PRIVATE_KEY"
+    elif [[ -n "$input_args" ]]; then
+        l2_sovereignadmin_private_key=$(echo "$input_args" | jq -r 'if has (".args.l2_sovereignadmin_private_key") then .args.l2_sovereignadmin_private_key else .args.zkevm_l2_sovereignadmin_private_key end')
+    fi
+
+    if [[ -n "$l2_sovereignadmin_private_key" ]]; then
+        l2_sovereignadmin_address=$(cast wallet address --private-key "$l2_sovereignadmin_private_key")
+        export l2_sovereignadmin_address l2_sovereignadmin_private_key
+        echo "ℹ️ l2_sovereignadmin_address=$l2_sovereignadmin_address l2_sovereignadmin_private_key=$l2_sovereignadmin_private_key" >&3
+    fi
 
 
     #
