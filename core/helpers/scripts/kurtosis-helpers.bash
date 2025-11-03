@@ -12,7 +12,8 @@ function kurtosis_download_file_exec_method() {
 }
 
 function kurtosis_filer_exec_method() {
-    local _kurtosis_version=$(kurtosis version | cut -d ':' -f 2 | head -n 1)
+    local _kurtosis_version
+    _kurtosis_version=$(kurtosis version | cut -d ':' -f 2 | head -n 1)
     # versions previous 1.7.0 first line in stdout is
     # "The command was successfully executed and returned '0'."
     # After this version this line is output in stderr
