@@ -19,7 +19,6 @@ setup() {
   readonly remove_legacy_sovereign_token_address_func_sig="function removeLegacySovereignTokenAddress(address)"
   readonly unset_multiple_claims_func_sig="function unsetMultipleClaims(uint256[])"
   readonly set_multiple_claims_func_sig="function setMultipleClaims(uint256[])"
-  readonly is_claimed_func_sig="function isClaimed(uint32,uint32)"
   readonly insert_global_exit_root_func_sig="function insertGlobalExitRoot(bytes32)"
 
   readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
@@ -41,12 +40,12 @@ setup() {
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
-  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "L1 -> L2 bridge" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 
   run cast logs \
@@ -93,12 +92,12 @@ setup() {
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
-  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "L1 -> L2 bridge (after GER removal)" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
@@ -342,7 +341,7 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
@@ -385,7 +384,7 @@ setup() {
   done
 
   log "⏳ Waiting for certificate settlement containing global index: ${global_indexes[1]}"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[1]}"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "${global_indexes[1]}"
   log "✅ Certificate settlement completed for global index: ${global_indexes[1]}"
 
   log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
@@ -418,7 +417,7 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 
   log "setting the last unset claim using setMultipleClaims"
@@ -450,7 +449,7 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
@@ -522,8 +521,7 @@ setup() {
   local claim_tx_resp=$output
   log "🔍 Claim transaction details: $claim_tx_resp"
 
-  # manage_aggkit_nodes "aggkit-001-bridge" "stop"
-  manage_aggkit_nodes "aggkit-001" "stop"
+  update_kurtosis_service_state "aggkit-001-bridge" "stop"
 
   log "🔄 Removing GER from map $next_ger"
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$next_ger]"
@@ -541,13 +539,12 @@ setup() {
   local unset_claims_tx_resp=$output
   log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
 
-  # manage_aggkit_nodes "aggkit-001-bridge" "start"
-  manage_aggkit_nodes "aggkit-001" "start"
+  update_kurtosis_service_state "aggkit-001-bridge" "start"
   # AGGKIT_BRIDGE_URL
   aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
       "aggkit-001" "rest" "cdk-node-001" "rest" \
       "Failed to resolve aggkit bridge url from all fallback nodes" true)
-# AGGKIT_RPC_URL
+  # AGGKIT_RPC_URL
   aggkit_rpc_url=$(_resolve_url_or_use_env AGGKIT_RPC_URL \
       "aggkit-001" "rpc" "cdk-node-001" "rpc" \
       "Failed to resolve aggkit rpc url from all fallback nodes" true)
@@ -561,6 +558,6 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }

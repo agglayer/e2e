@@ -845,30 +845,3 @@ function extract_claim_parameters_json() {
     # Return all parameters as a JSON object
     echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
 }
-
-function manage_aggkit_nodes() {
-    local service="$1"
-    local action="$2"  # start or stop
-    local kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
-
-    if [[ "$action" == "stop" ]]; then
-        if docker ps | grep "$service"; then
-            echo "Stopping $service..." >&3
-            kurtosis service stop "$kurtosis_enclave_name" "$service" || {
-                echo "Error: Failed to stop $service" >&3
-                return 1
-            }
-            echo "$service stopped." >&3
-        else
-            echo "Error: $service does not exist in enclave $kurtosis_enclave_name" >&3
-            return 1
-        fi
-    elif [[ "$action" == "start" ]]; then
-        echo "Starting $service..." >&3
-        kurtosis service start "$kurtosis_enclave_name" "$service" || {
-            echo "Error: Failed to start $service" >&3
-            return 1
-        }
-        echo "$service started." >&3
-    fi
-}

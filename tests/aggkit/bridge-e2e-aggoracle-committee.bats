@@ -20,8 +20,8 @@ setup() {
     assert_success
 
     echo "Step 2: Stopping aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
-    manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "stop"
-    manage_aggkit_nodes "aggkit-001-aggoracle-committee-002" "stop"
+    update_kurtosis_service_state "aggkit-001-aggoracle-committee-001" "stop"
+    update_kurtosis_service_state "aggkit-001-aggoracle-committee-002" "stop"
 
     echo "Step 3: Bridging asset from L1 to L2 (without claiming)..." >&3
     destination_addr=$sender_addr
@@ -43,8 +43,8 @@ setup() {
     assert_equal "$l2_ger_status" "0"
 
     echo "Step 5: Starting aggkit-001-aggoracle-committee-001, aggkit-001-aggoracle-committee-002 service..." >&3
-    manage_aggkit_nodes "aggkit-001-aggoracle-committee-001" "start"
-    manage_aggkit_nodes "aggkit-001-aggoracle-committee-002" "start"
+    update_kurtosis_service_state "aggkit-001-aggoracle-committee-001" "start"
+    update_kurtosis_service_state "aggkit-001-aggoracle-committee-002" "start"
 
     echo "Step 6: Attempting to claim the second bridge transaction..., should succeed" >&3
     run process_bridge_claim "aggoracle_committee: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"

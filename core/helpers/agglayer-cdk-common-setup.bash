@@ -64,7 +64,7 @@ _load_helper_scripts() {
     'query_contract'
     'send_tx'
     'verify_balance'
-    'wait_to_settled_certificate_containing_global_index'
+    'wait_to_settle_certificate_containing_global_index'
     'assert_block_production'
     'check_balances'
     'deploy_contract'
@@ -539,7 +539,7 @@ _resolve_aggsender_mode(){
     mode=${aggsender_mode:-}
     if [ ! -z "$mode"  ]; then
         echo "Using aggsender_mode from environment: $aggsender_mode" >&3
-    else 
+    else
         echo "Resolving aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&3
         mode=$(curl -X POST $aggkit_rpc_url --header "Content-Type: application/json"  -d '{"method":"aggsender_status", "params":[], "id":1}' | jq .result.mode)
         if [ "$mode" == "null" ] || [ -z "$mode" ]; then

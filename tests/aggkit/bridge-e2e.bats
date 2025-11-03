@@ -160,7 +160,6 @@ setup() {
     run update_l1_info_tree 300 "first $LINENO"
     assert_success
 
-
     # Claim deposit (settle it on the L1)
     echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
     run process_bridge_claim "claim ERC20 L1: $LINENO" "$l2_rpc_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$l1_rpc_url" "$sender_addr"

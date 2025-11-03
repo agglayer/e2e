@@ -3,7 +3,7 @@
 # shellcheck disable=SC2048,SC2154
 set -euo pipefail
 
-function wait_to_settled_certificate_containing_global_index() {
+function wait_to_settle_certificate_containing_global_index() {
     local rpc_url=$1
     local global_index=$2
     local check_frequency=${3:-60}

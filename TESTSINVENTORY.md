@@ -266,16 +266,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
 | Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
 | Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L244) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L243) | |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
 | Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L149) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
-| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L31) | |
+| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L30) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Remove Ger and Unset claims | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L457) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L105) | |
-| Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
-| Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
+| Test Remove Ger and Unset claims | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L456) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L104) | |
+| Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L275) | |
+| Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L348) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L473) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |

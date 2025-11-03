@@ -62,7 +62,7 @@ setup() {
     assert_success
 
     echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1 (Rollup 1 rpc: $aggkit_rpc_url)"
-    wait_to_settled_certificate_containing_global_index "$aggkit_rpc_url" "$global_index_pp2_to_pp1"
+    wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index_pp2_to_pp1"
 }
 
 @test "Transfer message L2 to L2" {
