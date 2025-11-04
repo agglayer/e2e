@@ -136,7 +136,8 @@ setup() {
   local bridge_tx_hash=$output
 
   # Claim deposits (settle them on the L2)
-  process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
 
   run wait_for_expected_token "$l1_erc20_addr" "$l2_rpc_network_id" 50 10 "$aggkit_bridge_url"
   assert_success
@@ -521,7 +522,7 @@ setup() {
   local claim_tx_resp=$output
   log "🔍 Claim transaction details: $claim_tx_resp"
 
-  update_kurtosis_service_state "aggkit-001-bridge" "stop"
+  update_kurtosis_service_state "aggkit-001" "stop"
 
   log "🔄 Removing GER from map $next_ger"
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$next_ger]"
@@ -539,7 +540,7 @@ setup() {
   local unset_claims_tx_resp=$output
   log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
 
-  update_kurtosis_service_state "aggkit-001-bridge" "start"
+  update_kurtosis_service_state "aggkit-001" "start"
   # AGGKIT_BRIDGE_URL
   aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
       "aggkit-001" "rest" "cdk-node-001" "rest" \
