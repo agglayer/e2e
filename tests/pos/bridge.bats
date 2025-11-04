@@ -10,7 +10,7 @@ setup() {
 
   # Define state sync count commands.
   HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
-  BOR_STATE_SYNC_COUNT_CMD='cast call --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
+  BOR_STATE_SYNC_COUNT_CMD='cast call --gas-limit 15000000 --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
 
   # Define timeout and interval for eventually commands.
   timeout_seconds=${TIMEOUT_SECONDS:-"180"}
@@ -67,11 +67,11 @@ function wait_for_bor_state_sync() {
   bridge_amount=$(cast to-unit 1ether wei)
 
   echo "Approving the DepositManager contract to spend MATIC/POL tokens on our behalf..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 15000000 \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
 
   echo "Depositing MATIC/POL tokens to trigger a state sync..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 15000000 \
     "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_MATIC_TOKEN_ADDRESS}" "${bridge_amount}"
 
   # Wait for Heimdall and Bor to process the bridge event.
