@@ -7,3 +7,4 @@ cdk-databases/
 stress_logs_*
 chaos_logs_*
 *.out
+.idea
