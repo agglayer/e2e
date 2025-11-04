@@ -49,9 +49,8 @@ on:
 
       aggsender-find-imported-bridge-artifact:
         description: "Path for aggsender to find the imported bridge"
-        required: false
+        required: true
         type: string
-        default: ""
 
       event-name:
         description: "Event name to be used for the test"
@@ -142,35 +141,30 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-fork12-global-index-pp-old-contracts" ]]; then
-            chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-            export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-            bats ./tests/aggkit/global-index-pp-old-contracts.bats || exit 1
-          elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
+          chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
+          export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
+          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats || exit 1
           elif [[ $ENCLAVE_NAME == "op" ]]; then
             bats ./tests/aggkit/bridge-e2e.bats || exit 1
-            bats ./tests/op/optimistic-mode.bats || exit 1
             bats ./tests/aggkit/e2e-pp.bats || exit 1
-            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
-            bats ./tests/aggkit/aggsender-committee-updates.bats || exit 1
-
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/aggkit/bridge-e2e-nightly.bats \
-                   ./tests/aggkit/internal-claims.bats \
-                   ./tests/aggkit/claim-reetrancy.bats \
-                   || exit 1
+              bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
+              bats ./tests/aggkit/aggsender-committee-updates.bats || exit 1
+              bats ./tests/op/optimistic-mode.bats || exit 1
+              bats ./tests/aggkit/bridge-e2e-nightly.bats || exit 1
+              bats ./tests/aggkit/internal-claims.bats || exit 1
+              bats ./tests/aggkit/claim-reetrancy.bats || exit 1
             fi
           else
             bats ./tests/aggkit/bridge-e2e.bats || exit 1
             bats ./tests/aggkit/e2e-pp.bats || exit 1
-            bats ./tests/aggkit/aggsender-committee-updates.bats || exit 1
-
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/aggkit/bridge-e2e-nightly.bats \
-                   ./tests/aggkit/internal-claims.bats \
-                   ./tests/aggkit/claim-reetrancy.bats \
-                   || exit 1
+              bats ./tests/aggkit/aggsender-committee-updates.bats || exit 1
+              bats ./tests/op/optimistic-mode.bats || exit 1
+              bats ./tests/aggkit/bridge-e2e-nightly.bats || exit 1
+              bats ./tests/aggkit/internal-claims.bats || exit 1
+              bats ./tests/aggkit/claim-reetrancy.bats || exit 1
             fi
           fi
           popd
