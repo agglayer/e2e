@@ -67,11 +67,11 @@ function wait_for_bor_state_sync() {
   bridge_amount=$(cast to-unit 1ether wei)
 
   echo "Approving the DepositManager contract to spend MATIC/POL tokens on our behalf..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 15000000 \
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
 
   echo "Depositing MATIC/POL tokens to trigger a state sync..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 15000000 \
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_MATIC_TOKEN_ADDRESS}" "${bridge_amount}"
 
   # Wait for Heimdall and Bor to process the bridge event.
