@@ -319,11 +319,11 @@ _resolve_contract_addresses() {
             json_output=$(echo "$json_output" | tail -n +2)
         fi
 
-        l1=$(echo "$json_output" | jq -r .polygonZkEVMBridgeAddress)
+        l1=$(echo "$json_output" | jq -r .AgglayerBridge)
         l2=$(echo "$json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol=$(echo "$json_output" | jq -r .polTokenAddress)
-        l1_ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootAddress)
-        ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+        l1_ger=$(echo "$json_output" | jq -r .AgglayerGER)
+        ger=$(echo "$json_output" | jq -r .LegacyAgglayerGERL2)
         gas=$(echo "$json_output" | jq -r .gasTokenAddress)
     fi
 
