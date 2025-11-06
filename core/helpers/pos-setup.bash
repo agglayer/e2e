@@ -29,7 +29,7 @@ pos_setup() {
     [[ -z "${L2_STATE_RECEIVER_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
-    matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | tail -n +2 | jq)
+    matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | jq)
 
     # L1 contract addresses.
     export L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.GovernanceProxy')}
@@ -54,7 +54,7 @@ pos_setup() {
     echo "L1_ERC721_TOKEN_ADDRESS=${L1_ERC721_TOKEN_ADDRESS}"
 
     # L2 contract addresses.
-    export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE_NAME}" l2-el-genesis genesis.json | tail -n +2 | jq --raw-output '.config.bor.stateReceiverContract')}
+    export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE_NAME}" l2-el-genesis genesis.json | jq --raw-output '.config.bor.stateReceiverContract')}
     echo "L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS}"
 
     export L2_ERC20_TOKEN_ADDRESS=${L2_ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.TestToken')}
