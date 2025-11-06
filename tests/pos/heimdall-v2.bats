@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 # bats file_tags=pos
 
-setup(){
+setup() {
   load "../../core/helpers/scripts/eventually.bash"
-  
+
   timeout_seconds=${TIMEOUT_SECONDS:-"300"}
   interval_seconds=${INTERVAL_SECONDS:-"10"}
 }
@@ -17,12 +17,12 @@ parse_duration_seconds() {
   [[ "$dur" =~ ^([0-9]+)m ]] && m="${BASH_REMATCH[1]}" && dur="${dur/${BASH_REMATCH[0]}/}"
   [[ "$dur" =~ ^([0-9]+)s?$ ]] && s="${BASH_REMATCH[1]}"
 
-  echo $(( h*3600 + m*60 + s ))
+  echo $((h * 3600 + m * 60 + s))
 }
 
 get_latest_height() {
-  curl --silent "${L2_CL_RPC_URL}/status" \
-  | jq -r '.result.sync_info.latest_block_height'
+  curl --silent "${L2_CL_RPC_URL}/status" |
+    jq -r '.result.sync_info.latest_block_height'
 }
 
 # Wait until the chain height is strictly greater than L2_CL_RETAIN_BLOCKS.
@@ -39,7 +39,7 @@ sleep_for_prune_interval() {
   prune_secs=$(parse_duration_seconds "$prune_str")
   # Add a small buffer to be safer than exact interval.
   local buffer=10
-  local total=$(( prune_secs + buffer ))
+  local total=$((prune_secs + buffer))
 
   echo "Sleeping ${total}s to allow pruning (interval=${prune_str}) to elapse..."
   sleep "${total}"
@@ -53,8 +53,8 @@ check_block_pruned() {
 
   # Prefer checking the structured error fields first.
   # local code message data
-  code="$(jq -r '.error.code // empty' <<<"$resp")"
-  data="$(jq -r '.error.data // empty' <<<"$resp")"
+  code="$(jq -r '.error.code // empty' <<< "$resp")"
+  data="$(jq -r '.error.data // empty' <<< "$resp")"
 
   echo "Block query response:"
   echo "$resp" | jq
@@ -72,7 +72,7 @@ check_block_pruned() {
 
   # If there's a result object, then height=1 still exists (not pruned).
   local has_result
-  has_result="$(jq -r 'has("result")' <<<"$resp")"
+  has_result="$(jq -r 'has("result")' <<< "$resp")"
   if [[ "$has_result" == "true" ]]; then
     echo "Block still present (not pruned)."
     return 1
