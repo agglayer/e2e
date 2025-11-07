@@ -145,7 +145,7 @@ jobs:
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats || exit 1
-          elif [[ $ENCLAVE_NAME == "op" ]]; then
+          else
             bats ./tests/aggkit/bridge-e2e.bats || exit 1
             bats ./tests/aggkit/e2e-pp.bats || exit 1
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
