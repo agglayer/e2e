@@ -323,7 +323,7 @@ _resolve_contract_addresses() {
         l2=$(echo "$json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol=$(echo "$json_output" | jq -r .polTokenAddress)
         l1_ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootAddress)
-        ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+        ger=$(echo "$json_output" | jq -r .LegacyAgglayerGERL2)
         gas=$(echo "$json_output" | jq -r .gasTokenAddress)
     fi
 
