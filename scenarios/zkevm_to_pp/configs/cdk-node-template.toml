@@ -1,0 +1,135 @@
+ForkUpgradeBatchNumber = 0
+ForkUpgradeNewForkId = 0
+PathRWData = "/etc/cdk/data"
+
+[Common]
+IsValidiumMode = false
+ContractVersions = "banana"
+
+[Etherman]
+URL = "REPLACE_L1_RPC"
+
+[Log]
+Environment = "production"
+Level = "info"
+Outputs = ["stdout"]
+
+[SequenceSender]
+IsValidiumMode = false
+WaitPeriodSendSequence = "60s"
+LastBatchVirtualizationTimeMaxWaitPeriod = "750s"
+L1BlockTimestampMargin = "120s"
+MaxTxSizeForL1 = 131072
+L2Coinbase = "0x148Ee7dAF16574cD020aFa34CC658f8F3fbd2800"
+PrivateKey = {Path = "/etc/cdk/sequencer.keystore", Password = "secret"}
+SequencesTxFileName = "/etc/cdk/data/sequencesender.json"
+GasOffset = 100000
+WaitPeriodPurgeTxFile = "12h"
+MaxPendingTx = 1
+MaxBatchesForL1 = 300
+# BlockFinality="SafeBlock"
+RPCURL = "REPLACE_L2_RPC"
+GetBatchWaitInterval = "10s"
+	[SequenceSender.EthTxManager]
+	StoragePath = "/etc/cdk/data/ethtxmanager.db"
+	FrequencyToMonitorTxs = "10s"
+	WaitTxToBeMined = "2m"
+	SafeStatusL1NumberOfBlocks = 0
+	FinalizedStatusL1NumberOfBlocks = 0
+	WaitReceiptMaxTime = "250ms"
+	WaitReceiptCheckInterval = "8s"
+	PrivateKeys = [
+		{Path = "/etc/cdk/sequencer.keystore", Password = "secret"}
+	]
+	ForcedGas = 0
+	GasPriceMarginFactor = 1
+	MaxGasPriceLimit = 0
+		[SequenceSender.EthTxManager.Etherman]
+		URL = "REPLACE_L1_RPC"
+		L1ChainID = 1
+		HTTPHeaders = []
+
+[Aggregator]
+DBPath = "/etc/cdk/data/aggregator_db.sqlite"
+BatchProofSanityCheckEnabled = true
+Host = "0.0.0.0"
+Port = 50081
+RetryTime = "5s"
+VerifyProofInterval = "30m"
+ProofStatePollingInterval = "5s"
+TxProfitabilityCheckerType = "acceptall"
+TxProfitabilityMinReward = "1.1"
+IntervalAfterWhichBatchConsolidateAnyway = "0s"
+ChainID = 1101
+ForkId = 12
+CleanupLockedProofsInterval = "120m"
+GeneratingProofCleanupThreshold = "10m"
+GasOffset = 100000
+UpgradeEtrogBatchNumber = 1984750 
+RPCURL = "REPLACE_L2_RPC"
+WitnessURL = "REPLACE_L2_RPC"
+SenderAddress = "0x6329Fe417621925C81c16F9F9a18c203C21Af7ab"
+UseFullWitness = false 
+SyncModeOnlyEnabled = true
+SettlementBackend = "l1"
+AggLayerTxTimeout = "600s"
+AggLayerURL = ""
+	[Aggregator.SequencerPrivateKey]
+	Path = "/etc/cdk/sequencer.keystore"
+	Password = "secret"
+	[Aggregator.Log]
+	Environment = "production"
+	Level = "debug"
+	Outputs = ["stdout"]
+	[Aggregator.EthTxManager]
+	FrequencyToMonitorTxs = "10s"
+	WaitTxToBeMined = "2m"
+	WaitReceiptMaxTime = "250ms"
+	WaitReceiptCheckInterval = "1s"
+	PrivateKeys = [
+	{Path = "/etc/cdk/aggregator.keystore", Password = "secret"}
+	]
+	ForcedGas = 0
+	GasPriceMarginFactor = 1
+	MaxGasPriceLimit = 0
+	StoragePath = ""
+	ReadPendingL1Txs = false
+	SafeStatusL1NumberOfBlocks = 0
+	FinalizedStatusL1NumberOfBlocks = 0
+		[Aggregator.EthTxManager.Etherman]
+		URL = "REPLACE_L1_RPC"
+		L1ChainID = 1
+		HTTPHeaders = []
+	[Aggregator.Synchronizer]
+		[Aggregator.Synchronizer.Log]
+		Level = "debug"
+		[Aggregator.Synchronizer.SQLDB]
+		DriverName = "sqlite3"
+		DataSource = "file:/etc/cdk/data/aggregator_sync_db.sqlite"
+		[Aggregator.Synchronizer.Synchronizer]
+		SyncInterval = "10s"
+		SyncChunkSize = 1000
+		GenesisBlockNumber = 19218658
+		SyncUpToBlock = "finalized"
+		BlockFinality = "finalized"
+		OverrideStorageCheck = false
+		[Aggregator.Synchronizer.Etherman]
+			[Aggregator.Synchronizer.Etherman.Validium]
+			Enabled = false
+
+[L1InfoTreeSync]
+DBPath = "/etc/cdk/data/L1InfoTreeSync"
+GlobalExitRootAddr = "0x580bda1e7A0CFAe92Fa7F6c20A3794F169CE3CFb"
+RollupManagerAddr = "0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2"
+SyncBlockChunkSize = 100
+BlockFinality = "FinalizedBlock"
+URLRPCL1 = "REPLACE_L1_RPC"
+WaitForNewBlocksPeriod = "1s"
+InitialBlock = 16896721
+
+[NetworkConfig.L1]
+L1ChainID = "1"
+PolAddr = "0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6"
+ZkEVMAddr = "0x519E42c24163192Dca44CD3fBDCEBF6be9130987"
+RollupManagerAddr = "0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2"
+GlobalExitRootManagerAddr = "0x580bda1e7A0CFAe92Fa7F6c20A3794F169CE3CFb"
