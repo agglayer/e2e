@@ -88,7 +88,7 @@ docker run \
     --network $docker_network \
     --name erigon \
     -p 8545:8545 \
-    -v $(pwd)/datadir:/datadir \
+    -v "$(pwd)/datadir:/datadir" \
     ghcr.io/0xpolygon/cdk-erigon:v2.61.24 \
     --config="./mainnet.yaml" --datadir="/datadir" --zkevm.l1-rpc-url=$L1_RPC
 
@@ -211,7 +211,7 @@ docker run \
     --rm \
     --network $docker_network \
     --name erigon \
-    -v $(pwd)/datadir:/datadir \
+    -v "$(pwd)/datadir:/datadir" \
     --entrypoint /bin/sh \
     ghcr.io/0xpolygon/cdk-erigon:v2.61.24 \
     -c "integration state_stages_zkevm  --config=./mainnet.yaml --chain hermez-mainnet --datadir /datadir --unwind-batch-no=$last_verified_batch"
@@ -262,8 +262,8 @@ cd $workdir && docker run \
     --rm \
     --network $docker_network \
     --name erigon \
-    -v $(pwd)/erigon/datadir:/datadir \
-    -v $(pwd)/configs:/etc/cdk-erigon \
+    -v "$(pwd)/erigon/datadir:/datadir" \
+    -v "$(pwd)/configs:/etc/cdk-erigon" \
     --env CDK_ERIGON_SEQUENCER=1 \
     --entrypoint /bin/sh \
     ghcr.io/0xpolygon/cdk-erigon:v2.61.24 \
@@ -296,8 +296,8 @@ cd $workdir && docker run \
     --name erigon \
     -p 8545:8545 \
     --env CDK_ERIGON_SEQUENCER=1 \
-    -v $(pwd)/erigon/datadir:/datadir \
-    -v $(pwd)/configs:/etc/cdk-erigon \
+    -v "$(pwd)/erigon/datadir:/datadir" \
+    -v "$(pwd)/configs:/etc/cdk-erigon" \
     ghcr.io/0xpolygon/cdk-erigon:v2.61.24 \
     --config="/etc/cdk-erigon/mainnet.yaml" --datadir="/datadir" --zkevm.l1-rpc-url=$l1_shadow_fork_url
 
