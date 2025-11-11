@@ -24,7 +24,7 @@ docker network create $docker_network
                  ###:                                                                        
                  ###                                                                         
 
-cd $workdir && mkdir -p keys
+(cd $workdir || exit 1) && mkdir -p keys
 
 # create new wallets for sequencer and aggregator
 sequencer=$(cast wallet new --json | jq .[0])
@@ -70,7 +70,7 @@ rm -f keys/claimsponsor.keystore && cast wallet import --private-key $claimspons
  ##                                                                                                                                                       
 
 # mainnet
-cd $workdir && mkdir -p erigon/datadir && cd erigon
+(cd $workdir || exit 1) && mkdir -p erigon/datadir && cd erigon || exit 1
 if [ ! -f "zkevm-mainnet-erigon-snapshot.tgz" ]; then
     # WARNING: THIS FILES TAKES 60GB OF DISK SPACE
     wget -c https://storage.googleapis.com/zkevm-mainnet-snapshots/zkevm-mainnet-erigon-snapshot.tgz
@@ -112,7 +112,7 @@ docker_l2_rpc="http://erigon:8545"
   ##..##:#####################  
   ##  ##   ###.##########.####  
 
-cd $workdir
+(cd $workdir || exit 1)
 
 pless_last_block=$(cast bn --rpc-url $local_l2_rpc)
 zkevm_last_block=$(cast bn --rpc-url $L2_RPC)
@@ -141,7 +141,7 @@ echo "Pless and Zkevm are fully synced at block $pless_last_block"
 
 docker stop erigon
 
-cd $workdir
+cd $workdir || exit 1
 # Lets start anvil fork in 10' aprox (10' * 60s / 12s/block = 50 blocks)
 fork_block=$(cast bn --rpc-url $L1_RPC)
 echo "Starting anvil fork from block $fork_block"
@@ -205,7 +205,7 @@ cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $AGG
   #########    ## :##..##:##########    ##:####### 
    ###.####    ## .##  ## ##########    ## :###.## 
 
-cd $workdir/erigon
+cd $workdir/erigon || exit 1
 docker run \
     -it \
     --rm \
@@ -233,7 +233,7 @@ docker run \
                                                                                    ##                                                                    #.  :## 
                                                                                    ##                                                                    ######  
                                                                                    ##                                                                    :####:  
-cd $workdir
+cd $workdir || exit 1
 echo "zkevm.sequencer-block-seal-time: 3s" >> configs/mainnet.yaml
 echo "zkevm.sequencer-batch-seal-time: 15s" >> configs/mainnet.yaml
 echo "zkevm.sequencer-batch-verification-timeout: 30m" >> configs/mainnet.yaml
@@ -257,7 +257,7 @@ sed -i 's|zkevm.address-sequencer: "0x148Ee7dAF16574cD020aFa34CC658f8F3fbd2800"|
                                        ##                                         
                                        ##                                         
                                        ##                                         
-cd $workdir && docker run \
+(cd $workdir || exit 1) && docker run \
     -it \
     --rm \
     --network $docker_network \
@@ -271,7 +271,7 @@ cd $workdir && docker run \
 
 # CTRL-C when it says: [5/13 Execution] Resequencing completed. Please restart sequencer without resequence flag.
 
-cd $workdir && rm -fr erigon/datadir/data-stream.*
+(cd $workdir || exit 1) && rm -fr erigon/datadir/data-stream.*
 
                                                                            ##                            
                                ####                                        ##                            
@@ -290,7 +290,7 @@ cd $workdir && rm -fr erigon/datadir/data-stream.*
                   ######                                                         ######                  
                    ####:                                                         :####:                  
 
-cd $workdir && docker run \
+(cd $workdir || exit 1) && docker run \
     --rm -d \
     --network $docker_network \
     --name erigon \
@@ -319,7 +319,7 @@ cd $workdir && docker run \
            ####:  :####:               ###                    
 
 # Start the Agglayer Prover
-cd $workdir && docker run \
+(cd $workdir || exit 1) && docker run \
     -d \
     --rm \
     --name agglayer-prover \
@@ -334,7 +334,7 @@ cd $workdir && docker run \
     prover --cfg /etc/agglayer/agglayer-prover.toml
 
 # Start the Agglayer
-cd $workdir && sudo rm -fr agglayer && mkdir -p agglayer && chmod -R 777 agglayer
+(cd $workdir || exit 1) && sudo rm -fr agglayer && mkdir -p agglayer && chmod -R 777 agglayer
 cp keys/aggregator.keystore agglayer/aggregator.keystore
 cp configs/agglayer-template.toml agglayer/agglayer.toml
 
@@ -348,7 +348,7 @@ sed -i 's/REPLACE_AGGLAYER_MANAGER/'$AGGLAYER_MANAGER'/' agglayer/agglayer.toml
 sed -i 's/REPLACE_GER/'$ger_address'/' agglayer/agglayer.toml
 
 # Start the Agglayer Node
-cd $workdir && docker run \
+(cd $workdir || exit 1) && docker run \
     -d \
     --rm \
     --name agglayer \
@@ -429,7 +429,7 @@ cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $AGG
            ####:  :####:                        
 
 # Start Aggkit
-cd $workdir
+cd $workdir || exit 1
 rm -fr aggkit && mkdir -p aggkit/tmp && chmod -R 777 aggkit/tmp
 cp configs/aggkit-config.toml.template aggkit/aggkit-config.toml
 cp keys/*.keystore aggkit/
@@ -477,7 +477,7 @@ cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $AGG
 
 
 max_l2_block=$(printf "%d\n" $(cast rpc eth_getBlockByHash $(cast rpc zkevm_getBatchByNumber $(cast rpc zkevm_verifiedBatchNumber) --json | jq -r .blocks[-1]) | jq -r .number))
-cd $workdir
+cd $workdir || exit 1
 sed -i 's|# MaxL2BlockNumber = 0|MaxL2BlockNumber = '$max_l2_block'|' aggkit/aggkit-config.toml
 sed -i 's|DryRun = true|DryRun = false|' aggkit/aggkit-config.toml
 
