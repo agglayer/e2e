@@ -38,7 +38,7 @@ echo $claimsponsor > keys/claimsponsor.json
 
 sequencer_addr=$(cat keys/sequencer.json | jq -r .address)
 sequencer_pkey=$(cat keys/sequencer.json | jq -r .private_key)
-aggregator_addr=$(cat keys/aggregator.json | jq -r .address)
+# aggregator_addr=$(cat keys/aggregator.json | jq -r .address)
 aggregator_pkey=$(cat keys/aggregator.json | jq -r .private_key)
 aggoracle_addr=$(cat keys/aggoracle.json | jq -r .address)
 aggoracle_pkey=$(cat keys/aggoracle.json | jq -r .private_key)
@@ -96,7 +96,7 @@ mkdir -p $workdir/configs
 docker cp erigon:/home/erigon/mainnet.yaml $workdir/configs/
 
 local_l2_rpc="http://localhost:8545"
-docker_l2_rpc="http://erigon:8545"
+# docker_l2_rpc="http://erigon:8545"
 
                     ##          
                     ##          
@@ -393,20 +393,22 @@ cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $rol
 
 # Mint to new sequencer address
 unknown_address=0xbC9f74b3b14f460a6c47dCdDFd17411cBc7b6c53
+amount_to_mint=$(cast to-hex "$(cast to-wei 100)")
 cast rpc --rpc-url $l1_shadow_fork_url_local anvil_impersonateAccount $unknown_address
-cast rpc --rpc-url $l1_shadow_fork_url_local anvil_setBalance $unknown_address $(cast to-hex $(cast to-wei 100))
+cast rpc --rpc-url $l1_shadow_fork_url_local anvil_setBalance $unknown_address $amount_to_mint
 cast send --unlocked --from $unknown_address --rpc-url $l1_shadow_fork_url_local $POL_ADDR 'mint(address,uint256)' $sequencer_addr 10000000000000000000
 cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $unknown_address
 
 # Approve
-cast rpc --rpc-url $l1_shadow_fork_url_local anvil_setBalance $sequencer_addr $(cast to-hex $(cast to-wei 100))
+amount_to_approve=$(cast to-hex "$(cast to-wei 100)")
+cast rpc --rpc-url $l1_shadow_fork_url_local anvil_setBalance $sequencer_addr $amount_to_approve
 cast send --rpc-url $l1_shadow_fork_url_local --private-key $sequencer_pkey $POL_ADDR 'approve(address,uint256)(bool)' $rollup_address 10000000000000000000
 
 ## Grant Aggregator Role
 # Impersonate Polygon admin to grant aggregator role
 cast rpc --rpc-url $l1_shadow_fork_url_local anvil_impersonateAccount $AGGLAYER_ADMIN
 # Grant TRUSTED_AGGREGATOR_ROLE to our Agglayer account
-cast send --unlocked --from $AGGLAYER_ADMIN --rpc-url $l1_shadow_fork_url_local $AGGLAYER_MANAGER 'grantRole(bytes32 role, address account)' $(cast keccak TRUSTED_AGGREGATOR_ROLE) $aggregator_addr
+cast send --unlocked --from $AGGLAYER_ADMIN --rpc-url $l1_shadow_fork_url_local $AGGLAYER_MANAGER 'grantRole(bytes32 role, address account)' "$(cast keccak TRUSTED_AGGREGATOR_ROLE)" $aggregator_addr
 # Stop impersonation
 cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $AGGLAYER_ADMIN
 
@@ -471,12 +473,13 @@ tx_block_number=$(cast send \
     --unlocked \
     --from $AGGLAYER_ADMIN \
     --rpc-url $l1_shadow_fork_url_local \
-    $AGGLAYER_MANAGER "initMigration(uint32,uint32,bytes)" 1 14 $(cast calldata "migrateFromLegacyConsensus()") --json | jq -r .blockNumber)
+    $AGGLAYER_MANAGER "initMigration(uint32,uint32,bytes)" 1 14 "$(cast calldata 'migrateFromLegacyConsensus()')" --json | jq -r .blockNumber)
 # Stop impersonation
 cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $AGGLAYER_ADMIN
 
-
-max_l2_block=$(printf "%d\n" $(cast rpc eth_getBlockByHash $(cast rpc zkevm_getBatchByNumber $(cast rpc zkevm_verifiedBatchNumber) --json | jq -r .blocks[-1]) | jq -r .number))
+zkevm_verified_batch_number=$(cast rpc zkevm_verifiedBatchNumber)
+previous_block_hash=$(cast rpc zkevm_getBatchByNumber $zkevm_verified_batch_number --json | jq -r .blocks[-1])
+max_l2_block=$(printf "%d\n" "$(cast rpc eth_getBlockByHash "$previous_block_hash" | jq -r .number)")
 cd $workdir || exit 1
 sed -i 's|# MaxL2BlockNumber = 0|MaxL2BlockNumber = '$max_l2_block'|' aggkit/aggkit-config.toml
 sed -i 's|DryRun = true|DryRun = false|' aggkit/aggkit-config.toml
