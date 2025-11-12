@@ -143,16 +143,13 @@ function claim_bridge() {
         ((attempt++))
         log "🔍 Attempt ${attempt}/${max_attempts}: claim bridge"
 
-        local global_index
-        global_index=$(echo "$bridge_info" | jq -r '.global_index')
-        log "🔍 Extracted Global index: $global_index"
-
-        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr" "$global_index"
+        run claim_call "$bridge_info" "$proof" "$destination_rpc_url" "$bridge_addr"
         local request_result="$status"
-        log "💡 claim_call returns $request_result"
+        local global_index="$output"
+        log "💡 claim_call returns $request_result (global_index: $global_index)"
 
         if [ "$request_result" -eq 0 ]; then
-            log "🎉 Claim successful global_index: $global_index"
+            log "🎉 Claim successful for bridge with global_index: $global_index"
             echo "$global_index"
             return 0
         fi
@@ -168,17 +165,44 @@ function claim_bridge() {
     done
 }
 
+# ------------------------------------------------------------------------------
+# Function: claim_call
+#
+# Description:
+#   Executes a claim transaction on the destination bridge smart contract.
+#   It dynamically determines whether to call `claimAsset` or `claimMessage`
+#   based on the provided `leaf_type` in the bridge info. The function prepares
+#   all required parameters (proofs, roots, addresses, amounts, etc.) and either:
+#     - Displays the calldata for a dry run, or
+#     - Sends an actual transaction using `cast send`.
+#
+# Parameters:
+#   $1 - bridge_info: JSON object containing bridge claim data (global_index,
+#                     leaf_type, origin/destination networks and addresses, amount, metadata)
+#   $2 - proof: JSON object containing Merkle proofs and exit roots
+#   $3 - destination_rpc_url: RPC endpoint of the destination network
+#   $4 - bridge_addr: Address of the bridge contract on the destination network
+#
+# Globals used:
+#   $dry_run            - if "true", prints calldata without sending transaction
+#   $sender_private_key - private key used for transaction signing
+#
+# Returns:
+#   Echoes the global_index of the processed claim (for use by the caller)
+# ------------------------------------------------------------------------------
 function claim_call() {
     local bridge_info="$1"
     local proof="$2"
     local destination_rpc_url="$3"
     local bridge_addr="$4"
-    local global_index="$5"
 
-    local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    local global_index
+    global_index=$(echo "$bridge_info" | jq -r '.global_index')
 
     local leaf_type
     leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
+
+    local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     if [[ $leaf_type != "0" ]]; then
         claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     fi
@@ -188,9 +212,6 @@ function claim_call() {
 
     local in_rollup_merkle_proof
     in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-
-    local in_global_index
-    in_global_index=$global_index
 
     local in_main_exit_root
     in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
@@ -218,18 +239,21 @@ function claim_call() {
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
-        cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata
+        cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata
     else
-        log "⏳ Claiming deposit: global_index: $in_global_index orig_net: $in_orig_net dest_net: $in_dest_net amount:$in_amount"
+        log "⏳ Claiming deposit: global_index: $global_index orig_net: $in_orig_net dest_net: $in_dest_net amount:$in_amount"
         log "🔍 Exit roots: MainnetExitRoot=$in_main_exit_root RollupExitRoot=$in_rollup_exit_root"
-        echo "cast send --rpc-url $destination_rpc_url --private-key $sender_private_key $bridge_addr \"$claim_sig\" \"$in_merkle_proof\" \"$in_rollup_merkle_proof\" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata"
+        echo "cast send --rpc-url $destination_rpc_url --private-key $sender_private_key $bridge_addr \"$claim_sig\" \"$in_merkle_proof\" \"$in_rollup_merkle_proof\" $global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata"
 
         local tmp_response
         tmp_response=$(mktemp)
         cast send --rpc-url $destination_rpc_url \
             --private-key $sender_private_key \
-            $bridge_addr "$claim_sig" "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata 2>$tmp_response || check_claim_revert_code $tmp_response
+            $bridge_addr "$claim_sig" "$in_merkle_proof" "$in_rollup_merkle_proof" $global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata 2>$tmp_response || check_claim_revert_code $tmp_response
     fi
+
+    # Print the global_index as the function's output
+    echo "$global_index"
 }
 
 function generate_global_index() {
