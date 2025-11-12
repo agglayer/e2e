@@ -38,9 +38,9 @@ echo $claimsponsor > keys/claimsponsor.json
 
 sequencer_addr=$(cat keys/sequencer.json | jq -r .address)
 sequencer_pkey=$(cat keys/sequencer.json | jq -r .private_key)
-# aggregator_addr=$(cat keys/aggregator.json | jq -r .address)
+aggregator_addr=$(cat keys/aggregator.json | jq -r .address)
 aggregator_pkey=$(cat keys/aggregator.json | jq -r .private_key)
-aggoracle_addr=$(cat keys/aggoracle.json | jq -r .address)
+# aggoracle_addr=$(cat keys/aggoracle.json | jq -r .address)
 aggoracle_pkey=$(cat keys/aggoracle.json | jq -r .private_key)
 claimsponsor_addr=$(cat keys/claimsponsor.json | jq -r .address)
 claimsponsor_pkey=$(cat keys/claimsponsor.json | jq -r .private_key)
