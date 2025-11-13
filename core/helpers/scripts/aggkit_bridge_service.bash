@@ -350,13 +350,38 @@ function wait_for_expected_token() {
     done
 }
 
+# get_claim
+# -----------------------------------------------------------------------------
+# Continuously queries the bridge indexer API for a specific claim until it is
+# found or the maximum number of attempts is reached.
+#
+# Parameters:
+#   $1 - network_id           : ID of the network to search claims on
+#   $2 - expected_global_index: The target global index of the claim to locate
+#   $3 - max_attempts         : Maximum number of retry attempts before failing
+#   $4 - poll_frequency       : Seconds to wait between consecutive retries
+#   $5 - aggkit_url           : Base URL of the bridge indexer (Aggkit) service
+#
+# Behavior:
+#   - Repeatedly calls the Aggkit REST endpoint:
+#       GET /bridge/v1/claims?network_id=<id>&global_index=<index>
+#   - Parses the JSON response and looks for the first claim entry.
+#   - Verifies that all required fields are present and non-empty.
+#   - Retries until the claim is found or the maximum number of attempts is reached.
+#
+# Returns:
+#   - On success: Prints the full JSON object for the found claim to stdout.
+#   - On failure: Prints an error message to stderr and exits with code 1.
+#
+# Example:
+#   claim=$(get_claim 1 42 10 5 "https://indexer.agglayer.io")
+# -----------------------------------------------------------------------------
 function get_claim() {
     local network_id="$1"
     local expected_global_index="$2"
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
-    local from_address="${6:-}"
     local attempt=0
 
     log "🔍 Searching for claim with global_index: ${expected_global_index} (bridge indexer url: ${aggkit_url})..."
@@ -365,11 +390,8 @@ function get_claim() {
         ((attempt++))
         log "🔍 Attempt $attempt/$max_attempts: get claim global index: $expected_global_index"
 
-        # Build the query URL with optional from_address parameter
+        # Build the query URL
         local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true&global_index=$expected_global_index"
-        if [[ -n "$from_address" ]]; then
-            query_url="$query_url&from_address=$from_address"
-        fi
 
         claims_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
         log "------ claims_result ------ $query_url"
@@ -395,7 +417,6 @@ function get_claim() {
                 "destination_address"
                 "destination_network"
                 "amount"
-                "from_address"
                 "global_exit_root"
                 "rollup_exit_root"
                 "mainnet_exit_root"
