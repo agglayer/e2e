@@ -3,9 +3,12 @@ set -euo pipefail
 
 # This function is used to claim a concrete tx hash
 # global vars:
-# - destination_addr
+# - claim_frequency
+# - status (from Bats framework)
 # export:
 # - global_index
+#
+# shellcheck disable=SC2154  # globals: claim_frequency, status
 function claim_tx_hash() {
     local timeout="$1"
     local tx_hash="$2"
