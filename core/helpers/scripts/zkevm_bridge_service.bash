@@ -128,52 +128,91 @@ function request_merkle_proof() {
 #  -gas_price
 #  -sender_private_key
 #  -bridge_addr
+#
+# shellcheck disable=SC2154  # globals: dry_run, gas_price, sender_private_key
 function request_claim() {
     local deposit_file="$1"
     local proof_file="$2"
     local destination_rpc_url="$3"
     local bridge_addr="$4"
 
-    local leaf_type=$(jq -r '.leaf_type' $deposit_file)
-    local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    # ─── Extract claim signature ─────────────────────────────────────────────
+    local leaf_type
+    leaf_type=$(jq -r '.leaf_type' "$deposit_file")
 
-    if [[ $leaf_type != "0" ]]; then
+    local claim_sig
+    claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    if [[ "$leaf_type" != "0" ]]; then
         claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
     fi
 
-    local in_merkle_proof="$(jq -r -c '.proof.merkle_proof' $proof_file | tr -d '"')"
-    local in_rollup_merkle_proof="$(jq -r -c '.proof.rollup_merkle_proof' $proof_file | tr -d '"')"
-    local in_global_index=$(jq -r '.global_index' $deposit_file)
-    local in_main_exit_root=$(jq -r '.proof.main_exit_root' $proof_file)
-    local in_rollup_exit_root=$(jq -r '.proof.rollup_exit_root' $proof_file)
-    local in_orig_net=$(jq -r '.orig_net' $deposit_file)
-    local in_orig_addr=$(jq -r '.orig_addr' $deposit_file)
-    local in_dest_net=$(jq -r '.dest_net' $deposit_file)
-    local in_dest_addr=$(jq -r '.dest_addr' $deposit_file)
-    local in_amount=$(jq -r '.amount' $deposit_file)
-    local in_metadata=$(jq -r '.metadata' $deposit_file)
-    if [[ $dry_run == "true" ]]; then
+    # ─── Extract all inputs ──────────────────────────────────────────────────
+    local in_merkle_proof
+    in_merkle_proof=$(jq -r -c '.proof.merkle_proof' "$proof_file" | tr -d '"')
+
+    local in_rollup_merkle_proof
+    in_rollup_merkle_proof=$(jq -r -c '.proof.rollup_merkle_proof' "$proof_file" | tr -d '"')
+
+    local in_global_index
+    in_global_index=$(jq -r '.global_index' "$deposit_file")
+
+    local in_main_exit_root
+    in_main_exit_root=$(jq -r '.proof.main_exit_root' "$proof_file")
+
+    local in_rollup_exit_root
+    in_rollup_exit_root=$(jq -r '.proof.rollup_exit_root' "$proof_file")
+
+    local in_orig_net
+    in_orig_net=$(jq -r '.orig_net' "$deposit_file")
+
+    local in_orig_addr
+    in_orig_addr=$(jq -r '.orig_addr' "$deposit_file")
+
+    local in_dest_net
+    in_dest_net=$(jq -r '.dest_net' "$deposit_file")
+
+    local in_dest_addr
+    in_dest_addr=$(jq -r '.dest_addr' "$deposit_file")
+
+    local in_amount
+    in_amount=$(jq -r '.amount' "$deposit_file")
+
+    local in_metadata
+    in_metadata=$(jq -r '.metadata' "$deposit_file")
+
+    # ─── Handle dry run ──────────────────────────────────────────────────────
+    if [[ "$dry_run" == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
-        cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata
-    else
-        local comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
-        if [[ $? -ne 0 ]]; then
-            log "❌ Failed to calculate gas price" >&3
-            return 1
-        fi
-        log "⏳ Claiming deposit: global_index: $in_global_index orig_net: $in_orig_net dest_net: $in_dest_net amount:$in_amount"
-        log "🔍 Exit roots: MainnetExitRoot=$in_main_exit_root RollupExitRoot=$in_rollup_exit_root"
-        echo "cast send --legacy --gas-price $comp_gas_price --rpc-url $destination_rpc_url --private-key $sender_private_key $bridge_addr \"$claim_sig\" \"$in_merkle_proof\" \"$in_rollup_merkle_proof\" $in_global_index $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr $in_dest_net $in_dest_addr $in_amount $in_metadata"
+        cast calldata "$claim_sig" \
+            "$in_merkle_proof" "$in_rollup_merkle_proof" "$in_global_index" \
+            "$in_main_exit_root" "$in_rollup_exit_root" "$in_orig_net" "$in_orig_addr" \
+            "$in_dest_net" "$in_dest_addr" "$in_amount" "$in_metadata"
+        return 0
+    fi
 
-        local response
-        if ! response=$(cast send --legacy --gas-price $comp_gas_price \
-            --rpc-url $destination_rpc_url \
-            --private-key $sender_private_key \
-            $bridge_addr "$claim_sig" "$in_merkle_proof" "$in_rollup_merkle_proof" \
-            "$in_global_index" "$in_main_exit_root" "$in_rollup_exit_root" \
-            "$in_orig_net" "$in_orig_addr" "$in_dest_net" "$in_dest_addr" "$in_amount" "$in_metadata" 2&1 >/dev/null); then
+    # ─── Calculate gas price ─────────────────────────────────────────────────
+    local comp_gas_price
+    comp_gas_price=$(bc -l <<<"$gas_price * 1.5" | sed 's/\..*//')
+    if [[ $? -ne 0 ]]; then
+        log "❌ Failed to calculate gas price" >&2
+        return 1
+    fi
 
-            check_claim_revert_code $response
-        fi
+    # ─── Execute claim ───────────────────────────────────────────────────────
+    log "⏳ Claiming deposit: global_index=$in_global_index orig_net=$in_orig_net dest_net=$in_dest_net amount=$in_amount"
+    log "🔍 Exit roots: MainnetExitRoot=$in_main_exit_root RollupExitRoot=$in_rollup_exit_root"
+    echo "cast send --legacy --gas-price $comp_gas_price --rpc-url $destination_rpc_url --private-key [REDACTED] $bridge_addr \"$claim_sig\" ..."
+
+    local response
+    if ! response=$(cast send --legacy --gas-price "$comp_gas_price" \
+        --rpc-url "$destination_rpc_url" \
+        --private-key "$sender_private_key" \
+        "$bridge_addr" "$claim_sig" "$in_merkle_proof" "$in_rollup_merkle_proof" \
+        "$in_global_index" "$in_main_exit_root" "$in_rollup_exit_root" \
+        "$in_orig_net" "$in_orig_addr" "$in_dest_net" "$in_dest_addr" "$in_amount" "$in_metadata" \
+        2>&1 >/dev/null); then
+
+        check_claim_revert_code "$response"
     fi
 }
+
