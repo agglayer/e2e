@@ -11,9 +11,13 @@ setup_file() {
     export agglayer_admin_url agglayer_rpc_url
 }
 function wait_for_new_cert() {
-    local timeout=${1:-1200}
-    local start_time=$(date +%s)
-    local end_time=$((start_time + timeout))
+    local timeout
+    local start_time
+    local end_time
+
+    timeout=1200
+    start_time=$(date +%s)
+    end_time=$((start_time + timeout))
 
     echo "Waiting for new certificate..." >&3
     inital_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
@@ -140,7 +144,7 @@ function send_n_txs_from_aggregator() {
 @test "send tx with nonce+1 using aggregator private key" {
     n_txs=1
     send_n_txs_from_aggregator $n_txs 0 1
-    for i in {0..$n_txs}; do
+    for i in $(seq 0 $n_txs); do
         wait_for_new_cert
         echo "✅ Successfully got a new certificate settled" >&3
     done
@@ -152,7 +156,7 @@ function send_n_txs_from_aggregator() {
 @test "send txs from nonce+1 to nonce+10 using aggregator private key" {
     n_txs=10
     send_n_txs_from_aggregator $n_txs 0 1
-    for i in {0..$n_txs}; do
+    for i in $(seq 0 $n_txs); do
         wait_for_new_cert
         echo "✅ Successfully got a new certificate settled" >&3
     done
