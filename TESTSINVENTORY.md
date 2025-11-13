@@ -277,7 +277,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
 | Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
-| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L473) | |
+| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |

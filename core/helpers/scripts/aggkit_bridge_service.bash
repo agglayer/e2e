@@ -100,12 +100,9 @@ function bridge_message() {
 }
 
 function check_claim_revert_code() {
-    local file_curl_response="$1"
-    local response_content
-    response_content=$(<"$file_curl_response")
+    local response_content="$1"
 
     log "💡 Check claim revert code"
-    log "$response_content"
 
     # 0x646cf558 -> AlreadyClaimed()
     if grep -q "0x646cf558" <<<"$response_content"; then
@@ -220,19 +217,30 @@ function claim_call() {
     local destination_rpc_url="$3"
     local bridge_addr="$4"
 
-    local global_index
-    global_index=$(echo "$bridge_info" | jq -r '.global_index')
+    local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+
     local leaf_type
     leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
+    if [[ $leaf_type != "0" ]]; then
+        claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    fi
 
-    local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
-    [[ $leaf_type != "0" ]] && claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    local \
+        in_local_exit_proof \
+        in_rollup_exit_proof \
+        in_global_index \
+        in_main_exit_root \
+        in_rollup_exit_root \
+        in_orig_net \
+        in_orig_addr \
+        in_dest_net \
+        in_dest_addr \
+        in_amount \
+        in_metadata
 
-    local in_merkle_proof in_rollup_merkle_proof in_main_exit_root in_rollup_exit_root
-    local in_orig_net in_orig_addr in_dest_net in_dest_addr in_amount in_metadata
-
-    in_merkle_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    in_rollup_merkle_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    in_global_index=$(echo "$bridge_info" | jq -r '.global_index')
+    in_local_exit_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    in_rollup_exit_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
     in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
     in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
     in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
@@ -244,25 +252,26 @@ function claim_call() {
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
-        cast calldata $claim_sig "$in_merkle_proof" "$in_rollup_merkle_proof" $global_index \
-            $in_main_exit_root $in_rollup_exit_root $in_orig_net $in_orig_addr \
-            $in_dest_net $in_dest_addr $in_amount $in_metadata
+        cast calldata $claim_sig "$in_local_exit_proof" "$in_rollup_exit_proof" "$in_global_index" \
+            "$in_main_exit_root" "$in_rollup_exit_root" "$in_orig_net" "$in_orig_addr" \
+            "$in_dest_net" "$in_dest_addr" "$in_amount" "$in_metadata" 2>/dev/null
     else
-        log "⏳ Claiming deposit (global_index: $global_index)"
-        if ! cast send --rpc-url "$destination_rpc_url" \
+        log "⏳ Claiming deposit: global_index=$in_global_index orig_net=$in_orig_net dest_net=$in_dest_net amount=$in_amount"
+        log "🔍 Exit roots: MainnetExitRoot=$in_main_exit_root RollupExitRoot=$in_rollup_exit_root"
+
+        local response
+        if ! response=$(cast send --rpc-url "$destination_rpc_url" \
             --private-key "$sender_private_key" \
-            "$bridge_addr" "$claim_sig" \
-            "$in_merkle_proof" "$in_rollup_merkle_proof" \
-            "$global_index" "$in_main_exit_root" "$in_rollup_exit_root" \
+            "$bridge_addr" "$claim_sig" "$in_local_exit_proof" "$in_rollup_exit_proof" \
+            "$in_global_index" "$in_main_exit_root" "$in_rollup_exit_root" \
             "$in_orig_net" "$in_orig_addr" "$in_dest_net" "$in_dest_addr" \
-            "$in_amount" "$in_metadata" >/dev/null 2>&1; then
-            log "❌ Claim transaction failed"
-            return 1
+            "$in_amount" "$in_metadata" 2>&1 >/dev/null); then
+
+            check_claim_revert_code "$response"
         fi
     fi
 
-    # Return global_index as the only output
-    echo "$global_index"
+    echo "$in_global_index"
 }
 
 function generate_global_index() {
