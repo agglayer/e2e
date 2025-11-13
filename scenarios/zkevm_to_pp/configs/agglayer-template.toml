@@ -16,10 +16,15 @@ readrpc-port = 4444
 admin-port = 4446
 host = "0.0.0.0"
 request-timeout = 180
-max-request-body-size = 104857600
+max-request-body-size = 4294967295
+
+[grpc]
+max-decoding-message-size = 10485760000
+max-encoding-message-size = 10485760000
 
 [prover.grpc]
-max-decoding-message-size = 104857600
+max-decoding-message-size = 10485760000
+max-encoding-message-size = 10485760000
 
 [outbound.rpc.settle]
 max-retries = 3
