@@ -14,18 +14,27 @@ function claim_tx_hash() {
     local bridge_service_url="$5"
     local bridge_addr="$6"
 
-    readonly bridge_deposit_file=$(mktemp)
+    # create temporary files
+    local bridge_deposit_file
+    bridge_deposit_file=$(mktemp)
+    readonly bridge_deposit_file
+
     local ready_for_claim="false"
-    local start_time=$(date +%s)
-    local current_time=$(date +%s)
+    local start_time
+    start_time=$(date +%s)
+
+    local current_time
+    current_time=$(date +%s)
+
     local end_time=$((current_time + timeout))
-    if [ -z $bridge_service_url ]; then
+
+    if [ -z "$bridge_service_url" ]; then
         log "❌ claim_tx_hash bridge_service_url parameter not provided"
         log "❌ claim_tx_hash: $*"
         exit 1
     fi
 
-    if [ -z $bridge_addr ]; then
+    if [ -z "$bridge_addr" ]; then
         log "❌ claim_tx_hash bridge_addr parameter not provided"
         log "❌ claim_tx_hash: $*"
         exit 1
@@ -33,85 +42,104 @@ function claim_tx_hash() {
 
     while true; do
         current_time=$(date +%s)
-        elapsed_time=$((current_time - start_time))
-        if ((current_time > end_time)); then
+        local elapsed_time=$((current_time - start_time))
+
+        if (( current_time > end_time )); then
             log "❌ Exiting... Timeout reached waiting for bridge (tx_hash=$tx_hash) to be claimed timeout: $timeout! (elapsed: $elapsed_time [s])"
             exit 1
         fi
 
         log "🔍 curl -s \"$bridge_service_url/bridges/$destination_addr?limit=100&offset=0\""
-        curl -s "$bridge_service_url/bridges/$destination_addr?limit=100&offset=0" | jq "[.deposits[] | select(.tx_hash == \"$tx_hash\" )]" >$bridge_deposit_file
-        deposit_count=$(jq '. | length' $bridge_deposit_file)
-        if [[ $deposit_count == 0 ]]; then
+        curl -s "$bridge_service_url/bridges/$destination_addr?limit=100&offset=0" |
+            jq "[.deposits[] | select(.tx_hash == \"$tx_hash\")]" >"$bridge_deposit_file"
+
+        local deposit_count
+        deposit_count=$(jq '. | length' "$bridge_deposit_file")
+
+        if [[ "$deposit_count" == 0 ]]; then
             log "❌ the bridge (tx_hash=$tx_hash) not found (elapsed: $elapsed_time [s] / timeout: $timeout [s])"
             sleep "$claim_frequency"
             continue
         fi
 
-        local ready_for_claim=$(jq -r '.[0].ready_for_claim' $bridge_deposit_file)
-        if [ $ready_for_claim != "true" ]; then
+        ready_for_claim=$(jq -r '.[0].ready_for_claim' "$bridge_deposit_file")
+        if [[ "$ready_for_claim" != "true" ]]; then
             log "⏳ the bridge (tx_hash=$tx_hash) is not ready for claim yet (elapsed: $elapsed_time [s] / timeout: $timeout [s])"
             sleep "$claim_frequency"
             continue
-        else
-            break
         fi
+
+        break
     done
 
     # Deposit is ready for claim
     log "🎉 the tx_hash $tx_hash is ready for claim! (elapsed: $elapsed_time [s])"
-    local curr_claim_tx_hash=$(jq '.[0].claim_tx_hash' $bridge_deposit_file)
-    if [ $curr_claim_tx_hash != "\"\"" ]; then
+
+    local curr_claim_tx_hash
+    curr_claim_tx_hash=$(jq '.[0].claim_tx_hash' "$bridge_deposit_file")
+    if [[ "$curr_claim_tx_hash" != "\"\"" ]]; then
         log "🎉 the bridge (tx_hash=$tx_hash) is already claimed"
         exit 0
     fi
 
-    local curr_deposit_cnt=$(jq '.[0].deposit_cnt' $bridge_deposit_file)
-    local curr_network_id=$(jq '.[0].network_id' $bridge_deposit_file)
-    readonly current_deposit=$(mktemp)
-    jq '.[(0|tonumber)]' $bridge_deposit_file | tee $current_deposit
-    log "💡 Found deposit info: $(cat $current_deposit)"
+    local curr_deposit_cnt
+    curr_deposit_cnt=$(jq '.[0].deposit_cnt' "$bridge_deposit_file")
 
-    readonly current_proof=$(mktemp)
+    local curr_network_id
+    curr_network_id=$(jq '.[0].network_id' "$bridge_deposit_file")
+
+    local current_deposit
+    current_deposit=$(mktemp)
+    readonly current_deposit
+
+    jq '.[(0|tonumber)]' "$bridge_deposit_file" | tee "$current_deposit"
+    log "💡 Found deposit info: $(cat "$current_deposit")"
+
+    local current_proof
+    current_proof=$(mktemp)
+    readonly current_proof
+
     log "🔍 requesting merkle proof for $tx_hash deposit_cnt=$curr_deposit_cnt network_id: $curr_network_id"
     request_merkle_proof "$curr_deposit_cnt" "$curr_network_id" "$bridge_service_url" "$current_proof"
 
     while true; do
         log "⏳ Requesting claim for $tx_hash..."
-        run request_claim $current_deposit $current_proof $destination_rpc_url $bridge_addr
-        request_result=$status
+        run request_claim "$current_deposit" "$current_proof" "$destination_rpc_url" "$bridge_addr"
+        local request_result=$status
         log "💡 request_claim returns status code $request_result"
-        if [ $request_result -eq 0 ]; then
+
+        if [[ "$request_result" -eq 0 ]]; then
             log "🎉 The bridge (tx_hash=$tx_hash) is claimed successfully!"
             break
         fi
 
-        if [ $request_result -eq 2 ]; then
-            # GlobalExitRootInvalid() let's retry, since it means that the global exit root is not yet injected to the destination network
-            log "⏳ Claim failed this time (GER is not yet injected on destination). We'll retry in $claim_frequency seconds "
+        if [[ "$request_result" -eq 2 ]]; then
+            # GlobalExitRootInvalid() → retry since GER not yet injected
+            log "⏳ Claim failed this time (GER not yet injected). Retrying in $claim_frequency seconds"
             current_time=$(date +%s)
             elapsed_time=$((current_time - start_time))
-            if ((current_time > end_time)); then
-                log "❌ Exiting... Timeout reached waiting for bridge to be claimed (tx_hash=$tx_hash) timeout: $timeout! (elapsed: $elapsed_time [s])"
+
+            if (( current_time > end_time )); then
+                log "❌ Timeout reached while waiting for claim (tx_hash=$tx_hash) timeout: $timeout (elapsed: $elapsed_time [s])"
                 exit 1
             fi
-            sleep $claim_frequency
+            sleep "$claim_frequency"
             continue
         fi
 
-        if [ $request_result -ne 0 ]; then
+        if [[ "$request_result" -ne 0 ]]; then
             log "❌ Claim failed for bridge (tx_hash=$tx_hash)"
             exit 1
         fi
     done
 
-    export global_index=$(jq -r '.global_index' $current_deposit)
+    local global_index
+    global_index=$(jq -r '.global_index' "$current_deposit")
+    export global_index
     log "✅ Bridge (tx_hash=$tx_hash) claimed ($global_index)"
 
-    # clean up temp files
-    rm $current_deposit
-    rm $current_proof
-    rm $bridge_deposit_file
+    # Cleanup
+    rm -f "$current_deposit" "$current_proof" "$bridge_deposit_file"
 }
 
 function request_merkle_proof() {
