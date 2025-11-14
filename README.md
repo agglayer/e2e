@@ -195,6 +195,14 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - eip-2537
 - eip-2935
 - eip-7623
+- eip-7823
+- eip-7825
+- eip-7883
+- eip-7910
+- eip-7934
+- eip-7935
+- eip-7939
+- eip-7951
 - ethereum-test-cases
 - evm-gas
 - evm-opcode
@@ -202,6 +210,7 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - evm-rpc
 - execution
 - forced-txs
+- fusaka
 - local-balance-tree
 - lxly
 - multi-chain-bridge
@@ -230,6 +239,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - acl-blocklist
 - agglayer-admin
 - agglayer-cert
+- agglayer-nonce
 - agglayer-rpc
 - bridge
 - bridge-erc20

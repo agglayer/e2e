@@ -7,6 +7,8 @@ declare status output
 function _setup_vars() {
 
     # These vars are set when calling this function:
+    #   foo_address: Set from foo address from foo private key
+    #   foo_private_key: Set from foo private key from foo address
     #   kurtosis_enclave_name: Set from ENCLAVE_NAME or default to "cdk"
     #   l2_rpc_url: Set from L2_RPC_URL or from kurtosis enclave if ENCLAVE_NAME is set
     #   l1_rpc_url: Set from L1_RPC_URL or from kurtosis enclave if ENCLAVE_NAME is set
@@ -31,12 +33,21 @@ function _setup_vars() {
     #   weth_address: Set from weth address from l2_rpc_url if set
     #   l2_sovereignadmin_address: Set from sovereign admin address from input_args if set
     #   l2_sovereignadmin_private_key: Set from sovereign admin private key from input_args if set
+    #   l2_aggregator_address: Set from aggregator address from input_args if set
+    #   l2_aggregator_private_key: Set from aggregator private key from input_args if set
 
     # Paths for libs, etc
     HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     export BATS_LIB_PATH=$BATS_LIB_PATH:$HERE/lib
     export PROJECT_ROOT=${PROJECT_ROOT:-$HERE/../..}
     echo "ℹ️ PROJECT_ROOT=$PROJECT_ROOT BATS_LIB_PATH=$BATS_LIB_PATH" >&3
+
+    # foo address for whatever it's needed for
+    foo=$(cast wallet new --json | jq .[0])
+    foo_address=$(echo "$foo" | jq -r .address)
+    foo_private_key=$(echo "$foo" | jq -r .private_key)
+    export foo_address foo_private_key
+    echo "ℹ️ foo_address=$foo_address foo_private_key=$foo_private_key" >&3
 
     if [[ "${NETWORK_ENVIRONMENT:-kurtosis}" != "bali" && "${NETWORK_ENVIRONMENT:-kurtosis}" != "cardona" ]]; then
         if [[ -n "$L2_RPC_URL" ]]; then
@@ -167,6 +178,19 @@ function _setup_vars() {
         l2_sovereignadmin_address=$(cast wallet address --private-key "$l2_sovereignadmin_private_key")
         export l2_sovereignadmin_address l2_sovereignadmin_private_key
         echo "ℹ️ l2_sovereignadmin_address=$l2_sovereignadmin_address l2_sovereignadmin_private_key=$l2_sovereignadmin_private_key" >&3
+    fi
+
+    # aggregator private key and address
+    if [[ -n "$AGGREGATOR_PRIVATE_KEY" ]]; then
+        l2_aggregator_private_key="$AGGREGATOR_PRIVATE_KEY"
+    elif [[ -n "$input_args" ]]; then
+        l2_aggregator_private_key=$(echo "$input_args" | jq -r 'if has (".args.l2_aggregator_private_key") then .args.l2_aggregator_private_key else .args.zkevm_l2_aggregator_private_key end')
+    fi
+
+    if [[ -n "$l2_aggregator_private_key" ]]; then
+        l2_aggregator_address=$(cast wallet address --private-key "$l2_aggregator_private_key")
+        export l2_aggregator_address l2_aggregator_private_key
+        echo "ℹ️ l2_aggregator_address=$l2_aggregator_address l2_aggregator_private_key=$l2_aggregator_private_key" >&3
     fi
 
 
