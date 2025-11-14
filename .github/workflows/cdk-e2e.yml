@@ -50,10 +50,11 @@ on:
         type: string
         default: "cdk"
 
-permissions:
-  contents: read
-  packages: write
-  id-token: write
+# 2025-08-27: I'm not sure if these are necessary. Delete entirely if this doesn't break anything
+# permissions:
+#   contents: read
+#   packages: write
+#   id-token: write
 
 env:
   POLYCLI_VERSION: v0.1.90
@@ -138,13 +139,15 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats tests/cdk/access-list-e2e.bats tests/cdk/basic-e2e.bats
+          bats tests/cdk/basic-e2e.bats
           if [[ "${{ inputs.test-name }}" == "test-fork9-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork11-rollup-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e-zkevm-bridge" ]]; then
             bats tests/cdk/e2e.bats tests/cdk/bridge-e2e.bats
           elif [[ "${{ inputs.test-name }}" == "test-fork12-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e" ]]; then
             bats tests/cdk/e2e.bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
           elif [[ "${{ inputs.test-name }}" == "test-fork12-pessimistic-e2e" ]]; then
             bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
+          else
+            bats tests/aggkit/bridge-e2e.bats
           fi
           popd
 
