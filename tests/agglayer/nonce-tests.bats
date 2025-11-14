@@ -75,6 +75,12 @@ function send_n_txs_from_aggregator() {
     for i in $(seq 0 $(($n_txs - 1))); do
         gas_price=$(cast gas-price --rpc-url "$l1_rpc_url")
         gas_price=$(echo "$gas_price * $gas_price_factor" | bc -l | cut -f 1 -d '.')
+        basefee=$(cast basefee --rpc-url "$l1_rpc_url")
+        # Ensure gas_price > basefee
+        if [ "$gas_price" -le "$basefee" ]; then
+            gas_price=$(( basefee + 1 ))
+        fi
+
         if [[ "$sync" -eq 1 ]]; then
             run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --gas-price "$gas_price" --value 1 "$foo_address" --json
         else
@@ -145,24 +151,50 @@ function send_n_txs_from_aggregator() {
 @test "send tx with nonce+1 using aggregator private key" {
     n_txs=1
     send_n_txs_from_aggregator $n_txs 0 1
-    for i in $(seq 0 $n_txs); do
-        wait_for_new_cert
-        echo "✅ Successfully got a new certificate settled" >&3
-    done
+    # we have sent with nonce+1, so we need to wait for 2 new certificates to be settled
+    wait_for_new_cert
+    wait_for_new_cert
+    echo "✅ Successfully got a new certificate settled" >&3
     # Just in case, to avoid gap nonce
-    send_n_txs_from_aggregator
+    send_n_txs_from_aggregator 1
 }
 
 # bats test_tags=agglayer-nonce
-@test "send txs from nonce+1 to nonce+10 using aggregator private key" {
+@test "send tx with nonce+2 using aggregator private key" {
+    n_txs=1
+    send_n_txs_from_aggregator $n_txs 0 2
+    # we have sent with nonce+2, so we need to wait for 3 new certificates to be settled
+    wait_for_new_cert
+    wait_for_new_cert
+    wait_for_new_cert
+    echo "✅ Successfully got a new certificate settled" >&3
+    # Just in case, to avoid gap nonce
+    send_n_txs_from_aggregator 2
+}
+
+# bats test_tags=agglayer-nonce
+@test "send txs from nonce+1 to nonce+11 using aggregator private key" {
     n_txs=10
     send_n_txs_from_aggregator $n_txs 0 1
-    for i in $(seq 0 $n_txs); do
-        wait_for_new_cert
-        echo "✅ Successfully got a new certificate settled" >&3
-    done
+    # we have sent with nonce+1, so we need to wait for 2 new certificates to be settled
+    wait_for_new_cert
+    wait_for_new_cert
+    echo "✅ Successfully got a new certificate settled" >&3
     # Just in case, to avoid gap nonce
-    send_n_txs_from_aggregator
+    send_n_txs_from_aggregator 1
+}
+
+# bats test_tags=agglayer-nonce
+@test "send txs from nonce+2 to nonce+12 using aggregator private key" {
+    n_txs=10
+    send_n_txs_from_aggregator $n_txs 0 2
+    # we have sent with nonce+2, so we need to wait for 3 new certificates to be settled
+    wait_for_new_cert
+    wait_for_new_cert
+    wait_for_new_cert
+    echo "✅ Successfully got a new certificate settled" >&3
+    # Just in case, to avoid gap nonce
+    send_n_txs_from_aggregator 2
 }
 
 # bats test_tags=agglayer-nonce
