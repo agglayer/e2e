@@ -258,7 +258,7 @@ setup() {
         $l2_bridge_addr "$CLAIM_MSG_FN_SIG" \
         "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" "$global_index_1" "$mainnet_exit_root_1" "$rollup_exit_root_1" \
         "$origin_network_1" "$origin_address_1" "$destination_network_1" \
-        "$destination_address_1" "$amount_1" "$metadata_1" 2&1 >/dev/null); then
+        "$destination_address_1" "$amount_1" "$metadata_1" 2>&1 >/dev/null); then
 
         # Use existing function to check revert code
         check_claim_revert_code "$response"
