@@ -255,7 +255,7 @@ setup() {
     # Attempt reentrant claim and capture any errors
     if ! response=$(cast send --private-key $sender_private_key \
         --rpc-url $L2_RPC_URL \
-        $l2_bridge_addr "claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
+        $l2_bridge_addr "$CLAIM_MSG_FN_SIG" \
         "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" "$global_index_1" "$mainnet_exit_root_1" "$rollup_exit_root_1" \
         "$origin_network_1" "$origin_address_1" "$destination_network_1" \
         "$destination_address_1" "$amount_1" "$metadata_1" 2&1 >/dev/null); then

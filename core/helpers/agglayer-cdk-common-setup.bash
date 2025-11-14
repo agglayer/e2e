@@ -24,6 +24,12 @@ _agglayer_cdk_common_setup() {
     export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
+    # ✅ Bridge contract function signatures
+    export BRIDGE_ASSET_FN_SIG="function bridgeAsset(uint32,address,uint256,address,bool,bytes)"
+    export BRIDGE_MSG_FN_SIG="function bridgeMessage(uint32,address,bool,bytes)"
+    export CLAIM_ASSET_FN_SIG="function claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    export CLAIM_MSG_FN_SIG="function claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+
     # ✅ Resolve URLs
     _resolve_required_urls
 

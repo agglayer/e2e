@@ -7,7 +7,6 @@ function bridge_asset() {
     local token_addr="$1"
     local rpc_url="$2"
     local bridge_addr="$3"
-    local bridge_sig='bridgeAsset(uint32,address,uint256,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
         local eth_balance
@@ -25,18 +24,18 @@ function bridge_asset() {
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run bridge asset (showing calldata only)"
-        cast calldata "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes"
+        cast calldata "$BRIDGE_ASSET_FN_SIG" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes"
     else
         local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
             response=$(cast send --private-key "$sender_private_key" \
                 --value "$amount" \
                 --rpc-url "$rpc_url" "$bridge_addr" \
-                "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
+                "$BRIDGE_ASSET_FN_SIG" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         else
             response=$(cast send --private-key "$sender_private_key" \
                 --rpc-url "$rpc_url" "$bridge_addr" \
-                "$bridge_sig" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
+                "$BRIDGE_ASSET_FN_SIG" "$destination_net" "$destination_addr" "$amount" "$token_addr" "$is_forced" "$meta_bytes")
         fi
 
         local bridge_tx_hash
@@ -58,7 +57,6 @@ function bridge_message() {
     local token_addr="$1"
     local rpc_url="$2"
     local bridge_addr="$3"
-    local bridge_sig='bridgeMessage(uint32,address,bool,bytes)'
 
     if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
         local eth_balance
@@ -76,15 +74,15 @@ function bridge_message() {
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run bridge message (showing calldata only)"
-        cast calldata "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes"
+        cast calldata "$BRIDGE_MSG_FN_SIG" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes"
     else
         local response
         if [[ $token_addr == "0x0000000000000000000000000000000000000000" ]]; then
             response=$(cast send --private-key "$sender_private_key" --value "$amount" \
-                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
+                --rpc-url "$rpc_url" "$bridge_addr" "$BRIDGE_MSG_FN_SIG" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
         else
             response=$(cast send --private-key "$sender_private_key" \
-                --rpc-url "$rpc_url" "$bridge_addr" "$bridge_sig" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
+                --rpc-url "$rpc_url" "$bridge_addr" "$BRIDGE_MSG_FN_SIG" "$destination_net" "$destination_addr" "$is_forced" "$meta_bytes")
         fi
 
         local bridge_tx_hash
@@ -217,12 +215,12 @@ function claim_call() {
     local destination_rpc_url="$3"
     local bridge_addr="$4"
 
-    local claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    local claim_sig="$CLAIM_ASSET_FN_SIG"
 
     local leaf_type
     leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
     if [[ $leaf_type != "0" ]]; then
-        claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+        claim_sig="$CLAIM_MSG_FN_SIG"
     fi
 
     local \

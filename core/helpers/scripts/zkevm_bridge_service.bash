@@ -172,9 +172,9 @@ function request_claim() {
     leaf_type=$(jq -r '.leaf_type' "$deposit_file")
 
     local claim_sig
-    claim_sig="claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    claim_sig="$CLAIM_ASSET_FN_SIG"
     if [[ "$leaf_type" != "0" ]]; then
-        claim_sig="claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+        claim_sig="$CLAIM_MSG_FN_SIG"
     fi
 
     # ─── Extract all inputs ──────────────────────────────────────────────────
