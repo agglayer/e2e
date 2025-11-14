@@ -70,21 +70,15 @@ function send_n_txs_from_aggregator() {
     nonce=$(cast nonce --rpc-url "$l1_rpc_url" "$l2_aggregator_address")
     nonce=$((nonce + nonce_offset))
 
-    gas_price_factor=5
-
     for i in $(seq 0 $(($n_txs - 1))); do
-        gas_price=$(cast gas-price --rpc-url "$l1_rpc_url")
-        gas_price=$(echo "$gas_price * $gas_price_factor" | bc -l | cut -f 1 -d '.')
         basefee=$(cast basefee --rpc-url "$l1_rpc_url")
-        # Ensure gas_price > basefee
-        if [ "$gas_price" -le "$basefee" ]; then
-            gas_price=$(( basefee + 1 ))
-        fi
+        priority_fee=$(( 5 * 1_000_000_000 ))
+        max_fee=$(( basefee + priority_fee ))
 
         if [[ "$sync" -eq 1 ]]; then
-            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --gas-price "$gas_price" --value 1 "$foo_address" --json
+            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --max-fee-per-gas "$max_fee" --max-priority-fee-per-gas "$priority_fee" --value 1 "$foo_address" --json
         else
-            run cast send --legacy --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --gas-price "$gas_price" --value 1 --nonce "$((nonce + i))" --async "$foo_address"
+            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --max-fee-per-gas "$max_fee" --max-priority-fee-per-gas "$priority_fee" --value 1 --nonce "$((nonce + i))" --async "$foo_address"
         fi
         if [[ "$status" -ne 0 ]]; then
             echo "❌ Failed to send tx $((i + 1)) with aggregator private key: $output" >&3
