@@ -11,6 +11,25 @@ setup_file() {
     export agglayer_admin_url agglayer_rpc_url
 }
 
+setup() {
+    export aggregator_nonce=$(get_aggregator_nonce)
+}
+
+#function execution after each test
+function check_aggregator_nonce() {
+    local nonce_increment=$1
+
+    final_aggregator_nonce=$(get_aggregator_nonce)
+    expected_aggregator_nonce=$((aggregator_nonce + nonce_increment))
+
+    if [[ $final_aggregator_nonce -ne $expected_aggregator_nonce ]]; then
+        echo "❌ Error: Aggregator nonce is not as expected: $final_aggregator_nonce != $expected_aggregator_nonce" >&3
+        exit 1
+    else
+        echo "✅ Aggregator nonce is as expected: $final_aggregator_nonce (initial: $aggregator_nonce, expected: $expected_aggregator_nonce)" >&3
+    fi
+}
+
 function wait_for_new_cert() {
     local timeout
     local start_time
@@ -43,7 +62,7 @@ function interop_status_query() {
     while true; do
         run cast rpc --rpc-url "$agglayer_rpc_url" "$interop_ep" "$rollup_id"
         if [[ "$status" -ne 0 ]]; then
-            echo "❌ Failed to get latest known certificate header using $interop_ep: $output"
+            echo "❌ Failed to get latest known certificate header using $interop_ep: $output" >&3
             exit 1
         else
             if [[ "$full_answer" -ne 0 ]]; then
@@ -113,6 +132,10 @@ function send_n_txs_from_aggregator() {
     fi
 }
 
+function get_aggregator_nonce() {
+    cast nonce --rpc-url "$l1_rpc_url" "$l2_aggregator_address"
+}
+
 # bats test_tags=agglayer-nonce
 @test "wait for a new certificate to be settled" {
     # This actually tests nothing related to nonce, but just to be sure we start with a working network
@@ -122,9 +145,12 @@ function send_n_txs_from_aggregator() {
 
 # bats test_tags=agglayer-nonce
 @test "send a tx using aggregator private key" {
+    nonce=$(get_aggregator_nonce)
     send_n_txs_from_aggregator
     wait_for_new_cert
     echo "✅ Successfully got a new certificate settled" >&3
+
+    check_aggregator_nonce 2
 }
 
 # bats test_tags=agglayer-nonce
@@ -132,6 +158,8 @@ function send_n_txs_from_aggregator() {
     send_n_txs_from_aggregator 10
     wait_for_new_cert
     echo "✅ Successfully got a new certificate settled" >&3
+
+    check_aggregator_nonce 11
 }
 
 # bats test_tags=agglayer-nonce
@@ -139,6 +167,8 @@ function send_n_txs_from_aggregator() {
     send_n_txs_from_aggregator 50 0 0 1
     wait_for_new_cert
     echo "✅ Successfully got a new certificate settled" >&3
+
+    check_aggregator_nonce 51
 }
 
 # bats test_tags=agglayer-nonce
@@ -151,6 +181,8 @@ function send_n_txs_from_aggregator() {
     echo "✅ Successfully got a new certificate settled" >&3
     # Just in case, to avoid gap nonce
     send_n_txs_from_aggregator 1
+
+    check_aggregator_nonce 4
 }
 
 # bats test_tags=agglayer-nonce
@@ -164,6 +196,8 @@ function send_n_txs_from_aggregator() {
     echo "✅ Successfully got a new certificate settled" >&3
     # Just in case, to avoid gap nonce
     send_n_txs_from_aggregator 2
+
+    check_aggregator_nonce 6
 }
 
 # bats test_tags=agglayer-nonce
@@ -176,6 +210,8 @@ function send_n_txs_from_aggregator() {
     echo "✅ Successfully got a new certificate settled" >&3
     # Just in case, to avoid gap nonce
     send_n_txs_from_aggregator 1
+
+    check_aggregator_nonce 13
 }
 
 # bats test_tags=agglayer-nonce
@@ -189,6 +225,8 @@ function send_n_txs_from_aggregator() {
     echo "✅ Successfully got a new certificate settled" >&3
     # Just in case, to avoid gap nonce
     send_n_txs_from_aggregator 2
+
+    check_aggregator_nonce 15
 }
 
 # bats test_tags=agglayer-nonce
@@ -201,8 +239,10 @@ function send_n_txs_from_aggregator() {
 
     echo "✅ Initial block: $initial_block, initial proven certificate: $inital_proven_certificate_id" >&3
 
+    txs_sent=0
     while [ "$current_proven_certificate_id" -eq "$inital_proven_certificate_id" ]; do
         send_n_txs_from_aggregator 1
+        txs_sent=$((txs_sent + 1))
         last_block=$current_block
         echo "✅ Successfully sent tx for block $last_block" >&3
         current_block=$(cast bn --rpc-url "$l1_rpc_url")
@@ -213,4 +253,7 @@ function send_n_txs_from_aggregator() {
     done
     echo "✅ Successfully got a new certificate settled: $current_proven_certificate_id" >&3
     wait_for_new_cert
+
+    # 2 settlements happens during the test
+    check_aggregator_nonce $((txs_sent + 2))
 }

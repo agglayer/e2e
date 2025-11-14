@@ -41,15 +41,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L237) | |
 | query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L256) | |
 | query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L218) | |
-| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L195) | |
-| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L124) | |
-| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L138) | |
-| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L131) | |
-| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L145) | |
-| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L157) | |
-| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L170) | |
-| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L182) | |
-| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L117) | |
+| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L233) | |
+| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L147) | |
+| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L166) | |
+| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L157) | |
+| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L175) | |
+| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L189) | |
+| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L204) | |
+| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L218) | |
+| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L140) | |
 
 ## CDK Erigon Tests
 
