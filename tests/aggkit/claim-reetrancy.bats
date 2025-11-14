@@ -249,22 +249,21 @@ setup() {
     log "   Amount: $amount_1 wei"
     log "   Gas price: $comp_gas_price wei"
 
-    # Create temporary file for error capture
-    local tmp_response
-    tmp_response=$(mktemp)
     local revert_result
 
+    local response
     # Attempt reentrant claim and capture any errors
-    cast send --private-key $sender_private_key \
+    if ! response=$(cast send --private-key $sender_private_key \
         --rpc-url $L2_RPC_URL \
-        $l2_bridge_addr "claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
-        "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" $global_index_1 $mainnet_exit_root_1 $rollup_exit_root_1 \
-        $origin_network_1 $origin_address_1 $destination_network_1 $destination_address_1 $amount_1 $metadata_1 2>$tmp_response || {
+        $l2_bridge_addr "$CLAIM_MSG_FN_SIG" \
+        "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" "$global_index_1" "$mainnet_exit_root_1" "$rollup_exit_root_1" \
+        "$origin_network_1" "$origin_address_1" "$destination_network_1" \
+        "$destination_address_1" "$amount_1" "$metadata_1" 2>&1 >/dev/null); then
+
         # Use existing function to check revert code
-        check_claim_revert_code "$tmp_response"
+        check_claim_revert_code "$response"
         revert_result=$?
-        rm -f "$tmp_response"
-    }
+    fi
 
     # Validate reentrancy protection
     if [[ $revert_result -eq 0 ]]; then
@@ -281,7 +280,7 @@ setup() {
 
     # Verify first claim was processed
     log "🔍 Validating first asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -328,7 +327,7 @@ setup() {
 
     # Verify second claim was processed
     log "🔍 Validating second asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url" "$sender_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -790,7 +789,7 @@ setup() {
 
     # Verify first claim was processed (contract destination)
     log "🔍 Validating first asset claim processing (contract destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -837,7 +836,7 @@ setup() {
 
     # Verify second claim was processed (deployer destination)
     log "🔍 Validating second asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -884,7 +883,7 @@ setup() {
 
     # Verify third claim was processed (deployer destination)
     log "🔍 Validating third asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_3" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_3" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_3="$output"
     log "📋 Third claim response received"
