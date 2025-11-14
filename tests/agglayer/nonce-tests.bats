@@ -10,6 +10,7 @@ setup_file() {
     agglayer_rpc_url=${AGGLAYER_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" agglayer aglr-readrpc)"}
     export agglayer_admin_url agglayer_rpc_url
 }
+
 function wait_for_new_cert() {
     local timeout
     local start_time
@@ -165,17 +166,16 @@ function send_n_txs_from_aggregator() {
 }
 
 # bats test_tags=agglayer-nonce
-@test "send 1 tx per block for N blocks" {
-    n_blocks=100
-
+@test "send 1 tx per block until a new certificate settles" {
     initial_block=$(cast bn --rpc-url "$l1_rpc_url")
-
-    target_block=$((initial_block + n_blocks))
     current_block=$initial_block
 
-    echo "✅ Initial block: $initial_block, target block: $target_block" >&3
+    inital_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
+    current_proven_certificate_id=$inital_proven_certificate_id
 
-    while [ "$current_block" -lt "$target_block" ]; do
+    echo "✅ Initial block: $initial_block, initial proven certificate: $inital_proven_certificate_id" >&3
+
+    while [ "$current_proven_certificate_id" -eq "$inital_proven_certificate_id" ]; do
         send_n_txs_from_aggregator 1
         last_block=$current_block
         echo "✅ Successfully sent tx for block $last_block" >&3
@@ -183,6 +183,8 @@ function send_n_txs_from_aggregator() {
         while [ "$current_block" -eq "$last_block" ]; do
             current_block=$(cast bn --rpc-url "$l1_rpc_url")
         done
+        current_proven_certificate_id=$(interop_status_query interop_getLatestProvenCertificateHeader)
     done
+    echo "✅ Successfully got a new certificate settled: $current_proven_certificate_id" >&3
     wait_for_new_cert
 }
