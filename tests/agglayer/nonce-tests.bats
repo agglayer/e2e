@@ -72,13 +72,13 @@ function send_n_txs_from_aggregator() {
 
     for i in $(seq 0 $(($n_txs - 1))); do
         basefee=$(cast basefee --rpc-url "$l1_rpc_url")
-        priority_fee=$(( 5 * 1_000_000_000 ))
+        priority_fee=$(( 5 * 1000000000 ))
         max_fee=$(( basefee + priority_fee ))
 
         if [[ "$sync" -eq 1 ]]; then
-            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --max-fee-per-gas "$max_fee" --max-priority-fee-per-gas "$priority_fee" --value 1 "$foo_address" --json
+            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value 1 "$foo_address" --json
         else
-            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --max-fee-per-gas "$max_fee" --max-priority-fee-per-gas "$priority_fee" --value 1 --nonce "$((nonce + i))" --async "$foo_address"
+            run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value 1 --nonce "$((nonce + i))" --async "$foo_address"
         fi
         if [[ "$status" -ne 0 ]]; then
             echo "❌ Failed to send tx $((i + 1)) with aggregator private key: $output" >&3
