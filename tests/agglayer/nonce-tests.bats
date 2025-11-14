@@ -12,7 +12,8 @@ setup_file() {
 }
 
 setup() {
-    export aggregator_nonce=$(get_aggregator_nonce)
+    aggregator_nonce=$(get_aggregator_nonce)
+    export aggregator_nonce
 }
 
 #function execution after each test
