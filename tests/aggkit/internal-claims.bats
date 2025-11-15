@@ -319,6 +319,20 @@ setup() {
         claim_1_amount=$(echo "$claim_1" | jq -r '.amount')
         local claim_1_metadata
         claim_1_metadata=$(echo "$claim_1" | jq -r '.metadata')
+        local claim_1_proof_local_exit_root
+        claim_1_proof_local_exit_root=$(echo "$claim_1" | jq -r '.proof_local_exit_root')
+        local claim_1_proof_rollup_exit_root
+        claim_1_proof_rollup_exit_root=$(echo "$claim_1" | jq -r '.proof_rollup_exit_root')
+
+        # Normalize formatting for comparison
+        local n_claim_1_proof_local_exit_root
+        local n_proof_local_exit_root_1
+        local n_claim_1_proof_rollup_exit_root
+        local n_proof_rollup_exit_root_1
+        n_claim_1_proof_local_exit_root=$(echo "$claim_1_proof_local_exit_root" | tr -d '[:space:]"')
+        n_proof_local_exit_root_1=$(echo "$proof_local_exit_root_1" | tr -d '[:space:]"')
+        n_claim_1_proof_rollup_exit_root=$(echo "$claim_1_proof_rollup_exit_root" | tr -d '[:space:]"')
+        n_proof_rollup_exit_root_1=$(echo "$proof_rollup_exit_root_1" | tr -d '[:space:]"')
 
         log "🌳 First claim mainnet exit root: $claim_1_mainnet_exit_root (Expected: $mainnet_exit_root_1)"
         log "🌳 First claim rollup exit root: $claim_1_rollup_exit_root (Expected: $rollup_exit_root_1)"
@@ -329,6 +343,8 @@ setup() {
         log "📍 First claim destination address: $claim_1_destination_address (Expected: $destination_address_1)"
         log "💰 First claim amount: $claim_1_amount (Expected: $amount_1)"
         log "📄 First claim metadata: $claim_1_metadata (Expected: $metadata_1)"
+        log "🌳 First claim proof_local_exit_root: $n_claim_1_proof_local_exit_root (Expected: $n_proof_local_exit_root_1)"
+        log "🌳 First claim proof_rollup_exit_root: $n_claim_1_proof_rollup_exit_root (Expected: $n_proof_rollup_exit_root_1)"
 
         # Verify all field values match expected values
         assert_equal "$claim_1_mainnet_exit_root" "$mainnet_exit_root_1"
@@ -339,6 +355,8 @@ setup() {
         assert_equal "$claim_1_destination_address" "$destination_address_1"
         assert_equal "$claim_1_amount" "$amount_1"
         assert_equal "$claim_1_metadata" "$metadata_1"
+        assert_equal "$n_claim_1_proof_local_exit_root" "$n_proof_local_exit_root_1"
+        assert_equal "$n_claim_1_proof_rollup_exit_root" "$n_proof_rollup_exit_root_1"
 
         # Validate proofs for first claim
         log "🔍 Validating proofs for first claim"
@@ -384,6 +402,20 @@ setup() {
         claim_2_amount=$(echo "$claim_2" | jq -r '.amount')
         local claim_2_metadata
         claim_2_metadata=$(echo "$claim_2" | jq -r '.metadata')
+        local claim_2_proof_local_exit_root
+        claim_2_proof_local_exit_root=$(echo "$claim_2" | jq -r '.proof_local_exit_root')
+        local claim_2_proof_rollup_exit_root
+        claim_2_proof_rollup_exit_root=$(echo "$claim_2" | jq -r '.proof_rollup_exit_root')
+
+        # Normalize formatting for comparison
+        local n_claim_2_proof_local_exit_root
+        local n_proof_local_exit_root_2
+        local n_claim_2_proof_rollup_exit_root
+        local n_proof_rollup_exit_root_2
+        n_claim_2_proof_local_exit_root=$(echo "$claim_2_proof_local_exit_root" | tr -d '[:space:]"')
+        n_proof_local_exit_root_2=$(echo "$proof_local_exit_root_2" | tr -d '[:space:]"')
+        n_claim_2_proof_rollup_exit_root=$(echo "$claim_2_proof_rollup_exit_root" | tr -d '[:space:]"')
+        n_proof_rollup_exit_root_2=$(echo "$proof_rollup_exit_root_2" | tr -d '[:space:]"')
 
         log "🌳 Second claim mainnet exit root: $claim_2_mainnet_exit_root (Expected: $mainnet_exit_root_2)"
         log "🌳 Second claim rollup exit root: $claim_2_rollup_exit_root (Expected: $rollup_exit_root_2)"
@@ -394,6 +426,8 @@ setup() {
         log "📍 Second claim destination address: $claim_2_destination_address (Expected: $destination_address_2)"
         log "💰 Second claim amount: $claim_2_amount (Expected: $amount_2)"
         log "📄 Second claim metadata: $claim_2_metadata (Expected: $metadata_2)"
+        log "🌳 Second claim proof_local_exit_root: $n_claim_2_proof_local_exit_root (Expected: $n_proof_local_exit_root_2)"
+        log "🌳 Second claim proof_rollup_exit_root: $n_claim_2_proof_rollup_exit_root (Expected: $n_proof_rollup_exit_root_2)"
 
         # Verify all field values match expected values
         assert_equal "$claim_2_mainnet_exit_root" "$mainnet_exit_root_2"
@@ -404,6 +438,8 @@ setup() {
         assert_equal "$claim_2_destination_address" "$destination_address_2"
         assert_equal "$claim_2_amount" "$amount_2"
         assert_equal "$claim_2_metadata" "$metadata_2"
+        assert_equal "$n_claim_2_proof_local_exit_root" "$n_proof_local_exit_root_2"
+        assert_equal "$n_claim_2_proof_rollup_exit_root" "$n_proof_rollup_exit_root_2"
 
         # Validate proofs for second claim
         log "🔍 Validating proofs for second claim"
@@ -449,6 +485,20 @@ setup() {
         claim_3_amount=$(echo "$claim_3" | jq -r '.amount')
         local claim_3_metadata
         claim_3_metadata=$(echo "$claim_3" | jq -r '.metadata')
+        local claim_3_proof_local_exit_root
+        claim_3_proof_local_exit_root=$(echo "$claim_3" | jq -r '.proof_local_exit_root')
+        local claim_3_proof_rollup_exit_root
+        claim_3_proof_rollup_exit_root=$(echo "$claim_3" | jq -r '.proof_rollup_exit_root')
+
+        # Normalize formatting for comparison
+        local n_claim_3_proof_local_exit_root
+        local n_proof_local_exit_root_3
+        local n_claim_3_proof_rollup_exit_root
+        local n_proof_rollup_exit_root_3
+        n_claim_3_proof_local_exit_root=$(echo "$claim_3_proof_local_exit_root" | tr -d '[:space:]"')
+        n_proof_local_exit_root_3=$(echo "$proof_local_exit_root_3" | tr -d '[:space:]"')
+        n_claim_3_proof_rollup_exit_root=$(echo "$claim_3_proof_rollup_exit_root" | tr -d '[:space:]"')
+        n_proof_rollup_exit_root_3=$(echo "$proof_rollup_exit_root_3" | tr -d '[:space:]"')
 
         log "🌳 Third claim mainnet exit root: $claim_3_mainnet_exit_root (Expected: $mainnet_exit_root_3)"
         log "🌳 Third claim rollup exit root: $claim_3_rollup_exit_root (Expected: $rollup_exit_root_3)"
@@ -459,6 +509,8 @@ setup() {
         log "📍 Third claim destination address: $claim_3_destination_address (Expected: $destination_address_3)"
         log "💰 Third claim amount: $claim_3_amount (Expected: $amount_3)"
         log "📄 Third claim metadata: $claim_3_metadata (Expected: $metadata_3)"
+        log "🌳 Third claim proof_local_exit_root: $n_claim_3_proof_local_exit_root (Expected: $n_proof_local_exit_root_3)"
+        log "🌳 Third claim proof_rollup_exit_root: $n_claim_3_proof_rollup_exit_root (Expected: $n_proof_rollup_exit_root_3)"
 
         # Verify all field values match expected values
         assert_equal "$claim_3_mainnet_exit_root" "$mainnet_exit_root_3"
@@ -469,6 +521,8 @@ setup() {
         assert_equal "$claim_3_destination_address" "$destination_address_3"
         assert_equal "$claim_3_amount" "$amount_3"
         assert_equal "$claim_3_metadata" "$metadata_3"
+        assert_equal "$n_claim_3_proof_local_exit_root" "$n_proof_local_exit_root_3"
+        assert_equal "$n_claim_3_proof_rollup_exit_root" "$n_proof_rollup_exit_root_3"
 
         # Validate proofs for third claim
         log "🔍 Validating proofs for third claim"
