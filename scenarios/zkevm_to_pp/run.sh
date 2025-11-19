@@ -412,6 +412,10 @@ cast send --unlocked --from $AGGLAYER_ADMIN --rpc-url $l1_shadow_fork_url_local 
 # Stop impersonation
 cast rpc --rpc-url $l1_shadow_fork_url_local anvil_stopImpersonatingAccount $AGGLAYER_ADMIN
 
+# Fund aggregator
+amount_to_fund=$(cast to-hex "$(cast to-wei 100)")
+cast rpc --rpc-url $l1_shadow_fork_url_local anvil_setBalance $aggregator_addr $amount_to_fund
+
 
                                     ##          
                          ##         ##          

@@ -12,7 +12,7 @@ format = "pretty"
 prometheus-addr = "0.0.0.0:9093"
 
 [primary-prover.network-prover]
-proving-timeout = 900
+proving-timeout = 36000
 
 [rpc]
 max-request-body-size = 4294967295
