@@ -55,7 +55,7 @@ function wait_for_new_cert() {
     echo "✅ Successfully got a new certificate settled: $current_proven_certificate_id" >&3
 }
 
-function wait_for_error_certificate() {
+function wait_for_new_inerror_cert() {
     local timeout
     local start_time
     local end_time
@@ -64,21 +64,27 @@ function wait_for_error_certificate() {
     start_time=$(date +%s)
     end_time=$((start_time + timeout))
 
-    echo "Waiting for in-error certificate..." >&3
-    current_certificate=$(interop_status_query interop_getLatestKnownCertificateHeader full)
-
-    while [[ "$current_certificate" != *"InError"* ]]; do
-        if [[ "$current_certificate" == "null" ]]; then
-            echo "No certificate exists yet..." >&3
-        else
-            certificate_status=$(echo "$current_certificate" | jq -r '.status')
-            certificate_id=$(echo "$current_certificate" | jq -r '.certificate_id')
-            echo "Current certificate $certificate_id status: $certificate_status, waiting for in-error one..." >&3
+    initial_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
+    current_certificate_id=$initial_certificate_id
+    echo "✅ Initial certificate: $initial_certificate_id" >&3
+    while [ "$current_certificate_id" == "$initial_certificate_id" ]; do
+        echo "Current certificate: $current_certificate_id, waiting for new one..." >&3
+        if [[ $(date +%s) -gt $end_time ]]; then
+            echo "❌ Error: Timed out waiting for new certificate"
+            exit 1
         fi
         sleep 12
-        current_certificate=$(interop_status_query interop_getLatestKnownCertificateHeader full)
+        current_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
     done
-    echo "✅ Successfully got a certirfacte with InError status: $certificate_id" >&3
+
+    full_current_certificate=$(interop_status_query interop_getLatestKnownCertificateHeader 1)
+    if [[ "$full_current_certificate" == *"InError"* ]]; then
+        echo "✅ Successfully got a new certificate with InError status: $current_certificate_id" >&3
+    else
+        certificate_status=$(echo "$full_current_certificate" | jq -r '.status')
+        echo "❌ Error: New certificate not InError: $current_certificate_id, status: $certificate_status"
+        exit 1
+    fi
 }
 
 function interop_status_query() {
@@ -305,8 +311,9 @@ function get_aggregator_nonce() {
         echo "✅ Successfully drained aggregator balance from $aggregator_balance to $new_aggregator_balance (funds moved to priv key: $foo_private_key)" >&3 
     fi
 
-    wait_for_error_certificate
-    echo "✅ Successfully got a new error certificate" >&3
+    wait_for_new_inerror_cert
+    wait_for_new_inerror_cert
+    echo "✅ Successfully got a new error certificate, sleeping for 60 seconds" >&3
 
     echo "✅ Setting funds back to aggregator" >&3
     foo_balance=$(cast balance "$foo_address" --rpc-url "$l1_rpc_url")
@@ -322,6 +329,11 @@ function get_aggregator_nonce() {
     else
         new_aggregator_balance=$(cast balance "$l2_aggregator_address" --rpc-url "$l1_rpc_url")
         echo "✅ Successfully set funds back to aggregator, current balance: $new_aggregator_balance" >&3
+        # send one async tx with nonce+1
+        send_n_txs_from_aggregator 1 0 1
+        # send one async tx with nonce+0
+        send_n_txs_from_aggregator 1 0 0
+
     fi
 
     wait_for_new_cert
