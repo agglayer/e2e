@@ -43,7 +43,7 @@ function wait_for_new_cert() {
     echo "Waiting for new certificate..." >&3
     inital_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
     current_proven_certificate_id=$inital_proven_certificate_id
-    while [ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]; do
+    while [[ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]]; do
         echo "Current proven certificate: $current_proven_certificate_id, waiting for new one..." >&3
         if [[ $(date +%s) -gt $end_time ]]; then
             echo "❌ Error: Timed out waiting for new certificate"
@@ -67,7 +67,7 @@ function wait_for_new_inerror_cert() {
     initial_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
     current_certificate_id=$initial_certificate_id
     echo "✅ Initial certificate: $initial_certificate_id" >&3
-    while [ "$current_certificate_id" == "$initial_certificate_id" ]; do
+    while [[ "$current_certificate_id" == "$initial_certificate_id" ]]; do
         echo "Current certificate: $current_certificate_id, waiting for new one..." >&3
         if [[ $(date +%s) -gt $end_time ]]; then
             echo "❌ Error: Timed out waiting for new certificate"
@@ -103,7 +103,7 @@ function interop_status_query() {
             else
                 answer=$(echo "$output" | jq -r '.certificate_id')
             fi
-            if [ -n "$answer" ]; then
+            if [[ -n "$answer" ]]; then
                 break
             fi
             sleep 3
@@ -148,11 +148,11 @@ function send_n_txs_from_aggregator() {
     if [[ "$wait_for_async_tx_to_be_mined" -eq 1 ]]; then
         last_tx_hash=$tx_hash
         last_tx_was_mined=0
-        while [ "$last_tx_was_mined" -eq 0 ]; do
+        while [[ "$last_tx_was_mined" -eq 0 ]]; do
             run cast receipt $last_tx_hash --rpc-url "$l1_rpc_url" --json
-            if [ "$status" -eq 0 ]; then
+            if [[ "$status" -eq 0 ]]; then
                 tx_status=$(echo "$output" | jq -r '.status')
-                if [ "$tx_status" == "0x1" ]; then
+                if [[ "$tx_status" == "0x1" ]]; then
                     echo "✅ Successfully mined tx $last_tx_hash" >&3
                     last_tx_was_mined=1
                     break
@@ -273,13 +273,13 @@ function get_aggregator_nonce() {
     echo "✅ Initial block: $initial_block, initial proven certificate: $inital_proven_certificate_id" >&3
 
     txs_sent=0
-    while [ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]; do
+    while [[ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]]; do
         send_n_txs_from_aggregator 1
         txs_sent=$((txs_sent + 1))
         last_block=$current_block
         echo "✅ Successfully sent tx for block $last_block, current proven certificate: $current_proven_certificate_id" >&3
         current_block=$(cast bn --rpc-url "$l1_rpc_url")
-        while [ "$current_block" -eq "$last_block" ]; do
+        while [[ "$current_block" -eq "$last_block" ]]; do
             current_block=$(cast bn --rpc-url "$l1_rpc_url")
         done
         current_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
