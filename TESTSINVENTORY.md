@@ -31,6 +31,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
 | admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
 | admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
+| aggregator with no funds | [Link](./tests/agglayer/nonce-tests.bats#L295) | |
 | bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L112) | |
 | bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L36) | |
 | bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L77) | |
@@ -41,15 +42,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L237) | |
 | query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L256) | |
 | query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L218) | |
-| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L234) | |
-| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L148) | |
-| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L167) | |
-| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L158) | |
-| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L176) | |
-| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L190) | |
-| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L205) | |
-| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L219) | |
-| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L141) | |
+| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L266) | |
+| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L180) | |
+| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L199) | |
+| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L190) | |
+| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L208) | |
+| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L222) | |
+| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L237) | |
+| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L251) | |
+| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L173) | |
 
 ## CDK Erigon Tests
 
