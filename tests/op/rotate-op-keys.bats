@@ -23,9 +23,9 @@ setup() {
     new_batcher_private_key=$(echo "$new_batcher_private_key" | tr '[:upper:]' '[:lower:]')
 
     # Stop and remove current batcher service
-    old_batcher_service=$(kurtosis service inspect cdk op-batcher-001 -o json)
-    kurtosis service stop cdk op-batcher-001
-    kurtosis service rm cdk op-batcher-001
+    old_batcher_service=$(kurtosis service inspect $kurtosis_enclave_name op-batcher-001 -o json)
+    kurtosis service stop $kurtosis_enclave_name op-batcher-001
+    kurtosis service rm $kurtosis_enclave_name op-batcher-001
     echo "✅ Successfully stopped and removed current batcher service" >&3
 
     # Get current L1 block
@@ -49,9 +49,9 @@ setup() {
     # Set the new batcher address in the rollup config file
     old_batcher_address=$(cast wallet address --private-key $old_batcher_private_key)
     old_batcher_address=$(echo "$old_batcher_address" | tr '[:upper:]' '[:lower:]')
-    node_service=$(kurtosis service inspect cdk op-cl-1-op-node-op-geth-001 -o json)
+    node_service=$(kurtosis service inspect $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 -o json)
     rollup_config_file=$(echo "$node_service" | jq -r '.cmd[] | select(startswith("--rollup.config=")) | split("=")[1]')
-    kurtosis service exec cdk op-cl-1-op-node-op-geth-001 "sed -i 's|$old_batcher_address|$new_batcher_address|' $rollup_config_file"
+    kurtosis service exec $kurtosis_enclave_name op-cl-1-op-node-op-geth-001 "sed -i 's|$old_batcher_address|$new_batcher_address|' $rollup_config_file"
     echo "✅ Successfully set new batcher address $new_batcher_address in the rollup config file" >&3
 
     # Set the new batcher address in the L1 System Config contract
@@ -65,13 +65,13 @@ setup() {
     fi
 
     # Restart the node service
-    kurtosis service stop cdk op-cl-1-op-node-op-geth-001
-    kurtosis service start cdk op-cl-1-op-node-op-geth-001
+    kurtosis service stop $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
+    kurtosis service start $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
     echo "✅ Successfully restarted node service" >&3
 
     # Create new batcher service with the new private key
     new_batcher_service=$(echo "$old_batcher_service" | sed "s|--private-key=[^\"]*\"|--private-key=$new_batcher_private_key\"|")
-    echo "$new_batcher_service" | kurtosis service add --json-service-config - cdk op-batcher-001
+    echo "$new_batcher_service" | kurtosis service add --json-service-config - $kurtosis_enclave_name op-batcher-001
     echo "✅ Successfully created new batcher service with the new private key" >&3
 
     # wait until current L2 block is finalized
