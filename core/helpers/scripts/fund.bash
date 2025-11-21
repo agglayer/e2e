@@ -87,3 +87,27 @@ function fund_up_to() {
         fund "$sender_private_key" "$receiver_addr" "$gap" "$rpc_url"
     fi
 }
+
+function op_fund_all_available_balance() {
+    local sender_private_key=$1
+    local receiver_addr=$2
+    local rpc_url=$3
+
+    sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
+    echo "✅ Sender balance: $sender_balance" >&3
+
+    basefee=$(cast basefee --rpc-url "$rpc_url")
+    priority_fee=$(( 5 * 1000000000 ))
+    max_fee=$(( basefee + priority_fee ))
+    tx_cost=$(( max_fee * 21000 ))
+    amount_to_send=$(echo "$sender_balance - $tx_cost" | bc)
+
+    run cast send --rpc-url "$rpc_url" --private-key "$sender_private_key" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value "$amount_to_send" "$receiver_addr"
+    if [[ "$status" -ne 0 ]]; then
+        echo "❌ Failed to send tx: $output" >&3
+        exit 1
+    else
+        new_sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
+        echo "✅ Successfully drained sender balance from $sender_balance to $new_sender_balance" >&3 
+    fi
+}
