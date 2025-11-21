@@ -104,11 +104,10 @@ function op_fund_all_available_balance() {
     amount_to_send=$(echo "$sender_balance - $tx_cost" | bc)
 
     run cast send --rpc-url "$rpc_url" --private-key "$sender_private_key" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value "$amount_to_send" "$receiver_addr"
-    if [[ "$status" -ne 0 ]]; then
-        echo "❌ Failed to send tx: $output" >&3
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Failed to send tx" >&3
         exit 1
-    else
-        new_sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
-        echo "✅ Successfully drained sender balance from $sender_balance to $new_sender_balance" >&3 
     fi
+    new_sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
+    echo "✅ Successfully drained sender balance from $sender_balance to $new_sender_balance" >&3 
 }
