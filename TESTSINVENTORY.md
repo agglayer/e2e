@@ -236,6 +236,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
 | Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L98) | |
 | Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L74) | |
+| Rotate OP batcher key | [Link](./tests/op/rotate-op-keys.bats#L16) | |
 | Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
 | Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
 | check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
@@ -301,6 +302,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
+| foo | [Link](./tests/foo.bats#L10) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |

@@ -209,6 +209,7 @@ grep -hoR --include="*.bats" 'file_tags=[^ ]*' . | sed 's/.*file_tags=//' | tr '
 - evm-precompile
 - evm-rpc
 - execution
+- foo
 - forced-txs
 - fusaka
 - local-balance-tree
@@ -264,6 +265,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - loadtest
 - multi-chain
 - native-gas-token
+- op-rotate-batcher-key
 - operator-fee
 - optimistic-mode
 - pos
