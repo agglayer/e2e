@@ -80,7 +80,7 @@ setup() {
     finalized_l2_block=$(cast bn --rpc-url "$l2_rpc_url" finalized)
     while [[ $finalized_l2_block -lt $latest_l2_block ]]; do
         echo "⏳ Waiting for current L2 block to be finalized (finalized: $finalized_l2_block, target: $latest_l2_block)" >&3
-        sleep 10
+        sleep 15
         finalized_l2_block=$(cast bn --rpc-url "$l2_rpc_url" finalized)
     done    
     echo "✅ Finalized L2 block is: $finalized_l2_block, target: $latest_l2_block" >&3
