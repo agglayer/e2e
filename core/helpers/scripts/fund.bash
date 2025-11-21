@@ -93,6 +93,7 @@ function op_fund_all_available_balance() {
     local receiver_addr=$2
     local rpc_url=$3
 
+    sender_addr=$(cast wallet address --private-key "$sender_private_key")
     sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
     echo "✅ Sender balance: $sender_balance" >&3
 
