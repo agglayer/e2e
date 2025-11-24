@@ -22,18 +22,26 @@ setup() {
   readonly insert_global_exit_root_func_sig="function insertGlobalExitRoot(bytes32)"
   readonly last_mer_func_sig="function lastMainnetExitRoot() (bytes32)"
 
-  readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
+  contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
+  input_args="$(curl -s "${contracts_url}/opt/input/input_args.json")"
 
+  # AGGORACLE_PRIVATE_KEY
   if [[ -n "${AGGORACLE_PRIVATE_KEY:-}" ]]; then
-    aggoracle_private_key="$AGGORACLE_PRIVATE_KEY"
+      aggoracle_private_key="$AGGORACLE_PRIVATE_KEY"
   else
-    contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
-    aggoracle_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" \
-        | jq -r '.args.zkevm_l2_aggoracle_private_key'
-    )"
+      aggoracle_private_key="$(echo "$input_args" \
+          | jq -r '.args.zkevm_l2_aggoracle_private_key')"
   fi
-
   readonly aggoracle_private_key
+
+  # L2_SOVEREIGN_ADMIN_PRIVATE_KEY
+  if [[ -n "${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-}" ]]; then
+      l2_sovereignadmin_private_key="$L2_SOVEREIGN_ADMIN_PRIVATE_KEY"
+  else
+      l2_sovereignadmin_private_key="$(echo "$input_args" \
+          | jq -r '.args.l2_sovereignadmin_private_key')"
+  fi
+  readonly l2_sovereignadmin_private_key
 }
 
 @test "Test GlobalExitRoot removal" {
