@@ -23,10 +23,9 @@ setup() {
   readonly last_mer_func_sig="function lastMainnetExitRoot() (bytes32)"
 
   readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
-  readonly l2_sovereign_admin_public_key=$(cast wallet address --private-key "$l2_sovereign_admin_private_key")
 
-  if [[ -n "${AGGORACLE_PRIVATE_KEY}" ]]; then
-    aggoracle_private_key="${AGGORACLE_PRIVATE_KEY}"
+  if [[ -n "${AGGORACLE_PRIVATE_KEY:-}" ]]; then
+    aggoracle_private_key="$AGGORACLE_PRIVATE_KEY"
   else
     contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
     aggoracle_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" \
