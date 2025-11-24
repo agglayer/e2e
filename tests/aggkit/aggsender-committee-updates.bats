@@ -25,13 +25,11 @@ teardown_file() {
 function _set_vars() {
     export kurtosis_enclave_name=${ENCLAVE_NAME:-"aggkit"}
 
-    echo "🔗 Getting admin_private_key and keystore_password values..." >&3
+    echo "🔗 Getting admin_private_key value..." >&3
     contracts_url="$(kurtosis port print $ENCLAVE_NAME $contracts_container http)"
 
     admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
     export admin_private_key
-
-    keystore_password="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_keystore_password')"
 
     log "🔍 Finding Docker network for Kurtosis enclave..." >&3
     kurtosis_network=$(
@@ -52,7 +50,7 @@ function _set_vars() {
     echo "📄 Fetching AggSender Validator 004 address..." >&3
     aggsender_validator_004_config_path="${BATS_TEST_DIRNAME}/../../scenarios/attach-new-committee-members/configs-aggsender-validator-004"
     aggsender_validator_004_keystore_path=${aggsender_validator_004_config_path}/aggsendervalidator-4.keystore
-    aggsender_validator_004_address=$(cast wallet address --keystore "$aggsender_validator_004_keystore_path" --password "$keystore_password")
+    aggsender_validator_004_address=$(cast wallet address --private-key "$admin_private_key")
     export aggsender_validator_004_address
     echo "AggSender Validator 004 Address: $aggsender_validator_004_address" >&3
 }
