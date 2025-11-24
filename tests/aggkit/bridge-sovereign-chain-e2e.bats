@@ -594,7 +594,7 @@ setup() {
   local last_mer="$output"
 
   local invalid_rer="0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
-  invalid_ger=$(cast keccak-256 --abi-encode-packed "$last_mer" "$invalid_rer")
+  invalid_ger=$(cast keccak "$(cast abi-encode "f(bytes32, bytes32)" $last_mer $invalid_rer)")
   local invalid_ger
   
   log "🔄 Inserting invalid GER ($invalid_ger) into AgglayerGERL2 SC"
