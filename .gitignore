@@ -8,3 +8,6 @@ stress_logs_*
 chaos_logs_*
 *.out
 .idea
+*.env
+aggsender_find_imported_bridge
+combined.json
