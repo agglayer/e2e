@@ -589,7 +589,7 @@ setup() {
   local global_index=$output
   
   log "⚠️ Constructing invalid GER and inserting into AgglayerGERL2 SC 🔧💥"
-  run query_contract "$l1_rpc_url" "$l1_ger" "$last_mer_func_sig"
+  run query_contract "$l1_rpc_url" "$l1_ger_addr" "$last_mer_func_sig"
   assert_success
   local last_mer="$output"
 
