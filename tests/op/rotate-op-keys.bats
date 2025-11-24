@@ -43,7 +43,7 @@ setup() {
 
     # Send funds from old batcher to new batcher address
     old_batcher_private_key=$(echo "$old_batcher_service" | jq -r '.cmd[] | select(startswith("--private-key=")) | split("=")[1]')
-    op_fund_all_available_balance $old_batcher_private_key $new_batcher_address $l1_rpc_url
+    drain_to $old_batcher_private_key $new_batcher_address $l1_rpc_url
     echo "✅ Successfully funded new batcher address: $new_batcher_address" >&3
 
     # Set the new batcher address in the rollup config file
