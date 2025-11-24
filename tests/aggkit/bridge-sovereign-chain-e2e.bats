@@ -20,11 +20,21 @@ setup() {
   readonly unset_multiple_claims_func_sig="function unsetMultipleClaims(uint256[])"
   readonly set_multiple_claims_func_sig="function setMultipleClaims(uint256[])"
   readonly insert_global_exit_root_func_sig="function insertGlobalExitRoot(bytes32)"
+  readonly last_mer_func_sig="function lastMainnetExitRoot() (bytes32)"
 
   readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
   readonly l2_sovereign_admin_public_key=$(cast wallet address --private-key "$l2_sovereign_admin_private_key")
 
-  readonly aggoracle_private_key=${AGGORACLE_PRIVATE_KEY:-"6d1d3ef5765cf34176d42276edd7a479ed5dc8dbf35182dfdb12e8aafe0a4919"}
+  if [[ -n "${AGGORACLE_PRIVATE_KEY}" ]]; then
+    aggoracle_private_key="${AGGORACLE_PRIVATE_KEY}"
+  else
+    contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
+    aggoracle_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" \
+        | jq -r '.args.zkevm_l2_aggoracle_private_key'
+    )"
+  fi
+
+  readonly aggoracle_private_key
 }
 
 @test "Test GlobalExitRoot removal" {
@@ -560,4 +570,33 @@ setup() {
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
+}
+
+@test "Test invalid GER on L2 (bridges are valid)" {
+  log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local bridge_tx_hash=$output
+  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  local global_index=$output
+  
+  log "⚠️ Constructing invalid GER and inserting into AgglayerGERL2 SC 🔧💥"
+  run query_contract "$l1_rpc_url" "$l1_ger" "$last_mer_func_sig"
+  assert_success
+  local last_mer="$output"
+
+  local invalid_rer="0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+  invalid_ger=$(cast keccak-256 --abi-encode-packed "$last_mer" "$invalid_rer")
+  local invalid_ger
+  
+  log "🔄 Inserting invalid GER ($invalid_ger) into AgglayerGERL2 SC"
+  run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$invalid_ger"
+  assert_success
+  assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
+
+  # TODO:
+  # 1. Check if aggsender is stuck at this point, or at least no new certificates are able to be settled
+  # 2. Send removeGlobalExitRoots tx to remove the invalid GER and 
+  # 3. Verify that aggsender resumes functioning normally
 }

@@ -14,13 +14,7 @@ function send_smart_contract_transaction() {
 
     # Send the smart contract interaction using cast
     local cast_output tx_hash
-    gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<< "$gas_price * 1.5" | sed 's/\..*//')
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to calculate gas price" >&3
-        exit 1
-    fi
-    cast_output=$(cast send "$receiver_addr" --rpc-url "$rpc_url" --private-key "$private_key" --gas-price $comp_gas_price --legacy "$function_sig" "${params[@]}" 2>&1)
+    cast_output=$(cast send "$receiver_addr" --rpc-url "$rpc_url" --private-key "$private_key" "$function_sig" "${params[@]}" 2>&1)
     if [[ $? -ne 0 ]]; then
         echo "Error: Failed to send transaction. Output:"
         echo "$cast_output"
