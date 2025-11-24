@@ -28,7 +28,7 @@ function _set_vars() {
     echo "🔗 Getting admin_private_key value..." >&3
     contracts_url="$(kurtosis port print $ENCLAVE_NAME $contracts_container http)"
 
-    admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
+    admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_sovereignadmin_private_key')"
     export admin_private_key
 
     log "🔍 Finding Docker network for Kurtosis enclave..." >&3
