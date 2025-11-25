@@ -584,7 +584,7 @@ setup() {
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
-  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "claim bridge before invalid GER" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local global_index=$output
   
@@ -599,13 +599,26 @@ setup() {
   log "🔄 Inserting invalid GER ($invalid_ger) into AgglayerGERL2 SC"
   run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$invalid_ger"
   assert_success
-  assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
 
-  log "🚀 Sending another bridge transaction from L1 to L2"
+  log "🚀 Sending (another) bridge transaction from L1 to L2 (after invalid GER is injected)"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
-  local bridge_tx_hash=$output
-  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  bridge_tx_hash=$output
+  run process_bridge_claim "claim bridge after invalid GER" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  global_index=$output
+
+  log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
+  assert_success
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$next_ger"
+  assert_success
+  final_status="$output"
+  assert_equal "$final_status" "0"
+  log "✅ GER successfully removed"
+
+  log "⏳ Try to claim the problematic bridge tx again after removing the invalid GER"
+  run process_bridge_claim "claim bridge after invalid GER" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   global_index=$output
 
