@@ -18,20 +18,6 @@ else
   curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-succinct/real-prover.yml" > pp.yml
 fi
 
-# Create a yaml file that has the pp consense configured but ideally a real prover
-# yq '
-#   .args.sp1_prover_key = strenv(sp1_key) |
-#   .args.consensus_contract_type = "pessimistic" |
-#   .deployment_stages.deploy_op_succinct = false
-# ' tmp-pp.yml > initial-pp.yml
-
-# # TEMPORARY TO SPEED UP TESTING
-# yq '
-#   .optimism_package.chains[0].batcher_params.max_channel_duration = 2 |
-#   .args.op_succinct_range_proof_interval = strenv(range_proof_interval) |
-#   .args.l1_seconds_per_slot = 1
-# ' initial-pp.yml > _t && mv _t initial-pp.yml
-
 # Spin up the network
 kurtosis run \
          --enclave "$kurtosis_enclave_name" \
@@ -63,6 +49,7 @@ done
 
 # Stop the batcher
 # kurtosis service stop $kurtosis_enclave_name op-batcher-001
+# initial_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
 
 # Do some bridges
 l2_rpc_url="$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)"
@@ -87,7 +74,6 @@ echo "l2_bridge_address: $l2_bridge_address"
 echo "private_key: $private_key"
 echo "global_Indexes: $global_indexes"
 cast send $l2_bridge_address "unsetMultipleClaims(uint256[])" "[$global_indexes]" --private-key $private_key --rpc-url $l2_rpc_url
-#echo "cast call $l2_bridge_address \"unsetMultipleClaims(uint256[])\" \"[$global_indexes]\" --private-key $private_key --rpc-url $l2_rpc_url"
 sleep 10 # Wait for the tx to be synced
 
 # Check if unsetClaims worked
@@ -135,13 +121,10 @@ RESP=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-servic
 
 root=$(jq -r '.root' <<< "$RESP")
 leaf_hash=$(jq -r '.leaf_hash' <<< "$RESP")
-# mapfile -t FRONTIER < <(jq -r '.frontier[]' <<< "$RESP")
-# mapfile -t ROLLUP_MERKLE_PROOF < <(jq -r '.rollup_merkle_proof[]' <<< "$RESP")
 frontier=$(jq -r '.frontier | "[" + (join(",")) + "]"' <<< "$RESP")
 rollup_merkle_proof=$(jq -r '.rollup_merkle_proof | "[" + (join(",")) + "]"' <<< "$RESP")
 
 cast send $l2_bridge_address "activateEmergencyState()" --private-key $private_key --rpc-url $l2_rpc_url
-# echo "cast send $l2_bridge_address \"backwardLET(uint256,bytes32[32],bytes32,bytes32[32])\" \"$index_to_remove\" \"$frontier\" \"$leaf_hash\" \"$rollup_merkle_proof\" --private-key $private_key --rpc-url $l2_rpc_url"
 cast send $l2_bridge_address "backwardLET(uint256,bytes32[32],bytes32,bytes32[32])" "$index_to_remove" "$frontier" "$leaf_hash" "$rollup_merkle_proof" --private-key $private_key --rpc-url $l2_rpc_url
 cast send $l2_bridge_address "deactivateEmergencyState()" --private-key $private_key --rpc-url $l2_rpc_url
 sleep 10 # Wait for the tx to be synced
@@ -155,10 +138,33 @@ fi
 
 echo "polycli ulxly bridge asset --value 1 --gas-limit 1250000 --bridge-address \"$l2_bridge_address\" --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --destination-network 0 --rpc-url \"$l2_rpc_url\" --private-key \"$bridge_spammer_wallet_private_key\""
 
-# ideally the aggkit will still generate a certificate for this test case... but in real life we don't want certificates to be created in this scenaro
-# The aggsender shoud settle
+# echo "Last L2 Block before deleting the state: $(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))"
+# echo "blockhash($((initial_block_dec +1))) $(cast block $((initial_block_dec +1)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+# echo "blockhash($((initial_block_dec +2))) $(cast block $((initial_block_dec +2)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+# echo "blockhash($((initial_block_dec +3))) $(cast block $((initial_block_dec +3)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+# final_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
+# echo "blockhash($final_block_dec) $(cast block $final_block_dec --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+# reorg_depth=$(( final_block_dec - initial_block_dec ))
+# echo "Reorg depth will be: $reorg_depth blocks"
+# target_hex=$(printf "0x%x" "$initial_block_dec")
 
-# Wait for all deposits to be ready_for_claim again
+# kurtosis service stop $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
+# cast rpc debug_setHead "$target_hex" --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
+
+# echo "Last L2 Block after deleting the state: $(cast block-number --rpc-url $l2_rpc_url)"
+
+# kurtosis service start $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
+# kurtosis service start $kurtosis_enclave_name op-batcher-001
+
+# polycli ulxly bridge asset \
+#     --value 1 \
+#     --gas-limit 1250000 \
+#     --bridge-address "$l2_bridge_address" \
+#     --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
+#     --destination-network 0 \
+#     --rpc-url "$l2_rpc_url" \
+#     --private-key "$bridge_spammer_wallet_private_key"
+
 # while true; do
 #   if curl -s "$bridge_service_url/bridges/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266?net_id=1&dest_net=0" \
 #     | jq -e '
@@ -173,30 +179,3 @@ echo "polycli ulxly bridge asset --value 1 --gas-limit 1250000 --bridge-address 
 #     sleep 5
 #   fi
 # done
-
-# kurtosis service start $kurtosis_enclave_name op-batcher-001
-
-# Stop the op-node / op-geth - delete the l2 state entirely
-# kurtosis service stop "$kurtosis_enclave_name" op-batcher-001
-
-# kurtosis service exec rollback-l2-bridge-state-test op-el-1-op-geth-op-node-001 '
-#   set -e
-#   echo "Contents of /data before wipe:"
-#   ls -R /data || true
-#   rm -rf /data/geth/execution-data/geth/chaindata/*
-#   rm -rf /data/geth/execution-data/geth/nodes/*
-#   echo "✅ Wiped /data/geth"
-# '
-# kurtosis service restart "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001
-# l2_rpc_url="$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"
-# echo "⏳ Waiting op-geth/op-node to be available..."
-# until cast block-number --rpc-url "$l2_rpc_url" > /dev/null 2>&1; do
-#   sleep 5
-# done
-# echo "✅ L2 RPC active again"
-# kurtosis service start "$kurtosis_enclave_name" op-batcher-001
-
-# Resync the op-node / op-geth from L1
-# start the batcher back up
-# Send a bridge transaction
-# Wait for some exposion
