@@ -580,7 +580,7 @@ setup() {
 }
 
 @test "Test invalid GER on L2 (bridges are valid)" {
-  log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
+  log "🚀 Sending bridge from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
@@ -600,6 +600,18 @@ setup() {
   run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$invalid_ger"
   assert_success
   assert_output --regexp "Transaction successful \(transaction hash: 0x[a-fA-F0-9]{64}\)"
+
+  log "🚀 Sending another bridge transaction from L1 to L2"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local bridge_tx_hash=$output
+  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  global_index=$output
+
+  log "⏳ Waiting for certificate settlement containing global index: $global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  log "✅ Certificate settlement completed for global index: $global_index"
 
   # TODO:
   # 1. Check if aggsender is stuck at this point, or at least no new certificates are able to be settled
