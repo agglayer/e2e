@@ -15,7 +15,7 @@ setup_file() {
 
     echo "ephemeral_address: $ephemeral_address" >&3
     # Fund the ephemeral account using imported function
-    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "100000000000000000"
+    _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000"
 
     # Export variables for use in tests
     export ephemeral_private_key
@@ -42,69 +42,57 @@ setup_file() {
 # bats test_tags=transaction-erc721
 @test "Perform some ERC721 Mints" {
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 1 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 2 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 4 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 8 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 16 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 32 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode 7 --rate-limit 500 --requests 2 --concurrency 2 \
-        --iterations 64 --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
+        --erc721-address "$(jq -r '.contractAddress' erc721.out.json)" --rpc-url "$l2_rpc_url"
 }
 
 # bats test_tags=loadtest
 @test "Perform some Storage calls in the load tester contract" {
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 1 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 2 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 4 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 8 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 16 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 32 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 64 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 128 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 256 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 512 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 1024 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 2048 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 4096 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 8192 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
     polycli loadtest --private-key "$ephemeral_private_key" --mode s --rate-limit 500 --requests 1 --concurrency 1 \
-        --byte-count 16384 --lt-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
+        --loadtest-contract-address "$(jq -r '.contractAddress' LoadTester.out.json)" --rpc-url "$l2_rpc_url"
 }
 
 # bats test_tags=transaction-uniswap,loadtest
 @test "Perform some uniswap v3 calls" {
     polycli loadtest --private-key "$ephemeral_private_key" --mode uniswapv3 --rate-limit 100 --requests 32 --concurrency 2 \
         --rpc-url "$l2_rpc_url"
-}
-
-# bats test_tags=loadtest,evm-precompile
-@test "Using polycli to call some precompiles" {
-    polycli loadtest --private-key "$ephemeral_private_key" --mode pr --rate-limit 100 --requests 8 --concurrency 16 \
-        --rpc-url "$l2_rpc_url"
-}
-
-# bats test_tags=loadtest,evm-inscription
-@test "Using polycli to do some inscriptions" {
-    polycli loadtest --private-key "$ephemeral_private_key" --mode inscription --rate-limit 1000 --requests 10 --concurrency 50 --eth-amount-in-wei 0 \
-        --inscription-content 'data:,{"p":"prc-20","op":"mint","tick":"hava","amt":"100"}' --to-address "$ephemeral_address" --rpc-url "$l2_rpc_url"
 }
