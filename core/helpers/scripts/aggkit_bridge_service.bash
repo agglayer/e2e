@@ -636,6 +636,22 @@ function find_l1_info_tree_index_for_bridge() {
     return 1
 }
 
+# find_injected_l1_info_leaf
+#
+# Polls the AggKit bridge indexer until an injected L1 info leaf becomes
+# available. This is needed because the indexer may be behind and needs time
+# to fill the L1 info tree.
+#
+# Arguments:
+#   $1 - network_id          (the destination network ID where the injected leaf must be found)
+#   $2 - index               (leaf index to query)
+#   $3 - max_attempts        (how many times to retry)
+#   $4 - poll_frequency      (seconds to sleep between attempts)
+#   $5 - aggkit_url          (AggKit bridge indexer base URL)
+#
+# Returns:
+#   exit code 0: success
+#   exit code 1: failure (after all retries)
 function find_injected_l1_info_leaf() {
     local network_id="$1"
     local index="$2"
@@ -652,30 +668,44 @@ function find_injected_l1_info_leaf() {
 (network id = $network_id, index = $index, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (injected_info) and stderr (error message)
-        injected_info=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
+        response="$(curl -s -w '\n%{http_code}' \
+            "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index")"
+
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # all except the last line
+        response="$(echo "$response" | sed '$d')"
+
+        log "------ injected_info (status: $http_status) ------"
+        log "$response"
         log "------ injected_info ------"
-        log "$injected_info"
-        log "------ injected_info ------"
+
+        # Check for non-200 HTTP status and retry
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Check empty response
+        if [[ -z "$response" ]]; then
+            log "⚠️ Empty response; retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
 
         # Check if the response contains an error
-        if [[ "$injected_info" == *"error"* || "$injected_info" == *"Error"* ]]; then
-            log "⚠️ Error: $injected_info"
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
             sleep "$poll_frequency"
             continue
         fi
 
-        if [[ "$injected_info" == "" ]]; then
-            log "Empty injected info response retrieved, retrying in ${poll_frequency}s..."
-            sleep "$poll_frequency"
-            continue
-        fi
-
-        echo "$injected_info"
+        echo "$response"
         return 0
     done
 
-    log "❌ Failed to find injected info after index $index after $max_attempts attempts."
+    log "❌ Failed to find injected info for index $index after $max_attempts attempts."
     return 1
 }
 
@@ -709,6 +739,7 @@ function process_bridge_claim() {
     # n_attempts=34 / sleep=30s -> 17 mins max wait time
     bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 34 30 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
+        echo "process_bridge_claim failed at get_bridge" >&2
         return 1
     }
 
@@ -718,6 +749,7 @@ function process_bridge_claim() {
     local l1_info_tree_index
     l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 30 30 "$origin_aggkit_bridge_url" "$debug_msg_clean")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
+        echo "process_bridge_claim failed at find_l1_info_tree_index_for_bridge" >&2
         return 1
     }
 
@@ -725,6 +757,7 @@ function process_bridge_claim() {
     local injected_info
     injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 20 25 "$destination_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
+        echo "process_bridge_claim failed at find_injected_l1_info_leaf" >&2
         return 1
     }
 
@@ -733,6 +766,7 @@ function process_bridge_claim() {
     local proof
     proof="$(generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🛡️ generate_claim_proof (index: $l1_info_tree_index)"
+        echo "process_bridge_claim failed at generate_claim_proof" >&2
         return 1
     }
 
@@ -740,6 +774,7 @@ function process_bridge_claim() {
     local global_index
     global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr")" || {
         log "❌ $debug_msg process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
+        echo "process_bridge_claim failed at claim_bridge" >&2
         return 1
     }
 

@@ -604,9 +604,13 @@ setup() {
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   bridge_tx_hash=$output
-  run process_bridge_claim "claim bridge after invalid GER" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-  assert_success
-  global_index=$output
+
+  local stderr=$(run process_bridge_claim "claim bridge after invalid GER" \
+    "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" \
+    "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
+    "$L2_RPC_URL" "$sender_addr" 2>&1 >/dev/null)
+  assert_failure
+  assert_equal "$stderr" "process_bridge_claim failed at find_injected_l1_info_leaf"
 
   log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
