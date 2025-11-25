@@ -213,8 +213,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Testing EIP6565 - Verify_LE | [Link](./tests/execution/smooth-crypto-lib.bats#L482) | |
 | Testing EIP6565 - ecPow128 | [Link](./tests/execution/smooth-crypto-lib.bats#L541) | |
 | Testing RIP7212 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L672) | |
-| Using polycli to call some precompiles | [Link](./tests/execution/polycli-cases.bats#L101) | |
-| Using polycli to do some inscriptions | [Link](./tests/execution/polycli-cases.bats#L107) | |
 
 ## Load Tests
 
