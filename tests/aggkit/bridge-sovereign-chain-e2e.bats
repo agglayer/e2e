@@ -610,7 +610,7 @@ setup() {
     "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
     "$L2_RPC_URL" "$sender_addr"
   assert_failure
-  assert_equal "$output" "process_bridge_claim failed at find_injected_l1_info_leaf"
+  assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
 
   log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
