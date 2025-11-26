@@ -600,7 +600,6 @@ setup() {
   run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$invalid_ger"
   assert_success
 
-  # TODO: uncomment this
   log "🚀 Sending (another) bridge transaction from L1 to L2 (after invalid GER is injected)"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
@@ -614,7 +613,6 @@ setup() {
   assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
 
   log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
-  log "private key used: $l2_sovereign_admin_private_key"
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
   assert_success
   run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$next_ger"
