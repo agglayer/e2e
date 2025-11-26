@@ -36,12 +36,12 @@ setup() {
 
   # L2_SOVEREIGN_ADMIN_PRIVATE_KEY
   if [[ -n "${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-}" ]]; then
-      l2_sovereignadmin_private_key="$L2_SOVEREIGN_ADMIN_PRIVATE_KEY"
+      l2_sovereign_admin_private_key="$L2_SOVEREIGN_ADMIN_PRIVATE_KEY"
   else
-      l2_sovereignadmin_private_key="$(echo "$input_args" \
-          | jq -r '.args.l2_sovereignadmin_private_key')"
+      l2_sovereign_admin_private_key="$(echo "$input_args" \
+          | jq -r '.args.l2_sovereign_admin_private_key')"
   fi
-  readonly l2_sovereignadmin_private_key
+  readonly l2_sovereign_admin_private_key
 }
 
 @test "Test GlobalExitRoot removal" {
