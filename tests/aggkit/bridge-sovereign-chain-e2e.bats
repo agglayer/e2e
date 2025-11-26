@@ -21,6 +21,9 @@ setup() {
   readonly set_multiple_claims_func_sig="function setMultipleClaims(uint256[])"
   readonly insert_global_exit_root_func_sig="function insertGlobalExitRoot(bytes32)"
   readonly last_mer_func_sig="function lastMainnetExitRoot() (bytes32)"
+  readonly force_emit_detailed_claim_event_func_sig="function forceEmitDetailedClaimEvent((bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint8,uint32,address,uint32,address,uint256,bytes)[])"
+
+  readonly empty_proof=$(jq -nc '[range(32) | "0x0000000000000000000000000000000000000000000000000000000000000000"]')
 
   contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
   input_args="$(curl -s "${contracts_url}/opt/input/input_args.json")"
@@ -584,9 +587,6 @@ setup() {
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
-  run process_bridge_claim "claim bridge before invalid GER" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-  assert_success
-  local global_index=$output
   
   log "⚠️ Constructing invalid GER and inserting into AgglayerGERL2 SC 🔧💥"
   run query_contract "$l1_rpc_url" "$l1_ger_addr" "$last_mer_func_sig"
@@ -595,44 +595,87 @@ setup() {
 
   local invalid_rer="0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
   local invalid_ger=$(cast keccak "$(cast abi-encode "f(bytes32, bytes32)" $last_mer $invalid_rer)")
-  
+    
   log "🔄 Inserting invalid GER ($invalid_ger) into AgglayerGERL2 SC"
   run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$invalid_ger"
   assert_success
 
-  log "🚀 Sending (another) bridge transaction from L1 to L2 (after invalid GER is injected)"
-  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  log "🔍 Extract claim parameters for the bridge made before invalid GER insertion"
+  local incorrect_claim_params
+  incorrect_claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "invalid ger claim params")
+
+  local proof_ler
+  proof_ler=$(echo "$incorrect_claim_params" | jq -r '.proof_local_exit_root')
+  local proof_rer
+  proof_rer=$(echo "$incorrect_claim_params" | jq -r '.proof_rollup_exit_root')
+  local global_index
+  global_index=$(echo "$incorrect_claim_params" | jq -r '.global_index')
+  local mainnet_exit_root
+  mainnet_exit_root=$(echo "$incorrect_claim_params" | jq -r '.mainnet_exit_root')
+  local rollup_exit_root
+  rollup_exit_root=$(echo "$incorrect_claim_params" | jq -r '.rollup_exit_root')
+  local origin_network
+  origin_network=$(echo "$incorrect_claim_params" | jq -r '.origin_network')
+  local origin_address
+  origin_address=$(echo "$incorrect_claim_params" | jq -r '.origin_address')
+  local destination_network
+  destination_network=$(echo "$incorrect_claim_params" | jq -r '.destination_network')
+  local destination_address
+  destination_address=$(echo "$incorrect_claim_params" | jq -r '.destination_address')
+  local amount
+  amount=$(echo "$incorrect_claim_params" | jq -r '.amount')
+  local metadata
+  metadata=$(echo "$incorrect_claim_params" | jq -r '.metadata')
+
+  log "⏳ Attempting to claim the bridge tx made before invalid GER insertion"
+  run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_bridge_addr" \
+      "$CLAIM_ASSET_FN_SIG" \
+      "$proof_ler" \
+      "$empty_proof" \
+      "$global_index" \
+      "$mainnet_exit_root" \
+      "$invalid_rer" \
+      "$origin_network" \
+      "$origin_address" \
+      "$destination_network" \
+      "$destination_address" \
+      "$amount" \
+      "$metadata"
   assert_success
-  bridge_tx_hash=$output
+  log "✅ Bridge claim successful despite invalid GER present on L2"
 
-   # TODO: manual claim the 2nd bridge, but craft the claim in such a way 
-   # that we provide the RER and RER proof based on invalid value
-  # run process_bridge_claim "claim bridge after invalid GER" \
-  #   "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" \
-  #   "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
-  #   "$L2_RPC_URL" "$sender_addr"
-  # assert_failure
-  # assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
+  # TODO: Assert that the aggsender is not able to settle a certificate including this claim
+  log "⏳ Checking if the aggsender is not able to settle a new certificate"
 
-  # TODO: send transaction to fix the indexed claim calldata in the aggkit
-  # It seems like the claim made before the invalid GER insertion is valid (check this assumption)
-  # https://github.com/agglayer/agglayer-contracts/blob/60be784cafbf4122264990d070abe65bfa0fb986/contracts/sovereignChains/AgglayerBridgeL2.sol#L860-L881
-  log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
+  log "⏳ Forcibly emitting detailed claim event for the bridge tx made before invalid GER insertion"
+  local leaf_type="0"
+  local claim_data="[
+    (
+      $proof_ler,
+      $proof_rer,
+      $global_index,
+      $mainnet_exit_root,
+      $rollup_exit_root,
+      $leaf_type,
+      $origin_network,
+      $origin_address,
+      $destination_network,
+      $destination_address,
+      $amount,
+      $metadata
+    )
+  ]"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_bridge_addr" \
+      "$force_emit_detailed_claim_event_func_sig" "$claim_data"
+  assert_success
+
+  log "🔧 Removing invalid GER ($invalid_ger) from AgglayerGERL2"
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
   assert_success
   run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$invalid_ger"
   assert_success
   assert_equal "$output" "0"
   log "✅ GER successfully removed"
-
-  log "🚀 Sending (yet another) bridge transaction from L1 to L2 (after invalid GER is removed)"
-  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-  assert_success
-
-  log "⏳ Try to claim the problematic bridge tx again after removing the invalid GER"
-  run process_bridge_claim "claim bridge after invalid GER removal" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
-  assert_success
-  global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"

@@ -905,6 +905,7 @@ function extract_claim_parameters_json() {
     local injected_info="$output"
     log "📝 ${asset_number} injected info: $injected_info"
 
+    # TODO: @Stefan-Ethernal try to remove this step by directly using l1_info_tree_index if possible
     # Extract the actual l1_info_tree_index from the injected info
     local l1_info_tree_injected_index
     l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
@@ -939,5 +940,39 @@ function extract_claim_parameters_json() {
     metadata=$(echo "$bridge_response" | jq -r '.metadata')
 
     # Return all parameters as a JSON object
-    echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
+    # Build a readable JSON object using jq for safe encoding/wrapping
+    local json_output
+    json_output=$(
+        jq -n \
+            --arg deposit_count "$deposit_count" \
+            --arg proof_local_exit_root "$proof_local_exit_root" \
+            --arg proof_rollup_exit_root "$proof_rollup_exit_root" \
+            --arg global_index "$global_index" \
+            --arg mainnet_exit_root "$mainnet_exit_root" \
+            --arg rollup_exit_root "$rollup_exit_root" \
+            --arg origin_network "$origin_network" \
+            --arg origin_address "$origin_address" \
+            --arg destination_network "$destination_network" \
+            --arg destination_address "$destination_address" \
+            --arg amount "$amount" \
+            --arg metadata "$metadata" \
+            --arg l1_info_tree_index "$l1_info_tree_index" \
+            '{
+                deposit_count: $deposit_count,
+                proof_local_exit_root: $proof_local_exit_root,
+                proof_rollup_exit_root: $proof_rollup_exit_root,
+                global_index: $global_index,
+                mainnet_exit_root: $mainnet_exit_root,
+                rollup_exit_root: $rollup_exit_root,
+                origin_network: $origin_network,
+                origin_address: $origin_address,
+                destination_network: $destination_network,
+                destination_address: $destination_address,
+                amount: $amount,
+                metadata: $metadata,
+                l1_info_tree_index: $l1_info_tree_index
+            }'
+    )
+
+    echo "$json_output"
 }
