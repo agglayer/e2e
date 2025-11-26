@@ -146,7 +146,7 @@ jobs:
           if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats || exit 1
           else
-            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats -f "Test invalid GER on L2 \(bridges are valid\)" || exit 1
+            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats -f "Test inject invalid GER on L2 \(bridges are valid\)" || exit 1
           fi
           popd
 

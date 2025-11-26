@@ -579,7 +579,7 @@ setup() {
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
-@test "Test invalid GER on L2 (bridges are valid)" {
+@test "Test inject invalid GER on L2 (bridges are valid)" {
   log "🚀 Sending bridge from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
