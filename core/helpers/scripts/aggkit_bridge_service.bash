@@ -676,9 +676,9 @@ function find_injected_l1_info_leaf() {
         # all except the last line
         response="$(echo "$response" | sed '$d')"
 
-        log "------ injected_info (status: $http_status) ------"
+        log "------ response (status: $http_status) ------"
         log "$response"
-        log "------ injected_info ------"
+        log "------ response ------"
 
         # Check for non-200 HTTP status and retry
         if [[ "$http_status" != "200" ]]; then
