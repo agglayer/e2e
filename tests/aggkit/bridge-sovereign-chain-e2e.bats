@@ -24,7 +24,6 @@ setup() {
 
   contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
   input_args="$(curl -s "${contracts_url}/opt/input/input_args.json")"
-  log "🔍 Input args: $input_args"
 
   # AGGORACLE_PRIVATE_KEY
   if [[ -n "${AGGORACLE_PRIVATE_KEY:-}" ]]; then
@@ -40,7 +39,7 @@ setup() {
       l2_sovereign_admin_private_key="$L2_SOVEREIGN_ADMIN_PRIVATE_KEY"
   else
       l2_sovereign_admin_private_key="$(echo "$input_args" \
-          | jq -r '.args.l2_sovereign_admin_private_key')"
+          | jq -r '.args.zkevm_l2_sovereignadmin_private_key')"
   fi
   readonly l2_sovereign_admin_private_key
 }
@@ -602,17 +601,17 @@ setup() {
   assert_success
 
   # TODO: uncomment this
-  # log "🚀 Sending (another) bridge transaction from L1 to L2 (after invalid GER is injected)"
-  # run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-  # assert_success
-  # bridge_tx_hash=$output
+  log "🚀 Sending (another) bridge transaction from L1 to L2 (after invalid GER is injected)"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  bridge_tx_hash=$output
 
-  # run process_bridge_claim "claim bridge after invalid GER" \
-  #   "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" \
-  #   "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
-  #   "$L2_RPC_URL" "$sender_addr"
-  # assert_failure
-  # assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
+  run process_bridge_claim "claim bridge after invalid GER" \
+    "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" \
+    "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
+    "$L2_RPC_URL" "$sender_addr"
+  assert_failure
+  assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
 
   log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
   log "private key used: $l2_sovereign_admin_private_key"
