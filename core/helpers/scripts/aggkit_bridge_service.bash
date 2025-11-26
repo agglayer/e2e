@@ -755,7 +755,7 @@ function process_bridge_claim() {
 
     # 3. Retrieve the injected L1 info leaf
     local injected_info
-    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 20 25 "$destination_aggkit_bridge_url")" || {
+    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 12 10 "$destination_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
         echo "process_bridge_claim failed at find_injected_l1_info_leaf" >&2
         return 1
