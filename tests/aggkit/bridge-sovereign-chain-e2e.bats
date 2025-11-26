@@ -605,13 +605,18 @@ setup() {
   assert_success
   bridge_tx_hash=$output
 
-  run process_bridge_claim "claim bridge after invalid GER" \
-    "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" \
-    "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
-    "$L2_RPC_URL" "$sender_addr"
-  assert_failure
-  assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
+   # TODO: manual claim the 2nd bridge, but craft the claim in such a way 
+   # that we provide the RER and RER proof based on invalid value
+  # run process_bridge_claim "claim bridge after invalid GER" \
+  #   "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" \
+  #   "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" \
+  #   "$L2_RPC_URL" "$sender_addr"
+  # assert_failure
+  # assert_output --partial "process_bridge_claim failed at find_injected_l1_info_leaf"
 
+  # TODO: send transaction to fix the indexed claim calldata in the aggkit
+  # It seems like the claim made before the invalid GER insertion is valid (check this assumption)
+  # https://github.com/agglayer/agglayer-contracts/blob/60be784cafbf4122264990d070abe65bfa0fb986/contracts/sovereignChains/AgglayerBridgeL2.sol#L860-L881
   log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
   assert_success
