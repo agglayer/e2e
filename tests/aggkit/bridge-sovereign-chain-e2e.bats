@@ -623,7 +623,6 @@ setup() {
   log "🚀 Sending (yet another) bridge transaction from L1 to L2 (after invalid GER is removed)"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
-  bridge_tx_hash=$output
 
   log "⏳ Try to claim the problematic bridge tx again after removing the invalid GER"
   run process_bridge_claim "claim bridge after invalid GER removal" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
