@@ -551,7 +551,7 @@ setup() {
 }
 
 @test "Inject LatestBlock-N GER - A case FEP" {
-  # skip "This test should be run independently on a new setup as GER and claim proofs are hardcoded to create invalid GER and its claim proof"
+  skip "This test should be run independently on a new setup as GER and claim proofs are hardcoded to create invalid GER and its claim proof"
   local tokens_amount="0.1ether"
   local wei_amount
   wei_amount=$(cast --to-unit "$tokens_amount" wei)
