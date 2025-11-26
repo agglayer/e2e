@@ -615,10 +615,9 @@ setup() {
   log "🔄 Removing invalid GER ($invalid_ger) from AgglayerGERL2 "
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
   assert_success
-  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$next_ger"
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$invalid_ger"
   assert_success
-  final_status="$output"
-  assert_equal "$final_status" "0"
+  assert_equal "$output" "0"
   log "✅ GER successfully removed"
 
   log "⏳ Try to claim the problematic bridge tx again after removing the invalid GER"
