@@ -629,9 +629,4 @@ setup() {
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
-
-  # TODO:
-  # 1. Check if aggsender is stuck at this point, or at least no new certificates are able to be settled
-  # 2. Send removeGlobalExitRoots tx to remove the invalid GER and 
-  # 3. Verify that aggsender resumes functioning normally
 }
