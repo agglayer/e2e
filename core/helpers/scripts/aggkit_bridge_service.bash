@@ -942,7 +942,8 @@ function extract_claim_parameters_json() {
 
     # Return all parameters as a JSON object
     # Build a readable JSON object using jq for safe encoding/wrapping
-    local json_output=$(
+    local json_output
+    json_output=$(
         jq -n \
             --arg deposit_count "$deposit_count" \
             --arg proof_local_exit_root "$proof_local_exit_root" \
