@@ -151,18 +151,18 @@ jobs:
           popd
 
       - name: Dump enclave logs
-        if: ${{ failure() }}
+        if: ${{ always() }}
         run: kurtosis dump ./dump
 
       - name: Generate archive name
-        if: ${{ failure() }}
+        if: ${{ always() }}
         run: |
           archive_name="dump_run_with_args_${{inputs.test-name}}_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
 
       - name: Upload logs
-        if: ${{ failure() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.test-name }}
