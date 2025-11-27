@@ -880,10 +880,11 @@ function is_claimed() {
 function extract_claim_parameters_json() {
     local bridge_tx_hash="$1"
     local asset_number="$2"
-    local from_address="${3:-}"
+    local origin_network_id="$3"
+    local from_address="${4:-}"
 
     log "📋 Getting ${asset_number} bridge details"
-    run get_bridge "-" "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
+    run get_bridge "-" "$origin_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
     assert_success
     local bridge_response="$output"
     log "📝 ${asset_number} bridge response: $bridge_response"
@@ -894,24 +895,24 @@ function extract_claim_parameters_json() {
     log "📝 ${asset_number} global index: $global_index"
 
     log "🌳 Getting L1 info tree index for ${asset_number} bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
+    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
     log "📝 ${asset_number} L1 info tree index: $l1_info_tree_index"
 
-    log "Getting injected L1 info leaf for ${asset_number} bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    log "📝 ${asset_number} injected info: $injected_info"
-
     # TODO: @Stefan-Ethernal try to remove this step by directly using l1_info_tree_index if possible
-    # Extract the actual l1_info_tree_index from the injected info
-    local l1_info_tree_injected_index
-    l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    # log "Getting injected L1 info leaf for ${asset_number} bridge"
+    # run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    # assert_success
+    # local injected_info="$output"
+    # log "📝 ${asset_number} injected info: $injected_info"
+    
+    # # Extract the actual l1_info_tree_index from the injected info
+    # local l1_info_tree_injected_index
+    # l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
 
     log "🔐 Getting ${asset_number} claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_injected_index" 50 10 "$aggkit_bridge_url"
+    run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
     log "📝 ${asset_number} proof: $proof"

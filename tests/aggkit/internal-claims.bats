@@ -69,7 +69,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -106,7 +106,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -143,7 +143,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -180,7 +180,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -524,7 +524,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -561,7 +561,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -598,7 +598,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -635,7 +635,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -961,7 +961,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -998,7 +998,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -1035,7 +1035,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -1072,7 +1072,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -1359,7 +1359,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -1396,7 +1396,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -1433,7 +1433,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -1470,7 +1470,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
