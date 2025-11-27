@@ -629,7 +629,7 @@ setup() {
   # Claim bridge
   local normalized_empty_proof
   normalized_empty_proof=$(normalize_cast_array "$empty_proof")
-  log "⏳ Attempting to claim bridge before invalid GER"
+  log "⏳ Attempting to claim bridge with invalid GER"
   run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_bridge_addr" \
       "$CLAIM_ASSET_FN_SIG" \
       "$proof_ler" \
