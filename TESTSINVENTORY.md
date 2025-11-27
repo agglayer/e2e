@@ -284,7 +284,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L149) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L30) | |
-| Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L21) | |
+| Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
 | Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L104) | |
 | Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
 | Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
@@ -299,7 +299,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
 | Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
 | Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
-| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L74) | |
+| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
