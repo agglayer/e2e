@@ -651,22 +651,7 @@ setup() {
   # Forcibly emit detailed claim event
   log "🔧 Forcibly emitting detailed claim event to fix the aggkit state"
   local leaf_type="0" # asset leaf type
-  local claim_data="[
-    (
-      $proof_ler,
-      $proof_rer,
-      $global_index,
-      $mainnet_exit_root,
-      $rollup_exit_root,
-      $leaf_type,
-      $origin_network,
-      $origin_address,
-      $destination_network,
-      $destination_address,
-      $amount,
-      $metadata
-    )
-  ]"
+  local claim_data="[($proof_ler, $proof_rer, $global_index, $mainnet_exit_root, $rollup_exit_root, $leaf_type, $origin_network, $origin_address, $destination_network, $destination_address, $amount, $metadata)]"
   run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_bridge_addr" \
       "$force_emit_detailed_claim_event_func_sig" "$claim_data"
   assert_success
