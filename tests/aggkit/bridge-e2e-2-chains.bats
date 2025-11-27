@@ -10,12 +10,6 @@ setup() {
 
     add_network_to_agglayer 2 "$l2_rpc_url_2"
     mint_pol_token "$l1_bridge_addr"
-    readonly aggoracle_private_key=${AGGORACLE_PRIVATE_KEY:-"6d1d3ef5765cf34176d42276edd7a479ed5dc8dbf35182dfdb12e8aafe0a4919"}
-    readonly insert_global_exit_root_func_sig="function insertGlobalExitRoot(bytes32)"
-    readonly forceEmitDetailedClaimEvent_func_sig="function forceEmitDetailedClaimEvent((bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint8,uint32,address,uint32,address,uint256,bytes)[])"
-    readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
-    readonly remove_global_exit_roots_func_sig="function removeGlobalExitRoots(bytes32[])"
-    readonly global_exit_root_map_sig="function globalExitRootMap(bytes32) (uint256)"
 }
 
 @test "Test L2 to L2 bridge" {
