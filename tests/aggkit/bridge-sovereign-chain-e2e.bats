@@ -606,31 +606,34 @@ setup() {
   local claim_params
   claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "invalid ger claim params" "$l1_rpc_network_id")
 
-  local _jq='[
-    .proof_local_exit_root,
-    .proof_rollup_exit_root,
-    .global_index,
-    .mainnet_exit_root,
-    .rollup_exit_root,
-    .origin_network,
-    .origin_address,
-    .destination_network,
-    .destination_address,
-    .amount,
-    .metadata
-  ] | @tsv'
+  # Convert the proof strings from "[0x..,0x..]" into proper array literals
+  # jq outputs them as plain strings, so we normalize them here
+  proof_ler=$(echo "$claim_params" | jq -r '.proof_local_exit_root')
+  proof_rer=$(echo "$claim_params" | jq -r '.proof_rollup_exit_root')
 
-  read -r proof_ler proof_rer global_index mainnet_exit_root rollup_exit_root \
-        origin_network origin_address destination_network destination_address \
-        amount metadata \
-    < <(echo "$claim_params" | jq -r "$_jq")
+  # Ensure they are valid cast array formats: ["0x..","0x.."]
+  proof_ler=$(normalize_cast_array "$proof_ler")
+  proof_rer=$(normalize_cast_array "$proof_rer")
+
+  # Extract simple scalar fields
+  global_index=$(echo "$claim_params" | jq -r '.global_index')
+  mainnet_exit_root=$(echo "$claim_params" | jq -r '.mainnet_exit_root')
+  rollup_exit_root=$(echo "$claim_params" | jq -r '.rollup_exit_root')
+  origin_network=$(echo "$claim_params" | jq -r '.origin_network')
+  origin_address=$(echo "$claim_params" | jq -r '.origin_address')
+  destination_network=$(echo "$claim_params" | jq -r '.destination_network')
+  destination_address=$(echo "$claim_params" | jq -r '.destination_address')
+  amount=$(echo "$claim_params" | jq -r '.amount')
+  metadata=$(echo "$claim_params" | jq -r '.metadata')
 
   # Claim bridge
+  local normalized_empty_proof
+  normalized_empty_proof=$(normalize_cast_array "$empty_proof")
   log "⏳ Attempting to claim bridge before invalid GER"
   run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_bridge_addr" \
       "$CLAIM_ASSET_FN_SIG" \
       "$proof_ler" \
-      "$empty_proof" \
+      "$normalized_empty_proof" \
       "$global_index" \
       "$mainnet_exit_root" \
       "$invalid_rer" \
