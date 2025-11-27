@@ -614,7 +614,7 @@ setup() {
   run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_bridge_addr" \
       "$CLAIM_ASSET_FN_SIG" \
       "$proof_ler" \
-      "[]" \
+      "$empty_proof" \
       "$global_index" \
       "$mainnet_exit_root" \
       "$invalid_rer" \
