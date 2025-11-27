@@ -647,6 +647,8 @@ setup() {
   log "✅ Bridge claim successful despite invalid GER"
 
   # TODO: make sure that the aggsender was not able to settle any new certificates while we don't remove the invalid GER
+  # Sleep some time to allow aggsender to attempt certificate settlement
+  sleep 300
 
   # Forcibly emit detailed claim event
   log "🔧 Forcibly emitting detailed claim event to fix the aggkit state"
@@ -671,4 +673,3 @@ setup() {
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
-
