@@ -982,11 +982,8 @@ function extract_claim_parameters_json() {
 #   → [0x.., 0x..]
 function normalize_cast_array() {
   local arr="$1"
-  echo "$arr" \
-    | sed 's/\[\|\]//g' \        # remove square brackets
-    | sed 's/"//g' \             # remove quotes around elements
-    | sed 's/,/, /g' \           # pretty-print spacing
-    | sed 's/^/[/' \             # add leading bracket
-    | sed 's/$/]/'               # add trailing bracket
-}
 
+  echo "$arr" \
+    | sed 's/"//g' \
+    | sed 's/,/, /g'
+}
