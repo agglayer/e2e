@@ -135,7 +135,7 @@ setup() {
     assert_success
 
     # wait for certificate to be sent to L1
-    sleep 300
+    sleep 100
 
     echo "=== Running LxLy bridge eth L1 to L2(Rollup 1) amount:$amount" >&3
     destination_net=$rollup_1_network_id
@@ -182,7 +182,7 @@ setup() {
     log "🔍 Claim transaction details: $claim_tx_resp"
 
     log "🔄 Removing GER from map $next_ger"
-    run send_tx "$l2_rpc_url_1" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$next_ger]"
+    run cast send --legacy --rpc-url "$l2_rpc_url_1" --private-key "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$next_ger]"
     assert_success
     run query_contract "$l2_rpc_url_1" "$l2_ger_addr" "$global_exit_root_map_sig" "$next_ger"
     assert_success
@@ -222,22 +222,7 @@ setup() {
         --private-key "$l2_sovereign_admin_private_key" \
         "$l2_bridge_addr" \
         "function forceEmitDetailedClaimEvent((bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint8,uint32,address,uint32,address,uint256,bytes)[])" \
-        "[
-            (
-            "$proof_local_exit_root_1",      \
-            "$proof_rollup_exit_root_1",     \
-            "$global_index_1",                \
-            "$mainnet_exit_root_1",            \
-            "$rollup_exit_root_1",             \
-            "0",                   \
-            "$origin_network_1",              \
-            "$origin_address_1",              \
-            "$destination_network_1",         \
-            "$destination_address_1",         \
-            "$amount_1",                     \
-            "$metadata_1"
-            )
-        ]"
+        '[("$proof_local_exit_root_1","$proof_rollup_exit_root_1","$global_index_1","$mainnet_exit_root_1","$rollup_exit_root_1","0","$origin_network_1","$origin_address_1","$destination_network_1","$destination_address_1","$amount_1","$metadata_1")]'
     assert_success
     local force_emit_detailed_claim_event_tx_resp=$output
     log "🔍 Force emit detailed claim event transaction details: $force_emit_detailed_claim_event_tx_resp"
