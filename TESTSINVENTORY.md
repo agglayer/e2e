@@ -268,7 +268,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
-| Inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L585) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
@@ -288,6 +287,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L369) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
+| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L585) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
