@@ -605,9 +605,25 @@ setup() {
   log "🔍 Extracting claim parameters"
   local claim_params
   claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "invalid ger claim params" "$l1_rpc_network_id")
-  local _jq='.proof_local_exit_root, .proof_rollup_exit_root, .global_index, .mainnet_exit_root, .rollup_exit_root, .origin_network, .origin_address, .destination_network, .destination_address, .amount, .metadata'
-  read -r proof_ler proof_rer global_index mainnet_exit_root rollup_exit_root origin_network origin_address destination_network destination_address amount metadata \
-      < <(echo "$claim_params" | jq -r "$_jq | @tsv")
+
+  local _jq='[
+    .proof_local_exit_root,
+    .proof_rollup_exit_root,
+    .global_index,
+    .mainnet_exit_root,
+    .rollup_exit_root,
+    .origin_network,
+    .origin_address,
+    .destination_network,
+    .destination_address,
+    .amount,
+    .metadata
+  ] | @tsv'
+
+  read -r proof_ler proof_rer global_index mainnet_exit_root rollup_exit_root \
+        origin_network origin_address destination_network destination_address \
+        amount metadata \
+    < <(echo "$claim_params" | jq -r "$_jq")
 
   # Claim bridge
   log "⏳ Attempting to claim bridge before invalid GER"

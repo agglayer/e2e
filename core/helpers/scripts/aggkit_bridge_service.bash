@@ -906,7 +906,7 @@ function extract_claim_parameters_json() {
     # assert_success
     # local injected_info="$output"
     # log "📝 ${asset_number} injected info: $injected_info"
-    
+
     # # Extract the actual l1_info_tree_index from the injected info
     # local l1_info_tree_injected_index
     # l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
@@ -942,8 +942,7 @@ function extract_claim_parameters_json() {
 
     # Return all parameters as a JSON object
     # Build a readable JSON object using jq for safe encoding/wrapping
-    local json_output
-    json_output=$(
+    local json_output=$(
         jq -n \
             --arg deposit_count "$deposit_count" \
             --arg proof_local_exit_root "$proof_local_exit_root" \
