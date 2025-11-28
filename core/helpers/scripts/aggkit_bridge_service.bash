@@ -136,8 +136,7 @@ function check_claim_revert_code() {
 #   $3 - destination_rpc_url  : RPC endpoint of the destination network
 #   $4 - max_attempts         : Maximum number of retry attempts before failing
 #   $5 - poll_frequency       : Number of seconds to wait between retries
-#   $6 - source_network_id    : Network ID of the source chain (for context/logs)
-#   $7 - bridge_addr          : Address of the bridge smart contract
+#   $6 - bridge_addr          : Address of the bridge smart contract
 #
 # Behavior:
 #   - Calls `claim_call` to submit a claim transaction to the bridge contract.
@@ -157,8 +156,7 @@ function claim_bridge() {
     local destination_rpc_url="$3"
     local max_attempts="$4"
     local poll_frequency="$5"
-    local source_network_id="$6"
-    local bridge_addr="$7"
+    local bridge_addr="$6"
 
     for ((attempt=1; attempt<=max_attempts; attempt++)); do
         log "🔍 Attempt ${attempt}/${max_attempts}: claim bridge"
@@ -814,7 +812,7 @@ function process_bridge_claim() {
 
     # 5. Submit the claim
     local global_index
-    global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr")" || {
+    global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$bridge_addr")" || {
         log "❌ $debug_msg process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
         echo "process_bridge_claim failed at claim_bridge" >&2
         return 1
