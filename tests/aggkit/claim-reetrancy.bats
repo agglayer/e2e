@@ -88,7 +88,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_1
@@ -138,7 +138,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_2
@@ -530,7 +530,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_1
@@ -568,7 +568,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_2
@@ -606,7 +606,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_3
