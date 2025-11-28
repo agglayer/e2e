@@ -607,7 +607,7 @@ setup() {
   # Extract claim params compactly
   log "🔍 Extracting claim parameters"
   local claim_params
-  claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "invalid ger claim params" "$l1_rpc_network_id")
+  claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "Invalid GER claim params" "$l1_rpc_network_id")
 
   # Convert the proof strings from "[0x..,0x..]" into proper array literals
   # jq outputs them as plain strings, so we normalize them here
@@ -649,12 +649,12 @@ setup() {
   assert_success
   log "✅ Bridge claim successful despite invalid GER"
 
-  # log "🔍 Verifying that the claim with invalid GER is indexed"
-  # run get_claim "$l2_rpc_network_id" "$global_index" 24 10 "$aggkit_bridge_url"
-  # assert_success
-  # local indexed_claim="$output"
-  # assert_equal "$(echo "$indexed_claim" | jq -r '.rollup_exit_root')" "$global_index"
-  # log "✅ The claim with invalid GER is indexed"
+  log "🔍 Verifying that the claim with invalid GER is indexed"
+  run get_claim "$l2_rpc_network_id" "$global_index" 12 30 "$aggkit_bridge_url"
+  assert_success
+  local indexed_claim="$output"
+  assert_equal "$(echo "$indexed_claim" | jq -r '.rollup_exit_root')" "$invalid_rer"
+  log "✅ The claim with invalid GER is indexed"
 
   # Forcibly emit detailed claim event
   log "🔧 Forcibly emitting detailed claim event to fix the aggkit state"
