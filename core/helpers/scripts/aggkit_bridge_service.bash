@@ -223,30 +223,17 @@ function claim_call() {
         claim_sig="$CLAIM_MSG_FN_SIG"
     fi
 
-    local \
-        in_local_exit_proof \
-        in_rollup_exit_proof \
-        in_global_index \
-        in_main_exit_root \
-        in_rollup_exit_root \
-        in_orig_net \
-        in_orig_addr \
-        in_dest_net \
-        in_dest_addr \
-        in_amount \
-        in_metadata
-
-    in_global_index=$(echo "$bridge_info" | jq -r '.global_index')
-    in_local_exit_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    in_rollup_exit_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
-    in_orig_addr=$(echo "$bridge_info" | jq -r '.origin_address')
-    in_dest_net=$(echo "$bridge_info" | jq -r '.destination_network')
-    in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
-    in_amount=$(echo "$bridge_info" | jq -r '.amount')
-    in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
+    local in_global_index=$(echo "$bridge_info" | jq -r '.global_index')
+    local in_local_exit_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local in_rollup_exit_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    local in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    local in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    local in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
+    local in_orig_addr=$(echo "$bridge_info" | jq -r '.origin_address')
+    local in_dest_net=$(echo "$bridge_info" | jq -r '.destination_network')
+    local in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
+    local in_amount=$(echo "$bridge_info" | jq -r '.amount')
+    local in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
@@ -270,36 +257,6 @@ function claim_call() {
     fi
 
     echo "$in_global_index"
-}
-
-function generate_global_index() {
-    local bridge_info="$1"
-    local source_network_id="$2"
-    # Extract values from JSON
-    deposit_count=$(echo "$bridge_info" | jq -r '.deposit_count')
-
-    # Ensure source_network_id and deposit_count are within valid bit ranges
-    source_network_id=$((source_network_id & 0xFFFFFFFF)) # Mask to 32 bits
-    deposit_count=$((deposit_count & 0xFFFFFFFF))         # Mask to 32 bits
-
-    # Construct the final value using bitwise operations
-    final_value=0
-
-    # 192nd bit: (if mainnet is 0, then 1, otherwise 0)
-    if [ "$source_network_id" -eq 0 ]; then
-        final_value=$(echo "$final_value + 2^64" | bc)
-    fi
-
-    # 193-224 bits: (if mainnet is 0, 0; otherwise source_network_id - 1)
-    if [ "$source_network_id" -ne 0 ]; then
-        dest_shifted=$(echo "($source_network_id - 1) * 2^32" | bc)
-        final_value=$(echo "$final_value + $dest_shifted" | bc)
-    fi
-
-    # 225-256 bits: deposit_count (32 bits)
-    final_value=$(echo "$final_value + $deposit_count" | bc)
-
-    echo "$final_value"
 }
 
 function wait_for_expected_token() {
@@ -389,7 +346,10 @@ function get_claim() {
     local max_attempts="$3"
     local poll_frequency="$4"
     local aggkit_url="$5"
+
     local attempt=0
+    local response=""
+    local http_status=""
 
     log "🔍 Searching for claim with global_index: ${expected_global_index} (bridge indexer url: ${aggkit_url})..."
 
@@ -400,17 +360,22 @@ function get_claim() {
         # Build the query URL
         local query_url="$aggkit_url/bridge/v1/claims?network_id=$network_id&include_all_fields=true&global_index=$expected_global_index"
 
-        claims_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "------ claims_result ------ $query_url"
-        log "$claims_result"
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" "$query_url")"
+        log "------ claims_result ------"
+        log "$response"
         log "------ claims_result ------"
 
-        # Extract the single claim (or null if not found)
-        local row
-        row=$(echo "$claims_result" | jq -c '.claims[0]')
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # ...all except the last line
+        response="$(echo "$response" | sed '$d')"
 
-        # In case row is not empty, we found the expected claim
-        if [[ "$row" != "null" ]]; then
+        # Extract the single claim (or null if not found)
+        local first_claim_response
+        first_claim_response=$(echo "$response" | jq -c '.claims[0]')
+
+        # In case first_claim_response is not empty, we found the expected claim
+        if [[ "$first_claim_response" != "null" ]]; then
             log "🎉 Success: Expected global_index '$expected_global_index' found. Exiting loop."
 
             # Required fields validation
@@ -433,23 +398,23 @@ function get_claim() {
             )
 
             for field in "${required_fields[@]}"; do
-                value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$row")
+                value=$(jq -r --arg fld "$field" '.[$fld]' <<<"$first_claim_response")
                 if [ "$value" = "null" ] || [ -z "$value" ]; then
                     log "🔍 Claims result:"
-                    log "$claims_result"
+                    log "$response"
                     echo "❌ Error: Assertion failed missing or null '$field' in the claim object." >&2
                     return 1
                 fi
             done
 
-            echo "$row"
+            echo "$first_claim_response"
             return 0
         fi
 
         # Fail test if max attempts are reached
         if (( attempt >= max_attempts )); then
             log "🔍 Claims result:"
-            log "$claims_result"
+            log "$response"
             echo "❌ Error: Reached max attempts ($max_attempts) without finding expected claim with global index ($expected_global_index)." >&2
             return 1
         fi
@@ -459,6 +424,16 @@ function get_claim() {
     done
 }
 
+# get_bridge polls the bridge indexer to find a bridge entry with a matching tx hash.
+# It performs up to max_attempts HTTP GET requests, with poll_frequency seconds between attempts.
+# The function checks:
+#   - HTTP status code (must be 200; otherwise retry)
+#   - Presence of JSON "error" in the response body
+#   - That the "bridges" array contains an entry whose tx_hash matches expected_tx_hash
+#
+# Optional parameter: from_address – if provided, included in the query.
+#
+# Returns: the matching bridge JSON row on success; exits with status 1 on failure.
 function get_bridge() {
     local debug_msg="[$1]"
     local network_id="$2"
@@ -469,46 +444,55 @@ function get_bridge() {
     local from_address="${7:-}"
 
     local attempt=0
-    local bridges_result=""
+    local response=""
+    local http_status=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
         log "🔎 $debug_msg Attempt $attempt/$max_attempts: fetching bridge \
 (network id = $network_id, tx hash = $expected_tx_hash, bridge indexer url = $aggkit_url from_address=$from_address)"
 
-        # Build the query URL with optional from_address parameter
+        # Build the query URL
         local query_url="$aggkit_url/bridge/v1/bridges?network_id=$network_id"
         if [[ -n "$from_address" ]]; then
             query_url="$query_url&from_address=$from_address"
         fi
 
-        # Capture both stdout (bridge result) and stderr (error message)
-        bridges_result=$(curl -s -H "Content-Type: application/json" "$query_url" 2>&1)
-        log "$debug_msg ------ bridges_result ------"
-        log "$bridges_result"
-        log "$debug_msg ------ bridges_result ------"
+        # Capture HTTP status and response body
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" "$query_url")"
+        http_status="$(echo "$response" | tail -n 1)"
+        response="$(echo "$response" | sed '$d')"
 
-        # Check if the response contains an error
-        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* ]]; then
-            log "⚠️ $debug_msg Error: $bridges_result , retrying in ${poll_frequency}s..."
+        log "$debug_msg ------ response (status=$http_status) ------"
+        log "$response"
+        log "$debug_msg -----------------------------------------------"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
             sleep "$poll_frequency"
             continue
         fi
 
-        if [[ "$bridges_result" == "" ]]; then
+        # Check for app-level error in body
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ $debug_msg Error in response body: $response , retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ -z "$response" ]]; then
             log "$debug_msg Empty bridges response retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
 
-        # Extract the elements of the 'bridges' array one by one
-        for row in $(echo "$bridges_result" | jq -c '.bridges[]'); do
-            # Parse out the tx_hash from each element
-            tx_hash=$(echo "$row" | jq -r '.tx_hash')
-
+        # Iterate entries in 'bridges' array
+        for bridge in $(echo "$response" | jq -c '.bridges[]'); do
+            tx_hash=$(echo "$bridge" | jq -r '.tx_hash')
             if [[ "$tx_hash" == "$expected_tx_hash" ]]; then
                 log "🎉 $debug_msg Found expected bridge with tx hash: $tx_hash"
-                echo "$row"
+                echo "$bridge"
                 return 0
             fi
         done
@@ -524,6 +508,28 @@ function log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >&3
 }
 
+# generate_claim_proof
+#
+# This function requests a claim proof from the AggKit REST API and retries
+# until a successful response is received or the maximum number of attempts is reached.
+#
+# PARAMETERS:
+#   $1 - network_id         : Numeric network identifier (e.g., 1, 20201, etc.)
+#   $2 - deposit_count      : Deposit count used to generate the claim proof
+#   $3 - l1_info_tree_index : Leaf index in the L1 info tree (used for proof generation)
+#   $4 - max_attempts       : Maximum number of retry attempts before failing
+#   $5 - poll_frequency     : Seconds to wait between attempts
+#   $6 - aggkit_url         : Base URL of the AggKit Bridge Indexer service
+#
+# BEHAVIOR:
+#   - Sends an HTTP request to /bridge/v1/claim-proof
+#   - Captures both the HTTP response body and the HTTP status code
+#   - Retries on:
+#       * non-200 HTTP status
+#       * empty response body
+#       * responses containing "error" or "Error"
+#   - Returns the JSON proof on success
+#   - Returns 1 if all attempts fail
 function generate_claim_proof() {
     local network_id="$1"
     local deposit_count="$2"
@@ -533,7 +539,8 @@ function generate_claim_proof() {
     local aggkit_url="$6"
 
     local attempt=0
-    local proof=""
+    local response=""
+    local http_status=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
@@ -541,32 +548,43 @@ function generate_claim_proof() {
 (network id = $network_id, deposit count = $deposit_count, l1 info tree index = $l1_info_tree_index, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (proof) and stderr (error message)
-        proof=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/bridge/v1/claim-proof?network_id=$network_id&deposit_count=$deposit_count&leaf_index=$l1_info_tree_index" 2>&1)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/claim-proof?network_id=$network_id&deposit_count=$deposit_count&leaf_index=$l1_info_tree_index")"
         log "------ proof ------"
-        log "$proof"
+        log "$response"
         log "------ proof ------"
 
-        # Check if the response contains an error
-        if [[ "$proof" == *"error"* || "$proof" == *"Error"* ]]; then
-            log "⚠️ Error: $proof"
+        http_status="$(echo "$response" | tail -n 1)"
+        response="$(echo "$response" | sed '$d')"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
             sleep "$poll_frequency"
             continue
         fi
 
-        if [[ "$proof" == "" ]]; then
+        # Check if the response contains an error
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ -z "$response" ]]; then
             log "Empty proof retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
 
-        echo "$proof"
+        echo "$response"
         return 0
     done
 
     log "❌ Failed to generate a claim proof for $deposit_count after $max_attempts attempts."
     return 1
 }
+
 function update_l1_info_tree() {
     # This is a required action in FEP op-succinct
     # To be able to claim on L1 it's required an external update of L1infotree in L1
@@ -601,7 +619,7 @@ function find_l1_info_tree_index_for_bridge() {
     local aggkit_url="$5"
     local debug_msg="[${6:-}]"
     local attempt=0
-    local index=""
+    local response=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
@@ -609,29 +627,39 @@ function find_l1_info_tree_index_for_bridge() {
 (network id = $network_id, deposit count = $expected_deposit_count, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (index) and stderr (error message)
-        index=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count" 2>&1)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count")"
         log "$debug_msg ------ index ------"
-        log "$index"
+        log "$response"
         log "$debug_msg ------ index ------"
+
+        http_status="$(echo "$response" | tail -n 1)"
+        response="$(echo "$response" | sed '$d')"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
+            sleep "$poll_frequency"
+            continue
+        fi
 
         # Check if the response contains an error
-        if [[ "$index" == *"error"* || "$index" == *"Error"* ]]; then
-            log "⚠️ $debug_msg  Error: $index"
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ $debug_msg  Error: $response"
             sleep "$poll_frequency"
             continue
         fi
 
-        if [[ "$index" == "" ]]; then
-            log "$debug_msg  Empty index retrieved, retrying in ${poll_frequency}s..."
+        if [[ "$response" == "" ]]; then
+            log "$debug_msg Empty index retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
 
-        echo "$index"
+        echo "$response"
         return 0
     done
-    log "$debug_msg  curl -s -H "Content-Type: application/json" $aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count"
+    log "$debug_msg curl -s -w '\n%{http_code}' -H "Content-Type: application/json" $aggkit_url/bridge/v1/l1-info-tree-index?network_id=$network_id&deposit_count=$expected_deposit_count"
     log "❌ $debug_msg  Failed to find L1 info tree index after $max_attempts attempts"
     return 1
 }
@@ -660,20 +688,21 @@ function find_injected_l1_info_leaf() {
     local aggkit_url="$5"
 
     local attempt=0
-    local injected_info=""
+    local response=""
+    local http_status=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
         log "🔎 Attempt $attempt/$max_attempts: fetching injected info after index \
 (network id = $network_id, index = $index, bridge indexer url = $aggkit_url)"
 
-        # Capture both stdout (injected_info) and stderr (error message)
-        response="$(curl -s -w '\n%{http_code}' \
+        # Capture both stdout (response) and stderr (error message)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" \
             "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index")"
 
         # Extract body and status code
         http_status="$(echo "$response" | tail -n1)"
-        # all except the last line
+        # ...all except the last line
         response="$(echo "$response" | sed '$d')"
 
         log "------ response (status: $http_status) ------"
@@ -793,37 +822,50 @@ function get_legacy_token_migrations() {
     local tx_hash="${7:-}"
 
     local attempt=0
-    local legacy_token_migrations=""
+    local response=""
+    local http_status=""
 
     while ((attempt < max_attempts)); do
         ((attempt++))
         log "🔎 Attempt $attempt/$max_attempts: fetching legacy token migrations \
 (network id = $network_id, page number = $page_number, page size = $page_size, bridge indexer url = $aggkit_url)"
 
-        # Capture both stdout (legacy_token_migrations) and stderr (error message)
-        legacy_token_migrations=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/bridge/v1/legacy-token-migrations?network_id=$network_id&page_number=$page_number&page_size=$page_size" 2>&1)
-        log "------ legacy_token_migrations ------"
-        log "$legacy_token_migrations"
-        log "------ legacy_token_migrations ------"
+        # Capture both stdout (response) and stderr (error message)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/legacy-token-migrations?network_id=$network_id&page_number=$page_number&page_size=$page_size")"
+        log "------ legacy token migrations ------"
+        log "$response"
+        log "------ legacy token migrations ------"
 
-        # Check if the response contains an error
-        if [[ "$legacy_token_migrations" == *"error"* || "$legacy_token_migrations" == *"Error"* ]]; then
-            log "⚠️ Error: $legacy_token_migrations"
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # ...all except the last line
+        response="$(echo "$response" | sed '$d')"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
             sleep "$poll_frequency"
             continue
         fi
 
-        if [[ "$legacy_token_migrations" == "" ]]; then
+        # Check if the response contains an error
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ -z "$response" ]]; then
             log "Empty legacy token migration response retrieved, retrying in ${poll_frequency}s..."
             sleep "$poll_frequency"
             continue
         fi
 
         if [[ -n "$tx_hash" ]]; then
-            if echo "$legacy_token_migrations" | grep -q "\"tx_hash\":\"$tx_hash\""; then
+            if echo "$response" | grep -q "\"tx_hash\":\"$tx_hash\""; then
                 log "✅ Found tx_hash $tx_hash in response."
-                echo "$legacy_token_migrations"
+                echo "$response"
                 return 0
             else
                 log "⚠️ tx_hash $tx_hash not found; retrying in ${poll_frequency}s..."
@@ -832,7 +874,7 @@ function get_legacy_token_migrations() {
             fi
         fi
 
-        echo "$legacy_token_migrations"
+        echo "$response"
         return 0
     done
 
@@ -876,7 +918,7 @@ function is_claimed() {
 
 # Helper function to extract claim parameters for a bridge transaction
 # This function extracts all the claim parameters and returns them as a JSON object
-# Usage: claim_params=$(extract_claim_parameters_json <bridge_tx_hash> <asset_number>)
+# Usage: claim_params=$(extract_claim_parameters_json <bridge_tx_hash> <asset_number> <origin_network_id> [from_address])
 function extract_claim_parameters_json() {
     local bridge_tx_hash="$1"
     local asset_number="$2"

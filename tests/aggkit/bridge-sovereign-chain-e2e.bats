@@ -584,6 +584,8 @@ setup() {
 
 @test "Test inject invalid GER on L2 (bridges are valid)" {
   log "🚀 Sending bridge from L1 to L2"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
   local bridge_tx_hash=$output
@@ -648,7 +650,7 @@ setup() {
   log "✅ Bridge claim successful despite invalid GER"
 
   log "🔍 Verifying that the claim with invalid GER is indexed"
-  run get_claim "$l2_rpc_network_id" "$global_index" 12 10 "$aggkit_bridge_url"
+  run get_claim "$l2_rpc_network_id" "$global_index" 24 10 "$aggkit_bridge_url"
   assert_success
   local indexed_claim="$output"
   assert_equal "$(echo "$indexed_claim" | jq -r '.rollup_exit_root')" "$global_index"
