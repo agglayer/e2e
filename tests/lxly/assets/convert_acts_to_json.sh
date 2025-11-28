@@ -1,7 +1,7 @@
 #!/bin/bash
 # filepath: /home/jihwankim/e2e/tests/lxly/assets/convert_acts_to_json.sh
-# jq '[.[] | select(.ExpectedResultClaim == "Success")]' bridge-tests-suite.json > temp.json && mv temp.json bridge-tests-suite.json
-# jq 'length' bridge-tests-suite.json
+# jq '[.[] | select(.ExpectedResultClaim == "Success")]' bali-bridge-tests-suite.json > temp.json && mv temp.json bali-bridge-tests-suite.json
+# jq 'length' bali-bridge-tests-suite.json
 
 input_file="${1:-output.txt}"
 output_file="${2:-bridge-tests-suite-acts.json}"
