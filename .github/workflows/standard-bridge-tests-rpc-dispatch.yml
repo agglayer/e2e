@@ -354,8 +354,8 @@ jobs:
 
           elif [[ "$NETWORK_ENV" == "spec" ]]; then
             # Set all Spec network configurations
-            # export SPEC_NETWORK_1_RPC_URL="${{ env.SPEC_01_RPC_ENDPOINT }}"
-            # export SPEC_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            export SPEC_NETWORK_1_RPC_URL="${{ env.SPEC_01_RPC_ENDPOINT }}"
+            export SPEC_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
             # Verify Spec environment setup
             echo "Verifying Spec environment setup:"
