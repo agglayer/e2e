@@ -1,5 +1,5 @@
 # Make sure to configure the agglayer/e2e Github Secrets before running this test
-name: Standard Battery Tests - RPC (Nightly)
+name: Standard Bridge Tests - RPC
 
 on:
   schedule:

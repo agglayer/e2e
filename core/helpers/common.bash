@@ -49,7 +49,7 @@ function _setup_vars() {
     export foo_address foo_private_key
     echo "ℹ️ foo_address=$foo_address foo_private_key=$foo_private_key" >&3
 
-    if [[ "${NETWORK_ENVIRONMENT:-kurtosis}" != "bali" && "${NETWORK_ENVIRONMENT:-kurtosis}" != "cardona" ]]; then
+    if [[ "${NETWORK_ENVIRONMENT:-kurtosis}" != "bali" && "${NETWORK_ENVIRONMENT:-kurtosis}" != "cardona" && "${NETWORK_ENVIRONMENT:-kurtosis}" != "spec" ]]; then
         if [[ -n "$L2_RPC_URL" ]]; then
             l2_rpc_url="$L2_RPC_URL"
         elif [[ -z "$ENCLAVE_NAME" ]]; then
