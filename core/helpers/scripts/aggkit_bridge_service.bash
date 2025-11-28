@@ -223,17 +223,30 @@ function claim_call() {
         claim_sig="$CLAIM_MSG_FN_SIG"
     fi
 
-    local in_global_index=$(echo "$bridge_info" | jq -r '.global_index')
-    local in_local_exit_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local in_rollup_exit_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
-    local in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
-    local in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
-    local in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
-    local in_orig_addr=$(echo "$bridge_info" | jq -r '.origin_address')
-    local in_dest_net=$(echo "$bridge_info" | jq -r '.destination_network')
-    local in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
-    local in_amount=$(echo "$bridge_info" | jq -r '.amount')
-    local in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
+    local \
+        in_local_exit_proof \
+        in_rollup_exit_proof \
+        in_global_index \
+        in_main_exit_root \
+        in_rollup_exit_root \
+        in_orig_net \
+        in_orig_addr \
+        in_dest_net \
+        in_dest_addr \
+        in_amount \
+        in_metadata
+
+    in_global_index=$(echo "$bridge_info" | jq -r '.global_index')
+    in_local_exit_proof=$(echo "$proof" | jq -r '.proof_local_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    in_rollup_exit_proof=$(echo "$proof" | jq -r '.proof_rollup_exit_root | join(",")' | sed 's/^/[/' | sed 's/$/]/')
+    in_main_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.mainnet_exit_root')
+    in_rollup_exit_root=$(echo "$proof" | jq -r '.l1_info_tree_leaf.rollup_exit_root')
+    in_orig_net=$(echo "$bridge_info" | jq -r '.origin_network')
+    in_orig_addr=$(echo "$bridge_info" | jq -r '.origin_address')
+    in_dest_net=$(echo "$bridge_info" | jq -r '.destination_network')
+    in_dest_addr=$(echo "$bridge_info" | jq -r '.destination_address')
+    in_amount=$(echo "$bridge_info" | jq -r '.amount')
+    in_metadata=$(echo "$bridge_info" | jq -r '.metadata')
 
     if [[ $dry_run == "true" ]]; then
         log "📝 Dry run claim (showing calldata only)"
