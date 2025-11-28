@@ -590,8 +590,9 @@ setup() {
 
   # Construct and insert invalid GER
   log "⚠️ Constructing invalid GER and inserting into AgglayerGERL2 SC 🔧💥"
-  local last_mer=$(query_contract "$l1_rpc_url" "$l1_ger_addr" "$last_mer_func_sig")
+  run query_contract "$l1_rpc_url" "$l1_ger_addr" "$last_mer_func_sig"
   assert_success
+  local last_mer=$output
 
   local invalid_rer="0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
   local invalid_ger
@@ -608,7 +609,7 @@ setup() {
 
   # Convert the proof strings from "[0x..,0x..]" into proper array literals
   # jq outputs them as plain strings, so we normalize them here
-  proof_ler=$(echo "$claim_params" | jq -r '.proof_local_exit_root')
+  local proof_ler=$(echo "$claim_params" | jq -r '.proof_local_exit_root')
   proof_rer=$(echo "$claim_params" | jq -r '.proof_rollup_exit_root')
 
   # Ensure they are valid cast array formats: ["0x..","0x.."]
@@ -616,15 +617,15 @@ setup() {
   proof_rer=$(normalize_cast_array "$proof_rer")
 
   # Extract simple scalar fields
-  global_index=$(echo "$claim_params" | jq -r '.global_index')
-  mainnet_exit_root=$(echo "$claim_params" | jq -r '.mainnet_exit_root')
-  rollup_exit_root=$(echo "$claim_params" | jq -r '.rollup_exit_root')
-  origin_network=$(echo "$claim_params" | jq -r '.origin_network')
-  origin_address=$(echo "$claim_params" | jq -r '.origin_address')
-  destination_network=$(echo "$claim_params" | jq -r '.destination_network')
-  destination_address=$(echo "$claim_params" | jq -r '.destination_address')
-  amount=$(echo "$claim_params" | jq -r '.amount')
-  metadata=$(echo "$claim_params" | jq -r '.metadata')
+  local global_index=$(echo "$claim_params" | jq -r '.global_index')
+  local mainnet_exit_root=$(echo "$claim_params" | jq -r '.mainnet_exit_root')
+  local rollup_exit_root=$(echo "$claim_params" | jq -r '.rollup_exit_root')
+  local origin_network=$(echo "$claim_params" | jq -r '.origin_network')
+  local origin_address=$(echo "$claim_params" | jq -r '.origin_address')
+  local destination_network=$(echo "$claim_params" | jq -r '.destination_network')
+  local destination_address=$(echo "$claim_params" | jq -r '.destination_address')
+  local amount=$(echo "$claim_params" | jq -r '.amount')
+  local metadata=$(echo "$claim_params" | jq -r '.metadata')
 
   # Claim bridge
   local normalized_empty_proof
@@ -645,10 +646,6 @@ setup() {
       "$metadata"
   assert_success
   log "✅ Bridge claim successful despite invalid GER"
-
-  # TODO: make sure that the aggsender was not able to settle any new certificates while we don't remove the invalid GER
-  # Sleep some time to allow aggsender to attempt certificate settlement
-  sleep 300
 
   # Forcibly emit detailed claim event
   log "🔧 Forcibly emitting detailed claim event to fix the aggkit state"
