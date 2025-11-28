@@ -647,6 +647,13 @@ setup() {
   assert_success
   log "✅ Bridge claim successful despite invalid GER"
 
+  log "🔍 Verifying that the claim with invalid GER is indexed"
+  run get_claim "$l2_rpc_network_id" "$global_index" 12 10 "$aggkit_bridge_url"
+  assert_success
+  local indexed_claim="$output"
+  assert_equal "$(echo "$indexed_claim" | jq -r '.rollup_exit_root')" "$global_index"
+  log "✅ The claim with invalid GER is indexed"
+
   # Forcibly emit detailed claim event
   log "🔧 Forcibly emitting detailed claim event to fix the aggkit state"
   local leaf_type="0" # asset leaf type
