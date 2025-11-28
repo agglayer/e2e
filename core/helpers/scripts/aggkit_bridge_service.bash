@@ -636,6 +636,22 @@ function find_l1_info_tree_index_for_bridge() {
     return 1
 }
 
+# find_injected_l1_info_leaf
+#
+# Polls the AggKit bridge indexer until an injected L1 info leaf becomes
+# available. This is needed because the indexer may be behind and needs time
+# to fill the L1 info tree.
+#
+# Arguments:
+#   $1 - network_id          (the destination network ID where the injected leaf must be found)
+#   $2 - index               (leaf index to query)
+#   $3 - max_attempts        (how many times to retry)
+#   $4 - poll_frequency      (seconds to sleep between attempts)
+#   $5 - aggkit_url          (AggKit bridge indexer base URL)
+#
+# Returns:
+#   exit code 0: success
+#   exit code 1: failure (after all retries)
 function find_injected_l1_info_leaf() {
     local network_id="$1"
     local index="$2"
@@ -652,30 +668,44 @@ function find_injected_l1_info_leaf() {
 (network id = $network_id, index = $index, bridge indexer url = $aggkit_url)"
 
         # Capture both stdout (injected_info) and stderr (error message)
-        injected_info=$(curl -s -H "Content-Type: application/json" \
-            "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index" 2>&1)
-        log "------ injected_info ------"
-        log "$injected_info"
-        log "------ injected_info ------"
+        response="$(curl -s -w '\n%{http_code}' \
+            "$aggkit_url/bridge/v1/injected-l1-info-leaf?network_id=$network_id&leaf_index=$index")"
+
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # all except the last line
+        response="$(echo "$response" | sed '$d')"
+
+        log "------ response (status: $http_status) ------"
+        log "$response"
+        log "------ response ------"
+
+        # Check for non-200 HTTP status and retry
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Check empty response
+        if [[ -z "$response" ]]; then
+            log "⚠️ Empty response; retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
 
         # Check if the response contains an error
-        if [[ "$injected_info" == *"error"* || "$injected_info" == *"Error"* ]]; then
-            log "⚠️ Error: $injected_info"
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
             sleep "$poll_frequency"
             continue
         fi
 
-        if [[ "$injected_info" == "" ]]; then
-            log "Empty injected info response retrieved, retrying in ${poll_frequency}s..."
-            sleep "$poll_frequency"
-            continue
-        fi
-
-        echo "$injected_info"
+        echo "$response"
         return 0
     done
 
-    log "❌ Failed to find injected info after index $index after $max_attempts attempts."
+    log "❌ Failed to find injected info for index $index after $max_attempts attempts."
     return 1
 }
 
@@ -709,6 +739,7 @@ function process_bridge_claim() {
     # n_attempts=34 / sleep=30s -> 17 mins max wait time
     bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 34 30 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
+        echo "process_bridge_claim failed at get_bridge" >&2
         return 1
     }
 
@@ -718,13 +749,15 @@ function process_bridge_claim() {
     local l1_info_tree_index
     l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 30 30 "$origin_aggkit_bridge_url" "$debug_msg_clean")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
+        echo "process_bridge_claim failed at find_l1_info_tree_index_for_bridge" >&2
         return 1
     }
 
     # 3. Retrieve the injected L1 info leaf
     local injected_info
-    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 20 25 "$destination_aggkit_bridge_url")" || {
+    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 12 10 "$destination_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
+        echo "process_bridge_claim failed at find_injected_l1_info_leaf" >&2
         return 1
     }
 
@@ -733,6 +766,7 @@ function process_bridge_claim() {
     local proof
     proof="$(generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🛡️ generate_claim_proof (index: $l1_info_tree_index)"
+        echo "process_bridge_claim failed at generate_claim_proof" >&2
         return 1
     }
 
@@ -740,6 +774,7 @@ function process_bridge_claim() {
     local global_index
     global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr")" || {
         log "❌ $debug_msg process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
+        echo "process_bridge_claim failed at claim_bridge" >&2
         return 1
     }
 
@@ -845,10 +880,11 @@ function is_claimed() {
 function extract_claim_parameters_json() {
     local bridge_tx_hash="$1"
     local asset_number="$2"
-    local from_address="${3:-}"
+    local origin_network_id="$3"
+    local from_address="${4:-}"
 
     log "📋 Getting ${asset_number} bridge details"
-    run get_bridge "-" "$l1_rpc_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
+    run get_bridge "-" "$origin_network_id" "$bridge_tx_hash" 50 10 "$aggkit_bridge_url" "$from_address"
     assert_success
     local bridge_response="$output"
     log "📝 ${asset_number} bridge response: $bridge_response"
@@ -859,23 +895,24 @@ function extract_claim_parameters_json() {
     log "📝 ${asset_number} global index: $global_index"
 
     log "🌳 Getting L1 info tree index for ${asset_number} bridge"
-    run find_l1_info_tree_index_for_bridge "$l1_rpc_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
+    run find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 50 10 "$aggkit_bridge_url"
     assert_success
     local l1_info_tree_index="$output"
     log "📝 ${asset_number} L1 info tree index: $l1_info_tree_index"
 
-    log "Getting injected L1 info leaf for ${asset_number} bridge"
-    run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
-    assert_success
-    local injected_info="$output"
-    log "📝 ${asset_number} injected info: $injected_info"
+    # TODO: @Stefan-Ethernal try to remove this step by directly using l1_info_tree_index if possible
+    # log "Getting injected L1 info leaf for ${asset_number} bridge"
+    # run find_injected_l1_info_leaf "$l2_rpc_network_id" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
+    # assert_success
+    # local injected_info="$output"
+    # log "📝 ${asset_number} injected info: $injected_info"
 
-    # Extract the actual l1_info_tree_index from the injected info
-    local l1_info_tree_injected_index
-    l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
+    # # Extract the actual l1_info_tree_index from the injected info
+    # local l1_info_tree_injected_index
+    # l1_info_tree_injected_index=$(echo "$injected_info" | jq -r '.l1_info_tree_index')
 
     log "🔐 Getting ${asset_number} claim proof"
-    run generate_claim_proof "$l1_rpc_network_id" "$deposit_count" "$l1_info_tree_injected_index" 50 10 "$aggkit_bridge_url"
+    run generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 50 10 "$aggkit_bridge_url"
     assert_success
     local proof="$output"
     log "📝 ${asset_number} proof: $proof"
@@ -904,5 +941,51 @@ function extract_claim_parameters_json() {
     metadata=$(echo "$bridge_response" | jq -r '.metadata')
 
     # Return all parameters as a JSON object
-    echo "{\"deposit_count\":\"$deposit_count\",\"proof_local_exit_root\":\"$proof_local_exit_root\",\"proof_rollup_exit_root\":\"$proof_rollup_exit_root\",\"global_index\":\"$global_index\",\"mainnet_exit_root\":\"$mainnet_exit_root\",\"rollup_exit_root\":\"$rollup_exit_root\",\"origin_network\":\"$origin_network\",\"origin_address\":\"$origin_address\",\"destination_network\":\"$destination_network\",\"destination_address\":\"$destination_address\",\"amount\":\"$amount\",\"metadata\":\"$metadata\"}"
+    # Build a readable JSON object using jq for safe encoding/wrapping
+    local json_output
+    json_output=$(
+        jq -n \
+            --arg deposit_count "$deposit_count" \
+            --arg proof_local_exit_root "$proof_local_exit_root" \
+            --arg proof_rollup_exit_root "$proof_rollup_exit_root" \
+            --arg global_index "$global_index" \
+            --arg mainnet_exit_root "$mainnet_exit_root" \
+            --arg rollup_exit_root "$rollup_exit_root" \
+            --arg origin_network "$origin_network" \
+            --arg origin_address "$origin_address" \
+            --arg destination_network "$destination_network" \
+            --arg destination_address "$destination_address" \
+            --arg amount "$amount" \
+            --arg metadata "$metadata" \
+            --arg l1_info_tree_index "$l1_info_tree_index" \
+            '{
+                deposit_count: $deposit_count,
+                proof_local_exit_root: $proof_local_exit_root,
+                proof_rollup_exit_root: $proof_rollup_exit_root,
+                global_index: $global_index,
+                mainnet_exit_root: $mainnet_exit_root,
+                rollup_exit_root: $rollup_exit_root,
+                origin_network: $origin_network,
+                origin_address: $origin_address,
+                destination_network: $destination_network,
+                destination_address: $destination_address,
+                amount: $amount,
+                metadata: $metadata,
+                l1_info_tree_index: $l1_info_tree_index
+            }'
+    )
+
+    log "📝 ${asset_number} JSON output: $json_output"
+
+    echo "$json_output"
+}
+
+# normalize_cast_array: convert ["0x..","0x.."] or ["0x..", "0x.."]
+#   → [0x.., 0x..]
+function normalize_cast_array() {
+  local arr="$1"
+
+  echo "$arr" \
+    | sed 's/"//g' \
+    | sed 's/,/, /g'
 }
