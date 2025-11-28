@@ -113,6 +113,18 @@ _initialize_network_config() {
                 ["cardona_52"]="52"
             )
         ;;
+        "spec")
+            declare -gA NETWORK_ID_TO_NAME=(
+                ["0"]="sepolia"
+                ["1"]="spec_1"
+            )
+            
+            # You can also define network name to ID mapping for reverse lookup
+            declare -gA NETWORK_NAME_TO_ID=(
+                ["sepolia"]="0"
+                ["spec_1"]="1"
+            )
+        ;;
     esac
     
     # Cache for derived values to avoid repeated RPC calls
@@ -232,6 +244,11 @@ _get_env_var_directly() {
                 # For Cardona networks, use CARDONA_NETWORK_XX_* pattern (must match env file)
                 local network_num="${network_name#cardona_}"
                 env_var_name="CARDONA_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
+                value="${!env_var_name:-}"
+            elif [[ "$network_name" =~ ^spec_ ]]; then
+                # For Spec networks, use SPEC_NETWORK_XX_* pattern (must match env file)
+                local network_num="${network_name#spec_}"
+                env_var_name="SPEC_NETWORK_${network_num}_$(echo "$config_type" | tr '[:lower:]' '[:upper:]')"
                 value="${!env_var_name:-}"
             elif [[ "$network_name" == "sepolia" ]]; then
                 # For Sepolia, use SEPOLIA_* pattern
