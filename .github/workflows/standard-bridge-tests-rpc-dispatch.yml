@@ -3,8 +3,8 @@ name: Standard Battery Tests - RPC (Nightly)
 
 on:
   schedule:
-    # Run every 2 hours
-    - cron: '0 */2 * * *'
+    # Run every 1 hour
+    - cron: '0 */1 * * *'
     # # Run at 5:00 AM UTC every day
     # - cron: '0 5 * * *'
   workflow_dispatch:
