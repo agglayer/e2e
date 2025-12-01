@@ -736,8 +736,7 @@ function process_bridge_claim() {
 
     # 1. Fetch bridge details
     local bridge
-    # n_attempts=34 / sleep=30s -> 17 mins max wait time
-    bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 34 30 "$origin_aggkit_bridge_url" "$from_address")" || {
+    bridge="$(get_bridge "$debug_msg_clean" "$origin_network_id" "$bridge_tx_hash" 50 25 "$origin_aggkit_bridge_url" "$from_address")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🔎 get_bridge (tx: $bridge_tx_hash)"
         echo "process_bridge_claim failed at get_bridge" >&2
         return 1
@@ -747,7 +746,7 @@ function process_bridge_claim() {
     local deposit_count
     deposit_count="$(echo "$bridge" | jq -r '.deposit_count')"
     local l1_info_tree_index
-    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 30 30 "$origin_aggkit_bridge_url" "$debug_msg_clean")" || {
+    l1_info_tree_index="$(find_l1_info_tree_index_for_bridge "$origin_network_id" "$deposit_count" 50 25 "$origin_aggkit_bridge_url" "$debug_msg_clean")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🌳 find_l1_info_tree_index_for_bridge (deposit_count: $deposit_count)"
         echo "process_bridge_claim failed at find_l1_info_tree_index_for_bridge" >&2
         return 1
@@ -755,7 +754,7 @@ function process_bridge_claim() {
 
     # 3. Retrieve the injected L1 info leaf
     local injected_info
-    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 12 10 "$destination_aggkit_bridge_url")" || {
+    injected_info="$(find_injected_l1_info_leaf "$destination_network_id" "$l1_info_tree_index" 50 25 "$destination_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🍃 find_injected_l1_info_leaf (index: $l1_info_tree_index)"
         echo "process_bridge_claim failed at find_injected_l1_info_leaf" >&2
         return 1
@@ -764,7 +763,7 @@ function process_bridge_claim() {
     # 4. Generate the claim proof
     l1_info_tree_index="$(echo "$injected_info" | jq -r '.l1_info_tree_index')"
     local proof
-    proof="$(generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 10 3 "$origin_aggkit_bridge_url")" || {
+    proof="$(generate_claim_proof "$origin_network_id" "$deposit_count" "$l1_info_tree_index" 50 25 "$origin_aggkit_bridge_url")" || {
         log "❌ $debug_msg process_bridge_claim failed at 🛡️ generate_claim_proof (index: $l1_info_tree_index)"
         echo "process_bridge_claim failed at generate_claim_proof" >&2
         return 1
@@ -772,7 +771,7 @@ function process_bridge_claim() {
 
     # 5. Submit the claim
     local global_index
-    global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 10 3 "$origin_network_id" "$bridge_addr")" || {
+    global_index="$(claim_bridge "$bridge" "$proof" "$destination_rpc_url" 50 25 "$origin_network_id" "$bridge_addr")" || {
         log "❌ $debug_msg process_bridge_claim failed at 📤 claim_bridge (bridge_addr: $bridge_addr)"
         echo "process_bridge_claim failed at claim_bridge" >&2
         return 1

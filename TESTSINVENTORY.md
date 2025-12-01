@@ -7,9 +7,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L128) | |
-| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L172) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L401) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L131) | |
+| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L175) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L404) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L117) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
@@ -31,6 +31,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
 | admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
 | admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
+| aggregator with no funds | [Link](./tests/agglayer/nonce-tests.bats#L295) | |
 | bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L112) | |
 | bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L36) | |
 | bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L77) | |
@@ -41,15 +42,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L237) | |
 | query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L256) | |
 | query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L218) | |
-| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L234) | |
-| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L148) | |
-| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L167) | |
-| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L158) | |
-| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L176) | |
-| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L190) | |
-| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L205) | |
-| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L219) | |
-| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L141) | |
+| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L266) | |
+| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L180) | |
+| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L199) | |
+| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L190) | |
+| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L208) | |
+| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L222) | |
+| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L237) | |
+| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L251) | |
+| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L173) | |
 
 ## CDK Erigon Tests
 
@@ -212,8 +213,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Testing EIP6565 - Verify_LE | [Link](./tests/execution/smooth-crypto-lib.bats#L482) | |
 | Testing EIP6565 - ecPow128 | [Link](./tests/execution/smooth-crypto-lib.bats#L541) | |
 | Testing RIP7212 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L672) | |
-| Using polycli to call some precompiles | [Link](./tests/execution/polycli-cases.bats#L101) | |
-| Using polycli to do some inscriptions | [Link](./tests/execution/polycli-cases.bats#L107) | |
 
 ## Load Tests
 
@@ -235,6 +234,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
 | Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L98) | |
 | Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L74) | |
+| Rotate OP batcher key | [Link](./tests/op/rotate-op-keys.bats#L16) | |
 | Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
 | Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
 | check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
@@ -268,6 +268,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
+| Inject LatestBlock-N GER - A case FEP | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L298) | |
+| Inject LatestBlock-N GER - A case PP | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L202) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
@@ -279,12 +281,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
 | Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L149) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
-| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L30) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Remove Ger and Unset claims | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L457) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L104) | |
-| Test Unset claims Events -> claim and unset claim in same cert | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L276) | |
-| Test Unset claims Events -> claim in 1 cert, unset claim in 2nd, forcibly set in 3rd | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L349) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L30) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
@@ -300,6 +298,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
+| foo | [Link](./tests/foo.bats#L10) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |

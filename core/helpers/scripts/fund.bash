@@ -10,6 +10,7 @@ set -euo pipefail
 # The function will attempt to send the specified amount of native tokens to the receiver address.
 # If the transaction fails, it will retry up to 3 times with a 3-second delay between attempts.
 function fund() {
+    # Pre-EIP-1559
     local sender_private_key=$1
     local receiver_addr=$2
     local amount=$3
@@ -70,6 +71,7 @@ function fund() {
 # 3. amount: The amount of native tokens desired on receiver (in wei)
 # 4. rpc_url: The RPC URL of the Ethereum network
 function fund_up_to() {
+    # Pre-EIP-1559
     local sender_private_key=$1
     local receiver_addr=$2
     local amount=$3
@@ -86,4 +88,29 @@ function fund_up_to() {
         echo "⚠️ Funding $receiver_addr with additional $gap wei to reach desired amount of $amount wei." >&3
         fund "$sender_private_key" "$receiver_addr" "$gap" "$rpc_url"
     fi
+}
+
+function drain_to() {
+    # Fully EIP-1559 compliant
+    local sender_private_key=$1
+    local receiver_addr=$2
+    local rpc_url=$3
+
+    sender_addr=$(cast wallet address --private-key "$sender_private_key")
+    sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
+    echo "✅ Sender balance: $sender_balance" >&3
+
+    basefee=$(cast basefee --rpc-url "$rpc_url")
+    priority_fee=$(( 5 * 1000000000 ))
+    max_fee=$(( basefee + priority_fee ))
+    tx_cost=$(( max_fee * 21000 ))
+    amount_to_send=$(echo "$sender_balance - $tx_cost" | bc)
+
+    run cast send --rpc-url "$rpc_url" --private-key "$sender_private_key" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value "$amount_to_send" "$receiver_addr"
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Failed to send tx" >&3
+        exit 1
+    fi
+    new_sender_balance=$(cast balance "$sender_addr" --rpc-url "$rpc_url")
+    echo "✅ Successfully drained sender balance from $sender_balance to $new_sender_balance" >&3 
 }

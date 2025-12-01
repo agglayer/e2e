@@ -43,7 +43,7 @@ function wait_for_new_cert() {
     echo "Waiting for new certificate..." >&3
     inital_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
     current_proven_certificate_id=$inital_proven_certificate_id
-    while [ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]; do
+    while [[ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]]; do
         echo "Current proven certificate: $current_proven_certificate_id, waiting for new one..." >&3
         if [[ $(date +%s) -gt $end_time ]]; then
             echo "❌ Error: Timed out waiting for new certificate"
@@ -53,6 +53,38 @@ function wait_for_new_cert() {
         current_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
     done
     echo "✅ Successfully got a new certificate settled: $current_proven_certificate_id" >&3
+}
+
+function wait_for_new_inerror_cert() {
+    local timeout
+    local start_time
+    local end_time
+
+    timeout=1200
+    start_time=$(date +%s)
+    end_time=$((start_time + timeout))
+
+    initial_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
+    current_certificate_id=$initial_certificate_id
+    echo "✅ Initial certificate: $initial_certificate_id" >&3
+    while [[ "$current_certificate_id" == "$initial_certificate_id" ]]; do
+        echo "Current certificate: $current_certificate_id, waiting for new one..." >&3
+        if [[ $(date +%s) -gt $end_time ]]; then
+            echo "❌ Error: Timed out waiting for new certificate"
+            exit 1
+        fi
+        sleep 12
+        current_certificate_id=$(interop_status_query interop_getLatestKnownCertificateHeader)
+    done
+
+    full_current_certificate=$(interop_status_query interop_getLatestKnownCertificateHeader 1)
+    if [[ "$full_current_certificate" == *"InError"* ]]; then
+        echo "✅ Successfully got a new certificate with InError status: $current_certificate_id" >&3
+    else
+        certificate_status=$(echo "$full_current_certificate" | jq -r '.status')
+        echo "❌ Error: New certificate not InError: $current_certificate_id, status: $certificate_status"
+        exit 1
+    fi
 }
 
 function interop_status_query() {
@@ -71,7 +103,7 @@ function interop_status_query() {
             else
                 answer=$(echo "$output" | jq -r '.certificate_id')
             fi
-            if [ -n "$answer" ]; then
+            if [[ -n "$answer" ]]; then
                 break
             fi
             sleep 3
@@ -116,11 +148,11 @@ function send_n_txs_from_aggregator() {
     if [[ "$wait_for_async_tx_to_be_mined" -eq 1 ]]; then
         last_tx_hash=$tx_hash
         last_tx_was_mined=0
-        while [ "$last_tx_was_mined" -eq 0 ]; do
+        while [[ "$last_tx_was_mined" -eq 0 ]]; do
             run cast receipt $last_tx_hash --rpc-url "$l1_rpc_url" --json
-            if [ "$status" -eq 0 ]; then
+            if [[ "$status" -eq 0 ]]; then
                 tx_status=$(echo "$output" | jq -r '.status')
-                if [ "$tx_status" == "0x1" ]; then
+                if [[ "$tx_status" == "0x1" ]]; then
                     echo "✅ Successfully mined tx $last_tx_hash" >&3
                     last_tx_was_mined=1
                     break
@@ -241,20 +273,68 @@ function get_aggregator_nonce() {
     echo "✅ Initial block: $initial_block, initial proven certificate: $inital_proven_certificate_id" >&3
 
     txs_sent=0
-    while [ "$current_proven_certificate_id" -eq "$inital_proven_certificate_id" ]; do
+    while [[ "$current_proven_certificate_id" == "$inital_proven_certificate_id" ]]; do
         send_n_txs_from_aggregator 1
         txs_sent=$((txs_sent + 1))
         last_block=$current_block
-        echo "✅ Successfully sent tx for block $last_block" >&3
+        echo "✅ Successfully sent tx for block $last_block, current proven certificate: $current_proven_certificate_id" >&3
         current_block=$(cast bn --rpc-url "$l1_rpc_url")
-        while [ "$current_block" -eq "$last_block" ]; do
+        while [[ "$current_block" -eq "$last_block" ]]; do
             current_block=$(cast bn --rpc-url "$l1_rpc_url")
         done
-        current_proven_certificate_id=$(interop_status_query interop_getLatestProvenCertificateHeader)
+        current_proven_certificate_id=$(interop_status_query interop_getLatestSettledCertificateHeader)
     done
     echo "✅ Successfully got a new certificate settled: $current_proven_certificate_id" >&3
     wait_for_new_cert
 
     # 2 settlements happens during the test
     check_aggregator_nonce $((txs_sent + 2))
+}
+
+# bats test_tags=agglayer-nonce
+@test "aggregator with no funds" {
+    aggregator_balance=$(cast balance "$l2_aggregator_address" --rpc-url "$l1_rpc_url")
+    echo "✅ Aggregator balance: $aggregator_balance" >&3
+
+    basefee=$(cast basefee --rpc-url "$l1_rpc_url")
+    priority_fee=$(( 5 * 1000000000 ))
+    max_fee=$(( basefee + priority_fee ))
+    tx_cost=$(( max_fee * 21000 ))
+    amount_to_send=$(echo "$aggregator_balance - $tx_cost" | bc)
+
+    run cast send --rpc-url "$l1_rpc_url" --private-key "$l2_aggregator_private_key" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value "$amount_to_send" "$foo_address"
+    if [[ "$status" -ne 0 ]]; then
+        echo "❌ Failed to send tx: $output" >&3
+        exit 1
+    else
+        new_aggregator_balance=$(cast balance "$l2_aggregator_address" --rpc-url "$l1_rpc_url")
+        echo "✅ Successfully drained aggregator balance from $aggregator_balance to $new_aggregator_balance (funds moved to priv key: $foo_private_key)" >&3 
+    fi
+
+    wait_for_new_inerror_cert
+    wait_for_new_inerror_cert
+    echo "✅ Successfully got a new error certificate, sleeping for 60 seconds" >&3
+
+    echo "✅ Setting funds back to aggregator" >&3
+    foo_balance=$(cast balance "$foo_address" --rpc-url "$l1_rpc_url")
+    basefee=$(cast basefee --rpc-url "$l1_rpc_url")
+    max_fee=$(( basefee + priority_fee ))
+    tx_cost=$(( max_fee * 21000 ))
+    amount_to_send=$(echo "$foo_balance - $tx_cost" | bc)
+
+    run cast send --rpc-url "$l1_rpc_url" --private-key "$foo_private_key" --gas-price "$max_fee" --priority-gas-price "$priority_fee" --value "$amount_to_send" "$l2_aggregator_address"
+    if [[ "$status" -ne 0 ]]; then
+        echo "❌ Failed to send tx: $output" >&3
+        exit 1
+    else
+        new_aggregator_balance=$(cast balance "$l2_aggregator_address" --rpc-url "$l1_rpc_url")
+        echo "✅ Successfully set funds back to aggregator, current balance: $new_aggregator_balance" >&3
+        # send one async tx with nonce+1
+        send_n_txs_from_aggregator 1 0 1
+        # send one async tx with nonce+0
+        send_n_txs_from_aggregator 1 0 0
+
+    fi
+
+    wait_for_new_cert
 }

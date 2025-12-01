@@ -36,6 +36,9 @@ setup_file() {
         "cardona")
             test_suite_file="cardona-bridge-tests-suite.json"
             ;;
+        "spec")
+            test_suite_file="spec-bridge-tests-suite.json"
+            ;;
         *)
             # Default to bali for kurtosis and any other environment
             test_suite_file="bali-bridge-tests-suite.json"
