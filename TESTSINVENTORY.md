@@ -285,6 +285,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L30) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
+| Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L343) | |
+| Test invalid GER injection case B2 (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L36) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
