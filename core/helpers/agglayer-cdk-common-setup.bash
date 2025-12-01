@@ -478,6 +478,24 @@ _agglayer_cdk_common_multi_setup() {
         readonly aggkit_bridge_3_url
     fi
 
+    # AGGKIT_RPC_URL
+    aggkit_rpc_1_url=$(_resolve_url_or_use_env AGGKIT_RPC_1_URL \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true)
+    export aggkit_rpc_1_url
+
+    aggkit_rpc_2_url=$(_resolve_url_or_use_env AGGKIT_RPC_2_URL \
+        "aggkit-002" "rpc" "cdk-node-002" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true)
+    export aggkit_rpc_2_url
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        aggkit_rpc_3_url=$(_resolve_url_or_use_env AGGKIT_RPC_3_URL \
+            "aggkit-003" "rpc" "cdk-node-003" "rpc" \
+            "Failed to resolve aggkit rpc url from all fallback nodes" true)
+        export aggkit_rpc_3_url
+    fi
+
     # Rollup network ids
     rollup_1_network_id=$(cast call --rpc-url $l2_rpc_url_1 $l2_bridge_addr 'networkID() (uint32)')
     readonly rollup_1_network_id
