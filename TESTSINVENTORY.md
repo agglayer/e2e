@@ -268,8 +268,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
-| Inject LatestBlock-N GER - A case FEP | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L318) | |
-| Inject LatestBlock-N GER - A case PP | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L222) | |
+| Inject LatestBlock-N GER - A case FEP | [Link](./tests/aggkit/latest-n-injected-ger.bats#L705) | |
+| Inject LatestBlock-N GER - A case PP | [Link](./tests/aggkit/latest-n-injected-ger.bats#L609) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
@@ -282,10 +282,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L147) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L50) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L48) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
-| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L414) | |
+| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L220) | |
+| Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L336) | |
+| Test invalid GER injection case B2 (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L38) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
