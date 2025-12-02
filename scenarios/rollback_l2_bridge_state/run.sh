@@ -65,6 +65,22 @@ for i in {1..10}; do
     --private-key "$bridge_spammer_wallet_private_key"
 done
 
+# Read information before unsetting the claims
+first_idx=$(echo "$indexes" | head -n1)
+second_idx=$(echo "$indexes" | head -n2 | tail -n1)
+
+resp=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/merkle-proof?net_id=0&deposit_cnt=$first_idx")
+local_proof=$(echo "$resp" | jq -r '.proof.merkle_proof | join(",")')
+rollup_proof=$(echo "$resp" | jq -r '.proof.rollup_merkle_proof | join(",")')
+main_exit_root=$(echo "$resp"   | jq -r '.proof.main_exit_root')
+rollup_exit_root=$(echo "$resp" | jq -r '.proof.rollup_exit_root')
+
+resp_2=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/merkle-proof?net_id=0&deposit_cnt=$second_idx")
+local_proof_2=$(echo "$resp_2" | jq -r '.proof.merkle_proof | join(",")')
+rollup_proof_2=$(echo "$resp_2" | jq -r '.proof.rollup_merkle_proof | join(",")')
+main_exit_root_2=$(echo "$resp_2"   | jq -r '.proof.main_exit_root')
+rollup_exit_root_2=$(echo "$resp_2" | jq -r '.proof.rollup_exit_root')
+
 # UnsetClaims on L2
 private_key=$(curl -fsSL https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/input_parser.star | sed -nE 's/.*"l2_sovereignadmin_private_key"[[:space:]]*:[[:space:]]*"(0x[0-9a-fA-F]{64})".*/\1/p')
 indexes=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/claims/$bridge_spammer_wallet_address" | jq -r '.claims | sort_by(.index) | reverse | .[0:2] | .[].index')
@@ -116,73 +132,11 @@ else
 fi
 
 # forceEmitDetailedClaimEvent for the aggkit
-first_idx=$(echo "$indexes" | head -n1)
-echo "first_idx: $first_idx"
-second_idx=$(echo "$indexes" | head -n2 | tail -n1)
-echo "second_idx: $second_idx"
-
-resp=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/merkle-proof?net_id=1&deposit_cnt=$first_idx")
-echo "curl -s \"$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/merkle-proof?net_id=1&deposit_cnt=$first_idx\""
-echo "resp: $resp"
-
-local_proof=$(echo "$resp" | jq -r '.proof.merkle_proof | join(",")')
-echo "local_proof: $local_proof"
-rollup_proof=$(echo "$resp" | jq -r '.proof.rollup_merkle_proof | join(",")')
-echo "rollup_proof: $rollup_proof"
-main_exit_root=$(echo "$resp"   | jq -r '.proof.main_exit_root')
-echo "main_exit_root: $main_exit_root"
-rollup_exit_root=$(echo "$resp" | jq -r '.proof.rollup_exit_root')
-echo "rollup_exit_root: $rollup_exit_root"
-
-resp_2=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/merkle-proof?net_id=1&deposit_cnt=$second_idx")
-echo "curl -s \"$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/merkle-proof?net_id=1&deposit_cnt=$second_idx\""
-echo "resp_2: $resp_2"
-
-local_proof_2=$(echo "$resp_2" | jq -r '.proof.merkle_proof | join(",")')
-echo "local_proof_2: $local_proof_2"
-rollup_proof_2=$(echo "$resp_2" | jq -r '.proof.rollup_merkle_proof | join(",")')
-echo "rollup_proof_2: $rollup_proof_2"
-main_exit_root_2=$(echo "$resp_2"   | jq -r '.proof.main_exit_root')
-echo "main_exit_root_2: $main_exit_root_2"
-rollup_exit_root_2=$(echo "$resp_2" | jq -r '.proof.rollup_exit_root')
-echo "rollup_exit_root_2: $rollup_exit_root_2"
-
 IFS=',' read -r first_global_index second_global_index <<< "$global_indexes"
-
 cast send $l2_bridge_address \
-  "forceEmitDetailedClaimEvent((bytes32[],bytes32[],uint256,bytes32,bytes32,uint8,uint32,address,uint32,address,uint256,bytes)[])" \
-  "[
-    (
-      [$local_proof],
-      [$rollup_proof],
-      $first_global_index,
-      $main_exit_root,
-      $rollup_exit_root,
-      0,                                   # leafType
-      0,                                   # originNetwork
-      $(cast az),
-      0,
-      0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-      1,
-      0x
-    ),
-    (
-      [$local_proof_2],
-      [$rollup_proof_2],
-      $second_global_index,
-      $main_exit_root_2,
-      $rollup_exit_root_2,
-      0,
-      0,
-      $(cast az),
-      0,
-      0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-      1,
-      0x
-    )
-  ]" \
+  "forceEmitDetailedClaimEvent((bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint8,uint32,address,uint32,address,uint256,bytes)[])" \
+  "[([$local_proof],[$rollup_proof],$first_global_index,$main_exit_root,$rollup_exit_root,0,0,0x0000000000000000000000000000000000000000,0,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,1,0x),([$local_proof_2],[$rollup_proof_2],$second_global_index,$main_exit_root_2,$rollup_exit_root_2,0,0,0x0000000000000000000000000000000000000000,0,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,1,0x)]" \
   --rpc-url $l2_rpc_url --private-key $private_key
-
 
 # BackwardLET
 index_to_remove=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/bridges/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" | jq '[.deposits[] | select(.ready_for_claim == false)] | .[2].deposit_cnt')
