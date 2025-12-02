@@ -143,30 +143,68 @@ jobs:
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
           chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
-            bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats || exit 1
-          elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct" ]]; then
-            bats ./tests/aggkit/latest-n-injected-ger.bats -f "Test invalid GER injection case B2 (FEP mode)" || exit 1
-            bats ./tests/aggkit/bridge-e2e.bats || exit 1
-            bats ./tests/aggkit/e2e-pp.bats || exit 1
-            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
-          elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-pessimistic" ]]; then
-            bats ./tests/aggkit/latest-n-injected-ger.bats -f "Test invalid GER injection case B2 (PP mode)" || exit 1
-            bats ./tests/aggkit/bridge-e2e.bats || exit 1
-            bats ./tests/aggkit/e2e-pp.bats || exit 1
-            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
+
+          # ------------------------------
+          # Decide fail-fast vs run-all mode
+          # ------------------------------
+          if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
+            FAIL_FAST=false
           else
-            bats ./tests/aggkit/bridge-e2e.bats || exit 1
-            bats ./tests/aggkit/e2e-pp.bats || exit 1
-            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
-            if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/op/optimistic-mode.bats || exit 1
-              bats ./tests/aggkit/bridge-e2e-nightly.bats || exit 1
-              bats ./tests/aggkit/internal-claims.bats || exit 1
-              bats ./tests/aggkit/claim-reetrancy.bats || exit 1
-              bats ./tests/aggkit/aggsender-committee-updates.bats || exit 1
+            FAIL_FAST=true
+          fi
+
+          # ------------------------------
+          # Test runner helper
+          # ------------------------------
+          FAILURES=()
+          run_test() {
+            local test_file="$1"
+            echo "▶ Running $test_file"
+            if ! bats "$test_file"; then
+              echo "❌ FAILED: $test_file"
+              if [[ "$FAIL_FAST" == true ]]; then
+                echo "Stopping early due to FAIL_FAST mode"
+                exit 1
+              else
+                FAILURES+=("$test_file")
+              fi
+            fi
+          }
+
+          # ------------------------------
+          # Special-case single test mode
+          # ------------------------------
+          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
+            run_test ./tests/aggkit/bridge-e2e-aggoracle-committee.bats
+          else
+            # Always-run tests
+            run_test ./tests/aggkit/bridge-e2e.bats
+            run_test ./tests/aggkit/e2e-pp.bats
+            run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
+
+            # Extra scheduled tests
+            if [[ "$FAIL_FAST" == false ]]; then
+              run_test ./tests/op/optimistic-mode.bats
+              run_test ./tests/aggkit/bridge-e2e-nightly.bats
+              run_test ./tests/aggkit/internal-claims.bats
+              run_test ./tests/aggkit/claim-reetrancy.bats
+              run_test ./tests/aggkit/aggsender-committee-updates.bats
             fi
           fi
+
+          # ------------------------------
+          # Final pass/fail result for scheduled runs
+          # ------------------------------
+          if [[ "$FAIL_FAST" == false ]]; then
+            if (( ${#FAILURES[@]} > 0 )); then
+              echo "=============================================="
+              echo "❌ The following tests failed during schedule run:"
+              printf ' - %s\n' "${FAILURES[@]}"
+              echo "=============================================="
+              exit 1
+            fi
+          fi
+
           popd
 
       - name: Dump enclave logs

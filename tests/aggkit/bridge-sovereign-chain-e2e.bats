@@ -20,11 +20,31 @@ setup() {
   readonly unset_multiple_claims_func_sig="function unsetMultipleClaims(uint256[])"
   readonly set_multiple_claims_func_sig="function setMultipleClaims(uint256[])"
   readonly insert_global_exit_root_func_sig="function insertGlobalExitRoot(bytes32)"
+  readonly last_mer_func_sig="function lastMainnetExitRoot() (bytes32)"
+  readonly force_emit_detailed_claim_event_func_sig="function forceEmitDetailedClaimEvent((bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint8,uint32,address,uint32,address,uint256,bytes)[])"
 
-  readonly l2_sovereign_admin_private_key=${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-"a574853f4757bfdcbb59b03635324463750b27e16df897f3d00dc6bef2997ae0"}
-  readonly l2_sovereign_admin_public_key=$(cast wallet address --private-key "$l2_sovereign_admin_private_key")
+  readonly empty_proof=$(jq -nc '[range(32) | "0x0000000000000000000000000000000000000000000000000000000000000000"]')
 
-  readonly aggoracle_private_key=${AGGORACLE_PRIVATE_KEY:-"6d1d3ef5765cf34176d42276edd7a479ed5dc8dbf35182dfdb12e8aafe0a4919"}
+  contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
+  input_args="$(curl -s "${contracts_url}/opt/input/input_args.json")"
+
+  # AGGORACLE_PRIVATE_KEY
+  if [[ -n "${AGGORACLE_PRIVATE_KEY:-}" ]]; then
+      aggoracle_private_key="$AGGORACLE_PRIVATE_KEY"
+  else
+      aggoracle_private_key="$(echo "$input_args" \
+          | jq -r '.args.zkevm_l2_aggoracle_private_key')"
+  fi
+  readonly aggoracle_private_key
+
+  # L2_SOVEREIGN_ADMIN_PRIVATE_KEY
+  if [[ -n "${L2_SOVEREIGN_ADMIN_PRIVATE_KEY:-}" ]]; then
+      l2_sovereign_admin_private_key="$L2_SOVEREIGN_ADMIN_PRIVATE_KEY"
+  else
+      l2_sovereign_admin_private_key="$(echo "$input_args" \
+          | jq -r '.args.zkevm_l2_sovereignadmin_private_key')"
+  fi
+  readonly l2_sovereign_admin_private_key
 }
 
 @test "Test Sovereign Chain Bridge Events" {
@@ -386,6 +406,104 @@ setup() {
   assert_success
   local global_index=$output
 
+  log "⏳ Waiting for certificate settlement containing global index: $global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  log "✅ Certificate settlement completed for global index: $global_index"
+}
+
+@test "Test inject invalid GER on L2 (bridges are valid)" {
+  log "🚀 Sending bridge from L1 to L2"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local bridge_tx_hash=$output
+
+  # Construct and insert invalid GER
+  log "⚠️ Constructing invalid GER and inserting into AgglayerGERL2 SC 🔧💥"
+  run query_contract "$l1_rpc_url" "$l1_ger_addr" "$last_mer_func_sig"
+  assert_success
+  local last_mer=$output
+
+  local invalid_rer="0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+  local invalid_ger
+  invalid_ger=$(cast keccak "$(cast abi-encode "f(bytes32, bytes32)" $last_mer $invalid_rer)")
+
+  log "🔄 Inserting invalid GER ($invalid_ger)"
+  run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$invalid_ger"
+  assert_success
+
+  # Extract claim params compactly
+  log "🔍 Extracting claim parameters"
+  local claim_params
+  claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "Invalid GER claim params" "$l1_rpc_network_id")
+
+  # Convert the proof strings from "[0x..,0x..]" into proper array literals
+  # jq outputs them as plain strings, so we normalize them here
+  local proof_ler=$(echo "$claim_params" | jq -r '.proof_local_exit_root')
+  proof_rer=$(echo "$claim_params" | jq -r '.proof_rollup_exit_root')
+
+  # Ensure they are valid cast array formats: ["0x..","0x.."]
+  proof_ler=$(normalize_cast_array "$proof_ler")
+  proof_rer=$(normalize_cast_array "$proof_rer")
+
+  # Extract simple scalar fields
+  local global_index=$(echo "$claim_params" | jq -r '.global_index')
+  local mainnet_exit_root=$(echo "$claim_params" | jq -r '.mainnet_exit_root')
+  local rollup_exit_root=$(echo "$claim_params" | jq -r '.rollup_exit_root')
+  local origin_network=$(echo "$claim_params" | jq -r '.origin_network')
+  local origin_address=$(echo "$claim_params" | jq -r '.origin_address')
+  local destination_network=$(echo "$claim_params" | jq -r '.destination_network')
+  local destination_address=$(echo "$claim_params" | jq -r '.destination_address')
+  local amount=$(echo "$claim_params" | jq -r '.amount')
+  local metadata=$(echo "$claim_params" | jq -r '.metadata')
+
+  # Claim bridge
+  local normalized_empty_proof
+  normalized_empty_proof=$(normalize_cast_array "$empty_proof")
+  log "⏳ Attempting to claim bridge with invalid GER"
+  run send_tx "$L2_RPC_URL" "$sender_private_key" "$l2_bridge_addr" \
+      "$CLAIM_ASSET_FN_SIG" \
+      "$proof_ler" \
+      "$normalized_empty_proof" \
+      "$global_index" \
+      "$mainnet_exit_root" \
+      "$invalid_rer" \
+      "$origin_network" \
+      "$origin_address" \
+      "$destination_network" \
+      "$destination_address" \
+      "$amount" \
+      "$metadata"
+  assert_success
+  log "✅ Bridge claim successful despite invalid GER"
+
+  log "🔍 Verifying that the claim with invalid GER is indexed"
+  run get_claim "$l2_rpc_network_id" "$global_index" 12 30 "$aggkit_bridge_url"
+  assert_success
+  local indexed_claim="$output"
+  assert_equal "$(echo "$indexed_claim" | jq -r '.rollup_exit_root')" "$invalid_rer"
+  log "✅ The claim with invalid GER is indexed"
+
+  # Remove invalid GER
+  log "🔧 Removing invalid GER ($invalid_ger)"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$invalid_ger]"
+  assert_success
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$invalid_ger"
+  assert_success
+  assert_equal "$output" "0"
+  log "✅ GER successfully removed"
+
+  # Forcibly emit detailed claim event
+  log "🔧 Forcibly emitting DetailedClaimEvent to fix the aggkit state"
+  local leaf_type="0" # asset leaf type
+  local claim_data="[($proof_ler, $proof_rer, $global_index, $mainnet_exit_root, $rollup_exit_root, $leaf_type, $origin_network, $origin_address, $destination_network, $destination_address, $amount, $metadata)]"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_bridge_addr" \
+      "$force_emit_detailed_claim_event_func_sig" "$claim_data"
+  assert_success
+  log "✅ Corrected DetailedClaimEvent forcibly emitted"
+
+  # Wait for certificate settlement
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
