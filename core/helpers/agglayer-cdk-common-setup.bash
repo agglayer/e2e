@@ -101,7 +101,7 @@ _resolve_required_urls() {
 
     # AGGKIT_BRIDGE_URL
     aggkit_bridge_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_URL \
-        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "aggkit-001-bridge" "rest" "aggkit-001" "rest" "cdk-node-001" "rest" \
         "Failed to resolve aggkit bridge url from all fallback nodes" true)
     export aggkit_bridge_url
 
@@ -312,6 +312,9 @@ _resolve_contract_addresses() {
         pol=$(echo "$json_output" | jq -r .polTokenAddress)
         l1_ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootAddress)
         ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+        if [[ "$ger" == "null" ]]; then
+            ger=$(echo "$json_output" | jq -r .LegacyAgglayerGERL2)
+        fi
         gas=$(echo "$json_output" | jq -r .gasTokenAddress)
     fi
 
