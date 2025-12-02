@@ -5,8 +5,6 @@ load_env
 
 kurtosis_hash="$KURTOSIS_PACKAGE_HASH"
 kurtosis_enclave_name="$ENCLAVE_NAME"
-sp1_key="$SP1_NETWORK_KEY"
-range_proof_interval="$RANGE_PROOF_INTERVAL_OVERRIDE"
 
 rm -rf pp.yml
 kurtosis clean --all
@@ -49,12 +47,12 @@ done
 
 # Stop the batcher
 kurtosis service stop $kurtosis_enclave_name op-batcher-001
-initial_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
+initial_block_dec=$(cast block-number --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)")
 
 # Do some bridges
 l2_rpc_url="$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)"
 l2_bridge_address=$(kurtosis service exec $kurtosis_enclave_name contracts-001 'cat /opt/zkevm/combined.json' | jq | grep "polygonZkEVML2BridgeAddress" | awk -F'"' '{print $4}')
-for i in {1..10}; do
+for _ in {1..10}; do
   polycli ulxly bridge asset \
     --value 1 \
     --gas-limit 1250000 \
@@ -143,7 +141,6 @@ cast send $l2_bridge_address \
 index_to_remove=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/bridges/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" | jq '[.deposits[] | select(.ready_for_claim == false)] | .[2].deposit_cnt')
 RESP=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/backward-let?net_id=1&deposit_cnt=$index_to_remove")
 
-root=$(jq -r '.root' <<< "$RESP")
 leaf_hash=$(jq -r '.leaf_hash' <<< "$RESP")
 frontier=$(jq -r '.frontier | "[" + (join(",")) + "]"' <<< "$RESP")
 rollup_merkle_proof=$(jq -r '.rollup_merkle_proof | "[" + (join(",")) + "]"' <<< "$RESP")
@@ -163,18 +160,18 @@ fi
 echo "polycli ulxly bridge asset --value 1 --gas-limit 1250000 --bridge-address \"$l2_bridge_address\" --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --destination-network 0 --rpc-url \"$l2_rpc_url\" --private-key \"$bridge_spammer_wallet_private_key\""
 
 # L2 reorg
-echo "Last L2 Block before deleting the state: $(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))"
-echo "blockhash($((initial_block_dec +1))) $(cast block $((initial_block_dec +1)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-echo "blockhash($((initial_block_dec +2))) $(cast block $((initial_block_dec +2)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-echo "blockhash($((initial_block_dec +3))) $(cast block $((initial_block_dec +3)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-final_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
-echo "blockhash($final_block_dec) $(cast block $final_block_dec --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+echo "Last L2 Block before deleting the state: $(cast block-number --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)")"
+echo "blockhash($((initial_block_dec +1))) $(cast block $((initial_block_dec +1)) --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)" --json | jq -r '.hash')"
+echo "blockhash($((initial_block_dec +2))) $(cast block $((initial_block_dec +2)) --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)" --json | jq -r '.hash')"
+echo "blockhash($((initial_block_dec +3))) $(cast block $((initial_block_dec +3)) --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)" --json | jq -r '.hash')"
+final_block_dec=$(cast block-number --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)")
+echo "blockhash($final_block_dec) $(cast block $final_block_dec --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)" --json | jq -r '.hash')"
 reorg_depth=$(( final_block_dec - initial_block_dec ))
 echo "Reorg depth will be: $reorg_depth blocks"
 target_hex=$(printf "0x%x" "$initial_block_dec")
 
 kurtosis service stop $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
-cast rpc debug_setHead "$target_hex" --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
+cast rpc debug_setHead "$target_hex" --rpc-url "$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)"
 
 echo "Last L2 Block after deleting the state: $(cast block-number --rpc-url $l2_rpc_url)"
 
