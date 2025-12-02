@@ -145,11 +145,20 @@ jobs:
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats || exit 1
+          else if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct" ]]; then
+            bats ./tests/aggkit/latest-n-injected-ger.bats -f "Test invalid GER injection case B2 (FEP mode)" || exit 1
+            bats ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats ./tests/aggkit/e2e-pp.bats || exit 1
+            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
+          else if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-pessimistic" ]]; then
+            bats ./tests/aggkit/latest-n-injected-ger.bats -f "Test invalid GER injection case B2 (PP mode)" || exit 1
+            bats ./tests/aggkit/bridge-e2e.bats || exit 1
+            bats ./tests/aggkit/e2e-pp.bats || exit 1
+            bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
           else
             bats ./tests/aggkit/bridge-e2e.bats || exit 1
             bats ./tests/aggkit/e2e-pp.bats || exit 1
             bats ./tests/aggkit/bridge-sovereign-chain-e2e.bats || exit 1
-            bats ./tests/aggkit/latest-n-injected-ger.bats || exit 1
             if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
               bats ./tests/op/optimistic-mode.bats || exit 1
               bats ./tests/aggkit/bridge-e2e-nightly.bats || exit 1
