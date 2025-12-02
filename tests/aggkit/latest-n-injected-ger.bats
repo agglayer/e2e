@@ -169,9 +169,6 @@ setup() {
     local remove_tx_hash="$output"
     log "🔗 GER removal transaction hash: $remove_tx_hash"
 
-    # Wait a moment for transaction to be mined
-    sleep 2
-
     # check if GER1 is removed from L2
     log "🔍 Verifying GER1 removal: $ger1"
     run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$ger1"
@@ -196,9 +193,6 @@ setup() {
     assert_success
     local unset_claims_tx_hash="$output"
     log "🔗 Unset claims transaction hash: $unset_claims_tx_hash"
-
-    # Wait a moment for transaction to be mined
-    sleep 2
 
     # Verify that claims were actually unset by checking isClaimed status
     # Extract deposit counts from global indexes (this is bridge-specific logic)
@@ -228,9 +222,6 @@ setup() {
     assert_success
     local set_claims_tx_hash="$output"
     log "🔗 Set claims transaction hash: $set_claims_tx_hash"
-
-    # Wait a moment for transaction to be mined
-    sleep 2
 
     # Verify that claims were actually set by checking isClaimed status
     # Using same deposit counts from global indexes as before
@@ -475,9 +466,6 @@ setup() {
     local remove_tx_hash="$output"
     log "🔗 Removal transaction hash: $remove_tx_hash"
 
-    # Wait a moment for transaction to be mined
-    sleep 2
-
     log "Querying $ger1 from L2"
     run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$ger1"
     assert_success
@@ -500,9 +488,6 @@ setup() {
     assert_success
     local unset_claims_tx_hash="$output"
     log "🔗 Unset claims transaction hash: $unset_claims_tx_hash"
-
-    # Wait a moment for transaction to be mined
-    sleep 2
 
     # Verify that claims were actually unset by checking isClaimed status
     # Extract deposit counts from global indexes (this is bridge-specific logic)
