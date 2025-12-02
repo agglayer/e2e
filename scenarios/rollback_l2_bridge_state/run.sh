@@ -191,6 +191,8 @@ polycli ulxly bridge asset \
     --private-key "$bridge_spammer_wallet_private_key"
 
 sleep 10 # Wait for the tx to be synced
+timeout=300
+start=$SECONDS
 while true; do
   if curl -s "$bridge_service_url/bridges/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266?net_id=1&dest_net=0" \
     | jq -e '
@@ -202,6 +204,13 @@ while true; do
     break
   else
     echo "⏳ Still some deposit is ready_for_claim = false, waiting..."
-    sleep 5
   fi
+
+  # Timeout 5 min
+  if (( SECONDS - start >= timeout )); then
+    echo "❌ Timeout: deposits are not all ready_for_claim after 5 minutes"
+    exit 1
+  fi
+
+  sleep 5
 done
