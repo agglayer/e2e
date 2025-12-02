@@ -48,8 +48,8 @@ while true; do
 done
 
 # Stop the batcher
-# kurtosis service stop $kurtosis_enclave_name op-batcher-001
-# initial_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
+kurtosis service stop $kurtosis_enclave_name op-batcher-001
+initial_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
 
 # Do some bridges
 l2_rpc_url="$(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)"
@@ -64,6 +64,15 @@ for i in {1..10}; do
     --rpc-url "$l2_rpc_url" \
     --private-key "$bridge_spammer_wallet_private_key"
 done
+
+# UnsetClaims on L2
+private_key=$(curl -fsSL https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/input_parser.star | sed -nE 's/.*"l2_sovereignadmin_private_key"[[:space:]]*:[[:space:]]*"(0x[0-9a-fA-F]{64})".*/\1/p')
+indexes=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/claims/$bridge_spammer_wallet_address" | jq -r '.claims | sort_by(.index) | reverse | .[0:2] | .[].index')
+global_indexes=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/claims/$bridge_spammer_wallet_address" | jq -r '.claims | sort_by(.index) | reverse | .[0:2] | map(.global_index) | join(",")')
+echo "l2_rpc_url: $l2_rpc_url"
+echo "l2_bridge_address: $l2_bridge_address"
+echo "private_key: $private_key"
+echo "global_Indexes: $global_indexes"
 
 # Read information before unsetting the claims
 first_idx=$(echo "$indexes" | head -n1)
@@ -81,14 +90,6 @@ rollup_proof_2=$(echo "$resp_2" | jq -r '.proof.rollup_merkle_proof | join(",")'
 main_exit_root_2=$(echo "$resp_2"   | jq -r '.proof.main_exit_root')
 rollup_exit_root_2=$(echo "$resp_2" | jq -r '.proof.rollup_exit_root')
 
-# UnsetClaims on L2
-private_key=$(curl -fsSL https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/input_parser.star | sed -nE 's/.*"l2_sovereignadmin_private_key"[[:space:]]*:[[:space:]]*"(0x[0-9a-fA-F]{64})".*/\1/p')
-indexes=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/claims/$bridge_spammer_wallet_address" | jq -r '.claims | sort_by(.index) | reverse | .[0:2] | .[].index')
-global_indexes=$(curl -s "$(kurtosis port print $kurtosis_enclave_name zkevm-bridge-service-001 rpc)/claims/$bridge_spammer_wallet_address" | jq -r '.claims | sort_by(.index) | reverse | .[0:2] | map(.global_index) | join(",")')
-echo "l2_rpc_url: $l2_rpc_url"
-echo "l2_bridge_address: $l2_bridge_address"
-echo "private_key: $private_key"
-echo "global_Indexes: $global_indexes"
 cast send $l2_bridge_address "unsetMultipleClaims(uint256[])" "[$global_indexes]" --private-key $private_key --rpc-url $l2_rpc_url
 sleep 10 # Wait for the tx to be synced
 
@@ -161,44 +162,46 @@ fi
 
 echo "polycli ulxly bridge asset --value 1 --gas-limit 1250000 --bridge-address \"$l2_bridge_address\" --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --destination-network 0 --rpc-url \"$l2_rpc_url\" --private-key \"$bridge_spammer_wallet_private_key\""
 
-# echo "Last L2 Block before deleting the state: $(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))"
-# echo "blockhash($((initial_block_dec +1))) $(cast block $((initial_block_dec +1)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-# echo "blockhash($((initial_block_dec +2))) $(cast block $((initial_block_dec +2)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-# echo "blockhash($((initial_block_dec +3))) $(cast block $((initial_block_dec +3)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-# final_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
-# echo "blockhash($final_block_dec) $(cast block $final_block_dec --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
-# reorg_depth=$(( final_block_dec - initial_block_dec ))
-# echo "Reorg depth will be: $reorg_depth blocks"
-# target_hex=$(printf "0x%x" "$initial_block_dec")
+# L2 reorg
+echo "Last L2 Block before deleting the state: $(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))"
+echo "blockhash($((initial_block_dec +1))) $(cast block $((initial_block_dec +1)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+echo "blockhash($((initial_block_dec +2))) $(cast block $((initial_block_dec +2)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+echo "blockhash($((initial_block_dec +3))) $(cast block $((initial_block_dec +3)) --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+final_block_dec=$(cast block-number --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc))
+echo "blockhash($final_block_dec) $(cast block $final_block_dec --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc) --json | jq -r '.hash')"
+reorg_depth=$(( final_block_dec - initial_block_dec ))
+echo "Reorg depth will be: $reorg_depth blocks"
+target_hex=$(printf "0x%x" "$initial_block_dec")
 
-# kurtosis service stop $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
-# cast rpc debug_setHead "$target_hex" --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
+kurtosis service stop $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
+cast rpc debug_setHead "$target_hex" --rpc-url $(kurtosis port print $kurtosis_enclave_name op-el-1-op-geth-op-node-001 rpc)
 
-# echo "Last L2 Block after deleting the state: $(cast block-number --rpc-url $l2_rpc_url)"
+echo "Last L2 Block after deleting the state: $(cast block-number --rpc-url $l2_rpc_url)"
 
-# kurtosis service start $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
-# kurtosis service start $kurtosis_enclave_name op-batcher-001
+kurtosis service start $kurtosis_enclave_name op-cl-1-op-node-op-geth-001
+kurtosis service start $kurtosis_enclave_name op-batcher-001
 
-# polycli ulxly bridge asset \
-#     --value 1 \
-#     --gas-limit 1250000 \
-#     --bridge-address "$l2_bridge_address" \
-#     --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
-#     --destination-network 0 \
-#     --rpc-url "$l2_rpc_url" \
-#     --private-key "$bridge_spammer_wallet_private_key"
+polycli ulxly bridge asset \
+    --value 1 \
+    --gas-limit 1250000 \
+    --bridge-address "$l2_bridge_address" \
+    --destination-address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
+    --destination-network 0 \
+    --rpc-url "$l2_rpc_url" \
+    --private-key "$bridge_spammer_wallet_private_key"
 
-# while true; do
-#   if curl -s "$bridge_service_url/bridges/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266?net_id=1&dest_net=0" \
-#     | jq -e '
-#         .deposits
-#         | all(.[]; .ready_for_claim == true)
-#       ' > /dev/null; then
+sleep 10 # Wait for the tx to be synced
+while true; do
+  if curl -s "$bridge_service_url/bridges/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266?net_id=1&dest_net=0" \
+    | jq -e '
+        .deposits
+        | all(.[]; .ready_for_claim == true)
+      ' > /dev/null; then
 
-#     echo "✅ All deposits are ready_for_claim = true"
-#     break
-#   else
-#     echo "⏳ Still some deposit is ready_for_claim = false, waiting..."
-#     sleep 5
-#   fi
-# done
+    echo "✅ All deposits are ready_for_claim = true"
+    break
+  else
+    echo "⏳ Still some deposit is ready_for_claim = false, waiting..."
+    sleep 5
+  fi
+done
