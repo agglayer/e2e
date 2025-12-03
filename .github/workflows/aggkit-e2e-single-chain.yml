@@ -48,15 +48,15 @@ on:
         type: string
 
       aggsender-find-imported-bridge-artifact:
-        description: "Path for aggsender to find the imported bridge"
+        description: "Path for aggsender helper tool to find the imported bridge"
         required: true
         type: string
 
-      event-name:
-        description: "Event name to be used for the test"
+      execute-all-tests:
+        description: "If true, run all tests and report failures at the end (no fail-fast)."
         required: false
-        type: string
-        default: ""
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -145,12 +145,14 @@ jobs:
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
 
           # ------------------------------
-          # Decide fail-fast vs run-all mode
+          # FAIL_FAST should be true in case we are not executing all the tests
           # ------------------------------
-          if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
+          if [[ "${{ inputs.execute-all-tests }}" == "true" ]]; then
             FAIL_FAST=false
+            echo "Running in RUN-ALL mode"
           else
             FAIL_FAST=true
+            echo "Running in FAIL-FAST mode"
           fi
 
           # ------------------------------
@@ -182,8 +184,8 @@ jobs:
             run_test ./tests/aggkit/e2e-pp.bats
             run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
 
-            # Extra scheduled tests
-            if [[ "$FAIL_FAST" == false ]]; then
+            # Extra tests, whose execution is time consuming
+            if [[ "${{ inputs.execute-all-tests }}" == "true" ]]; then
               run_test ./tests/op/optimistic-mode.bats
               run_test ./tests/aggkit/bridge-e2e-nightly.bats
               run_test ./tests/aggkit/internal-claims.bats
