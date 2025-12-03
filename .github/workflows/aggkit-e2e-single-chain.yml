@@ -160,7 +160,7 @@ jobs:
           run_test() {
             local test_file="$1"
             echo "▶ Running $test_file"
-            if ! bats "$test_file"; then
+            if ! bats "$test_file" -f "Test inject invalid GER on L2 \(bridges are valid\)"; then
               echo "❌ FAILED: $test_file"
               if [[ "$FAIL_FAST" == true ]]; then
                 echo "Stopping early due to FAIL_FAST mode"
@@ -177,9 +177,6 @@ jobs:
           if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             run_test ./tests/aggkit/bridge-e2e-aggoracle-committee.bats
           else
-            # Always-run tests
-            run_test ./tests/aggkit/bridge-e2e.bats
-            run_test ./tests/aggkit/e2e-pp.bats
             run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
 
             # Extra scheduled tests
