@@ -57,6 +57,12 @@ on:
         required: false
         type: boolean
         default: false
+      
+      fail-fast:
+        description: "Stop test execution on first failure"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -144,15 +150,12 @@ jobs:
           chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
           export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
 
-          # ------------------------------
-          # FAIL_FAST should be true in case we are not executing all the tests
-          # ------------------------------
-          if [[ "${{ inputs.execute-all-tests }}" == "true" ]]; then
-            FAIL_FAST=false
-            echo "Running in RUN-ALL mode"
-          else
+          if [[ "${{ inputs.fail-fast }}" == "true" ]]; then
             FAIL_FAST=true
             echo "Running in FAIL-FAST mode"
+          else
+            FAIL_FAST=false
+            echo "Running in RUN-ALL mode"
           fi
 
           # ------------------------------
