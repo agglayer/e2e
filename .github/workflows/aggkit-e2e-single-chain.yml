@@ -188,7 +188,7 @@ jobs:
             run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
 
             # Extra tests, whose execution is time consuming
-            if [[ ${{ inputs.execute-all-tests }} == true ]]; then
+            if [[ "${{ inputs.execute-all-tests }}" == "true" ]]; then
               run_test ./tests/op/optimistic-mode.bats
               run_test ./tests/aggkit/bridge-e2e-nightly.bats
               run_test ./tests/aggkit/internal-claims.bats
