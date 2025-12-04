@@ -892,6 +892,288 @@ function get_legacy_token_migrations() {
     return 1
 }
 
+function get_removed_gers() {
+    local aggkit_url="$1"
+    local max_attempts="$2"
+    local poll_frequency="$3"
+    local global_exit_root="${4:-}"
+    local limit="${5:-}"
+
+    local attempt=0
+    local response=""
+    local http_status=""
+    local query_params=""
+
+    # Build query parameters
+    if [[ -n "$global_exit_root" ]]; then
+        query_params="global_exit_root=$global_exit_root"
+    fi
+
+    if [[ -n "$limit" ]]; then
+        if [[ -n "$query_params" ]]; then
+            query_params="$query_params&limit=$limit"
+        else
+            query_params="limit=$limit"
+        fi
+    fi
+
+    # Construct the full URL
+    local url="$aggkit_url/bridge/v1/removed-gers"
+    if [[ -n "$query_params" ]]; then
+        url="$url?$query_params"
+    fi
+
+    while ((attempt < max_attempts)); do
+        ((attempt++))
+        log "🔎 Attempt $attempt/$max_attempts: fetching removed GER events \
+(bridge indexer url = $aggkit_url, global_exit_root = ${global_exit_root:-"any"}, limit = ${limit:-"default"})"
+
+        # Capture both stdout (response) and stderr (error message)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" "$url")"
+        log "------ removed GER events ------"
+        log "$response"
+        log "------ removed GER events ------"
+
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # ...all except the last line
+        response="$(echo "$response" | sed '$d')"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Check if the response contains an error
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ -z "$response" ]]; then
+            log "Empty removed GER events response retrieved, retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # If global_exit_root is specified, verify it's in the response
+        if [[ -n "$global_exit_root" ]]; then
+            if echo "$response" | grep -q "\"global_exit_root\":\"$global_exit_root\""; then
+                log "✅ Found global_exit_root $global_exit_root in response."
+                echo "$response"
+                return 0
+            else
+                log "⚠️ global_exit_root $global_exit_root not found; retrying in ${poll_frequency}s..."
+                sleep "$poll_frequency"
+                continue
+            fi
+        fi
+
+        echo "$response"
+        return 0
+    done
+
+    log "❌ Failed to fetch removed GER events after $max_attempts attempts."
+    return 1
+}
+
+function get_unset_claims() {
+    local aggkit_url="$1"
+    local max_attempts="$2"
+    local poll_frequency="$3"
+    local page_number="${4:-}"
+    local page_size="${5:-}"
+    local global_index="${6:-}"
+
+    local attempt=0
+    local response=""
+    local http_status=""
+    local query_params=""
+
+    # Build query parameters
+    if [[ -n "$page_number" ]]; then
+        query_params="page_number=$page_number"
+    fi
+
+    if [[ -n "$page_size" ]]; then
+        if [[ -n "$query_params" ]]; then
+            query_params="$query_params&page_size=$page_size"
+        else
+            query_params="page_size=$page_size"
+        fi
+    fi
+
+    if [[ -n "$global_index" ]]; then
+        if [[ -n "$query_params" ]]; then
+            query_params="$query_params&global_index=$global_index"
+        else
+            query_params="global_index=$global_index"
+        fi
+    fi
+
+    # Construct the full URL
+    local url="$aggkit_url/bridge/v1/unset-claims"
+    if [[ -n "$query_params" ]]; then
+        url="$url?$query_params"
+    fi
+
+    while ((attempt < max_attempts)); do
+        ((attempt++))
+        log "🔎 Attempt $attempt/$max_attempts: fetching unset claims \
+(bridge indexer url = $aggkit_url, page_number = ${page_number:-"any"}, page_size = ${page_size:-"default"}, global_index = ${global_index:-"any"})"
+
+        # Capture both stdout (response) and stderr (error message)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" "$url")"
+        log "------ unset claims ------"
+        log "$response"
+        log "------ unset claims ------"
+
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # ...all except the last line
+        response="$(echo "$response" | sed '$d')"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Check if the response contains an error
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ -z "$response" ]]; then
+            log "Empty unset claims response retrieved, retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # If global_index is specified, verify it's in the response
+        if [[ -n "$global_index" ]]; then
+            if echo "$response" | grep -q "\"global_index\":\"$global_index\""; then
+                log "✅ Found global_index $global_index in response."
+                echo "$response"
+                return 0
+            else
+                log "⚠️ global_index $global_index not found; retrying in ${poll_frequency}s..."
+                sleep "$poll_frequency"
+                continue
+            fi
+        fi
+
+        echo "$response"
+        return 0
+    done
+
+    log "❌ Failed to fetch unset claims after $max_attempts attempts."
+    return 1
+}
+
+function get_set_claims() {
+    local aggkit_url="$1"
+    local max_attempts="$2"
+    local poll_frequency="$3"
+    local page_number="${4:-}"
+    local page_size="${5:-}"
+    local global_index="${6:-}"
+
+    local attempt=0
+    local response=""
+    local http_status=""
+    local query_params=""
+
+    # Build query parameters
+    if [[ -n "$page_number" ]]; then
+        query_params="page_number=$page_number"
+    fi
+
+    if [[ -n "$page_size" ]]; then
+        if [[ -n "$query_params" ]]; then
+            query_params="$query_params&page_size=$page_size"
+        else
+            query_params="page_size=$page_size"
+        fi
+    fi
+
+    if [[ -n "$global_index" ]]; then
+        if [[ -n "$query_params" ]]; then
+            query_params="$query_params&global_index=$global_index"
+        else
+            query_params="global_index=$global_index"
+        fi
+    fi
+
+    # Construct the full URL
+    local url="$aggkit_url/bridge/v1/set-claims"
+    if [[ -n "$query_params" ]]; then
+        url="$url?$query_params"
+    fi
+
+    while ((attempt < max_attempts)); do
+        ((attempt++))
+        log "🔎 Attempt $attempt/$max_attempts: fetching set claims \
+(bridge indexer url = $aggkit_url, page_number = ${page_number:-"any"}, page_size = ${page_size:-"default"}, global_index = ${global_index:-"any"})"
+
+        # Capture both stdout (response) and stderr (error message)
+        response="$(curl -s -w '\n%{http_code}' -H "Content-Type: application/json" "$url")"
+        log "------ set claims ------"
+        log "$response"
+        log "------ set claims ------"
+
+        # Extract body and status code
+        http_status="$(echo "$response" | tail -n1)"
+        # ...all except the last line
+        response="$(echo "$response" | sed '$d')"
+
+        # Retry on non-200 HTTP status
+        if [[ "$http_status" != "200" ]]; then
+            log "⚠️ HTTP error ($http_status): $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Check if the response contains an error
+        if [[ "$response" == *"error"* || "$response" == *"Error"* ]]; then
+            log "⚠️ Error: $response"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ -z "$response" ]]; then
+            log "Empty set claims response retrieved, retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # If global_index is specified, verify it's in the response
+        if [[ -n "$global_index" ]]; then
+            if echo "$response" | grep -q "\"global_index\":\"$global_index\""; then
+                log "✅ Found global_index $global_index in response."
+                echo "$response"
+                return 0
+            else
+                log "⚠️ global_index $global_index not found; retrying in ${poll_frequency}s..."
+                sleep "$poll_frequency"
+                continue
+            fi
+        fi
+
+        echo "$response"
+        return 0
+    done
+
+    log "❌ Failed to fetch set claims after $max_attempts attempts."
+    return 1
+}
+
 function is_claimed() {
     local deposit_count="$1"
     local origin_network="$2"
