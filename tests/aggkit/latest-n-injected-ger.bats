@@ -797,3 +797,100 @@ setup() {
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
+
+@test "Inject LatestBlock-N GER - A case PP (another test)" {
+  skip "This test should be run by starting anvil and a new aggkit node. Start an anvil fork using L1 rpc url. Start another aggkit bridge service using L1 as anvil fork (only need to sync bridge service, can copy the data as well if data is large for L1)."
+
+  # TODO: Configure l1_rpc_url and aggkit_bridge_url to use anvil and new aggkit node
+  # l1_rpc_url="http://localhost:8545"
+  # aggkit_bridge_url="http://localhost:5577"
+  amount="0.1 ether"
+  log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local bridge_tx_hash=$output
+
+  local l1_latest_ger
+  l1_latest_ger=$(cast call --rpc-url "$l1_rpc_url" "$l1_ger_addr" 'getLastGlobalExitRoot() (bytes32)')
+  log "🔍 Latest L1 GER: $l1_latest_ger"
+
+  log "🔄 Inserting invalid GER ($l1_latest_ger)"
+  run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$l1_latest_ger"
+  assert_success
+
+  Extract claim params compactly
+  log "🔍 Extracting claim parameters"
+  local claim_params
+  claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "Invalid GER claim params" "$l1_rpc_network_id")
+
+  # Convert the proof strings from "[0x..,0x..]" into proper array literals
+  # jq outputs them as plain strings, so we normalize them here
+  local proof_ler=$(echo "$claim_params" | jq -r '.proof_local_exit_root')
+  proof_rer=$(echo "$claim_params" | jq -r '.proof_rollup_exit_root')
+
+  # Ensure they are valid cast array formats: ["0x..","0x.."]
+  proof_ler=$(normalize_cast_array "$proof_ler")
+  proof_rer=$(normalize_cast_array "$proof_rer")
+
+  # Extract simple scalar fields
+  local global_index=$(echo "$claim_params" | jq -r '.global_index')
+  local mainnet_exit_root=$(echo "$claim_params" | jq -r '.mainnet_exit_root')
+  local rollup_exit_root=$(echo "$claim_params" | jq -r '.rollup_exit_root')
+  local origin_network=$(echo "$claim_params" | jq -r '.origin_network')
+  local origin_address=$(echo "$claim_params" | jq -r '.origin_address')
+  local destination_network=$(echo "$claim_params" | jq -r '.destination_network')
+  local destination_address=$(echo "$claim_params" | jq -r '.destination_address')
+  local amount=$(echo "$claim_params" | jq -r '.amount')
+  local metadata=$(echo "$claim_params" | jq -r '.metadata')
+
+  run cast send --legacy --private-key "$aggoracle_private_key" \
+    --rpc-url "$L2_RPC_URL" \
+    "$l2_bridge_addr" \
+    "$CLAIM_ASSET_FN_SIG" \
+    "$proof_ler" \
+    "$proof_rer" \
+    "$global_index" \
+    "$mainnet_exit_root" \
+    "$rollup_exit_root" \
+    "$origin_network" \
+    "$origin_address" \
+    "$destination_network" \
+    "$destination_address" \
+    "$amount" \
+    "$metadata"
+  assert_success
+  local claim_tx_resp=$output
+  log "🔍 Claim transaction details: $claim_tx_resp"
+
+  # TODO: Configure l1_rpc_url and aggkit_bridge_url to use actual L1 RPC URL and original aggkit node
+  # l1_rpc_url="http://localhost:8545"
+  # aggkit_bridge_url="http://localhost:5577"
+
+  log "🔄 Removing GER from map $l1_latest_ger"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$next_ger]"
+  assert_success
+  run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$l1_latest_ger"
+  assert_success
+  final_status="$output"
+  assert_equal "$final_status" "0"
+  log "✅ GER successfully removed"
+
+  log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
+  local last_one_global_indexes=("$global_index")
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
+  assert_success
+  local unset_claims_tx_resp=$output
+  log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
+
+  log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local bridge_tx_hash=$output
+  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  local global_index=$output
+
+  log "⏳ Waiting for certificate settlement containing global index: $global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  log "✅ Certificate settlement completed for global index: $global_index"
+}
