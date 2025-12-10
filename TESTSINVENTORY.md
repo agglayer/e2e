@@ -269,6 +269,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
 | Inject LatestBlock-N GER - A case FEP | [Link](./tests/aggkit/latest-n-injected-ger.bats#L705) | |
+| Inject LatestBlock-N GER - A case PP (another test) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L801) | |
 | Inject LatestBlock-N GER - A case PP | [Link](./tests/aggkit/latest-n-injected-ger.bats#L609) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
