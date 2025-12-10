@@ -891,11 +891,11 @@ function get_legacy_token_migrations() {
             actual_count=$(echo "$response" | jq -r '.count // empty')
 
             if [[ -n "$actual_count" && "$actual_count" == "$expected_count" ]]; then
-                log "✅ Found expected count ($expected_count) in response."
+                log "✅ Found expected legacy token migrations count ($expected_count) in response."
                 echo "$response"
                 return 0
             else
-                log "⚠️ Expected count: $expected_count, actual count: $actual_count; retrying in ${poll_frequency}s..."
+                log "⚠️ Expected legacy token migrations count: $expected_count, actual count: $actual_count; retrying in ${poll_frequency}s..."
                 sleep "$poll_frequency"
                 continue
             fi

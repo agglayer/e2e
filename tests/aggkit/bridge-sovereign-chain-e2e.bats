@@ -207,7 +207,6 @@ setup() {
   assert_success
   local final_legacy_token_migrations="$output"
   log "Final legacy token migrations: $final_legacy_token_migrations"
-  log "✅ Test Sovereign Chain Bridge Event successful"
 }
 
 @test "Test inject invalid GER on L2 (bridges are valid)" {
