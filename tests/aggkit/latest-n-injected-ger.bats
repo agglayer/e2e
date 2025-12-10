@@ -826,7 +826,7 @@ setup() {
   # Convert the proof strings from "[0x..,0x..]" into proper array literals
   # jq outputs them as plain strings, so we normalize them here
   local proof_ler=$(echo "$claim_params" | jq -r '.proof_local_exit_root')
-  proof_rer=$(echo "$claim_params" | jq -r '.proof_rollup_exit_root')
+  local proof_rer=$(echo "$claim_params" | jq -r '.proof_rollup_exit_root')
 
   # Ensure they are valid cast array formats: ["0x..","0x.."]
   proof_ler=$(normalize_cast_array "$proof_ler")
