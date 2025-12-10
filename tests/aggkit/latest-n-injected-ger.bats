@@ -867,7 +867,7 @@ setup() {
   # aggkit_bridge_url="http://localhost:5577"
 
   log "🔄 Removing GER from map $l1_latest_ger"
-  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$next_ger]"
+  run send_tx "$L2_RPC_URL" "$l2_sovereign_admin_private_key" "$l2_ger_addr" "$remove_global_exit_roots_func_sig" "[$l1_latest_ger]"
   assert_success
   run query_contract "$L2_RPC_URL" "$l2_ger_addr" "$global_exit_root_map_sig" "$l1_latest_ger"
   assert_success
