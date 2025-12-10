@@ -2,9 +2,9 @@
 name: Standard Bridge Tests - RPC
 
 on:
-  schedule:
+  # schedule:
     # Run every 1 hour
-    - cron: '0 */1 * * *'
+    # - cron: '0 */1 * * *'
     # # Run at 5:00 AM UTC every day
     # - cron: '0 5 * * *'
   workflow_dispatch:
