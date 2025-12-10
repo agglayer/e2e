@@ -818,7 +818,7 @@ setup() {
   run send_tx "$L2_RPC_URL" "$aggoracle_private_key" "$l2_ger_addr" "$insert_global_exit_root_func_sig" "$l1_latest_ger"
   assert_success
 
-  Extract claim params compactly
+  # Extract claim params compactly
   log "🔍 Extracting claim parameters"
   local claim_params
   claim_params=$(extract_claim_parameters_json "$bridge_tx_hash" "Invalid GER claim params" "$l1_rpc_network_id")
