@@ -200,19 +200,13 @@ setup() {
   local remove_legacy_token_data=$output
   removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0]' <<<"$remove_legacy_token_data")
   assert_equal "${l2_token_addr_legacy,,}" "${removeLegacySovereignTokenAddress_event_sovereignTokenAddress,,}"
-  log "✅ RemoveLegacySovereignTokenAddress event successful, sleeping for 20 seconds to give aggkit time to index the event"
+  log "✅ RemoveLegacySovereignTokenAddress event successful"
 
-  # sleep briefly to give aggkit time to index the event
-  sleep 20
-
-  # Query aggkit node for legacy token migrations
-  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10
+  # Query aggkit node for legacy token migrations (retry logic handles indexing delays)
+  run get_legacy_token_migrations "$l2_rpc_network_id" 1 1 "$aggkit_bridge_url" 50 10 "" "$initial_legacy_token_migrations_count"
   assert_success
   local final_legacy_token_migrations="$output"
   log "Final legacy token migrations: $final_legacy_token_migrations"
-  local final_legacy_token_migrations_count
-  final_legacy_token_migrations_count=$(echo "$final_legacy_token_migrations" | jq -r '.count')
-  assert_equal "$initial_legacy_token_migrations_count" "$final_legacy_token_migrations_count"
   log "✅ Test Sovereign Chain Bridge Event successful"
 }
 
