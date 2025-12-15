@@ -361,7 +361,22 @@ setup() {
     assert_success
     log "✅ Detailed claim event forcibly emitted tx hash: $output"
 
-    # TODO: Verify detailed claim events are recorded in AggKit bridge database
+    # Verify detailed claim events are recorded in AggKit bridge database
+    log "🔍 Verifying detailed claim events are recorded in AggKit database for global indexes: $global_index_1, $global_index_2"
+
+    # Check for detailed claim event with global_index_1
+    log "🔄 Checking for detailed claim event with global_index: $global_index_1"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_1"
+
+    # Check for detailed claim event with global_index_2
+    log "🔄 Checking for detailed claim event with global_index: $global_index_2"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_2"
+
+    log "🎉 Both detailed claim events successfully verified in AggKit database"
 
     log "💰 Final L1 to L2 bridge transaction: $amount wei (0.020 ETH)"
     destination_net=$l2_rpc_network_id
