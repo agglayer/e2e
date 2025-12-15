@@ -1,0 +1,677 @@
+#!/bin/env bash
+
+# kurtosis
+kurtosis_enclave_name="upgradeV12"
+kurtosis_repo_tag="1d26548a5917f24282fc97ecb25594238c2a4104"  # main at 16/Oct/2025
+docker_network_name="kt-$kurtosis_enclave_name"
+
+
+ ##                                               ##                      ##              ####                                                    
+ ##                       ##                      ##                      ##              ####                                             ##     
+ ##                       ##                                              ##                ##                                             ##     
+ ##   ##:##    ####.########### .####.  :#####. ####    :#####.      :###.## .####: ##.###: ##    .####. ##    #### #:##: .####: ##.#### #######  
+ ##  ##: ##    ################.######.######## ####   ########     :#######.######:#######:##   .######.:##  ## ########.######:####### #######  
+ ##:##:  ##    #####.     ##   ###  #####:  .:#   ##   ##:  .:#     ###  #####:  :#####  #####   ###  ### ##: ##.##.##.####:  :#####  :##  ##     
+ ####    ##    ####       ##   ##.  .####### .    ##   ##### .      ##.  .############.  .####   ##.  .## ###:## ## ## ############    ##  ##     
+ #####   ##    ####       ##   ##    ##.######:   ##   .######:     ##    ############    ####   ##    ## .## #  ## ## ############    ##  ##     
+ ##.###  ##    ####       ##   ##.  .##   .: ##   ##      .: ##     ##.  .####      ##.  .####   ##.  .##  ####. ## ## ####      ##    ##  ##     
+ ##  ##: ##:  #####       ##.  ###  ####:.  :##   ##   #:.  :##     ###  ######.  :####  #####:  ###  ###  :###  ## ## #####.  :###    ##  ##.    
+ ##  :##  #########       #####.######.########################     :#######.##############:#####.######.   ##   ## ## ##.#########    ##  #####  
+ ##   ###  ###.####       .#### .####. . ####  ########. ####        :###.## .#####:##.###: .#### .####.    ##.  ## ## ## .#####:##    ##  .####  
+                                                                                    ##                     :##                                    
+                                                                                    ##                    ###:                                    
+                                                                                    ##                    ###                                     
+
+kurtosis run --enclave "$kurtosis_enclave_name" "github.com/0xPolygon/kurtosis-cdk@$kurtosis_repo_tag" --args-file=validium.yml
+
+contracts_url="$(kurtosis port print $kurtosis_enclave_name contracts-001 http)"
+
+l2_admin_private_key="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_admin_private_key')"
+l2_admin_address=$(cast wallet address --private-key "$l2_admin_private_key")
+l2_trusted_sequencer="$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r '.args.zkevm_l2_sequencer_address')"
+
+
+                                                                                                                      ##         
+                           ##                           ##                                                            ##         
+                           ##                           ##                                                            ##         
+    ####: .####. ##.#### #########.####:####     ####:####### :#####.     ##    ####.###:  :###:####.####:####   :###.## .####:  
+  #######.######.####### ####################  ######################     ##    #########:.#################### :#######.######: 
+  ##:  :####  ######  :##  ##   ###.   #:  :## ##:  :#  ##   ##:  .:#     ##    #####  ######  ######.   #:  :#####  #####:  :## 
+ ##.     ##.  .####    ##  ##   ##      :#######.       ##   ##### .      ##    ####.  .####.  .####      :#######.  .########## 
+ ##      ##    ####    ##  ##   ##    .#########        ##   .######:     ##    ####    ####    ####    .#########    ########## 
+ ##.     ##.  .####    ##  ##   ##    ## .  ####.       ##      .: ##     ##    ####.  .####.  .####    ## .  ####.  .####       
+  ##:  .####  #####    ##  ##.  ##    ##:  ### ##:  .#  ##.  #:.  :##     ##:  ######  ######  #####    ##:  ######  ######.  :# 
+  #######.######.##    ##  #######    ######## #######  #############      ##############:.#########    ########:#######.####### 
+    ####: .####. ##    ##  .######      ###.##   ####:  .####. ####         ###.####.###:  :###:####      ###.## :###.## .#####: 
+                                                                                  ##       #.  :##                               
+                                                                                  ##       ######                                
+                                                                                  ##       :####:                                
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && git fetch && git stash push -m \"kurtosis\" && git checkout v12.1.0 && git stash pop"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npm i"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$l2_admin_private_key\" > /opt/agglayer-contracts/.env"
+
+rollup_manager_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polygonRollupManagerAddress')
+timelock_ctrl_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.timelockContractAddress')
+
+# Get current min delay
+min_delay=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_ctrl_address' 'getMinDelay()' | cast to-dec")
+# version=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'ROLLUP_MANAGER_VERSION()' | cast to-ascii")
+
+upgrade_parameters='{
+    "tagSCPreviousVersion": "Jesus_told_me_thats_unused",
+    "rollupManagerAddress": "'$rollup_manager_address'",
+    "timelockDelay": '$min_delay',
+    "timelockSalt": "",
+    "maxFeePerGas": "",
+    "maxPriorityFeePerGas": "",
+    "multiplierGas": "",
+    "timelockAdminAddress": "'$l2_admin_address'",
+    "unsafeMode": true,
+    "initializeAgglayerGateway": {
+        "multisigRole": "'$l2_admin_address'",
+        "signersToAdd": [
+            {
+                "addr": "'$l2_trusted_sequencer'",
+                "url": "http://op-el-1-op-geth-op-node-001:8545"
+            }
+        ],
+        "newThreshold": 1
+    },
+    "forkParams": {
+        "rpc": "http://el-1-geth-lighthouse:8545",
+        "network": "localhost"
+    }
+}'
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$upgrade_parameters' > /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_parameters.json"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./upgrade/upgradeV12/upgradeV12.ts --network localhost"
+
+scheduleData=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json" | jq -r '.scheduleData')
+timelock_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.timelockContractAddress')
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$scheduleData'"
+
+# function hashOperationBatch(
+#         address[] calldata targets,
+#         uint256[] calldata values,
+#         bytes[] calldata payloads,
+#         bytes32 predecessor,
+#         bytes32 salt
+#     ) public pure virtual returns (bytes32 hash) {
+#         return keccak256(abi.encode(targets, values, payloads, predecessor, salt));
+#     }
+
+targets=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.targets | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+values=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.values | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+payloads=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r '.decodedScheduleData.payloads | \"[\" + (map(.) | join(\", \")) + \"]\"'")
+predecessor=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.predecessor")
+salt=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && cat /opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json | jq -r .decodedScheduleData.salt")
+
+# Get operation id (hashOperationBatch)
+echo "Calling hashOperationBatch with params: $targets, $values, $payloads, $predecessor, $salt"
+operationId=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'hashOperationBatch(address[],uint256[],bytes[],bytes32,bytes32)(bytes32)' '$targets' '$values' '$payloads' '$predecessor' '$salt'")
+echo "Operation id: $operationId"
+
+# wait for operation to be ready
+while [ "$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' 'isOperationReady(bytes32)(bool)' '$operationId'")" == "false" ]; do
+    echo "Timelock operation not ready. Retrying in 15 seconds... (mindelay is $min_delay seconds)"
+    sleep 15
+done
+
+# Execute operation
+executeData=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeV12/upgrade_output.json" | jq -r '.executeData')
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$executeData'"
+
+
+                                                                                 ##                                           
+               ##      ##                                     ##                 ##          ##:  :####   ###                 
+               ##      ##                                     ##                 ##          ##    ####   ##                  
+               ##      ##                                     ##                             :##  ##:## :##:                  
+   ####   :###.## :###.##      :####   :###:## :###:##   ####:##.####  :####   ####   ##.####:##  ##:##.##:   .####: ##    ## 
+  ###### :#######:#######      ###### .#######.####### ##############  ######  ####   ####### ## .## #####   .######::##  ##  
+  #:  :#####  ######  ###      #:  :#####  ######  ### ##:  :####  :## #:  :##   ##   ###  :####::## #####   ##:  :## ##: ##. 
+   #  .####.  .##       :#######.  .####.  .####.     ##    ##  :#####   ##   ##    ####::## #####:  ######## ###:##  
+  #########    ####    ##     .#########    ####    ####      ##    ##.#######   ##   ##    ##:####: ##::##  ######## .## #   
+ ## .  ####.  .####.  .##     ## .  ####.  .####.  .####.     ##    #### .  ##   ##   ##    ##.####. ##  ##  ##        ####.  
+ ##:  ######  ######  ###     ##:  ######  ######  ### ##:  .###    ####:  ###   ##   ##    ## ####  ##  :## ###.  :#  :###   
+ ########:#######:#######     ########.#######.####### #########    ####################    ## ####  ##   ## .#######   ##    
+   ###.## :###.## :###.##       ###.## :###:## :###:##   ####:##    ##  ###.############    ##  ##   ##   :## .#####:   ##.   
+                                       #.  :## #.  :##                                                                 :##    
+                                       ######  ######                                                                 ###:    
+                                        ####:  :####:                                                                 ###     
+
+agglayergw_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.aggLayerGatewayAddress')
+
+# https://github.com/agglayer/provers/releases/tag/v1.4.2
+defaultAggchainSelector=0x00060001
+newAggchainVKey=0x374ee73950cdb07d1b8779d90a8467df232639c13f9536b03f1ba76a2aa5dac6
+echo "Adding default Aggchain VKey: $defaultAggchainSelector, $newAggchainVKey"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'addDefaultAggchainVKey(bytes4,bytes32)()' '$defaultAggchainSelector' '$newAggchainVKey'"
+
+echo "kurtosis_enclave_name: $kurtosis_enclave_name"
+echo "agglayergw_address: $agglayergw_address"
+echo "defaultAggchainSelector: $defaultAggchainSelector"
+echo "newAggchainVKey: $newAggchainVKey"
+
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'getDefaultAggchainVKey(bytes4)(bytes32)' '$defaultAggchainSelector'"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'defaultAggchainVKeys(bytes4)(bytes32)' '$defaultAggchainSelector'"
+
+
+               ##      ##                    ##:  :####   ###                 
+               ##      ##                    ##    ####   ##                  
+               ##      ##                    :##  ##:## :##:                  
+   ####   :###.## :###.##     ##.###: ##.###::##  ##:##.##:   .####: ##    ## 
+  ###### :#######:#######     #######:#######:## .## #####   .######::##  ##  
+  #:  :#####  ######  ###     ###  ######  #####::## #####   ##:  :## ##: ##. 
+    #######.  .####.  .##     ##.  .####.  .####::## #####:  ######## ###:##  
+  #########    ####    ##     ##    ####    ##:####: ##::##  ######## .## #   
+ ## .  ####.  .####.  .##     ##.  .####.  .##.####. ##  ##  ##        ####.  
+ ##:  ######  ######  ###     ###  ######  ### ####  ##  :## ###.  :#  :###   
+ ########:#######:#######     #######:#######: ####  ##   ## .#######   ##    
+   ###.## :###.## :###.##     ##.###: ##.###:   ##   ##   :## .#####:   ##.   
+                              ##      ##                               :##    
+                              ##      ##                              ###:    
+                              ##      ##                              ###     
+                                                                              
+
+# Lets retrieve current selector and vkey from agglayer, so we can retrieve current verifier address used
+current_pp_selector=$(kurtosis service exec "$kurtosis_enclave_name" agglayer "agglayer vkey-selector")
+current_pp_vkey=$(kurtosis service exec "$kurtosis_enclave_name" agglayer "agglayer vkey")
+
+echo "Agglayer component current PP Selector: $current_pp_selector, Current PP VKey: $current_pp_vkey"
+
+# from selector, les retrieve vkey and verifier from AgglayerGW
+vkey_route=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 --json '$agglayergw_address' 'pessimisticVKeyRoutes(bytes4)(address,bytes32)' '$current_pp_selector'")
+vkey_route_verifier=$(echo "$vkey_route" | jq -r '.[0]')
+vkey_route_vkey=$(echo "$vkey_route" | jq -r '.[1]')
+echo "AgglayerGW contract current PP VKey: $vkey_route_vkey, AgglayerGW contract current PP Verifier: $vkey_route_verifier"
+
+# Just as sanity check, vkey/selector provided by agglayer component must match with vkey/selector from AgglayerGW contract
+if [ "$current_pp_vkey" != "$vkey_route_vkey" ]; then
+    echo "ERROR: Vkey does not match"
+    exit 1
+else
+    echo "OK Vkey matches, verifier: $vkey_route_verifier"
+fi
+
+# https://github.com/agglayer/agglayer/releases/tag/v0.4.0-rc.13
+# this is the selector and vkey for this release
+pessimisticVKeySelector=0x00000008
+pessimisticVKey=0x000055f14384bdb5bb092fd7e5152ec31856321c5a30306ab95836bdf5cdb639
+# Verifier is the same that we already had, since SP1 v5 is still used (it may change if we were using a newer SP1 version)
+# https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v5.0.0/SP1VerifierPlonk.sol
+echo "Adding new Pessimistic VKey: $pessimisticVKeySelector, $pessimisticVKey, $vkey_route_verifier"
+# It's throwing a reverted because already exists - Ignore error, I'd need to find out why it exists
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$agglayergw_address' 'addPessimisticVKeyRoute(bytes4,address,bytes32)()' '$pessimisticVKeySelector' '$vkey_route_verifier' '$pessimisticVKey'"
+
+
+                                                                                                #### ####                ########                     ###########:   
+                                  ##                                                            #### ####                ########                     #############  
+                                  ##                                                              ##   ##                   ##                          ##  ##  :##: 
+    ####:##.#### .####:  :####  ####### .####:      ##.####  .####: ##      ##     ##.#### .####. ##   ##   ##    ####.###: ####    ####.###:  .####:   ##  ##   :## 
+  ##############.######: ###### #######.######:     ####### .######:##.    .##     #######.######.##   ##   ##    #########:##:##  ## #######:.######:  ##  ##   .## 
+  ##:  :####.   ##:  :## #:  :##  ##   ##:  :##     ###  :####:  :## #: ## :#      ###.   ###  #####   ##   ##    #####  ##### ##: ##.###  #####:  :##  ##  ##    ## 
+ ##.     ##     ########  :#####  ##   ########     ##    ##########:#:.##.:#:     ##     ##.  .####   ##   ##    ####.  .#### ###:## ##.  .##########  ##  ##    ## 
+ ##      ##     ########.#######  ##   ########     ##    ########## # :##:##      ##     ##    ####   ##   ##    ####    #### .## #  ##    ##########  ##  ##   .## 
+ ##.     ##     ##      ## .  ##  ##   ##           ##    ####       ## ## ##      ##     ##.  .####   ##   ##    ####.  .####  ####. ##.  .####        ##  ##   :## 
+  ##:  .###     ###.  :###:  ###  ##.  ###.  :#     ##    #####.  :# ###::##       ##     ###  #####:  ##:  ##:  ######  #####  :###  ###  ######.  :#  ##  ##  :##: 
+  #########     .###############  #####.#######     ##    ##.####### :##..##:      ##     .######.########## ##############:##   ##   #######:.####################  
+    ####:##      .#####:  ###.##  .#### .#####:     ##    ## .#####: .##  ##       ##      .####. .####.####  ###.####.###: ##   ##.  ##.###:  .#####:###########:   
+                                                                                                                    ##          :##   ##                             
+                                                                                                                    ##         ###:   ##                             
+                                                                                                                    ##         ###    ##                             
+
+# 0x0 fields are not used but needs to be set
+add_rollup_type_json='{
+  "type": "EOA",
+  "consensusContract": "AggchainECDSAMultisig",
+  "consensusContractAddress": "",
+  "polygonRollupManagerAddress": "'$rollup_manager_address'",
+  "verifierAddress": "0x0000000000000000000000000000000000000000",
+  "description": "Type: AggchainECDSAMultisig",
+  "forkID": 0,
+  "deployerPvtKey": "'$l2_admin_private_key'",
+  "maxFeePerGas": "",
+  "maxPriorityFeePerGas": "",
+  "multiplierGas": "",
+  "genesisRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "programVKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "outputPath": "add_rollup_type_output_ecdsamultisig.json"
+}'
+
+echo "Adding new rollup type for Multisig ECDSA"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$add_rollup_type_json' > /opt/agglayer-contracts/tools/addRollupType/add_rollup_type.json"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./tools/addRollupType/addRollupType.ts --network localhost"
+
+new_rollup_type_id=$(curl -s "${contracts_url}/opt/agglayer-contracts/tools/addRollupType/add_rollup_type_output_ecdsamultisig.json" | jq -r '.rollupTypeID')
+
+
+ ##            ####                                  ##                            ##       
+ ##            ####   ##                             ##                ##          ##       
+ ##              ##   ##                             ##                ##          ##       
+ ##.####  :####  ## #######      .####. ##.####      ##.###:  :####  #######  ####:##.####  
+ #######  ###### ## #######     .######.#######      #######: ###### #####################  
+ ###  :## #:  :####   ##        ###  ######  :##     ###  ### #:  :##  ##   ##:  :####  :## 
+ ##    ##  :#######   ##        ##.  .####    ##     ##.  .##  :#####  ##  ##.     ##    ## 
+ ##    ##.#########   ##        ##    ####    ##     ##    ##.#######  ##  ##      ##    ## 
+ ##    #### .  ####   ##        ##.  .####    ##     ##.  .#### .  ##  ##  ##.     ##    ## 
+ ##    ####:  #####:  ##.       ###  #####    ##     ###  #####:  ###  ##.  ##:  .###    ## 
+ ##    ####################     .######.##    ##     #######:########  ##############    ## 
+ ##    ##  ###.##.####.####      .####. ##    ##     ##.###:   ###.##  .####  ####:##    ## 
+
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+halt_on_batch_number=$((last_sequenced + 20))
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.sequencer-halt-on-batch-number: 0$/zkevm.sequencer-halt-on-batch-number: $halt_on_batch_number/' /etc/cdk-erigon/config.yaml"
+kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+kurtosis service start "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+
+
+                  ##                                                                 ##            
+                  ##                                                          :####  ##            
+                  ##                                                          #####  ##            
+                                                                              ##                   
+   ####: ##.########    :###:## .####. ##.####         ####: .####. ##.#### ###########    :###:## 
+  ######:###########   .#######.######.#######       #######.######.####### ###########   .####### 
+ ##:  :#####.     ##   ###  ######  ######  :##      ##:  :####  ######  :##  ##     ##   ###  ### 
+ ##########       ##   ##.  .####.  .####    ##     ##.     ##.  .####    ##  ##     ##   ##.  .## 
+ ##########       ##   ##    ####    ####    ##     ##      ##    ####    ##  ##     ##   ##    ## 
+ ##      ##       ##   ##.  .####.  .####    ##     ##.     ##.  .####    ##  ##     ##   ##.  .## 
+ ###.  :###       ##   ###  ######  #####    ##      ##:  .####  #####    ##  ##     ##   ###  ### 
+  #########    ########.#######.######.##    ##      #######.######.##    ##  ##  ########.####### 
+   #####:##    ######## :###:## .####. ##    ##        ####: .####. ##    ##  ##  ######## :###:## 
+                        #.  :##                                                            #.  :## 
+                        ######                                                             ######  
+                         ####:                                                             :####:  
+
+# restore halt on batch number
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.sequencer-halt-on-batch-number: $halt_on_batch_number$/zkevm.sequencer-halt-on-batch-number: 0/' /etc/cdk-erigon/config.yaml"
+
+# cdk-erigon config file changes required
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "cp /etc/cdk-erigon/config.yaml /etc/cdk-erigon/config.yaml.bak"
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "cp /etc/cdk-erigon/config.yaml /etc/cdk-erigon/config.yaml.bak"
+
+# erigon_strict_mode goes from true to false:
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i '/^zkevm.executor-urls:/ s/^/# /' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i 's/^zkevm.executor-strict: true$/zkevm.executor-strict: false/' /etc/cdk-erigon/config.yaml"
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i '/^zkevm.executor-urls:/ s/^/# /' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.executor-strict: true$/zkevm.executor-strict: false/' /etc/cdk-erigon/config.yaml"
+
+# enable_normalcy changes from false to true:
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i 's/^zkevm.reject-low-gas-price-transactions: true$/zkevm.reject-low-gas-price-transactions: false/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "sed -i 's/^zkevm.disable-virtual-counters: false$/zkevm.disable-virtual-counters: true/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "echo 'zkevm.honour-chainspec: true' >> /etc/cdk-erigon/config.yaml"
+# kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-rpc-001 "echo 'zkevm.initial-commitment: pmt' >> /etc/cdk-erigon/config.yaml"
+
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.reject-low-gas-price-transactions: true$/zkevm.reject-low-gas-price-transactions: false/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "sed -i 's/^zkevm.disable-virtual-counters: false$/zkevm.disable-virtual-counters: true/' /etc/cdk-erigon/config.yaml"
+kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'zkevm.honour-chainspec: true' >> /etc/cdk-erigon/config.yaml"
+# kurtosis service exec "$kurtosis_enclave_name" cdk-erigon-sequencer-001 "echo 'zkevm.initial-commitment: pmt' >> /etc/cdk-erigon/config.yaml"
+
+
+                    ##                                                                 ##          ##                            ##                    
+                    ##               :####                                             ##   :####  ##                            ##                    
+                    ##   ##          #####                                             ##   #####  ##                    ##      ##                    
+                         ##          ##                                                     ##                           ##                            
+##      ##:####   #### #######     ####### .####. ##.####     ##:  :## .####: ##.######## ###########     ####: :####  ####### ####    .####. ##.####  
+##.    .########  #### #######     #######.######.#######      ##  ## .######:########### ###########   ####### ###### ####### ####   .######.#######  
+ #: ## :# #:  :##   ##   ##          ##   ###  ######.        :##  ##:##:  :#####.     ##   ##     ##   ##:  :# #:  :##  ##      ##   ###  ######  :## 
+ #:.##.:#: :#####   ##   ##          ##   ##.  .####           ##..## ##########       ##   ##     ##  ##.       :#####  ##      ##   ##.  .####    ## 
+ # :##:##.#######   ##   ##          ##   ##    ####           ##::## ##########       ##   ##     ##  ##      .#######  ##      ##   ##    ####    ## 
+ ## ## #### .  ##   ##   ##          ##   ##.  .####           :####: ##      ##       ##   ##     ##  ##.     ## .  ##  ##      ##   ##.  .####    ## 
+ ###::## ##:  ###   ##   ##.         ##   ###  #####            ####  ###.  :###       ##   ##     ##   ##:  .###:  ###  ##.     ##   ###  #####    ## 
+  ##..##:#####################       ##   .######.##            ####  .#########    ##########  #######################  #############.######.##    ## 
+  ##  ##   ###.##########.####       ##    .####. ##            :##:   .#####:##    ##########  ########  ####:  ###.##  .############ .####. ##    ## 
+
+kurtosis service stop "$kurtosis_enclave_name" bridge-spammer-001
+
+            # address rollupContract,
+            # uint64 chainID,
+            # address verifier,
+            # uint64 forkID,
+            # bytes32 lastLocalExitRoot,
+            # uint64 lastBatchSequenced,
+            # uint64 lastVerifiedBatch,
+            # uint64 legacyLastPendingState,
+            # uint64 legacyLastPendingStateConsolidated,
+            # uint64 lastVerifiedBatchBeforeUpgrade,
+            # uint64 rollupTypeID,
+            # VerifierType rollupVerifierType
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+rollup_address=$(echo "$rollupdata" | jq -r '.[0]')
+chain_id=$(echo "$rollupdata" | jq -r '.[1]')
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+
+target_batch=$((halt_on_batch_number - 1))
+
+timeout=600  # we wait for 10 minutes
+while [ $target_batch -gt $last_verified ] && [ $timeout -gt 0 ]; do
+    echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified, Halt on batch number: $halt_on_batch_number (time left: $timeout seconds)"
+    sleep 20
+    rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+    last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+    last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+    timeout=$((timeout - 20))
+done
+
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+
+if [ $last_sequenced -gt $last_verified ]; then
+    echo "ERROR: Last sequenced batch is greater than last verified batch: $last_sequenced > $last_verified"
+    exit 1
+else
+    echo "Everything is verified. Last sequenced batch: $last_sequenced, Last verified batch: $last_verified halt on batch number: $halt_on_batch_number"
+    kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-sequencer-001
+fi
+
+
+           ##                                                                                          ##            
+           ##                                                                                          ##            
+   #####.####### .####. ##.###:         ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
+ ###############.######.#######:      #######.######.###############:.######.####### .######:####### ############### 
+ ##:  .:#  ##   ###  ######  ###      ##:  :####  #####.##.#####  ######  ######  :####:  :#####  :##  ##   ##:  .:# 
+ ##### .   ##   ##.  .####.  .##     ##.     ##.  .#### ## ####.  .####.  .####    ############    ##  ##   ##### .  
+  ######:  ##   ##    ####    ##     ##      ##    #### ## ####    ####    ####    ############    ##  ##   .######: 
+       ##  ##   ##.  .####.  .##     ##.     ##.  .#### ## ####.  .####.  .####    ####      ##    ##  ##      .: ## 
+ #:.  :##  ##.  ###  ######  ###      ##:  .####  ##### ## #####  ######  #####    #####.  :###    ##  ##.  #:.  :## 
+ ########  #####.######.#######:      #######.######.## ## #########:.######.##    ##.#########    ##  ############# 
+   ####    .#### .####. ##.###:         ####: .####. ## ## ####.###:  .####. ##    ## .#####:##    ##  .####. ####   
+                        ##                                   ##                                                      
+                        ##                                   ##                                                      
+                        ##                                   ##                                                      
+
+# these will be started again later
+kurtosis service stop "$kurtosis_enclave_name" agglayer
+kurtosis service stop "$kurtosis_enclave_name" agglayer-prover
+kurtosis service stop "$kurtosis_enclave_name" cdk-erigon-rpc-001
+# these won't be started again
+kurtosis service stop "$kurtosis_enclave_name" cdk-node-001
+kurtosis service stop "$kurtosis_enclave_name" zkevm-prover-001
+kurtosis service stop "$kurtosis_enclave_name" zkevm-stateless-executor-001
+
+# recheck everything is verified once more time
+rollupdata=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'rollupIDToRollupDataDeserialized(uint32)(address,uint64,address,uint64,bytes32,uint64,uint64,uint64,uint64,uint64,uint64,uint8)' 1 --json")
+last_sequenced=$(echo "$rollupdata" | jq -r '.[5]')
+last_verified=$(echo "$rollupdata" | jq -r '.[6]')
+echo "Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
+if [ $last_sequenced -gt $last_verified ]; then
+    echo "ERROR: Last sequenced batch is greater than last verified batch: $last_sequenced > $last_verified"
+    exit 1
+else
+    echo "Everything is verified. Last sequenced batch: $last_sequenced, Last verified batch: $last_verified"
+fi
+
+
+                                             ##                          #### ####                    
+                                             ##                          #### ####                    
+                                             ##                            ##   ##                    
+ ##    ####.###:  :###:####.####:####   :###.## .####:      ##.#### .####. ##   ##   ##    ####.###:  
+ ##    #########:.#################### :#######.######:     #######.######.##   ##   ##    #########: 
+ ##    #####  ######  ######.   #:  :#####  #####:  :##     ###.   ###  #####   ##   ##    #####  ### 
+ ##    ####.  .####.  .####      :#######.  .##########     ##     ##.  .####   ##   ##    ####.  .## 
+ ##    ####    ####    ####    .#########    ##########     ##     ##    ####   ##   ##    ####    ## 
+ ##    ####.  .####.  .####    ## .  ####.  .####           ##     ##.  .####   ##   ##    ####.  .## 
+ ##:  ######  ######  #####    ##:  ######  ######.  :#     ##     ###  #####:  ##:  ##:  ######  ### 
+  ##############:.#########    ########:#######.#######     ##     .######.########## ##############: 
+   ###.####.###:  :###:####      ###.## :###.## .#####:     ##      .####. .####.####  ###.####.###:  
+         ##       #.  :##                                                                    ##       
+         ##       ######                                                                     ##       
+         ##       :####:                                                                     ##       
+
+# function updateRollup(
+#         ITransparentUpgradeableProxy rollupContract,
+#         uint32 newRollupTypeID,
+#         bytes memory upgradeData
+# )
+upgradeData=$(cast calldata "migrateFromLegacyConsensus()")
+rollup_address=$(curl -s "${contracts_url}/opt/zkevm/combined-001.json" | jq -r '.rollupAddress')
+echo "Calling initMigration with params: 1, $new_rollup_type_id, $upgradeData"
+kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$rollup_manager_address' 'initMigration(uint32,uint32,bytes)' '1' '$new_rollup_type_id' '$upgradeData'"
+
+                                                                                                                           
+           ##                    ##                                                                          ##            
+           ##                    ##                                                                          ##            
+   #####.####### :####  ##.###########        ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
+ ############### ###### ##############      #######.######.###############:.######.####### .######:####### ############### 
+ ##:  .:#  ##    #:  :#####.     ##         ##:  :####  #####.##.#####  ######  ######  :####:  :#####  :##  ##   ##:  .:# 
+ ##### .   ##     :#######       ##        ##.     ##.  .#### ## ####.  .####.  .####    ############    ##  ##   ##### .  
+  ######:  ##   .#########       ##        ##      ##    #### ## ####    ####    ####    ############    ##  ##   .######: 
+       ##  ##   ## .  ####       ##        ##.     ##.  .#### ## ####.  .####.  .####    ####      ##    ##  ##      .: ## 
+ #:.  :##  ##.  ##:  #####       ##.        ##:  .####  ##### ## #####  ######  #####    #####.  :###    ##  ##.  #:.  :## 
+ ########  ###############       #####      #######.######.## ## #########:.######.##    ##.#########    ##  ############# 
+   ####    .####  ###.####       .####        ####: .####. ## ## ####.###:  .####. ##    ## .#####:##    ##  .####. ####   
+                                                                   ##                                                      
+                                                                   ##                                                      
+                                                                   ##                                                      
+
+# version required to support zkevm.honour-chainspec
+# bug in this version does not allow rpc to sync:
+# cdk_erigon_node_image=hermeznetwork/cdk-erigon:v2.63.0-rc4
+cdk_erigon_node_image=hermeznetwork/cdk-erigon:v2.64.0-RC6
+
+cdk_erigon_sequencer_data=$(docker inspect cdk-erigon-sequencer-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-sequencer-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/home/erigon/data/dynamic-kurtosis-sequencer") | .Source')
+cdk_erigon_sequencer_etc=$(docker inspect cdk-erigon-sequencer-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-sequencer-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/etc/cdk-erigon") | .Source')
+cdk_erigon_sequencer_home=$(docker inspect cdk-erigon-sequencer-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-sequencer-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/home/erigon/dynamic-configs") | .Source')
+cdk_erigon_sequencer_prunner=$(docker inspect cdk-erigon-sequencer-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-sequencer-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/usr/local/share/proc-runner") | .Source')
+
+tmp_folder=cdk_erigon_sequencer_tmp
+rm -fr $tmp_folder
+mkdir -p ${tmp_folder}/data ${tmp_folder}/etc ${tmp_folder}/home ${tmp_folder}/prunner
+sudo bash -c "cp -r \"$cdk_erigon_sequencer_data\"/* ${tmp_folder}/data/"
+sudo bash -c "cp -r \"$cdk_erigon_sequencer_etc\"/* ${tmp_folder}/etc/"
+sudo bash -c "cp -r \"$cdk_erigon_sequencer_home\"/* ${tmp_folder}/home/"
+sudo bash -c "cp -r \"$cdk_erigon_sequencer_prunner\"/* ${tmp_folder}/prunner/"
+
+sudo chmod -R 777  ${tmp_folder}/data/
+
+docker stop cdk-erigon-sequencer-001 && docker rm cdk-erigon-sequencer-001
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name cdk-erigon-sequencer-001 \
+    --env CDK_ERIGON_SEQUENCER=1 \
+    -v "$(pwd)"/${tmp_folder}/data:/home/erigon/data/dynamic-kurtosis-sequencer \
+    -v "$(pwd)"/${tmp_folder}/etc:/etc/cdk-erigon \
+    -v "$(pwd)"/${tmp_folder}/home:/home/erigon/dynamic-configs \
+    -v "$(pwd)"/${tmp_folder}/prunner:/usr/local/share/proc-runner \
+    --entrypoint /usr/local/share/proc-runner/proc-runner.sh \
+    "$cdk_erigon_node_image" \
+    "cdk-erigon --config /etc/cdk-erigon/config.yaml"
+
+
+
+cdk_erigon_rpc_etc=$(docker inspect cdk-erigon-rpc-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-rpc-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/etc/cdk-erigon") | .Source')
+cdk_erigon_rpc_home=$(docker inspect cdk-erigon-rpc-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-rpc-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/home/erigon/dynamic-configs") | .Source')
+cdk_erigon_rpc_prunner=$(docker inspect cdk-erigon-rpc-001--"$(kurtosis service inspect $kurtosis_enclave_name cdk-erigon-rpc-001 --full-uuid | grep UUID | sed  's/.*: //')" | jq -r '.[0].Mounts[] | select(.Destination == "/usr/local/share/proc-runner") | .Source')
+
+tmp_folder=cdk_erigon_rpc_tmp
+rm -fr $tmp_folder
+mkdir -p ${tmp_folder}/etc ${tmp_folder}/home ${tmp_folder}/prunner
+sudo bash -c "cp -r \"$cdk_erigon_rpc_etc\"/* ${tmp_folder}/etc/"
+sudo bash -c "cp -r \"$cdk_erigon_rpc_home\"/* ${tmp_folder}/home/"
+sudo bash -c "cp -r \"$cdk_erigon_rpc_prunner\"/* ${tmp_folder}/prunner/"
+
+# replace "old" sequenccer ip by the name
+sed -i -E 's|^(zkevm\.l2-datastreamer-url:\s*)[^:#[:space:]]+:6900\s*$|\1cdk-erigon-sequencer-001:6900|' ${tmp_folder}/etc/config.yaml
+sed -i -E 's|^(zkevm\.l2-sequencer-rpc-url:\s*http://)[^:/[:space:]]+:8123\s*$|\1cdk-erigon-sequencer-001:8123|' ${tmp_folder}/etc/config.yaml
+
+
+docker stop cdk-erigon-rpc-001 && docker rm cdk-erigon-rpc-001
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name cdk-erigon-rpc-001 \
+    -v "$(pwd)"/${tmp_folder}/etc:/etc/cdk-erigon \
+    -v "$(pwd)"/${tmp_folder}/home:/home/erigon/dynamic-configs \
+    -v "$(pwd)"/${tmp_folder}/prunner:/usr/local/share/proc-runner \
+    --entrypoint /usr/local/share/proc-runner/proc-runner.sh \
+    "$cdk_erigon_node_image" \
+    "cdk-erigon --config /etc/cdk-erigon/config.yaml"
+
+
+# kurtosis service update --image $cdk_erigon_node_image $kurtosis_enclave_name cdk-erigon-sequencer-001
+# kurtosis service update --image $cdk_erigon_node_image $kurtosis_enclave_name cdk-erigon-rpc-001
+
+
+                                                                                                  ##            
+                                                                                                  ##            
+ ##.####  .####: ##      ##        ####: .####. ## #:##:##.###:  .####. ##.####  .####: ##.#### ####### :#####. 
+ ####### .######:##.    .##      #######.######.###############:.######.####### .######:####### ############### 
+ ###  :####:  :## #: ## :#       ##:  :####  #####.##.#####  ######  ######  :####:  :#####  :##  ##   ##:  .:# 
+ ##    ##########:#:.##.:#:     ##.     ##.  .#### ## ####.  .####.  .####    ############    ##  ##   ##### .  
+ ##    ########## # :##:##      ##      ##    #### ## ####    ####    ####    ############    ##  ##   .######: 
+ ##    ####       ## ## ##      ##.     ##.  .#### ## ####.  .####.  .####    ####      ##    ##  ##      .: ## 
+ ##    #####.  :# ###::##        ##:  .####  ##### ## #####  ######  #####    #####.  :###    ##  ##.  #:.  :## 
+ ##    ##.####### :##..##:       #######.######.## ## #########:.######.##    ##.#########    ##  ############# 
+ ##    ## .#####: .##  ##          ####: .####. ## ## ####.###:  .####. ##    ## .#####:##    ##  .####. ####   
+                                                        ##                                                      
+                                                        ##                                                      
+                                                        ##                                                      
+agglayer_image=ghcr.io/agglayer/agglayer:0.4.0-rc.15
+aggkit_image=ghcr.io/agglayer/aggkit:0.7.0-beta10
+
+
+kurtosis service update --image $agglayer_image $kurtosis_enclave_name agglayer-prover
+
+
+# Agglayer state is stored in /etc/agglayer, which is not preserved by doing a kurtosis service update
+agglayer_etc_agglayer=$(docker inspect agglayer--"$(kurtosis service inspect $kurtosis_enclave_name agglayer --full-uuid | grep UUID | sed  's/.*: //')" | jq -r .[0].Mounts[0].Source)
+
+# replace "cdk-erigon-rpc-001" by "cdk-erigon-sequencer-001"
+sudo sed -i -E 's|^1 = "http://cdk-erigon-rpc-001:8123"|1 = "http://cdk-erigon-sequencer-001:8123"|' $agglayer_etc_agglayer/agglayer-config.toml
+
+docker stop agglayer && docker rm agglayer
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name agglayer \
+    -v $agglayer_etc_agglayer:/etc/agglayer \
+    "$agglayer_image" \
+    agglayer \
+    run \
+    --cfg \
+    /etc/agglayer/agglayer-config.toml
+
+
+# deploy aggkit
+rm -fr aggkit
+mkdir -p aggkit/etc
+cp aggkit-config.toml.template aggkit/etc/aggkit-config.toml
+contracts_dockername=contracts-001--"$(kurtosis service inspect $kurtosis_enclave_name contracts-001 --full-uuid | grep UUID | sed  's/.*: //')"
+docker cp $contracts_dockername:/opt/keystores/sequencer.keystore aggkit/etc/
+docker cp $contracts_dockername:/opt/keystores/aggoracle.keystore aggkit/etc/
+docker cp $contracts_dockername:/opt/keystores/claimsponsor.keystore aggkit/etc/
+
+bridge_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polygonZkEVMBridgeAddress')
+sed -i 's/REPLACE_BRIDGE_ADDRESS/'$bridge_address'/' aggkit/etc/aggkit-config.toml
+
+creation_number=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.createRollupBlockNumber')
+sed -i 's/REPLACE_CREATION_BLOCK/'$creation_number'/' aggkit/etc/aggkit-config.toml
+
+sed -i 's/REPLACE_CHAINID/'"$chain_id"'/' aggkit/etc/aggkit-config.toml
+
+ger_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polygonZkEVMGlobalExitRootAddress')
+sed -i 's/REPLACE_GER_ADDRESS/'"$ger_address"'/' aggkit/etc/aggkit-config.toml
+
+# REPLACE_RM_ADDRESS:
+sed -i 's/REPLACE_RM_ADDRESS/'"$rollup_manager_address"'/' aggkit/etc/aggkit-config.toml
+
+# REPLACE_POL_ADDRESS
+pol_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polTokenAddress')
+sed -i 's/REPLACE_POL_ADDRESS/'"$pol_address"'/' aggkit/etc/aggkit-config.toml
+
+sed -i 's/REPLACE_ROLLUP_ADDRESS/'"$rollup_address"'/' aggkit/etc/aggkit-config.toml
+
+ger2_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polygonZkEVMGlobalExitRootL2Address')
+sed -i 's/REPLACE_GER2_ADDRESS/'"$ger2_address"'/' aggkit/etc/aggkit-config.toml
+
+l1_chain_id=$(curl -s "${contracts_url}/opt/input/input_args.json" | jq -r .args.l1_chain_id)
+sed -i 's/REPLACE_L1_CHAINID/'"$l1_chain_id"'/' aggkit/etc/aggkit-config.toml
+
+bridge_l2_address=$(curl -s "${contracts_url}/opt/output/combined-001.json" | jq -r '.polygonZkEVML2BridgeAddress')
+sed -i 's/REPLACE_BRIDGE_L2_ADDRESS/'$bridge_l2_address'/' aggkit/etc/aggkit-config.toml
+
+
+# # UPGRADE L2 CONTRACTS
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && git fetch && git stash push -m \"upgrade\" && git checkout feature/upgrade-ger && git stash pop"
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npm i"
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo DEPLOYER_PRIVATE_KEY=\"$l2_admin_private_key\" > /opt/agglayer-contracts/.env"
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo CUSTOM_PROVIDER=\"http://cdk-erigon-sequencer-001:8123\" >> /opt/agglayer-contracts/.env"
+
+# upgrade_parameters='{
+#     "bridgeL2": "'$bridge_l2_address'",
+#     "gerL2": "'$ger2_address'",
+#     "ger_initializationParameters": {
+#         "globalExitRootUpdater": "'$l2_admin_address'",
+#         "globalExitRootRemover": "'$l2_admin_address'"
+#     },
+#     "unsafeMode": true
+# }'
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "echo '$upgrade_parameters' > /opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_parameters.json"
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cd /opt/agglayer-contracts/ && npx hardhat run ./upgrade/upgradeGERToSovereign/upgradeGERToSovereign.ts --network custom"
+
+# scheduleData=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json" | jq -r '.scheduleData')
+# executeData=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json" | jq -r '.executeData')
+# timelock_address=$(curl -s "${contracts_url}/opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json" | jq -r '.timelockContractAddress')
+
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://el-1-geth-lighthouse:8545 '$timelock_address' '$scheduleData'"
+
+# targets=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 \
+#   "cd /opt/agglayer-contracts/ && jq -r '
+#     .decodedScheduleData.target
+#     | [.] 
+#     | \"[\" + (join(\", \")) + \"]\"
+#   ' /opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json")
+# values=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 \
+#   "cd /opt/agglayer-contracts/ && jq -r '
+#     .decodedScheduleData.value
+#     | [.] 
+#     | \"[\" + (join(\", \")) + \"]\"
+#   ' /opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json")
+# payloads=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 \
+#   "cd /opt/agglayer-contracts/ && jq -r '
+#     .decodedScheduleData.data
+#     | [.] 
+#     | \"[\" + (join(\", \")) + \"]\"
+#   ' /opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json")
+# predecessor=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 \
+#   "cd /opt/agglayer-contracts/ && jq -r '.decodedScheduleData.predecessor' /opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json")
+# salt=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 \
+#   "cd /opt/agglayer-contracts/ && jq -r '.decodedScheduleData.salt' /opt/agglayer-contracts/upgrade/upgradeGERToSovereign/upgrade_output.json")
+
+# # Get operation id (hashOperationBatch)
+# echo "Calling hashOperationBatch with params: $targets, $values, $payloads, $predecessor, $salt"
+# operationId=$(kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast call --rpc-url http://cdk-erigon-sequencer-001:8123 '$timelock_address' 'hashOperationBatch(address[],uint256[],bytes[],bytes32,bytes32)(bytes32)' \"$targets\" \"$values\" \"$payloads\" \"$predecessor\" \"$salt\"")
+# echo "Operation id: $operationId"
+
+# # wait for operation to be ready
+# while [ "$(kurtosis service exec $kurtosis_enclave_name contracts-001 "cast call --rpc-url http://cdk-erigon-sequencer-001:8123 '$timelock_address' 'isOperationReady(bytes32)(bool)' \"$operationId\"")" == "false" ]; do
+#     echo "Operation not ready. Retrying in 10 seconds..."
+#     sleep 10
+# done
+
+# # Execute operation
+# kurtosis service exec "$kurtosis_enclave_name" contracts-001 "cast send --private-key '$l2_admin_private_key' --rpc-url http://cdk-erigon-sequencer-001:8123 '$timelock_address' '$executeData'"
+
+
+
+docker stop aggkit-001 && docker rm aggkit-001
+docker run -it \
+    --detach \
+    --network $docker_network_name \
+    --name aggkit-001 \
+    -v "$(pwd)"/aggkit/etc:/etc/aggkit \
+    "$aggkit_image" \
+    run \
+    --cfg=/etc/aggkit/aggkit-config.toml \
+    --components=aggsender
+
+
+kurtosis service update --env L2_RPC_URL=http://cdk-erigon-sequencer-001:8123 $kurtosis_enclave_name bridge-spammer-001

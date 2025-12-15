@@ -24,6 +24,12 @@ _agglayer_cdk_common_setup() {
     export BALANCE_OF_FN_SIG="function balanceOf(address) (uint256)"
     export APPROVE_FN_SIG="function approve(address,uint256)"
 
+    # ✅ Bridge contract function signatures
+    export BRIDGE_ASSET_FN_SIG="function bridgeAsset(uint32,address,uint256,address,bool,bytes)"
+    export BRIDGE_MSG_FN_SIG="function bridgeMessage(uint32,address,bool,bytes)"
+    export CLAIM_ASSET_FN_SIG="function claimAsset(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+    export CLAIM_MSG_FN_SIG="function claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)"
+
     # ✅ Resolve URLs
     _resolve_required_urls
 
@@ -64,7 +70,7 @@ _load_helper_scripts() {
     'query_contract'
     'send_tx'
     'verify_balance'
-    'wait_to_settled_certificate_containing_global_index'
+    'wait_to_settle_certificate_containing_global_index'
     'assert_block_production'
     'check_balances'
     'deploy_contract'
@@ -323,7 +329,7 @@ _resolve_contract_addresses() {
         l2=$(echo "$json_output" | jq -r .polygonZkEVML2BridgeAddress)
         pol=$(echo "$json_output" | jq -r .polTokenAddress)
         l1_ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootAddress)
-        ger=$(echo "$json_output" | jq -r .polygonZkEVMGlobalExitRootL2Address)
+        ger=$(echo "$json_output" | jq -r .LegacyAgglayerGERL2)
         gas=$(echo "$json_output" | jq -r .gasTokenAddress)
     fi
 
@@ -472,6 +478,24 @@ _agglayer_cdk_common_multi_setup() {
         readonly aggkit_bridge_3_url
     fi
 
+    # AGGKIT_RPC_URL
+    aggkit_rpc_1_url=$(_resolve_url_or_use_env AGGKIT_RPC_1_URL \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true)
+    export aggkit_rpc_1_url
+
+    aggkit_rpc_2_url=$(_resolve_url_or_use_env AGGKIT_RPC_2_URL \
+        "aggkit-002" "rpc" "cdk-node-002" "rpc" \
+        "Failed to resolve aggkit rpc url from all fallback nodes" true)
+    export aggkit_rpc_2_url
+
+    if [[ $number_of_chains -eq 3 ]]; then
+        aggkit_rpc_3_url=$(_resolve_url_or_use_env AGGKIT_RPC_3_URL \
+            "aggkit-003" "rpc" "cdk-node-003" "rpc" \
+            "Failed to resolve aggkit rpc url from all fallback nodes" true)
+        export aggkit_rpc_3_url
+    fi
+
     # Rollup network ids
     rollup_1_network_id=$(cast call --rpc-url $l2_rpc_url_1 $l2_bridge_addr 'networkID() (uint32)')
     readonly rollup_1_network_id
@@ -539,7 +563,7 @@ _resolve_aggsender_mode(){
     mode=${aggsender_mode:-}
     if [ ! -z "$mode"  ]; then
         echo "Using aggsender_mode from environment: $aggsender_mode" >&3
-    else 
+    else
         echo "Resolving aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&3
         mode=$(curl -X POST $aggkit_rpc_url --header "Content-Type: application/json"  -d '{"method":"aggsender_status", "params":[], "id":1}' | jq .result.mode)
         if [ "$mode" == "null" ] || [ -z "$mode" ]; then

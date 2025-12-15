@@ -8,7 +8,6 @@ setup() {
     _agglayer_cdk_common_setup
 }
 
-
 @test "Transfer message" {
     log_start_test
     echo "====== bridgeMessage L1 -> L2 :$LINENO" >&3
@@ -146,7 +145,7 @@ setup() {
     tokens_amount="1ether"
     amount=$(cast --to-unit $tokens_amount wei)
     meta_bytes="0x"
-    run bridge_asset "$l2_erc20_addr" "$L2_RPC_URL" "$l2_bridge_addr" 
+    run bridge_asset "$l2_erc20_addr" "$L2_RPC_URL" "$l2_bridge_addr"
     assert_success
     local bridge_tx_hash=$output
 
@@ -160,7 +159,6 @@ setup() {
     echo "=== 🪤 Running L1 bridge to update l1infotree (sleep 300 secs)" >&3
     run update_l1_info_tree 300 "first $LINENO"
     assert_success
-    
 
     # Claim deposit (settle it on the L1)
     echo "==== 🔐 Claiming ERC20 token deposit on L1 ($l1_rpc_url)" >&3
@@ -290,26 +288,6 @@ setup() {
     destination_addr=$sender_addr
     destination_net=0
     run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
-    assert_success
-    log_end_test
-}
-
-@test "Native token transfer L1 -> L2 - manipulated global index" {
-    skip "skipped test because is not working as expected, check issue #1123 (https://github.com/agglayer/aggkit/issues/1123)"
-    log_start_test
-    destination_addr=$sender_addr
-    local initial_receiver_balance
-    initial_receiver_balance=$(get_token_balance "$L2_RPC_URL" "$weth_token_addr" "$destination_addr")
-    echo "Initial receiver balance of native token on L2 $initial_receiver_balance eth" >&3
-
-    echo "=== Running L1 native token deposit to L2 network $l2_rpc_network_id (native_token: $native_token_addr)" >&3
-    destination_net=$l2_rpc_network_id
-    run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
-    assert_success
-    local bridge_tx_hash=$output
-
-    # Claim deposit (claim will fail because global index is manipulated)
-    run process_bridge_claim "claim global index is manipulated: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "true" "$sender_addr"
     assert_success
     log_end_test
 }

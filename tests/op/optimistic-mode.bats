@@ -7,7 +7,6 @@ setup() {
     source "${BATS_TEST_DIRNAME}/../../core/helpers/common.bash"
     _setup_vars
 
-    optimistic_mode_manager_pvk=${OPTIMISTIC_MODE_MANAGER_PVK:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     timeout=${TIMEOUT:-3000}
     retry_interval=${RETRY_INTERVAL:-15}
 
@@ -48,7 +47,7 @@ toggle_optimistic_mode() {
     [[ "$enabled" == "false" ]] && method="disableOptimisticMode"
 
     echo "Executing $method..." >&3
-    cast send "$rollup_address" "$method()" --rpc-url "$l1_rpc_url" --private-key "$optimistic_mode_manager_pvk" >&3
+    cast send "$rollup_address" "$method()" --rpc-url "$l1_rpc_url" --private-key "$l2_sovereignadmin_private_key" >&3
 
     local result
     result=$(cast call "$rollup_address" "optimisticMode()(bool)" --rpc-url "$l1_rpc_url")
@@ -57,17 +56,6 @@ toggle_optimistic_mode() {
     else
         echo "Error: optimisticMode() did not return $enabled, got $result" >&3
         return 1
-    fi
-}
-
-# Helper function for initial certificate checks
-ensure_non_null_cert() {
-    if check_for_null_cert >&3; then
-        if ! check_for_latest_settled_cert >&3; then
-            wait_for_non_null_cert >&3
-        fi
-    else
-        wait_for_non_null_cert >&3
     fi
 }
 
@@ -86,7 +74,7 @@ check_fep_consensus_version() {
 @test "Enable OptimisticMode" {
     check_fep_consensus_version
 
-    ensure_non_null_cert
+    ensure_non_null_cert >&3
     manage_bridge_spammer "stop"
     print_settlement_info >&3
     wait_for_null_cert >&3
@@ -108,7 +96,7 @@ check_fep_consensus_version() {
 
 # bats test_tags=optimistic-mode
 @test "Disable OptimisticMode" {
-    ensure_non_null_cert
+    ensure_non_null_cert >&3
     manage_bridge_spammer "stop"
     print_settlement_info >&3
     wait_for_null_cert >&3

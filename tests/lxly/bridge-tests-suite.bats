@@ -15,11 +15,52 @@ setup_file() {
     source "$BATS_TEST_DIRNAME/../../core/helpers/logger.bash"
 
     export bridge_service_url="${BRIDGE_SERVICE_URL:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc)}"
-    export claim_wait_duration="${CLAIM_WAIT_DURATION:-120m}"
+    # If ETH_RPC_TIMEOUT ends with a valid time unit (s, m, h), use as-is; otherwise, append "s"
+    if [[ "$ETH_RPC_TIMEOUT" =~ [0-9]+[smh]$ ]]; then
+        export claim_wait_duration="$ETH_RPC_TIMEOUT"
+    else
+        export claim_wait_duration="${ETH_RPC_TIMEOUT}s"
+    fi
 
-    # Load test scenarios from file
-    scenarios=$(cat "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-suite.json")
-    export scenarios
+    # Load test scenarios from file based on NETWORK_ENVIRONMENT
+    # Instead of storing large JSON in a variable, use a temp file
+    local json_temp_file
+    json_temp_file=$(mktemp)
+    
+    # Determine which test suite to load based on NETWORK_ENVIRONMENT
+    local test_suite_file=""
+    case "${NETWORK_ENVIRONMENT:-kurtosis}" in
+        "bali")
+            test_suite_file="bali-bridge-tests-suite.json"
+            ;;
+        "cardona")
+            test_suite_file="cardona-bridge-tests-suite.json"
+            ;;
+        "spec")
+            test_suite_file="spec-bridge-tests-suite.json"
+            ;;
+        *)
+            # Default to bali for kurtosis and any other environment
+            test_suite_file="bali-bridge-tests-suite.json"
+            ;;
+    esac
+    
+    local source_file="$BATS_TEST_DIRNAME/../lxly/assets/$test_suite_file"
+    if [[ -f "$source_file" ]]; then
+        cp "$source_file" "$json_temp_file"
+        echo "Using test suite: $test_suite_file (NETWORK_ENVIRONMENT=${NETWORK_ENVIRONMENT:-kurtosis})" >&3
+    else
+        echo "Warning: Test suite file $test_suite_file not found, exitting test..." >&3
+        exit 1
+    fi
+    
+    export scenarios_file="$json_temp_file"
+    
+    # Clean up function
+    cleanup_temp_files() {
+        rm -f "$scenarios_file"
+    }
+    trap cleanup_temp_files EXIT
 
     # Contract addresses
     _setup_contract_addresses
@@ -28,6 +69,7 @@ setup_file() {
     global_timeout="$(echo "$ETH_RPC_TIMEOUT" | sed 's/[smh]$//')"
     export global_timeout
     export max_concurrent="${MAX_CONCURRENT:-10}"
+    export setup_max_concurrent="${SETUP_MAX_CONCURRENT:-1}"
 }
 
 setup() {
@@ -46,17 +88,26 @@ teardown() {
     rm -f "/tmp/huge_data_${test_index}.hex" "/tmp/max_data_${test_index}.hex"
 
     # Clean up result files
-    rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex
+    rm -f /tmp/test_result_*.txt /tmp/huge_data_*.hex /tmp/max_data_*.hex /tmp/setup_result_*.txt
 }
 
 
 _setup_contract_addresses() {
-    tester_contract_address="${TESTER_CONTRACT_ADDRESS:-0xc54E34B55EF562FE82Ca858F70D1B73244e86388}"
     export test_erc20_buggy_addr="${TEST_ERC20_BUGGY_ADDRESS:-0x22939b3A4dFD9Fc6211F99Cdc6bd9f6708ae2956}"
-    test_lxly_proxy_addr="${TEST_LXLY_PROXY_ADDRESS:-0x8Cf49821aAFC2859ACEa047a1ee845A76D5C4191}"
     export test_erc20_addr="${TEST_ERC20_ADDRESS:-0x0a0Ba80F5D8Ce83D9d620dDfD1437507C793171f}"
-    export pp_weth_address="${TEST_PP_WETH_ADDRESS:-$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')}"
-    # pp_weth_address=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'WETHToken()(address)')
+    # Try to get WETH address from any available network
+    local pp_weth_temp=""
+    for net_id in "0" "1"; do
+        local rpc_url bridge_addr
+        rpc_url=$(_get_network_config "$net_id" "rpc_url" 2>/dev/null) || continue
+        bridge_addr=$(_get_network_config "$net_id" "bridge_addr" 2>/dev/null) || continue
+        if [[ -n "$rpc_url" && -n "$bridge_addr" ]]; then
+            if pp_weth_temp=$(cast call --rpc-url "$rpc_url" "$bridge_addr" 'WETHToken()(address)' 2>/dev/null); then
+                break
+            fi
+        fi
+    done
+    export pp_weth_address="${TEST_PP_WETH_ADDRESS:-$pp_weth_temp}"
     export pol_address="${POL_ADDRESS:-0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E}"
 }
 
@@ -78,42 +129,73 @@ _calculate_test_erc20_address() {
 # =============================================================================
 # bats test_tags=bridge
 @test "Initial setup" {
-    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
-        _log_file_descriptor "3" "Bridge Tests Suite file not found"
+    # Test scenarios file is already set up in setup_file(), so we just check if it exists
+    [[ -f "$scenarios_file" ]] || {
+        _log_file_descriptor "3" "Bridge Tests Suite file not found: $scenarios_file"
         skip "Bridge Tests Suite file not found"
     }
 
     echo "ETH_RPC_TIMEOUT: $ETH_RPC_TIMEOUT" >&3
 
-    # Deploy contracts to L1
-    deploy_buggy_erc20 "$l1_rpc_url" "$l1_private_key" "$l1_eth_address" "$l1_bridge_addr"
-    deploy_test_erc20 "$l1_rpc_url" "$l1_private_key" "$l1_eth_address" "$l1_bridge_addr"
-    deploy_lxly_proxy "$l1_rpc_url" "$l1_private_key" "$l1_bridge_addr"
-    deploy_tester_contract "$l1_rpc_url" "$l1_private_key"
-
-    # Deploy contracts to L2
-    deploy_buggy_erc20 "$l2_rpc_url" "$l2_private_key" "$l2_eth_address" "$l2_bridge_addr"
-    deploy_test_erc20 "$l2_rpc_url" "$l2_private_key" "$l2_eth_address" "$l2_bridge_addr"
-    deploy_lxly_proxy "$l2_rpc_url" "$l2_private_key" "$l2_bridge_addr"
-    deploy_tester_contract "$l2_rpc_url" "$l2_private_key"
+    # Get all unique network IDs from the test scenarios
+    local unique_networks
+    unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
+    
+    _log_file_descriptor "3" "Deploying contracts to networks: $(echo "$unique_networks" | tr '\n' ' ')"
+    
+    # Deploy contracts to each unique network found in test scenarios
+    while IFS= read -r network_id; do
+        [[ -n "$network_id" ]] || continue
+        
+        local rpc_url private_key eth_address bridge_addr
+        rpc_url=$(_get_network_config "$network_id" "rpc_url" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get RPC URL for network $network_id, skipping"
+            continue
+        }
+        private_key=$(_get_network_config "$network_id" "private_key" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get private key for network $network_id, skipping"
+            continue
+        }
+        eth_address=$(_get_network_config "$network_id" "eth_address" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get ETH address for network $network_id, skipping"
+            continue
+        }
+        bridge_addr=$(_get_network_config "$network_id" "bridge_addr" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get bridge address for network $network_id, skipping"
+            continue
+        }
+        
+        _log_file_descriptor "3" "Deploying contracts to network $network_id"
+        deploy_buggy_erc20 "$rpc_url" "$private_key" "$eth_address" "$bridge_addr"
+        deploy_test_erc20 "$rpc_url" "$private_key" "$eth_address" "$bridge_addr"
+    done <<< "$unique_networks"
 }
 
 # bats test_tags=bridge
-@test "Process L1 to L2 bridge scenarios and claim deposits in parallel" {
-    skip
-    _log_file_descriptor "3" "Starting L1 to L2 parallel bridge scenarios and claims test"
-    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
-        _log_file_descriptor "3" "Bridge Tests Suite file not found"
+@test "Process bridge scenarios with dynamic network routing and claim deposits in parallel" {
+    _log_file_descriptor "3" "Starting parallel bridge scenarios with dynamic network routing"
+    [[ -f "$scenarios_file" ]] || {
+        _log_file_descriptor "3" "Bridge Tests Suite file not found: $scenarios_file"
         skip "Bridge Tests Suite file not found"
     }
 
     export test_erc20_addr
-    test_erc20_addr="$(_calculate_test_erc20_address "$l1_eth_address")"
+    # Try to calculate test ERC20 address from any available network
+    local calculated_addr=""
+    for net_id in "0" "1"; do
+        local eth_address
+        eth_address=$(_get_network_config "$net_id" "eth_address" 2>/dev/null) || continue
+        if [[ -n "$eth_address" ]]; then
+            calculated_addr="$(_calculate_test_erc20_address "$eth_address")"
+            [[ -n "$calculated_addr" ]] && break
+        fi
+    done
+    test_erc20_addr="${calculated_addr:-$test_erc20_addr}"
 
     # Create output directory with timestamp
     local timestamp
     timestamp=$(date +%Y%m%d_%H%M%S)
-    local output_dir="$log_root_dir/bridge_test_results_l1_to_l2_${timestamp}"
+    local output_dir="$log_root_dir/bridge_test_results_dynamic_${timestamp}"
     mkdir -p "$output_dir"
     
     _log_file_descriptor "3" "Test results will be saved to: $output_dir"
@@ -121,7 +203,7 @@ _calculate_test_erc20_address() {
     
     # Get total number of scenarios
     local total_scenarios
-    total_scenarios=$(echo "$scenarios" | jq '. | length')
+    total_scenarios=$(jq '. | length' "$scenarios_file")
     _log_file_descriptor "3" "Total scenarios to process: $total_scenarios"
     
     # Save detailed setup log
@@ -129,68 +211,64 @@ _calculate_test_erc20_address() {
 
     echo "" | tee "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
-    echo "      PHASE 1: SEQUENTIAL SETUP         " | tee -a "$setup_log" >&3
-    echo "              L1 -> L2                  " | tee -a "$setup_log" >&3
+    echo "            BULK SETUP PHASE            " | tee -a "$setup_log" >&3
+    echo "            Dynamic Networks            " | tee -a "$setup_log" >&3
     echo "========================================" | tee -a "$setup_log" >&3
     
-    # Phase 1: Sequential setup of all test accounts
-    local index=0
-    local setup_failures=0
-    local successful_setups=()  # Array to track successfully set up test indices
-
-    _log_file_descriptor "3" "Setting up $total_scenarios test accounts..." | tee -a "$setup_log"
-
-    while read -r scenario; do
-        local progress_percent=$((index * 100 / total_scenarios))
-        _log_file_descriptor "3" "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log"
+    # Bulk setup: Fund all ephemeral accounts and approve tokens in one go
+    _log_file_descriptor "3" "Setting up $total_scenarios ephemeral accounts with bulk funding..." | tee -a "$setup_log"
+    
+    # Get all unique networks from test scenarios and bulk fund on each
+    local unique_networks
+    unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
+    
+    _log_file_descriptor "3" "Networks requiring funding: $(echo "$unique_networks" | tr '\n' ' ')" | tee -a "$setup_log"
+    
+    # Bulk fund ephemeral accounts on all required networks
+    while IFS= read -r network_id; do
+        [[ -n "$network_id" ]] || continue
         
-        if ! _setup_single_test_account "$index" "$scenario" "L1_TO_L2" 2>>"$output_dir/setup_debug_${index}.log"; then
-            _log_file_descriptor "3" "❌ Failed to set up account for test $index" | tee -a "$setup_log"
-            setup_failures=$((setup_failures + 1))
-        else
-            _log_file_descriptor "3" "✅ Successfully set up account for test $index" | tee -a "$setup_log"
-            successful_setups+=("$index")  # Track successful setup
-        fi
+        local bridge_addr
+        bridge_addr=$(_get_network_config "$network_id" "bridge_addr" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get bridge address for network $network_id, skipping bulk setup" | tee -a "$setup_log"
+            continue
+        }
         
-        index=$((index + 1))
-    done < <(echo "$scenarios" | jq -c '.[]')
-
-    local successful_count=${#successful_setups[@]}
-
-    _log_file_descriptor "3" "" | tee -a "$setup_log"
-    _log_file_descriptor "3" "Setup Phase Complete:" | tee -a "$setup_log"
-    _log_file_descriptor "3" "  ✅ Successful setups: $successful_count" | tee -a "$setup_log"
-    _log_file_descriptor "3" "  ❌ Failed setups: $setup_failures" | tee -a "$setup_log"
-
-    if [[ $setup_failures -gt 0 ]]; then
-        echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log" >&3
-        echo "Successfully set up $successful_count accounts" | tee -a "$setup_log" >&3
-        echo "Setup logs saved to: $output_dir/setup_*.log" | tee -a "$setup_log" >&3
+        _log_file_descriptor "3" "Setting up ephemeral accounts on network $network_id..." | tee -a "$setup_log"
         
-        # Continue with successful setups if we have any
-        if [[ $successful_count -eq 0 ]]; then
-            echo "No accounts were successfully set up, aborting test" | tee -a "$setup_log" >&3
+        if ! _setup_ephemeral_accounts_in_bulk "NETWORK_$network_id" "$total_scenarios" "$bridge_addr"; then
+            _log_file_descriptor "3" "Failed to bulk setup accounts on network $network_id" | tee -a "$setup_log"
             return 1
         fi
-    else
-        echo "All $total_scenarios test accounts set up successfully" | tee -a "$setup_log" >&3
-    fi
+    done <<< "$unique_networks"
+
+    _log_file_descriptor "3" "✅ Successfully bulk funded and approved tokens for all $total_scenarios ephemeral accounts" | tee -a "$setup_log"
+    
+    # Create array of all test indices since bulk setup means all accounts are ready
+    local successful_setups=()
+    for ((i=0; i<total_scenarios; i++)); do
+        successful_setups+=("$i")
+    done
+    
+    local successful_count=${#successful_setups[@]}
+    
+    _log_file_descriptor "3" "" | tee -a "$setup_log"
+    _log_file_descriptor "3" "Bulk Setup Phase Complete:" | tee -a "$setup_log"
+    _log_file_descriptor "3" "  ✅ All $successful_count accounts ready for bridge tests" | tee -a "$setup_log"
 
     # Save detailed bridge test log
     local bridge_log="$output_dir/bridge_phase.log"
 
     echo "" | tee "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
-    echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log" >&3
-    echo "              L1 -> L2                  " | tee -a "$bridge_log" >&3
+    echo "         PARALLEL BRIDGE TESTS          " | tee -a "$bridge_log" >&3
+    echo "           Dynamic Networks             " | tee -a "$bridge_log" >&3
     echo "========================================" | tee -a "$bridge_log" >&3
 
-    # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    # Set concurrency to match number of tests to avoid deadlock scenarios
-    # where all concurrent slots are occupied by stuck/retrying tests
+    # Run bridge tests in parallel for all accounts
     max_concurrent=$successful_count
 
-    echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log" >&3
+    echo "Running bridge tests for $successful_count accounts" | tee -a "$bridge_log" >&3
     echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log" >&3
 
     _log_file_descriptor "3" ""
@@ -201,7 +279,7 @@ _calculate_test_erc20_address() {
     scenario_array=()
     while IFS= read -r line; do
         scenario_array+=("$line")
-    done < <(echo "$scenarios" | jq -c '.[]')
+    done < <(jq -c '.[]' "$scenarios_file")
     
     # Track progress
     local started_tests=0
@@ -237,9 +315,15 @@ _calculate_test_erc20_address() {
         
         started_tests=$((started_tests + 1))
         local start_progress_percent=$((started_tests * 100 / successful_count))
-        _log_file_descriptor "3" "[${start_progress_percent}%] Starting bridge test $test_index (${started_tests}/${successful_count})" | tee -a "$bridge_log"
         
-        _run_single_bridge_test "$test_index" "${scenario_array[$test_index]}" "L1_TO_L2" 2>"$output_dir/bridge_test_${test_index}.log" &
+        # Extract network info for progress logging
+        local from_network to_network
+        from_network=$(echo "${scenario_array[$test_index]}" | jq -r '.FromNetwork')
+        to_network=$(echo "${scenario_array[$test_index]}" | jq -r '.ToNetwork')
+        
+        _log_file_descriptor "3" "[${start_progress_percent}%] Starting bridge test $test_index (${started_tests}/${successful_count}) - Network $from_network -> $to_network" | tee -a "$bridge_log"
+        
+        _run_single_bridge_test "$test_index" "${scenario_array[$test_index]}" 2>"$output_dir/bridge_test_${test_index}.log" &
         local test_pid=$!
         pids+=("$test_pid")
         
@@ -276,7 +360,6 @@ _calculate_test_erc20_address() {
         local new_completions=0
         for i in "${!pids[@]}"; do
             if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                echo "Bridge test process ${pids[$i]} completed" | tee -a "$bridge_log"
                 unset 'pids[$i]'
                 new_completions=$((new_completions + 1))
             fi
@@ -306,304 +389,55 @@ _calculate_test_erc20_address() {
     _log_file_descriptor "3" ""
     _log_file_descriptor "3" "All bridge tests completed! Collecting results..."
     
-    # Collect and report results - pass the successful count instead of total
-    _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
+    # Collect and report results
+    _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count" "$scenarios_file"
     local failed_tests=$?
     
-    # Report setup failures in the final summary but don't fail the test for them
-    if [[ $setup_failures -gt 0 ]]; then
-        _log_file_descriptor "3" "Note: $setup_failures accounts failed setup and were skipped"
-    fi
-    
-    # Fail the test only if bridge tests failed (not setup failures)
+    # No setup failures since bulk setup either succeeds completely or fails completely
     [[ $failed_tests -eq 0 ]] || {
         _log_file_descriptor "3" "Some bridge tests failed. Check the detailed logs in $output_dir"
         return 1
     }
-}
-
-
-# bats test_tags=bridge
-@test "Process L2 to L1 bridge scenarios and claim deposits in parallel" {
-    _log_file_descriptor "3" "Starting L2 to L1 parallel bridge scenarios and claims test"
-    [[ -f "$BATS_TEST_DIRNAME/assets/bridge-tests-suite.json" ]] || {
-        echo "Bridge Tests Suite file not found" >&3
-        skip "Bridge Tests Suite file not found"
-    }
-
-    export test_erc20_addr
-    test_erc20_addr="$(_calculate_test_erc20_address "$l2_eth_address")"
-
-    # Create output directory with timestamp
-    local timestamp
-    timestamp=$(date +%Y%m%d_%H%M%S)
-    local output_dir="$log_root_dir/bridge_test_results_l2_to_l1_${timestamp}"
-    mkdir -p "$output_dir"
-    
-    _log_file_descriptor "3" "Test results will be saved to: $output_dir"
-
-    
-    # Get total number of scenarios
-    local total_scenarios
-    total_scenarios=$(echo "$scenarios" | jq '. | length')
-    _log_file_descriptor "3" "Total scenarios to process: $total_scenarios"
-    
-    # Save detailed setup log
-    local setup_log="$output_dir/setup_phase.log"
-    
-    echo "" | tee "$setup_log" >&3
-    echo "========================================" | tee -a "$setup_log" >&3
-    echo "      PHASE 1: SEQUENTIAL SETUP         " | tee -a "$setup_log" >&3
-    echo "              L2 -> L1                  " | tee -a "$setup_log" >&3
-    echo "========================================" | tee -a "$setup_log" >&3
-    
-    # Phase 1: Sequential setup of all test accounts
-    local index=0
-    local setup_failures=0
-    local successful_setups=()  # Array to track successfully set up test indices
-
-    echo "Setting up $total_scenarios test accounts..." | tee -a "$setup_log" >&3
-
-    while read -r scenario; do
-        local progress_percent=$((index * 100 / total_scenarios))
-        echo "[$progress_percent%] Setting up test account $index/$total_scenarios" | tee -a "$setup_log" >&3
-        
-        if ! _setup_single_test_account "$index" "$scenario" "L2_TO_L1" 2>>"$output_dir/setup_debug_${index}.log"; then
-            echo "❌ Failed to set up account for test $index" | tee -a "$setup_log" >&3
-            setup_failures=$((setup_failures + 1))
-        else
-            echo "✅ Successfully set up account for test $index" | tee -a "$setup_log" >&3
-            successful_setups+=("$index")  # Track successful setup
-        fi
-        
-        index=$((index + 1))
-    done < <(echo "$scenarios" | jq -c '.[]')
-
-    local successful_count=${#successful_setups[@]}
-
-    echo "" | tee -a "$setup_log" >&3
-    echo "Setup Phase Complete:" | tee -a "$setup_log" >&3
-    echo "  ✅ Successful setups: $successful_count" | tee -a "$setup_log" >&3
-    echo "  ❌ Failed setups: $setup_failures" | tee -a "$setup_log" >&3
-
-    if [[ $setup_failures -gt 0 ]]; then
-        echo "Failed to set up $setup_failures out of $total_scenarios test accounts" | tee -a "$setup_log" >&3
-        echo "Successfully set up $successful_count accounts" | tee -a "$setup_log" >&3
-        echo "Setup logs saved to: $output_dir/setup_*.log" | tee -a "$setup_log" >&3
-        
-        # Continue with successful setups if we have any
-        if [[ $successful_count -eq 0 ]]; then
-            echo "No accounts were successfully set up, aborting test" | tee -a "$setup_log" >&3
-            return 1
-        fi
-    else
-        echo "All $total_scenarios test accounts set up successfully" | tee -a "$setup_log" >&3
-    fi
-
-    # Save detailed bridge test log
-    local bridge_log="$output_dir/bridge_phase.log"
-
-    echo "" | tee "$bridge_log" >&3
-    echo "========================================" | tee -a "$bridge_log" >&3
-    echo "      PHASE 2: PARALLEL BRIDGE TESTS    " | tee -a "$bridge_log" >&3
-    echo "              L2 -> L1                  " | tee -a "$bridge_log" >&3
-    echo "========================================" | tee -a "$bridge_log" >&3
-
-    # Phase 2: Run bridge tests in parallel - only for successfully set up accounts
-    # Set concurrency to match number of tests to avoid deadlock scenarios
-    # where all concurrent slots are occupied by stuck/retrying tests
-    max_concurrent=$successful_count
-
-    echo "Running bridge tests for $successful_count successfully set up accounts" | tee -a "$bridge_log" >&3
-    echo "Using max concurrency: $max_concurrent" | tee -a "$bridge_log" >&3
-
-    echo "" | tee -a "$bridge_log" >&3
-    echo "Starting parallel bridge tests with max concurrency: $max_concurrent" | tee -a "$bridge_log" >&3
-    
-    local pids=()
-    local scenario_array
-    scenario_array=()
-    while IFS= read -r line; do
-        scenario_array+=("$line")
-    done < <(echo "$scenarios" | jq -c '.[]')
-    
-    # Track progress
-    local started_tests=0
-    local completed_tests=0
-    
-    for test_index in "${successful_setups[@]}"; do
-        # Wait if we've reached max concurrency
-        while (( ${#pids[@]} >= max_concurrent )); do
-            # Check for completed processes
-            local new_completions=0
-            for i in "${!pids[@]}"; do
-                if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                    unset 'pids[$i]'
-                    new_completions=$((new_completions + 1))
-                fi
-            done
-            
-            # Update progress if we had completions
-            if [[ $new_completions -gt 0 ]]; then
-                completed_tests=$((completed_tests + new_completions))
-                local progress_percent=$((completed_tests * 100 / successful_count))
-                _log_file_descriptor "3" "[${progress_percent}%] Completed: $completed_tests/$successful_count bridge tests"
-            fi
-            
-            # Rebuild pids array to remove gaps
-            pids=("${pids[@]}")
-            
-            # If no process completed, wait a bit
-            if [[ $new_completions -eq 0 ]]; then
-                sleep 0.5
-            fi
-        done
-        
-        started_tests=$((started_tests + 1))
-        local start_progress_percent=$((started_tests * 100 / successful_count))
-        echo "[${start_progress_percent}%] Starting bridge test $test_index (${started_tests}/${successful_count})" | tee -a "$bridge_log" >&3
-
-        _run_single_bridge_test "$test_index" "${scenario_array[$test_index]}" "L2_TO_L1" 2>"$output_dir/bridge_test_${test_index}.log" &
-        local test_pid=$!
-        pids+=("$test_pid")
-
-        # Small delay to stagger test starts
-        sleep 0.1
-        
-    done
-    
-    echo "Started all ${#successful_setups[@]} parallel bridge test processes" | tee -a "$bridge_log" >&3
-
-    # Wait for all remaining background processes to complete
-    local wait_start
-    wait_start=$(date +%s)
-
-    echo "" | tee -a "$bridge_log" >&3
-    echo "Waiting for all bridge tests to complete..." | tee -a "$bridge_log" >&3
-    
-    while (( ${#pids[@]} > 0 )); do
-        local current_time
-        current_time=$(date +%s)
-        local elapsed=$((current_time - wait_start))
-        local elapsed_minutes=$((elapsed / 60))
-        local elapsed_seconds=$((elapsed % 60))
-        
-        if (( elapsed > ${global_timeout%s} )); then
-            _log_file_descriptor "3" "Timeout reached after ${elapsed_minutes}m${elapsed_seconds}s, killing remaining processes..." | tee -a "$bridge_log"
-            for pid in "${pids[@]}"; do
-                kill -9 "$pid" 2>/dev/null || true
-            done
-            break
-        fi
-        
-        # Check for completed processes
-        local new_completions=0
-        for i in "${!pids[@]}"; do
-            if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                _log_file_descriptor "3" "Bridge test process ${pids[$i]} completed" | tee -a "$bridge_log"
-                unset 'pids[$i]'
-                new_completions=$((new_completions + 1))
-            fi
-        done
-        
-        # Update progress if we had completions
-        if [[ $new_completions -gt 0 ]]; then
-            completed_tests=$((completed_tests + new_completions))
-            local progress_percent=$((completed_tests * 100 / successful_count))
-            local remaining_tests=$((successful_count - completed_tests))
-            _log_file_descriptor "3" "[${progress_percent}%] Completed: $completed_tests/$successful_count tests (${remaining_tests} remaining) - ${elapsed_minutes}m${elapsed_seconds}s elapsed"
-        fi
-        
-        # Rebuild pids array to remove gaps
-        pids=("${pids[@]}")
-        
-        # Show periodic progress even if no completions
-        if (( elapsed % 30 == 0 )); then
-            local active_processes=${#pids[@]}
-            _log_file_descriptor "3" "Status: $active_processes tests still running, $completed_tests/$successful_count completed - ${elapsed_minutes}m${elapsed_seconds}s elapsed"
-        fi
-        
-        # Wait a bit before checking again
-        sleep 1
-    done
-    
-    _log_file_descriptor "3" ""
-    _log_file_descriptor "3" "All bridge tests completed! Collecting results..."
-    
-    # Collect and report results - pass the successful count instead of total
-    _collect_and_report_results "$output_dir" "$bridge_log" "$successful_count"
-    local failed_tests=$?
-    
-    # Report setup failures in the final summary but don't fail the test for them
-    if [[ $setup_failures -gt 0 ]]; then
-        _log_file_descriptor "3" "Note: $setup_failures accounts failed setup and were skipped"
-    fi
-    
-    # Fail the test only if bridge tests failed (not setup failures)
-    [[ $failed_tests -eq 0 ]] || {
-        _log_file_descriptor "3" "Some bridge tests failed. Check the detailed logs in $output_dir"
-        return 1
-    }
-}
-
-# bats test_tags=bridge
-@test "Run address tester actions" {
-    # This test will be skipped by default. Remove the below "skip" command to run it.
-    skip
-    local address_tester_actions="001 011 021 031 101 201 301 401 501 601 701 801 901"
-    
-    for create_mode in 0 1 2; do
-        for action in $address_tester_actions; do
-            for rpc_url in $l1_rpc_url $l2_rpc_url; do
-                for network_id in $l1_network_id $l2_network_id; do
-                    # Select appropriate private key based on RPC URL
-                    local private_key_for_tx
-                    private_key_for_tx=$([[ "$rpc_url" = "$l1_rpc_url" ]] && echo "$l1_private_key" || echo "$l2_private_key")
-                    
-                    # Execute the tester action
-                    run cast send \
-                        --gas-limit 2500000 \
-                        --legacy \
-                        --value "$network_id" \
-                        --rpc-url "$rpc_url" \
-                        --private-key "$private_key_for_tx" \
-                        "$tester_contract_address" \
-                        "$(cast abi-encode 'f(uint32, address, uint256)' "0x${create_mode}${action}" "$test_lxly_proxy_addr" "$network_id")"
-                    
-                    [[ "$status" -eq 0 ]] || echo "Failed action: 0x${create_mode}${action} on $rpc_url with network $network_id"
-                done
-            done
-        done
-    done
 }
 
 # bats test_tags=bridge
 @test "Reclaim test funds" {
-    # Sanity check for l1_rpc_url
-    if [[ -z "$l1_rpc_url" ]]; then
-        _log_file_descriptor "3" "l1_rpc_url is empty"
-        return 1
-    fi
+    # Get total number of scenarios to calculate account count
+    local total_scenarios
+    total_scenarios=$(jq '. | length' "$scenarios_file")
+    _log_file_descriptor "3" "Total scenarios used in tests: $total_scenarios"
+    
+    # Get all unique networks from test scenarios that might have received funds
+    local unique_networks
+    unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
+    
+    _log_file_descriptor "3" "Checking for funds to reclaim on networks: $(echo "$unique_networks" | tr '\n' ' ')"
+    
+    # Check and reclaim funds for each network
+    while IFS= read -r network_id; do
+        [[ -n "$network_id" ]] || continue
+        
+        local rpc_url_check eth_address
+        rpc_url_check=$(_get_network_config "$network_id" "rpc_url" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get RPC URL for network $network_id, skipping fund reclaim"
+            continue
+        }
+        eth_address=$(_get_network_config "$network_id" "eth_address" 2>/dev/null) || {
+            _log_file_descriptor "3" "Warning: Could not get ETH address for network $network_id, skipping fund reclaim"
+            continue
+        }
+        
+        # Sanity check for rpc_url
+        if [[ -z "$rpc_url_check" ]]; then
+            _log_file_descriptor "3" "RPC URL is empty for network $network_id"
+            continue
+        fi
 
-    # Sanity check for l2_rpc_url
-    if [[ -z "$l2_rpc_url" ]]; then
-        _log_file_descriptor "3" "l2_rpc_url is empty"
-        return 1
-    fi
-
-    # Check and reclaim funds for L1
-    if [[ ! "$l1_rpc_url" =~ 127.0.0.1 ]]; then
-        _log_file_descriptor "3" "Non-Kurtosis L1 network detected, attempting to reclaim funds..."
-        _reclaim_funds_after_test "$l1_eth_address" "$l1_rpc_url"
-    else
-        _log_file_descriptor "3" "Kurtosis L1 network detected, skipping reclaiming funds..."
-    fi
-
-    # Check and reclaim funds for L2
-    if [[ ! "$l2_rpc_url" =~ 127.0.0.1 ]]; then
-        _log_file_descriptor "3" "Non-Kurtosis L2 network detected, attempting to reclaim funds..."
-        _reclaim_funds_after_test "$l2_eth_address" "$l2_rpc_url"
-    else
-        _log_file_descriptor "3" "Kurtosis L2 network detected, skipping reclaiming funds..."
-    fi
+        if [[ ! "$rpc_url_check" =~ 127.0.0.1 ]]; then
+            _log_file_descriptor "3" "Non-Kurtosis network $network_id detected, attempting to reclaim funds..."
+            _reclaim_funds_after_test "$eth_address" "$rpc_url_check" "$total_scenarios"
+        else
+            _log_file_descriptor "3" "Kurtosis network $network_id detected, skipping reclaiming funds..."
+        fi
+    done <<< "$unique_networks"
 }

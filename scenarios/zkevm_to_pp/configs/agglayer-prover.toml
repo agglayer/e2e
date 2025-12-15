@@ -1,0 +1,27 @@
+grpc-endpoint = "0.0.0.0:4445"
+max-concurrency-limit = 100
+max-request-duration = 300
+max-buffered-queries = 100
+
+[log]
+level = "info"
+outputs = ["stderr"]
+format = "pretty"
+
+[telemetry]
+prometheus-addr = "0.0.0.0:9093"
+
+[primary-prover.network-prover]
+proving-timeout = 36000
+
+[rpc]
+max-request-body-size = 4294967295
+
+[grpc]
+max-decoding-message-size = 10485760000
+max-encoding-message-size = 10485760000
+
+[prover.grpc]
+max-decoding-message-size = 10485760000
+max-encoding-message-size = 10485760000
+

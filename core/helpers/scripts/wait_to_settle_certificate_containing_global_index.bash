@@ -1,11 +1,13 @@
 #!/bin/bash
+
+# shellcheck disable=SC2048,SC2154
 set -euo pipefail
 
-function wait_to_settled_certificate_containing_global_index() {
+function wait_to_settle_certificate_containing_global_index() {
     local rpc_url=$1
     local global_index=$2
-    local check_frequency=${3:-30}
-    local timeout=${4:-300}
+    local check_frequency=${3:-60}
+    local timeout=${4:-1200}
     log "Waiting for certificate with global index $global_index" >&3
     run_with_timeout "wait certificate settle for $global_index" $check_frequency $timeout $AGGSENDER_IMPORTED_BRIDGE_PATH $rpc_url $global_index
 }
@@ -15,10 +17,13 @@ function run_with_timeout() {
     local run_frequency=$2
     local timeout=$3
     shift 3
-    local start_time=$(date +%s)
-    local end_time=$((start_time + timeout))
+    local start_time
+    start_time=$(date +%s)
+    local end_time
+    end_time=$((start_time + timeout))
     while true; do
-        local current_time=$(date +%s)
+        local current_time
+        current_time=$(date +%s)
         if ((current_time > end_time)); then
             echo "....[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Exiting [$name]... Timeout reached!" >&3
             exit 1
