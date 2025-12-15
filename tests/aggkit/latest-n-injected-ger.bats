@@ -680,7 +680,22 @@ setup() {
     local global_index_second_claim_event=$output
     log "Global index of second claim event: $global_index_second_claim_event"
 
-    # # TODO: check detailed claim events are present on aggkit bridge db
+    # Verify detailed claim events are recorded in AggKit bridge database
+    log "🔍 Verifying detailed claim events are recorded in AggKit database for global indexes: $global_index_first_claim_event, $global_index_second_claim_event"
+
+    # Check for detailed claim event with global_index_first_claim_event
+    log "🔄 Checking for detailed claim event with global_index: $global_index_first_claim_event"
+    run get_claim "$l2_rpc_network_id" "$global_index_first_claim_event" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_first_claim_event"
+
+    # Check for detailed claim event with global_index_second_claim_event
+    log "🔄 Checking for detailed claim event with global_index: $global_index_second_claim_event"
+    run get_claim "$l2_rpc_network_id" "$global_index_second_claim_event" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_second_claim_event"
+
+    log "🎉 Both detailed claim events successfully verified in AggKit database"
 
     log "💰 Final bridge transaction: $amount wei (0.020 ETH)"
     destination_net=$l2_rpc_network_id
