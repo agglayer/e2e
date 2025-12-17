@@ -867,19 +867,27 @@ _setup_ephemeral_accounts_in_bulk() {
         # _log_file_descriptor "2" "Funding $total_scenarios ephemeral accounts on L1 (network 0)"
     fi
 
+    # Determine ETH funding amount based on network_id
+    local eth_amount
+    if [[ "$network_id" == "0" ]]; then
+        eth_amount="100000000000000000"  # 0.1 ETH for network 0
+    else
+        eth_amount="1000000000000000"   # 0.001 ETH for other networks
+    fi
+
     # Check if network is using custom gas token on L2 - in this case, we'll fund the ephemeral accounts with the custom ERC20 gas tokens.
     if [[ $(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000") != "0x0000000000000000000000000000000000000000" ]]; then
-        # Fund 1 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+        # Fund ephemeral accounts with custom gas token. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
-        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 100000000000000000 2>&1); then
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount "$eth_amount" 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with custom gas token"
             _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
             return 1
         fi
     else
-        # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
+        # Fund ephemeral accounts with ETH. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
-        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 100000000000000000 2>&1); then
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount "$eth_amount" 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
             _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
             return 1
