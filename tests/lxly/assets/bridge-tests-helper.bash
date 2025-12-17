@@ -672,18 +672,40 @@ _get_token_address() {
         "POL") echo "$pol_address" ;;  # Should be the same on both networks
         "LocalERC20") echo "$test_erc20_addr" ;;  # Should be deployed on both
         "WETH") 
-            # For WETH, we need network-specific addresses
-            if [[ "$from_network" == "0" ]]; then
-                # L1 WETH address - you may need to set this properly
+            # For WETH, we need to derive the address from the network if not set
+            if [[ -n "$pp_weth_address" && "$pp_weth_address" != "0x0000000000000000000000000000000000000000" ]]; then
                 echo "$pp_weth_address"
             else
-                # L2 WETH address
-                echo "$pp_weth_address"
+                # Try to derive WETH address from bridge contract's WETHToken() function
+                local rpc_url
+                rpc_url=$(_get_network_config "$from_network" "rpc_url")
+                local bridge_addr
+                bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
+                local weth_addr
+                weth_addr=$(cast call "$bridge_addr" "WETHToken()(address)" --rpc-url "$rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000")
+                if [[ "$weth_addr" == "0x0000000000000000000000000000000000000000" ]]; then
+                    _log_file_descriptor "2" "Warning: WETH address not found for network $from_network"
+                fi
+                echo "$weth_addr"
             fi
             ;;
         "Buggy") echo "$test_erc20_buggy_addr" ;;
         "NativeEther") echo "0x0000000000000000000000000000000000000000" ;;
-        "GasToken") echo "$gas_token_address" ;;
+        "GasToken") 
+            # For GasToken, derive from bridge contract if not set
+            if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" ]]; then
+                echo "$gas_token_address"
+            else
+                # Try to derive gas token address from bridge contract
+                local rpc_url
+                rpc_url=$(_get_network_config "$from_network" "rpc_url")
+                local bridge_addr
+                bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
+                local gas_token
+                gas_token=$(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000")
+                echo "$gas_token"
+            fi
+            ;;
         *) echo "Unrecognized Test Token: $token_type" >&3; return 1 ;;
     esac
 }
@@ -849,7 +871,7 @@ _setup_ephemeral_accounts_in_bulk() {
     if [[ $(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000") != "0x0000000000000000000000000000000000000000" ]]; then
         # Fund 1 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
-        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 100000000000000000 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with custom gas token"
             _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
             return 1
@@ -857,7 +879,7 @@ _setup_ephemeral_accounts_in_bulk() {
     else
         # Fund 0.001 ether to ephemeral accounts. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
-        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 1000000000000000 2>&1); then
+        if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount 100000000000000000 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with ETH"
             _log_file_descriptor "2" "polycli fund output: $eth_fund_output"
             return 1
