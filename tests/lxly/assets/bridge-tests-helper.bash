@@ -876,7 +876,10 @@ _setup_ephemeral_accounts_in_bulk() {
     fi
 
     # Check if network is using custom gas token on L2 - in this case, we'll fund the ephemeral accounts with the custom ERC20 gas tokens.
-    if [[ $(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000") != "0x0000000000000000000000000000000000000000" ]]; then
+    local custom_gas_token_addr
+    custom_gas_token_addr=$(cast call "$bridge_addr" "gasTokenAddress()(address)" --rpc-url "$target_rpc_url" 2>/dev/null || echo "0x0000000000000000000000000000000000000000")
+    
+    if [[ "$custom_gas_token_addr" != "0x0000000000000000000000000000000000000000" ]]; then
         # Fund ephemeral accounts with custom gas token. The seed gets parsed to seed_index_YYYYMMDD (e.g., "ephemeral_test_0_20241010") which is identical to the seed being used in the bridge-tests-suite.
         local eth_fund_output
         if ! eth_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --eth-amount "$eth_amount" 2>&1); then
@@ -930,8 +933,8 @@ _setup_ephemeral_accounts_in_bulk() {
     #     polycli fund --rpc-url $target_rpc_url --number $total_scenarios --private-key $target_private_key --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pol_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1
     # fi
     
-    # Fund and approve GasToken if available
-    if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" ]]; then
+    # Fund and approve GasToken if available (skip if already funded as custom gas token)
+    if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" && "$gas_token_address" != "$custom_gas_token_addr" ]]; then
         # Fund private key to make sure it has enough balance to approve in multicall3 transaction
         _safe_cast_send "$target_rpc_url" "$target_private_key" "$gas_token_address" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
         # _log_file_descriptor "2" "Bulk funding GasToken tokens ($gas_token_address) with approvals for bridge ($bridge_addr)"
