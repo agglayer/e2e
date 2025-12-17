@@ -268,9 +268,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
 | ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
 | ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
-| Inject LatestBlock-N GER - A case FEP | [Link](./tests/aggkit/latest-n-injected-ger.bats#L705) | |
-| Inject LatestBlock-N GER - A case PP (another test) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L801) | |
-| Inject LatestBlock-N GER - A case PP | [Link](./tests/aggkit/latest-n-injected-ger.bats#L609) | |
+| Inject LatestBlock-N GER - A case PP (another test) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L933) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
@@ -287,7 +285,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
 | Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L212) | |
-| Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L336) | |
+| Test invalid GER injection case A (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L825) | |
+| Test invalid GER injection case A (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L716) | |
+| Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L396) | |
 | Test invalid GER injection case B2 (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L38) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |

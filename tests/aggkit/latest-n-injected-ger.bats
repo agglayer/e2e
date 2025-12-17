@@ -187,7 +187,22 @@ setup() {
     assert_equal "$final_status_ger2" "0"
     log "✅ GER2: $ger2 successfully removed (status: $final_status_ger2)"
 
-    # TODO: Verify GER removal events are recorded in AggKit l2gersync database
+    # Verify GER removal events are recorded in AggKit l2gersync database
+    log "🔍 Verifying GER removal events are recorded in AggKit database for GER1: $ger1 and GER2: $ger2"
+
+    # Check for GER1 removal event
+    log "🔄 Checking for GER1 removal event: $ger1"
+    run get_removed_gers "$aggkit_bridge_url" 50 5 "$ger1"
+    assert_success
+    log "✅ Found GER1 removal event: $ger1"
+
+    # Check for GER2 removal event
+    log "🔄 Checking for GER2 removal event: $ger2"
+    run get_removed_gers "$aggkit_bridge_url" 50 5 "$ger2"
+    assert_success
+    log "✅ Found GER2 removal event: $ger2"
+
+    log "🎉 Both GER removal events successfully verified in AggKit database"
 
     # Unset claim via AgglayerBridgeL2:unsetMultipleClaims
     log "🗑️ Unsetting claims for global indexes: $in_global_index_ger1, $in_global_index_ger2"
@@ -216,7 +231,22 @@ setup() {
     assert_equal "$claim_status_ger2" "false"
     log "✅ GER2 claim successfully unset (deposit_count: $deposit_count_ger2, status: $claim_status_ger2)"
 
-    # TODO: Verify claim unset transactions are recorded in AggKit bridge database
+    # Verify claim unset transactions are recorded in AggKit bridge database
+    log "🔍 Verifying unset claims are recorded in AggKit database for global indexes: $in_global_index_ger1, $in_global_index_ger2"
+
+    # Check for unset claim of GER1
+    log "🔄 Checking for unset claim with global_index: $in_global_index_ger1"
+    run get_unset_claims "$aggkit_bridge_url" 30 5 "" "" "$in_global_index_ger1"
+    assert_success
+    log "✅ Found unset claim for global_index: $in_global_index_ger1"
+
+    # Check for unset claim of GER2
+    log "🔄 Checking for unset claim with global_index: $in_global_index_ger2"
+    run get_unset_claims "$aggkit_bridge_url" 30 5 "" "" "$in_global_index_ger2"
+    assert_success
+    log "✅ Found unset claim for global_index: $in_global_index_ger2"
+
+    log "🎉 Both unset claims successfully verified in AggKit database"
 
     # set claims using AgglayerBridgeL2:setMultipleClaims
     log "⚙️ Setting claims for global indexes: $in_global_index_ger2, $in_global_index_ger1"
@@ -241,7 +271,22 @@ setup() {
     assert_equal "$claim_status_ger1" "true"
     log "✅ GER1 claim successfully set (deposit_count: $deposit_count_ger1, status: $claim_status_ger1)"
 
-    # TODO: Verify claim set transactions are recorded in AggKit bridge database
+    # Verify claim set transactions are recorded in AggKit bridge database
+    log "🔍 Verifying set claims are recorded in AggKit database for global indexes: $in_global_index_ger1, $in_global_index_ger2"
+
+    # Check for set claim of GER1
+    log "🔄 Checking for set claim with global_index: $in_global_index_ger1"
+    run get_set_claims "$aggkit_bridge_url" 30 5 "" "" "$in_global_index_ger1"
+    assert_success
+    log "✅ Found set claim for global_index: $in_global_index_ger1"
+
+    # Check for set claim of GER2
+    log "🔄 Checking for set claim with global_index: $in_global_index_ger2"
+    run get_set_claims "$aggkit_bridge_url" 30 5 "" "" "$in_global_index_ger2"
+    assert_success
+    log "✅ Found set claim for global_index: $in_global_index_ger2"
+
+    log "🎉 Both set claims successfully verified in AggKit database"
 
     # update claims values using forceEmitDetailedClaimEvent on L2 bridge contract
     # extract claim parameters from bridge_tx_hash1 which is first bridge tx after reorg
@@ -316,7 +361,22 @@ setup() {
     assert_success
     log "✅ Detailed claim event forcibly emitted tx hash: $output"
 
-    # TODO: Verify detailed claim events are recorded in AggKit bridge database
+    # Verify detailed claim events are recorded in AggKit bridge database
+    log "🔍 Verifying detailed claim events are recorded in AggKit database for global indexes: $global_index_1, $global_index_2"
+
+    # Check for detailed claim event with global_index_1
+    log "🔄 Checking for detailed claim event with global_index: $global_index_1"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_1"
+
+    # Check for detailed claim event with global_index_2
+    log "🔄 Checking for detailed claim event with global_index: $global_index_2"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_2"
+
+    log "🎉 Both detailed claim events successfully verified in AggKit database"
 
     log "💰 Final L1 to L2 bridge transaction: $amount wei (0.020 ETH)"
     destination_net=$l2_rpc_network_id
@@ -482,7 +542,23 @@ setup() {
     assert_equal "$final_status_ger2" "0"
     log "✅ GER2: $ger2 successfully removed (status: $final_status_ger2)"
 
-    # TODO: Verify GER removal events are recorded in AggKit l2gersync database
+    # Verify GER removal events are recorded in AggKit l2gersync database
+    log "🔍 Verifying GER removal events are recorded in AggKit database for GER1: $ger1 and GER2: $ger2"
+
+    # Check for GER1 removal event
+    log "🔄 Checking for GER1 removal event: $ger1"
+    run get_removed_gers "$aggkit_bridge_url" 50 5 "$ger1"
+    assert_success
+    log "✅ Found GER1 removal event: $ger1"
+
+    # Check for GER2 removal event
+    log "🔄 Checking for GER2 removal event: $ger2"
+    run get_removed_gers "$aggkit_bridge_url" 50 5 "$ger2"
+    assert_success
+    log "✅ Found GER2 removal event: $ger2"
+
+    log "🎉 Both GER removal events successfully verified in AggKit database"
+
 
     # Unset claim via AgglayerBridgeL2:unsetMultipleClaims
     log "🗑️ Unsetting claims for global indexes: $in_global_index_ger1, $in_global_index_ger2"
@@ -511,7 +587,22 @@ setup() {
     assert_equal "$claim_status_ger2" "false"
     log "✅ GER2 claim successfully unset (deposit_count: $deposit_count_ger2, status: $claim_status_ger2)"
 
-    # TODO: Verify claim unset transactions are recorded in AggKit bridge database
+    # Verify claim unset transactions are recorded in AggKit bridge database
+    log "🔍 Verifying unset claims are recorded in AggKit database for global indexes: $in_global_index_ger1, $in_global_index_ger2"
+
+    # Check for unset claim of GER1
+    log "🔄 Checking for unset claim with global_index: $in_global_index_ger1"
+    run get_unset_claims "$aggkit_bridge_url" 50 5 "" "" "$in_global_index_ger1"
+    assert_success
+    log "✅ Found unset claim for global_index: $in_global_index_ger1"
+
+    # Check for unset claim of GER2
+    log "🔄 Checking for unset claim with global_index: $in_global_index_ger2"
+    run get_unset_claims "$aggkit_bridge_url" 50 5 "" "" "$in_global_index_ger2"
+    assert_success
+    log "✅ Found unset claim for global_index: $in_global_index_ger2"
+
+    log "🎉 Both unset claims successfully verified in AggKit database"
 
     # update claims values using forceEmitDetailedClaimEvent on L2 bridge contract
     # extract claim parameters from bridge_tx_hash1 which is first bridge tx after reorg
@@ -589,7 +680,22 @@ setup() {
     local global_index_second_claim_event=$output
     log "Global index of second claim event: $global_index_second_claim_event"
 
-    # # TODO: check detailed claim events are present on aggkit bridge db
+    # Verify detailed claim events are recorded in AggKit bridge database
+    log "🔍 Verifying detailed claim events are recorded in AggKit database for global indexes: $global_index_first_claim_event, $global_index_second_claim_event"
+
+    # Check for detailed claim event with global_index_first_claim_event
+    log "🔄 Checking for detailed claim event with global_index: $global_index_first_claim_event"
+    run get_claim "$l2_rpc_network_id" "$global_index_first_claim_event" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_first_claim_event"
+
+    # Check for detailed claim event with global_index_second_claim_event
+    log "🔄 Checking for detailed claim event with global_index: $global_index_second_claim_event"
+    run get_claim "$l2_rpc_network_id" "$global_index_second_claim_event" 50 10 "$aggkit_bridge_url"
+    assert_success
+    log "✅ Found detailed claim event for global_index: $global_index_second_claim_event"
+
+    log "🎉 Both detailed claim events successfully verified in AggKit database"
 
     log "💰 Final bridge transaction: $amount wei (0.020 ETH)"
     destination_net=$l2_rpc_network_id
@@ -606,7 +712,8 @@ setup() {
     log "✅ Certificate settlement completed for global index: $global_index_last_claim_event"
 }
 
-@test "Inject LatestBlock-N GER - A case PP" {
+# Case A: Bridge disappearance from L1 after L1 reorg
+@test "Test invalid GER injection case A (PP mode)" {
   skip "This test should be run independently on a new setup as GER and claim proofs are hardcoded to create invalid GER and its claim proof"
   local tokens_amount="0.1ether"
   local wei_amount
@@ -682,12 +789,24 @@ setup() {
   assert_equal "$final_status" "0"
   log "✅ GER successfully removed"
 
+  # Verify GER removal is recorded in AggKit database
+  log "🔍 Verifying GER removal is recorded in AggKit database: $next_ger"
+  run get_removed_gers "$aggkit_bridge_url" 50 5 "$next_ger"
+  assert_success
+  log "✅ Found GER removal event for: $next_ger"
+
   log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
   local last_one_global_indexes=("$in_global_index")
   run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
   assert_success
   local unset_claims_tx_resp=$output
   log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
+
+  # Verify unset claim is recorded in AggKit database
+  log "🔍 Verifying unset claim is recorded in AggKit database for global_index: $in_global_index"
+  run get_unset_claims "$aggkit_bridge_url" 50 5 "" "" "$in_global_index"
+  assert_success
+  log "✅ Found unset claim for global_index: $in_global_index"
 
   log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
@@ -702,7 +821,8 @@ setup() {
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
-@test "Inject LatestBlock-N GER - A case FEP" {
+# Case A: Bridge disappearance from L1 after L1 reorg
+@test "Test invalid GER injection case A (FEP mode)" {
   skip "This test should be run independently on a new setup as GER and claim proofs are hardcoded to create invalid GER and its claim proof"
   local tokens_amount="0.1ether"
   local wei_amount
@@ -778,12 +898,24 @@ setup() {
   assert_equal "$final_status" "0"
   log "✅ GER successfully removed"
 
+  # Verify GER removal is recorded in AggKit database
+  log "🔍 Verifying GER removal is recorded in AggKit database: $next_ger"
+  run get_removed_gers "$aggkit_bridge_url" 50 5 "$next_ger"
+  assert_success
+  log "✅ Found GER removal event for: $next_ger"
+
   log "🔄 Unsetting the last 1 claim using unsetMultipleClaims"
   local last_one_global_indexes=("$in_global_index")
   run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$unset_multiple_claims_func_sig" "[${last_one_global_indexes[0]}]" --json
   assert_success
   local unset_claims_tx_resp=$output
   log "unsetMultipleClaims transaction details: $unset_claims_tx_resp"
+
+  # Verify unset claim is recorded in AggKit database
+  log "🔍 Verifying unset claim is recorded in AggKit database for global_index: $in_global_index"
+  run get_unset_claims "$aggkit_bridge_url" 50 5 "" "" "$in_global_index"
+  assert_success
+  log "✅ Found unset claim for global_index: $in_global_index"
 
   log "🚀 Sending and claiming 1 bridge transaction from L1 to L2"
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
