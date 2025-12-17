@@ -89,6 +89,7 @@ jobs:
       BALI_49_RPC_ENDPOINT: ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
       BALI_52_RPC_ENDPOINT: ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
       BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+      BALI_68_RPC_ENDPOINT: ${{ secrets.L2_BALI_68_RPC_ENDPOINT }}
       # Cardona-specific RPC endpoints from secrets
       # CARDONA_01_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_01_RPC_ENDPOINT }}
       CARDONA_48_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
@@ -187,6 +188,10 @@ jobs:
             echo "Validating Bali-57 endpoint..."
             cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
             echo "Bali-57 chain ID validation passed"
+
+            echo "Validating Bali-68 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_68_RPC_ENDPOINT }}
+            echo "Bali-68 chain ID validation passed"
           fi
           
           # Validate Cardona network endpoints (if using cardona environment)
@@ -287,6 +292,9 @@ jobs:
             export BALI_NETWORK_57_RPC_URL="${{ env.BALI_57_RPC_ENDPOINT }}"
             export BALI_NETWORK_57_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
+            export BALI_NETWORK_68_RPC_URL="${{ env.BALI_68_RPC_ENDPOINT }}"
+            export BALI_NETWORK_68_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+
             # Verify Bali environment setup
             echo "Verifying Bali environment setup:"
             echo "Bali-01 RPC URL: ${BALI_NETWORK_1_RPC_URL:0:20}..."
@@ -312,6 +320,10 @@ jobs:
             echo "Bali-57 RPC URL: ${BALI_NETWORK_57_RPC_URL:0:20}..."
             echo "Bali-57 Bridge Address: $BALI_NETWORK_57_BRIDGE_ADDR"
             echo "Bali-57 Bridge Service: $BALI_NETWORK_57_BRIDGE_SERVICE_URL"
+
+            echo "Bali-68 RPC URL: ${BALI_NETWORK_68_RPC_URL:0:20}..."
+            echo "Bali-68 Bridge Address: $BALI_NETWORK_68_BRIDGE_ADDR"
+            echo "Bali-68 Bridge Service: $BALI_NETWORK_68_BRIDGE_SERVICE_URL"
 
           elif [[ "$NETWORK_ENV" == "cardona" ]]; then
             # Set all Cardona network configurations

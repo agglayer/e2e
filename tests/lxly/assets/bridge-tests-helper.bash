@@ -79,6 +79,7 @@ _initialize_network_config() {
                 ["52"]="bali_52"
                 ["57"]="bali_57"
                 ["66"]="bali_66"
+                ["68"]="bali_68"
             )
             
             # You can also define network name to ID mapping for reverse lookup
@@ -91,6 +92,7 @@ _initialize_network_config() {
                 ["bali_52"]="52"
                 ["bali_57"]="57"
                 ["bali_66"]="66"
+                ["bali_68"]="68"
             )
         ;;
         "cardona")

@@ -1,6 +1,8 @@
 #!/bin/bash
 # filepath: /home/jihwankim/e2e/tests/lxly/assets/convert_acts_to_json.sh
 # jq '[.[] | select(.ExpectedResultClaim == "Success")]' bali-bridge-tests-suite.json > temp.json && mv temp.json bali-bridge-tests-suite.json
+# jq '[.[] | select(.FromNetwork != "37" and .ToNetwork != "37")]' bali-bridge-tests-suite.json > temp.json && mv temp.json bali-bridge-tests-suite.json
+# jq -c '.[]'  bali-bridge-tests-suite.json | shuf | head -100 | jq -s '.' --indent 2 > smaller-suite.json
 # jq 'length' bali-bridge-tests-suite.json
 
 input_file="${1:-output.txt}"
