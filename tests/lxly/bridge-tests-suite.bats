@@ -136,11 +136,37 @@ _calculate_test_erc20_address() {
     }
 
     echo "ETH_RPC_TIMEOUT: $ETH_RPC_TIMEOUT" >&3
-
+    
+    # Debug: Verify environment configuration
+    _log_file_descriptor "3" "========================================="
+    _log_file_descriptor "3" "Environment Configuration Debug"
+    _log_file_descriptor "3" "========================================="
+    _log_file_descriptor "3" "NETWORK_ENVIRONMENT: ${NETWORK_ENVIRONMENT:-'not set'}"
+    _log_file_descriptor "3" ""
+    
     # Get all unique network IDs from the test scenarios
     local unique_networks
     unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
     
+    _log_file_descriptor "3" "Networks found in test scenarios: $(echo "$unique_networks" | tr '\n' ' ')"
+    _log_file_descriptor "3" ""
+
+    # Verify bridge service URLs are loaded for each network
+    _log_file_descriptor "3" "Verifying Bridge Service URL Configuration:"
+    while IFS= read -r network_id; do
+        [[ -n "$network_id" ]] || continue
+        local network_prefix="${NETWORK_ID_TO_PREFIX[$network_id]:-'not registered'}"
+        local env_var_name="${network_prefix}_BRIDGE_SERVICE_URL"
+        local env_var_value="${!env_var_name:-'not set'}"
+
+        _log_file_descriptor "3" "  Network $network_id:"
+        _log_file_descriptor "3" "    Prefix: $network_prefix"
+        _log_file_descriptor "3" "    Env Var: $env_var_name"
+        _log_file_descriptor "3" "    Value from env: $env_var_value"
+        _log_file_descriptor "3" ""
+    done <<< "$unique_networks"
+    _log_file_descriptor "3" "========================================="
+    _log_file_descriptor "3" ""
     _log_file_descriptor "3" "Deploying contracts to networks: $(echo "$unique_networks" | tr '\n' ' ')"
     
     # Deploy contracts to each unique network found in test scenarios

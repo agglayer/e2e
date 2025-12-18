@@ -40,19 +40,6 @@ source "$PROJECT_ROOT/core/helpers/logger.bash"
 source "$(dirname "${BASH_SOURCE[0]}")/network-registry.bash"
 
 # =============================================================================
-# Network Configuration Functions
-# =============================================================================
-# Note: Network configuration is now handled by network-registry.bash
-# The _get_network_config() function is imported from network-registry.bash
-
-# Backward compatibility shim - calls are forwarded to network-registry.bash
-_initialize_network_config() {
-    # This function is now a no-op for backward compatibility
-    # Network auto-discovery happens automatically in network-registry.bash
-    _auto_discover_networks
-}
-
-# =============================================================================
 # Helper Functions
 # =============================================================================
 
@@ -1300,7 +1287,16 @@ _run_single_bridge_test() {
                 # Get bridge service URL using proper selection logic
                 local selected_bridge_service_url
                 selected_bridge_service_url=$(_select_bridge_service_url "$source_network_id" "$dest_network_id")
-                _log_file_descriptor "2" "Using selected bridge service URL: $selected_bridge_service_url"
+                _log_file_descriptor "2" "Selected bridge service URL for network $source_network_id -> $dest_network_id: '$selected_bridge_service_url'"
+                
+                # Validate that bridge service URL is not empty
+                if [[ -z "$selected_bridge_service_url" ]]; then
+                    _log_file_descriptor "2" "ERROR: Bridge service URL is empty for network $source_network_id -> $dest_network_id"
+                    _log_file_descriptor "2" "Source network: $source_network_id, Destination network: $dest_network_id"
+                    echo "TEST_$test_index|FAIL|N/A|Bridge service URL is empty - configuration error" > "$result_file"
+                    return 1
+                fi
+                
                 claim_command="$claim_command --destination-address $dest_addr --bridge-address $claim_bridge_addr --private-key $ephemeral_private_key --rpc-url $claim_rpc_url --deposit-count $deposit_count --deposit-network $source_network_id --bridge-service-url $selected_bridge_service_url --wait $claim_wait_duration"
                 
                 # Execute claim command
@@ -1723,6 +1719,7 @@ _select_bridge_service_url() {
     local to_network_id="$2"
     
     _log_file_descriptor "2" "Selecting bridge service URL for bridge: network $from_network_id -> network $to_network_id"
+    _log_file_descriptor "2" "NETWORK_ENVIRONMENT=${NETWORK_ENVIRONMENT:-'not set'}"
     
     # Rule 1: When one of the network_id is 0 (L1), use the bridge_service_url of the other network
     if [[ "$from_network_id" == "0" && "$to_network_id" != "0" ]]; then
@@ -1742,63 +1739,86 @@ _select_bridge_service_url() {
 _get_bridge_service_url() {
     local network_id="$1"
     
-    # Initialize network configuration if not done already
-    if [[ -z "${NETWORK_ID_TO_NAME[$network_id]:-}" ]]; then
-        _initialize_network_config
-    fi
+    _log_file_descriptor "2" "Looking up bridge service URL for network $network_id"
+    _log_file_descriptor "2" "NETWORK_ENVIRONMENT=${NETWORK_ENVIRONMENT:-'not set'}"
     
-    # Get the network name from network ID
-    local network_name="${NETWORK_ID_TO_NAME[$network_id]:-}"
-    
-    if [[ -z "$network_name" ]]; then
-        # Fallback to global bridge_service_url if network not found
-        _log_file_descriptor "2" "No network name found for network ID $network_id, using global bridge service URL"
-        echo "${bridge_service_url:-}"
-        return 0
-    fi
-    
-    _log_file_descriptor "2" "Looking up bridge service URL for network $network_id ($network_name)"
-    
-    # Use the standardized _get_network_config function for consistency
+    # Use the standardized _get_network_config function from network-registry.bash
+    # This function automatically initializes the network registry if needed
     local bridge_service
-    bridge_service=$(_get_network_config "$network_id" "bridge_service_url" 2>/dev/null)
+    bridge_service=$(_get_network_config "$network_id" "bridge_service_url" 2>&1)
+    local get_config_status=$?
     
-    if [[ -n "$bridge_service" ]]; then
+    _log_file_descriptor "2" "_get_network_config returned status=$get_config_status, value='$bridge_service'"
+    
+    if [[ $get_config_status -eq 0 && -n "$bridge_service" ]]; then
         _log_file_descriptor "2" "Found network-specific bridge service URL: $bridge_service"
         echo "$bridge_service"
         return 0
+    else
+        _log_file_descriptor "2" "WARNING: Failed to get bridge_service_url from _get_network_config for network $network_id"
+        if [[ "$bridge_service" == *"Configuration"*"not found"* ]]; then
+            _log_file_descriptor "2" "Configuration not found error: $bridge_service"
+        fi
+        
+        # Check if network is registered at all
+        local network_prefix="${NETWORK_ID_TO_PREFIX[$network_id]:-}"
+        if [[ -n "$network_prefix" ]]; then
+            _log_file_descriptor "2" "Network $network_id is registered with prefix: $network_prefix"
+            
+            # Try to directly access the environment variable
+            local bridge_service_var="${network_prefix}_BRIDGE_SERVICE_URL"
+            local direct_value="${!bridge_service_var:-}"
+            _log_file_descriptor "2" "Direct lookup of ${bridge_service_var}: '$direct_value'"
+            
+            if [[ -n "$direct_value" ]]; then
+                _log_file_descriptor "2" "Found bridge service URL via direct environment variable lookup: $direct_value"
+                echo "$direct_value"
+                return 0
+            else
+                _log_file_descriptor "2" "WARNING: Environment variable $bridge_service_var is not set or empty"
+            fi
+        else
+            _log_file_descriptor "2" "WARNING: Network $network_id is NOT registered in NETWORK_ID_TO_PREFIX"
+            _log_file_descriptor "2" "Available network IDs in registry: ${!NETWORK_ID_TO_PREFIX[*]}"
+        fi
     fi
     
-    # For Kurtosis networks, handle special cases
-    case "$network_name" in
-        "kurtosis_l1")
-            # L1 (network 0) should never provide its own bridge service URL
-            # The bridge service URL is always determined by the other (non-L1) network
-            _log_file_descriptor "2" "L1 network should not provide bridge service URL - this should be handled by _select_bridge_service_url()"
-            echo ""
-            ;;
-        "kurtosis_network_1")
-            # Network 1 uses specific bridge service environment variable
-            local kurtosis_net1_bridge_service="${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-}}"
-            if [[ -z "$kurtosis_net1_bridge_service" ]]; then
-                kurtosis_net1_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc 2>/dev/null || echo "")}"
-            fi
-            _log_file_descriptor "2" "Kurtosis network 1 bridge service URL: $kurtosis_net1_bridge_service"
-            echo "$kurtosis_net1_bridge_service"
-            ;;
-        "kurtosis_network_2")
-            # Network 2 uses specific bridge service environment variable
-            local kurtosis_net2_bridge_service="${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-}}"
-            if [[ -z "$kurtosis_net2_bridge_service" ]]; then
-                kurtosis_net2_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc 2>/dev/null || echo "")}"
-            fi
-            _log_file_descriptor "2" "Kurtosis network 2 bridge service URL: $kurtosis_net2_bridge_service"
-            echo "$kurtosis_net2_bridge_service"
-            ;;
-        *)
-            # For all other networks, fallback to global bridge service URL
-            _log_file_descriptor "2" "No specific bridge service URL found for $network_name, using global: ${bridge_service_url:-'not set'}"
-            echo "${bridge_service_url:-}"
-            ;;
-    esac
+    # Special handling for Kurtosis networks only (network_id 0, 1, 2)
+    if [[ "$network_id" == "0" ]]; then
+        # L1 (network 0) should never provide its own bridge service URL
+        # The bridge service URL is always determined by the other (non-L1) network
+        _log_file_descriptor "2" "L1 network (0) should not provide bridge service URL - this should be handled by _select_bridge_service_url()"
+        echo ""
+        return 0
+    elif [[ "$network_id" == "1" && "${NETWORK_ENVIRONMENT:-}" == "kurtosis" ]]; then
+        # Kurtosis network 1 uses specific bridge service environment variable
+        local kurtosis_net1_bridge_service="${KURTOSIS_NETWORK_1_BRIDGE_SERVICE_URL:-}"
+        if [[ -z "$kurtosis_net1_bridge_service" ]]; then
+            kurtosis_net1_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-001 rpc 2>/dev/null || echo "")}"
+        fi
+        if [[ -z "$kurtosis_net1_bridge_service" ]]; then
+            _log_file_descriptor "2" "WARNING: Could not determine bridge service URL for kurtosis_network_1"
+        fi
+        _log_file_descriptor "2" "Kurtosis network 1 bridge service URL: $kurtosis_net1_bridge_service"
+        echo "$kurtosis_net1_bridge_service"
+        return 0
+    elif [[ "$network_id" == "2" && "${NETWORK_ENVIRONMENT:-}" == "kurtosis" ]]; then
+        # Kurtosis network 2 uses specific bridge service environment variable
+        local kurtosis_net2_bridge_service="${KURTOSIS_NETWORK_2_BRIDGE_SERVICE_URL:-}"
+        if [[ -z "$kurtosis_net2_bridge_service" ]]; then
+            kurtosis_net2_bridge_service="${bridge_service_url:-$(kurtosis port print "$kurtosis_enclave_name" zkevm-bridge-service-002 rpc 2>/dev/null || echo "")}"
+        fi
+        if [[ -z "$kurtosis_net2_bridge_service" ]]; then
+            _log_file_descriptor "2" "WARNING: Could not determine bridge service URL for kurtosis_network_2"
+        fi
+        _log_file_descriptor "2" "Kurtosis network 2 bridge service URL: $kurtosis_net2_bridge_service"
+        echo "$kurtosis_net2_bridge_service"
+        return 0
+    fi
+    
+    if [[ -z "${bridge_service_url:-}" ]]; then
+        _log_file_descriptor "2" "ERROR: No bridge service URL found for network $network_id"
+        _log_file_descriptor "2" "ERROR: Please ensure NETWORK_ENVIRONMENT is set correctly and the network's .env file is sourced"
+        return 1
+    fi
 }
