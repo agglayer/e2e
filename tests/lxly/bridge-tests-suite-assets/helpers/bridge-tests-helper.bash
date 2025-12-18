@@ -284,12 +284,22 @@ _reclaim_funds_after_test() {
             _log_file_descriptor "2" "Transferring from $address..."
             _log_file_descriptor "2" "  Balance: $(cast to-unit "$balance" ether) ETH"
             
-            # Get gas price (with fallback)
+            # Get gas price with retries (network might be congested)
             local gas_price
-            gas_price=$(cast gas-price --rpc-url "$rpc_url" 2>/dev/null || echo "20000000000")  # 20 gwei fallback
+            local gas_price_attempts=0
+            while [[ $gas_price_attempts -lt 3 ]]; do
+                gas_price=$(cast gas-price --rpc-url "$rpc_url" 2>/dev/null || echo "")
+                if [[ -n "$gas_price" && "$gas_price" != "0" ]]; then
+                    break
+                fi
+                gas_price_attempts=$((gas_price_attempts + 1))
+                sleep 2
+            done
+            # Fallback to 20 gwei if we couldn't get gas price
+            gas_price="${gas_price:-20000000000}"
             
-            # Use a smaller, more reasonable gas limit for simple transfers
-            local gas_limit=42000  # Standard ETH transfer gas limit
+            # Use a generous gas limit for simple transfers
+            local gas_limit=100000  # Increased from 42000 to handle various scenarios
             
             # Check if balance is very small (less than 0.001 ETH)
             local min_balance="1000000000000000"  # 0.001 ETH in wei
@@ -302,15 +312,10 @@ _reclaim_funds_after_test() {
             local gas_cost
             if command -v bc >/dev/null 2>&1; then
                 # Use bc for precise calculation if available
-                gas_cost=$(echo "$gas_price * $gas_limit" | bc 2>/dev/null || echo "$gas_price")
+                gas_cost=$(echo "scale=0; ($gas_price * $gas_limit * 150) / 100" | bc 2>/dev/null || echo "$((gas_price * gas_limit * 3 / 2))")
             else
-                # Simple bash arithmetic with overflow protection
-                if [[ "$gas_price" -lt 1000000000000 ]]; then  # Less than 1000 gwei
-                    gas_cost=$((gas_price * gas_limit))
-                else
-                    # For very high gas prices, use a conservative estimate
-                    gas_cost=$((balance / 10))  # Reserve 10% for gas
-                fi
+                # Simple bash arithmetic with 150% safety margin
+                gas_cost=$((gas_price * gas_limit * 3 / 2))
             fi
             
             # Calculate adjusted balance (balance - gas cost)
@@ -318,37 +323,54 @@ _reclaim_funds_after_test() {
             if [[ "$balance" -gt "$gas_cost" ]]; then
                 adjusted_balance=$((balance - gas_cost))
             else
-                _log_file_descriptor "2" "  Insufficient balance to cover gas fees (balance: $balance, estimated gas: $gas_cost)"
-                continue
+                _log_file_descriptor "2" "  Insufficient balance to cover gas fees (balance: $balance, estimated gas with margin: $gas_cost)"
+                # Try with a very conservative 90% of balance approach
+                adjusted_balance=$((balance * 9 / 10))
+                if [[ "$adjusted_balance" -lt "$min_balance" ]]; then
+                    _log_file_descriptor "2" "  Even conservative amount too small, skipping"
+                    continue
+                fi
+                _log_file_descriptor "2" "  Attempting conservative transfer of 90% of balance"
             fi
             
             # Only proceed if we have a meaningful amount left to transfer
-            local min_transfer="1000000000000000"  # 0.001 ETH minimum transfer
+            local min_transfer="500000000000000"  # 0.0005 ETH minimum transfer
             if [[ "$adjusted_balance" -lt "$min_transfer" ]]; then
                 _log_file_descriptor "2" "  Remaining balance after gas too small to transfer, skipping"
                 continue
             fi
             
-            _log_file_descriptor "2" "  Gas cost: $(cast to-unit $gas_cost ether) ETH"
-            _log_file_descriptor "2" "  Sending: $(cast to-unit $adjusted_balance ether) ETH"
+            _log_file_descriptor "2" "  Estimated gas cost: $(cast to-unit $gas_cost ether) ETH"
+            _log_file_descriptor "2" "  Attempting to send: $(cast to-unit $adjusted_balance ether) ETH"
             
-            # Try reclaim with progressive fallbacks
-            if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance"; then
-                _log_file_descriptor "2" "  Successfully reclaimed funds"
-            elif _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance" --gas-price "$((gas_price * 2))"; then
-                _log_file_descriptor "2" "  Successfully reclaimed funds with higher gas price"
+            # Try reclaim with progressive fallbacks and retries
+            local reclaim_success=false
+            
+            # Attempt 1: Normal transfer with calculated amount
+            if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance" 2>/dev/null; then
+                _log_file_descriptor "2" "  ✓ Successfully reclaimed funds"
+                reclaim_success=true
+            # Attempt 2: With higher gas price (2x)
+            elif _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$adjusted_balance" --gas-price "$((gas_price * 2))" 2>/dev/null; then
+                _log_file_descriptor "2" "  ✓ Successfully reclaimed funds with 2x gas price"
+                reclaim_success=true
+            # Attempt 3: Even higher gas price (3x) with reduced amount (80%)
+            elif _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$((adjusted_balance * 8 / 10))" --gas-price "$((gas_price * 3))" 2>/dev/null; then
+                _log_file_descriptor "2" "  ✓ Successfully reclaimed 80% of funds with 3x gas price"
+                reclaim_success=true
+            # Attempt 4: Very conservative - 50% of balance, auto gas
             else
-                # Final attempt with very conservative amount
-                local conservative_amount=$((balance * 8 / 10))  # Use 80% of balance
-                if [[ "$conservative_amount" -gt "$min_transfer" ]]; then
-                    if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$conservative_amount"; then
-                        _log_file_descriptor "2" "  Successfully reclaimed funds with conservative amount"
-                    else
-                        _log_file_descriptor "2" "  All reclaim attempts failed for $address"
+                local very_conservative_amount=$((balance / 2))
+                if [[ "$very_conservative_amount" -gt "$min_transfer" ]]; then
+                    if _safe_cast_send "$rpc_url" "$private_key" "$target_address" --value "$very_conservative_amount" 2>/dev/null; then
+                        _log_file_descriptor "2" "  ✓ Successfully reclaimed 50% of funds"
+                        reclaim_success=true
                     fi
-                else
-                    _log_file_descriptor "2" "  Balance too small for conservative reclaim attempt"
                 fi
+            fi
+            
+            if ! $reclaim_success; then
+                _log_file_descriptor "2" "  ⚠️  All reclaim attempts failed for $address - funds remain in ephemeral account"
             fi
         fi
     done
@@ -1052,6 +1074,54 @@ _run_single_bridge_test() {
             if echo "$bridge_output" | grep -q -E "(nonce too low|replacement transaction underpriced|already known)"; then
                 _log_file_descriptor "2" "Detected nonce/replacement error - this is retryable"
                 retry_bridge=true
+            fi
+            
+            # Check for insufficient funds for gas - this indicates we need to reduce amount or gas
+            if echo "$bridge_output" | grep -q -E "(insufficient funds for gas|balance.*tx cost.*overshot)"; then
+                _log_file_descriptor "2" "Detected insufficient funds error - need to reduce transaction cost"
+                retry_bridge=true
+                
+                # Extract balance and tx cost from error message if available
+                local balance_wei="" tx_cost_wei=""
+                if [[ "$bridge_output" =~ balance\ ([0-9]+) ]]; then
+                    balance_wei="${BASH_REMATCH[1]}"
+                fi
+                if [[ "$bridge_output" =~ tx\ cost\ ([0-9]+) ]]; then
+                    tx_cost_wei="${BASH_REMATCH[1]}"
+                fi
+                
+                _log_file_descriptor "2" "Account balance: ${balance_wei:-unknown}, Required tx cost: ${tx_cost_wei:-unknown}"
+                
+                # If this is not an ETH bridge, we need to reduce the gas limit or use value:0
+                if [[ "$test_token" != "ETH" ]]; then
+                    # For ERC20 bridges, remove any --value parameter that might have been added
+                    bridge_command=$(echo "$bridge_command" | sed 's/--value [0-9]* //g')
+                    _log_file_descriptor "2" "Removed --value parameter for non-ETH bridge"
+                    
+                    # Reduce gas limit aggressively
+                    if [[ "$bridge_command" =~ --gas-limit\ ([0-9]+) ]]; then
+                        local current_gas_limit="${BASH_REMATCH[1]}"
+                        local reduced_gas_limit=$((current_gas_limit / 2))  # Cut in half
+                        bridge_command=$(echo "$bridge_command" | sed "s/--gas-limit [0-9]*/--gas-limit $reduced_gas_limit/")
+                        _log_file_descriptor "2" "Reduced gas limit from $current_gas_limit to $reduced_gas_limit"
+                    fi
+                else
+                    # For ETH bridges, reduce the amount being sent
+                    if [[ "$bridge_command" =~ --value\ ([0-9]+) ]]; then
+                        local current_value="${BASH_REMATCH[1]}"
+                        local reduced_value=$((current_value / 2))  # Cut value in half
+                        bridge_command=$(echo "$bridge_command" | sed "s/--value [0-9]*/--value $reduced_value/")
+                        _log_file_descriptor "2" "Reduced ETH value from $current_value to $reduced_value"
+                    fi
+                    
+                    # Also reduce gas limit for ETH bridges
+                    if [[ "$bridge_command" =~ --gas-limit\ ([0-9]+) ]]; then
+                        local current_gas_limit="${BASH_REMATCH[1]}"
+                        local reduced_gas_limit=$((current_gas_limit * 2 / 3))  # Reduce by 33%
+                        bridge_command=$(echo "$bridge_command" | sed "s/--gas-limit [0-9]*/--gas-limit $reduced_gas_limit/")
+                        _log_file_descriptor "2" "Reduced gas limit from $current_gas_limit to $reduced_gas_limit"
+                    fi
+                fi
             fi
             
             # Check for temporary RPC issues
