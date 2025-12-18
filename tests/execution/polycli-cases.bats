@@ -7,7 +7,7 @@ setup_file() {
     _setup_vars
 
     # source existing helper functions for ephemeral account setup
-    source "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
+    source "$BATS_TEST_DIRNAME/../lxly/bridge-tests-suite-assets/helpers/bridge-tests-helper.bash"
 
     ephemeral_data=$(_generate_ephemeral_account "polycli-cases")
     ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)

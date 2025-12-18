@@ -12,7 +12,7 @@ setup() {
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
-    source "$BATS_TEST_DIRNAME/../lxly/assets/bridge-tests-helper.bash"
+    source "$BATS_TEST_DIRNAME/../lxly/bridge-tests-suite-assets/helpers/bridge-tests-helper.bash"
 }
 
 wait_block_increment() {

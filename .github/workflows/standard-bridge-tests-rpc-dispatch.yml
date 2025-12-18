@@ -247,11 +247,11 @@ jobs:
 
           # Load the appropriate network configuration based on environment
           if [[ "$NETWORK_ENV" == "bali" ]]; then
-            CONFIG_FILE="tests/lxly/networks/bali-networks.env"
+            CONFIG_FILE="tests/lxly/bridge-tests-suite-assets/networks/bali-networks.env"
           elif [[ "$NETWORK_ENV" == "cardona" ]]; then
-            CONFIG_FILE="tests/lxly/networks/cardona-networks.env"
+            CONFIG_FILE="tests/lxly/bridge-tests-suite-assets/networks/cardona-networks.env"
           elif [[ "$NETWORK_ENV" == "spec" ]]; then
-            CONFIG_FILE="tests/lxly/networks/spec-networks.env"
+            CONFIG_FILE="tests/lxly/bridge-tests-suite-assets/networks/spec-networks.env"
           else
             echo "Error: Unsupported network environment: $NETWORK_ENV"
             exit 1
