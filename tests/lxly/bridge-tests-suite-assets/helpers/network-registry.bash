@@ -5,7 +5,6 @@
 # Global associative arrays for network configuration
 declare -gA NETWORK_REGISTRY=()
 declare -gA NETWORK_ID_TO_PREFIX=()
-declare -gA NETWORK_PREFIX_TO_ID=()
 
 # Cache for derived values
 declare -gA DERIVED_NETWORK_ID_CACHE=()
@@ -25,8 +24,7 @@ _auto_discover_networks() {
     # Clear existing registry
     NETWORK_REGISTRY=()
     NETWORK_ID_TO_PREFIX=()
-    NETWORK_PREFIX_TO_ID=()
-    
+
     # Discover L1 network (Sepolia) - always network ID 0
     if [[ -n "${SEPOLIA_RPC_URL:-}" ]]; then
         _register_discovered_network "0" "sepolia" "SEPOLIA"
@@ -109,8 +107,7 @@ _register_discovered_network() {
     
     # Store mappings
     NETWORK_ID_TO_PREFIX["$network_id"]="$env_prefix"
-    NETWORK_PREFIX_TO_ID["$env_prefix"]="$network_id"
-    
+
     # Build network configuration entry
     local rpc_url_var="${env_prefix}_RPC_URL"
     local bridge_addr_var="${env_prefix}_BRIDGE_ADDR"
