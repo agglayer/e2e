@@ -462,7 +462,7 @@ _agglayer_cdk_common_multi_setup() {
 
     # Resolve Aggkit Bridge URLs
     aggkit_bridge_1_url=$(_resolve_url_or_use_env AGGKIT_BRIDGE_1_URL \
-        "aggkit-001-bridge" "rest" "rest" "cdk-node-001" "rest" \
+        "aggkit-001-bridge" "rest" "cdk-node-001" "rest" \
         "Failed to resolve Rollup 1 aggkit bridge url from all fallback nodes" true)
     readonly aggkit_bridge_1_url
 
