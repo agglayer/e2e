@@ -209,7 +209,7 @@ setup() {
   log "Final legacy token migrations: $final_legacy_token_migrations"
 }
 
-@test "Test inject invalid GER on L2 (bridges are valid)" {
+@test "Test inject invalid GER on L2 - bridges are valid" {
   log "🚀 Sending bridge from L1 to L2"
   destination_addr="$receiver"
   destination_net="$l2_rpc_network_id"
