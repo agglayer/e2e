@@ -30,15 +30,10 @@ setup() {
     # Concatenate bytecode and encoded constructor args
     local deploy_bytecode="${bytecode}${encoded_args:2}" # Remove 0x from encoded args
 
-    # Set a fixed gas price (1 gwei)
-    local gas_price=1000000000
-
     # Deploy the contract
     local deploy_output
     deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
         --create "$deploy_bytecode" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -74,7 +69,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -111,7 +106,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -148,7 +143,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -185,7 +180,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -264,8 +259,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -287,8 +281,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -298,10 +291,10 @@ setup() {
         tx_hash=$(echo "$on_message_output" | grep -o '0x[a-fA-F0-9]*')
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
-        # Validate the bridge_getClaims API to verify all claims were processed
+        # Validate the bridge service get claims API to verify all claims were processed
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
-        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
@@ -366,7 +359,7 @@ setup() {
         log "✅ First claim all fields validated successfully"
 
         log "🔍 Validating second asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -431,7 +424,7 @@ setup() {
         log "✅ Second claim all fields validated successfully"
 
         log "🔍 Validating third asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
@@ -531,7 +524,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -568,7 +561,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -605,7 +598,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -642,7 +635,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -734,8 +727,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -757,8 +749,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -770,7 +761,7 @@ setup() {
 
         log "🔍 Validating first asset claim was processed"
         log "Global index: $global_index_1"
-        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_1" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_1="$output"
         log "📋 First claim response: $claim_1"
@@ -836,7 +827,7 @@ setup() {
 
         log "🔍 Validating third asset claim was processed"
         log "Global index: $global_index_3"
-        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_3" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_3="$output"
         log "📋 Third claim response: $claim_3"
@@ -908,7 +899,7 @@ setup() {
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
         local all_claims_result
-        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
         log "📝 All claims response: $all_claims_result"
 
         # Check if second claim (failed) is present in the API response
@@ -970,7 +961,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -1007,7 +998,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -1044,7 +1035,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -1081,7 +1072,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -1180,8 +1171,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -1203,8 +1193,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -1215,7 +1204,7 @@ setup() {
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -1287,7 +1276,7 @@ setup() {
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
         local all_claims_result
-        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) with global_index_1 is present in the API response
@@ -1370,7 +1359,7 @@ setup() {
 
     # Extract claim parameters for first asset
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_1
     proof_local_exit_root_1=$(echo "$claim_params_1" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_1
@@ -1407,7 +1396,7 @@ setup() {
 
     # Extract claim parameters for second asset
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_2
     proof_local_exit_root_2=$(echo "$claim_params_2" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_2
@@ -1444,7 +1433,7 @@ setup() {
 
     # Extract claim parameters for third asset
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_3
     proof_local_exit_root_3=$(echo "$claim_params_3" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_3
@@ -1481,7 +1470,7 @@ setup() {
 
     # Extract claim parameters for fourth asset
     local claim_params_4
-    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$sender_addr")
+    claim_params_4=$(extract_claim_parameters_json "$bridge_tx_hash_4" "fourth" "$l1_rpc_network_id" "$sender_addr")
     local proof_local_exit_root_4
     proof_local_exit_root_4=$(echo "$claim_params_4" | jq -r '.proof_local_exit_root')
     local proof_rollup_exit_root_4
@@ -1585,8 +1574,7 @@ setup() {
         "$amount_4" \
         "$metadata_4" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update parameters"
@@ -1608,8 +1596,7 @@ setup() {
         "$origin_network_1" \
         "0x" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     log "📝 onMessageReceived output: $on_message_output"
 
@@ -1620,7 +1607,7 @@ setup() {
         log "✅ onMessageReceived transaction successful: $tx_hash"
 
         log "🔍 Validating second asset claim was processed (should succeed with global_index_2)"
-        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url" "$internal_claim_sc_addr"
+        run get_claim "$l2_rpc_network_id" "$global_index_2" 50 10 "$aggkit_bridge_url"
         assert_success
         local claim_2="$output"
         log "📋 Second claim response: $claim_2"
@@ -1692,7 +1679,7 @@ setup() {
         # Get all claims from the API to check if failed claims are present
         log "📋 Getting all claims from the API"
         local all_claims_result
-        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id&include_all_fields=true")
+        all_claims_result=$(curl -s -H "Content-Type: application/json" "$aggkit_bridge_url/bridge/v1/claims?network_id=$l2_rpc_network_id")
         log "📝 All claims response: $all_claims_result"
 
         # Check if first claim (failed) with global_index_1 is present in the API response

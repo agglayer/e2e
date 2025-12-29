@@ -44,8 +44,6 @@ setup() {
     local deploy_output
     deploy_output=$(cast send --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
-        --gas-price "$gas_price" \
-        --legacy \
         --create "$deploy_bytecode" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -90,7 +88,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_1
@@ -140,7 +138,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_2
@@ -191,8 +189,7 @@ setup() {
         "$amount_1" \
         "$metadata_1" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update contract parameters"
@@ -227,7 +224,7 @@ setup() {
     # ========================================
     log "🌉 STEP 7: Claiming second asset (should succeed)"
 
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+    run process_bridge_claim "claim_reentrancy: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash_2" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
     assert_success
     local global_index_2_claimed=$output
     log "✅ Second asset claimed successfully, global index: $global_index_2_claimed"
@@ -252,23 +249,21 @@ setup() {
     log "   Amount: $amount_1 wei"
     log "   Gas price: $comp_gas_price wei"
 
-    # Create temporary file for error capture
-    local tmp_response
-    tmp_response=$(mktemp)
     local revert_result
 
+    local response
     # Attempt reentrant claim and capture any errors
-    cast send --legacy --gas-price $comp_gas_price \
+    if ! response=$(cast send --private-key $sender_private_key \
         --rpc-url $L2_RPC_URL \
-        --private-key $sender_private_key \
-        $l2_bridge_addr "claimMessage(bytes32[32],bytes32[32],uint256,bytes32,bytes32,uint32,address,uint32,address,uint256,bytes)" \
-        "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" $global_index_1 $mainnet_exit_root_1 $rollup_exit_root_1 \
-        $origin_network_1 $origin_address_1 $destination_network_1 $destination_address_1 $amount_1 $metadata_1 2>$tmp_response || {
+        $l2_bridge_addr "$CLAIM_MSG_FN_SIG" \
+        "$proof_local_exit_root_1" "$proof_rollup_exit_root_1" "$global_index_1" "$mainnet_exit_root_1" "$rollup_exit_root_1" \
+        "$origin_network_1" "$origin_address_1" "$destination_network_1" \
+        "$destination_address_1" "$amount_1" "$metadata_1" 2>&1 >/dev/null); then
+
         # Use existing function to check revert code
-        check_claim_revert_code "$tmp_response"
+        check_claim_revert_code "$response"
         revert_result=$?
-        rm -f "$tmp_response"
-    }
+    fi
 
     # Validate reentrancy protection
     if [[ $revert_result -eq 0 ]]; then
@@ -285,7 +280,7 @@ setup() {
 
     # Verify first claim was processed
     log "🔍 Validating first asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -332,7 +327,7 @@ setup() {
 
     # Verify second claim was processed
     log "🔍 Validating second asset claim processing"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url" "$sender_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -535,7 +530,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_1
-    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$sender_addr")
+    claim_params_1=$(extract_claim_parameters_json "$bridge_tx_hash_1" "first" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_1
@@ -573,7 +568,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_2
-    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$sender_addr")
+    claim_params_2=$(extract_claim_parameters_json "$bridge_tx_hash_2" "second" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_2
@@ -611,7 +606,7 @@ setup() {
 
     # Use the helper function to extract claim parameters
     local claim_params_3
-    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$sender_addr")
+    claim_params_3=$(extract_claim_parameters_json "$bridge_tx_hash_3" "third" "$l1_rpc_network_id" "$sender_addr")
 
     # Parse the JSON response to extract individual parameters
     local proof_local_exit_root_3
@@ -664,8 +659,7 @@ setup() {
         "$amount_2" \
         "$metadata_2" \
         --rpc-url "$L2_RPC_URL" \
-        --private-key "$sender_private_key" \
-        --gas-price "$gas_price" 2>&1)
+        --private-key "$sender_private_key" 2>&1)
 
     if [[ $? -ne 0 ]]; then
         log "❌ Error: Failed to update contract parameters"
@@ -760,14 +754,6 @@ setup() {
 
     log "📦 claim_data_2: $claim_data_2"
 
-    # Calculate gas price for testClaim
-    local test_claim_gas_price
-    test_claim_gas_price=$(bc -l <<<"$gas_price * 2" | sed 's/\..*//')
-    if [[ $? -ne 0 ]]; then
-        log "❌ Failed to calculate gas price"
-        return 1
-    fi
-
     log "⏳ Calling testClaim..."
     if ! test_claim_output=$(cast send \
         "$claim_reentrancy_sc_addr" \
@@ -777,7 +763,6 @@ setup() {
         "$claim_data_2" \
         --rpc-url "$L2_RPC_URL" \
         --private-key "$sender_private_key" \
-        --gas-price "$test_claim_gas_price" \
         --value "$amount_bridge_wei" \
         --json 2>&1); then
 
@@ -804,7 +789,7 @@ setup() {
 
     # Verify first claim was processed (contract destination)
     log "🔍 Validating first asset claim processing (contract destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_1" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_1="$output"
     log "📋 First claim response received"
@@ -851,7 +836,7 @@ setup() {
 
     # Verify second claim was processed (deployer destination)
     log "🔍 Validating second asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_2" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_2="$output"
     log "📋 Second claim response received"
@@ -898,7 +883,7 @@ setup() {
 
     # Verify third claim was processed (deployer destination)
     log "🔍 Validating third asset claim processing (deployer destination)"
-    run get_claim "$l2_rpc_network_id" "$global_index_3" 250 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_claim "$l2_rpc_network_id" "$global_index_3" 250 10 "$aggkit_bridge_url"
     assert_success
     local claim_3="$output"
     log "📋 Third claim response received"
@@ -1051,7 +1036,7 @@ setup() {
     log "🔍 STEP 13: Verifying bridge event from aggkit with tx hash: $test_claim_tx_hash"
 
     # Get bridge details
-    run get_bridge "$l2_rpc_network_id" "$test_claim_tx_hash" 300 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
+    run get_bridge "-" "$l2_rpc_network_id" "$test_claim_tx_hash" 300 10 "$aggkit_bridge_url" "$claim_reentrancy_sc_addr"
     assert_success
     local bridge_test_claim="$output"
     log "📝 bridge_test_claim: $bridge_test_claim"

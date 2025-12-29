@@ -6,11 +6,13 @@
 # likely that some local network issues might come up due to the
 # implementation of the docker proxy. In this case, I'm bypassing the
 # proxy all together to directly connect to the sequencer's native IP.
-setup() {
-    kurtosis_enclave_name="${ENCLAVE_NAME:-op}"
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
-    l2_private_key="${L2_PRIVATE_KEY:-12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625}"
+setup_file() {
+    # shellcheck source=core/helpers/common.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    _setup_vars
+}
 
+setup() {
     legacy_flag=""
     run cast rpc zkevm_getForkId --rpc-url "$l2_rpc_url"
     if [[ "$status" -eq 0 ]]; then
@@ -24,7 +26,7 @@ setup() {
 
     # source existing helper functions for ephemeral account setup
     # shellcheck disable=SC1091
-    source "./tests/lxly/assets/bridge-tests-helper.bash"
+    source "$BATS_TEST_DIRNAME/../lxly/bridge-tests-suite-assets/helpers/bridge-tests-helper.bash"
 }
 
 # bats test_tags=loadtest,transaction-eoa

@@ -7,3 +7,11 @@ cdk-databases/
 stress_logs_*
 chaos_logs_*
 *.out
+.idea
+*.env
+!**/networks/*.env
+aggsender_find_imported_bridge
+combined.json
+combined-001.json
+combined-002.json
+combined-003.json

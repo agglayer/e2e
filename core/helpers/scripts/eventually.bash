@@ -33,6 +33,34 @@ function assert_command_eventually_equal() {
   done
 }
 
+function assert_command_eventually_greater_than() {
+  local command="$1"
+  local target="$2"
+  local timeout="${3:-90}"
+  local interval="${4:-10}"
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
+
+  local start_time
+  start_time=$(date +%s)
+  local end_time
+  end_time=$((start_time + timeout))
+  while true; do
+    if [[ "$(date +%s)" -ge "${end_time}" ]]; then
+      echo "Timeout reached."
+      exit 1
+    fi
+
+    result=$(eval "${command}")
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result: ${result}"
+    if [[ "${result}" -gt "${target}" ]]; then
+      break
+    fi
+
+    sleep "${interval}"
+  done
+}
+
 function assert_command_eventually_greater_or_equal() {
   local command="$1"
   local target="$2"

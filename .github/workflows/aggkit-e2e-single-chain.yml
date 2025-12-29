@@ -48,16 +48,21 @@ on:
         type: string
 
       aggsender-find-imported-bridge-artifact:
-        description: "Path for aggsender to find the imported bridge"
-        required: false
+        description: "Path for aggsender helper tool to find the imported bridge"
+        required: true
         type: string
-        default: ""
 
-      event-name:
-        description: "Event name to be used for the test"
+      execute-all-tests:
+        description: "If true, run all tests and report failures at the end (no fail-fast)."
         required: false
-        type: string
-        default: ""
+        type: boolean
+        default: false
+      
+      fail-fast:
+        description: "Stop test execution on first failure"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -83,6 +88,12 @@ jobs:
           ref: ${{ inputs.kurtosis-cdk-ref }}
           path: kurtosis-cdk
 
+      - name: Install Kurtosis CLI and Foundry
+        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
+        with:
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}
+
       - name: Download binary
         if: inputs.aggsender-find-imported-bridge-artifact != ''
         uses: actions/download-artifact@v4
@@ -103,12 +114,6 @@ jobs:
               docker load --input /tmp/${{ inputs.docker-artifact-name }}.tar
               docker images
           fi
-
-      - name: Install Kurtosis CLI and Foundry
-        uses: ./kurtosis-cdk/.github/actions/kurtosis-pre-run
-        with:
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_token: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Install jq
         run: sudo apt-get install jq -y
@@ -142,40 +147,69 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-fork12-global-index-pp-old-contracts" ]]; then
-            chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-            export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
-            bats ./tests/aggkit/global-index-pp-old-contracts.bats \
-                 || exit 1
-          elif [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
-            bats ./tests/aggkit/bridge-e2e-aggoracle-committee.bats \
-                 || exit 1
-          elif [[ $ENCLAVE_NAME == "op" ]]; then
-            bats ./tests/op/optimistic-mode.bats \
-                 ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-sovereign-chain-e2e.bats \
-                 || exit 1
+          chmod +x "/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
+          export AGGSENDER_IMPORTED_BRIDGE_PATH="/tmp/${{ inputs.aggsender-find-imported-bridge-artifact }}"
 
-            if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/aggkit/bridge-e2e-nightly.bats \
-                   ./tests/aggkit/internal-claims.bats \
-                   ./tests/aggkit/claim-reetrancy.bats \
-                   || exit 1
-            fi
+          if [[ "${{ inputs.fail-fast }}" == "true" ]]; then
+            FAIL_FAST=true
+            echo "Running in FAIL-FAST mode"
           else
-            bats ./tests/aggkit/bridge-e2e.bats \
-                 ./tests/aggkit/e2e-pp.bats \
-                 ./tests/aggkit/bridge-e2e-custom-gas.bats \
-                 || exit 1
+            FAIL_FAST=false
+            echo "Running in RUN-ALL mode"
+          fi
 
-            if [[ "${{ inputs.event-name }}" == "schedule" ]]; then
-              bats ./tests/aggkit/bridge-e2e-nightly.bats \
-                   ./tests/aggkit/internal-claims.bats \
-                   ./tests/aggkit/claim-reetrancy.bats \
-                   || exit 1
+          # ------------------------------
+          # Test runner helper
+          # ------------------------------
+          FAILURES=()
+          run_test() {
+            local test_file="$1"
+            echo "▶ Running $test_file"
+            if ! bats "$test_file"; then
+              echo "❌ FAILED: $test_file"
+              if [[ "$FAIL_FAST" == true ]]; then
+                echo "Stopping early due to FAIL_FAST mode"
+                exit 1
+              else
+                FAILURES+=("$test_file")
+              fi
+            fi
+          }
+
+          # ------------------------------
+          # Special-case single test mode
+          # ------------------------------
+          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
+            run_test ./tests/aggkit/bridge-e2e-aggoracle-committee.bats
+          else
+            # Always-run tests
+            run_test ./tests/aggkit/bridge-e2e.bats
+            run_test ./tests/aggkit/e2e-pp.bats
+            run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
+
+            # Extra tests, whose execution is time consuming
+            if [[ "${{ inputs.execute-all-tests }}" == "true" ]]; then
+              run_test ./tests/op/optimistic-mode.bats
+              run_test ./tests/aggkit/bridge-e2e-nightly.bats
+              run_test ./tests/aggkit/internal-claims.bats
+              run_test ./tests/aggkit/claim-reetrancy.bats
+              run_test ./tests/aggkit/aggsender-committee-updates.bats
             fi
           fi
+
+          # ------------------------------
+          # Final pass/fail result for scheduled runs
+          # ------------------------------
+          if [[ "$FAIL_FAST" == false ]]; then
+            if (( ${#FAILURES[@]} > 0 )); then
+              echo "=============================================="
+              echo "❌ The following tests failed during schedule run:"
+              printf ' - %s\n' "${FAILURES[@]}"
+              echo "=============================================="
+              exit 1
+            fi
+          fi
+
           popd
 
       - name: Dump enclave logs

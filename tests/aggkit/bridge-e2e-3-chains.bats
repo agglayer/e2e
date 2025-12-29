@@ -27,7 +27,8 @@ setup() {
     local bridge_tx_hash_pp3=$output
 
     echo "=== Running LxLy claim L1 to L2(Rollup 3) for $bridge_tx_hash_pp3" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp3" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash_pp3" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    assert_success
 
     # reduce eth amount
     amount="0.01ether"
@@ -41,7 +42,8 @@ setup() {
     local bridge_tx_hash=$output
 
     echo "=== Running LxLy claim L2(Rollup 3) to L2(Rollup 1) for: $bridge_tx_hash" >&3
-    process_bridge_claim "$rollup_3_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$rollup_3_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    assert_success
 
     # Verify final balance on Rollup 1
     run query_contract "$l2_rpc_url_1" "$weth_token_rollup_1" "$BALANCE_OF_FN_SIG" "$destination_addr"
@@ -89,9 +91,11 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the Rollup 1)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    assert_success
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_1_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
 
@@ -113,9 +117,11 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the Rollup 2)
-    run process_bridge_claim "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    assert_success
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
@@ -156,7 +162,8 @@ setup() {
 
     # Claim on Rollup 1
     echo "=== Running LxLy claim L1 to Rollup 1 for $bridge_tx_hash_pp1" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp1" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash_pp1" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    assert_success
     echo "==== 💰 Verifying balance on Rollup 1" >&3
     run verify_balance "$l2_rpc_url_1" "$weth_token_rollup_1" "$destination_addr" "$weth_token_init_sender_balance_rollup1" "$amount"
     assert_success
@@ -178,7 +185,8 @@ setup() {
 
     # Final claim on Rollup 3
     echo "=== Running LxLy claim Rollup 1 to Rollup 3 for: $bridge_tx_hash" >&3
-    process_bridge_claim "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    assert_success
 
     echo "==== 💰 Verifying balance on Rollup 3" >&3
     run verify_balance "$l2_rpc_url_3" "$native_token_addr" "$destination_addr" "$initial_receiver_balance_rollup3" "$amount"
@@ -227,9 +235,11 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the Rollup 1)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_1_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l2_rpc_url_1"
+    assert_success
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_1_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_1_url"
     assert_success
 
@@ -279,9 +289,11 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the Rollup 2)
-    run process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    assert_success
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 
@@ -301,7 +313,8 @@ setup() {
     local bridge_tx_hash_pp3=$output
 
     echo "=== Running LxLy claim L1 to L2(Rollup 3) for $bridge_tx_hash_pp3" >&3
-    process_bridge_claim "$l1_rpc_network_id" "$bridge_tx_hash_pp3" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$l1_rpc_network_id" "$bridge_tx_hash_pp3" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    assert_success
 
     # DEPOSIT
     sender_private_key=$receiver1_private_key
@@ -314,10 +327,12 @@ setup() {
     assert_success
     local bridge_tx_hash=$output
 
-    # Claim deposits (settle them on the Rollup 3)
-    run process_bridge_claim "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    # Claim deposit (settle it on the Rollup 3)
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$rollup_1_network_id" "$bridge_tx_hash" "$rollup_3_network_id" "$l2_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_3_url" "$l2_rpc_url_3"
+    assert_success
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_3_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_3_url"
     assert_success
 
@@ -349,9 +364,11 @@ setup() {
     local bridge_tx_hash=$output
 
     # Claim deposits (settle them on the Rollup 3)
-    run process_bridge_claim "$rollup_3_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    run process_bridge_claim "3bridge-e2e-3-chains: $LINENO" "$rollup_3_network_id" "$bridge_tx_hash" "$rollup_2_network_id" "$l2_bridge_addr" "$aggkit_bridge_3_url" "$aggkit_bridge_2_url" "$l2_rpc_url_2"
+    assert_success
     local claim_global_index="$output"
-    # Validate the bridge_getClaims API
+    # Validate the bridge service get claims API
+    echo "==== 💰 get_claim $claim_global_index :$LINENO" >&3
     run get_claim "$rollup_2_network_id" "$claim_global_index" 50 10 "$aggkit_bridge_2_url"
     assert_success
 

@@ -7,39 +7,50 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L95) | |
-| Process L1 to L2 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L115) | |
-| Process L2 to L1 bridge scenarios and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L334) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L583) | |
-| Run address tester actions | [Link](./tests/lxly/bridge-tests-suite.bats#L552) | |
-| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L66) | |
-| bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L40) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L131) | |
+| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L201) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L430) | |
+| bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
+| bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L117) | |
+| bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
+| bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L31) | |
+| cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L249) | |
 
 ## AggLayer Tests
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Agglayer random cert test | [Link](./tests/agglayer/cert-tests.bats#L154) | |
-| Agglayer valid cert fake deposit test | [Link](./tests/agglayer/cert-tests.bats#L111) | |
-| Agglayer valid cert test | [Link](./tests/agglayer/cert-tests.bats#L70) | |
-| admin_getCertificate returns certificate data for valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L49) | |
-| admin_getCertificate returns error for invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L107) | |
-| admin_removePendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L187) | |
-| admin_removePendingProof with invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L203) | |
-| admin_setLatestPendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L123) | |
-| admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L139) | |
-| admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L264) | |
-| admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L280) | |
-| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L139) | |
-| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L61) | |
-| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L103) | |
-| compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L220) | |
-| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L225) | |
-| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L190) | |
-| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L206) | |
-| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L266) | |
-| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L285) | |
-| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L247) | |
+| Agglayer random cert test | [Link](./tests/agglayer/cert-tests.bats#L157) | |
+| Agglayer valid cert fake deposit test | [Link](./tests/agglayer/cert-tests.bats#L114) | |
+| Agglayer valid cert test | [Link](./tests/agglayer/cert-tests.bats#L73) | |
+| admin_getCertificate returns certificate data for valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L43) | |
+| admin_getCertificate returns error for invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L101) | |
+| admin_removePendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L181) | |
+| admin_removePendingProof with invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L197) | |
+| admin_setLatestPendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L117) | |
+| admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
+| admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
+| admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
+| aggregator with no funds | [Link](./tests/agglayer/nonce-tests.bats#L295) | |
+| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L112) | |
+| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L36) | |
+| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L77) | |
+| compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L214) | |
+| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L196) | |
+| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L161) | |
+| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L177) | |
+| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L237) | |
+| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L256) | |
+| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L218) | |
+| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L266) | |
+| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L180) | |
+| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L199) | |
+| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L190) | |
+| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L208) | |
+| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L222) | |
+| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L237) | |
+| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L251) | |
+| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L173) | |
 
 ## CDK Erigon Tests
 
@@ -121,16 +132,17 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | add new validator | [Link](./tests/pos/validator.bats#L20) | |
-| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L50) | |
-| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L187) | |
-| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L138) | |
-| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L94) | |
+| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L51) | |
+| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L188) | |
+| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L139) | |
+| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L95) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
 | enforce deterministic fallback behavior | [Link](./tests/pos/veblop/invariants.bats#L156) | |
 | enforce equal block distribution between block producers at the execution layer | [Link](./tests/pos/veblop/invariants.bats#L116) | |
 | enforce equal slot distribution between block producers at the consensus layer | [Link](./tests/pos/veblop/invariants.bats#L68) | |
 | enforce minimum one and maximum three selected producers per span | [Link](./tests/pos/veblop/invariants.bats#L34) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
+| prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
 | undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
@@ -189,15 +201,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Call special addresses | [Link](./tests/execution/special-addresses.bats#L16) | |
-| Deploy polycli loadtest contracts | [Link](./tests/execution/polycli-cases.bats#L29) | |
-| Make conflicting contract calls | [Link](./tests/execution/conflicting-contract-calls.bats#L53) | |
-| Make conflicting transaction to pool | [Link](./tests/execution/conflicting-transactions-to-pool.bats#L16) | |
-| Perform ERC20 Transfers | [Link](./tests/execution/polycli-cases.bats#L41) | |
-| Perform some ERC721 Mints | [Link](./tests/execution/polycli-cases.bats#L46) | |
-| Perform some Storage calls in the load tester contract | [Link](./tests/execution/polycli-cases.bats#L64) | |
-| Perform some uniswap v3 calls | [Link](./tests/execution/polycli-cases.bats#L98) | |
-| Setup Railgun | [Link](./tests/execution/railgun-contracts.bats#L21) | |
+| Call special addresses | [Link](./tests/execution/special-addresses.bats#L17) | |
+| Deploy polycli loadtest contracts | [Link](./tests/execution/polycli-cases.bats#L26) | |
+| Make conflicting contract calls | [Link](./tests/execution/conflicting-contract-calls.bats#L54) | |
+| Make conflicting transaction to pool | [Link](./tests/execution/conflicting-transactions-to-pool.bats#L17) | |
+| Perform ERC20 Transfers | [Link](./tests/execution/polycli-cases.bats#L38) | |
+| Perform some ERC721 Mints | [Link](./tests/execution/polycli-cases.bats#L43) | |
+| Perform some Storage calls in the load tester contract | [Link](./tests/execution/polycli-cases.bats#L61) | |
+| Perform some uniswap v3 calls | [Link](./tests/execution/polycli-cases.bats#L95) | |
+| Setup Railgun | [Link](./tests/execution/railgun-contracts.bats#L22) | |
 | Setup SmoothCryptoLib | [Link](./tests/execution/smooth-crypto-lib.bats#L31) | |
 | Testing ECDSAB4 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L721) | |
 | Testing EIP6565 - BasePointMultiply | [Link](./tests/execution/smooth-crypto-lib.bats#L75) | |
@@ -207,36 +219,35 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Testing EIP6565 - Verify_LE | [Link](./tests/execution/smooth-crypto-lib.bats#L482) | |
 | Testing EIP6565 - ecPow128 | [Link](./tests/execution/smooth-crypto-lib.bats#L541) | |
 | Testing RIP7212 - verify | [Link](./tests/execution/smooth-crypto-lib.bats#L672) | |
-| Using polycli to call some precompiles | [Link](./tests/execution/polycli-cases.bats#L104) | |
-| Using polycli to do some inscriptions | [Link](./tests/execution/polycli-cases.bats#L110) | |
 
 ## Load Tests
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| send 10,200 Uniswapv3 swaps sent and mined in 300 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L128) | |
-| send 20,800 ERC721 mints and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L94) | |
-| send 41,200 ERC20 transfers and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L62) | |
-| send 85,700 EOA transfers and confirm mined in 60 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L31) | |
+| send 10,200 Uniswapv3 swaps sent and mined in 300 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L130) | |
+| send 20,800 ERC721 mints and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L96) | |
+| send 41,200 ERC20 transfers and confirm mined in 240 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L64) | |
+| send 85,700 EOA transfers and confirm mined in 60 seconds | [Link](./tests/polycli-loadtests/polycli-loadtests.bats#L33) | |
 
 ## CDK OP Geth Tests
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | Check L2 OP Isthmus operator fees | [Link](./tests/op/check-isthmus-fees.bats#L12) | |
-| Check L2 OP native bridge is disabled | [Link](./tests/op/check-op-native-bridge.bats#L13) | |
+| Check L2 OP native bridge is disabled | [Link](./tests/op/check-op-native-bridge.bats#L12) | |
 | Check L2 OP vaults totalProcessed wei | [Link](./tests/op/check-isthmus-fees.bats#L55) | |
-| Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L35) | |
-| Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L239) | |
-| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L113) | |
-| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L89) | |
-| Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L182) | |
-| Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L114) | |
-| check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L60) | |
-| send concurrent transactions and verify DA fee handling | [Link](./tests/op/simple-op-checks.bats#L47) | |
-| sweep account with precise gas and DA fee estimation | [Link](./tests/op/simple-op-checks.bats#L13) | |
-| test custom gas token bridge from L1 to L2 | [Link](./tests/op/custom-gas-token.bats#L66) | |
-| test custom gas token bridge from L2 to L1 | [Link](./tests/op/custom-gas-token.bats#L194) | |
+| Check L2 supported forks | [Link](./tests/op/check-supported-hardforks.bats#L39) | |
+| Contract call through forced tx | [Link](./tests/op/forced-txs.bats#L197) | |
+| Disable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L98) | |
+| Enable OptimisticMode | [Link](./tests/op/optimistic-mode.bats#L74) | |
+| Rotate OP batcher key | [Link](./tests/op/rotate-op-keys.bats#L16) | |
+| Send a regular EOA forced tx with no l2 funds | [Link](./tests/op/forced-txs.bats#L140) | |
+| Send a regular EOA forced tx | [Link](./tests/op/forced-txs.bats#L72) | |
+| check address for custom gas token on L2 | [Link](./tests/op/custom-gas-token.bats#L44) | |
+| send concurrent transactions and verify DA fee handling | [Link](./tests/op/simple-op-checks.bats#L53) | |
+| sweep account with precise gas and DA fee estimation | [Link](./tests/op/simple-op-checks.bats#L19) | |
+| test custom gas token bridge from L1 to L2 | [Link](./tests/op/custom-gas-token.bats#L50) | |
+| test custom gas token bridge from L2 to L1 | [Link](./tests/op/custom-gas-token.bats#L178) | |
 
 ## Full System Tests
 
@@ -252,38 +263,53 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L272) | |
-| Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L350) | |
+| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L108) | |
+| Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L274) | |
+| Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L354) | |
 | Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L194) | |
 | Bridge message A → Bridge asset B → Claim asset A → Claim message B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L10) | |
 | Bridge message A → Bridge asset B → Claim message A → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L71) | |
 | Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L132) | |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
-| Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L77) | |
-| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L28) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L98) | |
-| Global Index PP old contracts:  | [Link](./tests/aggkit/global-index-pp-old-contracts.bats#L40) | |
-| L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L62) | |
-| L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L188) | |
-| L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L139) | |
+| Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
+| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
+| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
+| Inject LatestBlock-N GER - A case PP (another test) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L933) | |
+| L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
+| L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
+| L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
 | L1 → Rollup 3 (native/WETH) → Rollup 1 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L16) | |
-| Native token transfer L1 -> L2 - manipulated global index | [Link](./tests/aggkit/bridge-e2e.bats#L158) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L108) | |
-| Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L38) | |
-| Test GlobalExitRoot removal | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L24) | |
+| Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
+| Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
+| Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L243) | |
+| RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
+| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L147) | |
+| Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L74) | |
-| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L477) | |
-| Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L69) | |
-| Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1355) | |
-| Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L955) | |
-| Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L516) | |
-| Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L62) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L48) | |
+| Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
+| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
+| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L212) | |
+| Test invalid GER injection case A (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L825) | |
+| Test invalid GER injection case A (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L716) | |
+| Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L396) | |
+| Test invalid GER injection case B2 (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L38) | |
+| Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
+| Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
+| Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
+| Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L946) | |
+| Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L509) | |
+| Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L57) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
-| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L70) | |
-| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L10) | |
+| Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
+| Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
+| Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
+| Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
+| foo | [Link](./tests/foo.bats#L10) | |
+| p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |
 | send ETH and verify pending nonce updates | [Link](./tests/evm-rpc/simple-validations.bats#L64) | |

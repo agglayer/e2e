@@ -1,0 +1,78 @@
+prover-entrypoint = "http://agglayer-prover:4445"
+debug-mode = false
+
+# Only supported by fork 12+
+mock-verifier = false
+
+[full-node-rpcs]
+1 = "http://erigon:8545"
+
+[proof-signers]
+1 = "REPLACE_SEQUENCER_ADDRESS"
+
+[rpc]
+grpc-port = 4443
+readrpc-port = 4444
+admin-port = 4446
+host = "0.0.0.0"
+request-timeout = 180
+max-request-body-size = 4294967295
+
+[grpc]
+max-decoding-message-size = 10485760000
+max-encoding-message-size = 10485760000
+
+[prover.grpc]
+max-decoding-message-size = 10485760000
+max-encoding-message-size = 10485760000
+
+[outbound.rpc.settle]
+max-retries = 3
+retry-interval = 7
+confirmations = 1
+settlement-timeout = 1200
+gas-multiplier-factor = 175
+
+[log]
+level = "info"
+outputs = ["stderr"]
+format = "pretty"
+
+[auth.local]
+private-keys = [
+    { path = "/etc/agglayer/aggregator.keystore", password = "secret" },
+]
+
+[l1]
+chain-id = 1
+node-url = "REPLACE_L1_RPC"
+ws-node-url = "REPLACE_L1_WS"
+rollup-manager-contract = "REPLACE_AGGLAYER_MANAGER"
+polygon-zkevm-global-exit-root-v2-contract = "REPLACE_GER"
+rpc-timeout = 45
+
+[l2]
+rpc-timeout = 45
+
+[telemetry]
+prometheus-addr = "0.0.0.0:9092"
+
+[rate-limiting]
+send-tx = "unlimited"
+
+[rate-limiting.network]
+
+[epoch.block-clock]
+epoch-duration = 15
+genesis-block = 19218658
+
+[shutdown]
+runtime-timeout = 5
+
+[certificate-orchestrator]
+input-backpressure-buffer-size = 1000
+
+[certificate-orchestrator.prover.sp1-local]
+
+[storage]
+db-path = "/etc/agglayer/storage"

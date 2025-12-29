@@ -36,7 +36,7 @@ extract_test_info() {
     # Extract test names from @test lines
     grep -n "^@test" "$file" | while IFS=: read -r line_num content; do
         # Extract test name from @test "test name"
-        test_name=$(echo "$content" | sed -n 's/@test "\([^"]*\)".*/\1/p')
+        test_name=$(echo "$content" | sed -n 's/@test "\(.*\)" {.*/\1/p')
         if [[ -n "$test_name" ]]; then
             echo "| $test_name | [Link](./$relative_path#L$line_num) | |"
         fi
