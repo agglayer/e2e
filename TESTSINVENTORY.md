@@ -137,8 +137,14 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L139) | |
 | bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L95) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
+| enforce deterministic fallback behavior | [Link](./tests/pos/veblop/invariants.bats#L156) | |
+| enforce equal block distribution between block producers at the execution layer | [Link](./tests/pos/veblop/invariants.bats#L116) | |
+| enforce equal slot distribution between block producers at the consensus layer | [Link](./tests/pos/veblop/invariants.bats#L68) | |
+| enforce minimum one and maximum three selected producers per span | [Link](./tests/pos/veblop/invariants.bats#L34) | |
+| isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
+| spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
 | undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
 | update signer | [Link](./tests/pos/validator.bats#L147) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L60) | |
