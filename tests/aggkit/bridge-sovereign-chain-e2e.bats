@@ -23,6 +23,12 @@ setup() {
 
   readonly empty_proof=$(jq -nc '[range(32) | "0x0000000000000000000000000000000000000000000000000000000000000000"]')
 
+  # backwardLET function signatures
+  readonly backward_let_func_sig="function backwardLET(uint256,bytes32[32],bytes32,bytes32[32])"
+  readonly activate_emergency_state_func_sig="function activateEmergencyState()"
+  readonly deactivate_emergency_state_func_sig="function deactivateEmergencyState()"
+  readonly deposit_count_func_sig="function depositCount() (uint256)"
+
   contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
   input_args="$(curl -s "${contracts_url}/opt/input/input_args.json")"
 
@@ -305,4 +311,130 @@ setup() {
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
+}
+
+@test "Test backwardLET feature" {
+  log "=== 🧪 Testing backwardLET feature ===" >&3
+
+  # Step 1: Make 1 bridge from L1 to L2 (0.7 ETH) and claim it
+  log "🚀 Step 1: Making 1 bridge from L1 to L2 (0.7 ETH) and claiming it"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  amount=$(cast --to-unit 0.7ether wei)
+
+  log "🚀 Bridge L1 -> L2 (0.7 ETH)"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local step1_bridge_tx_hash="$output"
+  log "✅ Bridge tx hash: $step1_bridge_tx_hash"
+
+  # Claim the bridge on L2
+  log "🔐 Claiming bridge on L2"
+  run process_bridge_claim "backwardLET-step1" "$l1_rpc_network_id" "$step1_bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  log "✅ Claimed bridge, global_index: $output"
+  local claimed_global_index="$output"
+  # Wait for certificate to settle containing the claimed global index
+  log "⏳ Waiting for certificate settlement containing global index: $claimed_global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$claimed_global_index"
+  log "✅ Certificate settled for global index: $claimed_global_index"
+
+  # Step 2: Make 3 bridges from L2 to L1
+  log "🚀 Step 2: Making 3 bridges from L2 to L1"
+  local l2_to_l1_tx_hashes=()
+  destination_addr="$sender_addr"
+  destination_net="$l1_rpc_network_id"
+  amount=$(cast --to-unit 0.01ether wei)
+
+  for i in {1..3}; do
+    log "🚀 Bridge $i/3: L2 -> L1"
+    run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    assert_success
+    l2_to_l1_tx_hashes+=("$output")
+    log "✅ Bridge $i/3 tx hash: $output"
+  done
+  log "✅ Completed 3 bridges from L2 to L1"
+
+  log "Step 3: Getting the last L2->L1 bridge deposit count for backwardLET calculation"
+
+  # Get the last L2->L1 bridge deposit count for backwardLET calculation
+  local last_l2_bridge_tx="${l2_to_l1_tx_hashes[2]}"
+  run get_bridge "backwardLET" "$l2_rpc_network_id" "$last_l2_bridge_tx" 50 10 "$aggkit_bridge_url"
+  assert_success
+  local last_bridge_info="$output"
+  local last_deposit_count
+  last_deposit_count=$(echo "$last_bridge_info" | jq -r '.deposit_count')
+  log "📋 Last L2->L1 deposit count: $last_deposit_count"
+
+  # Step 4: Perform backwardLET to remove 2 deposit counts
+  log "🔧 Step 4: Performing backwardLET to roll back 2 deposit counts"
+
+  # Calculate the target deposit count (remove 2 deposits, keep 1)
+  local target_deposit_count=$((last_deposit_count - 2))
+  log "📋 Rolling back to deposit count: $target_deposit_count"
+
+  # Get backward-let data from zkevm-bridge-service
+  log "🔍 Fetching backward-let proof data"
+  local backward_let_response
+  backward_let_response=$(curl -s "$zkevm_bridge_url/backward-let?net_id=$l2_rpc_network_id&deposit_cnt=$target_deposit_count")
+  log "📋 backward-let response: $backward_let_response"
+
+  local leaf_hash
+  leaf_hash=$(echo "$backward_let_response" | jq -r '.leaf_hash')
+  local frontier
+  frontier=$(echo "$backward_let_response" | jq -r '.frontier | "[" + (join(",")) + "]"')
+  local rollup_merkle_proof
+  rollup_merkle_proof=$(echo "$backward_let_response" | jq -r '.rollup_merkle_proof | "[" + (join(",")) + "]"')
+
+  log "📋 leaf_hash: $leaf_hash"
+  log "📋 frontier: $frontier"
+  log "📋 rollup_merkle_proof: $rollup_merkle_proof"
+
+  # Activate emergency state (required for backwardLET)
+  log "🚨 Activating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$activate_emergency_state_func_sig"
+  assert_success
+  log "✅ Emergency state activated"
+
+  # Execute backwardLET
+  log "🔄 Executing backwardLET"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$backward_let_func_sig" "$target_deposit_count" "$frontier" "$leaf_hash" "$rollup_merkle_proof"
+  assert_success
+  log "✅ backwardLET executed successfully"
+
+  # Deactivate emergency state
+  log "🔓 Deactivating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$deactivate_emergency_state_func_sig"
+  assert_success
+  log "✅ Emergency state deactivated"
+
+  # Verify the deposit count has been rolled back
+  sleep 10 # Wait for state to sync
+  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
+  assert_success
+  local current_deposit_count="$output"
+  log "📋 Current deposit count after backwardLET: $current_deposit_count"
+
+  # Step 5: Do a new bridge from L1 to L2 and verify certificate settles
+  log "🚀 Step 5: Making new bridge from L1 to L2 after backwardLET"
+  # Bridge from L1 to L2
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local step5_bridge_tx_hash="$output"
+  log "✅ Step 5 bridge tx hash: $step5_bridge_tx_hash"
+
+  # Claim the deposit on L2
+  run process_bridge_claim "backwardLET-step5" "$l1_rpc_network_id" "$step5_bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  local claimed_global_index="$output"
+  log "📋 Claimed global index: $claimed_global_index"
+
+  # Wait for certificate to settle containing the claimed global index
+  log "⏳ Waiting for certificate settlement containing global index: $claimed_global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$claimed_global_index"
+  log "✅ Certificate settled for global index: $claimed_global_index"
+
+  log "✅ backwardLET test completed successfully!"
 }
