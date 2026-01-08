@@ -33,6 +33,8 @@ _agglayer_cdk_common_setup() {
     # ✅ Resolve URLs
     _resolve_required_urls
 
+    manage_kurtosis_service "stop" "zkevm-bridge-service-001"
+
     # ✅ Generate and fund wallet
     _generate_and_fund_wallet
 
@@ -597,4 +599,26 @@ log_prefix_test(){
     echo "=====================================================================" >&3
     echo "=== $1  $test_log_prefix" >&3
     echo "=====================================================================" >&3
+}
+
+# Helper function to manage bridge spammer service
+manage_kurtosis_service() {
+    local action="$1"  # start or stop
+    local service="$2"
+
+    if [[ "$action" == "stop" ]]; then
+        echo "Stopping $service..." >&3
+        kurtosis service stop "$ENCLAVE_NAME" "$service" || {
+            echo "Error: Failed to stop $service" >&3
+            return 1
+        }
+        echo "$service stopped." >&3
+    elif [[ "$action" == "start" ]]; then
+        echo "Starting $service..." >&3
+        kurtosis service start "$ENCLAVE_NAME" "$service" || {
+            echo "Error: Failed to start $service" >&3
+            return 1
+        }
+        echo "$service started." >&3
+    fi
 }
