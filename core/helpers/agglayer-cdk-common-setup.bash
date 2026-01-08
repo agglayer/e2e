@@ -607,12 +607,17 @@ manage_kurtosis_service() {
     local service="$2"
 
     if [[ "$action" == "stop" ]]; then
-        echo "Stopping $service..." >&3
-        kurtosis service stop "$ENCLAVE_NAME" "$service" || {
-            echo "Error: Failed to stop $service" >&3
-            return 1
-        }
-        echo "$service stopped." >&3
+        # Check if service is running before attempting to stop
+        if kurtosis service inspect "$ENCLAVE_NAME" "$service" >/dev/null 2>&1; then
+            echo "Stopping $service..." >&3
+            kurtosis service stop "$ENCLAVE_NAME" "$service" || {
+                echo "Error: Failed to stop $service" >&3
+                return 1
+            }
+            echo "$service stopped." >&3
+        else
+            echo "$service is not running, skipping stop." >&3
+        fi
     elif [[ "$action" == "start" ]]; then
         echo "Starting $service..." >&3
         kurtosis service start "$ENCLAVE_NAME" "$service" || {

@@ -432,15 +432,15 @@ setup() {
   amount=$(cast --to-unit 0.1ether wei)
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
-  local bridge_tx_hash_426="$output"
-  log "Bridge tx hash: $bridge_tx_hash_426"
+  local bridge_tx_hash="$output"
+  log "Bridge tx hash: $bridge_tx_hash"
   manage_kurtosis_service "start" "aggkit-001"
   aggkit_rpc_url=$(kurtosis port print "$ENCLAVE_NAME" aggkit-001 rpc)
   log "Aggkit RPC URL: $aggkit_rpc_url"
 
   # Claim the bridge on L2
   log "Claiming bridge on L2"
-  run process_bridge_claim "line426" "$l1_rpc_network_id" "$bridge_tx_hash_426" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local claimed_global_index="$output"
   log "Claimed bridge, global_index: $claimed_global_index"
@@ -543,15 +543,12 @@ setup() {
   amount=$(cast --to-unit 0.1ether wei)
   run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
   assert_success
-  local bridge_tx_hash_426="$output"
-  log "Bridge tx hash: $bridge_tx_hash_426"
-  manage_kurtosis_service "start" "aggkit-001"
-  aggkit_rpc_url=$(kurtosis port print "$ENCLAVE_NAME" aggkit-001 rpc)
-  log "Aggkit RPC URL: $aggkit_rpc_url"
+  local bridge_tx_hash="$output"
+  log "Bridge tx hash: $bridge_tx_hash"
 
   # Claim the bridge on L2
   log "Claiming bridge on L2"
-  run process_bridge_claim "line426" "$l1_rpc_network_id" "$bridge_tx_hash_426" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  run process_bridge_claim "" "$l1_rpc_network_id" "$bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
   assert_success
   local claimed_global_index="$output"
   log "Claimed bridge, global_index: $claimed_global_index"
