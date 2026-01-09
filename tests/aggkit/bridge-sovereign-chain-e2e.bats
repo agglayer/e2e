@@ -522,9 +522,9 @@ setup() {
   run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$deactivate_emergency_state_func_sig"
   assert_success
   log "Emergency state deactivated"
+  manage_kurtosis_service "start" "bridge-spammer-001"
 
   # Verify the deposit count has been restored
-  sleep 10 # Wait for state to sync
   run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
   assert_success
   local restored_deposit_count="$output"
@@ -554,8 +554,6 @@ setup() {
   local claimed_global_index="$output"
   log "Claimed bridge, global_index: $claimed_global_index"
 
-  sleep 10
-
   # Wait for certificate settlement
   log "Waiting for certificate settlement containing global index: $claimed_global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$claimed_global_index"
@@ -564,5 +562,4 @@ setup() {
   log "backwardlet, forwardlet feature test completed successfully!"
 
   manage_kurtosis_service "stop" "zkevm-bridge-service-001"
-  manage_kurtosis_service "start" "bridge-spammer-001"
 }
