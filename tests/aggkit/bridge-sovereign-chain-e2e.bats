@@ -318,6 +318,7 @@ setup() {
 
 @test "Test backwardlet, forwardlet feature" {
   manage_kurtosis_service "start" "zkevm-bridge-service-001"
+  manage_kurtosis_service "stop" "bridge-spammer-001"
   zkevm_bridge_url=$(kurtosis port print "$ENCLAVE_NAME" zkevm-bridge-service-001 rpc)
   # Step 1: Make 1 bridge from L1 to L2 (0.7 ETH) and claim it
   log "Step 1: Making 1 bridge from L1 to L2 (0.7 ETH) and claiming it"
@@ -553,7 +554,6 @@ setup() {
   local claimed_global_index="$output"
   log "Claimed bridge, global_index: $claimed_global_index"
 
-
   sleep 10
 
   # Wait for certificate settlement
@@ -564,4 +564,5 @@ setup() {
   log "backwardlet, forwardlet feature test completed successfully!"
 
   manage_kurtosis_service "stop" "zkevm-bridge-service-001"
+  manage_kurtosis_service "start" "bridge-spammer-001"
 }
