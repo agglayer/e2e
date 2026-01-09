@@ -420,7 +420,6 @@ setup() {
   log "Emergency state deactivated"
 
   # Verify the deposit count has been rolled back
-  sleep 10 # Wait for state to sync
   run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
   assert_success
   local current_deposit_count="$output"

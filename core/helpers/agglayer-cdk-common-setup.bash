@@ -619,11 +619,15 @@ manage_kurtosis_service() {
             echo "$service is not running, skipping stop." >&3
         fi
     elif [[ "$action" == "start" ]]; then
-        echo "Starting $service..." >&3
-        kurtosis service start "$ENCLAVE_NAME" "$service" || {
-            echo "Error: Failed to start $service" >&3
-            return 1
-        }
-        echo "$service started." >&3
+        if kurtosis service inspect "$ENCLAVE_NAME" "$service" >/dev/null 2>&1; then
+            echo "Starting $service..." >&3
+            kurtosis service start "$ENCLAVE_NAME" "$service" || {
+                echo "Error: Failed to start $service" >&3
+                return 1
+            }
+            echo "$service started." >&3
+        else
+            echo "$service is not running, skipping start." >&3
+        fi
     fi
 }
