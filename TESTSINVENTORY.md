@@ -288,10 +288,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
 | Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L57) | |
-| Test backwardlet, forwardlet feature | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L319) | |
+| Test backwardLET with reorg scenarios | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L319) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
-| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L221) | |
+| Test forwardLET with reorg scenarios | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L532) | |
+| Test inject invalid GER on L2 - B1 case | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L221) | |
 | Test invalid GER injection case A (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L825) | |
 | Test invalid GER injection case A (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L716) | |
 | Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L396) | |
