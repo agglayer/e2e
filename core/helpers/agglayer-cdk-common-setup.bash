@@ -601,7 +601,7 @@ log_prefix_test(){
     echo "=====================================================================" >&3
 }
 
-# Helper function to manage bridge spammer service
+# Helper function to manage kurtosis service
 manage_kurtosis_service() {
     local action="$1"  # start or stop
     local service="$2"
