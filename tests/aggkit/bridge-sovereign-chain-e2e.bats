@@ -444,7 +444,7 @@ setup() {
   log "L2 block hash after backwardLET: $l2_blockhash_after_backward_let"
   sleep 10
 
-  # Step 5: Do a reorg BEFORE backward let - revert to block before backwardLET
+  # Step 5: Do a reorg to undo backwardLET - revert to block before backwardLET
   log "Step 5: Performing L2 reorg to revert state before backwardLET"
   log "Target block for reorg: $l2_block_before_backward_let"
 
