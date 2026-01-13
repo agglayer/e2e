@@ -23,7 +23,7 @@ setup() {
 
   readonly empty_proof=$(jq -nc '[range(32) | "0x0000000000000000000000000000000000000000000000000000000000000000"]')
 
-  # backwardLET and forwardLET function signatures
+  # backwardLET takes deposit count, frontier, leaf hash, and rollup merkle proof
   readonly backward_let_func_sig="function backwardLET(uint256,bytes32[32],bytes32,bytes32[32])"
   # forwardLET takes LeafData[] (leafType, originNetwork, originAddress, destinationNetwork, destinationAddress, amount, metadata) and expectedLER
   readonly forward_let_func_sig="function forwardLET((uint8,uint32,address,uint32,address,uint256,bytes)[],bytes32)"
@@ -342,6 +342,7 @@ setup() {
   assert_success
   log "Claimed bridge, global_index: $output"
 
+  # Stop aggkit to make sure no cert goes, otherwise we cant reorg to a block before the cert was settled
   manage_kurtosis_service "stop" "aggkit-001"
 
   # Step 2: Make 5 bridges from L2 to L1 and store their info
@@ -717,8 +718,8 @@ setup() {
   l2_block_after_forward_let=$(cast block-number --rpc-url "$L2_RPC_URL")
   log "L2 block number after forwardLET: $l2_block_after_forward_let"
 
-  # Step 11: Check L2 contract and bridge service - new bridges should be added
-  log "Step 11: Checking L2 state after forwardLET"
+  # Step 7: Check L2 contract and bridge service - new bridges should be added
+  log "Step 7: Checking L2 state after forwardLET"
   run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
   assert_success
   local deposit_count_after_forward="$output"
@@ -726,8 +727,8 @@ setup() {
   assert_equal "$deposit_count_after_forward" "$((last_deposit_count + 1))"
   log "Deposit count restored correctly after forwardLET"
 
-  # Step 12: Do a reorg to revert the state (revert forwardLET)
-  log "Step 12: Performing L2 reorg to revert forwardLET state"
+  # Step 8: Do a reorg to revert the state (revert forwardLET)
+  log "Step 8: Performing L2 reorg to revert forwardLET state"
   log "Target block for reorg: $l2_block_before_forward_let"
 
   # Stop the L2 consensus client before reorg
@@ -759,8 +760,8 @@ setup() {
         "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
         "Failed to resolve L2 RPC URL" true)
 
-  # Step 13: Check L2 state - bridges added by forwardLET should not be present
-  log "Step 13: Checking L2 state after reorg - forwardLET bridges should be reverted"
+  # Step 9: Check L2 state - bridges added by forwardLET should not be present
+  log "Step 9: Checking L2 state after reorg - forwardLET bridges should be reverted"
   run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
   assert_success
   local deposit_count_after_forward_reorg="$output"
@@ -768,8 +769,8 @@ setup() {
   assert_equal "$deposit_count_after_forward_reorg" "$backward_target_deposit_count"
   log "Deposit count correctly reverted after reorg"
 
-  # Step 14: Do a txn from L1 to L2 to see if cert settles
-  log "Step 14: Making bridge from L1 to L2 to verify certificate settlement after reorg"
+  # Step 10: Do a txn from L1 to L2 to see if cert settles
+  log "Step 10: Making bridge from L1 to L2 to verify certificate settlement after reorg"
   destination_addr="$receiver"
   destination_net="$l2_rpc_network_id"
   amount=$(cast --to-unit 0.1ether wei)
