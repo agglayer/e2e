@@ -291,7 +291,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test backwardLET with reorg scenarios | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L319) | |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
-| Test forwardLET with reorg scenarios | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L532) | |
+| Test forwardLET with reorg scenarios | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L533) | |
 | Test inject invalid GER on L2 - B1 case | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L221) | |
 | Test invalid GER injection case A (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L825) | |
 | Test invalid GER injection case A (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L716) | |
