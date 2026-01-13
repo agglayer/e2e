@@ -417,8 +417,6 @@ setup() {
   log "L2 block number before backwardLET: $l2_block_before_backward_let"
   log "L2 block hash before backwardLET: $l2_blockhash_before_backward_let"
 
-  sleep 10
-
   # Activate emergency state and execute backwardLET
   log "Activating emergency state on L2 bridge"
   run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$activate_emergency_state_func_sig"
@@ -609,7 +607,6 @@ setup() {
   local backward_target_deposit_count=$((last_deposit_count - 2))
   log "Rolling back to deposit count: $backward_target_deposit_count"
 
-  sleep 10
   # Get backward-let data from zkevm-bridge-service
   log "Fetching backward-let proof data"
   local backward_let_response
