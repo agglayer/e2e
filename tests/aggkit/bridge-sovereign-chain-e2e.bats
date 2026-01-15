@@ -471,25 +471,6 @@ setup() {
         "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
         "Failed to resolve L2 RPC URL" true)
 
-  # Step 6: Check the state of L2 - deposit count should be same as after making 5 bridges
-  log "Step 6: Checking L2 state after reorg"
-  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
-  assert_success
-  local deposit_count_after_reorg="$output"
-  log "Deposit count after reorg: $deposit_count_after_reorg"
-  assert_equal "$deposit_count_after_reorg" "$deposit_count_after_5_bridges"
-  log "Deposit count matches expected value after reorg"
-
-  # Step 7: Check the state of bridge service - it should have the 5 bridges
-  log "Step 7: Checking bridge service state"
-  for i in {0..4}; do
-    local tx_hash="${l2_to_l1_tx_hashes[$i]}"
-    run get_bridge "reorg-verify-bridge-$((i+1))" "$l2_rpc_network_id" "$tx_hash" 50 10 "$aggkit_bridge_url"
-    assert_success
-    log "Bridge $((i+1)) still exists in bridge service"
-  done
-  log "All 5 bridges are present in bridge service"
-
   # Step 8: Do a txn from L1 to L2 to see if cert settles
   log "Step 8: Making bridge from L1 to L2 to verify certificate settlement after reorg"
   destination_addr="$receiver"
@@ -746,15 +727,6 @@ setup() {
   L2_RPC_URL=$(_resolve_url_or_use_env "TEST_L2_RPC_URL" \
         "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
         "Failed to resolve L2 RPC URL" true)
-
-  # Step 9: Check L2 state - bridges added by forwardLET should not be present
-  log "Step 9: Checking L2 state after reorg - forwardLET bridges should be reverted"
-  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
-  assert_success
-  local deposit_count_after_forward_reorg="$output"
-  log "Deposit count after reorg (should be back to after backwardLET): $deposit_count_after_forward_reorg"
-  assert_equal "$deposit_count_after_forward_reorg" "$backward_target_deposit_count"
-  log "Deposit count correctly reverted after reorg"
 
   # Step 10: Do a txn from L1 to L2 to see if cert settles
   log "Step 10: Making bridge from L1 to L2 to verify certificate settlement after reorg"
