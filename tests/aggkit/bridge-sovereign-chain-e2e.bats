@@ -460,10 +460,12 @@ setup() {
   assert_success
   log "debug_setHead executed successfully on execution client"
 
+  manage_kurtosis_service "stop" "zkevm-bridge-service-001"
   manage_kurtosis_service "stop" "op-el-1-op-geth-op-node-001"
   manage_kurtosis_service "stop" "op-el-2-op-geth-op-node-001"
   manage_kurtosis_service "start" "op-el-1-op-geth-op-node-001"
   manage_kurtosis_service "start" "op-el-2-op-geth-op-node-001"
+  manage_kurtosis_service "start" "zkevm-bridge-service-001"
 
   # Restart the L2 consensus client - it should resync from the execution client's rolled-back state
   # The op-node will query the execution client's current head and resync from there
