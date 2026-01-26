@@ -18,7 +18,7 @@ function generate_new_keypair() {
 
 # bats test_tags=pos-validator
 @test "add new validator" {
-  VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
+  VALIDATOR_COUNT_CMD='curl "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
   echo "VALIDATOR_COUNT_CMD=${VALIDATOR_COUNT_CMD}"
 
   initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
@@ -65,7 +65,7 @@ function generate_new_keypair() {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
-  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
+  VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
   echo "VALIDATOR_POWER_CMD=${VALIDATOR_POWER_CMD}"
 
   validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
@@ -102,7 +102,7 @@ function generate_new_keypair() {
   VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"}
   echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
 
-  TOP_UP_FEE_BALANCE_CMD='curl --silent "${L2_CL_API_URL}/cosmos/bank/v1beta1/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".balances[] | select(.denom == \"pol\") | .amount"'
+  TOP_UP_FEE_BALANCE_CMD='curl "${L2_CL_API_URL}/cosmos/bank/v1beta1/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".balances[] | select(.denom == \"pol\") | .amount"'
   echo "TOP_UP_FEE_BALANCE_CMD=${TOP_UP_FEE_BALANCE_CMD}"
 
   initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
@@ -152,7 +152,7 @@ function generate_new_keypair() {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
-  VALIDATOR_SIGNER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.signer"'
+  VALIDATOR_SIGNER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.signer"'
 
   initial_signer=$(eval "${VALIDATOR_SIGNER_CMD}")
   echo "Initial signer: ${initial_signer}"
@@ -262,7 +262,7 @@ function generate_new_keypair() {
   [[ "${final_delegator_stake}" -eq "${expected_delegator_stake}" ]]
 
   # Verify L2 voting power matches the updated L1 stake.
-  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
+  VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
 
   expected_voting_power=$(cast to-unit "${final_total_stake}" ether | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
@@ -350,7 +350,7 @@ function generate_new_keypair() {
   [[ "${final_unbond_nonce}" -eq "${expected_unbond_nonce}" ]]
 
   # Verify L2 voting power matches the updated L1 stake.
-  VALIDATOR_POWER_CMD='curl --silent "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
+  VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
 
   expected_voting_power=$(cast to-unit "${new_total_stake}" ether | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
@@ -368,7 +368,7 @@ function generate_new_keypair() {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
-  VALIDATOR_COUNT_CMD='curl --silent "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
+  VALIDATOR_COUNT_CMD='curl "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
 
   initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
   echo "Initial validator count: ${initial_validator_count}"

@@ -21,7 +21,7 @@ parse_duration_seconds() {
 }
 
 get_latest_height() {
-  curl --silent "${L2_CL_RPC_URL}/status" |
+  curl "${L2_CL_RPC_URL}/status" |
     jq -r '.result.sync_info.latest_block_height'
 }
 
@@ -49,7 +49,7 @@ sleep_for_prune_interval() {
 check_block_pruned() {
   local resp
   local height_to_check="$1"
-  resp="$(curl --silent "${L2_CL_RPC_URL}/block?height=$height_to_check")"
+  resp="$(curl "${L2_CL_RPC_URL}/block?height=$height_to_check")"
 
   # Prefer checking the structured error fields first.
   # local code message data
