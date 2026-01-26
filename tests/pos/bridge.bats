@@ -9,7 +9,7 @@ setup() {
   pos_setup
 
   # Define state sync count commands.
-  HEIMDALL_STATE_SYNC_COUNT_CMD='curl --silent "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
+  HEIMDALL_STATE_SYNC_COUNT_CMD='curl "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
   BOR_STATE_SYNC_COUNT_CMD='cast call --gas-limit 15000000 --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
 
   # Define timeout and interval for eventually commands.
