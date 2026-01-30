@@ -143,6 +143,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | enforce minimum one and maximum three selected producers per span | [Link](./tests/pos/veblop/invariants.bats#L34) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
+| push and validate all available precompilers | [Link](./tests/pos/evm/evm.bats#L11) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
 | undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
