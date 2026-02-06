@@ -1,572 +1,653 @@
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-INFO[2026-02-06T17:12:48+01:00] ============================================ 
-INFO[2026-02-06T17:12:48+01:00] ||          Created enclave: pos          || 
-INFO[2026-02-06T17:12:48+01:00] ============================================ 
+INFO[2026-02-06T18:18:09+01:00] ============================================ 
+INFO[2026-02-06T18:18:09+01:00] ||          Created enclave: pos          || 
+INFO[2026-02-06T18:18:09+01:00] ============================================ 
 Name:            pos
-UUID:            6ab5aa9a902f
+UUID:            0a3b96f34aaa
 Status:          RUNNING
-Creation Time:   Fri, 06 Feb 2026 17:10:06 CET
+Creation Time:   Fri, 06 Feb 2026 18:15:53 CET
 Flags:           
 
 ========================================= Files Artifacts =========================================
 UUID           Name
-86f5996c342f   1-lighthouse-geth-0-127
-de9d155678d7   container-proc-manager-script
-eb344d4489cb   el_cl_genesis_data
-38cc69ec82aa   final-genesis-timestamp
-75ad6fe2e12a   genesis-el-cl-env-file
-546fedc710bb   genesis_validators_root
-305996a01b00   jwt_file
-d4c52607a530   keymanager_file
-a5e75895a387   l2-cl-1-heimdall-v2-bor-validator-config
-a8730e8cf543   l2-cl-1-heimdall-v2-bor-validator-keys
-f9da8823befc   l2-cl-2-heimdall-v2-bor-validator-config
-c94dc255cfc2   l2-cl-2-heimdall-v2-bor-validator-keys
-e788636c0d65   l2-cl-3-heimdall-v2-bor-validator-config
-7d227a996995   l2-cl-3-heimdall-v2-bor-validator-keys
-9db6861fc132   l2-cl-4-heimdall-v2-bor-validator-config
-135d508b2390   l2-cl-4-heimdall-v2-bor-validator-keys
-38956a3b5a1d   l2-cl-genesis
-ff7336522515   l2-cl-genesis-builder-config
-071ed75d08fb   l2-cl-genesis-tmp
-01bc2681a91f   l2-cl-persistent-peers
-915ba4365a7e   l2-cl-validator-keys-generator-config
-3af86eee9d0c   l2-el-1-bor-heimdall-v2-validator-config
-262fddeb1b36   l2-el-1-bor-heimdall-v2-validator-keys
-28e23af0cb54   l2-el-1-bor-heimdall-v2-validator-keys-generator-config
-aa9c2e5e9970   l2-el-2-bor-heimdall-v2-validator-config
-3bd5feb0586d   l2-el-2-bor-heimdall-v2-validator-keys
-9c0261e8655c   l2-el-2-bor-heimdall-v2-validator-keys-generator-config
-a59e6df2ff91   l2-el-3-bor-heimdall-v2-validator-config
-0db63b3162a1   l2-el-3-bor-heimdall-v2-validator-keys
-74f19a740ffc   l2-el-3-bor-heimdall-v2-validator-keys-generator-config
-0497b40ad5e8   l2-el-4-bor-heimdall-v2-validator-config
-bd0a831e4f06   l2-el-4-bor-heimdall-v2-validator-keys
-87001573301b   l2-el-4-bor-heimdall-v2-validator-keys-generator-config
-42a0568e4a95   l2-el-5-bor-heimdall-v2-rpc-config
-c58b084e2acd   l2-el-5-bor-heimdall-v2-rpc-keys
-e6f58250477c   l2-el-5-bor-heimdall-v2-rpc-keys-generator-config
-2e9b38363b38   l2-el-6-erigon-heimdall-v2-rpc-config
-adcb672f94b4   l2-el-6-erigon-heimdall-v2-rpc-keys
-8c2be5fdc296   l2-el-6-erigon-heimdall-v2-rpc-keys-generator-config
-0e14005f06cb   l2-el-genesis
-dd62a198e09a   l2-el-genesis-builder-config
-51030dea7475   l2-el-genesis-tmp
-6ba395f26953   l2-validators-config
-afcc347852ee   matic-contract-addresses
-f4d597e784fe   matic-contract-l1-addresses
-7013a26b0bba   matic-contracts-l1-deployer-config
-fcbe27a00619   matic-contracts-l2-deployer-config
-7390e5d80a82   prysm-password
-8481661ee0f4   validator-ranges
+2462ea6e0076   1-lighthouse-geth-0-127
+118f3b2cfbc6   container-proc-manager-script
+574489730fe1   el_cl_genesis_data
+6800c6170eb4   final-genesis-timestamp
+ea4f8c249469   genesis-el-cl-env-file
+12c51db5ea13   genesis_validators_root
+00f141bdb061   jwt_file
+db35774e5afb   keymanager_file
+93ccfae148a3   l2-cl-1-heimdall-v2-bor-validator-config
+c0ee52e398ff   l2-cl-1-heimdall-v2-bor-validator-keys
+fae3d5ce5a6c   l2-cl-2-heimdall-v2-bor-validator-config
+c8af2f3c3e41   l2-cl-2-heimdall-v2-bor-validator-keys
+b93dfcf70186   l2-cl-3-heimdall-v2-bor-validator-config
+203c13a40e5c   l2-cl-3-heimdall-v2-bor-validator-keys
+53c37aa1c1bc   l2-cl-4-heimdall-v2-bor-validator-config
+ee8f23152e7e   l2-cl-4-heimdall-v2-bor-validator-keys
+128a7a3bbc59   l2-cl-genesis
+37527a81ab0d   l2-cl-genesis-builder-config
+1c1b8f29b88c   l2-cl-genesis-tmp
+84b7c08f2279   l2-cl-persistent-peers
+8adad7652f83   l2-cl-validator-keys-generator-config
+9d159f644e80   l2-el-1-bor-heimdall-v2-validator-config
+12230b3c96ab   l2-el-1-bor-heimdall-v2-validator-keys
+a52da5fae89d   l2-el-1-bor-heimdall-v2-validator-keys-generator-config
+d3573187991f   l2-el-2-bor-heimdall-v2-validator-config
+402579b74b0d   l2-el-2-bor-heimdall-v2-validator-keys
+dbeb71d7e218   l2-el-2-bor-heimdall-v2-validator-keys-generator-config
+3f34a8f84a91   l2-el-3-bor-heimdall-v2-validator-config
+38f843f77f84   l2-el-3-bor-heimdall-v2-validator-keys
+655734bd5d98   l2-el-3-bor-heimdall-v2-validator-keys-generator-config
+1c72124dfc65   l2-el-4-bor-heimdall-v2-validator-config
+74bf682bf9c3   l2-el-4-bor-heimdall-v2-validator-keys
+16d77cdb5444   l2-el-4-bor-heimdall-v2-validator-keys-generator-config
+51d3630919af   l2-el-5-bor-heimdall-v2-rpc-config
+f84d51e58555   l2-el-5-bor-heimdall-v2-rpc-keys
+2aba8f8de4ae   l2-el-5-bor-heimdall-v2-rpc-keys-generator-config
+f4d5ab5d90cc   l2-el-6-erigon-heimdall-v2-rpc-config
+99291a31edf2   l2-el-6-erigon-heimdall-v2-rpc-keys
+7afcc62b2c65   l2-el-6-erigon-heimdall-v2-rpc-keys-generator-config
+a87a160da3f0   l2-el-genesis
+016558441707   l2-el-genesis-builder-config
+381a81d63957   l2-el-genesis-tmp
+d5599fb080c7   l2-validators-config
+c5a6abd46268   matic-contract-addresses
+55c01a0243d1   matic-contract-l1-addresses
+84ff61a02834   matic-contracts-l1-deployer-config
+6b97fbd32eea   matic-contracts-l2-deployer-config
+a293e3665e62   prysm-password
+17527e1f2667   validator-ranges
 
 ========================================== User Services ==========================================
 UUID           Name                                             Ports                                              Status
-26c800cdd6a0   cl-1-lighthouse-geth                             http: 4000/tcp -> http://127.0.0.1:33236           RUNNING
-                                                                metrics: 5054/tcp -> http://127.0.0.1:33237        
+f3b51697c956   cl-1-lighthouse-geth                             http: 4000/tcp -> http://127.0.0.1:32841           RUNNING
+                                                                metrics: 5054/tcp -> http://127.0.0.1:32842        
                                                                 quic-discovery: 9001/udp                           
-                                                                tcp-discovery: 9000/tcp -> 127.0.0.1:33238         
+                                                                tcp-discovery: 9000/tcp -> 127.0.0.1:32843         
                                                                 udp-discovery: 9000/udp                            
-0edb5ed6db4f   el-1-geth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:33233            RUNNING
-                                                                metrics: 9001/tcp -> http://127.0.0.1:33234        
-                                                                rpc: 8545/tcp -> 127.0.0.1:33231                   
-                                                                tcp-discovery: 30303/tcp -> 127.0.0.1:33235        
+a13b48fb4466   el-1-geth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:32838            RUNNING
+                                                                metrics: 9001/tcp -> http://127.0.0.1:32839        
+                                                                rpc: 8545/tcp -> 127.0.0.1:32836                   
+                                                                tcp-discovery: 30303/tcp -> 127.0.0.1:32840        
                                                                 udp-discovery: 30303/udp                           
-                                                                ws: 8546/tcp -> 127.0.0.1:33232                    
-337d4f4a27ec   l2-cl-1-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33242           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33241           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33246       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33244   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33243          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33245           
-739c8e65df90   l2-cl-1-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33240           RUNNING
-6a56b8a3f547   l2-cl-2-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33254           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33253           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33258       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33256   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33255          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33257           
-07eb2e6544c0   l2-cl-2-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33252           RUNNING
-6ea4766a4f91   l2-cl-3-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33266           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33265           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33270       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33268   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33267          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33269           
-21f61e511c18   l2-cl-3-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33264           RUNNING
-b3bd6ede76a9   l2-cl-4-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33278           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33277           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33282       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33280   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33279          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33281           
-24517ca0d8fd   l2-cl-4-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33276           RUNNING
-13b223ae6a01   l2-el-1-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33251     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33248        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33247          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33249            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33250               
-2c724ebb228f   l2-el-2-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33263     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33260        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33259          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33261            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33262               
-86cdc25f6855   l2-el-3-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33275     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33272        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33271          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33273            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33274               
-98e25fee3765   l2-el-4-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33287     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33284        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33283          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33285            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33286               
-25f552330ee6   l2-el-5-bor-heimdall-v2-rpc                      discovery: 30303/tcp -> http://127.0.0.1:33292     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33289        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33288          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33290            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33291               
-a735f6701bd4   l2-el-6-erigon-heimdall-v2-rpc                   discovery: 30303/tcp -> http://127.0.0.1:33296     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33293        
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33294            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33295               
-604f7aea86f4   validator-key-generation-cl-validator-keystore   <none>                                             RUNNING
-fd5dd7aaf4ec   vc-1-geth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:33239        RUNNING
+                                                                ws: 8546/tcp -> 127.0.0.1:32837                    
+45271c3e952f   l2-cl-1-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:32847           RUNNING
+                                                                http: 1317/tcp -> http://127.0.0.1:32846           
+                                                                metrics: 26660/tcp -> http://127.0.0.1:32851       
+                                                                node-listen: 26656/tcp -> http://127.0.0.1:32849   
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32848          
+                                                                rpc: 26657/tcp -> http://127.0.0.1:32850           
+4b68120c623a   l2-cl-1-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:32845           RUNNING
+3b5144fc0798   l2-cl-2-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:32859           RUNNING
+                                                                http: 1317/tcp -> http://127.0.0.1:32858           
+                                                                metrics: 26660/tcp -> http://127.0.0.1:32863       
+                                                                node-listen: 26656/tcp -> http://127.0.0.1:32861   
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32860          
+                                                                rpc: 26657/tcp -> http://127.0.0.1:32862           
+1c7d21e6c107   l2-cl-2-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:32857           RUNNING
+55bede6572b9   l2-cl-3-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:32871           RUNNING
+                                                                http: 1317/tcp -> http://127.0.0.1:32870           
+                                                                metrics: 26660/tcp -> http://127.0.0.1:32875       
+                                                                node-listen: 26656/tcp -> http://127.0.0.1:32873   
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32872          
+                                                                rpc: 26657/tcp -> http://127.0.0.1:32874           
+54098b9b9de0   l2-cl-3-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:32869           RUNNING
+3540bba80964   l2-cl-4-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:32883           RUNNING
+                                                                http: 1317/tcp -> http://127.0.0.1:32882           
+                                                                metrics: 26660/tcp -> http://127.0.0.1:32887       
+                                                                node-listen: 26656/tcp -> http://127.0.0.1:32885   
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32884          
+                                                                rpc: 26657/tcp -> http://127.0.0.1:32886           
+8575f5dec40e   l2-cl-4-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:32881           RUNNING
+7b2c2729cb15   l2-el-1-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:32856     RUNNING
+                                                                metrics: 7071/tcp -> http://127.0.0.1:32853        
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32852          
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32854            
+                                                                ws: 8546/tcp -> ws://127.0.0.1:32855               
+6c892db101b3   l2-el-2-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:32868     RUNNING
+                                                                metrics: 7071/tcp -> http://127.0.0.1:32865        
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32864          
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32866            
+                                                                ws: 8546/tcp -> ws://127.0.0.1:32867               
+9c56b2c1f525   l2-el-3-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:32880     RUNNING
+                                                                metrics: 7071/tcp -> http://127.0.0.1:32877        
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32876          
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32878            
+                                                                ws: 8546/tcp -> ws://127.0.0.1:32879               
+c3cf4285b56e   l2-el-4-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:32892     RUNNING
+                                                                metrics: 7071/tcp -> http://127.0.0.1:32889        
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32888          
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32890            
+                                                                ws: 8546/tcp -> ws://127.0.0.1:32891               
+b63baf18d3b7   l2-el-5-bor-heimdall-v2-rpc                      discovery: 30303/tcp -> http://127.0.0.1:32897     RUNNING
+                                                                metrics: 7071/tcp -> http://127.0.0.1:32894        
+                                                                pprof: 6060/tcp -> http://127.0.0.1:32893          
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32895            
+                                                                ws: 8546/tcp -> ws://127.0.0.1:32896               
+ec7975a56d53   l2-el-6-erigon-heimdall-v2-rpc                   discovery: 30303/tcp -> http://127.0.0.1:32901     RUNNING
+                                                                metrics: 7071/tcp -> http://127.0.0.1:32898        
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32899            
+                                                                ws: 8546/tcp -> ws://127.0.0.1:32900               
+4ea21d89f881   validator-key-generation-cl-validator-keystore   <none>                                             RUNNING
+3b11bfcc27f5   vc-1-geth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:32844        RUNNING
 
-2026-02-06 17:12:48 INFO Monitoring block progress
-2026-02-06 17:12:48 INFO Using enclave name: pos
-2026-02-06 17:12:48 INFO Using check mode: all
-2026-02-06 17:12:49 INFO Found RPC(s): l2-el-1-bor-heimdall-v2-validator--13b223ae6a01
-l2-el-2-bor-heimdall-v2-validator--2c724ebb228f
-l2-el-3-bor-heimdall-v2-validator--86cdc25f6855
-l2-el-4-bor-heimdall-v2-validator--98e25fee3765
-l2-el-5-bor-heimdall-v2-rpc--25f552330ee6
-l2-el-6-erigon-heimdall-v2-rpc--a735f6701bd4
-2026-02-06 17:12:49 INFO Using target: 100
-2026-02-06 17:12:49 INFO Checking RPC: l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:12:49 INFO Checking RPC: l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:12:49 INFO Checking RPC: l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:12:49 INFO Checking RPC: l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:12:49 INFO Checking RPC: l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:12:49 INFO Checking RPC: l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:12:49 INFO Using rpc url: http://127.0.0.1:33294
-2026-02-06 17:12:49 INFO Check 1/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:12:49 INFO Got blocks: latest=30, finalized=26
-2026-02-06 17:12:49 INFO Sending a test transaction
-0x123ca563ca508a84cef1dc473a262fe483ee80e79d7e094371060218cd0633b7
-2026-02-06 17:12:49 INFO Using rpc url: http://127.0.0.1:33290
-2026-02-06 17:12:49 INFO Check 1/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:12:49 INFO Got blocks: latest=30, finalized=28
-2026-02-06 17:12:49 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:49 INFO Using rpc url: http://127.0.0.1:33249
-2026-02-06 17:12:49 INFO Check 1/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:12:49 INFO Got blocks: latest=30, finalized=28
-2026-02-06 17:12:50 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:50 INFO Using rpc url: http://127.0.0.1:33273
-2026-02-06 17:12:50 INFO Check 1/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:12:50 INFO Got blocks: latest=31, finalized=28
-2026-02-06 17:12:50 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:50 INFO Using rpc url: http://127.0.0.1:33261
-2026-02-06 17:12:50 INFO Check 1/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:12:50 INFO Got blocks: latest=31, finalized=30
-2026-02-06 17:12:50 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:50 INFO Using rpc url: http://127.0.0.1:33285
-2026-02-06 17:12:50 INFO Check 1/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:12:50 INFO Got blocks: latest=31, finalized=30
-2026-02-06 17:12:50 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:54 INFO Check 2/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:12:54 INFO Got blocks: latest=34, finalized=30
-2026-02-06 17:12:54 INFO Sending a test transaction
-0xa1d4287078413548ea07fd107bb715a3f30b3aa614261b5a14e34fbba49c3162
-2026-02-06 17:12:54 INFO Check 2/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:12:54 INFO Got blocks: latest=34, finalized=32
-2026-02-06 17:12:54 INFO Sending a test transaction
-0x3839fbda97b835ed25ddc5caf559ff7a0278036703ae4a33121601e06647f0d3
-2026-02-06 17:12:55 INFO Check 2/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:12:55 INFO Got blocks: latest=35, finalized=32
-2026-02-06 17:12:55 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:55 INFO Check 2/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:12:55 INFO Got blocks: latest=35, finalized=34
-2026-02-06 17:12:55 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:55 INFO Check 2/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:12:55 INFO Got blocks: latest=35, finalized=34
-2026-02-06 17:12:55 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:55 INFO Check 2/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:12:55 INFO Got blocks: latest=35, finalized=34
-2026-02-06 17:12:55 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:12:59 INFO Check 3/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:12:59 INFO Got blocks: latest=39, finalized=36
-2026-02-06 17:12:59 INFO Sending a test transaction
-0x1bdbe43cd5fe47652feb77fbde17f12378ddc7056ccb9c34e1ff520b7c03e1af
-2026-02-06 17:12:59 INFO Check 3/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:12:59 INFO Got blocks: latest=39, finalized=37
-2026-02-06 17:13:00 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:00 INFO Check 3/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:00 INFO Got blocks: latest=40, finalized=39
-2026-02-06 17:13:00 INFO Sending a test transaction
-0x162bb81a0e6d643d17adc0ca934863a395d1d6b660918ee716ac454c8deba11b
-2026-02-06 17:13:00 INFO Check 3/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:00 INFO Got blocks: latest=40, finalized=39
-2026-02-06 17:13:00 INFO Sending a test transaction
+2026-02-06 18:18:09 INFO Monitoring block progress
+2026-02-06 18:18:09 INFO Using enclave name: pos
+2026-02-06 18:18:09 INFO Using check mode: all
+2026-02-06 18:18:10 INFO Found RPC(s): l2-el-1-bor-heimdall-v2-validator--7b2c2729cb15
+l2-el-2-bor-heimdall-v2-validator--6c892db101b3
+l2-el-3-bor-heimdall-v2-validator--9c56b2c1f525
+l2-el-4-bor-heimdall-v2-validator--c3cf4285b56e
+l2-el-5-bor-heimdall-v2-rpc--b63baf18d3b7
+l2-el-6-erigon-heimdall-v2-rpc--ec7975a56d53
+2026-02-06 18:18:10 INFO Using target: 100
+2026-02-06 18:18:10 INFO Checking RPC: l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:10 INFO Checking RPC: l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Checking RPC: l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Checking RPC: l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Checking RPC: l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Checking RPC: l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:10 INFO Using rpc url: http://127.0.0.1:32890
+2026-02-06 18:18:10 INFO Check 1/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Got blocks: latest=25, finalized=24
+2026-02-06 18:18:10 INFO Sending a test transaction
+0xec904d2dd3a9bef2d52e7691eef7df031834e646a8af81ac46d8a2420d94c7fd
+2026-02-06 18:18:10 INFO Using rpc url: http://127.0.0.1:32895
+2026-02-06 18:18:10 INFO Check 1/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:10 INFO Got blocks: latest=25, finalized=24
+2026-02-06 18:18:10 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:00 INFO Check 3/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:00 INFO Got blocks: latest=40, finalized=39
-2026-02-06 17:13:00 INFO Sending a test transaction
+2026-02-06 18:18:10 INFO Using rpc url: http://127.0.0.1:32878
+2026-02-06 18:18:10 INFO Check 1/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Got blocks: latest=25, finalized=24
+2026-02-06 18:18:10 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:00 INFO Check 3/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:00 INFO Got blocks: latest=40, finalized=39
-2026-02-06 17:13:00 INFO Sending a test transaction
+2026-02-06 18:18:10 INFO Using rpc url: http://127.0.0.1:32866
+2026-02-06 18:18:10 INFO Check 1/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Got blocks: latest=25, finalized=24
+2026-02-06 18:18:10 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:04 INFO Check 4/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:04 INFO Got blocks: latest=44, finalized=41
-2026-02-06 17:13:04 INFO Sending a test transaction
-0x6c0f71b57bef996da236ca3803043d12ae1ab0cf3283adba86a709c725fd76cf
-2026-02-06 17:13:05 INFO Check 4/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:05 INFO Got blocks: latest=45, finalized=44
-2026-02-06 17:13:05 INFO Sending a test transaction
-0x08ed01789349c59c98e89e0d262995817d87ed014a560f5620fe7d59ef04e686
-2026-02-06 17:13:05 INFO Check 4/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:05 INFO Got blocks: latest=45, finalized=44
-2026-02-06 17:13:05 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:05 INFO Check 4/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:05 INFO Got blocks: latest=45, finalized=44
-2026-02-06 17:13:05 INFO Sending a test transaction
-0x6644ef7d1c65d422d2a403ae9005cf50cf012674136d74147cf30ea826fe0127
-2026-02-06 17:13:05 INFO Check 4/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:05 INFO Got blocks: latest=45, finalized=44
-2026-02-06 17:13:05 INFO Sending a test transaction
+2026-02-06 18:18:10 INFO Using rpc url: http://127.0.0.1:32854
+2026-02-06 18:18:10 INFO Check 1/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:10 INFO Got blocks: latest=25, finalized=24
+2026-02-06 18:18:10 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:05 INFO Check 4/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:05 INFO Got blocks: latest=45, finalized=44
-2026-02-06 17:13:05 INFO Sending a test transaction
+2026-02-06 18:18:11 INFO Using rpc url: http://127.0.0.1:32899
+2026-02-06 18:18:11 INFO Check 1/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:11 INFO Got blocks: latest=26, finalized=23
+2026-02-06 18:18:11 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:15 INFO Check 2/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:15 INFO Got blocks: latest=30, finalized=28
+2026-02-06 18:18:15 INFO Sending a test transaction
+0xb900c60c2617a21a481a52521908779f9aa3e4ce1eb47a738efcdadcf6b18f4f
+2026-02-06 18:18:15 INFO Check 2/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:15 INFO Got blocks: latest=30, finalized=28
+2026-02-06 18:18:15 INFO Sending a test transaction
+0x69da348174ea97f4eceaedb5d9e1b1e6a0b0192b5984291fc7e9cf0690e8cf1d
+2026-02-06 18:18:15 INFO Check 2/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:15 INFO Got blocks: latest=30, finalized=28
+2026-02-06 18:18:15 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:09 INFO Check 5/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:09 INFO Got blocks: latest=48, finalized=46
-2026-02-06 17:13:09 INFO Sending a test transaction
-0x24bfaa5d73367972a55f251bcf7a6c24beb6b770ef63bca7f352b65441c770cb
-2026-02-06 17:13:10 INFO Check 5/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:10 INFO Got blocks: latest=49, finalized=48
-2026-02-06 17:13:10 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:10 INFO Check 5/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:10 INFO Got blocks: latest=49, finalized=48
-2026-02-06 17:13:10 INFO Sending a test transaction
-0x1430ab4f6dae4dd03f1973536e31fadcce00a9dc2c76571a47b4ab1a7101eb34
-2026-02-06 17:13:10 INFO Check 5/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:10 INFO Got blocks: latest=49, finalized=48
-2026-02-06 17:13:10 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:10 INFO Check 5/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:10 INFO Got blocks: latest=49, finalized=48
-2026-02-06 17:13:10 INFO Sending a test transaction
-0x149bccfc97eb0b2a0d9a965dceee5478293b40432b21aafa22bc6e663711568f
-2026-02-06 17:13:10 INFO Check 5/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:10 INFO Got blocks: latest=49, finalized=48
-2026-02-06 17:13:11 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:15 INFO Check 6/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:15 INFO Got blocks: latest=54, finalized=50
-2026-02-06 17:13:15 INFO Sending a test transaction
-0x74fd510ccbcdb64a72f75a2b5c47f1491e1fcff3137f748ae1bd62d51ce0032c
-2026-02-06 17:13:15 INFO Check 6/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:15 INFO Got blocks: latest=54, finalized=52
-2026-02-06 17:13:15 INFO Sending a test transaction
-0xe5f8fcfddb761751fed99c264310f67deeb83bffc37d2e4d3aa83c369bcf2eb3
-2026-02-06 17:13:15 INFO Check 6/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:15 INFO Got blocks: latest=54, finalized=52
-2026-02-06 17:13:15 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:15 INFO Check 6/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:15 INFO Got blocks: latest=54, finalized=52
-2026-02-06 17:13:15 INFO Sending a test transaction
+2026-02-06 18:18:15 INFO Check 2/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:15 INFO Got blocks: latest=30, finalized=28
+2026-02-06 18:18:15 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:15 INFO Check 6/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:15 INFO Got blocks: latest=54, finalized=52
-2026-02-06 17:13:15 INFO Sending a test transaction
+2026-02-06 18:18:15 INFO Check 2/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:16 INFO Got blocks: latest=31, finalized=28
+2026-02-06 18:18:16 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:16 INFO Check 6/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:16 INFO Got blocks: latest=55, finalized=52
-2026-02-06 17:13:16 INFO Sending a test transaction
-0x23428ef4733cd43730e7efca096a6c21bc287f9981391c5ace1eea62a7fb92cb
-2026-02-06 17:13:20 INFO Check 7/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:20 INFO Got blocks: latest=59, finalized=56
-2026-02-06 17:13:20 INFO Sending a test transaction
-0x23d509eac877bde1bab8e7ceda5ee8d09a3d1d0b49b42889d7600d49d218f049
-2026-02-06 17:13:20 INFO Check 7/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:20 INFO Got blocks: latest=59, finalized=57
-2026-02-06 17:13:20 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:20 INFO Check 7/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:20 INFO Got blocks: latest=59, finalized=57
-2026-02-06 17:13:20 INFO Sending a test transaction
-0xae97cf5d8fe44f51f6b687e0573c221a085bbe9694b6ee72abb74678faa65e9d
-2026-02-06 17:13:20 INFO Check 7/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:20 INFO Got blocks: latest=59, finalized=57
-2026-02-06 17:13:20 INFO Sending a test transaction
-0xfc58a5d8cf52818f4057341317f82ec3432f9933068e0e1865e1e6f047c108c4
-2026-02-06 17:13:20 INFO Check 7/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:20 INFO Got blocks: latest=59, finalized=57
-2026-02-06 17:13:21 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:21 INFO Check 7/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:21 INFO Got blocks: latest=60, finalized=57
-2026-02-06 17:13:21 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:25 INFO Check 8/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:25 INFO Got blocks: latest=63, finalized=60
-2026-02-06 17:13:25 INFO Sending a test transaction
-0xc5508bc936d28065093c5016a51ec0666965dd9828cf570bf7b39dddfaf6c06f
-2026-02-06 17:13:25 INFO Check 8/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:25 INFO Got blocks: latest=63, finalized=62
-2026-02-06 17:13:25 INFO Sending a test transaction
-0xb93edf3ef35b8fae6258962271332d17fdf1a3b4bdb74bfc8c1070590dc477a0
-2026-02-06 17:13:25 INFO Check 8/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:25 INFO Got blocks: latest=63, finalized=62
-2026-02-06 17:13:25 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:25 INFO Check 8/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:25 INFO Got blocks: latest=63, finalized=62
-2026-02-06 17:13:25 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:26 INFO Check 8/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:26 INFO Got blocks: latest=64, finalized=62
-2026-02-06 17:13:26 INFO Sending a test transaction
-0x713f23dfb2225a3dcfcb7c728694d1833f4773380f8ef058312cbb3536f3ee3d
-2026-02-06 17:13:26 INFO Check 8/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:26 INFO Got blocks: latest=64, finalized=63
-2026-02-06 17:13:26 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:30 INFO Check 9/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:30 INFO Got blocks: latest=68, finalized=65
-2026-02-06 17:13:30 INFO Sending a test transaction
-0x5f0b8c6625b212d0f2ad566db2d2f1d923ff907dd9f26c93d26bb220fbd49c24
-2026-02-06 17:13:30 INFO Check 9/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:30 INFO Got blocks: latest=68, finalized=66
-2026-02-06 17:13:30 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:30 INFO Check 9/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:30 INFO Got blocks: latest=68, finalized=66
-2026-02-06 17:13:30 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:30 INFO Check 9/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:30 INFO Got blocks: latest=68, finalized=66
-2026-02-06 17:13:31 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:31 INFO Check 9/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:31 INFO Got blocks: latest=69, finalized=68
-2026-02-06 17:13:31 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:31 INFO Check 9/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:31 INFO Got blocks: latest=69, finalized=68
-2026-02-06 17:13:31 INFO Sending a test transaction
-0x878bc11a181842ac7cda4dcee4a0408c5610019ccf11d1bff95133de2fba611f
-2026-02-06 17:13:35 INFO Check 10/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:35 INFO Got blocks: latest=73, finalized=70
-2026-02-06 17:13:35 INFO Sending a test transaction
-0x2901658900aaf83632c5dfdd3b968eb2bbe8c6570826abd1022fca439f44c0f6
-2026-02-06 17:13:35 INFO Check 10/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:35 INFO Got blocks: latest=73, finalized=71
-2026-02-06 17:13:35 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:35 INFO Check 10/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:35 INFO Got blocks: latest=73, finalized=71
-2026-02-06 17:13:35 INFO Sending a test transaction
-0xd5a3cc771c0f6c09e53dced6bc585f6f319c18b7e2b097404d5acbad49d18a11
-2026-02-06 17:13:36 INFO Check 10/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:36 INFO Got blocks: latest=74, finalized=73
-2026-02-06 17:13:36 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:36 INFO Check 10/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:36 INFO Got blocks: latest=74, finalized=73
-2026-02-06 17:13:36 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:36 INFO Check 10/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:36 INFO Got blocks: latest=74, finalized=73
-2026-02-06 17:13:36 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:40 INFO Check 11/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:40 INFO Got blocks: latest=78, finalized=75
-2026-02-06 17:13:40 INFO Sending a test transaction
-0x2f9a40fb37ea02bff4d561039d1db3a47261ef514cb914d18045487848a54586
-2026-02-06 17:13:40 INFO Check 11/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:40 INFO Got blocks: latest=78, finalized=76
-2026-02-06 17:13:40 INFO Sending a test transaction
-0xc6e8303bcdfd5a65d4345fa286831a931bdb25fda82d5d0e30e300d612f07eab
-2026-02-06 17:13:40 INFO Check 11/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:40 INFO Got blocks: latest=78, finalized=77
-2026-02-06 17:13:40 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:41 INFO Check 11/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:41 INFO Got blocks: latest=79, finalized=77
-2026-02-06 17:13:41 INFO Sending a test transaction
-0x60338be9f31e9b8fa443711e3563097635c55dca3302abcc6963a1feb57cd300
-2026-02-06 17:13:41 INFO Check 11/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:41 INFO Got blocks: latest=79, finalized=77
-2026-02-06 17:13:41 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:41 INFO Check 11/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:41 INFO Got blocks: latest=79, finalized=77
-2026-02-06 17:13:41 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:45 INFO Check 12/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:45 INFO Got blocks: latest=82, finalized=79
-2026-02-06 17:13:45 INFO Sending a test transaction
-0x38487eddb962d1535033bca7fbb5bde48abd9f84e8be0e05f471979fefa95943
-2026-02-06 17:13:45 INFO Check 12/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:45 INFO Got blocks: latest=82, finalized=81
-2026-02-06 17:13:45 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:46 INFO Check 12/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:46 INFO Got blocks: latest=83, finalized=81
-2026-02-06 17:13:46 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:46 INFO Check 12/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:46 INFO Got blocks: latest=83, finalized=81
-2026-02-06 17:13:46 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:46 INFO Check 12/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:46 INFO Got blocks: latest=83, finalized=81
-2026-02-06 17:13:46 INFO Sending a test transaction
-0x241d30f2b215a3b94681375a0a8baffbb1508d5d5b3e0a129acebbad7d7ba119
-2026-02-06 17:13:46 INFO Check 12/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:46 INFO Got blocks: latest=83, finalized=81
-2026-02-06 17:13:46 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:50 INFO Check 13/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:50 INFO Got blocks: latest=87, finalized=84
-2026-02-06 17:13:50 INFO Sending a test transaction
-0x850fe05eea2ee754cc664d55c8a61045c35fdbac71677e896b82c176039a148f
-2026-02-06 17:13:50 INFO Check 13/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:50 INFO Got blocks: latest=87, finalized=86
-2026-02-06 17:13:50 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:51 INFO Check 13/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:51 INFO Got blocks: latest=88, finalized=86
-2026-02-06 17:13:51 INFO Sending a test transaction
-0x275c80e1ce324aa85e3eeba1d47c21ddb14f067043c06cef2aed098ea470d2f4
-2026-02-06 17:13:51 INFO Check 13/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:51 INFO Got blocks: latest=88, finalized=86
-2026-02-06 17:13:51 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:51 INFO Check 13/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:51 INFO Got blocks: latest=88, finalized=86
-2026-02-06 17:13:51 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:51 INFO Check 13/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:51 INFO Got blocks: latest=88, finalized=86
-2026-02-06 17:13:51 INFO Sending a test transaction
-0xf3884ebd36f059a7c1b79e48c277a785d73574af510b33195088a334d5077aa9
-2026-02-06 17:13:55 INFO Check 14/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:13:55 INFO Got blocks: latest=92, finalized=88
-2026-02-06 17:13:55 INFO Sending a test transaction
-0x0cb911db8f8e5ef9fb8c31d425b2e42701a1b1d4488fbd069fab7c1bfdaeb13c
-2026-02-06 17:13:56 INFO Check 14/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:13:56 INFO Got blocks: latest=93, finalized=91
-2026-02-06 17:13:56 INFO Sending a test transaction
-0x2b62b7adc52a357c71ab12611e9622e5719a042d7250ff47446cb03b6ff93826
-2026-02-06 17:13:56 INFO Check 14/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:13:56 INFO Got blocks: latest=93, finalized=91
-2026-02-06 17:13:56 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:56 INFO Check 14/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:13:56 INFO Got blocks: latest=93, finalized=91
-2026-02-06 17:13:56 INFO Sending a test transaction
+2026-02-06 18:18:16 INFO Check 2/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:16 INFO Got blocks: latest=31, finalized=27
+2026-02-06 18:18:16 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:20 INFO Check 3/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:20 INFO Got blocks: latest=34, finalized=32
+2026-02-06 18:18:20 INFO Sending a test transaction
+0x379511b0d30b79f95b0f7737ac65c6d4bfb07136feb47916f260dd124c928a54
+2026-02-06 18:18:20 INFO Check 3/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:20 INFO Got blocks: latest=34, finalized=32
+2026-02-06 18:18:20 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: already known
-2026-02-06 17:13:56 INFO Check 14/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:13:56 INFO Got blocks: latest=93, finalized=91
-2026-02-06 17:13:56 INFO Sending a test transaction
+2026-02-06 18:18:20 INFO Check 3/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:20 INFO Got blocks: latest=34, finalized=32
+2026-02-06 18:18:20 INFO Sending a test transaction
+0xc2e10a14f97f5c8e5fd9af9181c12cc23b5f34c72729f112ebe7675c2044186f
+2026-02-06 18:18:20 INFO Check 3/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:20 INFO Got blocks: latest=34, finalized=32
+2026-02-06 18:18:20 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:18:21 INFO Check 3/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:21 INFO Got blocks: latest=35, finalized=32
+2026-02-06 18:18:21 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:13:56 INFO Check 14/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:13:56 INFO Got blocks: latest=93, finalized=91
-2026-02-06 17:13:56 INFO Sending a test transaction
+2026-02-06 18:18:21 INFO Check 3/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:21 INFO Got blocks: latest=35, finalized=31
+2026-02-06 18:18:21 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:25 INFO Check 4/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:25 INFO Got blocks: latest=39, finalized=37
+2026-02-06 18:18:25 INFO Sending a test transaction
+0xd321bf9757fbbffb5a4f4f38a5ff777ca6083b763d9f969d07008027217a4240
+2026-02-06 18:18:25 INFO Check 4/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:25 INFO Got blocks: latest=39, finalized=37
+2026-02-06 18:18:25 INFO Sending a test transaction
+0xde5065f5e40366b0c7a6f7915b961166d8538e4fd25c01c406b9a8ec8bdbb3d4
+2026-02-06 18:18:25 INFO Check 4/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:25 INFO Got blocks: latest=39, finalized=37
+2026-02-06 18:18:25 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:14:00 INFO Check 15/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:14:00 INFO Got blocks: latest=96, finalized=93
-2026-02-06 17:14:00 INFO Sending a test transaction
-0xbb4944fc50ca0f8307fee92347bcfe547e1b712b9de6185310d012a1993c9382
-2026-02-06 17:14:01 INFO Check 15/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:14:01 INFO Got blocks: latest=97, finalized=95
-2026-02-06 17:14:01 INFO Sending a test transaction
+2026-02-06 18:18:25 INFO Check 4/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:26 INFO Got blocks: latest=39, finalized=37
+2026-02-06 18:18:26 INFO Sending a test transaction
+0x3043b9c701ad2d21f8d6af5d522dd7b95037f5bd168a25d7c8fb792fb97f745b
+2026-02-06 18:18:26 INFO Check 4/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:26 INFO Got blocks: latest=40, finalized=37
+2026-02-06 18:18:26 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:18:26 INFO Check 4/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:26 INFO Got blocks: latest=40, finalized=36
+2026-02-06 18:18:26 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:30 INFO Check 5/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:30 INFO Got blocks: latest=44, finalized=42
+2026-02-06 18:18:30 INFO Sending a test transaction
+0x45f9a58ea2fd28e565084c9a4222286acdc97a989c491658bcad6931e309b958
+2026-02-06 18:18:30 INFO Check 5/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:30 INFO Got blocks: latest=44, finalized=42
+2026-02-06 18:18:30 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:18:30 INFO Check 5/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:30 INFO Got blocks: latest=44, finalized=42
+2026-02-06 18:18:30 INFO Sending a test transaction
+0x4503f9cf5390eb1a2238626cbc57bda61dcd5ec3b775d02a88803a6947f7c38b
+2026-02-06 18:18:31 INFO Check 5/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:31 INFO Got blocks: latest=45, finalized=44
+2026-02-06 18:18:31 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:14:01 INFO Check 15/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:14:01 INFO Got blocks: latest=97, finalized=95
-2026-02-06 17:14:01 INFO Sending a test transaction
+2026-02-06 18:18:31 INFO Check 5/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:31 INFO Got blocks: latest=45, finalized=44
+2026-02-06 18:18:31 INFO Sending a test transaction
+0xdb039194622bcd9fc11a3efa8bb835fbbeff60166e913224e2a65d13988632ec
+2026-02-06 18:18:31 INFO Check 5/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:31 INFO Got blocks: latest=45, finalized=41
+2026-02-06 18:18:31 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:35 INFO Check 6/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:35 INFO Got blocks: latest=48, finalized=47
+2026-02-06 18:18:35 INFO Sending a test transaction
+0x965589adf27c2b0534adb9eb05784d948e4b6b9aa9dccc73752f23fe32638462
+2026-02-06 18:18:35 INFO Check 6/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:35 INFO Got blocks: latest=48, finalized=47
+2026-02-06 18:18:35 INFO Sending a test transaction
+0x7ebfd7db74ea590a165c87c3678170b67fbbe135f6b5a4246ee3d74930392309
+2026-02-06 18:18:35 INFO Check 6/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:35 INFO Got blocks: latest=48, finalized=47
+2026-02-06 18:18:35 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:14:01 INFO Check 15/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:14:01 INFO Got blocks: latest=97, finalized=95
-2026-02-06 17:14:01 INFO Sending a test transaction
-0xbb7be716ea625d99251a7b463adb872b56bd07208c294c429068aabf29833075
-2026-02-06 17:14:01 INFO Check 15/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:14:01 INFO Got blocks: latest=97, finalized=95
-2026-02-06 17:14:01 INFO Sending a test transaction
+2026-02-06 18:18:36 INFO Check 6/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:36 INFO Got blocks: latest=49, finalized=47
+2026-02-06 18:18:36 INFO Sending a test transaction
 Error: server returned an error response: error code -32000: replacement transaction underpriced
-2026-02-06 17:14:01 INFO Check 15/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:14:01 INFO Got blocks: latest=97, finalized=95
-2026-02-06 17:14:01 INFO Sending a test transaction
-0x8d1ff77c525ab5d37199d9d8528ef24e230017958460b207de7a6136491a00ac
-2026-02-06 17:14:05 INFO Check 16/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:14:06 INFO Got blocks: latest=102, finalized=97
-2026-02-06 17:14:06 INFO Sending a test transaction
-0xc75e2dc80ff0555249330bc7b0daddfd8f8fe52c5e0f6f6e213d25c6e0fabe2d
-2026-02-06 17:14:06 INFO Check 16/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:14:06 INFO Got blocks: latest=102, finalized=100
-2026-02-06 17:14:06 INFO Target blocks reached for all block types (latest and finalized) for l2-el-5-bor-heimdall-v2-rpc
-2026-02-06 17:14:06 INFO Check 16/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:14:06 INFO Got blocks: latest=102, finalized=100
-2026-02-06 17:14:06 INFO Target blocks reached for all block types (latest and finalized) for l2-el-1-bor-heimdall-v2-validator
-2026-02-06 17:14:06 INFO Check 16/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:14:06 INFO Got blocks: latest=102, finalized=100
-2026-02-06 17:14:06 INFO Target blocks reached for all block types (latest and finalized) for l2-el-3-bor-heimdall-v2-validator
-2026-02-06 17:14:06 INFO Check 16/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:14:06 INFO Got blocks: latest=102, finalized=100
-2026-02-06 17:14:06 INFO Target blocks reached for all block types (latest and finalized) for l2-el-2-bor-heimdall-v2-validator
-2026-02-06 17:14:07 INFO Check 16/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:14:07 INFO Got blocks: latest=103, finalized=102
-2026-02-06 17:14:07 INFO Target blocks reached for all block types (latest and finalized) for l2-el-4-bor-heimdall-v2-validator
-2026-02-06 17:14:11 INFO Check 17/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:14:11 INFO Got blocks: latest=107, finalized=102
-2026-02-06 17:14:11 INFO Target blocks reached for all block types (latest and finalized) for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-06 17:14:11 INFO All RPCs have reached target blocks
+2026-02-06 18:18:36 INFO Check 6/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:36 INFO Got blocks: latest=49, finalized=47
+2026-02-06 18:18:36 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:36 INFO Check 6/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:36 INFO Got blocks: latest=49, finalized=46
+2026-02-06 18:18:36 INFO Sending a test transaction
+0xdf178de5382f281cccc4614b24f7ff7d9e29896f5880d34e5aa0cdbc18217928
+2026-02-06 18:18:40 INFO Check 7/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:40 INFO Got blocks: latest=53, finalized=52
+2026-02-06 18:18:40 INFO Sending a test transaction
+0x29e14446149c5416d82367fb0b442f2e0b08d54ad4a799925869cceebd72ba62
+2026-02-06 18:18:40 INFO Check 7/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:40 INFO Got blocks: latest=53, finalized=52
+2026-02-06 18:18:40 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:18:41 INFO Check 7/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:41 INFO Got blocks: latest=54, finalized=52
+2026-02-06 18:18:41 INFO Sending a test transaction
+0xa2f5c7fe43c44ae7d0488f0841f92404165053bfe5a00196c61fd788ad190a34
+2026-02-06 18:18:41 INFO Check 7/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:41 INFO Got blocks: latest=54, finalized=52
+2026-02-06 18:18:41 INFO Sending a test transaction
+0x9006ed858cff874ef3b460c209fbb889551a8fc3b9fe420061178550a7941b8f
+2026-02-06 18:18:41 INFO Check 7/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:41 INFO Got blocks: latest=54, finalized=52
+2026-02-06 18:18:41 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:41 INFO Check 7/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:41 INFO Got blocks: latest=54, finalized=51
+2026-02-06 18:18:41 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:45 INFO Check 8/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:45 INFO Got blocks: latest=58, finalized=56
+2026-02-06 18:18:45 INFO Sending a test transaction
+0x0c48a3e75eca03c603f9c4088e2dc28cb10a838fdc38c896bd8c7c8651ce0b92
+2026-02-06 18:18:45 INFO Check 8/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:45 INFO Got blocks: latest=58, finalized=56
+2026-02-06 18:18:45 INFO Sending a test transaction
+0xac2b3acf744d712d27f1cfc3b38c7d5930d783ebe79f9e79d88baf8d0b49f20d
+2026-02-06 18:18:46 INFO Check 8/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:46 INFO Got blocks: latest=59, finalized=56
+2026-02-06 18:18:46 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:46 INFO Check 8/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:46 INFO Got blocks: latest=59, finalized=56
+2026-02-06 18:18:46 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:46 INFO Check 8/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:46 INFO Got blocks: latest=59, finalized=56
+2026-02-06 18:18:46 INFO Sending a test transaction
+0x1a5e229a76fa429db854f39084489413436e6dd408aa00be09159aea01aa1c0c
+2026-02-06 18:18:46 INFO Check 8/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:46 INFO Got blocks: latest=59, finalized=55
+2026-02-06 18:18:46 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:18:50 INFO Check 9/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:50 INFO Got blocks: latest=63, finalized=61
+2026-02-06 18:18:50 INFO Sending a test transaction
+0x92efabcd9e297ebfb27a3918500280db6192519d2f6b2bcf76d4747f3138f4d5
+2026-02-06 18:18:50 INFO Check 9/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:50 INFO Got blocks: latest=63, finalized=61
+2026-02-06 18:18:50 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:18:51 INFO Check 9/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:51 INFO Got blocks: latest=63, finalized=61
+2026-02-06 18:18:51 INFO Sending a test transaction
+0x7600cec156c2e0e6f637bff84c2cb949c8056d3d8aa876bda892fc9fab865462
+2026-02-06 18:18:51 INFO Check 9/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:51 INFO Got blocks: latest=63, finalized=61
+2026-02-06 18:18:51 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:18:51 INFO Check 9/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:51 INFO Got blocks: latest=63, finalized=63
+2026-02-06 18:18:51 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:51 INFO Check 9/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:51 INFO Got blocks: latest=63, finalized=60
+2026-02-06 18:18:51 INFO Sending a test transaction
+0xb7221a067606c89015b5dead405e38db7a198fea981cf4698f4af8eaf48583d9
+2026-02-06 18:18:55 INFO Check 10/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:18:55 INFO Got blocks: latest=67, finalized=65
+2026-02-06 18:18:55 INFO Sending a test transaction
+0x3724dff73720f9f8ea06c749f5b7b4b61079599d313b200f57e690cae30dc923
+2026-02-06 18:18:55 INFO Check 10/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:18:56 INFO Got blocks: latest=68, finalized=65
+2026-02-06 18:18:56 INFO Sending a test transaction
+0x5e1a07911bacc3a65338ab384a09b322ec723f3133c85b8ef5d7e6ac31b36a9d
+2026-02-06 18:18:56 INFO Check 10/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:18:56 INFO Got blocks: latest=68, finalized=65
+2026-02-06 18:18:56 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:56 INFO Check 10/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:18:56 INFO Got blocks: latest=68, finalized=67
+2026-02-06 18:18:56 INFO Sending a test transaction
+0x0b8e72edb78a88498d82ec9d3006ee2aafa93b68d84aa1f5e5f2f3f4b1964cdf
+2026-02-06 18:18:56 INFO Check 10/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:18:56 INFO Got blocks: latest=68, finalized=67
+2026-02-06 18:18:56 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:18:56 INFO Check 10/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:18:56 INFO Got blocks: latest=68, finalized=64
+2026-02-06 18:18:56 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:19:00 INFO Check 11/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:01 INFO Got blocks: latest=72, finalized=70
+2026-02-06 18:19:01 INFO Sending a test transaction
+0xecddebfbada4daa15029beda67754f9b33961b276213bf452788beeb36a5b32d
+2026-02-06 18:19:01 INFO Check 11/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:01 INFO Got blocks: latest=73, finalized=70
+2026-02-06 18:19:01 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:19:01 INFO Check 11/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:01 INFO Got blocks: latest=73, finalized=72
+2026-02-06 18:19:01 INFO Sending a test transaction
+0xf618a22f3e06b7d6e0237b144eaf5a155bc1962cb4a50305ee335ef996aea103
+2026-02-06 18:19:01 INFO Check 11/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:01 INFO Got blocks: latest=73, finalized=72
+2026-02-06 18:19:01 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:01 INFO Check 11/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:01 INFO Got blocks: latest=73, finalized=72
+2026-02-06 18:19:01 INFO Sending a test transaction
+0x8a575f1eb35251f46576cc22c6461cd9df0bb6042ce5a1151858cca5606af068
+2026-02-06 18:19:01 INFO Check 11/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:01 INFO Got blocks: latest=73, finalized=69
+2026-02-06 18:19:01 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:19:06 INFO Check 12/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:06 INFO Got blocks: latest=78, finalized=77
+2026-02-06 18:19:06 INFO Sending a test transaction
+0x075a20d769fdb423c46cb1ccd77364cdc6d2f0c7756e0369f890e1ba4f4f7194
+2026-02-06 18:19:06 INFO Check 12/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:06 INFO Got blocks: latest=78, finalized=77
+2026-02-06 18:19:06 INFO Sending a test transaction
+0x2bf4c35931f60070ad381c4b7d04cbe7973f2d5ac9c69c4e410b4711fb63994e
+2026-02-06 18:19:06 INFO Check 12/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:06 INFO Got blocks: latest=78, finalized=77
+2026-02-06 18:19:06 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:06 INFO Check 12/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:06 INFO Got blocks: latest=78, finalized=77
+2026-02-06 18:19:06 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:19:06 INFO Check 12/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:06 INFO Got blocks: latest=78, finalized=77
+2026-02-06 18:19:06 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:06 INFO Check 12/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:06 INFO Got blocks: latest=78, finalized=74
+2026-02-06 18:19:06 INFO Sending a test transaction
+0x7e2fc02f88b770141036bcd01d7793d8972ddc0432f7446afcc257799e2b33db
+2026-02-06 18:19:11 INFO Check 13/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:11 INFO Got blocks: latest=82, finalized=80
+2026-02-06 18:19:11 INFO Sending a test transaction
+0xf9aa5ea9192ed8b94298a66dc3cfbb52636077ae3ff92162eb4d42aa0d6f218f
+2026-02-06 18:19:11 INFO Check 13/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:11 INFO Got blocks: latest=82, finalized=80
+2026-02-06 18:19:11 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:19:11 INFO Check 13/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:11 INFO Got blocks: latest=82, finalized=80
+2026-02-06 18:19:11 INFO Sending a test transaction
+0x1e7e9d8325da376a8d1bc3c725a541ed9d52a035edb0677417cbb206c3bb2eba
+2026-02-06 18:19:11 INFO Check 13/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:11 INFO Got blocks: latest=82, finalized=80
+2026-02-06 18:19:11 INFO Sending a test transaction
+0x16fe7d143108253be9a6f8cb8a674baf42cbefcbbd83f72552994676258d6f6a
+2026-02-06 18:19:11 INFO Check 13/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:11 INFO Got blocks: latest=82, finalized=80
+2026-02-06 18:19:11 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:11 INFO Check 13/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:11 INFO Got blocks: latest=82, finalized=79
+2026-02-06 18:19:11 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:19:16 INFO Check 14/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:16 INFO Got blocks: latest=87, finalized=85
+2026-02-06 18:19:16 INFO Sending a test transaction
+2026-02-06 18:19:16 INFO Check 14/100 for l2-el-5-bor-heimdall-v2-rpc
+0xb901c21eb27ae1f40f0c3f289aa742588db4131a569dde25bd5de0724f91ed5b
+2026-02-06 18:19:16 INFO Got blocks: latest=87, finalized=85
+2026-02-06 18:19:16 INFO Sending a test transaction
+0x22d82b000c14cbe1c15e0fefc849a9f0c9bf6d92f35273ac23f1304960536310
+2026-02-06 18:19:16 INFO Check 14/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:16 INFO Got blocks: latest=87, finalized=85
+2026-02-06 18:19:16 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:16 INFO Check 14/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:16 INFO Got blocks: latest=87, finalized=85
+2026-02-06 18:19:16 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:16 INFO Check 14/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:16 INFO Got blocks: latest=87, finalized=85
+2026-02-06 18:19:16 INFO Sending a test transaction
+0x4a90458e55fe8a21cf6013ac2ee81cfb3011e508d6422175d2987ba82dd5bf4e
+2026-02-06 18:19:16 INFO Check 14/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:16 INFO Got blocks: latest=87, finalized=84
+2026-02-06 18:19:16 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:19:21 INFO Check 15/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:21 INFO Got blocks: latest=92, finalized=90
+2026-02-06 18:19:21 INFO Sending a test transaction
+2026-02-06 18:19:21 INFO Check 15/100 for l2-el-5-bor-heimdall-v2-rpc
+0x576acc72547831368ad0c59d12dd30ae0a0e7cff27e5f1ab3db0ab230619b2ee
+2026-02-06 18:19:21 INFO Got blocks: latest=92, finalized=90
+2026-02-06 18:19:21 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:19:21 INFO Check 15/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:21 INFO Got blocks: latest=92, finalized=90
+2026-02-06 18:19:21 INFO Sending a test transaction
+0x9c4a1e4d41e575d28888756fe6f581a4692d2a9e1a5ca5afdb8d7a3fff5f2434
+2026-02-06 18:19:21 INFO Check 15/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:21 INFO Got blocks: latest=92, finalized=90
+2026-02-06 18:19:21 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:19:21 INFO Check 15/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:21 INFO Got blocks: latest=92, finalized=90
+2026-02-06 18:19:21 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:21 INFO Check 15/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:21 INFO Got blocks: latest=92, finalized=89
+2026-02-06 18:19:21 INFO Sending a test transaction
+0x9b81587eccac103d215b8a97812dd65b48466f9daf9d9fe536b62a0a24e3fe06
+2026-02-06 18:19:26 INFO Check 16/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:26 INFO Got blocks: latest=96, finalized=95
+2026-02-06 18:19:26 INFO Check 16/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:26 INFO Sending a test transaction
+0xd7d1480d8ccc4a854bfa9236fc3bea23c75b19317399d05600d221b0a4162f05
+2026-02-06 18:19:26 INFO Got blocks: latest=96, finalized=95
+2026-02-06 18:19:26 INFO Sending a test transaction
+0x1837bb21a309de0c3bf5c43a8ea524875ffa5deb21543c305f6c097739d9ef71
+2026-02-06 18:19:26 INFO Check 16/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:26 INFO Got blocks: latest=96, finalized=95
+2026-02-06 18:19:26 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:26 INFO Check 16/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:26 INFO Got blocks: latest=96, finalized=95
+2026-02-06 18:19:26 INFO Sending a test transaction
+0xaef0aee7a5400f7b8027f5278001878cd1757712315b06652515a862fd9c1655
+2026-02-06 18:19:26 INFO Check 16/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:26 INFO Got blocks: latest=96, finalized=95
+2026-02-06 18:19:26 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:26 INFO Check 16/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:26 INFO Got blocks: latest=96, finalized=94
+2026-02-06 18:19:26 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:19:31 INFO Check 17/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:31 INFO Got blocks: latest=101, finalized=99
+2026-02-06 18:19:31 INFO Check 17/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:31 INFO Sending a test transaction
+0x5a5523e19abe088c92d76f7f707113d079cc589d274529a86d06fed8a7522d4c
+2026-02-06 18:19:31 INFO Got blocks: latest=101, finalized=99
+2026-02-06 18:19:31 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: already known
+2026-02-06 18:19:31 INFO Check 17/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:31 INFO Got blocks: latest=101, finalized=99
+2026-02-06 18:19:31 INFO Sending a test transaction
+0x3435361464ba957b0dacf75e4d83cdc13b529d330afa4be02bde151660bea4ae
+2026-02-06 18:19:31 INFO Check 17/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:31 INFO Got blocks: latest=101, finalized=99
+2026-02-06 18:19:31 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: replacement transaction underpriced
+2026-02-06 18:19:31 INFO Check 17/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:31 INFO Got blocks: latest=101, finalized=99
+2026-02-06 18:19:31 INFO Sending a test transaction
+0x279f7e98af3e369bc392ab13df6f771f19c541896ec843bebe1310aa6ac62f82
+2026-02-06 18:19:31 INFO Check 17/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:31 INFO Got blocks: latest=101, finalized=98
+2026-02-06 18:19:31 INFO Sending a test transaction
+Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-06 18:19:36 INFO Check 18/100 for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Got blocks: latest=106, finalized=104
+2026-02-06 18:19:36 INFO Check 18/100 for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:36 INFO Target blocks reached for all block types (latest and finalized) for l2-el-4-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Got blocks: latest=106, finalized=104
+2026-02-06 18:19:36 INFO Target blocks reached for all block types (latest and finalized) for l2-el-5-bor-heimdall-v2-rpc
+2026-02-06 18:19:36 INFO Check 18/100 for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Got blocks: latest=106, finalized=104
+2026-02-06 18:19:36 INFO Target blocks reached for all block types (latest and finalized) for l2-el-3-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Check 18/100 for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Got blocks: latest=106, finalized=104
+2026-02-06 18:19:36 INFO Target blocks reached for all block types (latest and finalized) for l2-el-2-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Check 18/100 for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Got blocks: latest=106, finalized=105
+2026-02-06 18:19:36 INFO Target blocks reached for all block types (latest and finalized) for l2-el-1-bor-heimdall-v2-validator
+2026-02-06 18:19:36 INFO Check 18/100 for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:36 INFO Got blocks: latest=106, finalized=103
+2026-02-06 18:19:36 INFO Target blocks reached for all block types (latest and finalized) for l2-el-6-erigon-heimdall-v2-rpc
+2026-02-06 18:19:36 INFO All RPCs have reached target blocks
 /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade
 Current block producer ID: 1
-Upgrading EL bor nodes
-Upgrading service: l2-el-5-bor-heimdall-v2-rpc
-[l2-el-5-bor-heimdall-v2-rpc] Stopping kurtosis service
-Upgrading service: l2-el-4-bor-heimdall-v2-validator
+Upgrading L2 EL nodes
+Upgrading bor service: l2-el-4-bor-heimdall-v2-validator
 [l2-el-4-bor-heimdall-v2-validator] Stopping kurtosis service
-Upgrading service: l2-el-3-bor-heimdall-v2-validator
+Upgrading bor service: l2-el-3-bor-heimdall-v2-validator
 [l2-el-3-bor-heimdall-v2-validator] Stopping kurtosis service
-Upgrading service: l2-el-2-bor-heimdall-v2-validator
+Upgrading bor service: l2-el-5-bor-heimdall-v2-rpc
+[l2-el-5-bor-heimdall-v2-rpc] Stopping kurtosis service
+Upgrading erigon service: l2-el-6-erigon-heimdall-v2-rpc
+[l2-el-6-erigon-heimdall-v2-rpc] Stopping kurtosis service
+Upgrading bor service: l2-el-2-bor-heimdall-v2-validator
 [l2-el-2-bor-heimdall-v2-validator] Stopping kurtosis service
-[l2-el-4-bor-heimdall-v2-validator] Extracting service data and configuration
-[l2-el-4-bor-heimdall-v2-validator] Starting new container l2-el-4-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
-c52e2da2c1a78e3e374a113a6ed0c6ce6112ccf4b52b88d1f23c491ca9307bd8
-[l2-el-3-bor-heimdall-v2-validator] Extracting service data and configuration
-[l2-el-3-bor-heimdall-v2-validator] Starting new container l2-el-3-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
-0842332ee70c0566495c3ea23fdea1c1e60b0d005c55ad4d212032722125eb8e
-[l2-el-2-bor-heimdall-v2-validator] Extracting service data and configuration
-[l2-el-2-bor-heimdall-v2-validator] Starting new container l2-el-2-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
-9dd40c3e2e87e64aca236785cad1a56932d2e493aa52659fef614550a4ded201
+INFO[2026-02-06T18:19:37+01:00] Stopping service 'l2-el-4-bor-heimdall-v2-validator' 
+INFO[2026-02-06T18:19:38+01:00] Stopping service 'l2-el-6-erigon-heimdall-v2-rpc' 
+INFO[2026-02-06T18:19:38+01:00] Stopping service 'l2-el-5-bor-heimdall-v2-rpc' 
+INFO[2026-02-06T18:19:38+01:00] Stopping service 'l2-el-3-bor-heimdall-v2-validator' 
+INFO[2026-02-06T18:19:38+01:00] Stopping service 'l2-el-2-bor-heimdall-v2-validator' 
 [l2-el-5-bor-heimdall-v2-rpc] Extracting service data and configuration
 [l2-el-5-bor-heimdall-v2-rpc] Starting new container l2-el-5-bor-heimdall-v2-rpc with image: 0xpolygon/bor:2.6.0-beta
-84667a952279a250cb714dc4beef5769f4bee049926588e087f51915f86036a6
+8575d97f5de0a6954c0cdc2ae556954eb1a0740cc9231b6df6b1c9708c63fbc4
+[l2-el-2-bor-heimdall-v2-validator] Extracting service data and configuration
+[l2-el-2-bor-heimdall-v2-validator] Starting new container l2-el-2-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
+83ec06b742d5bc1607fefae2d45b774e805672c7bf05dd56d20cc25a776ebffe
+[l2-el-3-bor-heimdall-v2-validator] Extracting service data and configuration
+[l2-el-3-bor-heimdall-v2-validator] Starting new container l2-el-3-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
+f1fca44a15a36ca55c6dcadf4a999049de4f273ec97ffa845c5b66ec48150c8e
+[l2-el-6-erigon-heimdall-v2-rpc] Extracting service data and configuration
+[l2-el-6-erigon-heimdall-v2-rpc] Starting new container l2-el-6-erigon-heimdall-v2-rpc with image: 0xpolygon/erigon:v3.4.0-beta
+b1d63bb1f449543ae1e13bd11245d6523f1f805dedd07b94d319348628f3a61d
+[l2-el-4-bor-heimdall-v2-validator] Extracting service data and configuration
+[l2-el-4-bor-heimdall-v2-validator] Starting new container l2-el-4-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
+d02c1e0b7def820a0976601242f3e71f883841dc77e2ba42d83b597cd656bb67
 Querying RPC nodes
-l2-el-5-bor-heimdall-v2-rpc: Error: error sending request for url (http://172.16.0.8:8545/)
+l2-el-4-bor-heimdall-v2-validator: 149
+l2-el-6-erigon-heimdall-v2-rpc: 149
+l2-el-3-bor-heimdall-v2-validator: 149
+l2-el-2-bor-heimdall-v2-validator: 149
+l2-el-5-bor-heimdall-v2-rpc: 149
+l2-el-1-bor-heimdall-v2-validator--7b2c2729cb154301bdbe1209a0fd2829: 149
+Triggering a graceful span rotation
+The command was successfully executed and returned '0'.
+Average block time calculated: 1 seconds
+5:20PM INF Tx with hash 27611F8912C45C1968456F24D3A73D9456C57ED21BB9A0B498C9743A3EC01482 broadcasted successfully. module=x/bor/cli
 
-Context:
-- Error #0: client error (Connect)
-- Error #1: tcp connect error
-- Error #2: Connection refused (os error 111)
+Waiting for block producer rotation from ID 1...
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 1
+Current producer: 2
+Block producer rotated!
+Upgrading the old block producer
+Upgrading bor service: l2-el-1-bor-heimdall-v2-validator
+[l2-el-1-bor-heimdall-v2-validator] Stopping kurtosis service
+INFO[2026-02-06T18:22:29+01:00] Stopping service 'l2-el-1-bor-heimdall-v2-validator' 
+[l2-el-1-bor-heimdall-v2-validator] Extracting service data and configuration
+[l2-el-1-bor-heimdall-v2-validator] Starting new container l2-el-1-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
+53ee509fe48fe1f9478596e0a82803079f9331a86632675c82e732305b174f04
