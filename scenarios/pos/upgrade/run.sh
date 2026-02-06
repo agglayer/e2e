@@ -1,0 +1,184 @@
+#!/bin/env bash
+set -e
+source ../../common/load-env.sh
+load_env
+
+# Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet
+
+get_block_producer_id() {
+    cl_api_url=$(kurtosis port print "$ENCLAVE_NAME" l2-cl-1-heimdall-v2-bor-validator http)
+    next_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
+    current_span_id=$((next_span_id - 1))
+    block_producer=$(curl -s "${cl_api_url}/bor/spans/$((current_span_id))" | jq -r '.span.selected_producers[0].val_id')
+    echo "$block_producer"
+}
+
+upgrade_el_node() {
+    container="$1"
+    if [[ -z "$container" ]]; then
+        echo "Container is required for upgrade"
+        exit 1
+    fi
+    service=${container%%--*} # l2-el-1-bor-heimdall-v2-validator
+    type=$(echo $service | cut -d'-' -f4) # bor or erigon
+    echo "Upgrading $type service: $service"
+
+    # Stop the kurtosis service
+    echo "[$service] Stopping kurtosis service"
+    kurtosis service stop "$ENCLAVE_NAME" $service
+
+    # Extract the data and configuration from the old container
+    echo "[$service] Extracting service data and configuration"
+    container_details=$(docker inspect $container)
+    data_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/var/lib/$type\") | .Source")
+    etc_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/etc/$type\") | .Source")
+
+    mkdir -p ./tmp/$service
+    sudo cp -r $data_dir ./tmp/$service/${type}_data
+    sudo chmod -R 777 ./tmp/$service/${type}_data
+
+    sudo cp -r $etc_dir ./tmp/$service/${type}_etc
+    sudo chmod -R 777 ./tmp/$service/${type}_etc
+
+    # Start a new container with the new image and the same data, in the same docker network
+    image=""
+    cmd=""
+    extra_args=""
+    if [[ "$type" == "bor" ]]; then
+        # Extract scripts from the old container
+        scripts_dir=$(echo $container_details | jq -r '.[0].Mounts[] | select(.Destination == "/usr/local/share") | .Source')
+        sudo cp -r $scripts_dir ./tmp/$service/${type}_scripts
+        sudo chmod -R 777 ./tmp/$service/${type}_scripts
+
+        image="$new_bor_image"
+        cmd="/usr/local/share/container-proc-manager.sh bor server --config /etc/bor/config.toml"
+        extra_args="--volume ./tmp/$service/${type}_scripts:/usr/local/share"
+    elif [[ "$type" == "erigon" ]]; then
+        image="$new_erigon_image"
+        cmd="while ! erigon --config /etc/erigon/config.toml; do echo -e '\n❌ Erigon failed to start. Retrying in five seconds...\n'; sleep 5; done"
+    else
+        echo "Unknown EL type for service $service, expected 'bor' or 'erigon'"
+        exit 1
+    fi
+
+    echo "[$service] Starting new container $service with image: $image"
+    docker run \
+        --interactive \
+        --detach \
+        --tty \
+        --name $service \
+        --network kt-$ENCLAVE_NAME \
+        --volume ./tmp/$service/${type}_data:/var/lib/$type \
+        --volume ./tmp/$service/${type}_etc:/etc/$type \
+        $extra_args \
+        --entrypoint sh \
+        "$image" \
+        -c "$cmd"
+}
+
+# Validate environment variables
+if [[ -z "$ENCLAVE_NAME" ]]; then
+    echo "ENCLAVE_NAME environment variable is not set."
+    exit 1
+fi
+
+if [[ -z "$KURTOSIS_POS_VERSION" ]]; then
+    echo "KURTOSIS_POS_VERSION environment variable is not set."
+    exit 1
+fi
+
+if [[ -z "$NEW_BOR_IMAGE" ]]; then
+    echo "NEW_BOR_IMAGE environment variable is not set."
+    exit 1
+fi
+new_bor_image="$NEW_BOR_IMAGE"
+
+if [[ -z "$NEW_ERIGON_IMAGE" ]]; then
+    echo "NEW_ERIGON_IMAGE environment variable is not set."
+    exit 1
+fi
+new_erigon_image="$NEW_ERIGON_IMAGE"
+
+# Check if running as root/sudo
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run with sudo or as root"
+   exit 1
+fi
+
+# Check if the enclave already exists
+if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
+    echo "The kurtosis enclave '$ENCLAVE_NAME' already exists."
+    echo "Please remove it before running this script:"
+    echo "kurtosis enclave rm --force $ENCLAVE_NAME"
+    exit 1
+fi
+
+# Check for orphaned containers from previous runs
+# These are manually created containers that may remain after 'kurtosis enclave rm'
+orphaned_containers=$(docker ps --all --format '{{.Names}}' | grep -E "^l2-(e|c)l-.*-.*-" || true)
+if [[ -n "$orphaned_containers" ]]; then
+    echo "Found orphaned containers from a previous run:"
+    echo "$orphaned_containers"
+    echo "Please remove them before running this script:"
+    echo "docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force"
+    exit 1
+fi
+
+# Check if there are existing containers in the network
+existing_containers=$(docker ps --all --quiet --filter "network=kt-$ENCLAVE_NAME" 2>/dev/null)
+if [[ -n "$existing_containers" ]]; then
+    echo "Found existing containers in network kt-$ENCLAVE_NAME, which indicates an existing enclave or leftover containers from a previous run."
+    echo "Please remove them before running this script:"
+    echo "docker ps --all --quiet --filter network=kt-$ENCLAVE_NAME | xargs docker rm --force"
+    exit 1
+fi
+
+# Clean up temporary directories from previous runs
+rm -rf ./tmp
+mkdir -p ./tmp
+
+# Add foundry to PATH for sudo execution
+export PATH="$PATH:/home/$SUDO_USER/.foundry/bin"
+
+# Deploy the devnet - it might take a few minutes
+if [[ ! -d "./kurtosis-pos" ]]; then
+    git clone https://github.com/0xPolygon/kurtosis-pos.git
+fi
+pushd ./kurtosis-pos || exit 1
+git checkout "$KURTOSIS_POS_VERSION"
+kurtosis run --enclave "$ENCLAVE_NAME" --args-file ../params.yml .
+
+# Validate blocks production across all nodes
+.github/actions/monitor/blocks.sh
+popd || exit 1
+
+# Get the block producer
+block_producer_id=$(get_block_producer_id)
+echo "Current block producer ID: $block_producer_id"
+
+# Collect L2 EL nodes to upgrade, excluding the current block producer
+containers=()
+while IFS= read -r container; do
+    containers+=("$container")
+done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
+    | grep "l2-el" \
+    | grep -v "l2-el-$block_producer_id-")
+
+echo "Upgrading L2 EL nodes"
+for container in "${containers[@]}"; do
+    upgrade_el_node "$container" &
+done
+wait
+
+# Add small delay to allow nodes to start up before querying
+sleep 30
+
+# Query RPC nodes
+echo "Querying RPC nodes"
+docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
+  | grep 'l2-el' \
+  | while read -r container; do
+      ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
+      echo -n "$container: "
+      cast bn --rpc-url "http://$ip:8545"
+    done
