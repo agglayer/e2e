@@ -92,12 +92,14 @@ if [[ -z "$NEW_BOR_IMAGE" ]]; then
     exit 1
 fi
 new_bor_image="$NEW_BOR_IMAGE"
+docker pull "$new_bor_image"
 
 if [[ -z "$NEW_ERIGON_IMAGE" ]]; then
     echo "NEW_ERIGON_IMAGE environment variable is not set."
     exit 1
 fi
 new_erigon_image="$NEW_ERIGON_IMAGE"
+docker pull "$new_erigon_image"
 
 # Check if running as root/sudo
 if [[ $EUID -ne 0 ]]; then
