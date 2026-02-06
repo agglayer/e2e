@@ -306,6 +306,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
+| TriggerCertMode: ASAP - should generate certificates with minimal delay | [Link](./tests/aggkit/trigger-cert-modes.bats#L195) | |
+| TriggerCertMode: EpochBased - should generate certificates at epoch intervals | [Link](./tests/aggkit/trigger-cert-modes.bats#L265) | |
+| TriggerCertMode: Generate multiple certificates and analyze timing | [Link](./tests/aggkit/trigger-cert-modes.bats#L447) | |
+| TriggerCertMode: NewBridge - should generate certificates on bridge events | [Link](./tests/aggkit/trigger-cert-modes.bats#L330) | |
+| TriggerCertMode: Verify certificate settlement across all modes | [Link](./tests/aggkit/trigger-cert-modes.bats#L428) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | foo | [Link](./tests/foo.bats#L10) | |
