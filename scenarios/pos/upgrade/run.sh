@@ -239,3 +239,14 @@ wait_for_producer_rotation "$block_producer_id"
 echo "Upgrading the old block producer"
 container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
 upgrade_el_node "$container"
+
+# Query RPC nodes
+echo "Querying RPC nodes"
+docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
+  | grep 'l2-el' \
+  | while read -r container; do
+      ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
+      echo -n "$container: "
+      cast bn --rpc-url "http://$ip:8545"
+    done
+    
