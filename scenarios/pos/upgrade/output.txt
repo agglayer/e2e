@@ -651,3 +651,10 @@ INFO[2026-02-06T18:22:29+01:00] Stopping service 'l2-el-1-bor-heimdall-v2-valida
 [l2-el-1-bor-heimdall-v2-validator] Extracting service data and configuration
 [l2-el-1-bor-heimdall-v2-validator] Starting new container l2-el-1-bor-heimdall-v2-validator with image: 0xpolygon/bor:2.6.0-beta
 53ee509fe48fe1f9478596e0a82803079f9331a86632675c82e732305b174f04
+Querying RPC nodes
+l2-el-1-bor-heimdall-v2-validator: 293
+l2-el-4-bor-heimdall-v2-validator: 293
+l2-el-6-erigon-heimdall-v2-rpc: 293
+l2-el-3-bor-heimdall-v2-validator: 293
+l2-el-2-bor-heimdall-v2-validator: 293
+l2-el-5-bor-heimdall-v2-rpc: 293
