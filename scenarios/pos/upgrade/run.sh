@@ -21,59 +21,6 @@ get_block_producer_address() {
     echo "$producer_address"
 }
 
-query_rpc_nodes() {
-    docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
-        | grep 'l2-el' \
-        | while read -r container; do
-            ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
-            echo -n "$container: "
-            cast bn --rpc-url "http://$ip:8545"
-            done
-}
-
-trigger_graceful_span_rotation() {
-    # Get the current block producer's service name and address
-    producer_service=$(kurtosis enclave inspect "$ENCLAVE_NAME" | grep RUNNING | grep l2-cl-$block_producer_id | awk '{print $2}' | head -n 1)
-    producer_address=$(get_block_producer_address)
-
-    # Calculate downtime window timestamps (UTC Unix timestamps)
-    # In devnet: 1s block time, 16 blocks per sprint, 8 sprints per span = 128s (~2min) per span
-    # Set downtime window to catch the next span rotation (slightly more than one span)
-    current_time_plus_30s=$(date -u -d '+30 seconds' '+%s')
-    current_time_plus_150s=$(date -u -d '+150 seconds' '+%s')
-
-    # Submit downtime transaction to trigger graceful rotation
-    kurtosis service exec $ENCLAVE_NAME $producer_service \
-        "heimdalld tx bor producer-downtime --producer-address $producer_address --home /etc/heimdall --start-timestamp-utc $current_time_plus_30s --end-timestamp-utc $current_time_plus_150s"
-}
-
-wait_for_producer_rotation() {
-    original_producer_id="$1"
-    if [[ -z "$original_producer_id" ]]; then
-        echo "Original producer ID is required"
-        return 1
-    fi
-
-    echo "Waiting for block producer rotation from ID $original_producer_id..."
-    max_wait_seconds=300  # 5 minutes max wait (enough for multiple span rotations)
-    check_interval=10  # Check every 10 seconds
-    elapsed=0
-    while [[ $elapsed -lt $max_wait_seconds ]]; do
-        current_producer_id=$(get_block_producer_id)
-        echo "Current producer: $current_producer_id"
-        if [[ "$current_producer_id" != "$original_producer_id" ]]; then
-            echo "Block producer rotated!"
-            return 0
-        fi
-
-        sleep $check_interval
-        elapsed=$((elapsed + check_interval))
-    done
-
-    echo "Block producer did not rotate after ${max_wait_seconds}s"
-    return 1
-}
-
 upgrade_el_node() {
     container="$1"
     if [[ -z "$container" ]]; then
@@ -135,6 +82,59 @@ upgrade_el_node() {
         --entrypoint sh \
         "$image" \
         -c "$cmd"
+}
+
+query_rpc_nodes() {
+    docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
+        | grep 'l2-el' \
+        | while read -r container; do
+            ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
+            echo -n "$container: "
+            cast bn --rpc-url "http://$ip:8545"
+            done
+}
+
+trigger_producer_downtime() {
+    # Get the current block producer's service name and address
+    producer_service=$(kurtosis enclave inspect "$ENCLAVE_NAME" | grep RUNNING | grep l2-cl-$block_producer_id | awk '{print $2}' | head -n 1)
+    producer_address=$(get_block_producer_address)
+
+    # Calculate downtime window timestamps (UTC Unix timestamps)
+    # In devnet: 1s block time, 16 blocks per sprint, 8 sprints per span = 128s (~2min) per span
+    # Set downtime window to catch the next span rotation (slightly more than one span)
+    current_time_plus_30s=$(date -u -d '+30 seconds' '+%s')
+    current_time_plus_150s=$(date -u -d '+150 seconds' '+%s')
+
+    # Submit downtime transaction to trigger graceful rotation
+    kurtosis service exec $ENCLAVE_NAME $producer_service \
+        "heimdalld tx bor producer-downtime --producer-address $producer_address --home /etc/heimdall --start-timestamp-utc $current_time_plus_30s --end-timestamp-utc $current_time_plus_150s"
+}
+
+wait_for_producer_rotation() {
+    original_producer_id="$1"
+    if [[ -z "$original_producer_id" ]]; then
+        echo "Original producer ID is required"
+        return 1
+    fi
+
+    echo "Waiting for block producer rotation from ID $original_producer_id..."
+    max_wait_seconds=300  # 5 minutes max wait (enough for multiple span rotations)
+    check_interval=10  # Check every 10 seconds
+    elapsed=0
+    while [[ $elapsed -lt $max_wait_seconds ]]; do
+        current_producer_id=$(get_block_producer_id)
+        echo "Current producer: $current_producer_id"
+        if [[ "$current_producer_id" != "$original_producer_id" ]]; then
+            echo "Block producer rotated!"
+            return 0
+        fi
+
+        sleep $check_interval
+        elapsed=$((elapsed + check_interval))
+    done
+
+    echo "Block producer did not rotate after ${max_wait_seconds}s"
+    return 1
 }
 
 # Validate environment variables
@@ -236,7 +236,7 @@ query_rpc_node
 # This rotation is considered graceful as it is handled from the consensus
 # However, it might take more time than forcing a rotation by shutting down the node
 echo "Triggering a graceful span rotation"
-trigger_graceful_span_rotation
+trigger_producer_downtime
 wait_for_producer_rotation "$block_producer_id"
 
 # TODO: Upgrade the block producer
