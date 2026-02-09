@@ -279,6 +279,7 @@ while IFS= read -r container; do
     cl_containers+=("$container")
 done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
     | grep "l2-cl" \
+    | grep -v "rabbitmq" \
     | grep -v "l2-cl-$block_producer_id-")
 if [[ ${#cl_containers[@]} -eq 0 ]]; then
     log_info "No CL containers found to upgrade (excluding block producer)"
@@ -321,7 +322,7 @@ wait_for_producer_rotation "$block_producer_id"
 
 # Upgrade the old block producer
 log_info "Upgrading the old block producer"
-cl_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-")
+cl_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-" | grep -v "rabbitmq")
 if [[ -z "$cl_container" ]]; then
     log_error "Could not find CL container for old block producer ID $block_producer_id"
     exit 1
