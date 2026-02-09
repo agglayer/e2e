@@ -40,15 +40,15 @@ upgrade_cl_node() {
     log_info "[$service] Extracting service data and configuration"
     container_details=$(docker inspect $container)
     data_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/var/lib/$type\") | .Source")
-    etc_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/etc/$type\") | .Source")
+    etc_config_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/etc/$type/config\") | .Source")
     scripts_dir=$(echo $container_details | jq -r '.[0].Mounts[] | select(.Destination == "/usr/local/share") | .Source')
 
     mkdir -p ./tmp/$service
     sudo cp -r $data_dir ./tmp/$service/${type}_data
     sudo chmod -R 777 ./tmp/$service/${type}_data
 
-    sudo cp -r $etc_dir ./tmp/$service/${type}_etc
-    sudo chmod -R 777 ./tmp/$service/${type}_etc
+    sudo cp -r $etc_config_dir ./tmp/$service/${type}_etc_config
+    sudo chmod -R 777 ./tmp/$service/${type}_etc_config
 
     sudo cp -r $scripts_dir ./tmp/$service/${type}_scripts
     sudo chmod -R 777 ./tmp/$service/${type}_scripts
@@ -63,7 +63,7 @@ upgrade_cl_node() {
         --name $service \
         --network kt-$ENCLAVE_NAME \
         --volume ./tmp/$service/${type}_data:/var/lib/$type \
-        --volume ./tmp/$service/${type}_etc:/etc/$type \
+        --volume ./tmp/$service/${type}_etc_config:/etc/$type/config \
         --volume ./tmp/$service/${type}_scripts:/usr/local/share \
         --entrypoint sh \
         "$image" \
