@@ -277,6 +277,10 @@ while IFS= read -r container; do
 done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
     | grep "l2-cl" \
     | grep -v "l2-cl-$block_producer_id-")
+if [[ ${#cl_containers[@]} -eq 0 ]]; then
+    echo "No CL containers found to upgrade (excluding block producer)"
+fi
+
 
 el_containers=()
 while IFS= read -r container; do
@@ -284,6 +288,9 @@ while IFS= read -r container; do
 done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
     | grep "l2-el" \
     | grep -v "l2-el-$block_producer_id-")
+if [[ ${#el_containers[@]} -eq 0 ]]; then
+    echo "No EL containers found to upgrade (excluding block producer)"
+fi
 
 echo "Upgrading L2 nodes"
 for container in "${cl_containers[@]}"; do
@@ -309,10 +316,18 @@ echo "Triggering a graceful span rotation"
 trigger_producer_downtime
 wait_for_producer_rotation "$block_producer_id"
 
-# Upgrade the block producer
+# Upgrade the old block producer
 echo "Upgrading the old block producer"
 cl_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-")
+if [[ -z "$cl_container" ]]; then
+    echo "Could not find CL container for old block producer ID $block_producer_id"
+    exit 1
+fi
 el_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
+if [[ -z "$el_container" ]]; then
+    echo "Could not find EL container for old block producer ID $block_producer_id"
+    exit 1
+fi
 upgrade_cl_node "$cl_container" &
 upgrade_el_node "$el_container" &
 wait
