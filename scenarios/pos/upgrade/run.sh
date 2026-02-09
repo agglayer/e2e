@@ -166,7 +166,7 @@ wait_for_producer_rotation() {
         return 1
     fi
 
-    log_info "Waiting for block producer rotation from ID $original_producer_id..."
+    log_info "Waiting for block producer rotation..."
     max_wait_seconds=300  # 5 minutes max wait (enough for multiple span rotations)
     check_interval=10  # Check every 10 seconds
     elapsed=0
