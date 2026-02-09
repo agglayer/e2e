@@ -21,6 +21,54 @@ get_block_producer_address() {
     echo "$producer_address"
 }
 
+upgrade_cl_node() {
+    container="$1"
+    if [[ -z "$container" ]]; then
+        echo "Container is required for upgrade"
+        exit 1
+    fi
+    service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
+    type=$(echo $service | cut -d'-' -f4)
+    echo "Upgrading $type service: $service"
+
+    # Stop the kurtosis service
+    echo "[$service] Stopping kurtosis service"
+    kurtosis service stop "$ENCLAVE_NAME" $service
+
+    # Extract the data and configuration from the old container
+    echo "[$service] Extracting service data and configuration"
+    container_details=$(docker inspect $container)
+    data_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/var/lib/$type\") | .Source")
+    etc_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/etc/$type\") | .Source")
+    scripts_dir=$(echo $container_details | jq -r '.[0].Mounts[] | select(.Destination == "/usr/local/share") | .Source')
+
+    mkdir -p ./tmp/$service
+    sudo cp -r $data_dir ./tmp/$service/${type}_data
+    sudo chmod -R 777 ./tmp/$service/${type}_data
+
+    sudo cp -r $etc_dir ./tmp/$service/${type}_etc
+    sudo chmod -R 777 ./tmp/$service/${type}_etc
+
+    sudo cp -r $scripts_dir ./tmp/$service/${type}_scripts
+    sudo chmod -R 777 ./tmp/$service/${type}_scripts
+
+    # Start a new container with the new image and the same data, in the same docker network
+    image="$new_heimdall_v2_image"
+    echo "[$service] Starting new container $service with image: $image"
+    docker run \
+        --interactive \
+        --detach \
+        --tty \
+        --name $service \
+        --network kt-$ENCLAVE_NAME \
+        --volume ./tmp/$service/${type}_data:/var/lib/$type \
+        --volume ./tmp/$service/${type}_etc:/etc/$type \
+        --volume ./tmp/$service/${type}_scripts:/usr/local/share \
+        --entrypoint sh \
+        "$image" \
+        -c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"
+}
+
 upgrade_el_node() {
     container="$1"
     if [[ -z "$container" ]]; then
@@ -142,16 +190,27 @@ if [[ -z "$ENCLAVE_NAME" ]]; then
     echo "ENCLAVE_NAME environment variable is not set."
     exit 1
 fi
+echo "Using enclave name: $ENCLAVE_NAME"
 
 if [[ -z "$KURTOSIS_POS_VERSION" ]]; then
     echo "KURTOSIS_POS_VERSION environment variable is not set."
     exit 1
 fi
+echo "Using kurtosis-pos version: $KURTOSIS_POS_VERSION"
+
+if [[ -z "$NEW_HEIMDALL_V2_IMAGE" ]]; then
+    echo "NEW_HEIMDALL_V2_IMAGE environment variable is not set."
+    exit 1
+fi
+echo "Using new heimdall-v2 image: $NEW_HEIMDALL_V2_IMAGE"
+new_heimdall_v2_image="$NEW_HEIMDALL_V2_IMAGE"
+docker pull "$new_heimdall_v2_image"
 
 if [[ -z "$NEW_BOR_IMAGE" ]]; then
     echo "NEW_BOR_IMAGE environment variable is not set."
     exit 1
 fi
+echo "Using new bor image: $NEW_BOR_IMAGE"
 new_bor_image="$NEW_BOR_IMAGE"
 docker pull "$new_bor_image"
 
@@ -159,6 +218,7 @@ if [[ -z "$NEW_ERIGON_IMAGE" ]]; then
     echo "NEW_ERIGON_IMAGE environment variable is not set."
     exit 1
 fi
+echo "Using new erigon image: $NEW_ERIGON_IMAGE"
 new_erigon_image="$NEW_ERIGON_IMAGE"
 docker pull "$new_erigon_image"
 
@@ -210,16 +270,26 @@ popd || exit 1
 block_producer_id=$(get_block_producer_id)
 echo "Current block producer ID: $block_producer_id"
 
-# Collect L2 EL nodes to upgrade, excluding the current block producer
-containers=()
+# Collect L2 nodes to upgrade, excluding the current block producer
+cl_containers=()
 while IFS= read -r container; do
-    containers+=("$container")
+    cl_containers+=("$container")
+done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
+    | grep "l2-cl" \
+    | grep -v "l2-cl-$block_producer_id-")
+
+el_containers=()
+while IFS= read -r container; do
+    el_containers+=("$container")
 done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
     | grep "l2-el" \
     | grep -v "l2-el-$block_producer_id-")
 
-echo "Upgrading L2 EL nodes"
-for container in "${containers[@]}"; do
+echo "Upgrading L2 nodes"
+for container in "${cl_containers[@]}"; do
+    upgrade_cl_node "$container" &
+done
+for container in "${el_containers[@]}"; do
     upgrade_el_node "$container" &
 done
 wait
@@ -229,7 +299,7 @@ sleep 30
 
 # Query RPC nodes
 echo "Querying RPC nodes"
-query_rpc_node
+query_rpc_nodes
 
 # Trigger a graceful span rotation
 # It will put the block producer in downtime state to do the rotation
@@ -239,10 +309,13 @@ echo "Triggering a graceful span rotation"
 trigger_producer_downtime
 wait_for_producer_rotation "$block_producer_id"
 
-# TODO: Upgrade the block producer
+# Upgrade the block producer
 echo "Upgrading the old block producer"
-container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
-upgrade_el_node "$container"
+cl_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-")
+el_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
+upgrade_cl_node "$cl_container" &
+upgrade_el_node "$el_container" &
+wait
 
 # Query RPC nodes
 echo "Querying RPC nodes"
