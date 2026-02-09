@@ -21,6 +21,16 @@ get_block_producer_address() {
     echo "$producer_address"
 }
 
+query_rpc_nodes() {
+    docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
+        | grep 'l2-el' \
+        | while read -r container; do
+            ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
+            echo -n "$container: "
+            cast bn --rpc-url "http://$ip:8545"
+            done
+}
+
 trigger_graceful_span_rotation() {
     # Get the current block producer's service name and address
     producer_service=$(kurtosis enclave inspect "$ENCLAVE_NAME" | grep RUNNING | grep l2-cl-$block_producer_id | awk '{print $2}' | head -n 1)
@@ -219,13 +229,7 @@ sleep 30
 
 # Query RPC nodes
 echo "Querying RPC nodes"
-docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
-  | grep 'l2-el' \
-  | while read -r container; do
-      ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
-      echo -n "$container: "
-      cast bn --rpc-url "http://$ip:8545"
-    done
+query_rpc_node
 
 # Trigger a graceful span rotation
 # It will put the block producer in downtime state to do the rotation
@@ -242,11 +246,5 @@ upgrade_el_node "$container"
 
 # Query RPC nodes
 echo "Querying RPC nodes"
-docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
-  | grep 'l2-el' \
-  | while read -r container; do
-      ip=$(docker inspect -f '{{(index .NetworkSettings.Networks "kt-'$ENCLAVE_NAME'").IPAddress}}' "$container")
-      echo -n "$container: "
-      cast bn --rpc-url "http://$ip:8545"
-    done
+query_rpc_nodes
     
