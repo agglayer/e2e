@@ -205,6 +205,31 @@ if [[ -z "$ENCLAVE_NAME" ]]; then
 fi
 log_info "Using enclave name: $ENCLAVE_NAME"
 
+# Check if running as root/sudo
+if [[ $EUID -ne 0 ]]; then
+   log_error "This script must be run with sudo or as root"
+   exit 1
+fi
+
+# Check if the enclave already exists
+if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
+    log_error "The kurtosis enclave '$ENCLAVE_NAME' already exists."
+    log_error "Please remove it before running this script:"
+    log_error "kurtosis enclave rm --force $ENCLAVE_NAME"
+    exit 1
+fi
+
+# Check for orphaned containers from previous runs
+# These are manually created containers that may remain after 'kurtosis enclave rm'
+orphaned_containers=$(docker ps --all --format '{{.Names}}' | grep -E "^l2-(e|c)l-.*-.*-" || true)
+if [[ -n "$orphaned_containers" ]]; then
+    log_error "Found orphaned containers from a previous run:"
+    log_error "$orphaned_containers"
+    log_error "Please remove them before running this script:"
+    log_error "docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force"
+    exit 1
+fi
+
 if [[ -z "$KURTOSIS_POS_VERSION" ]]; then
     log_error "KURTOSIS_POS_VERSION environment variable is not set."
     exit 1
@@ -234,31 +259,6 @@ fi
 log_info "Using new erigon image: $NEW_ERIGON_IMAGE"
 new_erigon_image="$NEW_ERIGON_IMAGE"
 docker pull "$new_erigon_image"
-
-# Check if running as root/sudo
-if [[ $EUID -ne 0 ]]; then
-   log_error "This script must be run with sudo or as root"
-   exit 1
-fi
-
-# Check if the enclave already exists
-if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
-    log_error "The kurtosis enclave '$ENCLAVE_NAME' already exists."
-    log_error "Please remove it before running this script:"
-    log_error "kurtosis enclave rm --force $ENCLAVE_NAME"
-    exit 1
-fi
-
-# Check for orphaned containers from previous runs
-# These are manually created containers that may remain after 'kurtosis enclave rm'
-orphaned_containers=$(docker ps --all --format '{{.Names}}' | grep -E "^l2-(e|c)l-.*-.*-" || true)
-if [[ -n "$orphaned_containers" ]]; then
-    log_error "Found orphaned containers from a previous run:"
-    log_error "$orphaned_containers"
-    log_error "Please remove them before running this script:"
-    log_error "docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force"
-    exit 1
-fi
 
 # Clean up temporary directories from previous runs
 rm -rf ./tmp
