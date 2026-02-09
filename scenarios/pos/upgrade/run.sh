@@ -5,6 +5,14 @@ source ../../common/load-env.sh
 load_env
 
 # Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet
+get_l2_containers() {
+    docker ps \
+        --filter "network=kt-$ENCLAVE_NAME" \
+        --filter "name=l2" \
+        --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" \
+        | grep -v rabbitmq \
+        | (sed -u 1q; sort -V)
+}
 
 get_block_producer_id() {
     cl_api_url=$(kurtosis port print "$ENCLAVE_NAME" l2-cl-1-heimdall-v2-bor-validator http)
@@ -269,6 +277,9 @@ git pull
 git checkout "$KURTOSIS_POS_VERSION"
 kurtosis run --enclave "$ENCLAVE_NAME" --args-file ../params.yml .
 
+# Display L2 containers
+get_l2_containers
+
 # Validate blocks production across all nodes
 .github/actions/monitor/blocks.sh
 popd || exit 1
@@ -339,6 +350,9 @@ fi
 upgrade_cl_node "$cl_container" &
 upgrade_el_node "$el_container" &
 wait
+
+# Display L2 containers
+get_l2_containers
 
 # Add small delay to allow the node to start up before querying
 sleep 30
