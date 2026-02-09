@@ -279,6 +279,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
 | L1 → Rollup 3 (native/WETH) → Rollup 1 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L16) | |
+| Measure certificate generation intervals | [Link](./tests/aggkit/trigger-cert-modes.bats#L130) | |
 | Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
 | Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
 | Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
@@ -306,9 +307,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
-| TriggerCertMode: ASAP - measure generation intervals | [Link](./tests/aggkit/trigger-cert-modes.bats#L128) | |
-| TriggerCertMode: EpochBased - measure generation intervals | [Link](./tests/aggkit/trigger-cert-modes.bats#L158) | |
-| TriggerCertMode: NewBridge - verify bridge-triggered generation | [Link](./tests/aggkit/trigger-cert-modes.bats#L199) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | foo | [Link](./tests/foo.bats#L10) | |
