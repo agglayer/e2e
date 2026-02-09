@@ -66,7 +66,7 @@ upgrade_cl_node() {
 
     # Start a new container with the new image and the same data, in the same docker network
     image="$new_heimdall_v2_image"
-    log_info "[$service] Starting new container $service with image: $image"
+    log_info "[$service] Starting new container with image: $image"
     docker run \
         --interactive \
         --detach \
@@ -130,7 +130,7 @@ upgrade_el_node() {
         exit 1
     fi
 
-    log_info "[$service] Starting new container $service with image: $image"
+    log_info "[$service] Starting new container with image: $image"
     docker run \
         --interactive \
         --detach \
