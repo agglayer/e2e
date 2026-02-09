@@ -260,6 +260,8 @@ if [[ ! -d "./kurtosis-pos" ]]; then
     git clone https://github.com/0xPolygon/kurtosis-pos.git
 fi
 pushd ./kurtosis-pos || exit 1
+git checkout main
+git pull
 git checkout "$KURTOSIS_POS_VERSION"
 kurtosis run --enclave "$ENCLAVE_NAME" --args-file ../params.yml .
 
