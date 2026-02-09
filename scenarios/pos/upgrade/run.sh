@@ -1,5 +1,6 @@
 #!/bin/env bash
 set -e
+source ../../common/log.sh
 source ../../common/load-env.sh
 load_env
 
@@ -24,19 +25,19 @@ get_block_producer_address() {
 upgrade_cl_node() {
     container="$1"
     if [[ -z "$container" ]]; then
-        echo "Container is required for upgrade"
+        log_error "Container is required for upgrade"
         exit 1
     fi
     service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
     type=$(echo $service | cut -d'-' -f4)
-    echo "Upgrading $type service: $service"
+    log_info "Upgrading $type service: $service"
 
     # Stop the kurtosis service
-    echo "[$service] Stopping kurtosis service"
+    log_info "[$service] Stopping kurtosis service"
     kurtosis service stop "$ENCLAVE_NAME" $service
 
     # Extract the data and configuration from the old container
-    echo "[$service] Extracting service data and configuration"
+    log_info "[$service] Extracting service data and configuration"
     container_details=$(docker inspect $container)
     data_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/var/lib/$type\") | .Source")
     etc_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/etc/$type\") | .Source")
@@ -54,7 +55,7 @@ upgrade_cl_node() {
 
     # Start a new container with the new image and the same data, in the same docker network
     image="$new_heimdall_v2_image"
-    echo "[$service] Starting new container $service with image: $image"
+    log_info "[$service] Starting new container $service with image: $image"
     docker run \
         --interactive \
         --detach \
@@ -72,19 +73,19 @@ upgrade_cl_node() {
 upgrade_el_node() {
     container="$1"
     if [[ -z "$container" ]]; then
-        echo "Container is required for upgrade"
+        log_error "Container is required for upgrade"
         exit 1
     fi
     service=${container%%--*} # l2-el-1-bor-heimdall-v2-validator
     type=$(echo $service | cut -d'-' -f4) # bor or erigon
-    echo "Upgrading $type service: $service"
+    log_info "Upgrading $type service: $service"
 
     # Stop the kurtosis service
-    echo "[$service] Stopping kurtosis service"
+    log_info "[$service] Stopping kurtosis service"
     kurtosis service stop "$ENCLAVE_NAME" $service
 
     # Extract the data and configuration from the old container
-    echo "[$service] Extracting service data and configuration"
+    log_info "[$service] Extracting service data and configuration"
     container_details=$(docker inspect $container)
     data_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/var/lib/$type\") | .Source")
     etc_dir=$(echo $container_details | jq -r ".[0].Mounts[] | select(.Destination == \"/etc/$type\") | .Source")
@@ -113,11 +114,11 @@ upgrade_el_node() {
         image="$new_erigon_image"
         cmd="while ! erigon --config /etc/erigon/config.toml; do echo -e '\n❌ Erigon failed to start. Retrying in five seconds...\n'; sleep 5; done"
     else
-        echo "Unknown EL type for service $service, expected 'bor' or 'erigon'"
+        log_error "Unknown EL type for service $service, expected 'bor' or 'erigon'"
         exit 1
     fi
 
-    echo "[$service] Starting new container $service with image: $image"
+    log_info "[$service] Starting new container $service with image: $image"
     docker run \
         --interactive \
         --detach \
@@ -161,19 +162,19 @@ trigger_producer_downtime() {
 wait_for_producer_rotation() {
     original_producer_id="$1"
     if [[ -z "$original_producer_id" ]]; then
-        echo "Original producer ID is required"
+        log_error "Original producer ID is required"
         return 1
     fi
 
-    echo "Waiting for block producer rotation from ID $original_producer_id..."
+    log_info "Waiting for block producer rotation from ID $original_producer_id..."
     max_wait_seconds=300  # 5 minutes max wait (enough for multiple span rotations)
     check_interval=10  # Check every 10 seconds
     elapsed=0
     while [[ $elapsed -lt $max_wait_seconds ]]; do
         current_producer_id=$(get_block_producer_id)
-        echo "Current producer: $current_producer_id"
+        log_info "Current producer: $current_producer_id"
         if [[ "$current_producer_id" != "$original_producer_id" ]]; then
-            echo "Block producer rotated!"
+            log_info "Block producer rotated!"
             return 0
         fi
 
@@ -181,58 +182,58 @@ wait_for_producer_rotation() {
         elapsed=$((elapsed + check_interval))
     done
 
-    echo "Block producer did not rotate after ${max_wait_seconds}s"
+    log_error "Block producer did not rotate after ${max_wait_seconds}s"
     return 1
 }
 
 # Validate environment variables
 if [[ -z "$ENCLAVE_NAME" ]]; then
-    echo "ENCLAVE_NAME environment variable is not set."
+    log_error "ENCLAVE_NAME environment variable is not set."
     exit 1
 fi
-echo "Using enclave name: $ENCLAVE_NAME"
+log_info "Using enclave name: $ENCLAVE_NAME"
 
 if [[ -z "$KURTOSIS_POS_VERSION" ]]; then
-    echo "KURTOSIS_POS_VERSION environment variable is not set."
+    log_error "KURTOSIS_POS_VERSION environment variable is not set."
     exit 1
 fi
-echo "Using kurtosis-pos version: $KURTOSIS_POS_VERSION"
+log_info "Using kurtosis-pos version: $KURTOSIS_POS_VERSION"
 
 if [[ -z "$NEW_HEIMDALL_V2_IMAGE" ]]; then
-    echo "NEW_HEIMDALL_V2_IMAGE environment variable is not set."
+    log_error "NEW_HEIMDALL_V2_IMAGE environment variable is not set."
     exit 1
 fi
-echo "Using new heimdall-v2 image: $NEW_HEIMDALL_V2_IMAGE"
+log_info "Using new heimdall-v2 image: $NEW_HEIMDALL_V2_IMAGE"
 new_heimdall_v2_image="$NEW_HEIMDALL_V2_IMAGE"
 docker pull "$new_heimdall_v2_image"
 
 if [[ -z "$NEW_BOR_IMAGE" ]]; then
-    echo "NEW_BOR_IMAGE environment variable is not set."
+    log_error "NEW_BOR_IMAGE environment variable is not set."
     exit 1
 fi
-echo "Using new bor image: $NEW_BOR_IMAGE"
+log_info "Using new bor image: $NEW_BOR_IMAGE"
 new_bor_image="$NEW_BOR_IMAGE"
 docker pull "$new_bor_image"
 
 if [[ -z "$NEW_ERIGON_IMAGE" ]]; then
-    echo "NEW_ERIGON_IMAGE environment variable is not set."
+    log_error "NEW_ERIGON_IMAGE environment variable is not set."
     exit 1
 fi
-echo "Using new erigon image: $NEW_ERIGON_IMAGE"
+log_info "Using new erigon image: $NEW_ERIGON_IMAGE"
 new_erigon_image="$NEW_ERIGON_IMAGE"
 docker pull "$new_erigon_image"
 
 # Check if running as root/sudo
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run with sudo or as root"
+   log_error "This script must be run with sudo or as root"
    exit 1
 fi
 
 # Check if the enclave already exists
 if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
-    echo "The kurtosis enclave '$ENCLAVE_NAME' already exists."
-    echo "Please remove it before running this script:"
-    echo "kurtosis enclave rm --force $ENCLAVE_NAME"
+    log_error "The kurtosis enclave '$ENCLAVE_NAME' already exists."
+    log_error "Please remove it before running this script:"
+    log_error "kurtosis enclave rm --force $ENCLAVE_NAME"
     exit 1
 fi
 
@@ -240,10 +241,10 @@ fi
 # These are manually created containers that may remain after 'kurtosis enclave rm'
 orphaned_containers=$(docker ps --all --format '{{.Names}}' | grep -E "^l2-(e|c)l-.*-.*-" || true)
 if [[ -n "$orphaned_containers" ]]; then
-    echo "Found orphaned containers from a previous run:"
-    echo "$orphaned_containers"
-    echo "Please remove them before running this script:"
-    echo "docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force"
+    log_error "Found orphaned containers from a previous run:"
+    log_error "$orphaned_containers"
+    log_error "Please remove them before running this script:"
+    log_error "docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force"
     exit 1
 fi
 
@@ -268,7 +269,7 @@ popd || exit 1
 
 # Get the block producer
 block_producer_id=$(get_block_producer_id)
-echo "Current block producer ID: $block_producer_id"
+log_info "Current block producer ID: $block_producer_id"
 
 # Collect L2 nodes to upgrade, excluding the current block producer
 cl_containers=()
@@ -278,7 +279,7 @@ done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
     | grep "l2-cl" \
     | grep -v "l2-cl-$block_producer_id-")
 if [[ ${#cl_containers[@]} -eq 0 ]]; then
-    echo "No CL containers found to upgrade (excluding block producer)"
+    log_info "No CL containers found to upgrade (excluding block producer)"
 fi
 
 
@@ -289,10 +290,10 @@ done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' \
     | grep "l2-el" \
     | grep -v "l2-el-$block_producer_id-")
 if [[ ${#el_containers[@]} -eq 0 ]]; then
-    echo "No EL containers found to upgrade (excluding block producer)"
+    log_info "No EL containers found to upgrade (excluding block producer)"
 fi
 
-echo "Upgrading L2 nodes"
+log_info "Upgrading L2 nodes"
 for container in "${cl_containers[@]}"; do
     upgrade_cl_node "$container" &
 done
@@ -305,27 +306,27 @@ wait
 sleep 30
 
 # Query RPC nodes
-echo "Querying RPC nodes"
+log_info "Querying RPC nodes"
 query_rpc_nodes
 
 # Trigger a graceful span rotation
 # It will put the block producer in downtime state to do the rotation
 # This rotation is considered graceful as it is handled from the consensus
 # However, it might take more time than forcing a rotation by shutting down the node
-echo "Triggering a graceful span rotation"
+log_info "Triggering a graceful span rotation"
 trigger_producer_downtime
 wait_for_producer_rotation "$block_producer_id"
 
 # Upgrade the old block producer
-echo "Upgrading the old block producer"
+log_info "Upgrading the old block producer"
 cl_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-")
 if [[ -z "$cl_container" ]]; then
-    echo "Could not find CL container for old block producer ID $block_producer_id"
+    log_error "Could not find CL container for old block producer ID $block_producer_id"
     exit 1
 fi
 el_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
 if [[ -z "$el_container" ]]; then
-    echo "Could not find EL container for old block producer ID $block_producer_id"
+    log_error "Could not find EL container for old block producer ID $block_producer_id"
     exit 1
 fi
 upgrade_cl_node "$cl_container" &
@@ -333,6 +334,6 @@ upgrade_el_node "$el_container" &
 wait
 
 # Query RPC nodes
-echo "Querying RPC nodes"
+log_info "Querying RPC nodes"
 query_rpc_nodes
     
