@@ -340,6 +340,9 @@ upgrade_cl_node "$cl_container" &
 upgrade_el_node "$el_container" &
 wait
 
+# Add small delay to allow the node to start up before querying
+sleep 30
+
 # Query RPC nodes
 log_info "Querying RPC nodes"
 query_rpc_nodes
