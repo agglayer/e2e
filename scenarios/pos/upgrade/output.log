@@ -1,27 +1,39 @@
 $ sudo ./run.sh
 Loaded .env
-2026-02-09 17:40:05 INFO Using enclave name: pos
-2026-02-09 17:40:05 INFO Using kurtosis-pos version: 55b4bd7
-2026-02-09 17:40:05 INFO Using new heimdall-v2 image: 0xpolygon/heimdall-v2:0.6.0
+2026-02-10 09:31:12 INFO Using enclave name: pos
+2026-02-10 09:31:12 INFO Using kurtosis-pos version: v1.2.11
+2026-02-10 09:31:12 INFO Using new heimdall-v2 image: 0xpolygon/heimdall-v2:0.6.0
 0.6.0: Pulling from 0xpolygon/heimdall-v2
 Digest: sha256:5ae8594adf488c27a89bb4fcb98043b154d2432e5a9cf9072c903b423ca3e453
 Status: Image is up to date for 0xpolygon/heimdall-v2:0.6.0
 docker.io/0xpolygon/heimdall-v2:0.6.0
-2026-02-09 17:40:06 INFO Using new bor image: 0xpolygon/bor:2.6.0-beta
+2026-02-10 09:31:14 INFO Using new bor image: 0xpolygon/bor:2.6.0-beta
 2.6.0-beta: Pulling from 0xpolygon/bor
 Digest: sha256:9078fc27f41e06c400702e18a855f3908b9a65338bb46365b510dc92e92c77dc
 Status: Image is up to date for 0xpolygon/bor:2.6.0-beta
 docker.io/0xpolygon/bor:2.6.0-beta
-2026-02-09 17:40:07 INFO Using new erigon image: 0xpolygon/erigon:v3.4.0-beta
+2026-02-10 09:31:15 INFO Using new erigon image: 0xpolygon/erigon:v3.4.0-beta
 v3.4.0-beta: Pulling from 0xpolygon/erigon
 Digest: sha256:21811723fc9fe92007fb8c4026acbdcd54048b99172da36b1ddadf1f751d0eec
 Status: Image is up to date for 0xpolygon/erigon:v3.4.0-beta
 docker.io/0xpolygon/erigon:v3.4.0-beta
 /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/kurtosis-pos /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade
-Déjà sur 'main'
+La position précédente de HEAD était sur 55b4bd7 feat: persist heimdall config data
+Basculement sur la branche 'main'
 Votre branche est à jour avec 'origin/main'.
-Déjà à jour.
-Note : basculement sur '55b4bd7'.
+remote: Enumerating objects: 2, done.
+remote: Counting objects: 100% (2/2), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 2 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+Dépaquetage des objets: 100% (2/2), 1.20 Kio | 1.21 Mio/s, fait.
+Depuis https://github.com/0xPolygon/kurtosis-pos
+   201f92d..a12aa71  main       -> origin/main
+ * [nouvelle étiquette] v1.2.11    -> v1.2.11
+Mise à jour 201f92d..a12aa71
+Fast-forward
+ src/cl/heimdall_v2/launcher.star | 3 +++
+ 1 file changed, 3 insertions(+)
+Note : basculement sur 'v1.2.11'.
 
 Vous êtes dans l'état « HEAD détachée ». Vous pouvez visiter, faire des modifications
 expérimentales et les valider. Il vous suffit de faire un autre basculement pour
@@ -38,13 +50,27 @@ Ou annuler cette opération avec :
 
 Désactivez ce conseil en renseignant la variable de configuration advice.detachedHead à false
 
-HEAD est maintenant sur 55b4bd7 feat: persist heimdall config data
-INFO[2026-02-09T17:41:04+01:00] Creating a new enclave for Starlark to run inside... 
-INFO[2026-02-09T17:41:05+01:00] Enclave 'pos' created successfully           
-INFO[2026-02-09T17:41:05+01:00] Executing Starlark package at '/home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/kurtosis-pos' as the passed argument '.' looks like a directory 
-INFO[2026-02-09T17:41:05+01:00] Compressing package 'github.com/0xPolygon/kurtosis-pos' at '.' for upload 
-INFO[2026-02-09T17:41:06+01:00] Uploading and executing package 'github.com/0xPolygon/kurtosis-pos'
-...
+HEAD est maintenant sur a12aa71 feat: persist heimdall config data (#451)
+INFO[2026-02-10T09:31:17+01:00] Creating a new enclave for Starlark to run inside... 
+INFO[2026-02-10T09:31:19+01:00] Enclave 'pos' created successfully           
+INFO[2026-02-10T09:31:19+01:00] Executing Starlark package at '/home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/kurtosis-pos' as the passed argument '.' looks like a directory 
+INFO[2026-02-10T09:31:19+01:00] Compressing package 'github.com/0xPolygon/kurtosis-pos' at '.' for upload 
+INFO[2026-02-10T09:31:19+01:00] Uploading and executing package 'github.com/0xPolygon/kurtosis-pos' 
+
+Container images used in this run:
+> ghcr.io/0xpolygon/pos-validator-config-generator:0.6.0 - locally cached
+> ethereum/client-go:v1.16.8 - locally cached
+> ghcr.io/0xpolygon/pos-el-genesis-builder:96a19dd - locally cached
+> rabbitmq:4.2.2 - locally cached
+> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/toolbox:0.0.12 - locally cached
+> protolambda/eth2-val-tools:latest - locally cached
+> ethpandaops/ethereum-genesis-generator:5.2.2 - locally cached
+> sigp/lighthouse:v8.1.0 - locally cached
+> 0xpolygon/erigon:v3.3.7 - locally cached
+> 0xpolygon/bor:2.5.8 - locally cached
+> 0xpolygon/heimdall-v2:0.6.0 - locally cached
+> ghcr.io/0xpolygon/pos-contract-deployer:d96d592 - locally cached
+> badouralix/curl-jq - locally cached
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
