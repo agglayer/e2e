@@ -245,6 +245,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - bridge
 - bridge-erc20
 - bridge-eth
+- bridge-hub-api
 - cdk-op-geth
 - check-hardfork
 - custom-gas-token

@@ -309,6 +309,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
+| bridge transaction is indexed and autoclaimed on L2 | [Link](./tests/bridge-hub-api.bats#L14) | |
+| bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L95) | |
 | foo | [Link](./tests/foo.bats#L10) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
