@@ -19,7 +19,8 @@ bridge_from_l1_to_l2() {
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
             --value "$bridge_amount" \
-            --gas-limit 500000
+            --gas-limit 500000 \
+            --pretty-logs=false
 }
 
 # bats test_tags=bridge-hub-api
@@ -29,8 +30,8 @@ bridge_from_l1_to_l2() {
     output=$(bridge_from_l1_to_l2 2>&1)
     echo "$output"
 
-    # Strip ANSI color codes and extract tx hash.
-    tx_hash=$(echo "$output" | sed 's/\x1b\[[0-9;]*m//g' | grep -oP 'txHash=\K0x[a-fA-F0-9]+')
+    # Parse JSON output to extract tx hash (from the line that contains txHash field).
+    tx_hash=$(echo "$output" | jq -r 'select(.txHash != null) | .txHash')
     echo "Transaction hash: $tx_hash"
 
     echo "Poll the bridge hub API"
@@ -59,8 +60,10 @@ bridge_from_l1_to_l2() {
 
     # Validate indexed data
     api_tx_hash=$(echo "$data" | jq -r '.transactionHash')
-    if [[ "$api_tx_hash" -ne "$tx_hash" ]]; then
+    if [[ "$api_tx_hash" != "$tx_hash" ]]; then
         echo "ERROR: Transaction hashes don't match"
+        echo "  Expected: $tx_hash"
+        echo "  Got: $api_tx_hash"
         return 1
     fi
     echo "Transaction hashes match"
