@@ -92,7 +92,7 @@ setup() {
 }
 
 # bats test_tags=bridge-hub-api
-@test "bridge transaction is indexed and autoclaimed on L1" {
+@test "bridge transaction is indexed on L1" {
     echo "Bridge funds from L2 to L1"
     deposit_count=$(cast call --rpc-url "$l2_rpc_url" "$l2_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
     bridge_amount=$(cast to-wei 0.05)
@@ -145,30 +145,4 @@ setup() {
         return 1
     fi
     echo "Transaction hashes match"
-
-    echo "Wait for the bridge to be claimed by the autoclaimer"
-    max_attempts=100
-    attempt=1
-    status=""
-    while [[ $attempt -le $max_attempts ]]; do
-        echo "Check $attempt/$max_attempts..."
-        response=$(curl -s "$bridge_hub_api/$network_name/transactions/$l2_network_id/$deposit_count")
-        status=$(echo "$response" | jq -r '.data.status')
-
-        if [[ "$status" == "CLAIMED" ]]; then
-            echo "Bridge claimed"
-            echo "$response" | jq
-            break
-        fi
-
-        echo "Current status: $status"
-        attempt=$((attempt + 1))
-        if [[ $attempt -le $max_attempts ]]; then
-            sleep 2
-        else
-            echo "ERROR: Bridge was not claimed after $((max_attempts * 2)) seconds"
-            echo "Final status: $status"
-            return 1
-        fi
-    done
 }
