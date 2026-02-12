@@ -27,7 +27,15 @@ bridge_from_l1_to_l2() {
 @test "consumer indexes bridge data" {
     echo "Bridge funds from L1 to L2"
     deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
-    output=$(bridge_from_l1_to_l2 2>&1)
+    output=$(polycli ulxly bridge asset \
+        --bridge-address "$l1_bridge_addr" \
+        --destination-address "$l2_eth_address" \
+        --destination-network "$l2_network_id" \
+        --private-key "$l1_private_key" \
+        --rpc-url "$l1_rpc_url" \
+        --value "$bridge_amount" \
+        --gas-limit 500000 \
+        --pretty-logs=false 2>&1)
     echo "$output"
 
     # Parse JSON output to extract tx hash (from the line that contains txHash field).
@@ -67,4 +75,30 @@ bridge_from_l1_to_l2() {
         return 1
     fi
     echo "Transaction hashes match"
+
+    echo "Wait for bridge to be claimed automatically"
+    max_attempts=50
+    attempt=1
+    status=""
+    while [[ $attempt -le $max_attempts ]]; do
+        echo "Check $attempt/$max_attempts..."
+        response=$(curl -s "$bridge_hub_api/$network_name/transactions/0/$deposit_count")
+        status=$(echo "$response" | jq -r '.data.status')
+
+        if [[ "$status" == "CLAIMED" ]]; then
+            echo "Bridge claimed"
+            echo "$response" | jq
+            break
+        fi
+
+        echo "  Current status: $status"
+        attempt=$((attempt + 1))
+        if [[ $attempt -le $max_attempts ]]; then
+            sleep 2
+        else
+            echo "ERROR: Bridge was not claimed after $((max_attempts * 2)) seconds"
+            echo "Final status: $status"
+            return 1
+        fi
+    done
 }
