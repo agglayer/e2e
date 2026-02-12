@@ -8,25 +8,13 @@ setup() {
 
     network_name="devnet"
     bridge_hub_api=$(kurtosis port print "$kurtosis_enclave_name" bridge-hub-api http)
-    bridge_amount=$(cast to-wei 0.1)
-}
-
-bridge_from_l1_to_l2() {
-    polycli ulxly bridge asset \
-            --bridge-address "$l1_bridge_addr" \
-            --destination-address "$l2_eth_address" \
-            --destination-network "$l2_network_id" \
-            --private-key "$l1_private_key" \
-            --rpc-url "$l1_rpc_url" \
-            --value "$bridge_amount" \
-            --gas-limit 500000 \
-            --pretty-logs=false
 }
 
 # bats test_tags=bridge-hub-api
-@test "consumer indexes bridge data" {
+@test "bridge transaction is indexed and autoclaimed on L2" {
     echo "Bridge funds from L1 to L2"
     deposit_count=$(cast call --rpc-url "$l1_rpc_url" "$l1_bridge_addr" 'depositCount()(uint256)' | awk '{print $1}')
+    bridge_amount=$(cast to-wei 0.1)
     output=$(polycli ulxly bridge asset \
         --bridge-address "$l1_bridge_addr" \
         --destination-address "$l2_eth_address" \
@@ -42,7 +30,7 @@ bridge_from_l1_to_l2() {
     tx_hash=$(echo "$output" | jq -r 'select(.txHash != null) | .txHash')
     echo "Transaction hash: $tx_hash"
 
-    echo "Poll the bridge hub API"
+    echo "Wait for the bridge to be indexed by the consumer"
     data={}
     max_attempts=10
     attempt=1
@@ -52,7 +40,7 @@ bridge_from_l1_to_l2() {
         data=$(echo "$response" | jq -r '.data')
 
         if [[ "$data" != "null" ]] && [[ -n "$data" ]]; then
-            # Display the response and keep data in variable
+            echo "Bridge indexed"
             echo "$response" | jq
             break
         fi
@@ -76,7 +64,7 @@ bridge_from_l1_to_l2() {
     fi
     echo "Transaction hashes match"
 
-    echo "Wait for bridge to be claimed automatically"
+    echo "Wait for the bridge to be claimed by the autoclaimer"
     max_attempts=50
     attempt=1
     status=""
