@@ -12,7 +12,7 @@ load_env() {
         set +a
         echo "Loaded env.example" >&2
     else
-        echo "no environment variables were loaded" >&2
+        echo "No environment variables were loaded" >&2
     fi
 }
 
