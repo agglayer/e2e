@@ -65,7 +65,7 @@ setup() {
     echo "Transaction hashes match"
 
     echo "Wait for the bridge to be claimed by the autoclaimer"
-    max_attempts=50
+    max_attempts=100
     attempt=1
     status=""
     while [[ $attempt -le $max_attempts ]]; do
@@ -147,7 +147,7 @@ setup() {
     echo "Transaction hashes match"
 
     echo "Wait for the bridge to be claimed by the autoclaimer"
-    max_attempts=50
+    max_attempts=100
     attempt=1
     status=""
     while [[ $attempt -le $max_attempts ]]; do
