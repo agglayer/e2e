@@ -23,6 +23,15 @@ setup() {
 
   readonly empty_proof=$(jq -nc '[range(32) | "0x0000000000000000000000000000000000000000000000000000000000000000"]')
 
+  # backwardLET takes deposit count, frontier, leaf hash, and rollup merkle proof
+  readonly backward_let_func_sig="function backwardLET(uint256,bytes32[32],bytes32,bytes32[32])"
+  # forwardLET takes LeafData[] (leafType, originNetwork, originAddress, destinationNetwork, destinationAddress, amount, metadata) and expectedLER
+  readonly forward_let_func_sig="function forwardLET((uint8,uint32,address,uint32,address,uint256,bytes)[],bytes32)"
+  readonly get_root_func_sig="function getRoot() (bytes32)"
+  readonly activate_emergency_state_func_sig="function activateEmergencyState()"
+  readonly deactivate_emergency_state_func_sig="function deactivateEmergencyState()"
+  readonly deposit_count_func_sig="function depositCount() (uint256)"
+
   contracts_url="$(kurtosis port print "$ENCLAVE_NAME" "$contracts_container" http)"
   input_args="$(curl -s "${contracts_url}/opt/input/input_args.json")"
 
@@ -209,7 +218,7 @@ setup() {
   log "Final legacy token migrations: $final_legacy_token_migrations"
 }
 
-@test "Test inject invalid GER on L2 (bridges are valid)" {
+@test "Test inject invalid GER on L2 - B1 case" {
   log "🚀 Sending bridge from L1 to L2"
   destination_addr="$receiver"
   destination_net="$l2_rpc_network_id"
@@ -305,4 +314,449 @@ setup() {
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
   wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
+}
+
+@test "Test backwardLET with reorg scenarios" {
+  manage_kurtosis_service "start" "zkevm-bridge-service-001"
+  manage_kurtosis_service "stop" "bridge-spammer-001"
+
+  zkevm_bridge_url=$(_resolve_url_or_use_env "TEST_ZKEVM_BRIDGE_URL" \
+        "zkevm-bridge-service-001" "rpc" \
+        "Zk EVM Bridge service is not running" false)
+
+  # Step 1: Make 1 bridge from L1 to L2 and claim it
+  log "Step 1: Making 1 bridge from L1 to L2 and claiming it"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  amount=$(cast --to-unit 0.5ether wei)
+
+  log "Bridge L1 -> L2 (0.5 ETH)"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local step1_bridge_tx_hash="$output"
+  log "Bridge tx hash: $step1_bridge_tx_hash"
+
+  # Claim the bridge on L2
+  log "Claiming bridge on L2"
+  run process_bridge_claim "step1" "$l1_rpc_network_id" "$step1_bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  log "Claimed bridge, global_index: $output"
+
+  # Stop aggkit to make sure no cert goes, otherwise we cant reorg to a block before the cert was settled
+  manage_kurtosis_service "stop" "aggkit-001"
+
+  # Step 2: Make 5 bridges from L2 to L1 and store their info
+  log "Step 2: Making 5 bridges from L2 to L1"
+  local l2_to_l1_tx_hashes=()
+  destination_addr="$sender_addr"
+  destination_net="$l1_rpc_network_id"
+  amount=$(cast --to-unit 0.01ether wei)
+
+  for i in {1..5}; do
+    log "Bridge $i/5: L2 -> L1"
+    run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    assert_success
+    l2_to_l1_tx_hashes+=("$output")
+    log "Bridge $i/5 tx hash: $output"
+  done
+  log "Completed 5 bridges from L2 to L1"
+
+  # Step 3: Get bridge info for all 5 bridges (needed for forwardLET)
+  log "Step 3: Fetching bridge info for all 5 bridges"
+  local bridge_infos=()
+  for i in {0..4}; do
+    local tx_hash="${l2_to_l1_tx_hashes[$i]}"
+    run get_bridge "reorg-test-bridge-$((i+1))" "$l2_rpc_network_id" "$tx_hash" 50 10 "$aggkit_bridge_url"
+    assert_success
+    bridge_infos+=("$output")
+    log "Bridge $((i+1)) info: $output"
+  done
+
+  # Get the last bridge deposit count and expected LER
+  local last_bridge_info="${bridge_infos[4]}"
+  local last_deposit_count
+  last_deposit_count=$(echo "$last_bridge_info" | jq -r '.deposit_count')
+  log "Last L2->L1 deposit count: $last_deposit_count"
+
+  # Get the current LER from L2 bridge contract BEFORE backwardLET
+  log "Fetching current LER from L2 bridge contract (before backwardLET)"
+  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$get_root_func_sig"
+  assert_success
+  local expected_ler="$output"
+  log "Expected LER (to restore after forwardLET): $expected_ler"
+
+  # Get deposit count before backwardLET
+  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
+  assert_success
+  local deposit_count_after_5_bridges="$output"
+  log "Deposit count after 5 bridges: $deposit_count_after_5_bridges"
+
+  # Step 4: Perform backwardLET to roll back 3 deposits
+  log "Step 4: Performing backwardLET to roll back 3 deposit counts"
+  local backward_target_deposit_count=$((last_deposit_count - 2))
+  log "Rolling back to deposit count: $backward_target_deposit_count"
+
+  sleep 10
+  # Get backward-let data from zkevm-bridge-service
+  log "Fetching backward-let proof data"
+  local backward_let_response
+  backward_let_response=$(curl -s "$zkevm_bridge_url/backward-let?net_id=$l2_rpc_network_id&deposit_cnt=$backward_target_deposit_count")
+  log "backward-let response: $backward_let_response"
+
+  local backward_leaf_hash
+  backward_leaf_hash=$(echo "$backward_let_response" | jq -r '.leaf_hash')
+  local backward_frontier
+  backward_frontier=$(echo "$backward_let_response" | jq -r '.frontier | "[" + (join(",")) + "]"')
+  local backward_rollup_merkle_proof
+  backward_rollup_merkle_proof=$(echo "$backward_let_response" | jq -r '.rollup_merkle_proof | "[" + (join(",")) + "]"')
+
+  # Note down block number before backwardLET
+  local l2_block_before_backward_let
+  l2_block_before_backward_let=$(cast block-number --rpc-url "$L2_RPC_URL")
+  l2_blockhash_before_backward_let=$(cast block "$l2_block_before_backward_let" --rpc-url "$L2_RPC_URL" --json | jq -r '.hash')
+  log "L2 block number before backwardLET: $l2_block_before_backward_let"
+  log "L2 block hash before backwardLET: $l2_blockhash_before_backward_let"
+
+  # Activate emergency state and execute backwardLET
+  log "Activating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$activate_emergency_state_func_sig"
+  assert_success
+  log "Emergency state activated"
+
+  log "Executing backwardLET"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$backward_let_func_sig" "$backward_target_deposit_count" "$backward_frontier" "$backward_leaf_hash" "$backward_rollup_merkle_proof"
+  assert_success
+  log "backwardLET executed successfully"
+
+  # Deactivate emergency state
+  log "Deactivating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$deactivate_emergency_state_func_sig"
+  assert_success
+  log "Emergency state deactivated"
+
+  # Note down block number after backwardLET
+  local l2_block_after_backward_let
+  l2_block_after_backward_let=$(cast block-number --rpc-url "$L2_RPC_URL")
+  l2_blockhash_after_backward_let=$(cast block "$l2_block_after_backward_let" --rpc-url "$L2_RPC_URL" --json | jq -r '.hash')
+  log "L2 block number after backwardLET: $l2_block_after_backward_let"
+  log "L2 block hash after backwardLET: $l2_blockhash_after_backward_let"
+  sleep 10
+
+  # Step 5: Do a reorg to undo backwardLET - revert to block before backwardLET
+  log "Step 5: Performing L2 reorg to revert state before backwardLET"
+  log "Target block for reorg: $l2_block_before_backward_let"
+
+  # Stop the L2 consensus client before reorg
+  manage_kurtosis_service "stop" "op-batcher-001"
+  manage_kurtosis_service "stop" "op-cl-1-op-node-op-geth-001"
+  manage_kurtosis_service "stop" "op-cl-2-op-node-op-geth-001"
+  sleep 10
+
+  # Perform the reorg using debug_setHead (only affects execution client)
+  local target_hex
+  target_hex=$(printf "0x%x" "$l2_block_before_backward_let")
+  log "Executing debug_setHead to block $target_hex (execution client only)"
+  run cast rpc debug_setHead "$target_hex" --rpc-url "$L2_RPC_URL"
+  assert_success
+  log "debug_setHead executed successfully on execution client"
+
+  # Restart the L2 consensus client - it should resync from the execution client's rolled-back state
+  # The op-node will query the execution client's current head and resync from there
+  manage_kurtosis_service "start" "op-cl-1-op-node-op-geth-001"
+  manage_kurtosis_service "start" "op-cl-2-op-node-op-geth-001"
+  manage_kurtosis_service "start" "op-batcher-001"
+  sleep 10
+
+  L2_RPC_URL=$(_resolve_url_or_use_env "TEST_L2_RPC_URL" \
+        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL" true)
+
+  # Step 8: Do a txn from L1 to L2 to see if cert settles
+  log "Step 8: Making bridge from L1 to L2 to verify certificate settlement after reorg"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  amount=$(cast --to-unit 0.1ether wei)
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local final_bridge_tx_hash="$output"
+  log "Final bridge tx hash: $final_bridge_tx_hash"
+
+  manage_kurtosis_service "start" "aggkit-001"
+  aggkit_rpc_url=$(_resolve_url_or_use_env "TEST_AGGKIT_RPC_URL" \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url" true)
+
+  # Claim the bridge on L2
+  log "Claiming final bridge on L2"
+  run process_bridge_claim "" "$l1_rpc_network_id" "$final_bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  local final_global_index="$output"
+  log "Claimed final bridge, global_index: $final_global_index"
+
+  # Wait for certificate settlement
+  log "Waiting for certificate settlement containing global index: $final_global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$final_global_index"
+  log "Certificate settled for global index: $final_global_index"
+
+  log "backwardLET with reorg scenarios test completed successfully!"
+
+  manage_kurtosis_service "stop" "zkevm-bridge-service-001"
+  manage_kurtosis_service "start" "bridge-spammer-001"
+}
+
+@test "Test forwardLET with reorg scenarios" {
+  manage_kurtosis_service "start" "zkevm-bridge-service-001"
+  manage_kurtosis_service "stop" "bridge-spammer-001"
+
+  zkevm_bridge_url=$(_resolve_url_or_use_env "TEST_ZKEVM_BRIDGE_URL" \
+        "zkevm-bridge-service-001" "rpc" \
+        "Zk EVM Bridge service is not running" false)
+
+  # Step 1: Make 1 bridge from L1 to L2 and claim it
+  log "Step 1: Making 1 bridge from L1 to L2 and claiming it"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  amount=$(cast --to-unit 0.5ether wei)
+
+  log "Bridge L1 -> L2 (0.5 ETH)"
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local step1_bridge_tx_hash="$output"
+  log "Bridge tx hash: $step1_bridge_tx_hash"
+
+  # Claim the bridge on L2
+  log "Claiming bridge on L2"
+  run process_bridge_claim "step1" "$l1_rpc_network_id" "$step1_bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  log "Claimed bridge, global_index: $output"
+
+  manage_kurtosis_service "stop" "aggkit-001"
+
+  # Step 2: Make 5 bridges from L2 to L1 and store their info
+  log "Step 2: Making 5 bridges from L2 to L1"
+  local l2_to_l1_tx_hashes=()
+  destination_addr="$sender_addr"
+  destination_net="$l1_rpc_network_id"
+  amount=$(cast --to-unit 0.01ether wei)
+
+  for i in {1..5}; do
+    log "Bridge $i/5: L2 -> L1"
+    run bridge_asset "$native_token_addr" "$L2_RPC_URL" "$l2_bridge_addr"
+    assert_success
+    l2_to_l1_tx_hashes+=("$output")
+    log "Bridge $i/5 tx hash: $output"
+  done
+  log "Completed 5 bridges from L2 to L1"
+
+  # Step 3: Get bridge info for all 5 bridges (needed for forwardLET)
+  log "Step 3: Fetching bridge info for all 5 bridges"
+  local bridge_infos=()
+  for i in {0..4}; do
+    local tx_hash="${l2_to_l1_tx_hashes[$i]}"
+    run get_bridge "reorg-test-bridge-$((i+1))" "$l2_rpc_network_id" "$tx_hash" 50 10 "$aggkit_bridge_url"
+    assert_success
+    bridge_infos+=("$output")
+    log "Bridge $((i+1)) info: $output"
+  done
+
+  # Get the last bridge deposit count and expected LER
+  local last_bridge_info="${bridge_infos[4]}"
+  local last_deposit_count
+  last_deposit_count=$(echo "$last_bridge_info" | jq -r '.deposit_count')
+  log "Last L2->L1 deposit count: $last_deposit_count"
+
+  # Get the current LER from L2 bridge contract BEFORE backwardLET
+  log "Fetching current LER from L2 bridge contract (before backwardLET)"
+  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$get_root_func_sig"
+  assert_success
+  local expected_ler="$output"
+  log "Expected LER (to restore after forwardLET): $expected_ler"
+
+  # Get deposit count before backwardLET
+  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
+  assert_success
+  local deposit_count_after_5_bridges="$output"
+  log "Deposit count after 5 bridges: $deposit_count_after_5_bridges"
+
+  # Step 4: Perform backwardLET to roll back 3 deposits
+  log "Step 4: Performing backwardLET to roll back 3 deposit counts"
+  local backward_target_deposit_count=$((last_deposit_count - 2))
+  log "Rolling back to deposit count: $backward_target_deposit_count"
+
+  # Get backward-let data from zkevm-bridge-service
+  log "Fetching backward-let proof data"
+  local backward_let_response
+  backward_let_response=$(curl -s "$zkevm_bridge_url/backward-let?net_id=$l2_rpc_network_id&deposit_cnt=$backward_target_deposit_count")
+  log "backward-let response: $backward_let_response"
+
+  local backward_leaf_hash
+  backward_leaf_hash=$(echo "$backward_let_response" | jq -r '.leaf_hash')
+  local backward_frontier
+  backward_frontier=$(echo "$backward_let_response" | jq -r '.frontier | "[" + (join(",")) + "]"')
+  local backward_rollup_merkle_proof
+  backward_rollup_merkle_proof=$(echo "$backward_let_response" | jq -r '.rollup_merkle_proof | "[" + (join(",")) + "]"')
+
+  # Step 5: Do a backwardLET of 3 bridges
+  log "Step 5: Performing backwardLET to roll back 3 deposits"
+
+  # Activate emergency state and execute backwardLET
+  log "Activating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$activate_emergency_state_func_sig"
+  assert_success
+  log "Emergency state activated"
+
+  log "Executing backwardLET"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$backward_let_func_sig" "$backward_target_deposit_count" "$backward_frontier" "$backward_leaf_hash" "$backward_rollup_merkle_proof"
+  assert_success
+  log "backwardLET executed successfully"
+
+  # Deactivate emergency state
+  log "Deactivating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$deactivate_emergency_state_func_sig"
+  assert_success
+  log "Emergency state deactivated"
+
+  # Step 6: Do a forwardLET of 3 bridges
+  log "Step 6: Performing forwardLET to restore 3 deposits"
+  log "Using expected LER: $expected_ler"
+
+  # Construct LeafData array from the rolled-back bridges (indices 2, 3, 4 - the last 3 that were rolled back)
+  log "Constructing LeafData array for forwardLET"
+  local leaves_array="["
+  for i in 2 3 4; do
+    local bridge_info="${bridge_infos[$i]}"
+    local leaf_type
+    leaf_type=$(echo "$bridge_info" | jq -r '.leaf_type')
+    local origin_network
+    origin_network=$(echo "$bridge_info" | jq -r '.origin_network')
+    local origin_address
+    origin_address=$(echo "$bridge_info" | jq -r '.origin_address')
+    local dest_network
+    dest_network=$(echo "$bridge_info" | jq -r '.destination_network')
+    local dest_address
+    dest_address=$(echo "$bridge_info" | jq -r '.destination_address')
+    local bridge_amount
+    bridge_amount=$(echo "$bridge_info" | jq -r '.amount')
+    local metadata
+    metadata=$(echo "$bridge_info" | jq -r '.metadata')
+
+    # Default leaf_type to 0 if not present (asset bridge)
+    if [[ "$leaf_type" == "null" || -z "$leaf_type" ]]; then
+      leaf_type="0"
+    fi
+
+    # Default metadata to 0x if empty
+    if [[ "$metadata" == "null" || -z "$metadata" ]]; then
+      metadata="0x"
+    fi
+
+    log "Leaf $i: type=$leaf_type, originNet=$origin_network, originAddr=$origin_address, destNet=$dest_network, destAddr=$dest_address, amount=$bridge_amount"
+
+    local leaf_tuple="($leaf_type,$origin_network,$origin_address,$dest_network,$dest_address,$bridge_amount,$metadata)"
+
+    if [[ $i -eq 2 ]]; then
+      leaves_array+="$leaf_tuple"
+    else
+      leaves_array+=",$leaf_tuple"
+    fi
+  done
+  leaves_array+="]"
+  log "Leaves array: $leaves_array"
+
+  # Note down block number before forwardLET
+  local l2_block_before_forward_let
+  l2_block_before_forward_let=$(cast block-number --rpc-url "$L2_RPC_URL")
+  log "L2 block number before forwardLET: $l2_block_before_forward_let"
+
+  # Activate emergency state (required for forwardLET)
+  log "Activating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$activate_emergency_state_func_sig"
+  assert_success
+  log "Emergency state activated"
+
+  # Execute forwardLET
+  log "Executing forwardLET"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$forward_let_func_sig" "$leaves_array" "$expected_ler"
+  assert_success
+  log "forwardLET executed successfully"
+
+  # Deactivate emergency state
+  log "Deactivating emergency state on L2 bridge"
+  run cast send --legacy --private-key "$l2_sovereign_admin_private_key" --rpc-url "$L2_RPC_URL" "$l2_bridge_addr" "$deactivate_emergency_state_func_sig"
+  assert_success
+  log "Emergency state deactivated"
+
+  # Note down block number after forwardLET
+  local l2_block_after_forward_let
+  l2_block_after_forward_let=$(cast block-number --rpc-url "$L2_RPC_URL")
+  log "L2 block number after forwardLET: $l2_block_after_forward_let"
+
+  # Step 7: Check L2 contract and bridge service - new bridges should be added
+  log "Step 7: Checking L2 state after forwardLET"
+  run query_contract "$L2_RPC_URL" "$l2_bridge_addr" "$deposit_count_func_sig"
+  assert_success
+  local deposit_count_after_forward="$output"
+  log "Deposit count after forwardLET: $deposit_count_after_forward"
+  assert_equal "$deposit_count_after_forward" "$((last_deposit_count + 1))"
+  log "Deposit count restored correctly after forwardLET"
+
+  # Step 8: Do a reorg to revert the state (revert forwardLET)
+  log "Step 8: Performing L2 reorg to revert forwardLET state"
+  log "Target block for reorg: $l2_block_before_forward_let"
+
+  # Stop the L2 consensus client before reorg
+  manage_kurtosis_service "stop" "op-batcher-001"
+  manage_kurtosis_service "stop" "op-cl-1-op-node-op-geth-001"
+  manage_kurtosis_service "stop" "op-cl-2-op-node-op-geth-001"
+  sleep 10
+
+  # Perform the reorg using debug_setHead
+  target_hex=$(printf "0x%x" "$l2_block_before_forward_let")
+  log "Executing debug_setHead to block $target_hex"
+  run cast rpc debug_setHead "$target_hex" --rpc-url "$L2_RPC_URL"
+  assert_success
+  log "debug_setHead executed successfully"
+
+  # Restart the L2 consensus client - it should resync from the execution client's rolled-back state
+  # The op-node will query the execution client's current head and resync from there
+  manage_kurtosis_service "start" "op-cl-1-op-node-op-geth-001"
+  manage_kurtosis_service "start" "op-cl-2-op-node-op-geth-001"
+  manage_kurtosis_service "start" "op-batcher-001"
+  sleep 10
+
+  L2_RPC_URL=$(_resolve_url_or_use_env "TEST_L2_RPC_URL" \
+        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "Failed to resolve L2 RPC URL" true)
+
+  # Step 10: Do a txn from L1 to L2 to see if cert settles
+  log "Step 10: Making bridge from L1 to L2 to verify certificate settlement after reorg"
+  destination_addr="$receiver"
+  destination_net="$l2_rpc_network_id"
+  amount=$(cast --to-unit 0.1ether wei)
+  run bridge_asset "$native_token_addr" "$l1_rpc_url" "$l1_bridge_addr"
+  assert_success
+  local final_bridge_tx_hash="$output"
+  log "Final bridge tx hash: $final_bridge_tx_hash"
+
+  manage_kurtosis_service "start" "aggkit-001"
+  aggkit_rpc_url=$(_resolve_url_or_use_env "TEST_AGGKIT_RPC_URL" \
+        "aggkit-001" "rpc" "cdk-node-001" "rpc" \
+        "Failed to resolve aggkit rpc url" true)
+
+  # Claim the bridge on L2
+  log "Claiming final bridge on L2"
+  run process_bridge_claim "" "$l1_rpc_network_id" "$final_bridge_tx_hash" "$l2_rpc_network_id" "$l2_bridge_addr" "$aggkit_bridge_url" "$aggkit_bridge_url" "$L2_RPC_URL" "$sender_addr"
+  assert_success
+  local final_global_index="$output"
+  log "Claimed final bridge, global_index: $final_global_index"
+
+  # Wait for certificate settlement
+  log "Waiting for certificate settlement containing global index: $final_global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$final_global_index"
+  log "Certificate settled for global index: $final_global_index"
+
+  log "forwardLET with reorg scenarios test completed successfully!"
+
+  manage_kurtosis_service "stop" "zkevm-bridge-service-001"
+  manage_kurtosis_service "start" "bridge-spammer-001"
 }
