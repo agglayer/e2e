@@ -1,0 +1,153 @@
+name: Nightly Agglayer Build
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # 01:00 UTC nightly
+  workflow_dispatch:
+    inputs:
+      FROM_TAG:               { description: "From version tag", required: false }
+      TO_TAG:                 { description: "To version tag",   required: false }
+      ACTION:
+        description: "Action to perform"
+        required: false
+        default: "upgrade"
+        type: choice
+        options: [upgrade, downgrade]
+      KURTOSIS_PACKAGE_HASH:  { description: "Kurtosis package hash", required: false }
+      ENCLAVE_NAME:           { description: "Enclave name",          required: false }
+      SP1_NETWORK_KEY:        { description: "SP1 network key",       required: false }
+  push:
+    branches: [ upgrade-agglayer-cdk-opgeth ]
+
+jobs:
+  run-nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    # Defaults for scheduled runs; inputs override on manual runs
+    env:
+      # Inputs (manual) → Repo Variables (nightly) → hard default (always)
+      FROM_TAG:              ${{ inputs.FROM_TAG || vars.NIGHTLY_FROM_TAG || '0.3.0-rc.21' }}
+      TO_TAG:                ${{ inputs.TO_TAG   || vars.NIGHTLY_TO_TAG   || '0.3.5' }}
+      ACTION:                ${{ inputs.ACTION   || vars.NIGHTLY_ACTION   || 'upgrade' }}
+      KURTOSIS_PACKAGE_HASH: ${{ inputs.KURTOSIS_PACKAGE_HASH || vars.KURTOSIS_PACKAGE_HASH || '' }}
+      ENCLAVE_NAME:          ${{ inputs.ENCLAVE_NAME          || vars.KURTOSIS_ENCLAVE_NAME || 'cdk' }}
+      SP1_NETWORK_KEY:       ${{ inputs.SP1_NETWORK_KEY       || secrets.SP1_NETWORK_KEY    || '' }}
+      DOCKER_USERNAME:       ${{ secrets.DOCKER_USERNAME || '' }}
+      DOCKER_TOKEN:          ${{ secrets.DOCKER_TOKEN || '' }}
+      POLYCLI_VERSION:       v0.1.84
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_TOKEN }}
+
+      # GHCR login
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+       # Install kurtosis
+      - name: Install Kurtosis (via apt.fury.io)
+        run: |
+            set -euxo pipefail
+            echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+            sudo apt update
+            sudo apt install -y kurtosis-cli
+            kurtosis version || kurtosis --version
+
+       # Install polycli
+      - name: Install polycli
+        run: |
+            polycli_version="${{ env.POLYCLI_VERSION }}"
+            pushd $(mktemp -d) || exit 1
+            curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${polycli_version}/polycli_${polycli_version}_linux_amd64.tar.gz" > polycli.tar.gz
+            tar xf polycli.tar.gz
+            mv polycli_* /usr/local/bin/polycli
+            polycli version
+            popd
+
+
+      - name: Install jq 1.6 and yq v4
+        run: |
+            set -euxo pipefail
+
+            # Create a temp directory
+            tmpdir="$(mktemp -d)"
+
+            # Install jq 1.6
+            curl -L -o "$tmpdir/jq" "https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux64"
+            sudo install -m 0755 "$tmpdir/jq" /usr/local/bin/jq
+            jq --version  # should print jq-1.6
+
+            # Install yq v4 (example version v4.43.1, change if needed)
+            YQ_VERSION="v4.43.1"
+            curl -L -o "$tmpdir/yq" "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+            sudo install -m 0755 "$tmpdir/yq" /usr/local/bin/yq
+            yq --version  # should print yq version 4.x
+
+            # Clean up temp dir
+            rm -rf "$tmpdir"
+
+
+      - name: Prepare /tmp run folder
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/agglayer-run
+          rsync -a scenarios/agglayer-upgrade-with-supplied-version/ /tmp/agglayer-run/
+          chmod +x /tmp/agglayer-run/run.sh || true
+          chmod +x /tmp/agglayer-run/lxly.sh || true
+          chmod +x /tmp/agglayer-run/check_verification.sh || true
+
+      - name: Create .env from env.example
+        working-directory: /tmp/agglayer-run
+        run: |
+          set -euxo pipefail
+          cp env.example .env
+          sed -i "s|{{KURTOSIS_PACKAGE_HASH}}|${KURTOSIS_PACKAGE_HASH}|g" .env
+          sed -i "s|{{ENCLAVE_NAME}}|${ENCLAVE_NAME}|g" .env
+          sed -i "s|{{SP1_NETWORK_KEY}}|${SP1_NETWORK_KEY}|g" .env
+          sed -i "s|{{FROM_TAG}}|${FROM_TAG}|g" .env
+          sed -i "s|{{TO_TAG}}|${TO_TAG}|g" .env
+          sed -i "s|{{ACTION}}|${ACTION}|g" .env
+
+      - name: Sanity check
+        working-directory: /tmp/agglayer-run
+        run: |
+          set -euxo pipefail
+          ls -la
+          test -f .env
+          test -f run.sh
+          test -f lxly.sh
+          test -d assets
+          jq --version
+          yq --version
+
+      - name: Run nightly
+        working-directory: /tmp/agglayer-run
+        env:
+          FROM_TAG: ${{ env.FROM_TAG }}
+          TO_TAG:   ${{ env.TO_TAG }}
+          ACTION:   ${{ env.ACTION }}
+        run: |
+          set -euxo pipefail
+          : "${FROM_TAG:?FROM_TAG missing}"
+          : "${TO_TAG:?TO_TAG missing}"
+          ./run.sh "$FROM_TAG" "$TO_TAG" "$ACTION"
+
+      - name: Upload outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agglayer-run-outputs
+          path: /tmp/agglayer-run/
+          if-no-files-found: warn
