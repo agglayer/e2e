@@ -419,7 +419,7 @@ for i in "${!cl_containers[@]}"; do
 	log_info "CL node $((i + 1))/${#cl_containers[@]}: ${cl_containers[$i]}"
 	upgrade_cl_node "${cl_containers[$i]}"
 	log_info "CL node $((i + 1))/${#cl_containers[@]} done"
-	sleep 5
+	sleep 2
 done
 
 log_info "Upgrading ${#el_containers[@]} EL nodes sequentially (excluding block producer $block_producer_id)"
@@ -427,6 +427,7 @@ for i in "${!el_containers[@]}"; do
 	log_info "EL node $((i + 1))/${#el_containers[@]}: ${el_containers[$i]}"
 	upgrade_el_node "${el_containers[$i]}"
 	log_info "EL node $((i + 1))/${#el_containers[@]} done"
+	sleep 2
 done
 
 log_info "All non-producer nodes upgraded, waiting for block producer rotation before upgrading producer $block_producer_id"
