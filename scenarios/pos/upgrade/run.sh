@@ -98,6 +98,8 @@ wait_for_devnet_to_reach_block() {
 			log_info "All EL nodes reached block $target_block"
 			return 0
 		fi
+
+		sleep 5
 	done
 	log_error "Not all EL nodes reached block $target_block after $num_steps steps"
 	return 1
@@ -326,10 +328,10 @@ log_info "Using docker network name: $docker_network_name"
 
 # Check if running as root/sudo.
 # TODO: Check if this is still necessary.
-if [[ $EUID -ne 0 ]]; then
-	log_error "This script must be run with sudo or as root"
-	exit 1
-fi
+# if [[ $EUID -ne 0 ]]; then
+# 	log_error "This script must be run with sudo or as root"
+# 	exit 1
+# fi
 
 # Add foundry to PATH for sudo execution.
 export PATH="$PATH:/home/$SUDO_USER/.foundry/bin"
