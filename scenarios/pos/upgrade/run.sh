@@ -5,7 +5,9 @@ source ../../common/load-env.sh
 load_env
 
 # Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet
-list_l2_nodes() {
+# This script is exclusively about L2 nodes.
+
+list_nodes() {
 	docker ps \
 		--filter "network=kt-$ENCLAVE_NAME" \
 		--filter "name=l2-cl" \
@@ -18,7 +20,7 @@ list_l2_nodes() {
 		)
 }
 
-get_any_l2_cl_api_url() {
+get_any_cl_api_url() {
 	local containers
 	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-cl' | grep -v 'rabbitmq')
 	if [[ -z "$cl_containers" ]]; then
@@ -50,7 +52,7 @@ get_block_producer_id() {
 		echo "Failed to get block number from $el_rpc_url" >&2
 		return 1
 	}
-	cl_api_url=$(get_any_l2_cl_api_url) || {
+	cl_api_url=$(get_any_cl_api_url) || {
 		echo "No CL API URL available" >&2
 		return 1
 	}
@@ -369,7 +371,7 @@ git pull || log_info "git pull failed (likely running locally under sudo), conti
 git checkout "$KURTOSIS_POS_VERSION"
 kurtosis run --enclave "$ENCLAVE_NAME" --args-file "$SCRIPT_DIR/params.yml" .
 
-list_l2_nodes
+list_nodes
 popd || exit 1
 
 # Wait for all EL nodes to reach the target block (Rio HF activation)
@@ -482,7 +484,7 @@ if [[ -z "$el_container" ]]; then
 fi
 upgrade_cl_node "$cl_container"
 upgrade_el_node "$el_container"
-list_l2_nodes
+list_nodes
 
 # Add small delay to allow the node to start up before querying
 sleep 15
