@@ -114,41 +114,41 @@ upgrade_cl_node() {
 	log_info "Upgrading heimdall service: $service"
 
 	# Stop the kurtosis service and wait for it to fully stop
-	log_info "[$service] Stopping kurtosis service"
+	log_info "Stopping kurtosis service"
 	kurtosis service stop "$ENCLAVE_NAME" "$service" || {
-		log_error "[$service] Failed to stop kurtosis service"
+		log_error "Failed to stop kurtosis service"
 		exit 1
 	}
 	docker wait "$container" &>/dev/null || true
-	log_info "[$service] Container stopped"
+	log_info "Container stopped"
 
 	# Extract the data and configuration from the old container
-	log_info "[$service] Extracting service data and configuration"
+	log_info "Extracting service data and configuration"
 	mkdir -p "./tmp/$service"
 	docker cp "$container":/var/lib/heimdall "./tmp/$service/${type}_data" || {
-		log_error "[$service] Failed to copy /var/lib/heimdall"
+		log_error "Failed to copy /var/lib/heimdall"
 		exit 1
 	}
 	docker cp "$container":/etc/heimdall/config "./tmp/$service/${type}_etc_config" || {
-		log_error "[$service] Failed to copy /etc/heimdall/config"
+		log_error "Failed to copy /etc/heimdall/config"
 		exit 1
 	}
 	docker cp "$container":/etc/heimdall/data "./tmp/$service/${type}_etc_data" || {
-		log_error "[$service] Failed to copy /etc/heimdall/data"
+		log_error "Failed to copy /etc/heimdall/data"
 		exit 1
 	}
 	docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts" || {
-		log_error "[$service] Failed to copy /usr/local/share"
+		log_error "Failed to copy /usr/local/share"
 		exit 1
 	}
 	chmod -R 777 "./tmp/$service/"
 
-	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "[$service] Failed to disconnect old container from network"
+	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "Failed to disconnect old container from network"
 	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
 	local image="$new_heimdall_v2_image"
-	log_info "[$service] Starting new container with image: $image"
+	log_info "Starting new container with image: $image"
 	for attempt in 1 2 3; do
 		if docker run \
 			--detach \
@@ -165,11 +165,11 @@ upgrade_cl_node() {
 			-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
 			break
 		fi
-		log_info "[$service] Attempt $attempt failed, retrying in 3s..."
+		log_info "Attempt $attempt failed, retrying in 3s..."
 		docker rm -f "$service" 2>/dev/null || true
 		sleep 3
 		if [[ "$attempt" -eq 3 ]]; then
-			log_error "[$service] Failed to start new container after 3 attempts"
+			log_error "Failed to start new container after 3 attempts"
 			exit 1
 		fi
 	done
@@ -186,34 +186,34 @@ upgrade_el_node() {
 	log_info "Upgrading $type service: $service"
 
 	# Stop the kurtosis service and wait for it to fully stop
-	log_info "[$service] Stopping kurtosis service"
+	log_info "Stopping kurtosis service"
 	kurtosis service stop "$ENCLAVE_NAME" "$service" || {
-		log_error "[$service] Failed to stop kurtosis service"
+		log_error "Failed to stop kurtosis service"
 		exit 1
 	}
 	docker wait "$container" &>/dev/null || true
-	log_info "[$service] Container stopped"
+	log_info "Container stopped"
 
 	# Extract the data and configuration from the old container
-	log_info "[$service] Extracting service data and configuration"
+	log_info "Extracting service data and configuration"
 	mkdir -p "./tmp/$service"
 	docker cp "$container":/var/lib/"$type" "./tmp/$service/${type}_data" || {
-		log_error "[$service] Failed to copy /var/lib/$type"
+		log_error "Failed to copy /var/lib/$type"
 		exit 1
 	}
 	docker cp "$container":/etc/"$type" "./tmp/$service/${type}_etc" || {
-		log_error "[$service] Failed to copy /etc/$type"
+		log_error "Failed to copy /etc/$type"
 		exit 1
 	}
 	if [[ "$type" == "bor" ]]; then
 		docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts" || {
-			log_error "[$service] Failed to copy /usr/local/share"
+			log_error "Failed to copy /usr/local/share"
 			exit 1
 		}
 	fi
 	chmod -R 777 "./tmp/$service/"
 
-	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "[$service] Failed to disconnect old container from network"
+	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "Failed to disconnect old container from network"
 	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
@@ -230,7 +230,7 @@ upgrade_el_node() {
 		exit 1
 	fi
 
-	log_info "[$service] Starting new container with image: $image"
+	log_info "Starting new container with image: $image"
 	for attempt in 1 2 3; do
 		if docker run \
 			--detach \
@@ -245,11 +245,11 @@ upgrade_el_node() {
 			-c "$cmd"; then
 			break
 		fi
-		log_info "[$service] Attempt $attempt failed, retrying in 3s..."
+		log_info "Attempt $attempt failed, retrying in 3s..."
 		docker rm -f "$service" 2>/dev/null || true
 		sleep 3
 		if [[ "$attempt" -eq 3 ]]; then
-			log_error "[$service] Failed to start new container after 3 attempts"
+			log_error "Failed to start new container after 3 attempts"
 			exit 1
 		fi
 	done
