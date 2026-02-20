@@ -319,10 +319,10 @@ if [[ -z "$ENCLAVE_NAME" ]]; then
 	log_error "ENCLAVE_NAME environment variable is not set."
 	exit 1
 fi
-log_info "Using enclave name: $ENCLAVE_NAME"
+log_info "Using kurtosis enclave name: $ENCLAVE_NAME"
 
 docker_network_name="kt-$ENCLAVE_NAME"
-log_info "Using Docker network name: $docker_network_name"
+log_info "Using docker network name: $docker_network_name"
 
 # Check if running as root/sudo.
 # TODO: Check if this is still necessary.
@@ -405,6 +405,8 @@ kurtosis run \
 	--enclave "$ENCLAVE_NAME" \
 	--args-file "$script_dir/params.yml" \
 	github.com/0xPolygon/kurtosis-pos@"$KURTOSIS_POS_VERSION"
+
+log_info "Listing nodes"
 list_nodes
 
 # Wait for the devnet to reach the Rio HF block number.
@@ -490,4 +492,5 @@ log_info "Querying RPC nodes"
 query_rpc_nodes
 
 # List all nodes.
+log_info "Listing nodes"
 list_nodes
