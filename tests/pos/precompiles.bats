@@ -92,8 +92,7 @@ function _is_nontrivial() {
     "0000000000000000000000000000000000000100"  # p256Verify       (MadhugiriPro)
     # "0000000000000000000000000000000000000012" # Testing purposes - precompile doesn't exist
   )
-0x0000000000000000000000000000000000000000
-0x48656c6c6f20576f726c64
+
   local -A known_set=()
   for addr in "${known_precompiles[@]}"; do
     known_set["${addr}"]=1
