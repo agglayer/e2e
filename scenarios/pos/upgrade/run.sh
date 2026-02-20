@@ -18,7 +18,6 @@ get_l2_nodes() {
 		)
 }
 
-# Get any available L2 CL API URL
 get_any_l2_cl_api_url() {
 	local containers
 	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-cl' | grep -v 'rabbitmq')
