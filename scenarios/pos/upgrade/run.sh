@@ -22,7 +22,7 @@ list_nodes() {
 
 get_any_cl_api_url() {
 	local containers
-	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-cl' | grep -v 'rabbitmq')
+	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --filter "name=l2-cl" --format '{{.Names}}' | grep -v 'rabbitmq')
 	if [[ -z "$cl_containers" ]]; then
 		log_error "No L2 CL containers available" >&2
 		return 1
@@ -45,7 +45,7 @@ get_any_cl_api_url() {
 
 get_any_el_rpc_url() {
 	local containers
-	el_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-el')
+	el_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --filter "name=l2-el" --format '{{.Names}}')
 	if [[ -z "$el_containers" ]]; then
 		log_error "No L2 EL containers available" >&2
 		return 1
@@ -223,8 +223,7 @@ upgrade_el_node() {
 }
 
 query_rpc_nodes() {
-	docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' |
-		grep 'l2-el' |
+	docker ps --filter "network=kt-$ENCLAVE_NAME" --filter "name=l2-el" --format '{{.Names}}' |
 		while read -r container; do
 			host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 			if [[ -n "$host_port" ]]; then
