@@ -8,7 +8,8 @@ load_env
 get_l2_containers() {
 	docker ps \
 		--filter "network=kt-$ENCLAVE_NAME" \
-		--filter "name=l2" \
+		--filter "name=l2-el" \
+		--filter "name=l2-cl" \
 		--format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
 		grep -v rabbitmq |
 		(
