@@ -173,7 +173,7 @@ upgrade_cl_node() {
 	# Start a new container with the new image and the same data, in the same docker network.
 	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
 	# but most failures (bad image, missing config) are not transient and retrying won't help.
-	log_info "Starting new container with image: $new_heimdall_v2_image"
+	log_info "Starting new container with image: $NEW_HEIMDALL_V2_IMAGE"
 	local max_attempts=3 check_interval_seconds=3 attempt
 	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
 		if docker run \
@@ -187,7 +187,7 @@ upgrade_cl_node() {
 			--volume "./tmp/$service/${type}_etc_data:/etc/heimdall/data" \
 			--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
 			--entrypoint sh \
-			"$new_heimdall_v2_image" \
+			"$NEW_HEIMDALL_V2_IMAGE" \
 			-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
 			break
 		fi
@@ -233,11 +233,11 @@ upgrade_el_node() {
 	# but most failures (bad image, missing config) are not transient and retrying won't help.
 	local image cmd extra_args
 	if [[ "$type" == "bor" ]]; then
-		image="$new_bor_image"
+		image="$NEW_BOR_IMAGE"
 		cmd="/usr/local/share/container-proc-manager.sh bor server --config /etc/bor/config.toml"
 		extra_args="--volume ./tmp/$service/${type}_scripts:/usr/local/share"
 	elif [[ "$type" == "erigon" ]]; then
-		image="$new_erigon_image"
+		image="$NEW_ERIGON_IMAGE"
 		cmd="while ! erigon --config /etc/erigon/config.toml; do echo -e '\n❌ Erigon failed to start. Retrying in five seconds...\n'; sleep 5; done"
 	else
 		log_error "Unknown EL type for service $service, expected 'bor' or 'erigon'"
@@ -280,6 +280,7 @@ if [[ -z "$ENCLAVE_NAME" ]]; then
 	exit 1
 fi
 log_info "Using enclave name: $ENCLAVE_NAME"
+
 docker_network_name="kt-$ENCLAVE_NAME"
 log_info "Using Docker network name: $docker_network_name"
 
@@ -289,6 +290,9 @@ if [[ $EUID -ne 0 ]]; then
 	log_error "This script must be run with sudo or as root"
 	exit 1
 fi
+
+# Add foundry to PATH for sudo execution.
+export PATH="$PATH:/home/$SUDO_USER/.foundry/bin"
 
 # Check if the enclave already exists.
 if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
@@ -300,71 +304,64 @@ fi
 
 # Check for orphaned containers from previous runs.
 # These are manually created containers that may remain after 'kurtosis enclave rm'.
-orphaned_containers=$(docker ps --all --format '{{.Names}}' | grep -E "^l2-(e|c)l-.*-.*-" || true)
+orphaned_containers=$(docker ps --all --filter "name=l2-cl" --filter "name=l2-el" --format '{{.Names}}' | grep -v rabbitmq || true)
 if [[ -n "$orphaned_containers" ]]; then
 	log_error "Found orphaned containers from a previous run:"
 	log_error "$orphaned_containers"
 	log_error "Please remove them before running this script:"
-	log_error "docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force"
+	log_error "docker ps --all --filter 'name=l2-cl' --filter 'name=l2-el' --format '{{.Names}}' | grep -v rabbitmq | xargs docker rm --force"
 	exit 1
 fi
 
+# Kurtosis-pos package version.
 if [[ -z "$KURTOSIS_POS_VERSION" ]]; then
 	log_error "KURTOSIS_POS_VERSION environment variable is not set."
 	exit 1
 fi
 log_info "Using kurtosis-pos version: $KURTOSIS_POS_VERSION"
 
+# New heimdall-v2 image.
 if [[ -z "$NEW_HEIMDALL_V2_IMAGE" ]]; then
 	log_error "NEW_HEIMDALL_V2_IMAGE environment variable is not set."
 	exit 1
 fi
 log_info "Using new heimdall-v2 image: $NEW_HEIMDALL_V2_IMAGE"
-new_heimdall_v2_image="$NEW_HEIMDALL_V2_IMAGE"
-if ! docker image inspect "$new_heimdall_v2_image" &>/dev/null; then
-	docker pull "$new_heimdall_v2_image"
+if ! docker image inspect "$NEW_HEIMDALL_V2_IMAGE" &>/dev/null; then
+	docker pull "$NEW_HEIMDALL_V2_IMAGE"
 fi
 
+# New bor image.
 if [[ -z "$NEW_BOR_IMAGE" ]]; then
 	log_error "NEW_BOR_IMAGE environment variable is not set."
 	exit 1
 fi
 log_info "Using new bor image: $NEW_BOR_IMAGE"
-new_bor_image="$NEW_BOR_IMAGE"
-if ! docker image inspect "$new_bor_image" &>/dev/null; then
-	docker pull "$new_bor_image"
+if ! docker image inspect "$NEW_BOR_IMAGE" &>/dev/null; then
+	docker pull "$NEW_BOR_IMAGE"
 fi
 
+# New erigon image.
 if [[ -z "$NEW_ERIGON_IMAGE" ]]; then
 	log_error "NEW_ERIGON_IMAGE environment variable is not set."
 	exit 1
 fi
 log_info "Using new erigon image: $NEW_ERIGON_IMAGE"
-new_erigon_image="$NEW_ERIGON_IMAGE"
-if ! docker image inspect "$new_erigon_image" &>/dev/null; then
-	docker pull "$new_erigon_image"
+if ! docker image inspect "$NEW_ERIGON_IMAGE" &>/dev/null; then
+	docker pull "$NEW_ERIGON_IMAGE"
 fi
 
 # Clean up temporary directories from previous runs.
 rm -rf ./tmp
 mkdir -p ./tmp
 
-# Add foundry to PATH for sudo execution.
-export PATH="$PATH:/home/$SUDO_USER/.foundry/bin"
-
-# Deploy the devnet - it might take a few minutes.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ ! -d "./kurtosis-pos" ]]; then
-	git clone https://github.com/0xPolygon/kurtosis-pos.git
-fi
-pushd ./kurtosis-pos || exit 1
-git checkout main
-git pull || log_info "git pull failed (likely running locally under sudo), continuing with local state"
-git checkout "$KURTOSIS_POS_VERSION"
-kurtosis run --enclave "$ENCLAVE_NAME" --args-file "$SCRIPT_DIR/params.yml" .
-
+# Deploy the devnet
+log_info "Deploying the devnet, this may take a few minutes..."
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+kurtosis run \
+	--enclave "$ENCLAVE_NAME" \
+	--args-file "$script_dir/params.yml" \
+	github.com/0xPolygon/kurtosis-pos@"$KURTOSIS_POS_VERSION"
 list_nodes
-popd || exit 1
 
 # Wait for all EL nodes to reach the target block (Rio HF activation).
 # Uses kurtosis port print since containers are still kurtosis-managed at this point.
