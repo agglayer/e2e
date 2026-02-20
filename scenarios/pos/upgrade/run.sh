@@ -8,6 +8,12 @@ source ../../common/load-env.sh
 load_env
 
 # Gradual upgrade of bor/heimdall-v2 services in kurtosis-pos devnet.
+# 1. Deploy a kurtosis-pos devnet
+# 2. Wait for the devnet to reach the Rio fork block number
+# 3. Upgrade all non-block-producer sequentially (CL services first, then EL services)
+# 4. Wait for a natural span rotation to occur
+# 5. Upgrade the old block producer (CL service first, then EL service)
+# 6. Wait for the devnet to progress by a hundred blocks to ensure stability after the upgrade
 
 ##############################################################################
 # SERVICE DISCOVERY FUNCTIONS
@@ -456,6 +462,9 @@ log_info "All non-producer services upgraded"
 log_info "Querying RPCs"
 query_rpcs
 
+log_info "Listing containers"
+list_containers
+
 ##############################################################################
 # WAIT FOR SPAN ROTATION
 ##############################################################################
@@ -496,3 +505,8 @@ query_rpcs
 
 log_info "Listing containers"
 list_containers
+
+# Wait for the devnet to progress by a few blocks to ensure stability after the upgrade.
+target_block=$((rio_fork_block + 100))
+log_info "Waiting for all RPCs to reach block $target_block"
+wait_for_devnet_to_reach_block "$target_block"
