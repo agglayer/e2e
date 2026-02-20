@@ -102,49 +102,35 @@ upgrade_cl_node() {
 		exit 1
 	fi
 	local service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
-	log_info "Upgrading heimdall service: $service"
+	log_info "Upgrading CL node: $service"
 
-	# Stop the kurtosis service and wait for it to fully stop
+	# Stop the kurtosis service and wait for it to fully stop.
 	log_info "Stopping kurtosis service"
-	kurtosis service stop "$ENCLAVE_NAME" "$service" || {
-		log_error "Failed to stop kurtosis service"
-		exit 1
-	}
-	docker wait "$container" &>/dev/null || true
-	log_info "Container stopped"
+	kurtosis service stop "$ENCLAVE_NAME" "$service"
+	docker wait "$container"
+	local network="kt-$ENCLAVE_NAME"
+	docker network disconnect "$network" "$container"
+	log_info "Service stopped"
 
-	# Extract the data and configuration from the old container
+	# Extract the data and configuration from the old container.
 	log_info "Extracting service data and configuration"
 	mkdir -p "./tmp/$service"
-	docker cp "$container":/var/lib/heimdall "./tmp/$service/${type}_data" || {
-		log_error "Failed to copy /var/lib/heimdall"
-		exit 1
-	}
-	docker cp "$container":/etc/heimdall/config "./tmp/$service/${type}_etc_config" || {
-		log_error "Failed to copy /etc/heimdall/config"
-		exit 1
-	}
-	docker cp "$container":/etc/heimdall/data "./tmp/$service/${type}_etc_data" || {
-		log_error "Failed to copy /etc/heimdall/data"
-		exit 1
-	}
-	docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts" || {
-		log_error "Failed to copy /usr/local/share"
-		exit 1
-	}
+	docker cp "$container":/var/lib/heimdall "./tmp/$service/${type}_data"
+	docker cp "$container":/etc/heimdall/config "./tmp/$service/${type}_etc_config"
+	docker cp "$container":/etc/heimdall/data "./tmp/$service/${type}_etc_data"
+	docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts"
 	chmod -R 777 "./tmp/$service/"
 
-	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "Failed to disconnect old container from network"
-	sleep 1
-
-	# Start a new container with the new image and the same data, in the same docker network
-	local image="$new_heimdall_v2_image"
-	log_info "Starting new container with image: $image"
-	for attempt in 1 2 3; do
+	# Start a new container with the new image and the same data, in the same docker network.
+	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
+	# but most failures (bad image, missing config) are not transient and retrying won't help.
+	log_info "Starting new container with image: $new_heimdall_v2_image"
+	local max_attempts=3 attempt
+	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
 		if docker run \
 			--detach \
 			--name "$service" \
-			--network "kt-$ENCLAVE_NAME" \
+			--network "$network" \
 			--publish 0:1317 \
 			--publish 0:26657 \
 			--volume "./tmp/$service/${type}_data:/var/lib/heimdall" \
@@ -152,17 +138,17 @@ upgrade_cl_node() {
 			--volume "./tmp/$service/${type}_etc_data:/etc/heimdall/data" \
 			--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
 			--entrypoint sh \
-			"$image" \
+			"$new_heimdall_v2_image" \
 			-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
 			break
 		fi
-		log_info "Attempt $attempt failed, retrying in 3s..."
-		docker rm -f "$service" 2>/dev/null || true
-		sleep 3
-		if [[ "$attempt" -eq 3 ]]; then
-			log_error "Failed to start new container after 3 attempts"
+		if [[ "$attempt" -eq "$max_attempts" ]]; then
+			log_error "Failed to start new container after $max_attempts attempts"
 			exit 1
 		fi
+		log_info "Attempt $attempt failed, retrying in 3s..."
+		docker rm -f "$service" || true
+		sleep 3
 	done
 }
 
