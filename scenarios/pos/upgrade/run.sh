@@ -7,8 +7,7 @@ source ../../common/log.sh
 source ../../common/load-env.sh
 load_env
 
-# Gradual upgrade of bor/heimdall-v2 nodes in kurtosis-pos devnet.
-# This script is exclusively about L2 nodes.
+# Gradual upgrade of bor/heimdall-v2 services in kurtosis-pos devnet.
 
 ##############################################################################
 # SERVICE DISCOVERY FUNCTIONS
@@ -65,7 +64,7 @@ get_any_el_rpc_url() {
 ##############################################################################
 # UPGRADE FUNCTIONS
 ##############################################################################
-upgrade_cl_node() {
+upgrade_cl_service() {
 	local container="$1"
 	if [[ -z "$container" ]]; then
 		log_error "Container is required for upgrade"
@@ -123,7 +122,7 @@ upgrade_cl_node() {
 	done
 }
 
-upgrade_el_node() {
+upgrade_el_service() {
 	local container="$1"
 	if [[ -z "$container" ]]; then
 		log_error "Container is required for upgrade"
@@ -208,7 +207,7 @@ wait_for_devnet_to_reach_block() {
 	local el_services
 	el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
 
-	# Wait for all EL nodes to reach the target block.
+	# Wait for all RPCs to reach the target block.
 	local num_steps=50 step
 	for step in $(seq 1 "${num_steps}"); do
 		log_info "Check ${step}/${num_steps}"
@@ -226,13 +225,13 @@ wait_for_devnet_to_reach_block() {
 		done <<<"$el_services"
 
 		if $all_ready; then
-			log_info "All EL nodes reached block $target_block"
+			log_info "All RPCs reached block $target_block"
 			return 0
 		fi
-		log_info "Not all EL nodes reached block $target_block, retrying in 10s..."
+		log_info "Not all RPCs reached block $target_block, retrying in 10s..."
 		sleep 10
 	done
-	log_error "Not all EL nodes reached block $target_block after $num_steps steps"
+	log_error "Not all RPCs reached block $target_block after $num_steps steps"
 	return 1
 }
 
@@ -267,7 +266,7 @@ wait_for_producer_rotation() {
 ##############################################################################
 # UTILITY FUNCTIONS
 ##############################################################################
-list_nodes() {
+list_containers() {
 	docker ps \
 		--filter "network=$docker_network_name" \
 		--filter "name=l2-cl" \
@@ -280,7 +279,7 @@ list_nodes() {
 		)
 }
 
-query_rpc_nodes() {
+query_rpcs() {
 	local host_port block_number
 	while IFS= read -r container; do
 		host_port=$(docker port "$container" 8545 | head -1 | sed 's/0.0.0.0/127.0.0.1/')
@@ -411,16 +410,16 @@ kurtosis run \
 	--args-file "$script_dir/params.yml" \
 	github.com/0xPolygon/kurtosis-pos@"$KURTOSIS_POS_VERSION"
 
-log_info "Listing nodes"
-list_nodes
+log_info "Listing containers"
+list_containers
 
 # Wait for the devnet to reach the Rio HF block number.
 rio_fork_block=${RIO_FORK_BLOCK:-128}
-log_info "Waiting for all EL nodes to reach the Rio fork block $rio_fork_block"
+log_info "Waiting for all RPCs to reach the Rio fork block $rio_fork_block"
 wait_for_devnet_to_reach_block "$rio_fork_block"
 
 ##############################################################################
-# NON-BLOCK-PRODUCER NODES UPGRADE
+# NON-BLOCK-PRODUCER UPGRADES
 ##############################################################################
 
 # Get the block producer.
@@ -433,29 +432,28 @@ mapfile -t cl_containers_without_bp < <(printf '%s\n' "${cl_containers[@]}" | gr
 mapfile -t el_containers < <(get_el_containers)
 mapfile -t el_containers_without_bp < <(printf '%s\n' "${el_containers[@]}" | grep -v "l2-el-$block_producer_id-")
 
-# Upgrade CL nodes one by one.
-log_info "Upgrading ${#cl_containers_without_bp[@]} CL nodes sequentially (excluding block producer $block_producer_id)"
+# Upgrade CL services one by one.
+log_info "Upgrading ${#cl_containers_without_bp[@]} CL services sequentially (excluding block producer $block_producer_id)"
 for i in "${!cl_containers_without_bp[@]}"; do
-	log_info "CL node $((i + 1))/${#cl_containers_without_bp[@]}: ${cl_containers_without_bp[$i]}"
-	upgrade_cl_node "${cl_containers_without_bp[$i]}"
-	log_info "CL node $((i + 1))/${#cl_containers_without_bp[@]} done"
+	log_info "CL service $((i + 1))/${#cl_containers_without_bp[@]}: ${cl_containers_without_bp[$i]}"
+	upgrade_cl_service "${cl_containers_without_bp[$i]}"
+	log_info "CL service $((i + 1))/${#cl_containers_without_bp[@]} done"
 done
 
-# Upgrade EL nodes one by one.
-log_info "Upgrading ${#el_containers_without_bp[@]} EL nodes sequentially (excluding block producer $block_producer_id)"
+# Upgrade EL services one by one.
+log_info "Upgrading ${#el_containers_without_bp[@]} EL services sequentially (excluding block producer $block_producer_id)"
 for i in "${!el_containers_without_bp[@]}"; do
-	log_info "EL node $((i + 1))/${#el_containers_without_bp[@]}: ${el_containers_without_bp[$i]}"
-	upgrade_el_node "${el_containers_without_bp[$i]}"
-	log_info "EL node $((i + 1))/${#el_containers_without_bp[@]} done"
+	log_info "EL service $((i + 1))/${#el_containers_without_bp[@]}: ${el_containers_without_bp[$i]}"
+	upgrade_el_service "${el_containers_without_bp[$i]}"
+	log_info "EL service $((i + 1))/${#el_containers_without_bp[@]} done"
 done
 
-# Add small delay to allow nodes to start up before querying.
+# Add small delay to allow services to start up before querying.
 sleep 10
-log_info "All non-producer nodes upgraded"
+log_info "All non-producer services upgraded"
 
-# Query RPC nodes.
-log_info "Querying RPC nodes"
-query_rpc_nodes
+log_info "Querying RPCs"
+query_rpcs
 
 ##############################################################################
 # WAIT FOR SPAN ROTATION
@@ -472,30 +470,28 @@ wait_for_producer_rotation "$block_producer_id"
 ##############################################################################
 log_info "Upgrading the old block producer"
 
-# Upgrade CL node.
+# Upgrade CL service.
 cl_container=$(printf '%s\n' "${cl_containers[@]}" | grep "l2-cl-$block_producer_id-")
 if [[ -z "$cl_container" ]]; then
 	log_error "Could not find CL container for old block producer ID $block_producer_id"
 	exit 1
 fi
-upgrade_cl_node "$cl_container"
+upgrade_cl_service "$cl_container"
 
-# Upgrade EL node.
+# Upgrade EL service.
 el_container=$(printf '%s\n' "${el_containers[@]}" | grep "l2-el-$block_producer_id-")
 if [[ -z "$el_container" ]]; then
 	log_error "Could not find EL container for old block producer ID $block_producer_id"
 	exit 1
 fi
-upgrade_el_node "$el_container"
+upgrade_el_service "$el_container"
 
-# Add small delay to allow node to start up before querying.
+# Add small delay to allow service to start up before querying.
 sleep 10
 log_info "Block producer $block_producer_id upgraded"
 
-# Query RPC nodes.
-log_info "Querying RPC nodes"
-query_rpc_nodes
+log_info "Querying RPCs"
+query_rpcs
 
-# List all nodes.
-log_info "Listing nodes"
-list_nodes
+log_info "Listing containers"
+list_containers
