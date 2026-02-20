@@ -7,8 +7,7 @@ Test a rolling upgrade of [kurtosis-pos](https://github.com/0xPolygon/kurtosis-p
 1. Copy `.env.example` to `.env` and configure:
    - `ENCLAVE_NAME`: Name of the Kurtosis enclave
    - `KURTOSIS_POS_VERSION`: Initial kurtosis-pos package version (branch, tag, or commit)
-   - `RIO_HF`: Block number for Rio hard fork activation (default: `128`)
-   - `RIO_HF_TIMEOUT`: Timeout in seconds waiting for Rio HF block (default: `300`)
+   - `RIO_FORK_BLOCK`: Block number for Rio hard fork activation (default: `128`)
    - `NEW_BOR_IMAGE`: Target Bor client image
    - `NEW_HEIMDALL_V2_IMAGE`: Target Heimdall v2 client image
    - `NEW_ERIGON_IMAGE`: Target Erigon client image

@@ -66,6 +66,40 @@ get_block_producer_id() {
 	return 1
 }
 
+wait_for_devnet_to_reach_block() {
+	local target_block="$1"
+	if [[ -z "$target_block" ]]; then
+		log_error "Target block number is required"
+		return 1
+	fi
+
+	# Get EL services.
+	el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
+
+	# Wait for all EL nodes to reach the target block.
+	local num_steps=50 all_ready=true step
+	for step in $(seq 1 "${num_steps}"); do
+		log_info "Check ${step}/${num_steps}"
+		while IFS= read -r service; do
+			local rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc)
+			local block_number=$(cast bn --rpc-url "$rpc_url")
+			local status="OK"
+			if [[ "$block_number" -lt "$target_block" ]]; then
+				status="NOT READY"
+				all_ready=false
+			fi
+			log_info "- $service: $block_number / $target_block - $status"
+		done <<<"$el_services"
+
+		if $all_ready; then
+			log_info "All EL nodes reached block $target_block"
+			return 0
+		fi
+	done
+	log_error "Not all EL nodes reached block $target_block after $num_steps steps"
+	return 1
+}
+
 wait_for_producer_rotation() {
 	local original_bp_id="$1"
 	if [[ -z "$original_bp_id" ]]; then
@@ -111,7 +145,7 @@ get_any_cl_api_url() {
 			url="http://$host_port"
 			# Liveness check.
 			if curl -sf "${url}/bor/spans/latest" &>/dev/null; then
-				log_error "$url"
+				echo "$url"
 				return 0
 			fi
 		fi
@@ -274,7 +308,6 @@ upgrade_el_node() {
 # MAIN WORKFLOW
 ##############################################################################
 
-# Validate environment variables.
 if [[ -z "$ENCLAVE_NAME" ]]; then
 	log_error "ENCLAVE_NAME environment variable is not set."
 	exit 1
@@ -354,7 +387,7 @@ fi
 rm -rf ./tmp
 mkdir -p ./tmp
 
-# Deploy the devnet
+# Deploy the devnet.
 log_info "Deploying the devnet, this may take a few minutes..."
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 kurtosis run \
@@ -363,49 +396,9 @@ kurtosis run \
 	github.com/0xPolygon/kurtosis-pos@"$KURTOSIS_POS_VERSION"
 list_nodes
 
-# Wait for all EL nodes to reach the target block (Rio HF activation).
-# Uses kurtosis port print since containers are still kurtosis-managed at this point.
-RIO_HF="${RIO_HF:-128}"
-RIO_HF_TIMEOUT="${RIO_HF_TIMEOUT:-300}"
-log_info "Waiting for all EL nodes to reach block $RIO_HF (timeout: ${RIO_HF_TIMEOUT}s)"
-
-# Collect EL service names from kurtosis.
-el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
-
-end_time=$(($(date +%s) + RIO_HF_TIMEOUT))
-while true; do
-	all_ready=true
-	while IFS= read -r service; do
-		[[ -z "$service" ]] && continue
-		rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc 2>/dev/null || echo "")
-		if [[ -z "$rpc_url" ]]; then
-			all_ready=false
-			continue
-		fi
-		bn=$(cast bn --rpc-url "$rpc_url" 2>/dev/null || echo "0")
-		if [[ "$bn" -lt "$RIO_HF" ]]; then
-			all_ready=false
-		fi
-	done <<<"$el_services"
-
-	if $all_ready; then
-		log_info "All EL nodes reached block $RIO_HF"
-		break
-	fi
-
-	if [[ $(date +%s) -ge $end_time ]]; then
-		log_error "Timeout waiting for block $RIO_HF. Current block heights:"
-		while IFS= read -r service; do
-			[[ -z "$service" ]] && continue
-			rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc 2>/dev/null || echo "")
-			bn=$(cast bn --rpc-url "$rpc_url" 2>/dev/null || echo "N/A")
-			log_error "  $service: $bn"
-		done <<<"$el_services"
-		exit 1
-	fi
-
-	sleep 5
-done
+# Wait for the devnet to reach the Rio HF block number.
+rio_fork_block=${RIO_FORK_BLOCK:-128}
+wait_for_devnet_to_reach_block "$rio_fork_block"
 
 # Get the block producer.
 block_producer_id=$(get_block_producer_id)
