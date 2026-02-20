@@ -1,12 +1,13 @@
 #!/bin/env bash
 set -e
+
 # shellcheck source=/dev/null
 source ../../common/log.sh
 # shellcheck source=/dev/null
 source ../../common/load-env.sh
 load_env
 
-# Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet.
+# Gradual upgrade of bor/heimdall-v2 nodes in kurtosis-pos devnet.
 # This script is exclusively about L2 nodes.
 
 ##############################################################################
