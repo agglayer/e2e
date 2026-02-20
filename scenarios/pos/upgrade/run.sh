@@ -398,6 +398,7 @@ list_nodes
 
 # Wait for the devnet to reach the Rio HF block number.
 rio_fork_block=${RIO_FORK_BLOCK:-128}
+log_info "Waiting for all EL nodes to reach the Rio fork block $rio_fork_block"
 wait_for_devnet_to_reach_block "$rio_fork_block"
 
 # Get the block producer.
