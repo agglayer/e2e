@@ -68,12 +68,15 @@ get_block_producer_id() {
 
 # Get any available EL RPC URL (works for both kurtosis-managed and upgraded containers).
 get_any_el_rpc_url() {
-	local container host_port
+	local container host_port url
 	for container in $(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-el'); do
 		host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
-			echo "http://$host_port"
-			return 0
+			url="http://$host_port"
+			if cast bn --rpc-url "$url" &>/dev/null; then
+				echo "$url"
+				return 0
+			fi
 		fi
 	done
 	return 1
