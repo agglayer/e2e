@@ -1,8 +1,8 @@
 #!/bin/env bash
 set -e
-# shellcheck source=../../common/log.sh
+# shellcheck source=/dev/null
 source ../../common/log.sh
-# shellcheck source=../../common/load-env.sh
+# shellcheck source=/dev/null
 source ../../common/load-env.sh
 load_env
 
