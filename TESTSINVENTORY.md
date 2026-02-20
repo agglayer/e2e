@@ -131,6 +131,24 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
+| 0x01 ecRecover: recovers signer from a valid ECDSA signature | [Link](./tests/pos/precompiles.bats#L214) | |
+| 0x0100 p256Verify (secp256r1): Wycheproof test vector returns 1 (MadhugiriPro+) | [Link](./tests/pos/precompiles.bats#L525) | |
+| 0x02 SHA-256: hash of empty string equals known constant | [Link](./tests/pos/precompiles.bats#L232) | |
+| 0x03 RIPEMD-160: hash of empty string equals known constant | [Link](./tests/pos/precompiles.bats#L241) | |
+| 0x04 identity: returns input bytes unchanged | [Link](./tests/pos/precompiles.bats#L250) | |
+| 0x05 modexp: 8^9 mod 10 equals 8 | [Link](./tests/pos/precompiles.bats#L259) | |
+| 0x06 ecAdd (alt_bn128): G + G returns a valid non-zero curve point | [Link](./tests/pos/precompiles.bats#L276) | |
+| 0x07 ecMul (alt_bn128): 2·G matches ecAdd(G, G) | [Link](./tests/pos/precompiles.bats#L291) | |
+| 0x08 ecPairing (alt_bn128): empty input returns 1 (trivial pairing check) | [Link](./tests/pos/precompiles.bats#L316) | |
+| 0x09 blake2F: EIP-152 test vector 5 (12 rounds, 'abc' message) | [Link](./tests/pos/precompiles.bats#L325) | |
+| 0x0a KZG point evaluation: active on Cancun+ (rejects invalid input) | [Link](./tests/pos/precompiles.bats#L363) | |
+| 0x0b BLS12-381 G1 Add: identity + G equals G (Prague+) | [Link](./tests/pos/precompiles.bats#L378) | |
+| 0x0c BLS12-381 G1 MSM: scalar-1 times G equals G (Prague+) | [Link](./tests/pos/precompiles.bats#L399) | |
+| 0x0d BLS12-381 G2 Add: identity + G2 equals G2 (Prague+) | [Link](./tests/pos/precompiles.bats#L417) | |
+| 0x0e BLS12-381 G2 MSM: scalar-1 times G2 equals G2 (Prague+) | [Link](./tests/pos/precompiles.bats#L441) | |
+| 0x0f BLS12-381 Pairing: e(G1_infinity, G2) returns 1 (Prague+) | [Link](./tests/pos/precompiles.bats#L462) | |
+| 0x10 BLS12-381 MapFpToG1: Fp element 1 maps to a non-trivial G1 point (Prague+) | [Link](./tests/pos/precompiles.bats#L485) | |
+| 0x11 BLS12-381 MapFp2ToG2: Fp2 element (0,1) maps to a non-trivial G2 point (Prague+) | [Link](./tests/pos/precompiles.bats#L504) | |
 | 50 concurrent eth_blockNumber requests all succeed | [Link](./tests/pos/rpc-concurrent-load.bats#L14) | |
 | 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/rpc-concurrent-load.bats#L36) | |
 | 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/rpc-concurrent-load.bats#L71) | |
@@ -161,6 +179,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L10) | |
 | fuzz node with edge-case gas limits and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L150) | |
 | fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L86) | |
+| fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/precompiles.bats#L58) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/evm-state-invariants.bats#L53) | |

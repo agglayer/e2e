@@ -272,8 +272,10 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - optimistic-mode
 - pos
 - pos-delegate
+- pos-precompile
 - pos-undelegate
 - pos-validator
+- precompile-fuzz
 - prune
 - railgun
 - smooth-crypto-lib
