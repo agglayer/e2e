@@ -102,7 +102,7 @@ upgrade_cl_node() {
 		exit 1
 	fi
 	local service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
-	log_info "Upgrading CL node: $service"
+	log_info "Upgrading CL service: $service"
 
 	# Stop the kurtosis service and wait for it to fully stop.
 	log_info "Stopping kurtosis service"
@@ -158,42 +158,31 @@ upgrade_el_node() {
 		log_error "Container is required for upgrade"
 		exit 1
 	fi
-	local service=${container%%--*}               # l2-el-1-bor-heimdall-v2-validator
+	local service=${container%%--*} # l2-el-1-bor-heimdall-v2-validator
 	local type=$(echo "$service" | cut -d'-' -f4) # bor or erigon
-	log_info "Upgrading $type service: $service"
+	log_info "Upgrading EL service: $service"
 
-	# Stop the kurtosis service and wait for it to fully stop
+	# Stop the kurtosis service and wait for it to fully stop.
 	log_info "Stopping kurtosis service"
-	kurtosis service stop "$ENCLAVE_NAME" "$service" || {
-		log_error "Failed to stop kurtosis service"
-		exit 1
-	}
-	docker wait "$container" &>/dev/null || true
-	log_info "Container stopped"
+	kurtosis service stop "$ENCLAVE_NAME" "$service"
+	docker wait "$container"
+	local network="kt-$ENCLAVE_NAME"
+	docker network disconnect "$network" "$container"
+	log_info "Service stopped"
 
-	# Extract the data and configuration from the old container
+	# Extract the data and configuration from the old container.
 	log_info "Extracting service data and configuration"
 	mkdir -p "./tmp/$service"
-	docker cp "$container":/var/lib/"$type" "./tmp/$service/${type}_data" || {
-		log_error "Failed to copy /var/lib/$type"
-		exit 1
-	}
-	docker cp "$container":/etc/"$type" "./tmp/$service/${type}_etc" || {
-		log_error "Failed to copy /etc/$type"
-		exit 1
-	}
+	docker cp "$container":/var/lib/"$type" "./tmp/$service/${type}_data"
+	docker cp "$container":/etc/"$type" "./tmp/$service/${type}_etc"
 	if [[ "$type" == "bor" ]]; then
-		docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts" || {
-			log_error "Failed to copy /usr/local/share"
-			exit 1
-		}
+		docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts"
 	fi
 	chmod -R 777 "./tmp/$service/"
 
-	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "Failed to disconnect old container from network"
-	sleep 1
-
-	# Start a new container with the new image and the same data, in the same docker network
+	# Start a new container with the new image and the same data, in the same docker network.
+	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
+	# but most failures (bad image, missing config) are not transient and retrying won't help.
 	local image cmd extra_args
 	if [[ "$type" == "bor" ]]; then
 		image="$new_bor_image"
@@ -208,11 +197,12 @@ upgrade_el_node() {
 	fi
 
 	log_info "Starting new container with image: $image"
-	for attempt in 1 2 3; do
+	local max_attempts=3 attempt
+	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
 		if docker run \
 			--detach \
 			--name "$service" \
-			--network "kt-$ENCLAVE_NAME" \
+			--network "$network" \
 			--publish 0:8545 \
 			--volume "./tmp/$service/${type}_data:/var/lib/$type" \
 			--volume "./tmp/$service/${type}_etc:/etc/$type" \
@@ -222,13 +212,13 @@ upgrade_el_node() {
 			-c "$cmd"; then
 			break
 		fi
-		log_info "Attempt $attempt failed, retrying in 3s..."
-		docker rm -f "$service" 2>/dev/null || true
-		sleep 3
-		if [[ "$attempt" -eq 3 ]]; then
-			log_error "Failed to start new container after 3 attempts"
+		if [[ "$attempt" -eq "$max_attempts" ]]; then
+			log_error "Failed to start new container after $max_attempts attempts"
 			exit 1
 		fi
+		log_info "Attempt $attempt failed, retrying in 3s..."
+		docker rm -f "$service" || true
+		sleep 3
 	done
 }
 
