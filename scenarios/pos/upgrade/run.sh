@@ -105,12 +105,12 @@ get_block_producer_id() {
 }
 
 upgrade_cl_node() {
-	container="$1"
+	local container="$1"
 	if [[ -z "$container" ]]; then
 		log_error "Container is required for upgrade"
 		exit 1
 	fi
-	service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
+	local service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
 	log_info "Upgrading heimdall service: $service"
 
 	# Stop the kurtosis service and wait for it to fully stop
@@ -147,7 +147,7 @@ upgrade_cl_node() {
 	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
-	image="$new_heimdall_v2_image"
+	local image="$new_heimdall_v2_image"
 	log_info "[$service] Starting new container with image: $image"
 	for attempt in 1 2 3; do
 		if docker run \
@@ -176,13 +176,13 @@ upgrade_cl_node() {
 }
 
 upgrade_el_node() {
-	container="$1"
+	local container="$1"
 	if [[ -z "$container" ]]; then
 		log_error "Container is required for upgrade"
 		exit 1
 	fi
-	service=${container%%--*}               # l2-el-1-bor-heimdall-v2-validator
-	type=$(echo "$service" | cut -d'-' -f4) # bor or erigon
+	local service=${container%%--*}               # l2-el-1-bor-heimdall-v2-validator
+	local type=$(echo "$service" | cut -d'-' -f4) # bor or erigon
 	log_info "Upgrading $type service: $service"
 
 	# Stop the kurtosis service and wait for it to fully stop
@@ -217,9 +217,7 @@ upgrade_el_node() {
 	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
-	image=""
-	cmd=""
-	extra_args=""
+	local image cmd extra_args
 	if [[ "$type" == "bor" ]]; then
 		image="$new_bor_image"
 		cmd="/usr/local/share/container-proc-manager.sh bor server --config /etc/bor/config.toml"
