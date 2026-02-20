@@ -122,27 +122,35 @@ upgrade_cl_node() {
 	chmod -R 777 "./tmp/$service/"
 
 	docker network disconnect "kt-$ENCLAVE_NAME" "$container" 2>/dev/null || true
+	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
 	image="$new_heimdall_v2_image"
 	log_info "[$service] Starting new container with image: $image"
-	docker run \
-		--detach \
-		--name "$service" \
-		--network "kt-$ENCLAVE_NAME" \
-		--publish 0:1317 \
-		--publish 0:26657 \
-		--volume "./tmp/$service/${type}_data:/var/lib/heimdall" \
-		--volume "./tmp/$service/${type}_etc_config:/etc/heimdall/config" \
-		--volume "./tmp/$service/${type}_etc_data:/etc/heimdall/data" \
-		--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
-		--entrypoint sh \
-		"$image" \
-		-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server" ||
-		{
-			log_error "[$service] Failed to start new container"
+	for attempt in 1 2 3; do
+		if docker run \
+			--detach \
+			--name "$service" \
+			--network "kt-$ENCLAVE_NAME" \
+			--publish 0:1317 \
+			--publish 0:26657 \
+			--volume "./tmp/$service/${type}_data:/var/lib/heimdall" \
+			--volume "./tmp/$service/${type}_etc_config:/etc/heimdall/config" \
+			--volume "./tmp/$service/${type}_etc_data:/etc/heimdall/data" \
+			--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
+			--entrypoint sh \
+			"$image" \
+			-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
+			break
+		fi
+		log_info "[$service] Attempt $attempt failed, retrying in 3s..."
+		docker rm -f "$service" 2>/dev/null || true
+		sleep 3
+		if [[ "$attempt" -eq 3 ]]; then
+			log_error "[$service] Failed to start new container after 3 attempts"
 			exit 1
-		}
+		fi
+	done
 }
 
 upgrade_el_node() {
@@ -184,6 +192,7 @@ upgrade_el_node() {
 	chmod -R 777 "./tmp/$service/"
 
 	docker network disconnect "kt-$ENCLAVE_NAME" "$container" 2>/dev/null || true
+	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
 	image=""
@@ -202,21 +211,28 @@ upgrade_el_node() {
 	fi
 
 	log_info "[$service] Starting new container with image: $image"
-	docker run \
-		--detach \
-		--name "$service" \
-		--network "kt-$ENCLAVE_NAME" \
-		--publish 0:8545 \
-		--volume "./tmp/$service/${type}_data:/var/lib/$type" \
-		--volume "./tmp/$service/${type}_etc:/etc/$type" \
-		$extra_args \
-		--entrypoint sh \
-		"$image" \
-		-c "$cmd" ||
-		{
-			log_error "[$service] Failed to start new container"
+	for attempt in 1 2 3; do
+		if docker run \
+			--detach \
+			--name "$service" \
+			--network "kt-$ENCLAVE_NAME" \
+			--publish 0:8545 \
+			--volume "./tmp/$service/${type}_data:/var/lib/$type" \
+			--volume "./tmp/$service/${type}_etc:/etc/$type" \
+			$extra_args \
+			--entrypoint sh \
+			"$image" \
+			-c "$cmd"; then
+			break
+		fi
+		log_info "[$service] Attempt $attempt failed, retrying in 3s..."
+		docker rm -f "$service" 2>/dev/null || true
+		sleep 3
+		if [[ "$attempt" -eq 3 ]]; then
+			log_error "[$service] Failed to start new container after 3 attempts"
 			exit 1
-		}
+		fi
+	done
 }
 
 query_rpc_nodes() {
