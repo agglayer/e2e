@@ -39,55 +39,67 @@ get_any_cl_api_url() {
 	return 1
 }
 
-# Get the block producer val_id for the current span.
-# Fetches the current block number from an EL node, then walks spans backwards
-# from latest to find the span containing that block.
-get_block_producer_id() {
-	local el_rpc_url block_number cl_api_url latest_span_id span_start span_end span_id producer_id
-	el_rpc_url=$(get_any_el_rpc_url) || {
-		echo "No EL RPC URL available" >&2
-		return 1
-	}
-	block_number=$(cast bn --rpc-url "$el_rpc_url" 2>/dev/null) || {
-		echo "Failed to get block number from $el_rpc_url" >&2
-		return 1
-	}
-	cl_api_url=$(get_any_cl_api_url) || {
-		echo "No CL API URL available" >&2
-		return 1
-	}
-	latest_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
-	echo "Current block: $block_number, latest span ID: $latest_span_id" >&2
-
-	# Walk backwards from latest span to find the one containing the current block
-	for ((span_id = latest_span_id; span_id >= 0; span_id--)); do
-		span_start=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span.start_block')
-		span_end=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span.end_block')
-		if [[ "$block_number" -ge "$span_start" ]] && [[ "$block_number" -le "$span_end" ]]; then
-			producer_id=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span.selected_producers[0].val_id')
-			echo "Block $block_number is in span $span_id ($span_start-$span_end), producer val_id: $producer_id" >&2
-			echo "$producer_id"
-			return 0
-		fi
-	done
-
-	echo "No span found containing block $block_number" >&2
-	return 1
-}
-
-# Get any available EL RPC URL (works for both kurtosis-managed and upgraded containers).
 get_any_el_rpc_url() {
+	local containers
+	el_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-el')
+	if [[ -z "$el_containers" ]]; then
+		log_error "No L2 EL containers available" >&2
+		return 1
+	fi
+
 	local container host_port url
-	for container in $(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-el'); do
+	for container in $el_containers; do
 		host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
 			url="http://$host_port"
+			# Liveness check
 			if cast bn --rpc-url "$url" &>/dev/null; then
 				echo "$url"
 				return 0
 			fi
 		fi
 	done
+	return 1
+}
+
+# Get the block producer val_id for the current span.
+# Fetches the current block number from an EL node, then walks spans backwards
+# from latest to find the span containing that block.
+get_block_producer_id() {
+	# Get current block number from any available EL RPC URL.
+	local el_rpc_url block_number
+	el_rpc_url=$(get_any_el_rpc_url) || {
+		log_error "No EL RPC URL available" >&2
+		return 1
+	}
+	block_number=$(cast bn --rpc-url "$el_rpc_url" 2>/dev/null) || {
+		log_error "Failed to get block number from $el_rpc_url" >&2
+		return 1
+	}
+
+	# Get latest span ID from any available CL API URL.
+	local cl_api_url latest_span_id
+	cl_api_url=$(get_any_cl_api_url) || {
+		log_error "No CL API URL available" >&2
+		return 1
+	}
+	latest_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
+	log_info "Current block: $block_number, latest span ID: $latest_span_id" >&2
+
+	# Walk backwards from latest span to find the one containing the current block.
+	local span_id span span_start span_end producer_id
+	for ((span_id = latest_span_id; span_id >= 0; span_id--)); do
+		span=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span')
+		span_start=$(echo "$span" | jq -r '.start_block')
+		span_end=$(echo "$span" | jq -r '.end_block')
+		if [[ "$block_number" -ge "$span_start" ]] && [[ "$block_number" -le "$span_end" ]]; then
+			producer_id=$(echo "$span" | jq -r '.selected_producers[0].val_id')
+			log_info "Block $block_number is in span $span_id ($span_start-$span_end), producer val_id: $producer_id" >&2
+			echo "$producer_id"
+			return 0
+		fi
+	done
+	log_error "No span found containing block $block_number" >&2
 	return 1
 }
 
