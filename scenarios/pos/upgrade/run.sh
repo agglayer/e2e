@@ -121,7 +121,7 @@ upgrade_cl_node() {
 	}
 	chmod -R 777 "./tmp/$service/"
 
-	docker network disconnect "kt-$ENCLAVE_NAME" "$container" 2>/dev/null || true
+	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "[$service] Failed to disconnect old container from network"
 	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
@@ -191,7 +191,7 @@ upgrade_el_node() {
 	fi
 	chmod -R 777 "./tmp/$service/"
 
-	docker network disconnect "kt-$ENCLAVE_NAME" "$container" 2>/dev/null || true
+	docker network disconnect "kt-$ENCLAVE_NAME" "$container" || log_error "[$service] Failed to disconnect old container from network"
 	sleep 1
 
 	# Start a new container with the new image and the same data, in the same docker network
