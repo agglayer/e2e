@@ -71,7 +71,9 @@ upgrade_cl_node() {
 		exit 1
 	fi
 	local service=${container%%--*} # l2-cl-1-heimdall-v2-bor-validator
-	log_info "Upgrading CL service: $service"
+	local type
+	type=$(echo "$service" | cut -d'-' -f4,5) # heimdall-v2
+	log_info "Upgrading CL service: $service of type $type"
 
 	# Stop the kurtosis service and wait for it to fully stop.
 	log_info "Stopping kurtosis service"
@@ -129,7 +131,7 @@ upgrade_el_node() {
 	local service=${container%%--*} # l2-el-1-bor-heimdall-v2-validator
 	local type
 	type=$(echo "$service" | cut -d'-' -f4) # bor or erigon
-	log_info "Upgrading EL service: $service"
+	log_info "Upgrading EL service: $service of type $type"
 
 	# Stop the kurtosis service and wait for it to fully stop.
 	log_info "Stopping kurtosis service"
