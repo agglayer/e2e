@@ -257,6 +257,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - evm-gas
 - evm-nonce
 - evm-pool
+- evm-rpc
 - evm-stress
 - forced-txs
 - gnosis-safe
