@@ -97,35 +97,23 @@ upgrade_cl_service() {
 	docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts"
 	chmod -R 777 "./tmp/$service/"
 
+	# Remove the old container.
+	docker rm -f "$service"
+
 	# Start a new container with the new image and the same data, in the same docker network.
-	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
-	# but most failures (bad image, missing config) are not transient and retrying won't help.
-	log_info "Starting new container with image: $NEW_HEIMDALL_V2_IMAGE"
-	local max_attempts=3 check_interval_seconds=3 attempt
-	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
-		if docker run \
-			--detach \
-			--name "$service" \
-			--network "$docker_network_name" \
-			--publish 0:1317 \
-			--publish 0:26657 \
-			--volume "./tmp/$service/${type}_data:/var/lib/heimdall" \
-			--volume "./tmp/$service/${type}_etc_config:/etc/heimdall/config" \
-			--volume "./tmp/$service/${type}_etc_data:/etc/heimdall/data" \
-			--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
-			--entrypoint sh \
-			"$NEW_HEIMDALL_V2_IMAGE" \
-			-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
-			break
-		fi
-		if [[ "$attempt" -eq "$max_attempts" ]]; then
-			log_error "Failed to start new container after $max_attempts attempts"
-			exit 1
-		fi
-		log_info "Attempt $attempt failed, retrying in ${check_interval_seconds}s..."
-		docker rm -f "$service" || true
-		sleep "$check_interval_seconds"
-	done
+	docker run \
+		--detach \
+		--name "$service" \
+		--network "$docker_network_name" \
+		--publish 0:1317 \
+		--publish 0:26657 \
+		--volume "./tmp/$service/${type}_data:/var/lib/heimdall" \
+		--volume "./tmp/$service/${type}_etc_config:/etc/heimdall/config" \
+		--volume "./tmp/$service/${type}_etc_data:/etc/heimdall/data" \
+		--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
+		--entrypoint sh \
+		"$NEW_HEIMDALL_V2_IMAGE" \
+		-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
 }
 
 upgrade_el_service() {
@@ -156,9 +144,10 @@ upgrade_el_service() {
 	fi
 	chmod -R 777 "./tmp/$service/"
 
+	# Remove the old container.
+	docker rm -f "$service"
+
 	# Start a new container with the new image and the same data, in the same docker network.
-	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
-	# but most failures (bad image, missing config) are not transient and retrying won't help.
 	local image cmd
 	local extra_args=()
 	if [[ "$type" == "bor" ]]; then
@@ -174,29 +163,17 @@ upgrade_el_service() {
 	fi
 
 	log_info "Starting new container with image: $image"
-	local max_attempts=3 check_interval_seconds=3 attempt
-	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
-		if docker run \
-			--detach \
-			--name "$service" \
-			--network "$docker_network_name" \
-			--publish 0:8545 \
-			--volume "./tmp/$service/${type}_data:/var/lib/$type" \
-			--volume "./tmp/$service/${type}_etc:/etc/$type" \
-			"${extra_args[@]}" \
-			--entrypoint sh \
-			"$image" \
-			-c "$cmd"; then
-			break
-		fi
-		if [[ "$attempt" -eq "$max_attempts" ]]; then
-			log_error "Failed to start new container after $max_attempts attempts"
-			exit 1
-		fi
-		log_info "Attempt $attempt failed, retrying in ${check_interval_seconds}s..."
-		docker rm -f "$service" || true
-		sleep "$check_interval_seconds"
-	done
+	docker run \
+		--detach \
+		--name "$service" \
+		--network "$docker_network_name" \
+		--publish 0:8545 \
+		--volume "./tmp/$service/${type}_data:/var/lib/$type" \
+		--volume "./tmp/$service/${type}_etc:/etc/$type" \
+		"${extra_args[@]}" \
+		--entrypoint sh \
+		"$image" \
+		-c "$cmd"
 }
 
 ##############################################################################
