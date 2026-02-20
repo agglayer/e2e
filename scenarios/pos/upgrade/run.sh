@@ -114,6 +114,7 @@ upgrade_cl_service() {
 		--entrypoint sh \
 		"$NEW_HEIMDALL_V2_IMAGE" \
 		-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"
+	log_info "Container started"
 }
 
 upgrade_el_service() {
@@ -174,6 +175,7 @@ upgrade_el_service() {
 		--entrypoint sh \
 		"$image" \
 		-c "$cmd"
+	log_info "Container started"
 }
 
 ##############################################################################
@@ -415,17 +417,13 @@ mapfile -t el_containers_without_bp < <(printf '%s\n' "${el_containers[@]}" | gr
 # Upgrade CL services one by one.
 log_info "Upgrading ${#cl_containers_without_bp[@]} CL services sequentially (excluding block producer $block_producer_id)"
 for i in "${!cl_containers_without_bp[@]}"; do
-	log_info "CL service $((i + 1))/${#cl_containers_without_bp[@]}: ${cl_containers_without_bp[$i]}"
 	upgrade_cl_service "${cl_containers_without_bp[$i]}"
-	log_info "CL service $((i + 1))/${#cl_containers_without_bp[@]} done"
 done
 
 # Upgrade EL services one by one.
 log_info "Upgrading ${#el_containers_without_bp[@]} EL services sequentially (excluding block producer $block_producer_id)"
 for i in "${!el_containers_without_bp[@]}"; do
-	log_info "EL service $((i + 1))/${#el_containers_without_bp[@]}: ${el_containers_without_bp[$i]}"
 	upgrade_el_service "${el_containers_without_bp[$i]}"
-	log_info "EL service $((i + 1))/${#el_containers_without_bp[@]} done"
 done
 
 # Add small delay to allow services to start up before querying.
