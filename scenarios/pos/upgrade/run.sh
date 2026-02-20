@@ -9,7 +9,7 @@ load_env
 
 list_nodes() {
 	docker ps \
-		--filter "network=kt-$ENCLAVE_NAME" \
+		--filter "network=$docker_network_name" \
 		--filter "name=l2-cl" \
 		--filter "name=l2-el" \
 		--format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
@@ -22,7 +22,7 @@ list_nodes() {
 
 get_any_cl_api_url() {
 	local containers
-	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --filter "name=l2-cl" --format '{{.Names}}' | grep -v 'rabbitmq')
+	cl_containers=$(docker ps --filter "network=$docker_network_name" --filter "name=l2-cl" --format '{{.Names}}' | grep -v 'rabbitmq')
 	if [[ -z "$cl_containers" ]]; then
 		log_error "No L2 CL containers available" >&2
 		return 1
@@ -45,7 +45,7 @@ get_any_cl_api_url() {
 
 get_any_el_rpc_url() {
 	local containers
-	el_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --filter "name=l2-el" --format '{{.Names}}')
+	el_containers=$(docker ps --filter "network=$docker_network_name" --filter "name=l2-el" --format '{{.Names}}')
 	if [[ -z "$el_containers" ]]; then
 		log_error "No L2 EL containers available" >&2
 		return 1
@@ -108,8 +108,7 @@ upgrade_cl_node() {
 	log_info "Stopping kurtosis service"
 	kurtosis service stop "$ENCLAVE_NAME" "$service"
 	docker wait "$container"
-	local network="kt-$ENCLAVE_NAME"
-	docker network disconnect "$network" "$container"
+	docker network disconnect "$docker_network_name" "$container"
 	log_info "Service stopped"
 
 	# Extract the data and configuration from the old container.
@@ -130,7 +129,7 @@ upgrade_cl_node() {
 		if docker run \
 			--detach \
 			--name "$service" \
-			--network "$network" \
+			--network "$docker_network_name" \
 			--publish 0:1317 \
 			--publish 0:26657 \
 			--volume "./tmp/$service/${type}_data:/var/lib/heimdall" \
@@ -166,8 +165,7 @@ upgrade_el_node() {
 	log_info "Stopping kurtosis service"
 	kurtosis service stop "$ENCLAVE_NAME" "$service"
 	docker wait "$container"
-	local network="kt-$ENCLAVE_NAME"
-	docker network disconnect "$network" "$container"
+	docker network disconnect "$docker_network_name" "$container"
 	log_info "Service stopped"
 
 	# Extract the data and configuration from the old container.
@@ -202,7 +200,7 @@ upgrade_el_node() {
 		if docker run \
 			--detach \
 			--name "$service" \
-			--network "$network" \
+			--network "$docker_network_name" \
 			--publish 0:8545 \
 			--volume "./tmp/$service/${type}_data:/var/lib/$type" \
 			--volume "./tmp/$service/${type}_etc:/etc/$type" \
@@ -223,7 +221,7 @@ upgrade_el_node() {
 }
 
 query_rpc_nodes() {
-	docker ps --filter "network=kt-$ENCLAVE_NAME" --filter "name=l2-el" --format '{{.Names}}' |
+	docker ps --filter "network=$docker_network_name" --filter "name=l2-el" --format '{{.Names}}' |
 		while read -r container; do
 			host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 			if [[ -n "$host_port" ]]; then
@@ -268,6 +266,8 @@ if [[ -z "$ENCLAVE_NAME" ]]; then
 	exit 1
 fi
 log_info "Using enclave name: $ENCLAVE_NAME"
+docker_network_name="kt-$ENCLAVE_NAME"
+log_info "Using Docker network name: $docker_network_name"
 
 # Check if running as root/sudo
 if [[ $EUID -ne 0 ]]; then
@@ -403,7 +403,7 @@ log_info "Current block producer ID: $block_producer_id"
 cl_containers=()
 while IFS= read -r container; do
 	cl_containers+=("$container")
-done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' |
+done < <(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' |
 	grep "l2-cl" |
 	grep -v "rabbitmq" |
 	grep -v "l2-cl-$block_producer_id-" |
@@ -412,7 +412,7 @@ done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' |
 el_containers=()
 while IFS= read -r container; do
 	el_containers+=("$container")
-done < <(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' |
+done < <(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' |
 	grep "l2-el" |
 	grep -v "l2-el-$block_producer_id-" |
 	sort -V)
@@ -449,12 +449,12 @@ wait_for_producer_rotation "$block_producer_id"
 
 # Upgrade the old block producer
 log_info "Upgrading the old block producer"
-cl_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-" | grep -v "rabbitmq")
+cl_container=$(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-" | grep -v "rabbitmq")
 if [[ -z "$cl_container" ]]; then
 	log_error "Could not find CL container for old block producer ID $block_producer_id"
 	exit 1
 fi
-el_container=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
+el_container=$(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
 if [[ -z "$el_container" ]]; then
 	log_error "Could not find EL container for old block producer ID $block_producer_id"
 	exit 1
