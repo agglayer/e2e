@@ -12,6 +12,10 @@ Test a rolling upgrade of [kurtosis-pos](https://github.com/0xPolygon/kurtosis-p
    - `NEW_HEIMDALL_V2_IMAGE`: Target Heimdall v2 client image
    - `NEW_ERIGON_IMAGE`: Target Erigon client image
 
+   ```bash
+   cp .env.example .env
+   ```
+
 2. (Optional) Customize `params.yml` for devnet configuration.
 
 3. Run the scenario:
