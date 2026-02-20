@@ -66,11 +66,8 @@ get_any_el_rpc_url() {
 	return 1
 }
 
-# Get the block producer val_id for the current span.
-# Fetches the current block number from an EL node, then walks spans backwards
-# from latest to find the span containing that block.
 get_block_producer_id() {
-	# Get current block number from any available EL RPC URL.
+	# Get current block number.
 	local el_rpc_url block_number
 	el_rpc_url=$(get_any_el_rpc_url) || {
 		log_error "No EL RPC URL available" >&2
@@ -81,7 +78,7 @@ get_block_producer_id() {
 		return 1
 	}
 
-	# Get latest span ID from any available CL API URL.
+	# Get latest span ID.
 	local cl_api_url latest_span_id
 	cl_api_url=$(get_any_cl_api_url) || {
 		log_error "No CL API URL available" >&2
