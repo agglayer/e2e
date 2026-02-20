@@ -99,7 +99,7 @@ wait_for_devnet_to_reach_block() {
 			log_info "All EL nodes reached block $target_block"
 			return 0
 		fi
-
+		log_info "Not all EL nodes reached block $target_block, retrying in 10s..."
 		sleep 10
 	done
 	log_error "Not all EL nodes reached block $target_block after $num_steps steps"
