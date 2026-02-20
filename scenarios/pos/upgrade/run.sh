@@ -67,26 +67,26 @@ get_block_producer_id() {
 }
 
 wait_for_producer_rotation() {
-	original_producer_id="$1"
-	if [[ -z "$original_producer_id" ]]; then
-		log_error "Original producer ID is required"
+	local original_bp_id="$1"
+	if [[ -z "$original_bp_id" ]]; then
+		log_error "Original block producer ID is required"
 		return 1
 	fi
 
-	log_info "Waiting for block producer rotation..."
-	max_wait_seconds=300 # 5 minutes max wait (enough for multiple span rotations).
-	check_interval=10    # Check every 10 seconds.
-	elapsed=0
+	log_info "Waiting for block producer rotation"
+	local max_wait_seconds=300 # Five minutes should be enough for multiple span rotations.
+	local check_interval_seconds=10
+	local elapsed=0
 	while [[ $elapsed -lt $max_wait_seconds ]]; do
-		current_producer_id=$(get_block_producer_id)
-		log_info "Current producer: $current_producer_id"
-		if [[ "$current_producer_id" != "$original_producer_id" ]]; then
+		local bp_id=$(get_block_producer_id)
+		log_info "Block producer ID: $bp_id"
+		if [[ "$bp_id" != "$original_bp_id" ]]; then
 			log_info "Block producer rotated!"
 			return 0
 		fi
-
-		sleep $check_interval
-		elapsed=$((elapsed + check_interval))
+		log_info "Block producer has not rotated, retrying in ${check_interval_seconds}s..."
+		sleep "$check_interval_seconds"
+		elapsed=$((elapsed + check_interval_seconds))
 	done
 
 	log_error "Block producer did not rotate after ${max_wait_seconds}s"
@@ -174,7 +174,7 @@ upgrade_cl_node() {
 	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
 	# but most failures (bad image, missing config) are not transient and retrying won't help.
 	log_info "Starting new container with image: $new_heimdall_v2_image"
-	local max_attempts=3 attempt
+	local max_attempts=3 check_interval_seconds=3 attempt
 	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
 		if docker run \
 			--detach \
@@ -195,9 +195,9 @@ upgrade_cl_node() {
 			log_error "Failed to start new container after $max_attempts attempts"
 			exit 1
 		fi
-		log_info "Attempt $attempt failed, retrying in 3s..."
+		log_info "Attempt $attempt failed, retrying in ${check_interval_seconds}s..."
 		docker rm -f "$service" || true
-		sleep 3
+		sleep "$check_interval_seconds"
 	done
 }
 
@@ -245,7 +245,7 @@ upgrade_el_node() {
 	fi
 
 	log_info "Starting new container with image: $image"
-	local max_attempts=3 attempt
+	local max_attempts=3 check_interval_seconds=3 attempt
 	for ((attempt = 1; attempt <= max_attempts; attempt++)); do
 		if docker run \
 			--detach \
@@ -264,9 +264,9 @@ upgrade_el_node() {
 			log_error "Failed to start new container after $max_attempts attempts"
 			exit 1
 		fi
-		log_info "Attempt $attempt failed, retrying in 3s..."
+		log_info "Attempt $attempt failed, retrying in ${check_interval_seconds}s..."
 		docker rm -f "$service" || true
-		sleep 3
+		sleep "$check_interval_seconds"
 	done
 }
 
