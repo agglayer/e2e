@@ -24,16 +24,20 @@ get_any_cl_api_url() {
 	local containers
 	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-cl' | grep -v 'rabbitmq')
 	if [[ -z "$cl_containers" ]]; then
-		echo "No L2 CL containers available" >&2
+		log_error "No L2 CL containers available" >&2
 		return 1
 	fi
 
-	local container host_port
+	local container host_port url
 	for container in $cl_containers; do
 		host_port=$(docker port "$container" 1317 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
-			echo "http://$host_port"
-			return 0
+			url="http://$host_port"
+			# Liveness check
+			if curl -sf "${url}/bor/spans/latest" &>/dev/null; then
+				log_error "$url"
+				return 0
+			fi
 		fi
 	done
 	return 1
