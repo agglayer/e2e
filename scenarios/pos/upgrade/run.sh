@@ -192,63 +192,8 @@ upgrade_el_node() {
 }
 
 ##############################################################################
-# UTILITY FUNCTIONS
+# POLLING FUNCTIONS
 ##############################################################################
-list_nodes() {
-	docker ps \
-		--filter "network=$docker_network_name" \
-		--filter "name=l2-cl" \
-		--filter "name=l2-el" \
-		--format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
-		grep -v rabbitmq |
-		(
-			sed -u 1q
-			sort -V
-		)
-}
-
-query_rpc_nodes() {
-	local host_port block_number
-	while IFS= read -r container; do
-		host_port=$(docker port "$container" 8545 | head -1 | sed 's/0.0.0.0/127.0.0.1/')
-		if [[ -n "$host_port" ]]; then
-			block_number=$(cast bn --rpc-url "http://$host_port")
-			log_info -n "- $container: $block_number"
-		else
-			log_info "- $container: no published port"
-		fi
-	done < <(get_el_containers)
-}
-
-get_block_producer_id() {
-	# Get current block number.
-	local el_rpc_url block_number
-	el_rpc_url=$(get_any_el_rpc_url)
-	block_number=$(cast bn --rpc-url "$el_rpc_url")
-
-	# Get latest span ID.
-	local cl_api_url latest_span_id
-	cl_api_url=$(get_any_cl_api_url)
-	latest_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
-	log_info "Current block: $block_number, latest span ID: $latest_span_id" >&2
-
-	# Walk backwards from latest span to find the one containing the current block.
-	local span_id span span_start span_end producer_id
-	for ((span_id = latest_span_id; span_id >= 0; span_id--)); do
-		span=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span')
-		span_start=$(echo "$span" | jq -r '.start_block')
-		span_end=$(echo "$span" | jq -r '.end_block')
-		if [[ "$block_number" -ge "$span_start" ]] && [[ "$block_number" -le "$span_end" ]]; then
-			producer_id=$(echo "$span" | jq -r '.selected_producers[0].val_id')
-			log_info "Block $block_number is in span $span_id ($span_start-$span_end), producer val_id: $producer_id" >&2
-			echo "$producer_id"
-			return 0
-		fi
-	done
-	log_error "No span found containing block $block_number" >&2
-	return 1
-}
-
 wait_for_devnet_to_reach_block() {
 	local target_block="$1"
 	if [[ -z "$target_block" ]]; then
@@ -257,6 +202,7 @@ wait_for_devnet_to_reach_block() {
 	fi
 
 	# Get EL services.
+	local el_services
 	el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
 
 	# Wait for all EL nodes to reach the target block.
@@ -312,6 +258,64 @@ wait_for_producer_rotation() {
 	done
 
 	log_error "Block producer did not rotate after ${max_wait_seconds}s"
+	return 1
+}
+
+##############################################################################
+# UTILITY FUNCTIONS
+##############################################################################
+list_nodes() {
+	docker ps \
+		--filter "network=$docker_network_name" \
+		--filter "name=l2-cl" \
+		--filter "name=l2-el" \
+		--format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
+		grep -v rabbitmq |
+		(
+			sed -u 1q
+			sort -V
+		)
+}
+
+query_rpc_nodes() {
+	local host_port block_number
+	while IFS= read -r container; do
+		host_port=$(docker port "$container" 8545 | head -1 | sed 's/0.0.0.0/127.0.0.1/')
+		if [[ -n "$host_port" ]]; then
+			block_number=$(cast bn --rpc-url "http://$host_port")
+			log_info "- $container: $block_number"
+		else
+			log_info "- $container: no published port"
+		fi
+	done < <(get_el_containers)
+}
+
+get_block_producer_id() {
+	# Get current block number.
+	local el_rpc_url block_number
+	el_rpc_url=$(get_any_el_rpc_url)
+	block_number=$(cast bn --rpc-url "$el_rpc_url")
+
+	# Get latest span ID.
+	local cl_api_url latest_span_id
+	cl_api_url=$(get_any_cl_api_url)
+	latest_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
+	log_info "Current block: $block_number, latest span ID: $latest_span_id" >&2
+
+	# Walk backwards from latest span to find the one containing the current block.
+	local span_id span span_start span_end producer_id
+	for ((span_id = latest_span_id; span_id >= 0; span_id--)); do
+		span=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span')
+		span_start=$(echo "$span" | jq -r '.start_block')
+		span_end=$(echo "$span" | jq -r '.end_block')
+		if [[ "$block_number" -ge "$span_start" ]] && [[ "$block_number" -le "$span_end" ]]; then
+			producer_id=$(echo "$span" | jq -r '.selected_producers[0].val_id')
+			log_info "Block $block_number is in span $span_id ($span_start-$span_end), producer val_id: $producer_id" >&2
+			echo "$producer_id"
+			return 0
+		fi
+	done
+	log_error "No span found containing block $block_number" >&2
 	return 1
 }
 
