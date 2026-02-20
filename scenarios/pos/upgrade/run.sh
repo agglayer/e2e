@@ -1,6 +1,8 @@
 #!/bin/env bash
 set -e
+# shellcheck source=../../common/log.sh
 source ../../common/log.sh
+# shellcheck source=../../common/load-env.sh
 source ../../common/load-env.sh
 load_env
 
@@ -81,8 +83,9 @@ wait_for_devnet_to_reach_block() {
 	for step in $(seq 1 "${num_steps}"); do
 		log_info "Check ${step}/${num_steps}"
 		while IFS= read -r service; do
-			local rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc)
-			local block_number=$(cast bn --rpc-url "$rpc_url")
+			local rpc_url block_number
+			rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc)
+			block_number=$(cast bn --rpc-url "$rpc_url")
 			local status="OK"
 			if [[ "$block_number" -lt "$target_block" ]]; then
 				status="NOT READY"
@@ -112,7 +115,8 @@ wait_for_producer_rotation() {
 	local check_interval_seconds=10
 	local elapsed=0
 	while [[ $elapsed -lt $max_wait_seconds ]]; do
-		local bp_id=$(get_block_producer_id)
+		local bp_id
+		bp_id=$(get_block_producer_id)
 		log_info "Block producer ID: $bp_id"
 		if [[ "$bp_id" != "$original_bp_id" ]]; then
 			log_info "Block producer rotated!"
@@ -239,7 +243,8 @@ upgrade_el_node() {
 		exit 1
 	fi
 	local service=${container%%--*} # l2-el-1-bor-heimdall-v2-validator
-	local type=$(echo "$service" | cut -d'-' -f4) # bor or erigon
+	local type
+	type=$(echo "$service" | cut -d'-' -f4) # bor or erigon
 	log_info "Upgrading EL service: $service"
 
 	# Stop the kurtosis service and wait for it to fully stop.
@@ -262,11 +267,12 @@ upgrade_el_node() {
 	# Start a new container with the new image and the same data, in the same docker network.
 	# TODO: Consider removing the retry loop. It was added for transient Docker daemon issues,
 	# but most failures (bad image, missing config) are not transient and retrying won't help.
-	local image cmd extra_args
+	local image cmd
+	local extra_args=()
 	if [[ "$type" == "bor" ]]; then
 		image="$NEW_BOR_IMAGE"
 		cmd="/usr/local/share/container-proc-manager.sh bor server --config /etc/bor/config.toml"
-		extra_args="--volume ./tmp/$service/${type}_scripts:/usr/local/share"
+		extra_args=("--volume" "./tmp/$service/${type}_scripts:/usr/local/share")
 	elif [[ "$type" == "erigon" ]]; then
 		image="$NEW_ERIGON_IMAGE"
 		cmd="while ! erigon --config /etc/erigon/config.toml; do echo -e '\n❌ Erigon failed to start. Retrying in five seconds...\n'; sleep 5; done"
@@ -285,7 +291,7 @@ upgrade_el_node() {
 			--publish 0:8545 \
 			--volume "./tmp/$service/${type}_data:/var/lib/$type" \
 			--volume "./tmp/$service/${type}_etc:/etc/$type" \
-			$extra_args \
+			"${extra_args[@]}" \
 			--entrypoint sh \
 			"$image" \
 			-c "$cmd"; then
