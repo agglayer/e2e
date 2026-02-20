@@ -130,16 +130,15 @@ wait_for_producer_rotation() {
 ##############################################################################
 # SERVICE DISCOVERY FUNCTIONS
 ##############################################################################
-get_any_cl_api_url() {
-	local containers
-	cl_containers=$(docker ps --filter "network=$docker_network_name" --filter "name=l2-cl" --format '{{.Names}}' | grep -v 'rabbitmq')
-	if [[ -z "$cl_containers" ]]; then
-		log_error "No L2 CL containers available" >&2
-		return 1
-	fi
+get_cl_containers() {
+	docker ps --filter "network=$docker_network_name" --filter "name=l2-cl" --format '{{.Names}}' |
+		grep -v "rabbitmq" |
+		sort -V
+}
 
+get_any_cl_api_url() {
 	local container host_port url
-	for container in $cl_containers; do
+	while IFS= read -r container; do
 		host_port=$(docker port "$container" 1317 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
 			url="http://$host_port"
@@ -149,18 +148,16 @@ get_any_cl_api_url() {
 				return 0
 			fi
 		fi
-	done
+	done < <(get_cl_containers)
 	return 1
 }
 
-get_any_el_rpc_url() {
-	local containers
-	el_containers=$(docker ps --filter "network=$docker_network_name" --filter "name=l2-el" --format '{{.Names}}')
-	if [[ -z "$el_containers" ]]; then
-		log_error "No L2 EL containers available" >&2
-		return 1
-	fi
+get_el_containers() {
+	docker ps --filter "network=$docker_network_name" --filter "name=l2-el" --format '{{.Names}}' |
+		sort -V
+}
 
+get_any_el_rpc_url() {
 	local container host_port url
 	for container in $el_containers; do
 		host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
@@ -172,7 +169,7 @@ get_any_el_rpc_url() {
 				return 0
 			fi
 		fi
-	done
+	done < <(get_el_containers)
 	return 1
 }
 
@@ -308,6 +305,10 @@ upgrade_el_node() {
 # MAIN WORKFLOW
 ##############################################################################
 
+##############################################################################
+# PRE-CHECKS AND SETUP
+##############################################################################
+
 if [[ -z "$ENCLAVE_NAME" ]]; then
 	log_error "ENCLAVE_NAME environment variable is not set."
 	exit 1
@@ -387,6 +388,10 @@ fi
 rm -rf ./tmp
 mkdir -p ./tmp
 
+##############################################################################
+# DEPLOYMENT
+##############################################################################
+
 # Deploy the devnet.
 log_info "Deploying the devnet, this may take a few minutes..."
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -401,77 +406,82 @@ rio_fork_block=${RIO_FORK_BLOCK:-128}
 log_info "Waiting for all EL nodes to reach the Rio fork block $rio_fork_block"
 wait_for_devnet_to_reach_block "$rio_fork_block"
 
+##############################################################################
+# NON-BLOCK-PRODUCER NODES UPGRADE
+##############################################################################
+
 # Get the block producer.
 block_producer_id=$(get_block_producer_id)
 log_info "Current block producer ID: $block_producer_id"
 
 # Collect CL and EL containers to upgrade, excluding the current block producer.
-cl_containers=()
-while IFS= read -r container; do
-	cl_containers+=("$container")
-done < <(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' |
-	grep "l2-cl" |
-	grep -v "rabbitmq" |
-	grep -v "l2-cl-$block_producer_id-" |
-	sort -V)
+mapfile -t cl_containers < <(get_cl_containers)
+mapfile -t cl_containers_without_bp < <(printf '%s\n' "${cl_containers[@]}" | grep -v "l2-cl-$block_producer_id-")
+mapfile -t el_containers < <(get_el_containers)
+mapfile -t el_containers_without_bp < <(printf '%s\n' "${el_containers[@]}" | grep -v "l2-el-$block_producer_id-")
 
-el_containers=()
-while IFS= read -r container; do
-	el_containers+=("$container")
-done < <(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' |
-	grep "l2-el" |
-	grep -v "l2-el-$block_producer_id-" |
-	sort -V)
-
-# Upgrade CL nodes one by one, then EL nodes one by one.
-log_info "Upgrading ${#cl_containers[@]} CL nodes sequentially (excluding block producer $block_producer_id)"
-for i in "${!cl_containers[@]}"; do
-	log_info "CL node $((i + 1))/${#cl_containers[@]}: ${cl_containers[$i]}"
-	upgrade_cl_node "${cl_containers[$i]}"
-	log_info "CL node $((i + 1))/${#cl_containers[@]} done"
-	sleep 2
+# Upgrade CL nodes one by one.
+log_info "Upgrading ${#cl_containers_without_bp[@]} CL nodes sequentially (excluding block producer $block_producer_id)"
+for i in "${!cl_containers_without_bp[@]}"; do
+	log_info "CL node $((i + 1))/${#cl_containers_without_bp[@]}: ${cl_containers_without_bp[$i]}"
+	upgrade_cl_node "${cl_containers_without_bp[$i]}"
+	log_info "CL node $((i + 1))/${#cl_containers_without_bp[@]} done"
 done
 
-log_info "Upgrading ${#el_containers[@]} EL nodes sequentially (excluding block producer $block_producer_id)"
-for i in "${!el_containers[@]}"; do
-	log_info "EL node $((i + 1))/${#el_containers[@]}: ${el_containers[$i]}"
-	upgrade_el_node "${el_containers[$i]}"
-	log_info "EL node $((i + 1))/${#el_containers[@]} done"
-	sleep 2
+# Upgrade EL nodes one by one.
+log_info "Upgrading ${#el_containers_without_bp[@]} EL nodes sequentially (excluding block producer $block_producer_id)"
+for i in "${!el_containers_without_bp[@]}"; do
+	log_info "EL node $((i + 1))/${#el_containers_without_bp[@]}: ${el_containers_without_bp[$i]}"
+	upgrade_el_node "${el_containers_without_bp[$i]}"
+	log_info "EL node $((i + 1))/${#el_containers_without_bp[@]} done"
 done
 
-log_info "All non-producer nodes upgraded, waiting for block producer rotation before upgrading producer $block_producer_id"
-
+# Add small delay to allow nodes to start up before querying.
 sleep 10
+log_info "All non-producer nodes upgraded"
 
 # Query RPC nodes.
 log_info "Querying RPC nodes"
 query_rpc_nodes
+
+##############################################################################
+# WAIT FOR SPAN ROTATION
+##############################################################################
 
 # Wait for natural span rotation.
 # In devnet: 1s block time, 16 blocks per sprint, 8 sprints per span = 128s (~2min) per span.
 # Once an upgraded validator takes over as block producer, we can safely upgrade the old one.
+log_info "Waiting for block producer rotation before upgrading producer $block_producer_id"
 wait_for_producer_rotation "$block_producer_id"
 
-# Upgrade the old block producer.
+##############################################################################
+# BLOCK PRODUCER UPGRADE
+##############################################################################
 log_info "Upgrading the old block producer"
-cl_container=$(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-" | grep -v "rabbitmq")
+
+# Upgrade CL node.
+cl_container=$(printf '%s\n' "${cl_containers[@]}" | grep "l2-cl-$block_producer_id-")
 if [[ -z "$cl_container" ]]; then
 	log_error "Could not find CL container for old block producer ID $block_producer_id"
 	exit 1
 fi
-el_container=$(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' | grep "l2-el-$block_producer_id-")
+upgrade_cl_node "$cl_container"
+
+# Upgrade EL node.
+el_container=$(printf '%s\n' "${el_containers[@]}" | grep "l2-el-$block_producer_id-")
 if [[ -z "$el_container" ]]; then
 	log_error "Could not find EL container for old block producer ID $block_producer_id"
 	exit 1
 fi
-upgrade_cl_node "$cl_container"
 upgrade_el_node "$el_container"
-list_nodes
 
-# Add small delay to allow the node to start up before querying.
-sleep 15
+# Add small delay to allow node to start up before querying.
+sleep 10
+log_info "Block producer $block_producer_id upgraded"
 
 # Query RPC nodes.
 log_info "Querying RPC nodes"
 query_rpc_nodes
+
+# List all nodes.
+list_nodes
