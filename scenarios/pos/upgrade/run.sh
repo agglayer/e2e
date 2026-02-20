@@ -113,7 +113,7 @@ upgrade_cl_service() {
 		--volume "./tmp/$service/${type}_scripts:/usr/local/share" \
 		--entrypoint sh \
 		"$NEW_HEIMDALL_V2_IMAGE" \
-		-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"; then
+		-c "/usr/local/share/container-proc-manager.sh heimdalld start --all --bridge --home /etc/heimdall --log_no_color --rest-server"
 }
 
 upgrade_el_service() {
