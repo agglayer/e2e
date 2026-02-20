@@ -159,7 +159,7 @@ get_el_containers() {
 
 get_any_el_rpc_url() {
 	local container host_port url
-	for container in $el_containers; do
+	while IFS= read -r container; do
 		host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
 			url="http://$host_port"
