@@ -7,6 +7,9 @@ load_env
 # Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet
 # This script is exclusively about L2 nodes.
 
+##############################################################################
+# UTILITY FUNCTIONS
+##############################################################################
 list_nodes() {
 	docker ps \
 		--filter "network=$docker_network_name" \
@@ -20,6 +23,79 @@ list_nodes() {
 		)
 }
 
+query_rpc_nodes() {
+	local host_port block_number
+	docker ps --filter "network=$docker_network_name" --filter "name=l2-el" --format '{{.Names}}' |
+		while read -r container; do
+			host_port=$(docker port "$container" 8545 | head -1 | sed 's/0.0.0.0/127.0.0.1/')
+			if [[ -n "$host_port" ]]; then
+				block_number=$(cast bn --rpc-url "http://$host_port")
+				echo -n "$container: $block_number"
+			else
+				echo "$container: no published port"
+			fi
+		done
+}
+
+get_block_producer_id() {
+	# Get current block number.
+	local el_rpc_url block_number
+	el_rpc_url=$(get_any_el_rpc_url)
+	block_number=$(cast bn --rpc-url "$el_rpc_url")
+
+	# Get latest span ID.
+	local cl_api_url latest_span_id
+	cl_api_url=$(get_any_cl_api_url)
+	latest_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
+	log_info "Current block: $block_number, latest span ID: $latest_span_id" >&2
+
+	# Walk backwards from latest span to find the one containing the current block.
+	local span_id span span_start span_end producer_id
+	for ((span_id = latest_span_id; span_id >= 0; span_id--)); do
+		span=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span')
+		span_start=$(echo "$span" | jq -r '.start_block')
+		span_end=$(echo "$span" | jq -r '.end_block')
+		if [[ "$block_number" -ge "$span_start" ]] && [[ "$block_number" -le "$span_end" ]]; then
+			producer_id=$(echo "$span" | jq -r '.selected_producers[0].val_id')
+			log_info "Block $block_number is in span $span_id ($span_start-$span_end), producer val_id: $producer_id" >&2
+			echo "$producer_id"
+			return 0
+		fi
+	done
+	log_error "No span found containing block $block_number" >&2
+	return 1
+}
+
+wait_for_producer_rotation() {
+	original_producer_id="$1"
+	if [[ -z "$original_producer_id" ]]; then
+		log_error "Original producer ID is required"
+		return 1
+	fi
+
+	log_info "Waiting for block producer rotation..."
+	max_wait_seconds=300 # 5 minutes max wait (enough for multiple span rotations)
+	check_interval=10    # Check every 10 seconds
+	elapsed=0
+	while [[ $elapsed -lt $max_wait_seconds ]]; do
+		current_producer_id=$(get_block_producer_id)
+		log_info "Current producer: $current_producer_id"
+		if [[ "$current_producer_id" != "$original_producer_id" ]]; then
+			log_info "Block producer rotated!"
+			return 0
+		fi
+
+		sleep $check_interval
+		elapsed=$((elapsed + check_interval))
+	done
+
+	log_error "Block producer did not rotate after ${max_wait_seconds}s"
+	return 1
+}
+
+##############################################################################
+# SERVICE DISCOVERY FUNCTIONS
+##############################################################################
 get_any_cl_api_url() {
 	local containers
 	cl_containers=$(docker ps --filter "network=$docker_network_name" --filter "name=l2-cl" --format '{{.Names}}' | grep -v 'rabbitmq')
@@ -66,35 +142,9 @@ get_any_el_rpc_url() {
 	return 1
 }
 
-get_block_producer_id() {
-	# Get current block number.
-	local el_rpc_url block_number
-	el_rpc_url=$(get_any_el_rpc_url)
-	block_number=$(cast bn --rpc-url "$el_rpc_url")
-
-	# Get latest span ID.
-	local cl_api_url latest_span_id
-	cl_api_url=$(get_any_cl_api_url)
-	latest_span_id=$(curl -s "${cl_api_url}/bor/spans/latest" | jq -r '.span.id')
-	log_info "Current block: $block_number, latest span ID: $latest_span_id" >&2
-
-	# Walk backwards from latest span to find the one containing the current block.
-	local span_id span span_start span_end producer_id
-	for ((span_id = latest_span_id; span_id >= 0; span_id--)); do
-		span=$(curl -s "${cl_api_url}/bor/spans/${span_id}" | jq -r '.span')
-		span_start=$(echo "$span" | jq -r '.start_block')
-		span_end=$(echo "$span" | jq -r '.end_block')
-		if [[ "$block_number" -ge "$span_start" ]] && [[ "$block_number" -le "$span_end" ]]; then
-			producer_id=$(echo "$span" | jq -r '.selected_producers[0].val_id')
-			log_info "Block $block_number is in span $span_id ($span_start-$span_end), producer val_id: $producer_id" >&2
-			echo "$producer_id"
-			return 0
-		fi
-	done
-	log_error "No span found containing block $block_number" >&2
-	return 1
-}
-
+##############################################################################
+# UPGRADE OPERATIONS
+##############################################################################
 upgrade_cl_node() {
 	local container="$1"
 	if [[ -z "$container" ]]; then
@@ -220,45 +270,9 @@ upgrade_el_node() {
 	done
 }
 
-query_rpc_nodes() {
-	docker ps --filter "network=$docker_network_name" --filter "name=l2-el" --format '{{.Names}}' |
-		while read -r container; do
-			host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
-			if [[ -n "$host_port" ]]; then
-				echo -n "$container: "
-				cast bn --rpc-url "http://$host_port" 2>/dev/null || echo "N/A"
-			else
-				echo "$container: no published port"
-			fi
-		done
-}
-
-wait_for_producer_rotation() {
-	original_producer_id="$1"
-	if [[ -z "$original_producer_id" ]]; then
-		log_error "Original producer ID is required"
-		return 1
-	fi
-
-	log_info "Waiting for block producer rotation..."
-	max_wait_seconds=300 # 5 minutes max wait (enough for multiple span rotations)
-	check_interval=10    # Check every 10 seconds
-	elapsed=0
-	while [[ $elapsed -lt $max_wait_seconds ]]; do
-		current_producer_id=$(get_block_producer_id)
-		log_info "Current producer: $current_producer_id"
-		if [[ "$current_producer_id" != "$original_producer_id" ]]; then
-			log_info "Block producer rotated!"
-			return 0
-		fi
-
-		sleep $check_interval
-		elapsed=$((elapsed + check_interval))
-	done
-
-	log_error "Block producer did not rotate after ${max_wait_seconds}s"
-	return 1
-}
+##############################################################################
+# MAIN WORKFLOW
+##############################################################################
 
 # Validate environment variables
 if [[ -z "$ENCLAVE_NAME" ]]; then
