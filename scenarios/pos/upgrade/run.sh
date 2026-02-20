@@ -4,7 +4,7 @@ source ../../common/log.sh
 source ../../common/load-env.sh
 load_env
 
-# Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet
+# Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet.
 # This script is exclusively about L2 nodes.
 
 ##############################################################################
@@ -74,8 +74,8 @@ wait_for_producer_rotation() {
 	fi
 
 	log_info "Waiting for block producer rotation..."
-	max_wait_seconds=300 # 5 minutes max wait (enough for multiple span rotations)
-	check_interval=10    # Check every 10 seconds
+	max_wait_seconds=300 # 5 minutes max wait (enough for multiple span rotations).
+	check_interval=10    # Check every 10 seconds.
 	elapsed=0
 	while [[ $elapsed -lt $max_wait_seconds ]]; do
 		current_producer_id=$(get_block_producer_id)
@@ -109,7 +109,7 @@ get_any_cl_api_url() {
 		host_port=$(docker port "$container" 1317 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
 			url="http://$host_port"
-			# Liveness check
+			# Liveness check.
 			if curl -sf "${url}/bor/spans/latest" &>/dev/null; then
 				log_error "$url"
 				return 0
@@ -132,7 +132,7 @@ get_any_el_rpc_url() {
 		host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
 			url="http://$host_port"
-			# Liveness check
+			# Liveness check.
 			if cast bn --rpc-url "$url" &>/dev/null; then
 				echo "$url"
 				return 0
@@ -274,7 +274,7 @@ upgrade_el_node() {
 # MAIN WORKFLOW
 ##############################################################################
 
-# Validate environment variables
+# Validate environment variables.
 if [[ -z "$ENCLAVE_NAME" ]]; then
 	log_error "ENCLAVE_NAME environment variable is not set."
 	exit 1
@@ -283,13 +283,14 @@ log_info "Using enclave name: $ENCLAVE_NAME"
 docker_network_name="kt-$ENCLAVE_NAME"
 log_info "Using Docker network name: $docker_network_name"
 
-# Check if running as root/sudo
+# Check if running as root/sudo.
+# TODO: Check if this is still necessary.
 if [[ $EUID -ne 0 ]]; then
 	log_error "This script must be run with sudo or as root"
 	exit 1
 fi
 
-# Check if the enclave already exists
+# Check if the enclave already exists.
 if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
 	log_error "The kurtosis enclave '$ENCLAVE_NAME' already exists."
 	log_error "Please remove it before running this script:"
@@ -297,8 +298,8 @@ if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
 	exit 1
 fi
 
-# Check for orphaned containers from previous runs
-# These are manually created containers that may remain after 'kurtosis enclave rm'
+# Check for orphaned containers from previous runs.
+# These are manually created containers that may remain after 'kurtosis enclave rm'.
 orphaned_containers=$(docker ps --all --format '{{.Names}}' | grep -E "^l2-(e|c)l-.*-.*-" || true)
 if [[ -n "$orphaned_containers" ]]; then
 	log_error "Found orphaned containers from a previous run:"
@@ -344,14 +345,14 @@ if ! docker image inspect "$new_erigon_image" &>/dev/null; then
 	docker pull "$new_erigon_image"
 fi
 
-# Clean up temporary directories from previous runs
+# Clean up temporary directories from previous runs.
 rm -rf ./tmp
 mkdir -p ./tmp
 
-# Add foundry to PATH for sudo execution
+# Add foundry to PATH for sudo execution.
 export PATH="$PATH:/home/$SUDO_USER/.foundry/bin"
 
-# Deploy the devnet - it might take a few minutes
+# Deploy the devnet - it might take a few minutes.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ ! -d "./kurtosis-pos" ]]; then
 	git clone https://github.com/0xPolygon/kurtosis-pos.git
@@ -365,13 +366,13 @@ kurtosis run --enclave "$ENCLAVE_NAME" --args-file "$SCRIPT_DIR/params.yml" .
 list_nodes
 popd || exit 1
 
-# Wait for all EL nodes to reach the target block (Rio HF activation)
-# Uses kurtosis port print since containers are still kurtosis-managed at this point
+# Wait for all EL nodes to reach the target block (Rio HF activation).
+# Uses kurtosis port print since containers are still kurtosis-managed at this point.
 RIO_HF="${RIO_HF:-128}"
 RIO_HF_TIMEOUT="${RIO_HF_TIMEOUT:-300}"
 log_info "Waiting for all EL nodes to reach block $RIO_HF (timeout: ${RIO_HF_TIMEOUT}s)"
 
-# Collect EL service names from kurtosis
+# Collect EL service names from kurtosis.
 el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
 
 end_time=$(($(date +%s) + RIO_HF_TIMEOUT))
@@ -409,11 +410,11 @@ while true; do
 	sleep 5
 done
 
-# Get the block producer
+# Get the block producer.
 block_producer_id=$(get_block_producer_id)
 log_info "Current block producer ID: $block_producer_id"
 
-# Collect CL and EL containers to upgrade, excluding the current block producer
+# Collect CL and EL containers to upgrade, excluding the current block producer.
 cl_containers=()
 while IFS= read -r container; do
 	cl_containers+=("$container")
@@ -431,7 +432,7 @@ done < <(docker ps --filter "network=$docker_network_name" --format '{{.Names}}'
 	grep -v "l2-el-$block_producer_id-" |
 	sort -V)
 
-# Upgrade CL nodes one by one, then EL nodes one by one
+# Upgrade CL nodes one by one, then EL nodes one by one.
 log_info "Upgrading ${#cl_containers[@]} CL nodes sequentially (excluding block producer $block_producer_id)"
 for i in "${!cl_containers[@]}"; do
 	log_info "CL node $((i + 1))/${#cl_containers[@]}: ${cl_containers[$i]}"
@@ -452,16 +453,16 @@ log_info "All non-producer nodes upgraded, waiting for block producer rotation b
 
 sleep 10
 
-# Query RPC nodes
+# Query RPC nodes.
 log_info "Querying RPC nodes"
 query_rpc_nodes
 
-# Wait for natural span rotation
-# In devnet: 1s block time, 16 blocks per sprint, 8 sprints per span = 128s (~2min) per span
-# Once an upgraded validator takes over as block producer, we can safely upgrade the old one
+# Wait for natural span rotation.
+# In devnet: 1s block time, 16 blocks per sprint, 8 sprints per span = 128s (~2min) per span.
+# Once an upgraded validator takes over as block producer, we can safely upgrade the old one.
 wait_for_producer_rotation "$block_producer_id"
 
-# Upgrade the old block producer
+# Upgrade the old block producer.
 log_info "Upgrading the old block producer"
 cl_container=$(docker ps --filter "network=$docker_network_name" --format '{{.Names}}' | grep "l2-cl-$block_producer_id-" | grep -v "rabbitmq")
 if [[ -z "$cl_container" ]]; then
@@ -477,9 +478,9 @@ upgrade_cl_node "$cl_container"
 upgrade_el_node "$el_container"
 list_nodes
 
-# Add small delay to allow the node to start up before querying
+# Add small delay to allow the node to start up before querying.
 sleep 15
 
-# Query RPC nodes
+# Query RPC nodes.
 log_info "Querying RPC nodes"
 query_rpc_nodes
