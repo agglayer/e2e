@@ -79,9 +79,10 @@ wait_for_devnet_to_reach_block() {
 	el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
 
 	# Wait for all EL nodes to reach the target block.
-	local num_steps=50 all_ready=true step
+	local num_steps=50 step
 	for step in $(seq 1 "${num_steps}"); do
 		log_info "Check ${step}/${num_steps}"
+		local all_ready=true
 		while IFS= read -r service; do
 			local rpc_url block_number
 			rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc)
