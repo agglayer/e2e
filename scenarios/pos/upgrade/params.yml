@@ -7,7 +7,7 @@ polygon_pos_package:
       cl_type: heimdall-v2
       cl_image: 0xpolygon/heimdall-v2:0.6.0
       el_type: bor
-      el_image: 0xpolygon/bor:2.6.0-arm64
+      el_image: 0xpolygon/bor:2.6.0-amd64
 
     # Bor and erigon RPC nodes
     - kind: rpc
@@ -15,7 +15,7 @@ polygon_pos_package:
       cl_type: heimdall-v2
       cl_image: 0xpolygon/heimdall-v2:0.6.0
       el_type: bor
-      el_image: 0xpolygon/bor:2.6.0-arm64
+      el_image: 0xpolygon/bor:2.6.0-amd64
 
     - kind: rpc
       count: 1
