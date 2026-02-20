@@ -21,7 +21,7 @@ Test a rolling upgrade of [kurtosis-pos](https://github.com/0xPolygon/kurtosis-p
 3. Run the scenario:
 
    ```bash
-   sudo bash run.sh
+   bash run.sh
    ```
 
 ## Cleanup
