@@ -5,7 +5,7 @@ source ../../common/load-env.sh
 load_env
 
 # Gradual upgrade of bor/heimdall nodes in kurtosis-pos devnet
-get_l2_nodes() {
+list_l2_nodes() {
 	docker ps \
 		--filter "network=kt-$ENCLAVE_NAME" \
 		--filter "name=l2-cl" \
@@ -369,8 +369,7 @@ git pull || log_info "git pull failed (likely running locally under sudo), conti
 git checkout "$KURTOSIS_POS_VERSION"
 kurtosis run --enclave "$ENCLAVE_NAME" --args-file "$SCRIPT_DIR/params.yml" .
 
-# Display L2 CL/EL nodes
-get_l2_nodes
+list_l2_nodes
 popd || exit 1
 
 # Wait for all EL nodes to reach the target block (Rio HF activation)
@@ -483,9 +482,7 @@ if [[ -z "$el_container" ]]; then
 fi
 upgrade_cl_node "$cl_container"
 upgrade_el_node "$el_container"
-
-# Display L2 CL/EL nodes
-get_l2_nodes
+list_l2_nodes
 
 # Add small delay to allow the node to start up before querying
 sleep 15
