@@ -202,34 +202,30 @@ upgrade_el_service() {
 ##############################################################################
 # POLLING FUNCTIONS
 ##############################################################################
-wait_for_devnet_to_reach_block() {
+wait_for_rpcs_to_reach_block() {
 	local target_block="$1"
 	if [[ -z "$target_block" ]]; then
 		log_error "Target block number is required"
 		return 1
 	fi
 
-	# Get EL services.
-	# Note that we rely on kurtosis CLI instead of docker as kurtosis services have not been stopped at this point.
-	local el_services
-	el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
-
 	# Wait for all RPCs to reach the target block.
-	local num_steps=50 step
+	local num_steps=50 step el_containers
+	mapfile -t el_containers < <(get_el_containers)
 	for step in $(seq 1 "${num_steps}"); do
 		log_info "Check ${step}/${num_steps}"
 		local all_ready=true
-		while IFS= read -r service; do
-			local rpc_url block_number
-			rpc_url=$(kurtosis port print "$ENCLAVE_NAME" "$service" rpc)
-			block_number=$(cast bn --rpc-url "$rpc_url")
+		for container in "${el_containers[@]}"; do
+			local host_port block_number
+			host_port=$(docker port "$container" 8545 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
+			block_number=$(cast bn --rpc-url "http://$host_port")
 			local status="OK"
 			if [[ "$block_number" -lt "$target_block" ]]; then
 				status="NOT READY"
 				all_ready=false
 			fi
-			log_info "- $service: $block_number / $target_block - $status"
-		done <<<"$el_services"
+			log_info "- $container: $block_number / $target_block - $status"
+		done
 
 		if $all_ready; then
 			log_info "All RPCs reached block $target_block"
@@ -423,7 +419,7 @@ list_containers
 # Wait for the devnet to reach the Rio HF block number.
 rio_fork_block=${RIO_FORK_BLOCK:-128}
 log_info "Waiting for all RPCs to reach the Rio fork block $rio_fork_block"
-wait_for_devnet_to_reach_block "$rio_fork_block"
+wait_for_rpcs_to_reach_block "$rio_fork_block"
 
 ##############################################################################
 # NON-BLOCK-PRODUCER UPGRADES
@@ -509,4 +505,4 @@ list_containers
 # Wait for the devnet to progress by a few blocks to ensure stability after the upgrade.
 target_block=$((rio_fork_block + 100))
 log_info "Waiting for all RPCs to reach block $target_block"
-wait_for_devnet_to_reach_block "$target_block"
+wait_for_rpcs_to_reach_block "$target_block"
