@@ -188,4 +188,42 @@ else
     rm "$TEMP_INVENTORY"
 fi
 
+# ── Update README.md test_tags section ──────────────────────────────────────
+README_FILE="${PROJECT_ROOT}/README.md"
+
+if [[ -f "$README_FILE" ]]; then
+  echo -e "${GREEN}Updating README.md test_tags section...${NC}"
+
+  # Generate the current sorted tag list from all .bats files.
+  new_tags=$(grep -hoR --include="*.bats" 'test_tags=[^ ]*' "$PROJECT_ROOT" \
+    | sed 's/.*test_tags=//' | tr ',' '\n' | LC_ALL=C sort -u | sed 's/^/- /')
+
+  # Use awk to replace the bullet-list block inside the ## test_tags section.
+  # State machine:
+  #   0 → looking for "## test_tags"
+  #   1 → inside test_tags section, before the ```bash code block
+  #   2 → inside the code block (between ```bash and closing ```)
+  #   3 → in the tag list (after closing ```); skip existing "- " lines
+  #   4 → done replacing, pass rest of file through unchanged
+  # seen_tag: tracks whether we've seen at least one "- " line in state 3,
+  #   so that blank lines *before* the tag list are passed through unchanged
+  #   (avoids premature insertion if there's a blank between ``` and first tag).
+  awk -v new_tags="$new_tags" '
+    BEGIN { state=0; seen_tag=0 }
+    state==0 && /^## test_tags$/  { state=1; print; next }
+    state==1 && /^```bash$/       { state=2; print; next }
+    state==2 && /^```$/           { state=3; print; next }
+    state==3 && /^- /             { seen_tag=1; next }
+    state==3 && /^$/ && !seen_tag { print; next }
+    state==3 && /^$/ && seen_tag  { printf "%s\n", new_tags; printf "\n"; state=4; next }
+    state==3 && /^## /            { printf "%s\n\n", new_tags; state=4; print; next }
+    state==3                      { printf "%s\n", new_tags; state=4; print; next }
+    { print }
+  ' "$README_FILE" > "${README_FILE}.tmp" && mv "${README_FILE}.tmp" "$README_FILE"
+
+  echo -e "${GREEN}README.md test_tags section updated.${NC}"
+else
+  echo -e "${YELLOW}README.md not found at ${README_FILE}, skipping tag update.${NC}"
+fi
+
 echo -e "${GREEN}Done!${NC}"
