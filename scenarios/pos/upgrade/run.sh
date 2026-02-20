@@ -204,6 +204,7 @@ wait_for_devnet_to_reach_block() {
 	fi
 
 	# Get EL services.
+	# Note that we rely on kurtosis CLI instead of docker as kurtosis services have not been stopped at this point.
 	local el_services
 	el_services=$(kurtosis enclave inspect "$ENCLAVE_NAME" | awk '/l2-el/ && /RUNNING/ {print $2}')
 
