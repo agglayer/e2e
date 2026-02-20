@@ -327,16 +327,6 @@ log_info "Using kurtosis enclave name: $ENCLAVE_NAME"
 docker_network_name="kt-$ENCLAVE_NAME"
 log_info "Using docker network name: $docker_network_name"
 
-# Check if running as root/sudo.
-# TODO: Check if this is still necessary.
-# if [[ $EUID -ne 0 ]]; then
-# 	log_error "This script must be run with sudo or as root"
-# 	exit 1
-# fi
-
-# Add foundry to PATH for sudo execution.
-export PATH="$PATH:/home/$SUDO_USER/.foundry/bin"
-
 # Check if the enclave already exists.
 if kurtosis enclave inspect "$ENCLAVE_NAME" &>/dev/null; then
 	log_error "The kurtosis enclave '$ENCLAVE_NAME' already exists."
