@@ -100,7 +100,7 @@ wait_for_devnet_to_reach_block() {
 			return 0
 		fi
 
-		sleep 5
+		sleep 10
 	done
 	log_error "Not all EL nodes reached block $target_block after $num_steps steps"
 	return 1
