@@ -18,10 +18,17 @@ get_l2_containers() {
 		)
 }
 
-# Get any available CL API URL (works for both kurtosis-managed and upgraded containers).
-get_any_cl_api_url() {
+# Get any available L2 CL API URL
+get_any_l2_cl_api_url() {
+	local containers
+	cl_containers=$(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-cl' | grep -v 'rabbitmq')
+	if [[ -z "$cl_containers" ]]; then
+		echo "No L2 CL containers available" >&2
+		return 1
+	fi
+
 	local container host_port
-	for container in $(docker ps --filter "network=kt-$ENCLAVE_NAME" --format '{{.Names}}' | grep 'l2-cl' | grep -v 'rabbitmq'); do
+	for container in $cl_containers; do
 		host_port=$(docker port "$container" 1317 2>/dev/null | head -1 | sed 's/0.0.0.0/127.0.0.1/')
 		if [[ -n "$host_port" ]]; then
 			echo "http://$host_port"
@@ -44,7 +51,7 @@ get_block_producer_id() {
 		echo "Failed to get block number from $el_rpc_url" >&2
 		return 1
 	}
-	cl_api_url=$(get_any_cl_api_url) || {
+	cl_api_url=$(get_any_l2_cl_api_url) || {
 		echo "No CL API URL available" >&2
 		return 1
 	}
