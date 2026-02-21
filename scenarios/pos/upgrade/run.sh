@@ -86,6 +86,7 @@ upgrade_cl_service() {
 	kurtosis service stop "$ENCLAVE_NAME" "$service"
 	docker wait "$container"
 	docker network disconnect "$docker_network_name" "$container"
+	sleep 1
 	log_info "Service stopped"
 
 	# Extract the data and configuration from the old container.
@@ -96,9 +97,6 @@ upgrade_cl_service() {
 	docker cp "$container":/etc/heimdall/data "./tmp/$service/${type}_etc_data"
 	docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts"
 	chmod -R 777 "./tmp/$service/"
-
-	# Remove the old container.
-	docker rm -f "$service"
 
 	# Start a new container with the new image and the same data, in the same docker network.
 	docker run \
@@ -133,6 +131,7 @@ upgrade_el_service() {
 	kurtosis service stop "$ENCLAVE_NAME" "$service"
 	docker wait "$container"
 	docker network disconnect "$docker_network_name" "$container"
+	sleep 1
 	log_info "Service stopped"
 
 	# Extract the data and configuration from the old container.
@@ -144,9 +143,6 @@ upgrade_el_service() {
 		docker cp "$container":/usr/local/share "./tmp/$service/${type}_scripts"
 	fi
 	chmod -R 777 "./tmp/$service/"
-
-	# Remove the old container.
-	docker rm -f "$service"
 
 	# Start a new container with the new image and the same data, in the same docker network.
 	local image cmd
@@ -255,10 +251,11 @@ list_containers() {
 		--filter "name=l2-el" \
 		--format "table {{.Names}}\t{{.Image}}\t{{.Status}}" |
 		grep -v rabbitmq |
-		(
-			sed -u 1q
+		{
+			IFS= read -r header
+			echo "$header"
 			sort -V
-		)
+		}
 }
 
 query_rpcs() {
@@ -477,7 +474,10 @@ query_rpcs
 log_info "Listing containers"
 list_containers
 
-# Wait for the devnet to progress by a few blocks to ensure stability after the upgrade.
-target_block=$((rio_fork_block + 100))
+# Wait for stability after the upgrade.
+# Non-BP services are upgraded at rio_fork_block, then the BP is upgraded after a natural span
+# rotation (128 blocks). Adding 50 extra blocks ensures the new block producer has produced
+# enough blocks to confirm the devnet is stable post-upgrade.
+target_block=$((rio_fork_block + 128 + 50))
 log_info "Waiting for all RPCs to reach block $target_block"
 wait_for_rpcs_to_reach_block "$target_block"
