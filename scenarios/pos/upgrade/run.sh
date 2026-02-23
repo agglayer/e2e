@@ -18,8 +18,10 @@ load_env
 ##############################################################################
 # SERVICE DISCOVERY FUNCTIONS
 ##############################################################################
-get_cl_el_containers() {
-	docker ps --filter "network=$docker_network_name" --filter "name=l2-cl" --filter "name=l2-el" --format '{{.Names}}' |
+get_orphaned_containers() {
+	# Note that we don't filter by network here because orphaned containers may have been disconnected
+	# from the network after their services were stopped.
+	docker ps --filter "name=l2-cl" --filter "name=l2-el" --format '{{.Names}}' |
 		grep -v "rabbitmq" |
 		sort -V
 }
@@ -327,7 +329,7 @@ fi
 
 # Check for orphaned containers from previous runs.
 # These are manually created containers that may remain after 'kurtosis enclave rm'.
-orphaned_containers=$(get_cl_el_containers)
+orphaned_containers=$(get_orphaned_containers)
 if [[ -n "$orphaned_containers" ]]; then
 	log_error "Found orphaned containers from a previous run:"
 	log_error "$orphaned_containers"
