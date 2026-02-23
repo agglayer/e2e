@@ -131,11 +131,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
+| 0x01 ecRecover: recovered address matches known signer | [Link](./tests/pos/precompiles.bats#L570) | |
 | 0x01 ecRecover: recovers signer from a valid ECDSA signature | [Link](./tests/pos/precompiles.bats#L214) | |
 | 0x0100 p256Verify (secp256r1): Wycheproof test vector returns 1 (MadhugiriPro+) | [Link](./tests/pos/precompiles.bats#L525) | |
+| 0x02 SHA-256: 'abc' matches NIST vector | [Link](./tests/pos/precompiles.bats#L560) | |
 | 0x02 SHA-256: hash of empty string equals known constant | [Link](./tests/pos/precompiles.bats#L232) | |
 | 0x03 RIPEMD-160: hash of empty string equals known constant | [Link](./tests/pos/precompiles.bats#L241) | |
+| 0x04 identity: 256-byte patterned data round-trip | [Link](./tests/pos/precompiles.bats#L545) | |
 | 0x04 identity: returns input bytes unchanged | [Link](./tests/pos/precompiles.bats#L250) | |
+| 0x05 modexp: 2^256 mod 13 equals 3 | [Link](./tests/pos/precompiles.bats#L594) | |
 | 0x05 modexp: 8^9 mod 10 equals 8 | [Link](./tests/pos/precompiles.bats#L259) | |
 | 0x06 ecAdd (alt_bn128): G + G returns a valid non-zero curve point | [Link](./tests/pos/precompiles.bats#L276) | |
 | 0x07 ecMul (alt_bn128): 2·G matches ecAdd(G, G) | [Link](./tests/pos/precompiles.bats#L291) | |
@@ -152,12 +156,56 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 50 concurrent eth_blockNumber requests all succeed and return consistent values | [Link](./tests/pos/rpc-concurrent-load.bats#L14) | |
 | 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/rpc-concurrent-load.bats#L58) | |
 | 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/rpc-concurrent-load.bats#L103) | |
+| 50 concurrent requests across additional RPC methods succeed | [Link](./tests/pos/rpc-concurrent-load.bats#L316) | |
+| ADDMOD and MULMOD compute correctly | [Link](./tests/pos/evm-state-invariants.bats#L1519) | |
+| BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/evm-state-invariants.bats#L1273) | |
+| BYTE opcode extracts correct byte from word | [Link](./tests/pos/evm-state-invariants.bats#L1470) | |
+| CALLDATASIZE returns correct input length | [Link](./tests/pos/evm-state-invariants.bats#L1421) | |
+| CODESIZE returns correct runtime size | [Link](./tests/pos/evm-state-invariants.bats#L1373) | |
+| COINBASE opcode returns block miner address | [Link](./tests/pos/evm-state-invariants.bats#L1101) | |
 | CREATE deploys to the address predicted by cast compute-address | [Link](./tests/pos/evm-state-invariants.bats#L82) | |
+| CREATE with maximum value transfer in constructor | [Link](./tests/pos/contract-creation-edge-cases.bats#L520) | |
+| CREATE2 address matches keccak256(0xff ++ deployer ++ salt ++ initCodeHash) | [Link](./tests/pos/evm-state-invariants.bats#L394) | |
+| CREATE2 deploys child to predicted salt-derived address | [Link](./tests/pos/contract-creation-edge-cases.bats#L207) | |
+| Calldata gas accounting: nonzero bytes cost more than zero bytes | [Link](./tests/pos/evm-state-invariants.bats#L1813) | |
+| Contract creation receipt has contractAddress field | [Link](./tests/pos/rpc-conformance.bats#L1036) | |
+| Cross-contract storage isolation: two contracts store different values at slot 0 | [Link](./tests/pos/evm-state-invariants.bats#L1581) | |
+| DELEGATECALL preserves caller context: msg.sender stored via proxy | [Link](./tests/pos/evm-state-invariants.bats#L612) | |
+| EIP-1559 sender decrease equals value plus effectiveGasPrice times gasUsed | [Link](./tests/pos/evm-state-invariants.bats#L238) | |
+| EIP-2930 type-1 access list tx fuzz and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L523) | |
+| EXTCODEHASH correctness for EOA, deployed contract, and nonexistent account | [Link](./tests/pos/evm-state-invariants.bats#L789) | |
+| Empty batch JSON-RPC returns empty array | [Link](./tests/pos/rpc-conformance.bats#L1114) | |
+| GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/evm-state-invariants.bats#L1223) | |
+| Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/evm-state-invariants.bats#L1790) | |
+| LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/evm-state-invariants.bats#L856) | |
+| Multiple storage slots in one transaction | [Link](./tests/pos/evm-state-invariants.bats#L1703) | |
+| NUMBER opcode returns correct block number | [Link](./tests/pos/evm-state-invariants.bats#L1175) | |
+| Nonce-too-low rejection | [Link](./tests/pos/evm-state-invariants.bats#L1754) | |
+| OOG during code-deposit phase fails the creation | [Link](./tests/pos/contract-creation-edge-cases.bats#L352) | |
+| Parent hash chain integrity across 5 blocks | [Link](./tests/pos/rpc-conformance.bats#L903) | |
+| SELFBALANCE returns contract's own balance | [Link](./tests/pos/evm-state-invariants.bats#L1326) | |
+| SELFDESTRUCT during construction leaves no code and zero balance | [Link](./tests/pos/contract-creation-edge-cases.bats#L315) | |
+| SSTORE + SLOAD roundtrip: stored value is retrievable and unwritten slots are zero | [Link](./tests/pos/evm-state-invariants.bats#L501) | |
+| SSTORE gas refund: clearing a storage slot uses less gas than setting it | [Link](./tests/pos/evm-state-invariants.bats#L960) | |
+| SSTORE overwrite: new value replaces old | [Link](./tests/pos/evm-state-invariants.bats#L1642) | |
+| STATICCALL cannot modify state: SSTORE attempt reverts | [Link](./tests/pos/evm-state-invariants.bats#L701) | |
+| Sum of receipt gasUsed matches block gasUsed | [Link](./tests/pos/rpc-conformance.bats#L935) | |
 | add new validator | [Link](./tests/pos/validator.bats#L20) | |
+| all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/evm-fuzz.bats#L896) | |
+| batch JSON-RPC returns array of matching results | [Link](./tests/pos/rpc-conformance.bats#L678) | |
+| batch JSON-RPC under concurrent load: 50 concurrent batch requests | [Link](./tests/pos/rpc-concurrent-load.bats#L483) | |
+| block timestamp monotonicity across 10 consecutive blocks | [Link](./tests/pos/rpc-conformance.bats#L848) | |
+| block-filling stress: rapid-fire large calldata txs | [Link](./tests/pos/evm-fuzz.bats#L851) | |
+| bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/rpc-conformance.bats#L486) | |
+| bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/rpc-conformance.bats#L509) | |
+| bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/rpc-conformance.bats#L463) | |
 | bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L51) | |
 | bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L188) | |
 | bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L139) | |
 | bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L95) | |
+| coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/evm-state-invariants.bats#L318) | |
+| concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/rpc-concurrent-load.bats#L248) | |
+| contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/evm-fuzz.bats#L792) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/contract-creation-edge-cases.bats#L124) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/contract-creation-edge-cases.bats#L150) | |
@@ -174,33 +222,73 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_call to plain EOA returns 0x | [Link](./tests/pos/rpc-conformance.bats#L60) | |
 | eth_chainId returns a value matching cast chain-id | [Link](./tests/pos/rpc-conformance.bats#L14) | |
 | eth_estimateGas for EOA transfer returns 21000 | [Link](./tests/pos/rpc-conformance.bats#L51) | |
+| eth_estimateGas for failing call returns error | [Link](./tests/pos/rpc-conformance.bats#L758) | |
+| eth_feeHistory returns baseFeePerGas array and oldestBlock | [Link](./tests/pos/rpc-conformance.bats#L315) | |
 | eth_gasPrice returns a valid non-zero hex value | [Link](./tests/pos/rpc-conformance.bats#L96) | |
+| eth_getBalance at historical block returns correct value | [Link](./tests/pos/rpc-conformance.bats#L1072) | |
+| eth_getBalance returns non-zero for funded account and zero for unused address | [Link](./tests/pos/rpc-conformance.bats#L161) | |
 | eth_getBlockByHash result matches eth_getBlockByNumber for latest block | [Link](./tests/pos/rpc-conformance.bats#L27) | |
+| eth_getBlockByNumber 'earliest' returns genesis block | [Link](./tests/pos/rpc-conformance.bats#L536) | |
+| eth_getBlockByNumber 'pending' returns valid response | [Link](./tests/pos/rpc-conformance.bats#L561) | |
+| eth_getBlockByNumber with fullTransactions=true returns full tx objects | [Link](./tests/pos/rpc-conformance.bats#L353) | |
+| eth_getBlockTransactionCountByNumber and ByHash agree on tx count | [Link](./tests/pos/rpc-conformance.bats#L251) | |
 | eth_getCode returns 0x for an EOA | [Link](./tests/pos/rpc-conformance.bats#L114) | |
 | eth_getCode returns non-empty bytecode for L2 StateReceiver contract | [Link](./tests/pos/rpc-conformance.bats#L123) | |
 | eth_getLogs for block 0 to 0 returns a valid array | [Link](./tests/pos/rpc-conformance.bats#L86) | |
 | eth_getLogs returns empty array for future block range | [Link](./tests/pos/rpc-conformance.bats#L69) | |
 | eth_getLogs with reversed block range returns error or empty array | [Link](./tests/pos/rpc-conformance.bats#L135) | |
+| eth_getProof returns valid Merkle proof structure | [Link](./tests/pos/rpc-conformance.bats#L802) | |
+| eth_getStorageAt returns zero for EOA and valid 32-byte word for contracts | [Link](./tests/pos/rpc-conformance.bats#L280) | |
+| eth_getTransactionByHash and ByBlockNumberAndIndex return consistent tx data | [Link](./tests/pos/rpc-conformance.bats#L191) | |
+| eth_getTransactionCount returns hex nonce matching cast nonce | [Link](./tests/pos/rpc-conformance.bats#L231) | |
+| eth_getTransactionReceipt has all required EIP fields | [Link](./tests/pos/rpc-conformance.bats#L721) | |
 | eth_getTransactionReceipt returns null for unknown transaction hash | [Link](./tests/pos/rpc-conformance.bats#L42) | |
+| eth_getUncleCountByBlockNumber returns 0 (PoS has no uncles) | [Link](./tests/pos/rpc-conformance.bats#L1020) | |
+| eth_maxPriorityFeePerGas returns a valid hex value | [Link](./tests/pos/rpc-conformance.bats#L304) | |
+| eth_sendRawTransaction rejects invalid signature | [Link](./tests/pos/rpc-conformance.bats#L611) | |
+| eth_sendRawTransaction rejects wrong chainId | [Link](./tests/pos/rpc-conformance.bats#L637) | |
+| eth_syncing returns false on synced node | [Link](./tests/pos/rpc-conformance.bats#L590) | |
+| fuzz contract creations and assert individual tx outcomes | [Link](./tests/pos/evm-fuzz.bats#L256) | |
+| fuzz node with EIP-1559 type-2 transactions and verify processing | [Link](./tests/pos/evm-fuzz.bats#L403) | |
 | fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L42) | |
 | fuzz node with edge-case gas limits and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L154) | |
+| fuzz node with mixed zero/non-zero calldata and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L341) | |
 | fuzz node with non-zero calldata transactions and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L206) | |
 | fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L103) | |
 | fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/precompiles.bats#L58) | |
+| gasUsed <= gasLimit for latest block | [Link](./tests/pos/rpc-conformance.bats#L883) | |
+| higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/rpc-concurrent-load.bats#L204) | |
+| insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/evm-state-invariants.bats#L543) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
+| large return data in constructor near EIP-170 limit (24000 bytes) succeeds | [Link](./tests/pos/contract-creation-edge-cases.bats#L576) | |
+| latest block contains required post-London fields and valid shapes | [Link](./tests/pos/rpc-conformance.bats#L415) | |
+| logsBloom is zero for genesis block (no log-emitting txs) | [Link](./tests/pos/rpc-conformance.bats#L994) | |
 | mixed concurrent RPC methods succeed without interfering with each other | [Link](./tests/pos/rpc-concurrent-load.bats#L143) | |
+| multi-sender concurrent fuzz: 10 wallets fire txs simultaneously | [Link](./tests/pos/evm-fuzz.bats#L661) | |
+| multi-sender concurrent tx submissions: 10 wallets x 5 txs each | [Link](./tests/pos/rpc-concurrent-load.bats#L415) | |
+| multiple CREATEs in single transaction: factory creates 5 children | [Link](./tests/pos/contract-creation-edge-cases.bats#L460) | |
+| nested contract creation: constructor deploys child via CREATE | [Link](./tests/pos/contract-creation-edge-cases.bats#L270) | |
+| net_version returns a non-empty numeric string | [Link](./tests/pos/rpc-conformance.bats#L389) | |
 | nonce increments by exactly 1 after each successful transaction | [Link](./tests/pos/evm-state-invariants.bats#L140) | |
+| nonce replacement stress: higher gas replaces pending tx | [Link](./tests/pos/evm-fuzz.bats#L718) | |
+| nonce-gap stress: out-of-order submission resolves correctly | [Link](./tests/pos/evm-fuzz.bats#L600) | |
 | out-of-gas transaction still increments sender nonce | [Link](./tests/pos/evm-state-invariants.bats#L160) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/evm-state-invariants.bats#L53) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
+| replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/evm-state-invariants.bats#L445) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/evm-state-invariants.bats#L18) | |
+| sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/rpc-conformance.bats#L976) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
+| stack depth limit: 1024 nested calls revert | [Link](./tests/pos/contract-creation-edge-cases.bats#L381) | |
+| sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/rpc-concurrent-load.bats#L533) | |
 | total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/evm-state-invariants.bats#L188) | |
 | undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
 | update signer | [Link](./tests/pos/validator.bats#L147) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L60) | |
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L97) | |
+| web3_clientVersion returns a non-empty version string | [Link](./tests/pos/rpc-conformance.bats#L400) | |
+| zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/evm-state-invariants.bats#L572) | |
 
 ## DApps Tests
 
