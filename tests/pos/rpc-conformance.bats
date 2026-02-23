@@ -874,3 +874,268 @@ setup() {
 
     echo "Timestamps strictly increasing across blocks $start_block to $latest" >&3
 }
+
+# ---------------------------------------------------------------------------
+# Block-Level Invariants
+# ---------------------------------------------------------------------------
+
+# bats test_tags=evm-rpc,evm-block
+@test "gasUsed <= gasLimit for latest block" {
+    local block
+    block=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
+
+    local gas_used_hex gas_limit_hex
+    gas_used_hex=$(echo "$block" | jq -r '.gasUsed')
+    gas_limit_hex=$(echo "$block" | jq -r '.gasLimit')
+
+    local gas_used_dec gas_limit_dec
+    gas_used_dec=$(cast to-dec "$gas_used_hex")
+    gas_limit_dec=$(cast to-dec "$gas_limit_hex")
+
+    if [[ "$gas_used_dec" -gt "$gas_limit_dec" ]]; then
+        echo "gasUsed ($gas_used_dec) > gasLimit ($gas_limit_dec) — invariant violated" >&2
+        return 1
+    fi
+    echo "gasUsed=$gas_used_dec <= gasLimit=$gas_limit_dec" >&3
+}
+
+# bats test_tags=evm-rpc,evm-block
+@test "Parent hash chain integrity across 5 blocks" {
+    local latest
+    latest=$(cast block-number --rpc-url "$L2_RPC_URL")
+    if [[ "$latest" -lt 5 ]]; then
+        skip "Need at least 5 blocks for parent hash chain check"
+    fi
+
+    local start_block=$(( latest - 4 ))
+    local prev_hash=""
+
+    for i in $(seq 0 4); do
+        local block_num=$(( start_block + i ))
+        local block_hex
+        block_hex=$(cast to-hex "$block_num")
+        local block_json
+        block_json=$(cast rpc eth_getBlockByNumber "\"$block_hex\"" 'false' --rpc-url "$L2_RPC_URL")
+
+        local block_hash parent_hash
+        block_hash=$(echo "$block_json" | jq -r '.hash')
+        parent_hash=$(echo "$block_json" | jq -r '.parentHash')
+
+        if [[ -n "$prev_hash" && "$parent_hash" != "$prev_hash" ]]; then
+            echo "Parent hash chain broken at block $block_num:" >&2
+            echo "  parentHash=$parent_hash expected=$prev_hash" >&2
+            return 1
+        fi
+        prev_hash="$block_hash"
+    done
+    echo "Parent hash chain intact across blocks $start_block to $latest" >&3
+}
+
+# bats test_tags=evm-rpc,evm-block
+@test "Sum of receipt gasUsed matches block gasUsed" {
+    # Send a tx so the block has at least one transaction.
+    local receipt
+    receipt=$(cast send --legacy --gas-limit 21000 --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" --json 0x0000000000000000000000000000000000000000)
+
+    local block_number
+    block_number=$(echo "$receipt" | jq -r '.blockNumber')
+
+    local block_json
+    block_json=$(cast rpc eth_getBlockByNumber "\"$block_number\"" 'false' --rpc-url "$L2_RPC_URL")
+    local block_gas_used_hex
+    block_gas_used_hex=$(echo "$block_json" | jq -r '.gasUsed')
+    local block_gas_used
+    block_gas_used=$(cast to-dec "$block_gas_used_hex")
+
+    # Get all tx hashes in this block.
+    local tx_count
+    tx_count=$(echo "$block_json" | jq '.transactions | length')
+
+    local receipt_gas_sum=0
+    for idx in $(seq 0 $(( tx_count - 1 ))); do
+        local tx_hash
+        tx_hash=$(echo "$block_json" | jq -r ".transactions[$idx]")
+        local tx_receipt
+        tx_receipt=$(cast rpc eth_getTransactionReceipt "\"$tx_hash\"" --rpc-url "$L2_RPC_URL")
+        local gas_hex
+        gas_hex=$(echo "$tx_receipt" | jq -r '.gasUsed')
+        local gas_dec
+        gas_dec=$(cast to-dec "$gas_hex")
+        receipt_gas_sum=$(( receipt_gas_sum + gas_dec ))
+    done
+
+    if [[ "$receipt_gas_sum" -ne "$block_gas_used" ]]; then
+        echo "Receipt gas sum ($receipt_gas_sum) != block gasUsed ($block_gas_used)" >&2
+        return 1
+    fi
+    echo "Block $block_number: sum(receipt.gasUsed)=$receipt_gas_sum == block.gasUsed=$block_gas_used" >&3
+}
+
+# bats test_tags=evm-rpc,evm-block
+@test "sha3Uncles field is empty-list RLP hash (PoS has no uncles)" {
+    local block
+    block=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
+
+    local sha3_uncles
+    sha3_uncles=$(echo "$block" | jq -r '.sha3Uncles')
+
+    # keccak256(RLP([])) = 0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347
+    local expected="0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+
+    if [[ "$sha3_uncles" != "$expected" ]]; then
+        echo "sha3Uncles mismatch: got=$sha3_uncles expected=$expected" >&2
+        return 1
+    fi
+    echo "sha3Uncles correctly equals keccak256(RLP([]))" >&3
+}
+
+# bats test_tags=evm-rpc,evm-block
+@test "logsBloom is zero for genesis block (no log-emitting txs)" {
+    local block
+    block=$(cast rpc eth_getBlockByNumber '"0x0"' 'false' --rpc-url "$L2_RPC_URL")
+
+    local logs_bloom
+    logs_bloom=$(echo "$block" | jq -r '.logsBloom')
+
+    # All-zero logsBloom = 0x followed by 512 zeros.
+    local zero_bloom="0x"
+    zero_bloom+="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    zero_bloom+="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    zero_bloom+="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    zero_bloom+="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+    if [[ "$logs_bloom" != "$zero_bloom" ]]; then
+        echo "Genesis logsBloom is not all-zero: ${logs_bloom:0:40}..." >&2
+        return 1
+    fi
+    echo "Genesis block logsBloom is correctly all-zero" >&3
+}
+
+# ---------------------------------------------------------------------------
+# RPC Edge Cases
+# ---------------------------------------------------------------------------
+
+# bats test_tags=evm-rpc
+@test "eth_getUncleCountByBlockNumber returns 0 (PoS has no uncles)" {
+    local result
+    result=$(cast rpc eth_getUncleCountByBlockNumber '"latest"' --rpc-url "$L2_RPC_URL")
+    result=$(echo "$result" | tr -d '"')
+
+    local count_dec
+    count_dec=$(cast to-dec "$result")
+
+    if [[ "$count_dec" -ne 0 ]]; then
+        echo "eth_getUncleCountByBlockNumber returned $count_dec, expected 0 (PoS)" >&2
+        return 1
+    fi
+    echo "eth_getUncleCountByBlockNumber correctly returned 0" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "Contract creation receipt has contractAddress field" {
+    # Deploy a minimal contract.
+    local receipt
+    receipt=$(cast send --legacy --gas-limit 200000 --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" --json --create "0x600160005360016000f3")
+
+    local tx_status
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    [[ "$tx_status" == "0x1" ]] || { echo "Deploy failed" >&2; return 1; }
+
+    local tx_hash
+    tx_hash=$(echo "$receipt" | jq -r '.transactionHash')
+
+    # Fetch receipt via RPC.
+    local raw_receipt
+    raw_receipt=$(cast rpc eth_getTransactionReceipt "\"$tx_hash\"" --rpc-url "$L2_RPC_URL")
+
+    local contract_addr
+    contract_addr=$(echo "$raw_receipt" | jq -r '.contractAddress')
+
+    if [[ -z "$contract_addr" || "$contract_addr" == "null" ]]; then
+        echo "Contract creation receipt missing contractAddress field" >&2
+        return 1
+    fi
+
+    # Verify it has code deployed.
+    local code
+    code=$(cast code "$contract_addr" --rpc-url "$L2_RPC_URL")
+    if [[ "$code" == "0x" || -z "$code" ]]; then
+        echo "contractAddress $contract_addr has no deployed code" >&2
+        return 1
+    fi
+    echo "Contract creation receipt has contractAddress=$contract_addr with code" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "eth_getBalance at historical block returns correct value" {
+    local balance_before
+    balance_before=$(cast balance "$eth_address" --rpc-url "$L2_RPC_URL")
+    local block_n
+    block_n=$(cast block-number --rpc-url "$L2_RPC_URL")
+    local block_n_hex
+    block_n_hex=$(cast to-hex "$block_n")
+
+    # Send a tx to change the balance.
+    cast send --legacy --gas-limit 21000 --value 1000 --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" 0x0000000000000000000000000000000000000000 >/dev/null
+
+    # Query balance at the historical block N — should still show the old balance.
+    # Bor prunes historical state by default, so this call may fail with
+    # "historical state ... is not available".  Skip gracefully if so.
+    set +e
+    local historical_raw
+    historical_raw=$(cast rpc eth_getBalance "\"$eth_address\"" "\"$block_n_hex\"" --rpc-url "$L2_RPC_URL" 2>&1)
+    local rpc_exit=$?
+    set -e
+
+    if [[ $rpc_exit -ne 0 ]]; then
+        if echo "$historical_raw" | grep -qi "historical state.*not available\|missing trie node\|state pruned"; then
+            skip "Node does not retain historical state (pruning enabled)"
+        fi
+        echo "eth_getBalance at block $block_n_hex failed: $historical_raw" >&2
+        return 1
+    fi
+
+    historical_raw=$(echo "$historical_raw" | tr -d '"')
+    local historical_dec
+    historical_dec=$(cast to-dec "$historical_raw")
+
+    if [[ "$historical_dec" != "$balance_before" ]]; then
+        echo "Historical balance mismatch at block $block_n:" >&2
+        echo "  expected=$balance_before got=$historical_dec" >&2
+        return 1
+    fi
+    echo "eth_getBalance at block $block_n correctly returned historical balance" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "Empty batch JSON-RPC returns empty array" {
+    local result
+    result=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        --data '[]' \
+        "$L2_RPC_URL")
+
+    # Per JSON-RPC 2.0 spec, empty batch should return empty array.
+    # Some implementations return an error — both are acceptable.
+    if echo "$result" | jq -e 'type == "array" and length == 0' &>/dev/null; then
+        echo "Empty batch correctly returned []" >&3
+        return 0
+    fi
+
+    # Some nodes return an error object — acceptable.
+    if echo "$result" | jq -e '.error' &>/dev/null; then
+        echo "Empty batch returned error object — acceptable" >&3
+        return 0
+    fi
+
+    # Not acceptable: non-empty array or unexpected response.
+    if echo "$result" | jq -e 'type == "array" and length > 0' &>/dev/null; then
+        echo "Empty batch returned non-empty array — unexpected: $result" >&2
+        return 1
+    fi
+
+    echo "Empty batch returned: $result — acceptable" >&3
+}

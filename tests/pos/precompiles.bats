@@ -540,3 +540,71 @@ function _is_nontrivial() {
   fi
   [[ "${out}" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]
 }
+
+# bats test_tags=pos-precompile
+@test "0x04 identity: 256-byte patterned data round-trip" {
+  # Send 256 bytes of patterned data (0x00..0xFF) to the identity precompile.
+  local input="0x"
+  for i in $(seq 0 255); do
+    input+=$(printf '%02x' "$i")
+  done
+
+  local out
+  out=$(_call "0x0000000000000000000000000000000000000004" "${input}")
+  echo "identity(256 bytes) output length: $(( (${#out} - 2) / 2 )) bytes"
+
+  [[ "${out}" == "${input}" ]]
+}
+
+# bats test_tags=pos-precompile
+@test "0x02 SHA-256: 'abc' matches NIST vector" {
+  # sha256("abc") = ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+  # "abc" = 0x616263
+  local out
+  out=$(_call "0x0000000000000000000000000000000000000002" "0x616263")
+  echo "sha256('abc') = ${out}"
+  [[ "${out}" == "0xba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" ]]
+}
+
+# bats test_tags=pos-precompile
+@test "0x01 ecRecover: recovered address matches known signer" {
+  # Test vector from the Ethereum Yellow Paper / execution specs.
+  # Message hash, v=28, r, s → recovered address = 0x7156526fbd7a3c72969b54f64e42c10fbb768c8a
+  local input="0x"
+  input+="456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3"  # msg hash
+  input+="000000000000000000000000000000000000000000000000000000000000001c"  # v = 28
+  input+="9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608"  # r
+  input+="4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada"  # s
+
+  local out
+  out=$(_call "0x0000000000000000000000000000000000000001" "${input}")
+  echo "ecRecover output: ${out}"
+
+  # Output is a 32-byte word with the address left-padded with zeros.
+  # Extract the last 40 hex chars as the address.
+  local recovered_addr
+  recovered_addr=$(echo "${out}" | sed 's/0x//' | tail -c 41)
+  recovered_addr=$(echo "${recovered_addr}" | tr '[:upper:]' '[:lower:]')
+
+  local expected="7156526fbd7a3c72969b54f64e42c10fbb768c8a"
+  [[ "${recovered_addr}" == "${expected}" ]]
+}
+
+# bats test_tags=pos-precompile
+@test "0x05 modexp: 2^256 mod 13 equals 3" {
+  # Large exponent test: modexp(base=2, exp=256, mod=13) = 3.
+  # 2^256 mod 13: cycle length=12, 256 mod 12 = 4, 2^4 mod 13 = 16 mod 13 = 3.
+  # Input layout (EIP-198): len(B)(32) || len(E)(32) || len(M)(32) || B || E || M
+  local input="0x"
+  input+="0000000000000000000000000000000000000000000000000000000000000001"  # len(B) = 1
+  input+="0000000000000000000000000000000000000000000000000000000000000002"  # len(E) = 2 (256 = 0x0100)
+  input+="0000000000000000000000000000000000000000000000000000000000000001"  # len(M) = 1
+  input+="02"     # B = 2
+  input+="0100"   # E = 256 (big-endian)
+  input+="0d"     # M = 13
+
+  local out
+  out=$(_call "0x0000000000000000000000000000000000000005" "${input}")
+  echo "modexp(2, 256, 13) = ${out}"
+  [[ "${out}" == "0x03" ]]
+}
