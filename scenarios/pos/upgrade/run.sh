@@ -393,7 +393,7 @@ log_info "Listing containers"
 list_containers
 
 # Wait for the devnet to reach the Rio HF block number.
-rio_fork_block=${RIO_FORK_BLOCK:-128}
+rio_fork_block=${RIO_FORK_BLOCK:-256}
 log_info "Waiting for all RPCs to reach the Rio fork block $rio_fork_block"
 wait_for_rpcs_to_reach_block "$rio_fork_block"
 
