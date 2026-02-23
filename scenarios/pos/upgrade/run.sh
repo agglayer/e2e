@@ -88,6 +88,8 @@ upgrade_cl_service() {
 	kurtosis service stop "$ENCLAVE_NAME" "$service"
 	docker wait "$container"
 	docker network disconnect "$docker_network_name" "$container"
+	# Allow time for the container's network resources (ports, addresses) to be fully released.
+	# Without this, the replacement container may fail with "address already in use" or "port is already allocated".
 	sleep 1
 	log_info "Service stopped"
 
