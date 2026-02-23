@@ -1,395 +1,448 @@
-$ sudo ./run.sh
 Loaded .env
-2026-02-10 09:31:12 INFO Using enclave name: pos
-2026-02-10 09:31:12 INFO Using kurtosis-pos version: v1.2.11
-2026-02-10 09:31:12 INFO Using new heimdall-v2 image: 0xpolygon/heimdall-v2:0.6.0
-0.6.0: Pulling from 0xpolygon/heimdall-v2
-Digest: sha256:5ae8594adf488c27a89bb4fcb98043b154d2432e5a9cf9072c903b423ca3e453
-Status: Image is up to date for 0xpolygon/heimdall-v2:0.6.0
-docker.io/0xpolygon/heimdall-v2:0.6.0
-2026-02-10 09:31:14 INFO Using new bor image: 0xpolygon/bor:2.6.0-beta
-2.6.0-beta: Pulling from 0xpolygon/bor
-Digest: sha256:9078fc27f41e06c400702e18a855f3908b9a65338bb46365b510dc92e92c77dc
-Status: Image is up to date for 0xpolygon/bor:2.6.0-beta
-docker.io/0xpolygon/bor:2.6.0-beta
-2026-02-10 09:31:15 INFO Using new erigon image: 0xpolygon/erigon:v3.4.0-beta
-v3.4.0-beta: Pulling from 0xpolygon/erigon
-Digest: sha256:21811723fc9fe92007fb8c4026acbdcd54048b99172da36b1ddadf1f751d0eec
-Status: Image is up to date for 0xpolygon/erigon:v3.4.0-beta
-docker.io/0xpolygon/erigon:v3.4.0-beta
-/home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/kurtosis-pos /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade
-La position précédente de HEAD était sur 55b4bd7 feat: persist heimdall config data
-Basculement sur la branche 'main'
-Votre branche est à jour avec 'origin/main'.
-remote: Enumerating objects: 2, done.
-remote: Counting objects: 100% (2/2), done.
-remote: Compressing objects: 100% (2/2), done.
-remote: Total 2 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
-Dépaquetage des objets: 100% (2/2), 1.20 Kio | 1.21 Mio/s, fait.
-Depuis https://github.com/0xPolygon/kurtosis-pos
-   201f92d..a12aa71  main       -> origin/main
- * [nouvelle étiquette] v1.2.11    -> v1.2.11
-Mise à jour 201f92d..a12aa71
-Fast-forward
- src/cl/heimdall_v2/launcher.star | 3 +++
- 1 file changed, 3 insertions(+)
-Note : basculement sur 'v1.2.11'.
-
-Vous êtes dans l'état « HEAD détachée ». Vous pouvez visiter, faire des modifications
-expérimentales et les valider. Il vous suffit de faire un autre basculement pour
-abandonner les commits que vous faites dans cet état sans impacter les autres branches
-
-Si vous voulez créer une nouvelle branche pour conserver les commits que vous créez,
-il vous suffit d'utiliser l'option -c de la commande switch comme ceci :
-
-  git switch -c <nom-de-la-nouvelle-branche>
-
-Ou annuler cette opération avec :
-
-  git switch -
-
-Désactivez ce conseil en renseignant la variable de configuration advice.detachedHead à false
-
-HEAD est maintenant sur a12aa71 feat: persist heimdall config data (#451)
-INFO[2026-02-10T09:31:17+01:00] Creating a new enclave for Starlark to run inside... 
-INFO[2026-02-10T09:31:19+01:00] Enclave 'pos' created successfully           
-INFO[2026-02-10T09:31:19+01:00] Executing Starlark package at '/home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/kurtosis-pos' as the passed argument '.' looks like a directory 
-INFO[2026-02-10T09:31:19+01:00] Compressing package 'github.com/0xPolygon/kurtosis-pos' at '.' for upload 
-INFO[2026-02-10T09:31:19+01:00] Uploading and executing package 'github.com/0xPolygon/kurtosis-pos' 
-
-Container images used in this run:
-> ghcr.io/0xpolygon/pos-validator-config-generator:0.6.0 - locally cached
-> ethereum/client-go:v1.16.8 - locally cached
-> ghcr.io/0xpolygon/pos-el-genesis-builder:96a19dd - locally cached
-> rabbitmq:4.2.2 - locally cached
-> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/toolbox:0.0.12 - locally cached
-> protolambda/eth2-val-tools:latest - locally cached
-> ethpandaops/ethereum-genesis-generator:5.2.2 - locally cached
-> sigp/lighthouse:v8.1.0 - locally cached
-> 0xpolygon/erigon:v3.3.7 - locally cached
-> 0xpolygon/bor:2.5.8 - locally cached
-> 0xpolygon/heimdall-v2:0.6.0 - locally cached
-> ghcr.io/0xpolygon/pos-contract-deployer:d96d592 - locally cached
-> badouralix/curl-jq - locally cached
-Starlark code successfully run. No output was returned.
-
-⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-INFO[2026-02-09T17:24:51+01:00] ============================================ 
-INFO[2026-02-09T17:24:51+01:00] ||          Created enclave: pos          || 
-INFO[2026-02-09T17:24:51+01:00] ============================================ 
-Name:            pos
-UUID:            e4d39e4c00df
-Status:          RUNNING
-Creation Time:   Mon, 09 Feb 2026 17:22:08 CET
-Flags:           
-
-========================================= Files Artifacts =========================================
-UUID           Name
-23a3dcd094e4   1-lighthouse-geth-0-127
-d1aa417c15e6   container-proc-manager-script
-6729ff9c3444   el_cl_genesis_data
-1bb078a6d73b   final-genesis-timestamp
-546d3d38f6c4   genesis-el-cl-env-file
-8707c65c67f4   genesis_validators_root
-bb10456da9d8   jwt_file
-ccb644cebac9   keymanager_file
-88d40d3e0c1b   l2-cl-1-heimdall-v2-bor-validator-config
-0dc61e4baa90   l2-cl-1-heimdall-v2-bor-validator-keys
-b633d66b8e32   l2-cl-2-heimdall-v2-bor-validator-config
-b6a34ed45fc8   l2-cl-2-heimdall-v2-bor-validator-keys
-6ece2c530ba8   l2-cl-3-heimdall-v2-bor-validator-config
-bf1317470f48   l2-cl-3-heimdall-v2-bor-validator-keys
-8c747218b002   l2-cl-4-heimdall-v2-bor-validator-config
-d97bc95e6aba   l2-cl-4-heimdall-v2-bor-validator-keys
-cc7be4a34dfd   l2-cl-genesis
-67451f3f6cfb   l2-cl-genesis-builder-config
-5f1b3cad5b68   l2-cl-genesis-tmp
-f42de623bdda   l2-cl-persistent-peers
-66fccebd7642   l2-cl-validator-keys-generator-config
-533a7f538403   l2-el-1-bor-heimdall-v2-validator-config
-b3949b863fe5   l2-el-1-bor-heimdall-v2-validator-keys
-76fa3357ee83   l2-el-1-bor-heimdall-v2-validator-keys-generator-config
-13d8857f53bc   l2-el-2-bor-heimdall-v2-validator-config
-c442817ab26d   l2-el-2-bor-heimdall-v2-validator-keys
-4b9872687dae   l2-el-2-bor-heimdall-v2-validator-keys-generator-config
-a60abaf3899d   l2-el-3-bor-heimdall-v2-validator-config
-8528cc5b78de   l2-el-3-bor-heimdall-v2-validator-keys
-205630f2297d   l2-el-3-bor-heimdall-v2-validator-keys-generator-config
-b95593d9dd0e   l2-el-4-bor-heimdall-v2-validator-config
-4746e238d5f7   l2-el-4-bor-heimdall-v2-validator-keys
-e68a11079650   l2-el-4-bor-heimdall-v2-validator-keys-generator-config
-67c67f46ac7b   l2-el-5-bor-heimdall-v2-rpc-config
-425f68029d82   l2-el-5-bor-heimdall-v2-rpc-keys
-b7fa8cbfde39   l2-el-5-bor-heimdall-v2-rpc-keys-generator-config
-eeb5aed0877b   l2-el-6-erigon-heimdall-v2-rpc-config
-0e0fd15f1842   l2-el-6-erigon-heimdall-v2-rpc-keys
-4656d5768879   l2-el-6-erigon-heimdall-v2-rpc-keys-generator-config
-e7bca9b61c93   l2-el-genesis
-b1df9f2b6929   l2-el-genesis-builder-config
-394298871d96   l2-el-genesis-tmp
-3865aced4cba   l2-validators-config
-3fe8292a72ec   matic-contract-addresses
-484453ea35c9   matic-contract-l1-addresses
-02e5fb0c9aa4   matic-contracts-l1-deployer-config
-dd9f0b7698ba   matic-contracts-l2-deployer-config
-bae0bebb7231   prysm-password
-4ea391803baa   validator-ranges
-
-========================================== User Services ==========================================
-UUID           Name                                             Ports                                              Status
-16a0e6557e9b   cl-1-lighthouse-geth                             http: 4000/tcp -> http://127.0.0.1:33056           RUNNING
-                                                                metrics: 5054/tcp -> http://127.0.0.1:33057        
-                                                                quic-discovery: 9001/udp                           
-                                                                tcp-discovery: 9000/tcp -> 127.0.0.1:33058         
-                                                                udp-discovery: 9000/udp                            
-27e2abe0016f   el-1-geth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:33053            RUNNING
-                                                                metrics: 9001/tcp -> http://127.0.0.1:33054        
-                                                                rpc: 8545/tcp -> 127.0.0.1:33051                   
-                                                                tcp-discovery: 30303/tcp -> 127.0.0.1:33055        
-                                                                udp-discovery: 30303/udp                           
-                                                                ws: 8546/tcp -> 127.0.0.1:33052                    
-bdb9297103b6   l2-cl-1-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33062           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33061           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33066       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33064   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33063          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33065           
-2360573cc839   l2-cl-1-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33060           RUNNING
-8444523726b3   l2-cl-2-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33074           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33073           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33078       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33076   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33075          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33077           
-b7623d66dd59   l2-cl-2-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33072           RUNNING
-51fb150ab430   l2-cl-3-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33086           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33085           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33090       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33088   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33087          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33089           
-ac9eda3f6cf5   l2-cl-3-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33084           RUNNING
-cffc8514bd70   l2-cl-4-heimdall-v2-bor-validator                grpc: 3132/tcp -> grpc://127.0.0.1:33098           RUNNING
-                                                                http: 1317/tcp -> http://127.0.0.1:33097           
-                                                                metrics: 26660/tcp -> http://127.0.0.1:33102       
-                                                                node-listen: 26656/tcp -> http://127.0.0.1:33100   
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33099          
-                                                                rpc: 26657/tcp -> http://127.0.0.1:33101           
-47271aa54c08   l2-cl-4-rabbitmq                                 amqp: 5672/tcp -> amqp://127.0.0.1:33096           RUNNING
-1fc6a52369c9   l2-el-1-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33071     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33068        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33067          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33069            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33070               
-b1ca02bebd63   l2-el-2-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33083     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33080        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33079          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33081            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33082               
-037acbb648fa   l2-el-3-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33095     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33092        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33091          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33093            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33094               
-f689c14040fb   l2-el-4-bor-heimdall-v2-validator                discovery: 30303/tcp -> http://127.0.0.1:33107     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33104        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33103          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33105            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33106               
-307f3184318e   l2-el-5-bor-heimdall-v2-rpc                      discovery: 30303/tcp -> http://127.0.0.1:33112     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33109        
-                                                                pprof: 6060/tcp -> http://127.0.0.1:33108          
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33110            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33111               
-33606da32b52   l2-el-6-erigon-heimdall-v2-rpc                   discovery: 30303/tcp -> http://127.0.0.1:33116     RUNNING
-                                                                metrics: 7071/tcp -> http://127.0.0.1:33113        
-                                                                rpc: 8545/tcp -> http://127.0.0.1:33114            
-                                                                ws: 8546/tcp -> ws://127.0.0.1:33115               
-46e55294d6c4   validator-key-generation-cl-validator-keystore   <none>                                             RUNNING
-b4da61da3662   vc-1-geth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:33059        RUNNING
-
-NAMES                                                                 IMAGE                         STATUS
-l2-cl-1-heimdall-v2-bor-validator--bdb9297103b64bce8df3b8815df4cbe5   0xpolygon/heimdall-v2:0.6.0   Up About a minute
-l2-cl-2-heimdall-v2-bor-validator--8444523726b346f8b28f440ffac7b914   0xpolygon/heimdall-v2:0.6.0   Up 58 seconds
-l2-cl-3-heimdall-v2-bor-validator--51fb150ab430486f89cc1446be267b95   0xpolygon/heimdall-v2:0.6.0   Up 45 seconds
-l2-cl-4-heimdall-v2-bor-validator--cffc8514bd704efc9d5c7ef77b785e2c   0xpolygon/heimdall-v2:0.6.0   Up 31 seconds
-l2-el-1-bor-heimdall-v2-validator--1fc6a52369c94a4e87bc263a253e7c58   0xpolygon/bor:2.5.8           Up About a minute
-l2-el-2-bor-heimdall-v2-validator--b1ca02bebd63475b82802e17ff028ddc   0xpolygon/bor:2.5.8           Up 54 seconds
-l2-el-3-bor-heimdall-v2-validator--037acbb648fa43ceb4367da4e5bb364f   0xpolygon/bor:2.5.8           Up 40 seconds
-l2-el-4-bor-heimdall-v2-validator--f689c14040fb4edd93a6428277d0eaa4   0xpolygon/bor:2.5.8           Up 27 seconds
-l2-el-5-bor-heimdall-v2-rpc--307f3184318e4506b8f8f71e7e941880         0xpolygon/bor:2.5.8           Up 21 seconds
-l2-el-6-erigon-heimdall-v2-rpc--33606da32b524be0b9d6b1a90b3cdb04      0xpolygon/erigon:v3.3.7       Up 15 seconds
-2026-02-09 17:24:52 INFO Monitoring block progress
-2026-02-09 17:24:52 INFO Using enclave name: pos
-2026-02-09 17:24:52 INFO Using check mode: all
-2026-02-09 17:24:52 INFO Found RPC(s): l2-el-1-bor-heimdall-v2-validator--1fc6a52369c9
-l2-el-2-bor-heimdall-v2-validator--b1ca02bebd63
-l2-el-3-bor-heimdall-v2-validator--037acbb648fa
-l2-el-4-bor-heimdall-v2-validator--f689c14040fb
-l2-el-5-bor-heimdall-v2-rpc--307f3184318e
-l2-el-6-erigon-heimdall-v2-rpc--33606da32b52
-2026-02-09 17:24:52 INFO Using target: 100
-2026-02-09 17:24:52 INFO Checking RPC: l2-el-2-bor-heimdall-v2-validator
-2026-02-09 17:24:52 INFO Checking RPC: l2-el-1-bor-heimdall-v2-validator
-2026-02-09 17:24:52 INFO Checking RPC: l2-el-3-bor-heimdall-v2-validator
-2026-02-09 17:24:52 INFO Checking RPC: l2-el-5-bor-heimdall-v2-rpc
-2026-02-09 17:24:52 INFO Checking RPC: l2-el-4-bor-heimdall-v2-validator
-2026-02-09 17:24:52 INFO Checking RPC: l2-el-6-erigon-heimdall-v2-rpc
-2026-02-09 17:24:52 INFO Using rpc url: http://127.0.0.1:33110
-2026-02-09 17:24:52 INFO Check 1/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-09 17:24:52 INFO Got blocks: latest=39, finalized=38
-2026-02-09 17:24:53 INFO Sending a test transaction
-0x448a1ee7262c5eda2d9d116ff3923ae708011368ba165ca6073ee8ebfbee0750
-2026-02-09 17:24:53 INFO Using rpc url: http://127.0.0.1:33081
-2026-02-09 17:24:53 INFO Check 1/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-09 17:24:53 INFO Got blocks: latest=40, finalized=38
-2026-02-09 17:24:53 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: already known
-2026-02-09 17:24:53 INFO Using rpc url: http://127.0.0.1:33069
-2026-02-09 17:24:53 INFO Check 1/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-09 17:24:53 INFO Got blocks: latest=40, finalized=38
-2026-02-09 17:24:53 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: already known
-2026-02-09 17:24:53 INFO Using rpc url: http://127.0.0.1:33093
-2026-02-09 17:24:53 INFO Check 1/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-09 17:24:53 INFO Got blocks: latest=40, finalized=38
-2026-02-09 17:24:53 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: already known
-2026-02-09 17:24:53 INFO Using rpc url: http://127.0.0.1:33105
-2026-02-09 17:24:53 INFO Check 1/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-09 17:24:53 INFO Got blocks: latest=40, finalized=38
-2026-02-09 17:24:53 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: already known
-2026-02-09 17:24:53 INFO Using rpc url: http://127.0.0.1:33114
-2026-02-09 17:24:53 INFO Check 1/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-09 17:24:53 INFO Got blocks: latest=40, finalized=36
-2026-02-09 17:24:54 INFO Sending a test transaction
-Error: server returned an error response: error code -32000: INTERNAL_ERROR: could not replace existing tx
+2026-02-20 18:00:01 INFO Using kurtosis enclave name: pos
+2026-02-20 18:00:01 INFO Using docker network name: kt-pos
+2026-02-20 18:00:01 INFO Using kurtosis-pos version: v1.2.12
+2026-02-20 18:00:01 INFO Using new heimdall-v2 image: 0xpolygon/heimdall-v2:0.6.0
+2026-02-20 18:00:01 INFO Using new bor image: 0xpolygon/bor:2.6.0-amd64
+2026-02-20 18:00:01 INFO Using new erigon image: 0xpolygon/erigon:v3.4.0
+2026-02-20 18:00:01 INFO Deploying the devnet, this may take a few minutes...
 ...
-2026-02-09 17:25:59 INFO Check 14/100 for l2-el-2-bor-heimdall-v2-validator
-2026-02-09 17:25:59 INFO Got blocks: latest=102, finalized=101
-2026-02-09 17:25:59 INFO Target blocks reached for all block types (latest and finalized) for l2-el-2-bor-heimdall-v2-validator
-2026-02-09 17:25:59 INFO Check 14/100 for l2-el-1-bor-heimdall-v2-validator
-2026-02-09 17:25:59 INFO Got blocks: latest=102, finalized=101
-2026-02-09 17:25:59 INFO Target blocks reached for all block types (latest and finalized) for l2-el-1-bor-heimdall-v2-validator
-2026-02-09 17:25:59 INFO Check 14/100 for l2-el-3-bor-heimdall-v2-validator
-2026-02-09 17:25:59 INFO Got blocks: latest=102, finalized=101
-2026-02-09 17:25:59 INFO Target blocks reached for all block types (latest and finalized) for l2-el-3-bor-heimdall-v2-validator
-2026-02-09 17:25:59 INFO Check 14/100 for l2-el-4-bor-heimdall-v2-validator
-2026-02-09 17:26:00 INFO Got blocks: latest=103, finalized=101
-2026-02-09 17:26:00 INFO Target blocks reached for all block types (latest and finalized) for l2-el-4-bor-heimdall-v2-validator
-2026-02-09 17:26:00 INFO Check 14/100 for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-09 17:26:00 INFO Got blocks: latest=103, finalized=100
-2026-02-09 17:26:00 INFO Target blocks reached for all block types (latest and finalized) for l2-el-6-erigon-heimdall-v2-rpc
-2026-02-09 17:26:04 INFO Check 15/100 for l2-el-5-bor-heimdall-v2-rpc
-2026-02-09 17:26:04 INFO Got blocks: latest=107, finalized=106
-2026-02-09 17:26:04 INFO Target blocks reached for all block types (latest and finalized) for l2-el-5-bor-heimdall-v2-rpc
-2026-02-09 17:26:04 INFO All RPCs have reached target blocks
-/home/leovct/Documents/internal/e2e/scenarios/pos/upgrade
-2026-02-09 17:26:04 INFO Current block producer ID: 1
-2026-02-09 17:26:04 INFO Upgrading L2 nodes
-2026-02-09 17:26:04 INFO Upgrading heimdall service: l2-cl-4-heimdall-v2-bor-validator
-2026-02-09 17:26:04 INFO Upgrading heimdall service: l2-cl-3-heimdall-v2-bor-validator
-2026-02-09 17:26:04 INFO Upgrading heimdall service: l2-cl-2-heimdall-v2-bor-validator
-2026-02-09 17:26:04 INFO Upgrading erigon service: l2-el-6-erigon-heimdall-v2-rpc
-2026-02-09 17:26:04 INFO Upgrading bor service: l2-el-5-bor-heimdall-v2-rpc
-2026-02-09 17:26:04 INFO Upgrading bor service: l2-el-3-bor-heimdall-v2-validator
-2026-02-09 17:26:04 INFO [l2-cl-2-heimdall-v2-bor-validator] Stopping kurtosis service
-2026-02-09 17:26:04 INFO [l2-cl-4-heimdall-v2-bor-validator] Stopping kurtosis service
-2026-02-09 17:26:04 INFO [l2-cl-3-heimdall-v2-bor-validator] Stopping kurtosis service
-2026-02-09 17:26:04 INFO Upgrading bor service: l2-el-2-bor-heimdall-v2-validator
-2026-02-09 17:26:04 INFO Upgrading bor service: l2-el-4-bor-heimdall-v2-validator
-2026-02-09 17:26:04 INFO [l2-el-3-bor-heimdall-v2-validator] Stopping kurtosis service
-2026-02-09 17:26:04 INFO [l2-el-6-erigon-heimdall-v2-rpc] Stopping kurtosis service
-2026-02-09 17:26:04 INFO [l2-el-5-bor-heimdall-v2-rpc] Stopping kurtosis service
-2026-02-09 17:26:04 INFO [l2-el-2-bor-heimdall-v2-validator] Stopping kurtosis service
-2026-02-09 17:26:04 INFO [l2-el-4-bor-heimdall-v2-validator] Stopping kurtosis service
-INFO[2026-02-09T17:26:06+01:00] Stopping service 'l2-cl-2-heimdall-v2-bor-validator' 
-INFO[2026-02-09T17:26:06+01:00] Stopping service 'l2-el-3-bor-heimdall-v2-validator' 
-INFO[2026-02-09T17:26:07+01:00] Stopping service 'l2-el-6-erigon-heimdall-v2-rpc' 
-INFO[2026-02-09T17:26:07+01:00] Stopping service 'l2-el-5-bor-heimdall-v2-rpc' 
-INFO[2026-02-09T17:26:07+01:00] Stopping service 'l2-cl-4-heimdall-v2-bor-validator' 
-INFO[2026-02-09T17:26:07+01:00] Stopping service 'l2-el-2-bor-heimdall-v2-validator' 
-INFO[2026-02-09T17:26:08+01:00] Stopping service 'l2-el-4-bor-heimdall-v2-validator' 
-INFO[2026-02-09T17:26:08+01:00] Stopping service 'l2-cl-3-heimdall-v2-bor-validator' 
-2026-02-09 17:26:13 INFO [l2-el-3-bor-heimdall-v2-validator] Extracting service data and configuration
-2026-02-09 17:26:13 INFO [l2-el-3-bor-heimdall-v2-validator] Starting new container with image: 0xpolygon/bor:2.6.0-beta
-c5943a08d62cd80c2dd27d624f36a4da2b318506d39d2ce9dbcf51559e47a835
-2026-02-09 17:26:24 INFO [l2-el-6-erigon-heimdall-v2-rpc] Extracting service data and configuration
-2026-02-09 17:26:24 INFO [l2-el-6-erigon-heimdall-v2-rpc] Starting new container with image: 0xpolygon/erigon:v3.4.0-beta
-85a5ca5b35ea0cb0bee9924367a2794c35bee0a804f247430b51e3814bc13a3e
-2026-02-09 17:26:24 INFO [l2-cl-2-heimdall-v2-bor-validator] Extracting service data and configuration
-2026-02-09 17:26:24 INFO [l2-cl-2-heimdall-v2-bor-validator] Starting new container with image: 0xpolygon/heimdall-v2:0.6.0
-fc89375a1286d5dd6b1fcd5c66586cb4352d9df15db21e42e29e2319797b12e3
-2026-02-09 17:26:25 INFO [l2-el-5-bor-heimdall-v2-rpc] Extracting service data and configuration
-2026-02-09 17:26:25 INFO [l2-el-5-bor-heimdall-v2-rpc] Starting new container with image: 0xpolygon/bor:2.6.0-beta
-638711eb63e3d6d04d9300848ffb6561b61e7a355d7d1ccfec0c2326e4d3eecd
-2026-02-09 17:26:26 INFO [l2-el-2-bor-heimdall-v2-validator] Extracting service data and configuration
-2026-02-09 17:26:26 INFO [l2-el-2-bor-heimdall-v2-validator] Starting new container with image: 0xpolygon/bor:2.6.0-beta
-e5803c09b5b747d7448097f121830bce444244c9bf1e962f81477f9976042816
-2026-02-09 17:26:26 INFO [l2-cl-3-heimdall-v2-bor-validator] Extracting service data and configuration
-2026-02-09 17:26:26 INFO [l2-cl-3-heimdall-v2-bor-validator] Starting new container with image: 0xpolygon/heimdall-v2:0.6.0
-b4eb068915167bd57f5a201446bbff197aca0d6cb5dd58bef208a19d564eb05f
-2026-02-09 17:26:27 INFO [l2-cl-4-heimdall-v2-bor-validator] Extracting service data and configuration
-2026-02-09 17:26:27 INFO [l2-cl-4-heimdall-v2-bor-validator] Starting new container with image: 0xpolygon/heimdall-v2:0.6.0
-c4891bdb938b6b3ebef75ff692e80a3ed556f0f56ee039a89f702c077dc67395
-2026-02-09 17:26:27 INFO [l2-el-4-bor-heimdall-v2-validator] Extracting service data and configuration
-2026-02-09 17:26:27 INFO [l2-el-4-bor-heimdall-v2-validator] Starting new container with image: 0xpolygon/bor:2.6.0-beta
-c0ac71171f8f142515d7019f8883eced12ac5fab348eeb1e8eaa4e44a1179176
-2026-02-09 17:26:58 INFO Querying RPC nodes
-l2-el-4-bor-heimdall-v2-validator: 156
-l2-el-2-bor-heimdall-v2-validator: 156
-l2-el-5-bor-heimdall-v2-rpc: 156
-l2-el-6-erigon-heimdall-v2-rpc: 156
-l2-el-3-bor-heimdall-v2-validator: 156
-l2-el-1-bor-heimdall-v2-validator--1fc6a52369c94a4e87bc263a253e7c58: 156
-2026-02-09 17:26:58 INFO Triggering a graceful span rotation
-The command was successfully executed and returned '0'.
-Average block time calculated: 1 seconds
-4:27PM INF Tx with hash 976BFDA68478788102955DD92ECF99A43645055E4BFF1C743EAAFD86B5F0CF89 broadcasted successfully. module=x/bor/cli
-
-2026-02-09 17:27:00 INFO Waiting for block producer rotation...
-2026-02-09 17:27:00 INFO Current producer: 1
-2026-02-09 17:27:10 INFO Current producer: 1
-2026-02-09 17:27:21 INFO Current producer: 1
-2026-02-09 17:27:31 INFO Current producer: 1
-2026-02-09 17:27:42 INFO Current producer: 1
-2026-02-09 17:27:52 INFO Current producer: 1
-2026-02-09 17:28:03 INFO Current producer: 1
-2026-02-09 17:28:13 INFO Current producer: 1
-2026-02-09 17:28:23 INFO Current producer: 1
-2026-02-09 17:28:34 INFO Current producer: 1
-2026-02-09 17:28:44 INFO Current producer: 1
-2026-02-09 17:28:55 INFO Current producer: 2
-2026-02-09 17:28:55 INFO Block producer rotated!
-2026-02-09 17:28:55 INFO Upgrading the old block producer
-2026-02-09 17:28:55 INFO Upgrading heimdall service: l2-cl-1-heimdall-v2-bor-validator
-2026-02-09 17:28:55 INFO Upgrading bor service: l2-el-1-bor-heimdall-v2-validator
-2026-02-09 17:28:55 INFO [l2-cl-1-heimdall-v2-bor-validator] Stopping kurtosis service
-2026-02-09 17:28:55 INFO [l2-el-1-bor-heimdall-v2-validator] Stopping kurtosis service
-INFO[2026-02-09T17:28:56+01:00] Stopping service 'l2-cl-1-heimdall-v2-bor-validator' 
-INFO[2026-02-09T17:28:56+01:00] Stopping service 'l2-el-1-bor-heimdall-v2-validator' 
-2026-02-09 17:29:01 INFO [l2-el-1-bor-heimdall-v2-validator] Extracting service data and configuration
-2026-02-09 17:29:02 INFO [l2-el-1-bor-heimdall-v2-validator] Starting new container with image: 0xpolygon/bor:2.6.0-beta
-259f48f403d973416d73533ab70f864d5aa1f72abf4f1c67f4f5cddd21f7509d
-2026-02-09 17:29:02 INFO [l2-cl-1-heimdall-v2-bor-validator] Extracting service data and configuration
-2026-02-09 17:29:02 INFO [l2-cl-1-heimdall-v2-bor-validator] Starting new container with image: 0xpolygon/heimdall-v2:0.6.0
-b79a9d9b1b0f09b02c10b7aa0ff8ce54c434b0c9c96e23c03c208ae38942de14
-NAMES                                                IMAGE                          STATUS
-l2-cl-1-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0    Up Less than a second
-l2-cl-2-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0    Up 2 minutes
-l2-cl-3-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0    Up 2 minutes
-l2-cl-4-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0    Up 2 minutes
-l2-el-1-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-beta       Up Less than a second
-l2-el-2-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-beta       Up 2 minutes
-l2-el-3-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-beta       Up 2 minutes
-l2-el-4-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-beta       Up 2 minutes
-l2-el-5-bor-heimdall-v2-rpc                          0xpolygon/bor:2.6.0-beta       Up 2 minutes
-l2-el-6-erigon-heimdall-v2-rpc                       0xpolygon/erigon:v3.4.0-beta   Up 2 minutes
-2026-02-09 17:29:32 INFO Querying RPC nodes
-l2-el-1-bor-heimdall-v2-validator: 304
-l2-el-4-bor-heimdall-v2-validator: 304
-l2-el-2-bor-heimdall-v2-validator: 304
-l2-el-5-bor-heimdall-v2-rpc: 304
-l2-el-6-erigon-heimdall-v2-rpc: 305
-l2-el-3-bor-heimdall-v2-validator: 305
+2026-02-20 19:15:43 INFO Listing containers
+NAMES                                                                 IMAGE                         STATUS
+l2-cl-1-heimdall-v2-bor-validator--75b1ec1acab845afbaaca0c004e342bf   0xpolygon/heimdall-v2:0.6.0   Up 48 seconds
+l2-cl-2-heimdall-v2-bor-validator--8412c979418b415dbab8c69078fb3ab1   0xpolygon/heimdall-v2:0.6.0   Up 39 seconds
+l2-cl-3-heimdall-v2-bor-validator--d0a3c97b46804842810361bece9a8ecf   0xpolygon/heimdall-v2:0.6.0   Up 31 seconds
+l2-cl-4-heimdall-v2-bor-validator--02bb7af595f247d698f63f3c71c61735   0xpolygon/heimdall-v2:0.6.0   Up 22 seconds
+l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560   0xpolygon/bor:2.6.0-amd64     Up 45 seconds
+l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1   0xpolygon/bor:2.6.0-amd64     Up 36 seconds
+l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f   0xpolygon/bor:2.6.0-amd64     Up 28 seconds
+l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81   0xpolygon/bor:2.6.0-amd64     Up 19 seconds
+l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3         0xpolygon/bor:2.6.0-amd64     Up 15 seconds
+l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9      0xpolygon/erigon:v3.4.0       Up 12 seconds
+2026-02-20 19:15:43 INFO Waiting for all RPCs to reach the Rio fork block 256
+2026-02-20 19:15:43 INFO Check 1/50
+2026-02-20 19:15:43 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 24 / 256 - NOT READY
+2026-02-20 19:15:43 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 24 / 256 - NOT READY
+2026-02-20 19:15:43 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 24 / 256 - NOT READY
+2026-02-20 19:15:43 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 24 / 256 - NOT READY
+2026-02-20 19:15:43 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 23 / 256 - NOT READY
+2026-02-20 19:15:43 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 24 / 256 - NOT READY
+2026-02-20 19:15:43 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:15:53 INFO Check 2/50
+2026-02-20 19:15:53 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 33 / 256 - NOT READY
+2026-02-20 19:15:53 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 33 / 256 - NOT READY
+2026-02-20 19:15:53 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 33 / 256 - NOT READY
+2026-02-20 19:15:53 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 33 / 256 - NOT READY
+2026-02-20 19:15:53 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 33 / 256 - NOT READY
+2026-02-20 19:15:53 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 33 / 256 - NOT READY
+2026-02-20 19:15:53 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:16:03 INFO Check 3/50
+2026-02-20 19:16:03 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 43 / 256 - NOT READY
+2026-02-20 19:16:03 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 43 / 256 - NOT READY
+2026-02-20 19:16:03 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 43 / 256 - NOT READY
+2026-02-20 19:16:03 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 43 / 256 - NOT READY
+2026-02-20 19:16:03 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 43 / 256 - NOT READY
+2026-02-20 19:16:03 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 43 / 256 - NOT READY
+2026-02-20 19:16:03 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:16:13 INFO Check 4/50
+2026-02-20 19:16:13 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 52 / 256 - NOT READY
+2026-02-20 19:16:13 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 52 / 256 - NOT READY
+2026-02-20 19:16:13 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 52 / 256 - NOT READY
+2026-02-20 19:16:13 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 52 / 256 - NOT READY
+2026-02-20 19:16:13 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 52 / 256 - NOT READY
+2026-02-20 19:16:13 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 52 / 256 - NOT READY
+2026-02-20 19:16:13 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:16:23 INFO Check 5/50
+2026-02-20 19:16:23 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 62 / 256 - NOT READY
+2026-02-20 19:16:23 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 62 / 256 - NOT READY
+2026-02-20 19:16:23 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 62 / 256 - NOT READY
+2026-02-20 19:16:23 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 62 / 256 - NOT READY
+2026-02-20 19:16:23 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 62 / 256 - NOT READY
+2026-02-20 19:16:23 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 62 / 256 - NOT READY
+2026-02-20 19:16:23 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:16:33 INFO Check 6/50
+2026-02-20 19:16:34 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 72 / 256 - NOT READY
+2026-02-20 19:16:34 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 72 / 256 - NOT READY
+2026-02-20 19:16:34 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 72 / 256 - NOT READY
+2026-02-20 19:16:34 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 72 / 256 - NOT READY
+2026-02-20 19:16:34 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 72 / 256 - NOT READY
+2026-02-20 19:16:34 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 72 / 256 - NOT READY
+2026-02-20 19:16:34 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:16:44 INFO Check 7/50
+2026-02-20 19:16:44 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 81 / 256 - NOT READY
+2026-02-20 19:16:44 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 81 / 256 - NOT READY
+2026-02-20 19:16:44 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 81 / 256 - NOT READY
+2026-02-20 19:16:44 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 81 / 256 - NOT READY
+2026-02-20 19:16:44 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 81 / 256 - NOT READY
+2026-02-20 19:16:44 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 81 / 256 - NOT READY
+2026-02-20 19:16:44 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:16:54 INFO Check 8/50
+2026-02-20 19:16:54 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 91 / 256 - NOT READY
+2026-02-20 19:16:54 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 91 / 256 - NOT READY
+2026-02-20 19:16:54 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 91 / 256 - NOT READY
+2026-02-20 19:16:54 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 91 / 256 - NOT READY
+2026-02-20 19:16:54 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 91 / 256 - NOT READY
+2026-02-20 19:16:54 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 91 / 256 - NOT READY
+2026-02-20 19:16:54 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:17:04 INFO Check 9/50
+2026-02-20 19:17:04 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 100 / 256 - NOT READY
+2026-02-20 19:17:04 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 100 / 256 - NOT READY
+2026-02-20 19:17:04 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 100 / 256 - NOT READY
+2026-02-20 19:17:04 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 100 / 256 - NOT READY
+2026-02-20 19:17:04 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 100 / 256 - NOT READY
+2026-02-20 19:17:04 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 100 / 256 - NOT READY
+2026-02-20 19:17:04 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:17:14 INFO Check 10/50
+2026-02-20 19:17:14 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 110 / 256 - NOT READY
+2026-02-20 19:17:14 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 110 / 256 - NOT READY
+2026-02-20 19:17:14 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 110 / 256 - NOT READY
+2026-02-20 19:17:14 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 110 / 256 - NOT READY
+2026-02-20 19:17:14 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 110 / 256 - NOT READY
+2026-02-20 19:17:14 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 110 / 256 - NOT READY
+2026-02-20 19:17:14 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:17:24 INFO Check 11/50
+2026-02-20 19:17:24 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 119 / 256 - NOT READY
+2026-02-20 19:17:24 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 119 / 256 - NOT READY
+2026-02-20 19:17:24 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 119 / 256 - NOT READY
+2026-02-20 19:17:24 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 119 / 256 - NOT READY
+2026-02-20 19:17:24 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 119 / 256 - NOT READY
+2026-02-20 19:17:24 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 119 / 256 - NOT READY
+2026-02-20 19:17:24 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:17:34 INFO Check 12/50
+2026-02-20 19:17:34 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 128 / 256 - NOT READY
+2026-02-20 19:17:34 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 128 / 256 - NOT READY
+2026-02-20 19:17:34 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 128 / 256 - NOT READY
+2026-02-20 19:17:34 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 128 / 256 - NOT READY
+2026-02-20 19:17:34 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 128 / 256 - NOT READY
+2026-02-20 19:17:34 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 128 / 256 - NOT READY
+2026-02-20 19:17:34 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:17:44 INFO Check 13/50
+2026-02-20 19:17:45 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 139 / 256 - NOT READY
+2026-02-20 19:17:45 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 139 / 256 - NOT READY
+2026-02-20 19:17:45 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 139 / 256 - NOT READY
+2026-02-20 19:17:45 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 139 / 256 - NOT READY
+2026-02-20 19:17:45 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 139 / 256 - NOT READY
+2026-02-20 19:17:45 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 139 / 256 - NOT READY
+2026-02-20 19:17:45 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:17:55 INFO Check 14/50
+2026-02-20 19:17:55 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 148 / 256 - NOT READY
+2026-02-20 19:17:55 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 148 / 256 - NOT READY
+2026-02-20 19:17:55 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 148 / 256 - NOT READY
+2026-02-20 19:17:55 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 148 / 256 - NOT READY
+2026-02-20 19:17:55 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 148 / 256 - NOT READY
+2026-02-20 19:17:55 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 148 / 256 - NOT READY
+2026-02-20 19:17:55 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:18:05 INFO Check 15/50
+2026-02-20 19:18:05 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 158 / 256 - NOT READY
+2026-02-20 19:18:05 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 158 / 256 - NOT READY
+2026-02-20 19:18:05 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 158 / 256 - NOT READY
+2026-02-20 19:18:05 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 158 / 256 - NOT READY
+2026-02-20 19:18:05 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 158 / 256 - NOT READY
+2026-02-20 19:18:05 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 158 / 256 - NOT READY
+2026-02-20 19:18:05 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:18:15 INFO Check 16/50
+2026-02-20 19:18:15 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 167 / 256 - NOT READY
+2026-02-20 19:18:15 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 167 / 256 - NOT READY
+2026-02-20 19:18:15 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 167 / 256 - NOT READY
+2026-02-20 19:18:15 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 167 / 256 - NOT READY
+2026-02-20 19:18:15 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 167 / 256 - NOT READY
+2026-02-20 19:18:15 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 167 / 256 - NOT READY
+2026-02-20 19:18:15 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:18:25 INFO Check 17/50
+2026-02-20 19:18:25 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 176 / 256 - NOT READY
+2026-02-20 19:18:25 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 176 / 256 - NOT READY
+2026-02-20 19:18:25 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 176 / 256 - NOT READY
+2026-02-20 19:18:25 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 176 / 256 - NOT READY
+2026-02-20 19:18:25 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 176 / 256 - NOT READY
+2026-02-20 19:18:25 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 176 / 256 - NOT READY
+2026-02-20 19:18:25 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:18:35 INFO Check 18/50
+2026-02-20 19:18:35 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 186 / 256 - NOT READY
+2026-02-20 19:18:35 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 186 / 256 - NOT READY
+2026-02-20 19:18:35 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 186 / 256 - NOT READY
+2026-02-20 19:18:35 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 186 / 256 - NOT READY
+2026-02-20 19:18:35 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 186 / 256 - NOT READY
+2026-02-20 19:18:35 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 186 / 256 - NOT READY
+2026-02-20 19:18:35 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:18:45 INFO Check 19/50
+2026-02-20 19:18:45 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 195 / 256 - NOT READY
+2026-02-20 19:18:45 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 195 / 256 - NOT READY
+2026-02-20 19:18:45 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 195 / 256 - NOT READY
+2026-02-20 19:18:45 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 195 / 256 - NOT READY
+2026-02-20 19:18:45 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 195 / 256 - NOT READY
+2026-02-20 19:18:45 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 195 / 256 - NOT READY
+2026-02-20 19:18:45 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:18:55 INFO Check 20/50
+2026-02-20 19:18:56 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 206 / 256 - NOT READY
+2026-02-20 19:18:56 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 206 / 256 - NOT READY
+2026-02-20 19:18:56 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 206 / 256 - NOT READY
+2026-02-20 19:18:56 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 206 / 256 - NOT READY
+2026-02-20 19:18:56 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 206 / 256 - NOT READY
+2026-02-20 19:18:56 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 206 / 256 - NOT READY
+2026-02-20 19:18:56 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:19:06 INFO Check 21/50
+2026-02-20 19:19:06 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 215 / 256 - NOT READY
+2026-02-20 19:19:06 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 215 / 256 - NOT READY
+2026-02-20 19:19:06 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 215 / 256 - NOT READY
+2026-02-20 19:19:06 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 215 / 256 - NOT READY
+2026-02-20 19:19:06 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 215 / 256 - NOT READY
+2026-02-20 19:19:06 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 215 / 256 - NOT READY
+2026-02-20 19:19:06 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:19:16 INFO Check 22/50
+2026-02-20 19:19:16 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 224 / 256 - NOT READY
+2026-02-20 19:19:16 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 224 / 256 - NOT READY
+2026-02-20 19:19:16 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 224 / 256 - NOT READY
+2026-02-20 19:19:16 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 224 / 256 - NOT READY
+2026-02-20 19:19:16 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 224 / 256 - NOT READY
+2026-02-20 19:19:16 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 224 / 256 - NOT READY
+2026-02-20 19:19:16 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:19:26 INFO Check 23/50
+2026-02-20 19:19:26 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 234 / 256 - NOT READY
+2026-02-20 19:19:26 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 234 / 256 - NOT READY
+2026-02-20 19:19:26 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 234 / 256 - NOT READY
+2026-02-20 19:19:26 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 234 / 256 - NOT READY
+2026-02-20 19:19:26 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 234 / 256 - NOT READY
+2026-02-20 19:19:26 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 234 / 256 - NOT READY
+2026-02-20 19:19:26 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:19:36 INFO Check 24/50
+2026-02-20 19:19:36 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 243 / 256 - NOT READY
+2026-02-20 19:19:36 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 243 / 256 - NOT READY
+2026-02-20 19:19:36 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 243 / 256 - NOT READY
+2026-02-20 19:19:36 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 243 / 256 - NOT READY
+2026-02-20 19:19:36 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 243 / 256 - NOT READY
+2026-02-20 19:19:36 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 243 / 256 - NOT READY
+2026-02-20 19:19:36 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:19:46 INFO Check 25/50
+2026-02-20 19:19:46 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 253 / 256 - NOT READY
+2026-02-20 19:19:46 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 253 / 256 - NOT READY
+2026-02-20 19:19:46 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 253 / 256 - NOT READY
+2026-02-20 19:19:46 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 253 / 256 - NOT READY
+2026-02-20 19:19:46 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 253 / 256 - NOT READY
+2026-02-20 19:19:46 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 253 / 256 - NOT READY
+2026-02-20 19:19:46 INFO Not all RPCs reached block 256, retrying in 10s...
+2026-02-20 19:19:56 INFO Check 26/50
+2026-02-20 19:19:56 INFO - l2-el-1-bor-heimdall-v2-validator--527351d1939e49e1ae315ee2dcda4560: 263 / 256 - OK
+2026-02-20 19:19:56 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 263 / 256 - OK
+2026-02-20 19:19:56 INFO - l2-el-3-bor-heimdall-v2-validator--483a0476c2c5446d90532fdc01b76d9f: 263 / 256 - OK
+2026-02-20 19:19:56 INFO - l2-el-4-bor-heimdall-v2-validator--aa6cc0ca2c294854b38cf8af08085b81: 263 / 256 - OK
+2026-02-20 19:19:56 INFO - l2-el-5-bor-heimdall-v2-rpc--4445b8e5b4be47c997c0873fa740fee3: 263 / 256 - OK
+2026-02-20 19:19:56 INFO - l2-el-6-erigon-heimdall-v2-rpc--a5ecc4f2c78249f8a194d0a848942ca9: 263 / 256 - OK
+2026-02-20 19:19:56 INFO All RPCs reached block 256
+2026-02-20 19:19:57 INFO Current block: 263, latest span ID: 3
+2026-02-20 19:19:57 INFO Block 263 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:19:57 INFO Current block producer ID: 2
+2026-02-20 19:19:57 INFO Upgrading 3 CL services sequentially (excluding block producer 2)
+2026-02-20 19:19:57 INFO Upgrading CL service: l2-cl-1-heimdall-v2-bor-validator of type heimdall-v2
+2026-02-20 19:19:57 INFO Stopping kurtosis service
+INFO[2026-02-20T19:19:57+01:00] Stopping service 'l2-cl-1-heimdall-v2-bor-validator' 
+0
+2026-02-20 19:20:02 INFO Service stopped
+2026-02-20 19:20:02 INFO Extracting service data and configuration
+Successfully copied 51.2kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-1-heimdall-v2-bor-validator/heimdall-v2_data
+Successfully copied 57.3kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-1-heimdall-v2-bor-validator/heimdall-v2_etc_config
+Successfully copied 10.8MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-1-heimdall-v2-bor-validator/heimdall-v2_etc_data
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-1-heimdall-v2-bor-validator/heimdall-v2_scripts
+l2-cl-1-heimdall-v2-bor-validator
+370d886044f1833eb343fcb78baf1c501b3c9551166db1a3f2e66372cc6fe1dc
+2026-02-20 19:20:02 INFO Container started
+2026-02-20 19:20:02 INFO Upgrading CL service: l2-cl-3-heimdall-v2-bor-validator of type heimdall-v2
+2026-02-20 19:20:02 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:02+01:00] Stopping service 'l2-cl-3-heimdall-v2-bor-validator' 
+0
+2026-02-20 19:20:07 INFO Service stopped
+2026-02-20 19:20:07 INFO Extracting service data and configuration
+Successfully copied 51.2kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-3-heimdall-v2-bor-validator/heimdall-v2_data
+Successfully copied 57.9kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-3-heimdall-v2-bor-validator/heimdall-v2_etc_config
+Successfully copied 10.9MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-3-heimdall-v2-bor-validator/heimdall-v2_etc_data
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-3-heimdall-v2-bor-validator/heimdall-v2_scripts
+l2-cl-3-heimdall-v2-bor-validator
+770dcd55fbcbc8ff2519e2810eec3ff52c258e61fdfbcef688c50921740dd620
+2026-02-20 19:20:07 INFO Container started
+2026-02-20 19:20:07 INFO Upgrading CL service: l2-cl-4-heimdall-v2-bor-validator of type heimdall-v2
+2026-02-20 19:20:07 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:08+01:00] Stopping service 'l2-cl-4-heimdall-v2-bor-validator' 
+0
+2026-02-20 19:20:12 INFO Service stopped
+2026-02-20 19:20:12 INFO Extracting service data and configuration
+Successfully copied 51.2kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-4-heimdall-v2-bor-validator/heimdall-v2_data
+Successfully copied 58.4kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-4-heimdall-v2-bor-validator/heimdall-v2_etc_config
+Successfully copied 10.9MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-4-heimdall-v2-bor-validator/heimdall-v2_etc_data
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-4-heimdall-v2-bor-validator/heimdall-v2_scripts
+l2-cl-4-heimdall-v2-bor-validator
+a29a8e608346459c1715f41f231058f33b6d4e06c02afae8252ed5088e344e86
+2026-02-20 19:20:12 INFO Container started
+2026-02-20 19:20:12 INFO Upgrading 5 EL services sequentially (excluding block producer 2)
+2026-02-20 19:20:12 INFO Upgrading EL service: l2-el-1-bor-heimdall-v2-validator of type bor
+2026-02-20 19:20:12 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:13+01:00] Stopping service 'l2-el-1-bor-heimdall-v2-validator' 
+0
+2026-02-20 19:20:17 INFO Service stopped
+2026-02-20 19:20:17 INFO Extracting service data and configuration
+Successfully copied 1.63MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-1-bor-heimdall-v2-validator/bor_data
+Successfully copied 67.1kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-1-bor-heimdall-v2-validator/bor_etc
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-1-bor-heimdall-v2-validator/bor_scripts
+l2-el-1-bor-heimdall-v2-validator
+2026-02-20 19:20:17 INFO Starting new container with image: 0xpolygon/bor:2.6.0-amd64
+2f2ab195849bde8d5472969b03b8d45c79422a6944ada478217d72882aefe71f
+2026-02-20 19:20:18 INFO Container started
+2026-02-20 19:20:18 INFO Upgrading EL service: l2-el-3-bor-heimdall-v2-validator of type bor
+2026-02-20 19:20:18 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:18+01:00] Stopping service 'l2-el-3-bor-heimdall-v2-validator' 
+0
+2026-02-20 19:20:23 INFO Service stopped
+2026-02-20 19:20:23 INFO Extracting service data and configuration
+Successfully copied 1.59MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-3-bor-heimdall-v2-validator/bor_data
+Successfully copied 67.1kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-3-bor-heimdall-v2-validator/bor_etc
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-3-bor-heimdall-v2-validator/bor_scripts
+l2-el-3-bor-heimdall-v2-validator
+2026-02-20 19:20:23 INFO Starting new container with image: 0xpolygon/bor:2.6.0-amd64
+eecfceb240bb5671df41ff96ae01850303098e568fd7fc1aa88dbd4d2f4a0934
+2026-02-20 19:20:23 INFO Container started
+2026-02-20 19:20:23 INFO Upgrading EL service: l2-el-4-bor-heimdall-v2-validator of type bor
+2026-02-20 19:20:23 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:23+01:00] Stopping service 'l2-el-4-bor-heimdall-v2-validator' 
+0
+2026-02-20 19:20:28 INFO Service stopped
+2026-02-20 19:20:28 INFO Extracting service data and configuration
+Successfully copied 1.61MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-4-bor-heimdall-v2-validator/bor_data
+Successfully copied 67.1kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-4-bor-heimdall-v2-validator/bor_etc
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-4-bor-heimdall-v2-validator/bor_scripts
+l2-el-4-bor-heimdall-v2-validator
+2026-02-20 19:20:28 INFO Starting new container with image: 0xpolygon/bor:2.6.0-amd64
+27a1e2d84812c0edcb1a331f8a4dfd677b58c0bfc6261e170c691ba29b2cca31
+2026-02-20 19:20:28 INFO Container started
+2026-02-20 19:20:28 INFO Upgrading EL service: l2-el-5-bor-heimdall-v2-rpc of type bor
+2026-02-20 19:20:28 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:28+01:00] Stopping service 'l2-el-5-bor-heimdall-v2-rpc' 
+0
+2026-02-20 19:20:33 INFO Service stopped
+2026-02-20 19:20:33 INFO Extracting service data and configuration
+Successfully copied 4.01MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-5-bor-heimdall-v2-rpc/bor_data
+Successfully copied 66.6kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-5-bor-heimdall-v2-rpc/bor_etc
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-5-bor-heimdall-v2-rpc/bor_scripts
+l2-el-5-bor-heimdall-v2-rpc
+2026-02-20 19:20:33 INFO Starting new container with image: 0xpolygon/bor:2.6.0-amd64
+88e7288703f432500f9e6e194b05fe2bfb08231a0347347446573175fc455a0b
+2026-02-20 19:20:33 INFO Container started
+2026-02-20 19:20:33 INFO Upgrading EL service: l2-el-6-erigon-heimdall-v2-rpc of type erigon
+2026-02-20 19:20:33 INFO Stopping kurtosis service
+INFO[2026-02-20T19:20:34+01:00] Stopping service 'l2-el-6-erigon-heimdall-v2-rpc' 
+0
+2026-02-20 19:20:38 INFO Service stopped
+2026-02-20 19:20:38 INFO Extracting service data and configuration
+Successfully copied 36.1MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-6-erigon-heimdall-v2-rpc/erigon_data
+Successfully copied 60.4kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-6-erigon-heimdall-v2-rpc/erigon_etc
+l2-el-6-erigon-heimdall-v2-rpc
+2026-02-20 19:20:38 INFO Starting new container with image: 0xpolygon/erigon:v3.4.0
+439779a9cfcef9d50234c0f1b856db7b8f1141e7e0b8b03f917a7a7a6e7c2bcd
+2026-02-20 19:20:38 INFO Container started
+2026-02-20 19:20:48 INFO All non-producer services upgraded
+2026-02-20 19:20:48 INFO Querying RPCs
+2026-02-20 19:20:48 INFO - l2-el-1-bor-heimdall-v2-validator: 315
+2026-02-20 19:20:48 INFO - l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1: 315
+2026-02-20 19:20:49 INFO - l2-el-3-bor-heimdall-v2-validator: 316
+2026-02-20 19:20:49 INFO - l2-el-4-bor-heimdall-v2-validator: 316
+2026-02-20 19:20:49 INFO - l2-el-5-bor-heimdall-v2-rpc: 316
+2026-02-20 19:20:49 INFO - l2-el-6-erigon-heimdall-v2-rpc: 316
+2026-02-20 19:20:49 INFO Listing containers
+NAMES                                                                 IMAGE                         STATUS
+l2-cl-1-heimdall-v2-bor-validator                                     0xpolygon/heimdall-v2:0.6.0   Up 46 seconds
+l2-cl-2-heimdall-v2-bor-validator--8412c979418b415dbab8c69078fb3ab1   0xpolygon/heimdall-v2:0.6.0   Up 5 minutes
+l2-cl-3-heimdall-v2-bor-validator                                     0xpolygon/heimdall-v2:0.6.0   Up 41 seconds
+l2-cl-4-heimdall-v2-bor-validator                                     0xpolygon/heimdall-v2:0.6.0   Up 36 seconds
+l2-el-1-bor-heimdall-v2-validator                                     0xpolygon/bor:2.6.0-amd64     Up 31 seconds
+l2-el-2-bor-heimdall-v2-validator--ce375650b6f14a65b5e5d8a616f4c1d1   0xpolygon/bor:2.6.0-amd64     Up 5 minutes
+l2-el-3-bor-heimdall-v2-validator                                     0xpolygon/bor:2.6.0-amd64     Up 25 seconds
+l2-el-4-bor-heimdall-v2-validator                                     0xpolygon/bor:2.6.0-amd64     Up 20 seconds
+l2-el-5-bor-heimdall-v2-rpc                                           0xpolygon/bor:2.6.0-amd64     Up 15 seconds
+l2-el-6-erigon-heimdall-v2-rpc                                        0xpolygon/erigon:v3.4.0       Up 10 seconds
+2026-02-20 19:20:49 INFO Waiting for block producer rotation before upgrading producer 2
+2026-02-20 19:20:49 INFO Waiting for block producer rotation
+2026-02-20 19:20:49 INFO Current block: 316, latest span ID: 3
+2026-02-20 19:20:49 INFO Block 316 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:20:49 INFO Block producer ID: 2
+2026-02-20 19:20:49 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:20:59 INFO Current block: 326, latest span ID: 3
+2026-02-20 19:20:59 INFO Block 326 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:20:59 INFO Block producer ID: 2
+2026-02-20 19:20:59 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:21:09 INFO Current block: 336, latest span ID: 3
+2026-02-20 19:21:09 INFO Block 336 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:21:09 INFO Block producer ID: 2
+2026-02-20 19:21:09 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:21:19 INFO Current block: 346, latest span ID: 3
+2026-02-20 19:21:19 INFO Block 346 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:21:19 INFO Block producer ID: 2
+2026-02-20 19:21:19 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:21:29 INFO Current block: 356, latest span ID: 3
+2026-02-20 19:21:29 INFO Block 356 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:21:29 INFO Block producer ID: 2
+2026-02-20 19:21:29 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:21:39 INFO Current block: 366, latest span ID: 3
+2026-02-20 19:21:39 INFO Block 366 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:21:39 INFO Block producer ID: 2
+2026-02-20 19:21:39 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:21:50 INFO Current block: 377, latest span ID: 3
+2026-02-20 19:21:50 INFO Block 377 is in span 2 (256-383), producer val_id: 2
+2026-02-20 19:21:50 INFO Block producer ID: 2
+2026-02-20 19:21:50 INFO Block producer has not rotated, retrying in 10s...
+2026-02-20 19:22:00 INFO Current block: 387, latest span ID: 4
+2026-02-20 19:22:00 INFO Block 387 is in span 3 (384-511), producer val_id: 3
+2026-02-20 19:22:00 INFO Block producer ID: 3
+2026-02-20 19:22:00 INFO Block producer rotated!
+2026-02-20 19:22:00 INFO Upgrading the old block producer
+2026-02-20 19:22:00 INFO Upgrading CL service: l2-cl-2-heimdall-v2-bor-validator of type heimdall-v2
+2026-02-20 19:22:00 INFO Stopping kurtosis service
+INFO[2026-02-20T19:22:00+01:00] Stopping service 'l2-cl-2-heimdall-v2-bor-validator' 
+0
+2026-02-20 19:22:05 INFO Service stopped
+2026-02-20 19:22:05 INFO Extracting service data and configuration
+Successfully copied 51.2kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-2-heimdall-v2-bor-validator/heimdall-v2_data
+Successfully copied 57.3kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-2-heimdall-v2-bor-validator/heimdall-v2_etc_config
+Successfully copied 15.2MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-2-heimdall-v2-bor-validator/heimdall-v2_etc_data
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-cl-2-heimdall-v2-bor-validator/heimdall-v2_scripts
+l2-cl-2-heimdall-v2-bor-validator
+eeeaa3fec2dfae4da1cb6cd2ddc7aa10bab42a77008bf0604308dc8bcb63be9c
+2026-02-20 19:22:05 INFO Container started
+2026-02-20 19:22:05 INFO Upgrading EL service: l2-el-2-bor-heimdall-v2-validator of type bor
+2026-02-20 19:22:05 INFO Stopping kurtosis service
+INFO[2026-02-20T19:22:05+01:00] Stopping service 'l2-el-2-bor-heimdall-v2-validator' 
+0
+2026-02-20 19:22:10 INFO Service stopped
+2026-02-20 19:22:10 INFO Extracting service data and configuration
+Successfully copied 1.95MB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-2-bor-heimdall-v2-validator/bor_data
+Successfully copied 67.1kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-2-bor-heimdall-v2-validator/bor_etc
+Successfully copied 4.61kB to /home/leovct/Documents/internal/e2e/scenarios/pos/upgrade/tmp/l2-el-2-bor-heimdall-v2-validator/bor_scripts
+l2-el-2-bor-heimdall-v2-validator
+2026-02-20 19:22:10 INFO Starting new container with image: 0xpolygon/bor:2.6.0-amd64
+33e96245c69d7a914d185d376198effb9fe9f1dacb93fa90d166d752ee2dab60
+2026-02-20 19:22:10 INFO Container started
+2026-02-20 19:22:20 INFO Block producer 2 upgraded
+2026-02-20 19:22:20 INFO Querying RPCs
+2026-02-20 19:22:20 INFO - l2-el-1-bor-heimdall-v2-validator: 407
+2026-02-20 19:22:20 INFO - l2-el-2-bor-heimdall-v2-validator: 396
+2026-02-20 19:22:20 INFO - l2-el-3-bor-heimdall-v2-validator: 407
+2026-02-20 19:22:20 INFO - l2-el-4-bor-heimdall-v2-validator: 407
+2026-02-20 19:22:20 INFO - l2-el-5-bor-heimdall-v2-rpc: 407
+2026-02-20 19:22:21 INFO - l2-el-6-erigon-heimdall-v2-rpc: 408
+2026-02-20 19:22:21 INFO Listing containers
+NAMES                                                IMAGE                         STATUS
+l2-cl-1-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0   Up 2 minutes
+l2-cl-2-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0   Up 15 seconds
+l2-cl-3-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0   Up 2 minutes
+l2-cl-4-heimdall-v2-bor-validator                    0xpolygon/heimdall-v2:0.6.0   Up 2 minutes
+l2-el-1-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-amd64     Up 2 minutes
+l2-el-2-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-amd64     Up 10 seconds
+l2-el-3-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-amd64     Up About a minute
+l2-el-4-bor-heimdall-v2-validator                    0xpolygon/bor:2.6.0-amd64     Up About a minute
+l2-el-5-bor-heimdall-v2-rpc                          0xpolygon/bor:2.6.0-amd64     Up About a minute
+l2-el-6-erigon-heimdall-v2-rpc                       0xpolygon/erigon:v3.4.0       Up About a minute
+2026-02-20 19:22:21 INFO Waiting for all RPCs to reach block 356
+2026-02-20 19:22:21 INFO Check 1/50
+2026-02-20 19:22:21 INFO - l2-el-1-bor-heimdall-v2-validator: 408 / 356 - OK
+2026-02-20 19:22:21 INFO - l2-el-2-bor-heimdall-v2-validator: 396 / 356 - OK
+2026-02-20 19:22:21 INFO - l2-el-3-bor-heimdall-v2-validator: 408 / 356 - OK
+2026-02-20 19:22:21 INFO - l2-el-4-bor-heimdall-v2-validator: 408 / 356 - OK
+2026-02-20 19:22:21 INFO - l2-el-5-bor-heimdall-v2-rpc: 408 / 356 - OK
+2026-02-20 19:22:21 INFO - l2-el-6-erigon-heimdall-v2-rpc: 408 / 356 - OK
+2026-02-20 19:22:21 INFO All RPCs reached block 356
