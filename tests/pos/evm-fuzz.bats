@@ -6,6 +6,38 @@ setup() {
     pos_setup
 }
 
+# Waits until the chain has advanced at least 30 blocks past start_block, then
+# asserts that the chain actually progressed.  Fails with an explicit message if
+# the node stalls or the 3-minute deadline expires.
+_wait_for_liveness() {
+    local start_block="$1"
+    local label="${2:-}"
+    local deadline=$(( start_block + 30 ))
+    local wait_secs=0 max_wait=180
+
+    while true; do
+        local current
+        current=$(cast block-number --rpc-url "$L2_RPC_URL" 2>/dev/null) || current=0
+        if [[ "$current" -ge "$deadline" ]]; then
+            break
+        fi
+        if [[ "$wait_secs" -ge "$max_wait" ]]; then
+            echo "Liveness timeout after ${max_wait}s${label:+ ($label)}: stuck at block $current (need $deadline)" >&2
+            return 1
+        fi
+        sleep 2
+        wait_secs=$(( wait_secs + 2 ))
+    done
+
+    local live_block
+    live_block=$(cast block-number --rpc-url "$L2_RPC_URL")
+    if [[ -z "$live_block" || "$live_block" -le "$start_block" ]]; then
+        echo "Liveness check failed${label:+ ($label)}: block did not advance beyond $start_block, got: ${live_block:-empty}" >&2
+        return 1
+    fi
+    echo "Liveness check passed${label:+ ($label)} at block $live_block" >&3
+}
+
 # bats test_tags=evm-stress
 @test "fuzz node with edge-case contract creation bytecodes and verify liveness" {
     local wallet_json
@@ -44,14 +76,14 @@ setup() {
         for repeat in $(seq 1 7); do
             set +e
             tx_hash=$(cast send \
-                --create "0x${bytecode}" \
                 --nonce "$nonce" \
                 --gas-limit 1000000 \
                 --gas-price "$gas_price" \
                 --legacy \
                 --async \
                 --private-key "$ephemeral_private_key" \
-                --rpc-url "$L2_RPC_URL" 2>/dev/null)
+                --rpc-url "$L2_RPC_URL" \
+                --create "0x${bytecode}" 2>/dev/null)
             set -e
             if [[ -n "$tx_hash" ]]; then
                 tx_hashes+=("$tx_hash")
@@ -62,24 +94,9 @@ setup() {
 
     echo "Submitted ${#tx_hashes[@]} contract creation txs, waiting for settlement..." >&3
 
-    # Wait for the last few txs to settle by watching block progress
+    local start_block
     start_block=$(cast block-number --rpc-url "$L2_RPC_URL")
-    deadline=$(( start_block + 30 ))
-    while true; do
-        current=$(cast block-number --rpc-url "$L2_RPC_URL")
-        if [[ "$current" -ge "$deadline" ]]; then
-            break
-        fi
-        sleep 2
-    done
-
-    # Liveness check
-    live_block=$(cast block-number --rpc-url "$L2_RPC_URL")
-    if [[ -z "$live_block" || "$live_block" -eq 0 ]]; then
-        echo "Liveness check failed: node did not return a valid block number after fuzz" >&2
-        return 1
-    fi
-    echo "Liveness check passed at block $live_block" >&3
+    _wait_for_liveness "$start_block" "contract-creation fuzz"
 }
 
 # bats test_tags=evm-stress
@@ -128,22 +145,9 @@ setup() {
 
     echo "Submitted 108 variable-calldata txs, waiting for settlement..." >&3
 
+    local start_block
     start_block=$(cast block-number --rpc-url "$L2_RPC_URL")
-    deadline=$(( start_block + 30 ))
-    while true; do
-        current=$(cast block-number --rpc-url "$L2_RPC_URL")
-        if [[ "$current" -ge "$deadline" ]]; then
-            break
-        fi
-        sleep 2
-    done
-
-    live_block=$(cast block-number --rpc-url "$L2_RPC_URL")
-    if [[ -z "$live_block" || "$live_block" -eq 0 ]]; then
-        echo "Liveness check failed after calldata fuzz" >&2
-        return 1
-    fi
-    echo "Liveness check passed at block $live_block" >&3
+    _wait_for_liveness "$start_block" "calldata fuzz"
 }
 
 # bats test_tags=evm-stress
@@ -193,20 +197,57 @@ setup() {
 
     echo "Submitted 100 edge-case gas-limit txs, waiting for settlement..." >&3
 
+    local start_block
     start_block=$(cast block-number --rpc-url "$L2_RPC_URL")
-    deadline=$(( start_block + 30 ))
-    while true; do
-        current=$(cast block-number --rpc-url "$L2_RPC_URL")
-        if [[ "$current" -ge "$deadline" ]]; then
-            break
-        fi
-        sleep 2
+    _wait_for_liveness "$start_block" "gas-limit fuzz"
+}
+
+# bats test_tags=evm-stress
+@test "fuzz node with non-zero calldata transactions and verify liveness" {
+    # Non-zero bytes cost 16 gas each (EIP-2028), vs 4 for zero bytes. This exercises
+    # a distinct path in the mempool gas accounting and block packing logic.
+    local wallet_json
+    wallet_json=$(cast wallet new --json | jq '.[0]')
+    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
+    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
+    echo "ephemeral_address: $ephemeral_address" >&3
+
+    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+
+    # Non-zero calldata sizes (bytes): 1, 4, 32, 128, 512, 2048, 8192
+    # Each sent 5 times = 35 txs total.
+    sizes=(1 4 32 128 512 2048 8192)
+
+    nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
+    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
+
+    for size in "${sizes[@]}"; do
+        # All-0xff payload: every byte is non-zero, so gas cost is 16 gas/byte.
+        calldata="0x$(python3 -c "print('ff'*${size}, end='')")"
+        # gas: 21000 intrinsic + 16*size (non-zero bytes) + buffer
+        gas_limit=$(( 21000 + 16 * size + 10000 ))
+
+        # shellcheck disable=SC2034
+        for repeat in $(seq 1 5); do
+            set +e
+            cast send \
+                --nonce "$nonce" \
+                --gas-limit "$gas_limit" \
+                --gas-price "$gas_price" \
+                --legacy \
+                --data "$calldata" \
+                --async \
+                --private-key "$ephemeral_private_key" \
+                --rpc-url "$L2_RPC_URL" \
+                0x0000000000000000000000000000000000000000 &>/dev/null
+            set -e
+            nonce=$(( nonce + 1 ))
+        done
     done
 
-    live_block=$(cast block-number --rpc-url "$L2_RPC_URL")
-    if [[ -z "$live_block" || "$live_block" -eq 0 ]]; then
-        echo "Liveness check failed after gas-limit fuzz" >&2
-        return 1
-    fi
-    echo "Liveness check passed at block $live_block" >&3
+    echo "Submitted 35 non-zero-calldata txs, waiting for settlement..." >&3
+
+    local start_block
+    start_block=$(cast block-number --rpc-url "$L2_RPC_URL")
+    _wait_for_liveness "$start_block" "non-zero calldata fuzz"
 }
