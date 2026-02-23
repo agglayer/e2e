@@ -31,5 +31,5 @@ Remove the enclave, orphaned containers, and temporary data before re-running:
 ```bash
 kurtosis enclave rm --force pos
 docker ps --all --format '{{.Names}}' | grep -E '^l2-(e|c)l-.*-.*-' | xargs docker rm --force
-sudo rm -rf ./tmp
+rm -rf ./tmp
 ```
