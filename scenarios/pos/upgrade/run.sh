@@ -21,7 +21,7 @@ load_env
 get_orphaned_containers() {
 	# Note that we don't filter by network here because orphaned containers may have been disconnected
 	# from the network after their services were stopped.
-	docker ps --filter "name=l2-cl" --filter "name=l2-el" --format '{{.Names}}' |
+	docker ps --all --filter "name=l2-cl" --filter "name=l2-el" --format '{{.Names}}' |
 		grep -v "rabbitmq" |
 		sort -V
 }
