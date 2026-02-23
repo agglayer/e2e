@@ -157,37 +157,37 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/rpc-concurrent-load.bats#L58) | |
 | 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/rpc-concurrent-load.bats#L103) | |
 | 50 concurrent requests across additional RPC methods succeed | [Link](./tests/pos/rpc-concurrent-load.bats#L316) | |
-| ADDMOD and MULMOD compute correctly | [Link](./tests/pos/evm-state-invariants.bats#L1519) | |
-| BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/evm-state-invariants.bats#L1273) | |
-| BYTE opcode extracts correct byte from word | [Link](./tests/pos/evm-state-invariants.bats#L1470) | |
-| CALLDATASIZE returns correct input length | [Link](./tests/pos/evm-state-invariants.bats#L1421) | |
-| CODESIZE returns correct runtime size | [Link](./tests/pos/evm-state-invariants.bats#L1373) | |
-| COINBASE opcode returns block miner address | [Link](./tests/pos/evm-state-invariants.bats#L1101) | |
+| ADDMOD and MULMOD compute correctly | [Link](./tests/pos/evm-state-invariants.bats#L1520) | |
+| BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/evm-state-invariants.bats#L1274) | |
+| BYTE opcode extracts correct byte from word | [Link](./tests/pos/evm-state-invariants.bats#L1471) | |
+| CALLDATASIZE returns correct input length | [Link](./tests/pos/evm-state-invariants.bats#L1422) | |
+| CODESIZE returns correct runtime size | [Link](./tests/pos/evm-state-invariants.bats#L1374) | |
+| COINBASE opcode returns block miner address | [Link](./tests/pos/evm-state-invariants.bats#L1102) | |
 | CREATE deploys to the address predicted by cast compute-address | [Link](./tests/pos/evm-state-invariants.bats#L82) | |
 | CREATE with maximum value transfer in constructor | [Link](./tests/pos/contract-creation-edge-cases.bats#L520) | |
 | CREATE2 address matches keccak256(0xff ++ deployer ++ salt ++ initCodeHash) | [Link](./tests/pos/evm-state-invariants.bats#L394) | |
 | CREATE2 deploys child to predicted salt-derived address | [Link](./tests/pos/contract-creation-edge-cases.bats#L207) | |
-| Calldata gas accounting: nonzero bytes cost more than zero bytes | [Link](./tests/pos/evm-state-invariants.bats#L1813) | |
+| Calldata gas accounting: nonzero bytes cost more than zero bytes | [Link](./tests/pos/evm-state-invariants.bats#L1814) | |
 | Contract creation receipt has contractAddress field | [Link](./tests/pos/rpc-conformance.bats#L1036) | |
-| Cross-contract storage isolation: two contracts store different values at slot 0 | [Link](./tests/pos/evm-state-invariants.bats#L1581) | |
+| Cross-contract storage isolation: two contracts store different values at slot 0 | [Link](./tests/pos/evm-state-invariants.bats#L1582) | |
 | DELEGATECALL preserves caller context: msg.sender stored via proxy | [Link](./tests/pos/evm-state-invariants.bats#L612) | |
 | EIP-1559 sender decrease equals value plus effectiveGasPrice times gasUsed | [Link](./tests/pos/evm-state-invariants.bats#L238) | |
 | EIP-2930 type-1 access list tx fuzz and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L523) | |
-| EXTCODEHASH correctness for EOA, deployed contract, and nonexistent account | [Link](./tests/pos/evm-state-invariants.bats#L789) | |
+| EXTCODEHASH correctness for EOA, deployed contract, and nonexistent account | [Link](./tests/pos/evm-state-invariants.bats#L790) | |
 | Empty batch JSON-RPC returns empty array | [Link](./tests/pos/rpc-conformance.bats#L1114) | |
-| GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/evm-state-invariants.bats#L1223) | |
-| Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/evm-state-invariants.bats#L1790) | |
-| LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/evm-state-invariants.bats#L856) | |
-| Multiple storage slots in one transaction | [Link](./tests/pos/evm-state-invariants.bats#L1703) | |
-| NUMBER opcode returns correct block number | [Link](./tests/pos/evm-state-invariants.bats#L1175) | |
-| Nonce-too-low rejection | [Link](./tests/pos/evm-state-invariants.bats#L1754) | |
+| GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/evm-state-invariants.bats#L1224) | |
+| Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/evm-state-invariants.bats#L1791) | |
+| LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/evm-state-invariants.bats#L857) | |
+| Multiple storage slots in one transaction | [Link](./tests/pos/evm-state-invariants.bats#L1704) | |
+| NUMBER opcode returns correct block number | [Link](./tests/pos/evm-state-invariants.bats#L1176) | |
+| Nonce-too-low rejection | [Link](./tests/pos/evm-state-invariants.bats#L1755) | |
 | OOG during code-deposit phase fails the creation | [Link](./tests/pos/contract-creation-edge-cases.bats#L352) | |
 | Parent hash chain integrity across 5 blocks | [Link](./tests/pos/rpc-conformance.bats#L903) | |
-| SELFBALANCE returns contract's own balance | [Link](./tests/pos/evm-state-invariants.bats#L1326) | |
+| SELFBALANCE returns contract's own balance | [Link](./tests/pos/evm-state-invariants.bats#L1327) | |
 | SELFDESTRUCT during construction leaves no code and zero balance | [Link](./tests/pos/contract-creation-edge-cases.bats#L315) | |
 | SSTORE + SLOAD roundtrip: stored value is retrievable and unwritten slots are zero | [Link](./tests/pos/evm-state-invariants.bats#L501) | |
-| SSTORE gas refund: clearing a storage slot uses less gas than setting it | [Link](./tests/pos/evm-state-invariants.bats#L960) | |
-| SSTORE overwrite: new value replaces old | [Link](./tests/pos/evm-state-invariants.bats#L1642) | |
+| SSTORE gas refund: clearing a storage slot uses less gas than setting it | [Link](./tests/pos/evm-state-invariants.bats#L961) | |
+| SSTORE overwrite: new value replaces old | [Link](./tests/pos/evm-state-invariants.bats#L1643) | |
 | STATICCALL cannot modify state: SSTORE attempt reverts | [Link](./tests/pos/evm-state-invariants.bats#L701) | |
 | Sum of receipt gasUsed matches block gasUsed | [Link](./tests/pos/rpc-conformance.bats#L935) | |
 | add new validator | [Link](./tests/pos/validator.bats#L20) | |
