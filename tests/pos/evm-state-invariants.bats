@@ -767,7 +767,8 @@ setup() {
     # STATICCALL to a contract that does SSTORE must return 0 (failure).
     local slot0
     slot0=$(cast storage "$caller_addr" 0 --rpc-url "$L2_RPC_URL")
-    local result_dec=$(printf '%d' "$slot0" 2>/dev/null) || result_dec=0
+    local result_dec
+    result_dec=$(printf '%d' "$slot0" 2>/dev/null) || result_dec=0
 
     if [[ "$result_dec" -ne 0 ]]; then
         echo "STATICCALL should have returned 0 (failure) for SSTORE attempt, got: $result_dec" >&2
