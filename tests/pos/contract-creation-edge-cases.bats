@@ -202,3 +202,177 @@ setup() {
     fi
     # Non-zero exit or status 0x0 — node correctly rejected EF-prefixed runtime — pass
 }
+
+# bats test_tags=transaction-eoa
+@test "CREATE2 deploys child to predicted salt-derived address" {
+    # Factory constructor uses CREATE2 to deploy a child, stores child address at slot 0.
+    # Bytecode breakdown:
+    #   PUSH32 <child_initcode padded to 32 bytes>   child = 600160005360016000f3 (10 bytes)
+    #   PUSH1 0x00  MSTORE                            store child initcode at mem[0..31]
+    #   PUSH1 0x42                                    salt
+    #   PUSH1 0x0a                                    size (10 bytes of initcode)
+    #   PUSH1 0x00                                    memory offset
+    #   PUSH1 0x00                                    value (0 ETH)
+    #   CREATE2                                       deploy child
+    #   PUSH1 0x00  SSTORE                            store child address at slot 0
+    #   STOP
+    # Child initcode (600160005360016000f3):
+    #   PUSH1 0x01  PUSH1 0x00  MSTORE8  PUSH1 0x01  PUSH1 0x00  RETURN
+    #   → returns 1-byte runtime (0x01).
+    receipt=$(cast send \
+        --legacy \
+        --gas-limit 200000 \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x7f600160005360016000f3000000000000000000000000000000000000000000006000526042600a60006000f560005500")
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Expected tx success for CREATE2 factory deploy, got: $tx_status" >&2
+        return 1
+    fi
+
+    factory_addr=$(echo "$receipt" | jq -r '.contractAddress')
+
+    # Read child address from factory's storage slot 0 (left-padded to 32 bytes).
+    actual_raw=$(cast storage "$factory_addr" 0 --rpc-url "$L2_RPC_URL")
+    actual_child="0x${actual_raw: -40}"
+
+    # Child should have runtime code 0x01.
+    child_code=$(cast code "$actual_child" --rpc-url "$L2_RPC_URL")
+    if [[ "$child_code" == "0x" ]]; then
+        echo "Child contract at $actual_child has no code — CREATE2 failed silently" >&2
+        return 1
+    fi
+
+    # Predict the CREATE2 address:
+    #   address = keccak256(0xff ++ deployer ++ salt ++ keccak256(initcode))[12:]
+    child_initcode="0x600160005360016000f3"
+    init_code_hash=$(cast keccak "$child_initcode")
+    factory_hex=$(echo "${factory_addr#0x}" | tr '[:upper:]' '[:lower:]')
+    salt_hex="0000000000000000000000000000000000000000000000000000000000000042"
+    hash_hex="${init_code_hash#0x}"
+
+    packed="0xff${factory_hex}${salt_hex}${hash_hex}"
+    predicted_hash=$(cast keccak "$packed")
+    predicted_addr="0x${predicted_hash: -40}"
+
+    actual_lower=$(echo "$actual_child" | tr '[:upper:]' '[:lower:]')
+    predicted_lower=$(echo "$predicted_addr" | tr '[:upper:]' '[:lower:]')
+    if [[ "$actual_lower" != "$predicted_lower" ]]; then
+        echo "CREATE2 address mismatch: actual=$actual_child predicted=$predicted_addr" >&2
+        return 1
+    fi
+}
+
+# bats test_tags=transaction-eoa
+@test "nested contract creation: constructor deploys child via CREATE" {
+    # Factory constructor deploys a child contract, then returns its own 1-byte runtime.
+    # Bytecode breakdown:
+    #   PUSH32 <child_initcode padded>   child = 600160005360016000f3 (10 bytes, returns 0x01)
+    #   PUSH1 0x00  MSTORE               store child initcode at mem[0..31]
+    #   PUSH1 0x0a  PUSH1 0x00  PUSH1 0x00  CREATE   deploy child (size=10, offset=0, value=0)
+    #   POP                              discard child address from stack
+    #   PUSH1 0x01  PUSH1 0x00  MSTORE8  mem[0] = 0x01
+    #   PUSH1 0x01  PUSH1 0x00  RETURN   return 1-byte runtime (0x01) for factory
+    receipt=$(cast send \
+        --legacy \
+        --gas-limit 200000 \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x7f600160005360016000f300000000000000000000000000000000000000000000600052600a60006000f050600160005360016000f3")
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Expected tx success for nested creation, got: $tx_status" >&2
+        return 1
+    fi
+
+    factory_addr=$(echo "$receipt" | jq -r '.contractAddress')
+
+    # Factory should have non-empty runtime code.
+    factory_code=$(cast code "$factory_addr" --rpc-url "$L2_RPC_URL")
+    if [[ "$factory_code" == "0x" ]]; then
+        echo "Factory contract has no runtime code after nested CREATE" >&2
+        return 1
+    fi
+
+    # During creation the factory's nonce starts at 1 (EIP-161).  The child address is
+    # derived from RLP([factory_addr, nonce=1]).
+    child_addr=$(cast compute-address "$factory_addr" --nonce 1 | awk '{print $NF}')
+
+    # Child should also have non-empty runtime code.
+    child_code=$(cast code "$child_addr" --rpc-url "$L2_RPC_URL")
+    if [[ "$child_code" == "0x" ]]; then
+        echo "Child contract at $child_addr has no code — nested CREATE failed" >&2
+        return 1
+    fi
+}
+
+# bats test_tags=transaction-eoa
+@test "SELFDESTRUCT during construction leaves no code and zero balance" {
+    # Initcode: PUSH1 0x00  SELFDESTRUCT (0xff)
+    # SELFDESTRUCT is a successful halt (not a revert) so the tx should succeed, but
+    # no RETURN is executed → no runtime code is stored.  Post-Cancun (EIP-6780),
+    # SELFDESTRUCT in the same tx as creation still fully deletes the account.
+    receipt=$(cast send \
+        --legacy \
+        --gas-limit 100000 \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x6000ff")
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    contract_addr=$(echo "$receipt" | jq -r '.contractAddress')
+
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Expected tx success (SELFDESTRUCT is not a revert), got: $tx_status" >&2
+        return 1
+    fi
+
+    # No runtime code should exist at the contract address.
+    deployed_code=$(cast code "$contract_addr" --rpc-url "$L2_RPC_URL")
+    if [[ "$deployed_code" != "0x" ]]; then
+        echo "Expected no code after SELFDESTRUCT in constructor, got: $deployed_code" >&2
+        return 1
+    fi
+
+    # Balance should be zero (SELFDESTRUCT sends any balance to target, account deleted).
+    balance=$(cast balance "$contract_addr" --rpc-url "$L2_RPC_URL")
+    if [[ "$balance" != "0" ]]; then
+        echo "Expected zero balance after SELFDESTRUCT, got: $balance" >&2
+        return 1
+    fi
+}
+
+# bats test_tags=evm-gas
+@test "OOG during code-deposit phase fails the creation" {
+    # Initcode: PUSH2 0x03e8  PUSH1 0x00  RETURN
+    # Returns 1000 bytes of zeroed memory as runtime code.
+    # Code-deposit cost: 200 gas/byte × 1000 = 200,000 gas.
+    # With --gas-limit 100000 the intrinsic cost is ~53K (21K base + 32K CREATE + calldata),
+    # leaving ~47K for execution + code deposit.  Execution costs ~100 gas, so ~46,900
+    # remains — far short of the 200K code-deposit requirement.  The creation must fail.
+    set +e
+    receipt=$(cast send \
+        --legacy \
+        --gas-limit 100000 \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x6103e86000f3" 2>/dev/null)
+    send_exit=$?
+    set -e
+
+    if [[ $send_exit -eq 0 && -n "$receipt" ]]; then
+        tx_status=$(echo "$receipt" | jq -r '.status // "0x0"')
+        if [[ "$tx_status" == "0x1" ]]; then
+            echo "Expected failure (OOG during code-deposit for 1000-byte runtime at 100K gas), but tx succeeded" >&2
+            return 1
+        fi
+    fi
+    # Non-zero exit or status 0x0 — creation failed during code-deposit phase — pass
+}

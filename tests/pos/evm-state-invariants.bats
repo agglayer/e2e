@@ -233,3 +233,308 @@ setup() {
         return 1
     fi
 }
+
+# bats test_tags=transaction-eoa,evm-gas
+@test "EIP-1559 sender decrease equals value plus effectiveGasPrice times gasUsed" {
+    # Type-2 tx: effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee).
+    # The baseFee portion is burned; only the priority tip goes to the coinbase.
+    # Sender still pays the full effectiveGasPrice × gasUsed plus value.
+
+    # Guard: skip if the chain doesn't expose baseFeePerGas (pre-London).
+    local latest_base_fee_hex
+    latest_base_fee_hex=$(cast block latest --json --rpc-url "$L2_RPC_URL" | jq -r '.baseFeePerGas // empty')
+    if [[ -z "$latest_base_fee_hex" ]]; then
+        skip "Chain does not expose baseFeePerGas — EIP-1559 not supported"
+    fi
+
+    balance_before=$(cast balance "$ephemeral_address" --rpc-url "$L2_RPC_URL")
+
+    base_fee=$(cast base-fee --rpc-url "$L2_RPC_URL")
+    # Bor enforces a minimum tip cap (typically 25 gwei).  Use 30 gwei to stay above it.
+    priority_fee=30000000000  # 30 gwei
+    max_fee=$(( base_fee * 2 + priority_fee ))
+
+    receipt=$(cast send \
+        --value 1000 \
+        --gas-limit 21000 \
+        --gas-price "$max_fee" \
+        --priority-gas-price "$priority_fee" \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        0x0000000000000000000000000000000000000000 2>/dev/null) || {
+        skip "Node rejected type-2 tx — chain may not support EIP-1559 dynamic fees"
+    }
+    if [[ -z "$receipt" ]]; then
+        skip "Node returned empty response for type-2 tx"
+    fi
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Transaction failed, cannot check EIP-1559 invariant" >&2
+        return 1
+    fi
+
+    gas_used=$(echo "$receipt" | jq -r '.gasUsed' | xargs printf "%d\n")
+    effective_gas_price=$(echo "$receipt" | jq -r '.effectiveGasPrice' | xargs printf "%d\n")
+
+    # Retrieve the block's actual baseFeePerGas to decompose the effective price.
+    block_number=$(echo "$receipt" | jq -r '.blockNumber')
+    block_json=$(cast block "$block_number" --json --rpc-url "$L2_RPC_URL")
+    block_base_fee=$(echo "$block_json" | jq -r '.baseFeePerGas' | xargs printf "%d\n")
+
+    balance_after=$(cast balance "$ephemeral_address" --rpc-url "$L2_RPC_URL")
+
+    expected_decrease=$(bc <<< "1000 + $effective_gas_price * $gas_used")
+    actual_decrease=$(bc <<< "$balance_before - $balance_after")
+
+    if [[ "$actual_decrease" != "$expected_decrease" ]]; then
+        echo "EIP-1559 balance invariant violated:" >&2
+        echo "  balance_before=$balance_before balance_after=$balance_after" >&2
+        echo "  effectiveGasPrice=$effective_gas_price (baseFee=$block_base_fee)" >&2
+        echo "  gasUsed=$gas_used value=1000" >&2
+        echo "  expected_decrease=$expected_decrease actual_decrease=$actual_decrease" >&2
+        return 1
+    fi
+
+    # Verify priority-fee decomposition:
+    #   actual_priority = effectiveGasPrice - baseFee
+    #   expected = min(maxPriorityFeePerGas, maxFeePerGas - baseFee)
+    actual_priority=$(( effective_gas_price - block_base_fee ))
+    max_possible_priority=$(( max_fee - block_base_fee ))
+    expected_priority=$priority_fee
+    if [[ "$expected_priority" -gt "$max_possible_priority" ]]; then
+        expected_priority=$max_possible_priority
+    fi
+    if [[ "$actual_priority" -ne "$expected_priority" ]]; then
+        echo "Priority fee decomposition mismatch:" >&2
+        echo "  actual=$actual_priority expected=$expected_priority" >&2
+        echo "  maxFeePerGas=$max_fee baseFee=$block_base_fee maxPriorityFeePerGas=$priority_fee" >&2
+        return 1
+    fi
+}
+
+# bats test_tags=transaction-eoa,evm-gas
+@test "coinbase balance increases by at least the priority fee portion of gas cost" {
+    # After a type-2 tx, the block's coinbase earns the priority-fee portion
+    # (effectiveGasPrice − baseFee) × gasUsed.  The baseFee portion is burned.
+
+    # Guard: skip if the chain doesn't expose baseFeePerGas (pre-London).
+    local latest_base_fee_hex
+    latest_base_fee_hex=$(cast block latest --json --rpc-url "$L2_RPC_URL" | jq -r '.baseFeePerGas // empty')
+    if [[ -z "$latest_base_fee_hex" ]]; then
+        skip "Chain does not expose baseFeePerGas — EIP-1559 not supported"
+    fi
+
+    base_fee=$(cast base-fee --rpc-url "$L2_RPC_URL")
+    # Bor enforces a minimum tip cap (typically 25 gwei).  Use 30 gwei to stay above it.
+    priority_fee=30000000000  # 30 gwei
+    max_fee=$(( base_fee * 2 + priority_fee ))
+
+    receipt=$(cast send \
+        --gas-limit 21000 \
+        --gas-price "$max_fee" \
+        --priority-gas-price "$priority_fee" \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        0x0000000000000000000000000000000000000000 2>/dev/null) || {
+        skip "Node rejected type-2 tx — chain may not support EIP-1559 dynamic fees"
+    }
+    if [[ -z "$receipt" ]]; then
+        skip "Node returned empty response for type-2 tx"
+    fi
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Transaction failed, cannot check coinbase invariant" >&2
+        return 1
+    fi
+
+    gas_used=$(echo "$receipt" | jq -r '.gasUsed' | xargs printf "%d\n")
+    effective_gas_price=$(echo "$receipt" | jq -r '.effectiveGasPrice' | xargs printf "%d\n")
+
+    block_number_hex=$(echo "$receipt" | jq -r '.blockNumber')
+    block_number_dec=$(printf '%d' "$block_number_hex")
+    block_json=$(cast block "$block_number_hex" --json --rpc-url "$L2_RPC_URL")
+    block_base_fee=$(echo "$block_json" | jq -r '.baseFeePerGas' | xargs printf "%d\n")
+    coinbase=$(echo "$block_json" | jq -r '.miner')
+
+    actual_priority=$(( effective_gas_price - block_base_fee ))
+    our_priority_contribution=$(( actual_priority * gas_used ))
+
+    # Bor uses 0x0…0 as the miner field and distributes fees via system contracts,
+    # so the coinbase balance check only applies when the miner is a real address.
+    if [[ "$coinbase" == "0x0000000000000000000000000000000000000000" ]]; then
+        echo "Coinbase is zero-address (Bor fee model) — verifying effectiveGasPrice only" >&3
+        # At minimum, effectiveGasPrice must be >= baseFee (always true for valid txs).
+        if [[ "$effective_gas_price" -lt "$block_base_fee" ]]; then
+            echo "effectiveGasPrice ($effective_gas_price) < baseFee ($block_base_fee)" >&2
+            return 1
+        fi
+    else
+        # Compare coinbase balance between blocks N-1 and N to isolate this block's earnings.
+        prev_block=$(printf '0x%x' $(( block_number_dec - 1 )))
+        coinbase_before=$(cast balance "$coinbase" --block "$prev_block" --rpc-url "$L2_RPC_URL")
+        coinbase_after=$(cast balance "$coinbase" --block "$block_number_hex" --rpc-url "$L2_RPC_URL")
+        coinbase_increase=$(bc <<< "$coinbase_after - $coinbase_before")
+
+        # Use >= because other txs in the same block may also contribute fees.
+        if (( $(bc <<< "$coinbase_increase < $our_priority_contribution") )); then
+            echo "Coinbase balance increase too low:" >&2
+            echo "  coinbase=$coinbase" >&2
+            echo "  increase=$coinbase_increase expected_min=$our_priority_contribution" >&2
+            echo "  priority_per_gas=$actual_priority gasUsed=$gas_used" >&2
+            return 1
+        fi
+    fi
+}
+
+# bats test_tags=transaction-eoa
+@test "CREATE2 address matches keccak256(0xff ++ deployer ++ salt ++ initCodeHash)" {
+    # Factory constructor: PUSH32 <child initcode padded to 32B> PUSH1 0x00 MSTORE
+    # then CREATE2 with salt=0x42, size=10, offset=0, value=0; stores child addr at slot 0.
+    # Child initcode (600160005360016000f3) returns 1-byte runtime (0x01).
+    receipt=$(cast send \
+        --legacy \
+        --gas-limit 200000 \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x7f600160005360016000f3000000000000000000000000000000000000000000006000526042600a60006000f560005500")
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Factory deployment failed" >&2
+        return 1
+    fi
+
+    factory_addr=$(echo "$receipt" | jq -r '.contractAddress')
+
+    # Read child address from factory's storage slot 0 (left-padded to 32 bytes).
+    actual_raw=$(cast storage "$factory_addr" 0 --rpc-url "$L2_RPC_URL")
+    actual_child="0x${actual_raw: -40}"
+
+    child_code=$(cast code "$actual_child" --rpc-url "$L2_RPC_URL")
+    if [[ "$child_code" == "0x" ]]; then
+        echo "Child contract at $actual_child has no code — CREATE2 failed" >&2
+        return 1
+    fi
+
+    # Predict: address = keccak256(0xff ++ deployer ++ salt ++ keccak256(initcode))[12:]
+    child_initcode="0x600160005360016000f3"
+    init_code_hash=$(cast keccak "$child_initcode")
+    factory_hex=$(echo "${factory_addr#0x}" | tr '[:upper:]' '[:lower:]')
+    salt_hex="0000000000000000000000000000000000000000000000000000000000000042"
+    hash_hex="${init_code_hash#0x}"
+
+    packed="0xff${factory_hex}${salt_hex}${hash_hex}"
+    predicted_hash=$(cast keccak "$packed")
+    predicted_addr="0x${predicted_hash: -40}"
+
+    actual_lower=$(echo "$actual_child" | tr '[:upper:]' '[:lower:]')
+    predicted_lower=$(echo "$predicted_addr" | tr '[:upper:]' '[:lower:]')
+    if [[ "$actual_lower" != "$predicted_lower" ]]; then
+        echo "CREATE2 address invariant violated:" >&2
+        echo "  actual=$actual_child predicted=$predicted_addr" >&2
+        return 1
+    fi
+}
+
+# bats test_tags=transaction-eoa
+@test "replay protection: same signed tx submitted twice does not double-spend" {
+    nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
+    gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
+
+    # Build and sign a raw transaction without broadcasting.
+    raw_tx=$(cast mktx \
+        --legacy \
+        --gas-limit 21000 \
+        --gas-price "$gas_price" \
+        --nonce "$nonce" \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        0x0000000000000000000000000000000000000000)
+
+    # First submission — wait for it to be mined.
+    # cast publish may return a plain hex hash OR a full JSON receipt depending on
+    # the foundry version.  Handle both formats.
+    publish_output=$(cast publish --rpc-url "$L2_RPC_URL" "$raw_tx")
+
+    if echo "$publish_output" | jq -e '.transactionHash' >/dev/null 2>&1; then
+        # JSON receipt — extract the hash.
+        tx_hash=$(echo "$publish_output" | jq -r '.transactionHash')
+    else
+        # Plain hex hash — trim whitespace.
+        tx_hash=$(echo "$publish_output" | tr -d '[:space:]')
+    fi
+
+    if ! [[ "$tx_hash" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
+        echo "cast publish returned invalid tx hash: '$tx_hash'" >&2
+        return 1
+    fi
+    # Ensure the tx is mined before attempting replay.
+    cast receipt "$tx_hash" --rpc-url "$L2_RPC_URL" --json >/dev/null
+
+    # Replay — the node must reject the tx (nonce already consumed).
+    set +e
+    replay_result=$(cast publish --rpc-url "$L2_RPC_URL" "$raw_tx" 2>&1)
+    replay_exit=$?
+    set -e
+
+    # The critical invariant: nonce advanced by exactly 1, not 2 (no double-spend).
+    final_nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
+    expected_nonce=$(( nonce + 1 ))
+    if [[ "$final_nonce" -ne "$expected_nonce" ]]; then
+        echo "Replay protection failed: nonce=$final_nonce expected=$expected_nonce" >&2
+        return 1
+    fi
+
+    # Some nodes silently return the existing tx hash on replay — that is acceptable
+    # as long as the nonce did not advance twice (already verified above).
+    if [[ $replay_exit -eq 0 && -n "$replay_result" ]]; then
+        echo "Note: node returned result for replay (may be existing hash): $replay_result" >&3
+    fi
+}
+
+# bats test_tags=transaction-eoa
+@test "SSTORE + SLOAD roundtrip: stored value is retrievable and unwritten slots are zero" {
+    # Constructor: PUSH32 <value> PUSH1 0x00 SSTORE
+    #              PUSH1 0x01 PUSH1 0x00 MSTORE8 PUSH1 0x01 PUSH1 0x00 RETURN
+    # Stores a known 32-byte value at slot 0, then deploys 1-byte runtime (0x01).
+    stored_value="deadbeefcafebabe0123456789abcdef0123456789abcdef0000000000000001"
+
+    receipt=$(cast send \
+        --legacy \
+        --gas-limit 200000 \
+        --private-key "$ephemeral_private_key" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x7f${stored_value}600055600160005360016000f3")
+
+    tx_status=$(echo "$receipt" | jq -r '.status')
+    if [[ "$tx_status" != "0x1" ]]; then
+        echo "Contract deployment failed" >&2
+        return 1
+    fi
+
+    contract_addr=$(echo "$receipt" | jq -r '.contractAddress')
+
+    # SLOAD slot 0: must return exactly the value written by SSTORE.
+    slot0=$(cast storage "$contract_addr" 0 --rpc-url "$L2_RPC_URL")
+    expected_slot0="0x${stored_value}"
+    if [[ "$slot0" != "$expected_slot0" ]]; then
+        echo "SSTORE/SLOAD roundtrip invariant violated at slot 0:" >&2
+        echo "  expected=$expected_slot0" >&2
+        echo "  actual=$slot0" >&2
+        return 1
+    fi
+
+    # SLOAD slot 1 (never written): must return the zero word.
+    slot1=$(cast storage "$contract_addr" 1 --rpc-url "$L2_RPC_URL")
+    zero_word="0x0000000000000000000000000000000000000000000000000000000000000000"
+    if [[ "$slot1" != "$zero_word" ]]; then
+        echo "Unwritten slot 1 is not zero: $slot1" >&2
+        return 1
+    fi
+}

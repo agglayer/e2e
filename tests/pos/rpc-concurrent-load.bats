@@ -199,3 +199,214 @@ setup() {
         return 1
     fi
 }
+
+# bats test_tags=evm-stress,loadtest
+@test "higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests" {
+    # Existing tests cap at 50.  This ramps to 100 and 500 to probe connection-pool
+    # limits, goroutine exhaustion, and fd pressure on the RPC node.
+    for concurrency in 100 500; do
+        tmpdir=$(mktemp -d)
+        pids=()
+
+        for i in $(seq 1 "$concurrency"); do
+            curl -s -X POST \
+                -H "Content-Type: application/json" \
+                --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+                "$L2_RPC_URL" >"$tmpdir/result_$i" 2>/dev/null &
+            pids+=($!)
+        done
+
+        fail_count=0
+        for pid in "${pids[@]}"; do
+            if ! wait "$pid"; then
+                fail_count=$(( fail_count + 1 ))
+            fi
+        done
+
+        # Validate every JSON-RPC response contains a hex block number.
+        for i in $(seq 1 "$concurrency"); do
+            result=$(jq -r '.result // empty' <"$tmpdir/result_$i" 2>/dev/null)
+            if [[ -z "$result" ]] || ! [[ "$result" =~ ^0x[0-9a-fA-F]+$ ]]; then
+                fail_count=$(( fail_count + 1 ))
+            fi
+        done
+
+        rm -rf "$tmpdir"
+
+        # Allow up to 5 % failure rate at elevated concurrency (connection limits, timeouts).
+        max_failures=$(( concurrency * 5 / 100 ))
+        if [[ "$fail_count" -gt "$max_failures" ]]; then
+            echo "$fail_count / $concurrency requests failed at concurrency=$concurrency (max allowed: $max_failures)" >&2
+            return 1
+        fi
+
+        echo "Concurrency $concurrency: $fail_count failures (max $max_failures)" >&3
+    done
+}
+
+# bats test_tags=evm-stress,loadtest
+@test "concurrent write/read race: tx submissions and state reads do not interfere" {
+    # Submits transactions and reads state simultaneously.  Read operations must
+    # always return valid results even while the mempool and state trie are being
+    # mutated by concurrent writes.
+    local wallet_json
+    wallet_json=$(cast wallet new --json | jq '.[0]')
+    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
+    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
+
+    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+
+    nonce=$(cast nonce "$ephemeral_address")
+    gas_price=$(cast gas-price)
+
+    tmpdir=$(mktemp -d)
+    pids=()
+
+    # 20 async tx submissions (writes) — sends to the zero address.
+    for i in $(seq 1 20); do
+        cast send \
+            --nonce $(( nonce + i - 1 )) \
+            --gas-limit 21000 \
+            --gas-price "$gas_price" \
+            --legacy \
+            --async \
+            --private-key "$ephemeral_private_key" \
+            0x0000000000000000000000000000000000000000 >"$tmpdir/tx_$i" 2>/dev/null &
+        pids+=($!)
+    done
+
+    # 30 concurrent reads (balance, block number, nonce) fired at the same time.
+    for i in $(seq 1 30); do
+        (
+            case $(( i % 3 )) in
+                0) cast balance "$ephemeral_address" ;;
+                1) cast block-number ;;
+                2) cast nonce "$ephemeral_address" ;;
+            esac
+        ) >"$tmpdir/read_$i" 2>/dev/null &
+        pids+=($!)
+    done
+
+    for pid in "${pids[@]}"; do
+        wait "$pid" || true
+    done
+
+    # Every read must have returned a valid non-negative integer.
+    read_fails=0
+    for i in $(seq 1 30); do
+        result=$(cat "$tmpdir/read_$i" 2>/dev/null)
+        if [[ -z "$result" ]] || ! [[ "$result" =~ ^[0-9]+$ ]]; then
+            echo "Read $i returned invalid result: '${result:-empty}'" >&2
+            read_fails=$(( read_fails + 1 ))
+        fi
+    done
+
+    rm -rf "$tmpdir"
+
+    # Allow up to 10 % read failures under concurrent write pressure.
+    if [[ "$read_fails" -gt 3 ]]; then
+        echo "$read_fails / 30 read operations failed during concurrent tx submissions" >&2
+        return 1
+    fi
+
+    echo "Write/read race: 30 reads during 20 writes, $read_fails failures" >&3
+}
+
+# bats test_tags=evm-stress,loadtest
+@test "50 concurrent requests across additional RPC methods succeed" {
+    # Existing tests only cover eth_blockNumber, eth_getBalance, and eth_getLogs.
+    # This adds eth_getTransactionCount, eth_chainId, eth_gasPrice, eth_getCode,
+    # and eth_estimateGas (10 concurrent each = 50 total).
+    tmpdir=$(mktemp -d)
+    pids=()
+
+    # eth_getTransactionCount
+    for i in $(seq 1 10); do
+        cast nonce "$eth_address" >"$tmpdir/nonce_$i" 2>/dev/null &
+        pids+=($!)
+    done
+    # eth_chainId
+    for i in $(seq 1 10); do
+        cast chain-id >"$tmpdir/chainid_$i" 2>/dev/null &
+        pids+=($!)
+    done
+    # eth_gasPrice
+    for i in $(seq 1 10); do
+        cast gas-price >"$tmpdir/gasprice_$i" 2>/dev/null &
+        pids+=($!)
+    done
+    # eth_getCode (zero-address → no code)
+    for i in $(seq 1 10); do
+        cast code 0x0000000000000000000000000000000000000000 >"$tmpdir/code_$i" 2>/dev/null &
+        pids+=($!)
+    done
+    # eth_estimateGas (simple transfer)
+    for i in $(seq 1 10); do
+        cast estimate --from "$eth_address" 0x0000000000000000000000000000000000000001 >"$tmpdir/estimate_$i" 2>/dev/null &
+        pids+=($!)
+    done
+
+    fail_count=0
+    for pid in "${pids[@]}"; do
+        if ! wait "$pid"; then
+            fail_count=$(( fail_count + 1 ))
+        fi
+    done
+
+    # Validate each response category.
+    first_nonce="" first_chainid=""
+
+    for i in $(seq 1 10); do
+        # eth_getTransactionCount: numeric, all identical (no concurrent writes).
+        val=$(cat "$tmpdir/nonce_$i" 2>/dev/null)
+        if ! [[ "$val" =~ ^[0-9]+$ ]]; then
+            echo "eth_getTransactionCount $i returned non-numeric: '$val'" >&2
+            fail_count=$(( fail_count + 1 ))
+        elif [[ -z "$first_nonce" ]]; then
+            first_nonce="$val"
+        elif [[ "$val" != "$first_nonce" ]]; then
+            echo "eth_getTransactionCount inconsistency: $i=$val vs first=$first_nonce" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+
+        # eth_chainId: numeric, all must be identical.
+        val=$(cat "$tmpdir/chainid_$i" 2>/dev/null)
+        if ! [[ "$val" =~ ^[0-9]+$ ]]; then
+            echo "eth_chainId $i returned non-numeric: '$val'" >&2
+            fail_count=$(( fail_count + 1 ))
+        elif [[ -z "$first_chainid" ]]; then
+            first_chainid="$val"
+        elif [[ "$val" != "$first_chainid" ]]; then
+            echo "eth_chainId inconsistency: $i=$val vs first=$first_chainid" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+
+        # eth_gasPrice: positive integer.
+        val=$(cat "$tmpdir/gasprice_$i" 2>/dev/null)
+        if ! [[ "$val" =~ ^[0-9]+$ ]] || [[ "$val" -eq 0 ]]; then
+            echo "eth_gasPrice $i returned invalid: '$val'" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+
+        # eth_getCode at zero-address: must be "0x" (no code).
+        val=$(cat "$tmpdir/code_$i" 2>/dev/null)
+        if [[ "$val" != "0x" ]]; then
+            echo "eth_getCode $i for zero-address expected '0x', got: '$val'" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+
+        # eth_estimateGas: positive integer (simple transfer ≈ 21000).
+        val=$(cat "$tmpdir/estimate_$i" 2>/dev/null)
+        if ! [[ "$val" =~ ^[0-9]+$ ]] || [[ "$val" -eq 0 ]]; then
+            echo "eth_estimateGas $i returned invalid: '$val'" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+    done
+
+    rm -rf "$tmpdir"
+
+    if [[ "$fail_count" -ne 0 ]]; then
+        echo "$fail_count failures across 50 additional RPC method requests" >&2
+        return 1
+    fi
+}
