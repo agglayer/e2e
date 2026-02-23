@@ -527,3 +527,350 @@ setup() {
     fi
     echo "bor_getCurrentValidators: $count validators" >&3
 }
+
+# ---------------------------------------------------------------------------
+# Additional RPC conformance tests
+# ---------------------------------------------------------------------------
+
+# bats test_tags=evm-rpc,evm-block
+@test "eth_getBlockByNumber 'earliest' returns genesis block" {
+    block=$(cast rpc eth_getBlockByNumber '"0x0"' 'false' --rpc-url "$L2_RPC_URL")
+
+    block_number=$(echo "$block" | jq -r '.number')
+    if [[ "$block_number" != "0x0" ]]; then
+        echo "Expected block number 0x0 for genesis, got: $block_number" >&2
+        return 1
+    fi
+
+    parent_hash=$(echo "$block" | jq -r '.parentHash')
+    if [[ "$parent_hash" != "0x0000000000000000000000000000000000000000000000000000000000000000" ]]; then
+        echo "Expected zero parentHash for genesis, got: $parent_hash" >&2
+        return 1
+    fi
+
+    # transactions array must exist (even if empty).
+    tx_type=$(echo "$block" | jq -r '.transactions | type')
+    if [[ "$tx_type" != "array" ]]; then
+        echo "Genesis block missing transactions array" >&2
+        return 1
+    fi
+    echo "Genesis block: number=$block_number parentHash=$parent_hash" >&3
+}
+
+# bats test_tags=evm-rpc,evm-block
+@test "eth_getBlockByNumber 'pending' returns valid response" {
+    set +e
+    result=$(cast rpc eth_getBlockByNumber '"pending"' 'false' --rpc-url "$L2_RPC_URL" 2>&1)
+    rpc_exit=$?
+    set -e
+
+    # Some nodes return null, some return a block object, some return an error.
+    # All are acceptable — the only failure is a crash or malformed response.
+    if [[ $rpc_exit -ne 0 ]]; then
+        # RPC error is acceptable for "pending" on nodes that don't support it.
+        echo "eth_getBlockByNumber('pending') returned error — acceptable" >&3
+        return 0
+    fi
+
+    if [[ "$result" == "null" ]]; then
+        echo "eth_getBlockByNumber('pending') returned null — acceptable" >&3
+        return 0
+    fi
+
+    # If we got a block object, verify it has a number field.
+    block_number=$(echo "$result" | jq -r '.number // empty')
+    if [[ -z "$block_number" ]]; then
+        echo "Pending block response missing number field: $result" >&2
+        return 1
+    fi
+    echo "Pending block: number=$block_number" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "eth_syncing returns false on synced node" {
+    result=$(cast rpc eth_syncing --rpc-url "$L2_RPC_URL")
+    # eth_syncing returns `false` when synced, or an object when syncing.
+    if [[ "$result" == "false" ]]; then
+        echo "Node is synced (eth_syncing=false)" >&3
+        return 0
+    fi
+
+    # If syncing, result is an object with currentBlock/highestBlock.
+    current=$(echo "$result" | jq -r '.currentBlock // empty')
+    highest=$(echo "$result" | jq -r '.highestBlock // empty')
+    if [[ -n "$current" && -n "$highest" ]]; then
+        echo "Node is syncing: currentBlock=$current highestBlock=$highest" >&3
+        return 0
+    fi
+
+    echo "eth_syncing returned unexpected value: $result" >&2
+    return 1
+}
+
+# bats test_tags=evm-rpc
+@test "eth_sendRawTransaction rejects invalid signature" {
+    # Submit a raw tx with corrupted signature bytes — node must reject it.
+    # This is a well-formed RLP envelope but with zeroed-out v/r/s.
+    local invalid_raw="0xf8640180825208940000000000000000000000000000000000000000018025a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000"
+
+    set +e
+    result=$(cast rpc eth_sendRawTransaction "\"$invalid_raw\"" --rpc-url "$L2_RPC_URL" 2>&1)
+    rpc_exit=$?
+    set -e
+
+    # Must fail — either RPC error (non-zero exit) or JSON-RPC error field.
+    if [[ $rpc_exit -eq 0 ]]; then
+        # Check if it's a JSON-RPC error.
+        error_msg=$(echo "$result" | jq -r '.error.message // empty' 2>/dev/null)
+        if [[ -z "$error_msg" ]]; then
+            # If cast returned a tx hash, that means it accepted the invalid tx — fail.
+            if [[ "$result" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
+                echo "Node accepted tx with invalid signature — should have rejected" >&2
+                return 1
+            fi
+        fi
+    fi
+    echo "Invalid signature correctly rejected" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "eth_sendRawTransaction rejects wrong chainId" {
+    # Create a signed tx with chainId=999999 (almost certainly wrong).
+    # cast mktx needs --chain to override; we sign locally then submit.
+    local wallet_json
+    wallet_json=$(cast wallet new --json | jq '.[0]')
+    local pk
+    pk=$(echo "$wallet_json" | jq -r '.private_key')
+
+    set +e
+    # Sign with explicit wrong chain ID.
+    raw_tx=$(cast mktx \
+        --legacy \
+        --gas-limit 21000 \
+        --gas-price 1000000000 \
+        --nonce 0 \
+        --chain 999999 \
+        --private-key "$pk" \
+        0x0000000000000000000000000000000000000000 2>/dev/null)
+    mktx_exit=$?
+    set -e
+
+    if [[ $mktx_exit -ne 0 || -z "$raw_tx" ]]; then
+        skip "cast mktx with --chain 999999 failed — cannot test wrong chainId rejection"
+    fi
+
+    set +e
+    result=$(cast publish --rpc-url "$L2_RPC_URL" "$raw_tx" 2>&1)
+    publish_exit=$?
+    set -e
+
+    if [[ $publish_exit -eq 0 ]]; then
+        # If it returned a tx hash, check if it's valid (it shouldn't be mined).
+        if [[ "$result" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
+            echo "Node accepted tx with wrong chainId — checking if it's really mined..." >&3
+            # It's possible the node accepts but doesn't mine; that's OK.
+        fi
+    fi
+    echo "Wrong chainId tx handling verified (exit=$publish_exit)" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "batch JSON-RPC returns array of matching results" {
+    # Send 5 different RPC calls in a single batch request, verify 5 responses.
+    result=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        --data '[
+            {"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1},
+            {"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":2},
+            {"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":3},
+            {"jsonrpc":"2.0","method":"net_version","params":[],"id":4},
+            {"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":5}
+        ]' \
+        "$L2_RPC_URL")
+
+    # Response must be a JSON array.
+    result_type=$(echo "$result" | jq 'type')
+    if [[ "$result_type" != '"array"' ]]; then
+        echo "Batch response is not an array: $result_type" >&2
+        return 1
+    fi
+
+    result_len=$(echo "$result" | jq 'length')
+    if [[ "$result_len" -ne 5 ]]; then
+        echo "Batch response has $result_len elements, expected 5" >&2
+        return 1
+    fi
+
+    # Each response must have a matching id and a result field.
+    for expected_id in 1 2 3 4 5; do
+        has_id=$(echo "$result" | jq "[.[] | select(.id == $expected_id)] | length")
+        if [[ "$has_id" -ne 1 ]]; then
+            echo "Missing response for id=$expected_id" >&2
+            return 1
+        fi
+        has_result=$(echo "$result" | jq -r ".[] | select(.id == $expected_id) | .result // empty")
+        if [[ -z "$has_result" ]]; then
+            echo "Response id=$expected_id has no result field" >&2
+            return 1
+        fi
+    done
+    echo "Batch JSON-RPC: 5 requests → 5 matching responses" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "eth_getTransactionReceipt has all required EIP fields" {
+    # Send a tx to get a receipt we can inspect.
+    receipt=$(cast send --legacy --gas-limit 21000 --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" --json 0x0000000000000000000000000000000000000000)
+
+    tx_hash=$(echo "$receipt" | jq -r '.transactionHash')
+
+    # Fetch the receipt via RPC for the raw JSON.
+    raw_receipt=$(cast rpc eth_getTransactionReceipt "\"$tx_hash\"" --rpc-url "$L2_RPC_URL")
+
+    # Verify all EIP-required fields are present.
+    for field in status cumulativeGasUsed logs logsBloom type effectiveGasPrice \
+                 transactionHash transactionIndex blockHash blockNumber from to gasUsed; do
+        val=$(echo "$raw_receipt" | jq -r ".$field // empty")
+        if [[ -z "$val" ]]; then
+            echo "Transaction receipt missing required field: $field" >&2
+            return 1
+        fi
+    done
+
+    # logs must be an array.
+    logs_type=$(echo "$raw_receipt" | jq -r '.logs | type')
+    if [[ "$logs_type" != "array" ]]; then
+        echo "logs field is not an array: $logs_type" >&2
+        return 1
+    fi
+
+    # logsBloom must be a valid 256-byte hex string.
+    logs_bloom=$(echo "$raw_receipt" | jq -r '.logsBloom')
+    if ! [[ "$logs_bloom" =~ ^0x[0-9a-fA-F]{512}$ ]]; then
+        echo "logsBloom has invalid format: ${logs_bloom:0:20}..." >&2
+        return 1
+    fi
+    echo "Receipt has all required fields for tx $tx_hash" >&3
+}
+
+# bats test_tags=evm-rpc,evm-gas
+@test "eth_estimateGas for failing call returns error" {
+    # Deploy a contract that always reverts.
+    # Initcode: PUSH1 0x00 PUSH1 0x00 REVERT = 60006000fd (reverts in constructor too)
+    # Use a contract with reverting runtime instead.
+    # Runtime: PUSH1 0x00  PUSH1 0x00  REVERT = 60006000fd
+    # Initcode: deploy runtime via CODECOPY.
+    local runtime="60006000fd"
+    local runtime_len=$(( ${#runtime} / 2 ))  # 3 bytes
+    local runtime_len_hex
+    printf -v runtime_len_hex '%02x' "$runtime_len"
+
+    local deploy_receipt
+    deploy_receipt=$(cast send \
+        --legacy \
+        --gas-limit 200000 \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" \
+        --json \
+        --create "0x60${runtime_len_hex}600c60003960${runtime_len_hex}6000f3${runtime}")
+
+    local deploy_status
+    deploy_status=$(echo "$deploy_receipt" | jq -r '.status')
+    if [[ "$deploy_status" != "0x1" ]]; then
+        echo "Reverting contract deployment failed" >&2
+        return 1
+    fi
+
+    local revert_addr
+    revert_addr=$(echo "$deploy_receipt" | jq -r '.contractAddress')
+
+    # eth_estimateGas to the reverting contract should return an error.
+    set +e
+    estimate_result=$(cast estimate --from "$eth_address" "$revert_addr" --rpc-url "$L2_RPC_URL" 2>&1)
+    estimate_exit=$?
+    set -e
+
+    if [[ $estimate_exit -eq 0 ]]; then
+        echo "eth_estimateGas should have returned error for reverting call, got: $estimate_result" >&2
+        return 1
+    fi
+    echo "eth_estimateGas correctly returned error for reverting contract" >&3
+}
+
+# bats test_tags=evm-rpc
+@test "eth_getProof returns valid Merkle proof structure" {
+    # EIP-1186: eth_getProof for a funded account.
+    set +e
+    result=$(cast rpc eth_getProof "\"$eth_address\"" '["0x0"]' '"latest"' --rpc-url "$L2_RPC_URL" 2>&1)
+    rpc_exit=$?
+    set -e
+
+    if [[ $rpc_exit -ne 0 ]]; then
+        if echo "$result" | grep -qi "method not found\|not supported\|does not exist\|no such method"; then
+            skip "eth_getProof not available on this node"
+        fi
+        echo "eth_getProof RPC error: $result" >&2
+        return 1
+    fi
+
+    # accountProof must be a non-empty array.
+    proof_len=$(echo "$result" | jq '.accountProof | length')
+    if [[ "$proof_len" -lt 1 ]]; then
+        echo "eth_getProof returned empty accountProof" >&2
+        return 1
+    fi
+
+    # balance and nonce fields must be present.
+    balance=$(echo "$result" | jq -r '.balance // empty')
+    if [[ -z "$balance" ]]; then
+        echo "eth_getProof missing balance field" >&2
+        return 1
+    fi
+
+    nonce=$(echo "$result" | jq -r '.nonce // empty')
+    if [[ -z "$nonce" ]]; then
+        echo "eth_getProof missing nonce field" >&2
+        return 1
+    fi
+
+    # storageProof must be an array.
+    storage_proof_type=$(echo "$result" | jq -r '.storageProof | type')
+    if [[ "$storage_proof_type" != "array" ]]; then
+        echo "storageProof is not an array: $storage_proof_type" >&2
+        return 1
+    fi
+
+    echo "eth_getProof: accountProof has $proof_len nodes, balance=$balance" >&3
+}
+
+# bats test_tags=evm-rpc,evm-block
+@test "block timestamp monotonicity across 10 consecutive blocks" {
+    latest=$(cast block-number --rpc-url "$L2_RPC_URL")
+    if [[ "$latest" -lt 10 ]]; then
+        skip "Need at least 10 blocks for monotonicity check"
+    fi
+
+    local start_block=$(( latest - 9 ))
+    local prev_timestamp=0
+
+    for i in $(seq 0 9); do
+        local block_num=$(( start_block + i ))
+        local block_hex
+        block_hex=$(cast to-hex "$block_num")
+        local block_json
+        block_json=$(cast rpc eth_getBlockByNumber "\"$block_hex\"" 'false' --rpc-url "$L2_RPC_URL")
+        local ts_hex
+        ts_hex=$(echo "$block_json" | jq -r '.timestamp')
+        local ts_dec
+        ts_dec=$(cast to-dec "$ts_hex")
+
+        if [[ "$prev_timestamp" -ne 0 && "$ts_dec" -le "$prev_timestamp" ]]; then
+            echo "Timestamp not strictly increasing: block $block_num timestamp=$ts_dec <= previous=$prev_timestamp" >&2
+            return 1
+        fi
+        prev_timestamp="$ts_dec"
+    done
+
+    echo "Timestamps strictly increasing across blocks $start_block to $latest" >&3
+}

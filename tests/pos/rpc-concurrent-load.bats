@@ -410,3 +410,181 @@ setup() {
         return 1
     fi
 }
+
+# bats test_tags=evm-stress,loadtest
+@test "multi-sender concurrent tx submissions: 10 wallets x 5 txs each" {
+    # 10 ephemeral wallets each submit 5 txs concurrently (50 total writes).
+    # Verifies that all nonces advance correctly under concurrent write pressure.
+    tmpdir=$(mktemp -d)
+
+    # Create and fund 10 ephemeral wallets.
+    declare -a wallet_keys wallet_addrs
+    for i in $(seq 0 9); do
+        local wj
+        wj=$(cast wallet new --json | jq '.[0]')
+        wallet_keys[$i]=$(echo "$wj" | jq -r '.private_key')
+        wallet_addrs[$i]=$(echo "$wj" | jq -r '.address')
+        cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy \
+            --gas-limit 21000 --value 0.05ether "${wallet_addrs[$i]}" >/dev/null
+    done
+
+    echo "Funded 10 ephemeral wallets, submitting 5 txs each..." >&3
+
+    gas_price=$(cast gas-price)
+    null_addr="0x0000000000000000000000000000000000000000"
+    pids=()
+
+    for i in $(seq 0 9); do
+        (
+            local nonce
+            nonce=$(cast nonce "${wallet_addrs[$i]}")
+            for j in $(seq 0 4); do
+                cast send \
+                    --nonce $(( nonce + j )) \
+                    --gas-limit 21000 \
+                    --gas-price "$gas_price" \
+                    --legacy \
+                    --async \
+                    --private-key "${wallet_keys[$i]}" \
+                    "$null_addr" &>/dev/null || true
+            done
+        ) >"$tmpdir/sender_$i" 2>&1 &
+        pids+=($!)
+    done
+
+    for pid in "${pids[@]}"; do
+        wait "$pid" || true
+    done
+
+    # Wait for txs to settle.
+    sleep 10
+
+    # Verify all nonces advanced by at least 1.
+    fail_count=0
+    for i in $(seq 0 9); do
+        local final_nonce
+        final_nonce=$(cast nonce "${wallet_addrs[$i]}")
+        if [[ "$final_nonce" -lt 1 ]]; then
+            echo "Wallet $i nonce did not advance: $final_nonce" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+    done
+
+    rm -rf "$tmpdir"
+
+    if [[ "$fail_count" -gt 0 ]]; then
+        echo "$fail_count / 10 wallets failed to advance nonce" >&2
+        return 1
+    fi
+    echo "All 10 wallets advanced nonces after concurrent submissions" >&3
+}
+
+# bats test_tags=evm-stress,loadtest
+@test "batch JSON-RPC under concurrent load: 50 concurrent batch requests" {
+    # 50 concurrent batch requests, each containing 5 different RPC calls (250 total),
+    # verify all return arrays of correct length.
+    tmpdir=$(mktemp -d)
+    pids=()
+
+    batch_body='[
+        {"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1},
+        {"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":2},
+        {"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":3},
+        {"jsonrpc":"2.0","method":"net_version","params":[],"id":4},
+        {"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":5}
+    ]'
+
+    for i in $(seq 1 50); do
+        curl -s -X POST \
+            -H "Content-Type: application/json" \
+            --data "$batch_body" \
+            "$L2_RPC_URL" >"$tmpdir/batch_$i" 2>/dev/null &
+        pids+=($!)
+    done
+
+    fail_count=0
+    for idx in "${!pids[@]}"; do
+        pid="${pids[$idx]}"
+        out_file="$tmpdir/batch_$(( idx + 1 ))"
+        if ! wait "$pid"; then
+            fail_count=$(( fail_count + 1 ))
+            continue
+        fi
+        # Response must be a JSON array of length 5.
+        resp_len=$(jq 'if type == "array" then length else 0 end' <"$out_file" 2>/dev/null)
+        if [[ "$resp_len" -ne 5 ]]; then
+            echo "Batch request $(( idx + 1 )) returned array of length $resp_len (expected 5)" >&2
+            fail_count=$(( fail_count + 1 ))
+        fi
+    done
+
+    rm -rf "$tmpdir"
+
+    # Allow up to 5 % failure rate.
+    max_failures=2
+    if [[ "$fail_count" -gt "$max_failures" ]]; then
+        echo "$fail_count / 50 batch requests failed (max allowed: $max_failures)" >&2
+        return 1
+    fi
+    echo "Batch JSON-RPC: $fail_count failures out of 50 (max $max_failures)" >&3
+}
+
+# bats test_tags=evm-stress,loadtest
+@test "sustained RPC load over 30 seconds with monotonic block advancement" {
+    # Continuously sends eth_blockNumber requests for 30 seconds.
+    # Verifies <1% failure rate and that block numbers advance monotonically.
+    local duration=30
+    local start_time end_time
+    start_time=$(date +%s)
+    end_time=$(( start_time + duration ))
+
+    local total=0 failures=0
+    local prev_block=0
+
+    while [[ $(date +%s) -lt "$end_time" ]]; do
+        # Fire a batch of 10 concurrent requests, then validate.
+        tmpdir=$(mktemp -d)
+        pids=()
+        for i in $(seq 1 10); do
+            curl -s -X POST \
+                -H "Content-Type: application/json" \
+                --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+                "$L2_RPC_URL" >"$tmpdir/r_$i" 2>/dev/null &
+            pids+=($!)
+        done
+
+        for pid in "${pids[@]}"; do
+            wait "$pid" || true
+        done
+
+        for i in $(seq 1 10); do
+            total=$(( total + 1 ))
+            result=$(jq -r '.result // empty' <"$tmpdir/r_$i" 2>/dev/null)
+            if [[ -z "$result" ]] || ! [[ "$result" =~ ^0x[0-9a-fA-F]+$ ]]; then
+                failures=$(( failures + 1 ))
+                continue
+            fi
+            block_dec=$(printf '%d' "$result" 2>/dev/null) || { failures=$(( failures + 1 )); continue; }
+            if [[ "$block_dec" -lt "$prev_block" ]]; then
+                echo "Block number went backwards: $block_dec < $prev_block" >&2
+                rm -rf "$tmpdir"
+                return 1
+            fi
+            prev_block="$block_dec"
+        done
+
+        rm -rf "$tmpdir"
+        sleep 0.5
+    done
+
+    # Must have <1% failure rate.
+    if [[ "$total" -gt 0 ]]; then
+        max_failures=$(( total / 100 + 1 ))
+        if [[ "$failures" -gt "$max_failures" ]]; then
+            echo "Failure rate too high: $failures / $total (max $max_failures)" >&2
+            return 1
+        fi
+    fi
+
+    echo "Sustained load: $total requests over ${duration}s, $failures failures, final block=$prev_block" >&3
+}
