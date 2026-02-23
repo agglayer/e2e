@@ -149,9 +149,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 0x0f BLS12-381 Pairing: e(G1_infinity, G2) returns 1 (Prague+) | [Link](./tests/pos/precompiles.bats#L462) | |
 | 0x10 BLS12-381 MapFpToG1: Fp element 1 maps to a non-trivial G1 point (Prague+) | [Link](./tests/pos/precompiles.bats#L485) | |
 | 0x11 BLS12-381 MapFp2ToG2: Fp2 element (0,1) maps to a non-trivial G2 point (Prague+) | [Link](./tests/pos/precompiles.bats#L504) | |
-| 50 concurrent eth_blockNumber requests all succeed | [Link](./tests/pos/rpc-concurrent-load.bats#L14) | |
-| 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/rpc-concurrent-load.bats#L36) | |
-| 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/rpc-concurrent-load.bats#L71) | |
+| 50 concurrent eth_blockNumber requests all succeed and return consistent values | [Link](./tests/pos/rpc-concurrent-load.bats#L14) | |
+| 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/rpc-concurrent-load.bats#L58) | |
+| 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/rpc-concurrent-load.bats#L103) | |
 | CREATE deploys to the address predicted by cast compute-address | [Link](./tests/pos/evm-state-invariants.bats#L82) | |
 | add new validator | [Link](./tests/pos/validator.bats#L20) | |
 | bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L51) | |
@@ -159,11 +159,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L139) | |
 | bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L95) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
-| deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/contract-creation-edge-cases.bats#L117) | |
-| deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/contract-creation-edge-cases.bats#L43) | |
-| deploy initcode exactly at EIP-3860 limit (49152 bytes) succeeds | [Link](./tests/pos/contract-creation-edge-cases.bats#L75) | |
-| deploy initcode one byte over EIP-3860 limit (49153 bytes) is rejected | [Link](./tests/pos/contract-creation-edge-cases.bats#L93) | |
-| deploy single STOP opcode contract succeeds and code at address is non-empty | [Link](./tests/pos/contract-creation-edge-cases.bats#L19) | |
+| deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/contract-creation-edge-cases.bats#L124) | |
+| deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/contract-creation-edge-cases.bats#L150) | |
+| deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/contract-creation-edge-cases.bats#L48) | |
+| deploy contract with 0xEF leading runtime byte is rejected by EIP-3541 | [Link](./tests/pos/contract-creation-edge-cases.bats#L181) | |
+| deploy initcode exactly at EIP-3860 limit (49152 bytes) succeeds | [Link](./tests/pos/contract-creation-edge-cases.bats#L79) | |
+| deploy initcode one byte over EIP-3860 limit (49153 bytes) is rejected | [Link](./tests/pos/contract-creation-edge-cases.bats#L99) | |
+| deploy single STOP opcode contract succeeds and code at address is empty | [Link](./tests/pos/contract-creation-edge-cases.bats#L20) | |
 | enforce deterministic fallback behavior | [Link](./tests/pos/veblop/invariants.bats#L156) | |
 | enforce equal block distribution between block producers at the execution layer | [Link](./tests/pos/veblop/invariants.bats#L116) | |
 | enforce equal slot distribution between block producers at the consensus layer | [Link](./tests/pos/veblop/invariants.bats#L68) | |
@@ -172,20 +174,29 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_call to plain EOA returns 0x | [Link](./tests/pos/rpc-conformance.bats#L60) | |
 | eth_chainId returns a value matching cast chain-id | [Link](./tests/pos/rpc-conformance.bats#L14) | |
 | eth_estimateGas for EOA transfer returns 21000 | [Link](./tests/pos/rpc-conformance.bats#L51) | |
+| eth_gasPrice returns a valid non-zero hex value | [Link](./tests/pos/rpc-conformance.bats#L96) | |
 | eth_getBlockByHash result matches eth_getBlockByNumber for latest block | [Link](./tests/pos/rpc-conformance.bats#L27) | |
-| eth_getLogs for block 0 to 0 returns a valid array | [Link](./tests/pos/rpc-conformance.bats#L83) | |
+| eth_getCode returns 0x for an EOA | [Link](./tests/pos/rpc-conformance.bats#L114) | |
+| eth_getCode returns non-empty bytecode for L2 StateReceiver contract | [Link](./tests/pos/rpc-conformance.bats#L123) | |
+| eth_getLogs for block 0 to 0 returns a valid array | [Link](./tests/pos/rpc-conformance.bats#L86) | |
 | eth_getLogs returns empty array for future block range | [Link](./tests/pos/rpc-conformance.bats#L69) | |
+| eth_getLogs with reversed block range returns error or empty array | [Link](./tests/pos/rpc-conformance.bats#L135) | |
 | eth_getTransactionReceipt returns null for unknown transaction hash | [Link](./tests/pos/rpc-conformance.bats#L42) | |
-| fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L10) | |
-| fuzz node with edge-case gas limits and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L150) | |
-| fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L86) | |
+| fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L42) | |
+| fuzz node with edge-case gas limits and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L154) | |
+| fuzz node with non-zero calldata transactions and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L206) | |
+| fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/evm-fuzz.bats#L103) | |
 | fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/precompiles.bats#L58) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
+| mixed concurrent RPC methods succeed without interfering with each other | [Link](./tests/pos/rpc-concurrent-load.bats#L143) | |
+| nonce increments by exactly 1 after each successful transaction | [Link](./tests/pos/evm-state-invariants.bats#L140) | |
+| out-of-gas transaction still increments sender nonce | [Link](./tests/pos/evm-state-invariants.bats#L160) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/evm-state-invariants.bats#L53) | |
 | remove validator | [Link](./tests/pos/validator.bats#L363) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/evm-state-invariants.bats#L18) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
+| total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/evm-state-invariants.bats#L188) | |
 | undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
 | update signer | [Link](./tests/pos/validator.bats#L147) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L60) | |
