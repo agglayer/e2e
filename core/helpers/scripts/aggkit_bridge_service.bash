@@ -515,6 +515,53 @@ function get_bridge() {
     return 1
 }
 
+function get_total_bridges() {
+    local network_id="$1"
+    local aggkit_url="$2"
+    local max_attempts="$3"
+    local poll_frequency="$4"
+
+    local attempt=0
+    local bridges_result=""
+
+    while ((attempt < max_attempts)); do
+        ((attempt++))
+        log "🔎 Attempt $attempt/$max_attempts: fetching total bridges \
+(network id = $network_id, bridge indexer url = $aggkit_url)"
+
+        # Capture both stdout (bridges result) and stderr (error message)
+        bridges_result=$(curl -s -H "Content-Type: application/json" \
+            "$aggkit_url/bridge/v1/bridges?network_id=$network_id" 2>&1)
+
+        # Check if the response contains an error
+        if [[ "$bridges_result" == *"error"* || "$bridges_result" == *"Error"* ]]; then
+            log "⚠️ Error: $bridges_result"
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        if [[ "$bridges_result" == "" ]]; then
+            log "Empty bridges response retrieved, retrying in ${poll_frequency}s..."
+            sleep "$poll_frequency"
+            continue
+        fi
+
+        # Extract the total number of bridges
+        local total_bridges
+        total_bridges=$(echo "$bridges_result" | jq -r '.count')
+
+        if [[ "$total_bridges" != "null" && "$total_bridges" != "" ]]; then
+            echo "$total_bridges"
+            return 0
+        fi
+
+        sleep "$poll_frequency"
+    done
+
+    log "❌ Failed to find total bridges after $max_attempts attempts."
+    return 1
+}
+
 function log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >&3
 }
