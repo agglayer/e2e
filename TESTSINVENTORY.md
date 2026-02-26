@@ -158,7 +158,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/execution-specs/rpc-concurrent-load-and-stress.bats#L103) | |
 | 50 concurrent requests across additional RPC methods succeed | [Link](./tests/pos/execution-specs/rpc-concurrent-load-and-stress.bats#L316) | |
 | ADDMOD and MULMOD compute correctly | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L964) | |
-| ADDRESS returns the contract's own address | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L300) | |
+| ADDRESS returns the contract's own address | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L301) | |
 | BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L718) | |
 | BLOCKHASH(0) returns zero on Bor (genesis hash not available) | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L18) | |
 | BYTE opcode extracts correct byte from word | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L915) | |
@@ -167,7 +167,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | BorValidatorSet (0x1000) has deployed code and is callable | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L21) | |
 | CALL with value to non-existent account skips G_NEW_ACCOUNT on Bor | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L57) | |
 | CALLDATASIZE returns correct input length | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L866) | |
-| CHAINID returns the correct chain ID (EIP-1344) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L281) | |
+| CHAINID returns the correct chain ID (EIP-1344) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L282) | |
 | CODESIZE returns correct runtime size | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L818) | |
 | COINBASE opcode returns block miner address | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L546) | |
 | CREATE deploys to the address predicted by cast compute-address | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L82) | |
@@ -187,17 +187,17 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L668) | |
 | Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L606) | |
 | LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L305) | |
-| MCOPY basic non-overlapping copy of 32 bytes | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L149) | |
-| MCOPY overlapping backward copy (src > dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L199) | |
-| MCOPY overlapping forward copy (src < dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L175) | |
-| MCOPY to high offset triggers memory expansion and charges gas | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L245) | |
-| MCOPY with zero length is a no-op | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L222) | |
+| MCOPY basic non-overlapping copy of 32 bytes | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L150) | |
+| MCOPY overlapping backward copy (src > dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L200) | |
+| MCOPY overlapping forward copy (src < dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L176) | |
+| MCOPY to high offset triggers memory expansion and charges gas | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L246) | |
+| MCOPY with zero length is a no-op | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L223) | |
 | MRC20 native token wrapper (0x1010) has deployed code and balance function | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L88) | |
 | Multiple storage slots in one transaction | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L1144) | |
 | NUMBER opcode returns correct block number | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L620) | |
 | Nonce-too-low rejection | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L570) | |
 | OOG during code-deposit phase fails the creation | [Link](./tests/pos/execution-specs/contract-creation-and-deployment-limits.bats#L352) | |
-| ORIGIN returns the transaction sender EOA | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L319) | |
+| ORIGIN returns the transaction sender EOA | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L320) | |
 | PIP-11: eth_getBlockByNumber 'finalized' returns a valid block | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L17) | |
 | PIP-11: finalized block advances as new blocks are produced | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L98) | |
 | PIP-11: finalized block number is less than or equal to latest block number | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L58) | |
@@ -218,13 +218,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | PIP-74: StateSyncTx has expected fields (from, to, input) | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L68) | |
 | PIP-74: blocks with transactions include StateSyncTx in transactionsRoot | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L126) | |
 | PIP-74: scan recent blocks for StateSyncTx (type 0x7F) transactions | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L33) | |
-| PUSH0 pushes zero onto the stack (EIP-3855) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L59) | |
+| PUSH0 pushes zero onto the stack (EIP-3855) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L60) | |
 | Parent hash chain integrity across 5 blocks | [Link](./tests/pos/execution-specs/rpc-method-conformance-and-validation.bats#L903) | |
-| RETURNDATACOPY copies callee return data correctly | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L387) | |
-| RETURNDATASIZE after CALL reflects callee return data length | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L354) | |
-| RETURNDATASIZE before any call returns 0 | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L340) | |
-| REVERT returns data and does not consume all gas | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L424) | |
-| SAR arithmetic right shift sign-extends negative values (EIP-145) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L112) | |
+| RETURNDATACOPY copies callee return data correctly | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L388) | |
+| RETURNDATASIZE after CALL reflects callee return data length | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L355) | |
+| RETURNDATASIZE before any call returns 0 | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L341) | |
+| REVERT returns data and does not consume all gas | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L425) | |
+| SAR arithmetic right shift sign-extends negative values (EIP-145) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L113) | |
 | SELFBALANCE returns contract's own balance | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L771) | |
 | SELFDESTRUCT during construction leaves no code and zero balance | [Link](./tests/pos/execution-specs/contract-creation-and-deployment-limits.bats#L315) | |
 | SELFDESTRUCT in same tx as creation destroys contract code | [Link](./tests/pos/execution-specs/eip6780-selfdestruct-cancun-restrictions.bats#L18) | |
@@ -232,9 +232,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | SELFDESTRUCT on pre-existing contract: code persists post-Cancun | [Link](./tests/pos/execution-specs/eip6780-selfdestruct-cancun-restrictions.bats#L61) | |
 | SELFDESTRUCT sends balance to beneficiary | [Link](./tests/pos/execution-specs/eip6780-selfdestruct-cancun-restrictions.bats#L178) | |
 | SELFDESTRUCT to self: balance preserved post-Cancun | [Link](./tests/pos/execution-specs/eip6780-selfdestruct-cancun-restrictions.bats#L126) | |
-| SHL left shift: 1 << 4 = 16 (EIP-145) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L78) | |
-| SHR right shift: 0xFF >> 4 = 0x0F (EIP-145) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L95) | |
-| SIGNEXTEND correctly sign-extends byte 0 of 0x80 | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L130) | |
+| SHL left shift: 1 << 4 = 16 (EIP-145) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L79) | |
+| SHR right shift: 0xFF >> 4 = 0x0F (EIP-145) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L96) | |
+| SIGNEXTEND correctly sign-extends byte 0 of 0x80 | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L131) | |
 | SSTORE + SLOAD roundtrip: stored value is retrievable and unwritten slots are zero | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L18) | |
 | SSTORE gas refund: clearing a storage slot uses less gas than setting it | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L409) | |
 | SSTORE overwrite: new value replaces old | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L1083) | |
@@ -354,7 +354,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | update signer | [Link](./tests/pos/validator.bats#L147) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L60) | |
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L97) | |
-| warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L456) | |
+| warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc-method-conformance-and-validation.bats#L400) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
 
