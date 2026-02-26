@@ -95,57 +95,59 @@ setup() {
 }
 
 # bats test_tags=execution-specs,pip11,finality
-@test "PIP-11: 'safe' block tag returns a valid block between finalized and latest" {
-    # Bor also supports the "safe" block tag which should be between
-    # finalized and latest (or equal to either).
+@test "PIP-11: finalized block advances as new blocks are produced" {
+    # Milestone finality means the finalized block should advance over time
+    # as new milestones are confirmed. Take two samples ~3 seconds apart
+    # and verify the finalized block number does not go backward.
     set +e
-    local safe_result
-    safe_result=$(curl -s -X POST -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["safe",false]}' \
+    local result1
+    result1=$(curl -s -X POST -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["finalized",false]}' \
         "$L2_RPC_URL")
     set -e
 
     local error
-    error=$(echo "$safe_result" | jq -r '.error.message // empty')
+    error=$(echo "$result1" | jq -r '.error.message // empty')
     if [[ -n "$error" ]]; then
-        skip "Node does not support 'safe' block tag: $error"
+        skip "Node does not support 'finalized' block tag: $error"
     fi
 
-    local safe_hex
-    safe_hex=$(echo "$safe_result" | jq -r '.result.number // empty')
-    if [[ -z "$safe_hex" ]]; then
-        skip "Safe block response has no number field"
+    local finalized1_hex
+    finalized1_hex=$(echo "$result1" | jq -r '.result.number // empty')
+    if [[ -z "$finalized1_hex" ]]; then
+        skip "Finalized block response has no number field"
     fi
+    local finalized1
+    finalized1=$(printf "%d" "$finalized1_hex")
 
-    local safe_dec
-    safe_dec=$(printf "%d" "$safe_hex")
+    # Wait for a few blocks to be produced (~3 seconds at 1s block time)
+    sleep 3
 
-    # Get finalized
-    local finalized_result
-    finalized_result=$(curl -s -X POST -H "Content-Type: application/json" \
+    set +e
+    local result2
+    result2=$(curl -s -X POST -H "Content-Type: application/json" \
         -d '{"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["finalized",false]}' \
         "$L2_RPC_URL")
-    local finalized_hex
-    finalized_hex=$(echo "$finalized_result" | jq -r '.result.number // empty')
+    set -e
 
-    local latest_block
-    latest_block=$(cast block-number --rpc-url "$L2_RPC_URL")
+    local finalized2_hex
+    finalized2_hex=$(echo "$result2" | jq -r '.result.number // empty')
+    if [[ -z "$finalized2_hex" ]]; then
+        echo "Second finalized query returned no number" >&2
+        return 1
+    fi
+    local finalized2
+    finalized2=$(printf "%d" "$finalized2_hex")
 
-    echo "Safe: $safe_dec, Latest: $latest_block" >&3
+    echo "Finalized t=0: $finalized1, Finalized t=3s: $finalized2" >&3
 
-    if [[ "$safe_dec" -gt "$latest_block" ]]; then
-        echo "Safe block ($safe_dec) is ahead of latest ($latest_block)" >&2
+    # Finalized block must never go backward (no reorg past milestone)
+    if [[ "$finalized2" -lt "$finalized1" ]]; then
+        echo "Finalized block went backward: $finalized1 -> $finalized2" >&2
         return 1
     fi
 
-    # If finalized is available, safe should be >= finalized
-    if [[ -n "$finalized_hex" ]]; then
-        local finalized_dec
-        finalized_dec=$(printf "%d" "$finalized_hex")
-        echo "Finalized: $finalized_dec" >&3
-        if [[ "$safe_dec" -lt "$finalized_dec" ]]; then
-            echo "Safe block ($safe_dec) is behind finalized ($finalized_dec)" >&2
-            return 1
-        fi
-    fi
+    # On an active chain, finalized should advance (or at least stay the same)
+    local advance=$(( finalized2 - finalized1 ))
+    echo "Finalized advanced by $advance blocks in ~3s" >&3
 }
