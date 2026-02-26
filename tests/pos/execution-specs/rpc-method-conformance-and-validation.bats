@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
-# bats file_tags=pos
+# bats file_tags=pos,execution-specs
 
 setup() {
     # Load libraries.
-    load "../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/pos-setup.bash"
     pos_setup
 
     eth_address=$(cast wallet address --private-key "$PRIVATE_KEY")
     export ETH_RPC_URL="$L2_RPC_URL"
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_chainId returns a value matching cast chain-id" {
     chain_id_hex=$(cast rpc eth_chainId --rpc-url "$L2_RPC_URL")
     # strip quotes if present
@@ -23,7 +23,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "eth_getBlockByHash result matches eth_getBlockByNumber for latest block" {
     block_by_number=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
     block_number=$(echo "$block_by_number" | jq -r '.number')
@@ -38,7 +38,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getTransactionReceipt returns null for unknown transaction hash" {
     result=$(cast rpc eth_getTransactionReceipt '"0x0000000000000000000000000000000000000000000000000000000000000000"' --rpc-url "$L2_RPC_URL")
     if [[ "$result" != "null" ]]; then
@@ -47,7 +47,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc,evm-gas
+# bats test_tags=execution-specs,evm-rpc,evm-gas
 @test "eth_estimateGas for EOA transfer returns 21000" {
     gas=$(cast estimate --value 1 0x0000000000000000000000000000000000000000)
     if [[ "$gas" -ne 21000 ]]; then
@@ -56,7 +56,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_call to plain EOA returns 0x" {
     result=$(cast call "$eth_address" "0x")
     if [[ "$result" != "0x" ]]; then
@@ -65,7 +65,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getLogs returns empty array for future block range" {
     latest_block=$(cast block-number)
     future_block=$(( latest_block + 1000 ))
@@ -82,7 +82,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getLogs for block 0 to 0 returns a valid array" {
     result=$(cast rpc eth_getLogs '{"fromBlock": "0x0", "toBlock": "0x0"}' --rpc-url "$L2_RPC_URL")
     type=$(echo "$result" | jq -r 'type')
@@ -92,7 +92,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc,evm-gas
+# bats test_tags=execution-specs,evm-rpc,evm-gas
 @test "eth_gasPrice returns a valid non-zero hex value" {
     result=$(cast rpc eth_gasPrice --rpc-url "$L2_RPC_URL")
     result=$(echo "$result" | tr -d '"')
@@ -110,7 +110,7 @@ setup() {
     echo "eth_gasPrice: $price_dec wei" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getCode returns 0x for an EOA" {
     code=$(cast code "$eth_address" --rpc-url "$L2_RPC_URL")
     if [[ "$code" != "0x" ]]; then
@@ -119,7 +119,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getCode returns non-empty bytecode for L2 StateReceiver contract" {
     # L2_STATE_RECEIVER_ADDRESS is a system contract pre-deployed at genesis by Bor.
     # Its code must be non-empty; an empty result would indicate a broken genesis state.
@@ -131,7 +131,7 @@ setup() {
     echo "StateReceiver code length: $(( (${#code} - 2) / 2 )) bytes" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getLogs with reversed block range returns error or empty array" {
     # fromBlock > toBlock is either an error or an empty array — never a non-empty result.
     latest_block=$(cast block-number --rpc-url "$L2_RPC_URL")
@@ -157,7 +157,7 @@ setup() {
 # eth_getBalance
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getBalance returns non-zero for funded account and zero for unused address" {
     # Funded account.
     balance_raw=$(cast rpc eth_getBalance "\"$eth_address\"" '"latest"' --rpc-url "$L2_RPC_URL")
@@ -187,7 +187,7 @@ setup() {
 # eth_getTransactionByHash / eth_getTransactionByBlockNumberAndIndex
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getTransactionByHash and ByBlockNumberAndIndex return consistent tx data" {
     # Send a tx so we have something to query.
     receipt=$(cast send --legacy --gas-limit 21000 --private-key "$PRIVATE_KEY" \
@@ -227,7 +227,7 @@ setup() {
 # eth_getTransactionCount
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getTransactionCount returns hex nonce matching cast nonce" {
     result=$(cast rpc eth_getTransactionCount "\"$eth_address\"" '"latest"' --rpc-url "$L2_RPC_URL")
     result=$(echo "$result" | tr -d '"')
@@ -247,7 +247,7 @@ setup() {
 # eth_getBlockTransactionCountByNumber / ByHash
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "eth_getBlockTransactionCountByNumber and ByHash agree on tx count" {
     block=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
     block_number=$(echo "$block" | jq -r '.number')
@@ -276,7 +276,7 @@ setup() {
 # eth_getStorageAt
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getStorageAt returns zero for EOA and valid 32-byte word for contracts" {
     # EOA storage slot 0 must be the zero word.
     result=$(cast rpc eth_getStorageAt "\"$eth_address\"" '"0x0"' '"latest"' --rpc-url "$L2_RPC_URL")
@@ -300,7 +300,7 @@ setup() {
 # EIP-1559: eth_maxPriorityFeePerGas / eth_feeHistory
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc,evm-gas
+# bats test_tags=execution-specs,evm-rpc,evm-gas
 @test "eth_maxPriorityFeePerGas returns a valid hex value" {
     result=$(cast rpc eth_maxPriorityFeePerGas --rpc-url "$L2_RPC_URL")
     result=$(echo "$result" | tr -d '"')
@@ -311,7 +311,7 @@ setup() {
     echo "eth_maxPriorityFeePerGas: $(cast to-dec "$result") wei" >&3
 }
 
-# bats test_tags=evm-rpc,evm-gas
+# bats test_tags=execution-specs,evm-rpc,evm-gas
 @test "eth_feeHistory returns baseFeePerGas array and oldestBlock" {
     # Request 4 blocks of history with no reward percentiles.
     result=$(cast rpc eth_feeHistory '"0x4"' '"latest"' '[]' --rpc-url "$L2_RPC_URL")
@@ -349,7 +349,7 @@ setup() {
 # eth_getBlockByNumber fullTransactions=true
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "eth_getBlockByNumber with fullTransactions=true returns full tx objects" {
     # Send a tx so the block definitely contains one.
     receipt=$(cast send --legacy --gas-limit 21000 --private-key "$PRIVATE_KEY" \
@@ -385,7 +385,7 @@ setup() {
 # net_version / web3_clientVersion
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "net_version returns a non-empty numeric string" {
     result=$(cast rpc net_version --rpc-url "$L2_RPC_URL")
     result=$(echo "$result" | tr -d '"')
@@ -396,7 +396,7 @@ setup() {
     echo "net_version: $result" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "web3_clientVersion returns a non-empty version string" {
     result=$(cast rpc web3_clientVersion --rpc-url "$L2_RPC_URL")
     result=$(echo "$result" | tr -d '"')
@@ -411,7 +411,7 @@ setup() {
 # Block field validation (post-London)
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "latest block contains required post-London fields and valid shapes" {
     block=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
 
@@ -459,7 +459,7 @@ setup() {
 # Bor-specific RPC methods
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "bor_getSnapshot returns snapshot with validator data" {
     set +e
     result=$(cast rpc bor_getSnapshot '"latest"' --rpc-url "$L2_RPC_URL" 2>&1)
@@ -482,7 +482,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "bor_getAuthor returns a valid address for latest block" {
     set +e
     result=$(cast rpc bor_getAuthor '"latest"' --rpc-url "$L2_RPC_URL" 2>&1)
@@ -505,7 +505,7 @@ setup() {
     echo "bor_getAuthor: $result" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "bor_getCurrentValidators returns a non-empty validator list" {
     set +e
     result=$(cast rpc bor_getCurrentValidators --rpc-url "$L2_RPC_URL" 2>&1)
@@ -532,7 +532,7 @@ setup() {
 # Additional RPC conformance tests
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "eth_getBlockByNumber 'earliest' returns genesis block" {
     block=$(cast rpc eth_getBlockByNumber '"0x0"' 'false' --rpc-url "$L2_RPC_URL")
 
@@ -557,7 +557,7 @@ setup() {
     echo "Genesis block: number=$block_number parentHash=$parent_hash" >&3
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "eth_getBlockByNumber 'pending' returns valid response" {
     set +e
     result=$(cast rpc eth_getBlockByNumber '"pending"' 'false' --rpc-url "$L2_RPC_URL" 2>&1)
@@ -586,7 +586,7 @@ setup() {
     echo "Pending block: number=$block_number" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_syncing returns false on synced node" {
     result=$(cast rpc eth_syncing --rpc-url "$L2_RPC_URL")
     # eth_syncing returns `false` when synced, or an object when syncing.
@@ -607,7 +607,7 @@ setup() {
     return 1
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_sendRawTransaction rejects invalid signature" {
     # Submit a raw tx with corrupted signature bytes — node must reject it.
     # This is a well-formed RLP envelope but with zeroed-out v/r/s.
@@ -633,7 +633,7 @@ setup() {
     echo "Invalid signature correctly rejected" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_sendRawTransaction rejects wrong chainId" {
     # Create a signed tx with chainId=999999 (almost certainly wrong).
     # cast mktx needs --chain to override; we sign locally then submit.
@@ -674,7 +674,7 @@ setup() {
     echo "Wrong chainId tx handling verified (exit=$publish_exit)" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "batch JSON-RPC returns array of matching results" {
     # Send 5 different RPC calls in a single batch request, verify 5 responses.
     result=$(curl -s -X POST \
@@ -717,7 +717,7 @@ setup() {
     echo "Batch JSON-RPC: 5 requests → 5 matching responses" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getTransactionReceipt has all required EIP fields" {
     # Send a tx to get a receipt we can inspect.
     receipt=$(cast send --legacy --gas-limit 21000 --private-key "$PRIVATE_KEY" \
@@ -754,7 +754,7 @@ setup() {
     echo "Receipt has all required fields for tx $tx_hash" >&3
 }
 
-# bats test_tags=evm-rpc,evm-gas
+# bats test_tags=execution-specs,evm-rpc,evm-gas
 @test "eth_estimateGas for failing call returns error" {
     # Deploy a contract that always reverts.
     # Initcode: PUSH1 0x00 PUSH1 0x00 REVERT = 60006000fd (reverts in constructor too)
@@ -798,7 +798,7 @@ setup() {
     echo "eth_estimateGas correctly returned error for reverting contract" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getProof returns valid Merkle proof structure" {
     # EIP-1186: eth_getProof for a funded account.
     set +e
@@ -844,7 +844,7 @@ setup() {
     echo "eth_getProof: accountProof has $proof_len nodes, balance=$balance" >&3
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "block timestamp monotonicity across 10 consecutive blocks" {
     latest=$(cast block-number --rpc-url "$L2_RPC_URL")
     if [[ "$latest" -lt 10 ]]; then
@@ -879,7 +879,7 @@ setup() {
 # Block-Level Invariants
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "gasUsed <= gasLimit for latest block" {
     local block
     block=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
@@ -899,7 +899,7 @@ setup() {
     echo "gasUsed=$gas_used_dec <= gasLimit=$gas_limit_dec" >&3
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "Parent hash chain integrity across 5 blocks" {
     local latest
     latest=$(cast block-number --rpc-url "$L2_RPC_URL")
@@ -931,7 +931,7 @@ setup() {
     echo "Parent hash chain intact across blocks $start_block to $latest" >&3
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "Sum of receipt gasUsed matches block gasUsed" {
     # Send a tx so the block has at least one transaction.
     local receipt
@@ -972,7 +972,7 @@ setup() {
     echo "Block $block_number: sum(receipt.gasUsed)=$receipt_gas_sum == block.gasUsed=$block_gas_used" >&3
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "sha3Uncles field is empty-list RLP hash (PoS has no uncles)" {
     local block
     block=$(cast rpc eth_getBlockByNumber '"latest"' 'false' --rpc-url "$L2_RPC_URL")
@@ -990,7 +990,7 @@ setup() {
     echo "sha3Uncles correctly equals keccak256(RLP([]))" >&3
 }
 
-# bats test_tags=evm-rpc,evm-block
+# bats test_tags=execution-specs,evm-rpc,evm-block
 @test "logsBloom is zero for genesis block (no log-emitting txs)" {
     local block
     block=$(cast rpc eth_getBlockByNumber '"0x0"' 'false' --rpc-url "$L2_RPC_URL")
@@ -1016,7 +1016,7 @@ setup() {
 # RPC Edge Cases
 # ---------------------------------------------------------------------------
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getUncleCountByBlockNumber returns 0 (PoS has no uncles)" {
     local result
     result=$(cast rpc eth_getUncleCountByBlockNumber '"latest"' --rpc-url "$L2_RPC_URL")
@@ -1032,7 +1032,7 @@ setup() {
     echo "eth_getUncleCountByBlockNumber correctly returned 0" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "Contract creation receipt has contractAddress field" {
     # Deploy a minimal contract.
     local receipt
@@ -1068,7 +1068,7 @@ setup() {
     echo "Contract creation receipt has contractAddress=$contract_addr with code" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "eth_getBalance at historical block returns correct value" {
     local balance_before
     balance_before=$(cast balance "$eth_address" --rpc-url "$L2_RPC_URL")
@@ -1110,7 +1110,7 @@ setup() {
     echo "eth_getBalance at block $block_n correctly returned historical balance" >&3
 }
 
-# bats test_tags=evm-rpc
+# bats test_tags=execution-specs,evm-rpc
 @test "Empty batch JSON-RPC returns empty array" {
     local result
     result=$(curl -s -X POST \
