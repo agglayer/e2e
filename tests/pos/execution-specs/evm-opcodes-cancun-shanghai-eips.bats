@@ -18,7 +18,8 @@ setup() {
 deploy_runtime() {
     local runtime="$1"
     local runtime_len=$(( ${#runtime} / 2 ))
-    local runtime_len_hex=$(printf "%02x" "$runtime_len")
+    local runtime_len_hex
+    runtime_len_hex=$(printf "%02x" "$runtime_len")
     local offset_hex="0c"
     local initcode="60${runtime_len_hex}60${offset_hex}60003960${runtime_len_hex}6000f3${runtime}"
 
