@@ -163,6 +163,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | BLOCKHASH(0) returns zero on Bor (genesis hash not available) | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L18) | |
 | BYTE opcode extracts correct byte from word | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L915) | |
 | Bor produces blocks on approximately 2-second sprint cadence | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L237) | |
+| BorValidatorSet (0x1000) getBorValidators returns non-empty validator list | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L49) | |
+| BorValidatorSet (0x1000) has deployed code and is callable | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L21) | |
 | CALL with value to non-existent account skips G_NEW_ACCOUNT on Bor | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L57) | |
 | CALLDATASIZE returns correct input length | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L866) | |
 | CHAINID returns the correct chain ID (EIP-1344) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L281) | |
@@ -190,11 +192,32 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | MCOPY overlapping forward copy (src < dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L175) | |
 | MCOPY to high offset triggers memory expansion and charges gas | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L245) | |
 | MCOPY with zero length is a no-op | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L222) | |
+| MRC20 native token wrapper (0x1010) has deployed code and balance function | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L88) | |
 | Multiple storage slots in one transaction | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L1144) | |
 | NUMBER opcode returns correct block number | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L620) | |
 | Nonce-too-low rejection | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L570) | |
 | OOG during code-deposit phase fails the creation | [Link](./tests/pos/execution-specs/contract-creation-and-deployment-limits.bats#L352) | |
 | ORIGIN returns the transaction sender EOA | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L319) | |
+| PIP-11: eth_getBlockByNumber 'finalized' returns a valid block | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L17) | |
+| PIP-11: finalized block advances as new blocks are produced | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L98) | |
+| PIP-11: finalized block number is less than or equal to latest block number | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L58) | |
+| PIP-16: block extraData field is non-empty and present | [Link](./tests/pos/execution-specs/pip16-transaction-dependency-data.bats#L18) | |
+| PIP-16: extraData is consistent across multiple recent blocks | [Link](./tests/pos/execution-specs/pip16-transaction-dependency-data.bats#L49) | |
+| PIP-20: StateReceiver (0x1001) has StateCommitted event signature | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L174) | |
+| PIP-30 probe: deploy 24577-byte runtime to detect active MAX_CODE_SIZE | [Link](./tests/pos/execution-specs/pip30-increased-max-code-size.bats#L55) | |
+| PIP-30: deploy 28000-byte runtime succeeds (between EIP-170 and PIP-30 limits) | [Link](./tests/pos/execution-specs/pip30-increased-max-code-size.bats#L138) | |
+| PIP-30: deploy 32769-byte runtime is rejected (exceeds PIP-30 limit) | [Link](./tests/pos/execution-specs/pip30-increased-max-code-size.bats#L120) | |
+| PIP-30: deploy exactly 32768-byte runtime succeeds at PIP-30 boundary | [Link](./tests/pos/execution-specs/pip30-increased-max-code-size.bats#L82) | |
+| PIP-36: StateReceiver (0x1001) has replayFailedStateSync function | [Link](./tests/pos/execution-specs/bor-system-contracts-validator-set-and-mrc20.bats#L130) | |
+| PIP-45: MRC20 system contract decimals() returns 18 | [Link](./tests/pos/execution-specs/pip45-matic-to-pol-token-rename.bats#L87) | |
+| PIP-45: MRC20 system contract name() returns valid token name | [Link](./tests/pos/execution-specs/pip45-matic-to-pol-token-rename.bats#L17) | |
+| PIP-45: MRC20 system contract symbol() returns valid token symbol | [Link](./tests/pos/execution-specs/pip45-matic-to-pol-token-rename.bats#L53) | |
+| PIP-6/58: base fee change rate is tighter than Ethereum default (1/8) | [Link](./tests/pos/execution-specs/pip6-pip58-base-fee-change-denominator.bats#L74) | |
+| PIP-6/58: base fee changes by at most 1/64 per block (denominator = 64) | [Link](./tests/pos/execution-specs/pip6-pip58-base-fee-change-denominator.bats#L17) | |
+| PIP-6/58: base fee is always positive and non-zero | [Link](./tests/pos/execution-specs/pip6-pip58-base-fee-change-denominator.bats#L136) | |
+| PIP-74: StateSyncTx has expected fields (from, to, input) | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L68) | |
+| PIP-74: blocks with transactions include StateSyncTx in transactionsRoot | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L126) | |
+| PIP-74: scan recent blocks for StateSyncTx (type 0x7F) transactions | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L33) | |
 | PUSH0 pushes zero onto the stack (EIP-3855) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L59) | |
 | Parent hash chain integrity across 5 blocks | [Link](./tests/pos/execution-specs/rpc-method-conformance-and-validation.bats#L903) | |
 | RETURNDATACOPY copies callee return data correctly | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L387) | |
