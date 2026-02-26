@@ -32,10 +32,16 @@ setup() {
     local extra_len=$(( (${#extra_data} - 2) / 2 ))
     echo "Block $latest_block extraData: $extra_len bytes" >&3
 
-    # Bor extraData is typically 32 bytes vanity + 65 bytes signature = 97 bytes minimum.
-    # With PIP-16 dependency data, it may be larger.
+    # Bor extraData: 32 bytes vanity + 65 bytes signature = 97 bytes minimum.
+    # With PIP-16 dependency data or sprint validator lists, it may be larger.
+    # Enforce a hard minimum of 32 bytes (the vanity field alone).
+    if [[ "$extra_len" -lt 32 ]]; then
+        echo "ExtraData too short ($extra_len bytes, expected >= 32 for Bor vanity)" >&2
+        return 1
+    fi
+
     if [[ "$extra_len" -lt 97 ]]; then
-        echo "ExtraData unusually short ($extra_len bytes, expected >= 97 for Bor)" >&3
+        echo "ExtraData shorter than typical Bor minimum ($extra_len bytes, expected >= 97)" >&3
     fi
 }
 

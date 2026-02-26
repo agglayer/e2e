@@ -91,17 +91,23 @@ setup() {
         local block_json
         block_json=$(cast block "$block_num" --json --rpc-url "$L2_RPC_URL")
 
+        local gas_used_hex
+        gas_used_hex=$(echo "$block_json" | jq -r '.gasUsed')
         local gas_used
-        gas_used=$(echo "$block_json" | jq -r '.gasUsed' | xargs printf "%d\n")
+        gas_used=$(printf "%d" "$gas_used_hex")
+        local base_fee_hex
+        base_fee_hex=$(echo "$block_json" | jq -r '.baseFeePerGas')
         local base_fee
-        base_fee=$(echo "$block_json" | jq -r '.baseFeePerGas' | xargs printf "%d\n")
+        base_fee=$(printf "%d" "$base_fee_hex")
 
         # Look for an empty block (gasUsed = 0)
         if [[ "$gas_used" -eq 0 && "$base_fee" -gt 100 ]]; then
             local next_json
             next_json=$(cast block "$(( block_num + 1 ))" --json --rpc-url "$L2_RPC_URL")
+            local next_base_fee_hex
+            next_base_fee_hex=$(echo "$next_json" | jq -r '.baseFeePerGas')
             local next_base_fee
-            next_base_fee=$(echo "$next_json" | jq -r '.baseFeePerGas' | xargs printf "%d\n")
+            next_base_fee=$(printf "%d" "$next_base_fee_hex")
 
             local decrease=$(( base_fee - next_base_fee ))
             if [[ "$decrease" -gt 0 ]]; then

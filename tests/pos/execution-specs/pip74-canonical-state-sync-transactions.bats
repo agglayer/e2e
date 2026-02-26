@@ -11,6 +11,8 @@
 #
 # On a devnet, state syncs may or may not occur depending on L1 bridge activity.
 # Tests scan recent blocks for type-0x7F transactions and verify their structure.
+# Note: each test independently scans up to 200 blocks (bats runs each @test in
+# isolation). On devnets without state syncs, all 3 tests skip quickly.
 
 setup() {
     load "../../../core/helpers/pos-setup.bash"

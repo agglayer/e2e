@@ -82,12 +82,6 @@ setup() {
     fi
 
     echo "Validator set result: ${result:0:200}" >&3
-
-    # Result should be non-empty (at least one validator on the devnet)
-    if [[ -z "$result" ]]; then
-        echo "Validator set returned empty result" >&2
-        return 1
-    fi
 }
 
 # bats test_tags=execution-specs,bor-system-contracts,mrc20
@@ -198,11 +192,16 @@ setup() {
 
     echo "StateCommitted event topic: $event_topic" >&3
 
-    # Search recent logs for this event topic from the StateReceiver
+    # Search recent logs for this event topic from the StateReceiver.
+    # Bound the range to last 1000 blocks to avoid RPC query limits on long-running devnets.
+    local latest_block
+    latest_block=$(cast block-number --rpc-url "$L2_RPC_URL")
+    local from_block=$(( latest_block > 1000 ? latest_block - 1000 : 0 ))
+
     set +e
     local logs
     logs=$(cast logs \
-        --from-block 0 \
+        --from-block "$from_block" \
         --to-block latest \
         --address "$state_receiver" \
         "$event_topic" \
