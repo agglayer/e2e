@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
-# bats file_tags=pos
+# bats file_tags=pos,execution-specs
 
 setup() {
     # Load libraries.
-    load "../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/pos-setup.bash"
     pos_setup
 
     eth_address=$(cast wallet address --private-key "$PRIVATE_KEY")
     export ETH_RPC_URL="$L2_RPC_URL"
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "50 concurrent eth_blockNumber requests all succeed and return consistent values" {
     tmpdir=$(mktemp -d)
     pids=()
@@ -54,7 +54,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "50 concurrent eth_getBalance requests all return valid results" {
     tmpdir=$(mktemp -d)
     pids=()
@@ -99,7 +99,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "50 concurrent eth_getLogs requests all return valid arrays" {
     tmpdir=$(mktemp -d)
     pids=()
@@ -139,7 +139,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "mixed concurrent RPC methods succeed without interfering with each other" {
     # Fire eth_blockNumber, eth_getBalance, and eth_getLogs simultaneously to check
     # that multiplexing different method handlers on the same node doesn't cause
@@ -200,7 +200,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests" {
     # Existing tests cap at 50.  This ramps to 100 and 500 to probe connection-pool
     # limits, goroutine exhaustion, and fd pressure on the RPC node.
@@ -244,7 +244,7 @@ setup() {
     done
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "concurrent write/read race: tx submissions and state reads do not interfere" {
     # Submits transactions and reads state simultaneously.  Read operations must
     # always return valid results even while the mempool and state trie are being
@@ -312,7 +312,7 @@ setup() {
     echo "Write/read race: 30 reads during 20 writes, $read_fails failures" >&3
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "50 concurrent requests across additional RPC methods succeed" {
     # Existing tests only cover eth_blockNumber, eth_getBalance, and eth_getLogs.
     # This adds eth_getTransactionCount, eth_chainId, eth_gasPrice, eth_getCode,
@@ -411,7 +411,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "multi-sender concurrent tx submissions: 10 wallets x 5 txs each" {
     # 10 ephemeral wallets each submit 5 txs concurrently (50 total writes).
     # Verifies that all nonces advance correctly under concurrent write pressure.
@@ -479,7 +479,7 @@ setup() {
     echo "All 10 wallets advanced nonces after concurrent submissions" >&3
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "batch JSON-RPC under concurrent load: 50 concurrent batch requests" {
     # 50 concurrent batch requests, each containing 5 different RPC calls (250 total),
     # verify all return arrays of correct length.
@@ -529,7 +529,7 @@ setup() {
     echo "Batch JSON-RPC: $fail_count failures out of 50 (max $max_failures)" >&3
 }
 
-# bats test_tags=evm-stress,loadtest
+# bats test_tags=execution-specs,evm-stress,loadtest
 @test "sustained RPC load over 30 seconds with monotonic block advancement" {
     # Continuously sends eth_blockNumber requests for 30 seconds.
     # Verifies <1% failure rate and that block numbers advance monotonically.

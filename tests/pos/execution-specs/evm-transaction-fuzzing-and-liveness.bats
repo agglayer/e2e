@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
-# bats file_tags=pos
+# bats file_tags=pos,execution-specs
 
 setup() {
-    load "../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 
@@ -38,7 +38,7 @@ _wait_for_liveness() {
     echo "Liveness check passed${label:+ ($label)} at block $live_block" >&3
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz node with edge-case contract creation bytecodes and verify liveness" {
     local wallet_json
     wallet_json=$(cast wallet new --json | jq '.[0]')
@@ -99,7 +99,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "contract-creation fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz node with variable-size calldata transactions and verify liveness" {
     local wallet_json
     wallet_json=$(cast wallet new --json | jq '.[0]')
@@ -150,7 +150,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "calldata fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz node with edge-case gas limits and verify liveness" {
     local wallet_json
     wallet_json=$(cast wallet new --json | jq '.[0]')
@@ -202,7 +202,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "gas-limit fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz node with non-zero calldata transactions and verify liveness" {
     # Non-zero bytes cost 16 gas each (EIP-2028), vs 4 for zero bytes. This exercises
     # a distinct path in the mempool gas accounting and block packing logic.
@@ -252,7 +252,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "non-zero calldata fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz contract creations and assert individual tx outcomes" {
     # Unlike the liveness-only fuzz tests, this verifies each tx's status, gasUsed
     # bounds, and contractAddress for every contract creation individually.
@@ -337,7 +337,7 @@ _wait_for_liveness() {
     fi
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz node with mixed zero/non-zero calldata and verify liveness" {
     # Previous tests use all-zero or all-0xff calldata separately.  This test mixes
     # zero bytes (4 gas each, EIP-2028) and non-zero bytes (16 gas) in the same
@@ -399,7 +399,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "mixed calldata fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "fuzz node with EIP-1559 type-2 transactions and verify processing" {
     # All existing fuzz tests use --legacy (type-0).  This exercises the EIP-1559
     # dynamic fee market (maxFeePerGas / maxPriorityFeePerGas) in the mempool and
@@ -519,7 +519,7 @@ _wait_for_liveness() {
     fi
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "EIP-2930 type-1 access list tx fuzz and verify liveness" {
     # Sends type-1 (EIP-2930) transactions with access lists containing prewarmed
     # storage slots.  Exercises the access-list validation and gas discount paths.
@@ -596,7 +596,7 @@ _wait_for_liveness() {
     echo "Nonce advanced from $start_nonce to $final_nonce" >&3
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "nonce-gap stress: out-of-order submission resolves correctly" {
     # Submits transactions with intentional nonce gaps (N+2 before N+1, etc.) to
     # exercise the mempool's pending-queue ordering and gap-fill logic.
@@ -657,7 +657,7 @@ _wait_for_liveness() {
     fi
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "multi-sender concurrent fuzz: 10 wallets fire txs simultaneously" {
     # Creates 10 ephemeral wallets, funds them, fires txs from all simultaneously,
     # then verifies chain liveness.  Exercises mempool handling of txs from many
@@ -714,7 +714,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "multi-sender concurrent fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "nonce replacement stress: higher gas replaces pending tx" {
     # Sends tx at nonce N with low gas price, then replacement at same nonce with
     # higher gas price.  Verifies only the replacement is mined.
@@ -788,7 +788,7 @@ _wait_for_liveness() {
     echo "Nonce advanced from $nonce to $final_nonce after replacements" >&3
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL" {
     # Deploys a target contract and a dispatcher that makes CALL, STATICCALL, and
     # DELEGATECALL to it.  Exercises cross-contract call handling under fuzz load.
@@ -847,7 +847,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "contract-to-contract call fuzz"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "block-filling stress: rapid-fire large calldata txs" {
     # Rapid-fires transactions with large calldata to fill blocks near the gas limit.
     # Verifies no chain stall occurs when blocks are packed tightly.
@@ -892,7 +892,7 @@ _wait_for_liveness() {
     _wait_for_liveness "$start_block" "block-filling stress"
 }
 
-# bats test_tags=evm-stress
+# bats test_tags=execution-specs,evm-stress
 @test "all-opcode liveness smoke: deploy contracts exercising major opcode groups" {
     # Deploys contracts exercising arithmetic, comparison, SHA3, LOG, CALL variants.
     # Verifies chain liveness after processing all opcode groups.
