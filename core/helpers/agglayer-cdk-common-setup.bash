@@ -101,7 +101,7 @@ _load_helper_scripts() {
 _resolve_required_urls() {
     # L1_RPC_URL
     l1_rpc_url=$(_resolve_url_or_use_env L1_RPC_URL \
-        "el-1-geth-lighthouse" "rpc" \
+        "el-1-geth-lighthouse" "rpc" "el-1-reth-lighthouse" "rpc" \
         "Failed to resolve L1 RPC URL" true)
     export l1_rpc_url
 

@@ -112,6 +112,8 @@ function _setup_vars() {
         if [[ -n "$kurtosis_enclave_name" ]]; then
             if kurtosis_l1_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc 2>/dev/null); then
                 true
+            elif kurtosis_l1_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" el-1-reth-lighthouse rpc 2>/dev/null); then
+                true
             else
                 unset kurtosis_l1_rpc_url
             fi
