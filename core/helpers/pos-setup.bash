@@ -10,7 +10,16 @@ pos_setup() {
   echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
 
   # L1 and L2 RPC and API URLs.
-  export L1_RPC_URL=${L1_RPC_URL:-"http://$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc)"}
+  if [[ -z "${L1_RPC_URL:-}" ]]; then
+    if l1_rpc_port=$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc 2>/dev/null); then
+      export L1_RPC_URL="http://${l1_rpc_port}"
+    elif l1_rpc_port=$(kurtosis port print "${ENCLAVE_NAME}" el-1-reth-lighthouse rpc 2>/dev/null); then
+      export L1_RPC_URL="http://${l1_rpc_port}"
+    else
+      echo "❌ Failed to resolve L1 RPC URL from Kurtosis (tried el-1-geth-lighthouse and el-1-reth-lighthouse)"
+      exit 1
+    fi
+  fi
   echo "L1_RPC_URL=${L1_RPC_URL}"
 
   export L2_RPC_URL=${L2_RPC_URL:-$(kurtosis port print "${ENCLAVE_NAME}" "l2-el-1-bor-heimdall-v2-validator" rpc)}
