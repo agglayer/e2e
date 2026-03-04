@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
-# bats file_tags=pos
+# bats file_tags=pos,execution-specs
 
 setup() {
-    load "../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/pos-setup.bash"
     pos_setup
 
     local wallet_json
@@ -16,7 +16,7 @@ setup() {
     cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 1ether "$ephemeral_address" >/dev/null
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "deploy single STOP opcode contract succeeds and code at address is empty" {
     # CREATE base gas is 53K; STOP costs 0 execution gas.  Explicit --gas-limit
     # avoids auto-estimation (which Bor rejects when simulating empty balances) and
@@ -44,7 +44,7 @@ setup() {
     fi
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "deploy contract that reverts in constructor leaves no code at deployed address" {
     # 0x60006000fd = PUSH1 0x00 PUSH1 0x00 REVERT
     set +e
@@ -75,7 +75,7 @@ setup() {
     # cast failure (send_exit != 0) also means the node rejected it — pass
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "deploy initcode exactly at EIP-3860 limit (49152 bytes) succeeds" {
     initcode=$(python3 -c "print('00'*49152, end='')")
     # EIP-7623 (Prague) floor data gas cost for 49152 zero bytes:
@@ -95,7 +95,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "deploy initcode one byte over EIP-3860 limit (49153 bytes) is rejected" {
     initcode=$(python3 -c "print('00'*49153, end='')")
     set +e
@@ -120,7 +120,7 @@ setup() {
     # Non-zero exit or status 0x0 both indicate the node rejected it — pass
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "deploy contract that returns 24577 runtime bytes is rejected by EIP-170" {
     # 0x6160016000f3 = PUSH2 0x6001 PUSH1 0x00 RETURN
     # Returns 0x6001 = 24577 bytes of zeroed memory as runtime, exceeding EIP-170 (24576 byte limit)
@@ -146,7 +146,7 @@ setup() {
     # Non-zero exit or status 0x0 — node rejected oversized runtime — pass
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary)" {
     # 0x6160006000f3 = PUSH2 0x6000 PUSH1 0x00 RETURN
     # Returns exactly 24576 (0x6000) bytes of zeroed memory — the EIP-170 maximum.
@@ -177,7 +177,7 @@ setup() {
     fi
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "deploy contract with 0xEF leading runtime byte is rejected by EIP-3541" {
     # EIP-3541 (London+): any contract creation whose first byte of runtime code is 0xEF
     # must be rejected. This protects the EOF container format prefix.
@@ -203,7 +203,7 @@ setup() {
     # Non-zero exit or status 0x0 — node correctly rejected EF-prefixed runtime — pass
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "CREATE2 deploys child to predicted salt-derived address" {
     # Factory constructor uses CREATE2 to deploy a child, stores child address at slot 0.
     # Bytecode breakdown:
@@ -266,7 +266,7 @@ setup() {
     fi
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "nested contract creation: constructor deploys child via CREATE" {
     # Factory constructor deploys a child contract, then returns its own 1-byte runtime.
     # Bytecode breakdown:
@@ -311,7 +311,7 @@ setup() {
     fi
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "SELFDESTRUCT during construction leaves no code and zero balance" {
     # Initcode: PUSH1 0x00  SELFDESTRUCT (0xff)
     # SELFDESTRUCT is a successful halt (not a revert) so the tx should succeed, but
@@ -348,7 +348,7 @@ setup() {
     fi
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "OOG during code-deposit phase fails the creation" {
     # Initcode: PUSH2 0x03e8  PUSH1 0x00  RETURN
     # Returns 1000 bytes of zeroed memory as runtime code.
@@ -377,7 +377,7 @@ setup() {
     # Non-zero exit or status 0x0 — creation failed during code-deposit phase — pass
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "stack depth limit: 1024 nested calls revert" {
     # Deploy a contract that recursively CALLs itself until the call stack
     # exceeds the EVM limit of 1024 frames, then verify the outermost call reverts.
@@ -456,7 +456,7 @@ setup() {
     fi
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "multiple CREATEs in single transaction: factory creates 5 children" {
     # Deploy a factory whose constructor creates 5 child contracts via CREATE,
     # storing each child address in storage slots 0-4.
@@ -516,7 +516,7 @@ setup() {
     fi
 }
 
-# bats test_tags=transaction-eoa
+# bats test_tags=execution-specs,transaction-eoa
 @test "CREATE with maximum value transfer in constructor" {
     # Deploy a contract while sending all remaining value (minus gas cost) to it.
     # The constructor receives msg.value; verify the contract's post-deploy balance.
@@ -572,7 +572,7 @@ setup() {
     echo "[max-value-create] Contract at $contract_addr holds $contract_balance wei" >&3
 }
 
-# bats test_tags=evm-gas
+# bats test_tags=execution-specs,evm-gas
 @test "large return data in constructor near EIP-170 limit (24000 bytes) succeeds" {
     # Deploy a contract whose constructor returns 24000 bytes of runtime code.
     # This is below the EIP-170 limit (24576) but large enough to exercise

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=pos,pos-precompile
+# bats file_tags=pos,execution-specs,pos-precompile
 
 # Precompile detection and verification tests for Polygon PoS (Bor).
 #
@@ -24,8 +24,8 @@
 # ────────────────────────────────────────────────────────────────────────────
 
 setup() {
-  load "../../core/helpers/pos-setup.bash"
-  load "../../core/helpers/scripts/eventually.bash"
+  load "../../../core/helpers/pos-setup.bash"
+  load "../../../core/helpers/scripts/eventually.bash"
   pos_setup
 }
 
@@ -54,7 +54,7 @@ function _is_nontrivial() {
 # Fuzz scan (JSON-RPC batch requests – no on-chain gas budget)
 # ────────────────────────────────────────────────────────────────────────────
 
-# bats test_tags=pos-precompile,precompile-fuzz
+# bats test_tags=execution-specs,pos-precompile,precompile-fuzz
 @test "fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX" {
   # ── Known-precompile registry ─────────────────────────────────────────────
   # Lowercase 40-char hex addresses WITHOUT 0x prefix.
@@ -210,7 +210,7 @@ function _is_nontrivial() {
 # Correctness tests – one per known precompile
 # ────────────────────────────────────────────────────────────────────────────
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x01 ecRecover: recovers signer from a valid ECDSA signature" {
   # Standard ecRecover test vector (128-byte input: hash || v || r || s).
   # Source: https://ethereum.github.io/execution-specs/src/ethereum/cancun/vm/precompiled_contracts/ecrecover.html
@@ -228,7 +228,7 @@ function _is_nontrivial() {
   _is_nontrivial "${out}"
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x02 SHA-256: hash of empty string equals known constant" {
   # sha256("") = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
   local out
@@ -237,7 +237,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x03 RIPEMD-160: hash of empty string equals known constant" {
   # ripemd160("") = 9c1185a5c5e9fc54612808977ee8f548b2258d31 (20 bytes, left-padded to 32)
   local out
@@ -246,7 +246,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x0000000000000000000000009c1185a5c5e9fc54612808977ee8f548b2258d31" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x04 identity: returns input bytes unchanged" {
   local input="0xdeadbeefcafebabe0102030405060708090a0b0c0d0e0f101112131415161718"
   local out
@@ -255,7 +255,7 @@ function _is_nontrivial() {
   [[ "${out}" == "${input}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x05 modexp: 8^9 mod 10 equals 8" {
   # 8^9 mod 10: powers of 8 mod 10 cycle as 8→4→2→6→8…, exponent 9 ≡ 1 (mod 4) → 8.
   # Input layout (EIP-198): len(B)(32) || len(E)(32) || len(M)(32) || B || E || M
@@ -272,7 +272,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x08" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x06 ecAdd (alt_bn128): G + G returns a valid non-zero curve point" {
   # Add the alt_bn128 generator G = (1, 2) to itself.
   # Result: 2·G = a valid 64-byte affine point (non-zero).
@@ -287,7 +287,7 @@ function _is_nontrivial() {
   _is_nontrivial "${out}"
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x07 ecMul (alt_bn128): 2·G matches ecAdd(G, G)" {
   # ecMul(G, 2) should yield the same point as ecAdd(G, G).
   local input_mul="0x"
@@ -312,7 +312,7 @@ function _is_nontrivial() {
   [[ "${out_mul}" == "${out_add}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x08 ecPairing (alt_bn128): empty input returns 1 (trivial pairing check)" {
   # An empty pairing set is defined to be true (e(∅) = 1).
   local out
@@ -321,7 +321,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x09 blake2F: EIP-152 test vector 5 (12 rounds, 'abc' message)" {
   # Reference: https://eips.ethereum.org/EIPS/eip-152 – Example 5
   # Input layout (213 bytes): rounds(4) || h(64) || m(128) || t0(8) || t1(8) || f(1)
@@ -359,7 +359,7 @@ function _is_nontrivial() {
   [[ "${out}" == "${expected}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0a KZG point evaluation: active on Cancun+ (rejects invalid input)" {
   # EIP-4844: input must be exactly 192 bytes (versioned_hash || z || y || commitment || proof).
   # Calling with empty data should revert on an active precompile.
@@ -374,7 +374,7 @@ function _is_nontrivial() {
   [[ -z "${out}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0b BLS12-381 G1 Add: identity + G equals G (Prague+)" {
   # EIP-2537: G1Add(∞, G) = G.
   # G1 point encoding (128 bytes): [16-byte pad || 48-byte x || 16-byte pad || 48-byte y]
@@ -395,7 +395,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x${G1}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0c BLS12-381 G1 MSM: scalar-1 times G equals G (Prague+)" {
   # EIP-2537: G1MSM([G], [1]) = G.
   # Input: [G1 point (128 bytes)][scalar (32 bytes)] = 160 bytes total.
@@ -413,7 +413,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x${G1}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0d BLS12-381 G2 Add: identity + G2 equals G2 (Prague+)" {
   # EIP-2537: G2Add(∞, G2) = G2.
   # G2 point encoding (256 bytes): four 64-byte fields each [16-byte pad || 48-byte Fp element].
@@ -437,7 +437,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x${G2}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0e BLS12-381 G2 MSM: scalar-1 times G2 equals G2 (Prague+)" {
   # EIP-2537: G2MSM([G2], [1]) = G2.
   # Input: [G2 point (256 bytes)][scalar (32 bytes)] = 288 bytes total.
@@ -458,7 +458,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x${G2}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0f BLS12-381 Pairing: e(G1_infinity, G2) returns 1 (Prague+)" {
   # EIP-2537: e(∞, P2) = 1 for any P2 (the point at infinity contributes nothing).
   # NOTE: Bor v2.6.0 rejects empty input with "invalid input length" (non-conformance
@@ -481,7 +481,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x10 BLS12-381 MapFpToG1: Fp element 1 maps to a non-trivial G1 point (Prague+)" {
   # EIP-2537: MapFpToG1 applies the hash-to-curve Fp→G1 mapping.
   # Input: 64 bytes = [16-byte pad || 48-byte Fp element].
@@ -500,7 +500,7 @@ function _is_nontrivial() {
   _is_nontrivial "${out}"
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x11 BLS12-381 MapFp2ToG2: Fp2 element (0,1) maps to a non-trivial G2 point (Prague+)" {
   # EIP-2537: MapFp2ToG2 applies the hash-to-curve Fp2→G2 mapping.
   # Input: 128 bytes = [64-byte c1 field || 64-byte c0 field], each [16-byte pad || 48-byte Fp].
@@ -521,7 +521,7 @@ function _is_nontrivial() {
   _is_nontrivial "${out}"
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x0100 p256Verify (secp256r1): Wycheproof test vector returns 1 (MadhugiriPro+)" {
   # RIP-7212: verifies a P-256 / secp256r1 ECDSA signature.
   # Input (160 bytes): hash(32) || r(32) || s(32) || x(32) || y(32)
@@ -541,7 +541,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0x0000000000000000000000000000000000000000000000000000000000000001" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x04 identity: 256-byte patterned data round-trip" {
   # Send 256 bytes of patterned data (0x00..0xFF) to the identity precompile.
   local input="0x"
@@ -556,7 +556,7 @@ function _is_nontrivial() {
   [[ "${out}" == "${input}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x02 SHA-256: 'abc' matches NIST vector" {
   # sha256("abc") = ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
   # "abc" = 0x616263
@@ -566,7 +566,7 @@ function _is_nontrivial() {
   [[ "${out}" == "0xba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x01 ecRecover: recovered address matches known signer" {
   # Test vector from the Ethereum Yellow Paper / execution specs.
   # Message hash, v=28, r, s → recovered address = 0x7156526fbd7a3c72969b54f64e42c10fbb768c8a
@@ -590,7 +590,7 @@ function _is_nontrivial() {
   [[ "${recovered_addr}" == "${expected}" ]]
 }
 
-# bats test_tags=pos-precompile
+# bats test_tags=execution-specs,pos-precompile
 @test "0x05 modexp: 2^256 mod 13 equals 3" {
   # Large exponent test: modexp(base=2, exp=256, mod=13) = 3.
   # 2^256 mod 13: cycle length=12, 256 mod 12 = 4, 2^4 mod 13 = 16 mod 13 = 3.
