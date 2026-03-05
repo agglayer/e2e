@@ -116,8 +116,8 @@ print_settlement_info() {
         return 1
     fi
 
-    # Check if L1 RPC is reachable
-    if ! curl -s --fail "$l1_rpc_url" >/dev/null; then
+    # Check if L1 RPC is reachable (use a JSON-RPC POST request since GET may not be supported)
+    if ! curl -s --fail -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' "$l1_rpc_url" >/dev/null; then
         echo "Error: L1 RPC URL ($l1_rpc_url) is not reachable" >&3
         return 1
     fi
