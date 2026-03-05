@@ -107,7 +107,7 @@ _resolve_required_urls() {
 
     # L2_RPC_URL
     L2_RPC_URL=$(_resolve_url_or_use_env L2_RPC_URL \
-        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "op-el-1-op-geth-op-node-001" "rpc" "op-el-1-op-reth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
         "Failed to resolve L2 RPC URL" true)
     export L2_RPC_URL
 
@@ -444,18 +444,18 @@ _agglayer_cdk_common_multi_setup() {
 
     # Resolve L2 RPC URLs
     l2_rpc_url_1=$(_resolve_url_or_use_env L2_RPC_URL_1 \
-        "op-el-1-op-geth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
+        "op-el-1-op-geth-op-node-001" "rpc" "op-el-1-op-reth-op-node-001" "rpc" "cdk-erigon-rpc-001" "rpc" \
         "Failed to resolve L2 RPC URL (Rollup 1) " true)
     readonly l2_rpc_url_1
 
     l2_rpc_url_2=$(_resolve_url_or_use_env L2_RPC_URL_2 \
-        "op-el-1-op-geth-op-node-002" "rpc" "cdk-erigon-rpc-002" "rpc" \
+        "op-el-1-op-geth-op-node-002" "rpc" "op-el-1-op-reth-op-node-002" "rpc" "cdk-erigon-rpc-002" "rpc" \
         "Failed to resolve L2 RPC URL (Rollup 2) " true)
     readonly l2_rpc_url_2
 
     if [[ $number_of_chains -eq 3 ]]; then
         l2_rpc_url_3=$(_resolve_url_or_use_env L2_RPC_URL_3 \
-            "op-el-1-op-geth-op-node-003" "rpc" "cdk-erigon-rpc-003" "rpc" \
+            "op-el-1-op-geth-op-node-003" "rpc" "op-el-1-op-reth-op-node-003" "rpc" "cdk-erigon-rpc-003" "rpc" \
             "Failed to resolve L2 RPC URL (Rollup 3) " true)
         readonly l2_rpc_url_3
     fi

@@ -61,6 +61,8 @@ function _setup_vars() {
         export kurtosis_enclave_name=$ENCLAVE_NAME
         if kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
             l2_type="op-geth"
+        elif kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-reth-op-node-001 rpc 2>/dev/null); then
+            l2_type="op-reth"
         elif kurtosis_l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
             l2_type="cdk-erigon"
         else
@@ -199,15 +201,21 @@ function _setup_vars() {
     #
     # OP stack specific vars
     #
-    if [[ "$l2_type" == "op-geth" && -n "$kurtosis_enclave_name" ]]; then
+    if [[ ("$l2_type" == "op-geth" || "$l2_type" == "op-reth") && -n "$kurtosis_enclave_name" ]]; then
         if [[ -n "$L2_NODE_URL" ]]; then
             l2_node_url=$L2_NODE_URL
         else
-            run kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 http
+            local op_cl_service
+            if [[ "$l2_type" == "op-reth" ]]; then
+                op_cl_service="op-cl-1-op-node-op-reth-001"
+            else
+                op_cl_service="op-cl-1-op-node-op-geth-001"
+            fi
+            run kurtosis port print "$kurtosis_enclave_name" "$op_cl_service" http
             if [[ "$status" -eq 0 ]]; then
                 l2_node_url=$output
             else
-                l2_node_url=$(kurtosis port print "$kurtosis_enclave_name" op-cl-1-op-node-op-geth-001 rpc)
+                l2_node_url=$(kurtosis port print "$kurtosis_enclave_name" "$op_cl_service" rpc)
             fi
         fi
 
