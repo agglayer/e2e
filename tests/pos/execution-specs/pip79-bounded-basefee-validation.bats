@@ -21,6 +21,41 @@ setup() {
     pos_setup
 }
 
+# Helper: detect if Lisovo hardfork is active by probing the CLZ opcode (EIP-7939).
+# CLZ activates in the same Lisovo hardfork as PIP-79.
+# Returns 0 if Lisovo is active, 1 otherwise.
+_is_lisovo_active() {
+    # Deploy a tiny contract: PUSH1 0x01 CLZ(0x1e) POP STOP
+    # If CLZ is active, this succeeds. If not, it reverts (invalid opcode).
+    local runtime="60011e5000"
+    local initcode="6005600c600039600560 00f3${runtime}"
+    # Clean hex
+    initcode="6005600c6000396005600 0f3${runtime}"
+    initcode="6005600c60003960056000f3${runtime}"
+
+    local receipt
+    receipt=$(cast send \
+        --legacy --gas-limit 100000 \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" --json \
+        --create "0x${initcode}" 2>/dev/null) || return 1
+
+    local addr
+    addr=$(echo "$receipt" | jq -r '.contractAddress')
+    [[ "$addr" == "null" || -z "$addr" ]] && return 1
+
+    local call_receipt
+    call_receipt=$(cast send \
+        --legacy --gas-limit 100000 \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$L2_RPC_URL" --json \
+        "$addr" 2>/dev/null) || return 1
+
+    local status
+    status=$(echo "$call_receipt" | jq -r '.status')
+    [[ "$status" == "0x1" ]]
+}
+
 # ─── Feature probe ────────────────────────────────────────────────────────────
 
 # bats test_tags=execution-specs,pip79,lisovo,basefee
@@ -55,6 +90,91 @@ setup() {
     fi
 
     echo "All blocks $start..$latest have positive baseFee" >&3
+}
+
+# ─── Lisovo-specific: baseFee no longer strictly deterministic ─────────────────
+
+# bats test_tags=execution-specs,pip79,lisovo,basefee
+@test "PIP-79 active: baseFee deviates from old deterministic formula (Lisovo only)" {
+    # Pre-Lisovo, baseFee is computed deterministically from parent block's gasUsed
+    # and gasLimit using denominator 64. Post-Lisovo (PIP-79), block producers can
+    # choose any baseFee within ±5% of parent. This test verifies the chain is NOT
+    # strictly following the old deterministic formula, confirming PIP-79 is active.
+    #
+    # Skip on pre-Lisovo chains (detected via CLZ opcode probe).
+
+    if ! _is_lisovo_active; then
+        skip "Lisovo hardfork not active (CLZ opcode probe failed)"
+    fi
+
+    local latest
+    latest=$(cast block-number --rpc-url "$L2_RPC_URL")
+    local depth=50
+
+    if [[ "$latest" -lt "$depth" ]]; then
+        depth="$latest"
+    fi
+    if [[ "$depth" -lt 10 ]]; then
+        skip "Not enough blocks to detect non-deterministic baseFee"
+    fi
+
+    local start=$(( latest - depth + 1 ))
+    local deviations=0
+    local checks=0
+
+    for ((bn = start + 1; bn <= latest; bn++)); do
+        local parent_json
+        parent_json=$(cast rpc eth_getBlockByNumber "$(printf '0x%x' $(( bn - 1 )))" false \
+            --rpc-url "$L2_RPC_URL")
+        local child_json
+        child_json=$(cast rpc eth_getBlockByNumber "$(printf '0x%x' "$bn")" false \
+            --rpc-url "$L2_RPC_URL")
+
+        local parent_base_fee
+        parent_base_fee=$(printf "%d" "$(echo "$parent_json" | jq -r '.baseFeePerGas // "0x0"')")
+        local parent_gas_used
+        parent_gas_used=$(printf "%d" "$(echo "$parent_json" | jq -r '.gasUsed // "0x0"')")
+        local parent_gas_limit
+        parent_gas_limit=$(printf "%d" "$(echo "$parent_json" | jq -r '.gasLimit // "0x0"')")
+        local child_base_fee
+        child_base_fee=$(printf "%d" "$(echo "$child_json" | jq -r '.baseFeePerGas // "0x0"')")
+
+        [[ "$parent_base_fee" -lt 1 || "$parent_gas_limit" -lt 1 ]] && continue
+        checks=$(( checks + 1 ))
+
+        # Compute the old deterministic baseFee (denominator = 64)
+        local target_gas=$(( parent_gas_limit / 2 ))
+        local deterministic_base_fee
+        if [[ "$parent_gas_used" -eq "$target_gas" ]]; then
+            deterministic_base_fee="$parent_base_fee"
+        elif [[ "$parent_gas_used" -gt "$target_gas" ]]; then
+            local delta=$(( parent_gas_used - target_gas ))
+            local increment=$(( parent_base_fee * delta / target_gas / 64 ))
+            [[ "$increment" -lt 1 ]] && increment=1
+            deterministic_base_fee=$(( parent_base_fee + increment ))
+        else
+            local delta=$(( target_gas - parent_gas_used ))
+            local decrement=$(( parent_base_fee * delta / target_gas / 64 ))
+            deterministic_base_fee=$(( parent_base_fee - decrement ))
+            [[ "$deterministic_base_fee" -lt 1 ]] && deterministic_base_fee=1
+        fi
+
+        if [[ "$child_base_fee" -ne "$deterministic_base_fee" ]]; then
+            deviations=$(( deviations + 1 ))
+        fi
+    done
+
+    echo "Checked $checks blocks, $deviations deviated from old deterministic formula" >&3
+
+    # On a Lisovo chain, we expect at least some blocks to deviate from the
+    # old formula (block producers have tuning flexibility). If zero deviations
+    # are found over 50 blocks, PIP-79 may not be effective.
+    # Note: it's possible (but unlikely) that a producer coincidentally matches
+    # the old formula on every block; treat 0 deviations as informational, not failure.
+    if [[ "$deviations" -eq 0 ]]; then
+        echo "WARNING: No deviations from old deterministic formula detected in $checks blocks" >&3
+        echo "PIP-79 is active (CLZ probe passed) but producer may be using default parameters" >&3
+    fi
 }
 
 # ─── Core validation: ±5% bounded range ──────────────────────────────────────

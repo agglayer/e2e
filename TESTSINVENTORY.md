@@ -160,7 +160,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | ADDMOD and MULMOD compute correctly | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L964) | |
 | ADDRESS returns the contract's own address | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L301) | |
 | BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L718) | |
-| BASEFEE opcode returns value matching block header baseFeePerGas | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L342) | |
+| BASEFEE opcode returns value matching block header baseFeePerGas | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L462) | |
 | BLOCKHASH(0) returns zero on Bor (genesis hash not available) | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L18) | |
 | BYTE opcode extracts correct byte from word | [Link](./tests/pos/execution-specs/evm-opcode-storage-and-call-correctness.bats#L915) | |
 | Bor produces blocks on approximately 2-second sprint cadence | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L237) | |
@@ -221,22 +221,22 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Nonce-too-low rejection | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L570) | |
 | OOG during code-deposit phase fails the creation | [Link](./tests/pos/execution-specs/contract-creation-and-deployment-limits.bats#L352) | |
 | ORIGIN returns the transaction sender EOA | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L320) | |
-| P256 Wycheproof test vector #1 (signature malleability) verifies correctly | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L495) | |
-| P256 Wycheproof test vector #60 (Shamir edge case) verifies correctly | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L526) | |
+| P256 Wycheproof test vector #1 (signature malleability) verifies correctly | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L492) | |
+| P256 Wycheproof test vector #60 (Shamir edge case) verifies correctly | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L523) | |
 | P256 all-zero input returns empty (invalid point) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L173) | |
 | P256 empty input returns empty output | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L113) | |
 | P256 extra input bytes beyond 160 are ignored (still verifies) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L152) | |
-| P256 invalid input still consumes gas (no gas refund on failure) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L398) | |
+| P256 invalid input still consumes gas (no gas refund on failure) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L395) | |
 | P256 invalid signature returns empty output | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L85) | |
 | P256 point not on curve returns empty | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L246) | |
-| P256 precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L585) | |
+| P256 precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L582) | |
 | P256 precompile gas cost is 6900 (PIP-80 doubled from 3450) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L273) | |
 | P256 precompile is active at 0x0100 | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L55) | |
 | P256 r=0 returns empty (r must be in range 1..n-1) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L197) | |
 | P256 s=0 returns empty (s must be in range 1..n-1) | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L222) | |
 | P256 truncated input (less than 160 bytes) returns empty output | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L131) | |
 | P256 valid signature returns 1 | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L70) | |
-| P256 wrong public key for valid signature returns empty | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L554) | |
+| P256 wrong public key for valid signature returns empty | [Link](./tests/pos/execution-specs/pip80-p256-precompile-gas-adjustment.bats#L551) | |
 | PIP-11: eth_getBlockByNumber 'finalized' returns a valid block | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L17) | |
 | PIP-11: finalized block advances as new blocks are produced | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L98) | |
 | PIP-11: finalized block number is less than or equal to latest block number | [Link](./tests/pos/execution-specs/pip11-deterministic-finality-milestones.bats#L58) | |
@@ -257,6 +257,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | PIP-74: StateSyncTx has expected fields (from, to, input) | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L68) | |
 | PIP-74: blocks with transactions include StateSyncTx in transactionsRoot | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L126) | |
 | PIP-74: scan recent blocks for StateSyncTx (type 0x7F) transactions | [Link](./tests/pos/execution-specs/pip74-canonical-state-sync-transactions.bats#L33) | |
+| PIP-79 active: baseFee deviates from old deterministic formula (Lisovo only) | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L98) | |
 | PUSH0 pushes zero onto the stack (EIP-3855) | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L60) | |
 | Parent hash chain integrity across 5 blocks | [Link](./tests/pos/execution-specs/rpc-method-conformance-and-validation.bats#L903) | |
 | RETURNDATACOPY copies callee return data correctly | [Link](./tests/pos/execution-specs/evm-opcodes-cancun-shanghai-eips.bats#L388) | |
@@ -288,11 +289,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | add new validator | [Link](./tests/pos/validator.bats#L20) | |
 | all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/execution-specs/evm-transaction-fuzzing-and-liveness.bats#L896) | |
 | base fee adjusts between blocks following EIP-1559 dynamics | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L272) | |
-| base fee is present and positive on all recent blocks (PIP-79 invariant) | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L27) | |
-| baseFee change rate is tighter than Ethereum mainnet (max ±5% vs ±12.5%) | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L114) | |
-| baseFee does not diverge over a long block range | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L252) | |
-| baseFee stays within ±5% bounds under transaction load | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L175) | |
-| baseFeePerGas field exists in block headers | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L315) | |
+| base fee is present and positive on all recent blocks (PIP-79 invariant) | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L62) | |
+| baseFee change rate is tighter than Ethereum mainnet (max ±5% vs ±12.5%) | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L234) | |
+| baseFee does not diverge over a long block range | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L372) | |
+| baseFee stays within ±5% bounds under transaction load | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L295) | |
+| baseFeePerGas field exists in block headers | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L435) | |
 | batch JSON-RPC returns array of matching results | [Link](./tests/pos/execution-specs/rpc-method-conformance-and-validation.bats#L678) | |
 | batch JSON-RPC under concurrent load: 50 concurrent batch requests | [Link](./tests/pos/execution-specs/rpc-concurrent-load-and-stress.bats#L483) | |
 | block coinbase (miner field) is zero address on Bor | [Link](./tests/pos/execution-specs/bor-chain-specific-evm-behavior.bats#L103) | |
@@ -307,7 +308,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L95) | |
 | coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transaction-balance-nonce-and-replay-invariants.bats#L318) | |
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc-concurrent-load-and-stress.bats#L248) | |
-| consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L63) | |
+| consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/pip79-bounded-basefee-validation.bats#L183) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/evm-transaction-fuzzing-and-liveness.bats#L792) | |
 | delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/contract-creation-and-deployment-limits.bats#L124) | |

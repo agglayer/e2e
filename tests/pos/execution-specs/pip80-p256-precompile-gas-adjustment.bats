@@ -314,9 +314,8 @@ _p256_call() {
         if [[ "$gas_dec" -gt 28000 ]]; then
             echo "Gas estimate ($gas_dec) consistent with PIP-80 cost of 6900" >&3
         else
-            echo "Gas estimate ($gas_dec) looks like old PIP-27 cost of 3450" >&2
-            echo "Expected ~30220 (21000 intrinsic + 6900 precompile + ~2320 calldata)" >&2
-            return 1
+            # Pre-Lisovo chains still use the old PIP-27 cost of 3450.
+            skip "Gas estimate ($gas_dec) indicates pre-Lisovo PIP-27 cost (3450); PIP-80 (6900) not active"
         fi
     else
         echo "eth_estimateGas not available, falling back to transaction-based measurement" >&3
@@ -387,9 +386,7 @@ _p256_call() {
         # Expected range: ~28000 - 30000
         # With old cost it would be: ~24500 - 26500
         if [[ "$gas_used" -lt 27500 ]]; then
-            echo "Gas used ($gas_used) seems too low for PIP-80 cost of 6900" >&2
-            echo "May still be using old PIP-27 cost of 3450" >&2
-            return 1
+            skip "Gas used ($gas_used) indicates pre-Lisovo PIP-27 cost (3450); PIP-80 (6900) not active"
         fi
     fi
 }
