@@ -242,6 +242,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - agglayer-cert
 - agglayer-nonce
 - agglayer-rpc
+- basefee
 - block-header
 - bor-specific
 - bor-system-contracts
@@ -263,6 +264,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - eip3855
 - eip5656
 - eip6780
+- eip7939
 - equal-stake
 - erc-4337
 - evm-block
@@ -278,6 +280,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - gnosis-safe
 - hv2
 - katana
+- lisovo
 - liveness
 - loadtest
 - mrc20
@@ -295,11 +298,14 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - pip58
 - pip6
 - pip74
+- pip79
+- pip80
 - pos
 - pos-delegate
 - pos-precompile
 - pos-undelegate
 - pos-validator
+- precompile
 - precompile-fuzz
 - prune
 - railgun
@@ -308,6 +314,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - stake-agnostic
 - state-receiver
 - state-sync
+- stress
 - system-contract
 - transaction-eoa
 - transaction-erc20
