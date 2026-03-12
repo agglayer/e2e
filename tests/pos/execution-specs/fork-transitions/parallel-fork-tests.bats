@@ -17,9 +17,23 @@
 # REQUIREMENTS:
 #   - Kurtosis network with STAGGERED fork activation
 #   - Fork block numbers passed via environment variables
-#
-# NOTE: No archive mode (--gcmode=archive) required. All precompile checks
-# use eth_call at "latest" after waiting for the chain to reach the target block.
+#   - Below fork activation order must be enforced
+# EL_HARD_FORK_BLOCKS = {
+#     "jaipur": 0,
+#     "delhi": 0,
+#     "indore": 0,
+#     "agra": 0,
+#     "napoli": 0,
+#     "ahmedabad": 0,
+#     "bhilai": 0,
+#     "rio": 256,
+#     "madhugiri": 320,
+#     "madhugiriPro": 384,
+#     "dandeli": 448,
+#     "lisovo": 512,
+#     "lisovoPro": 576,
+# }
+
 
 # ────────────────────────────────────────────────────────────────────────────
 # File-level setup / teardown (runs once, before/after all tests)
