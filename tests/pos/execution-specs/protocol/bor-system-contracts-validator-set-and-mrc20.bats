@@ -13,7 +13,7 @@
 #   PIP-36: Replay Failed State Syncs — replayFailedStateSync() added to StateReceiver
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 

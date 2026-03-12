@@ -15,7 +15,7 @@
 # isolation). On devnets without state syncs, all 3 tests skip quickly.
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 

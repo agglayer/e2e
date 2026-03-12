@@ -9,7 +9,7 @@
 # This smooths out base fee volatility during congestion spikes.
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 

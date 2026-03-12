@@ -2,7 +2,7 @@
 # bats file_tags=pos,execution-specs,bor-specific
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
     local wallet_json
