@@ -9,7 +9,7 @@
 # replacement to return "Polygon Ecosystem Token" for name() and "POL" for symbol().
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 

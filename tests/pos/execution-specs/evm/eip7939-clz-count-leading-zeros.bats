@@ -14,7 +14,7 @@
 # Activated with the Lisovo hardfork on Polygon PoS.
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
     local wallet_json

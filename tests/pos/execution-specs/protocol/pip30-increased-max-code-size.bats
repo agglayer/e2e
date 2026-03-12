@@ -10,7 +10,7 @@
 # Tests detect the active limit and verify boundary behavior.
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
     local wallet_json
