@@ -60,7 +60,7 @@ setup_file() {
         addr=$(echo "$wallet_json" | jq -r '.address')
 
         cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
-            --legacy --gas-limit 21000 --value 1ether "$addr" >/dev/null
+            --legacy --gas-limit 21000 --value 10ether "$addr" >/dev/null
     done
 
     echo "All ${num_tests} wallets funded" >&3
