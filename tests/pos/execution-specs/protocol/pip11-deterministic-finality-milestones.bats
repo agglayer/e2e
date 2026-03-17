@@ -9,7 +9,7 @@
 # eth_getBlockByNumber, similar to Ethereum's beacon-chain finality.
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 

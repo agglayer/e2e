@@ -10,7 +10,7 @@
 # format includes tx dependency metadata beyond the standard client version string.
 
 setup() {
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 }
 

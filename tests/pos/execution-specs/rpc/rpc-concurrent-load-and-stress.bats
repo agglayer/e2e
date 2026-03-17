@@ -3,7 +3,7 @@
 
 setup() {
     # Load libraries.
-    load "../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
     eth_address=$(cast wallet address --private-key "$PRIVATE_KEY")

@@ -24,8 +24,8 @@
 # ────────────────────────────────────────────────────────────────────────────
 
 setup() {
-  load "../../../core/helpers/pos-setup.bash"
-  load "../../../core/helpers/scripts/eventually.bash"
+  load "../../../../core/helpers/pos-setup.bash"
+  load "../../../../core/helpers/scripts/eventually.bash"
   pos_setup
 }
 
