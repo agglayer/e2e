@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# bats file_tags=pos,execution-specs,fork-transition
+# bats file_tags=pos,fork-activation
 
 # Tests 1.2 + 1.3 — Fork Transition & Precompile Consistency (merged)
 #
@@ -32,6 +32,7 @@
 #     "dandeli": 448,
 #     "lisovo": 512,
 #     "lisovoPro": 576,
+#     "giugliano": 640,
 # }
 
 
@@ -96,6 +97,7 @@ setup() {
     FORK_DANDELI="${FORK_DANDELI:-448}"
     FORK_LISOVO="${FORK_LISOVO:-512}"
     FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
+    FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
 
     # Read pre-funded wallet for this test (created in setup_file)
     local wallet_json
@@ -1261,18 +1263,197 @@ _kzg_input() {
 
 # ════════════════════════════════════════════════════════════════════════════
 #
+#  GIUGLIANO — consensus-layer fork: PIP-66 early block announcements,
+#              gas target + base fee change denominator in block header extra
+#
+# ════════════════════════════════════════════════════════════════════════════
+
+# bats test_tags=fork-transition,giugliano
+@test "1.3: Giugliano — chain progresses smoothly through fork boundary" {
+    [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
+    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
+
+    local before_hash after_hash
+    before_hash=$(_block_field "$(( FORK_GIUGLIANO - 1 ))" "hash")
+    after_hash=$(_block_field "$(( FORK_GIUGLIANO + 1 ))" "hash")
+
+    echo "Giugliano-1 hash: ${before_hash}" >&3
+    echo "Giugliano+1 hash: ${after_hash}" >&3
+
+    [[ -n "$before_hash" && "$before_hash" != "null" ]]
+    [[ -n "$after_hash" && "$after_hash" != "null" ]]
+    [[ "$before_hash" != "$after_hash" ]]
+}
+
+# bats test_tags=fork-transition,giugliano,gas-params
+@test "1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator" {
+    _wait_for_block $(( FORK_GIUGLIANO + 1 ))
+
+    local block_hex result gas_target bfcd
+    block_hex=$(printf '0x%x' "$(( FORK_GIUGLIANO + 1 ))")
+    result=$(curl -s -X POST "${L2_RPC_URL}" \
+        -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","method":"bor_getBlockGasParams","params":["'"${block_hex}"'"],"id":1}')
+
+    # Verify no JSON-RPC error
+    local err
+    err=$(echo "$result" | jq -r '.error.message // empty')
+    if [[ -n "$err" ]]; then
+        echo "FAIL: bor_getBlockGasParams returned error: ${err}" >&2
+        return 1
+    fi
+
+    # .result must be a non-null object — guards against silently passing if the
+    # RPC method doesn't exist on this node version.
+    local result_type
+    result_type=$(echo "$result" | jq -r '.result | type')
+    if [[ "$result_type" != "object" ]]; then
+        echo "FAIL: bor_getBlockGasParams .result is ${result_type}, expected object" >&2
+        return 1
+    fi
+
+    gas_target=$(echo "$result" | jq -r '.result.gasTarget // empty')
+    bfcd=$(echo "$result" | jq -r '.result.baseFeeChangeDenominator // empty')
+
+    echo "Post-Giugliano block $((FORK_GIUGLIANO + 1)): gasTarget=${gas_target} baseFeeChangeDenominator=${bfcd}" >&3
+
+    [[ -n "$gas_target" && "$gas_target" != "null" ]]
+    [[ -n "$bfcd" && "$bfcd" != "null" ]]
+
+    # Sanity: values should be non-zero hex
+    local gt_dec bfcd_dec
+    gt_dec=$(printf "%d" "$gas_target")
+    bfcd_dec=$(printf "%d" "$bfcd")
+    echo "  gasTarget=${gt_dec} baseFeeChangeDenominator=${bfcd_dec}" >&3
+    [[ "$gt_dec" -gt 0 ]]
+    [[ "$bfcd_dec" -gt 0 ]]
+}
+
+# bats test_tags=fork-transition,giugliano,gas-params
+@test "1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block" {
+    [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis, no pre-fork blocks"
+    _wait_for_block $(( FORK_GIUGLIANO + 1 ))
+
+    local block_hex result gas_target bfcd
+    block_hex=$(printf '0x%x' "$(( FORK_GIUGLIANO - 1 ))")
+    result=$(curl -s -X POST "${L2_RPC_URL}" \
+        -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","method":"bor_getBlockGasParams","params":["'"${block_hex}"'"],"id":1}')
+
+    local err
+    err=$(echo "$result" | jq -r '.error.message // empty')
+    if [[ -n "$err" ]]; then
+        echo "FAIL: bor_getBlockGasParams returned error: ${err}" >&2
+        return 1
+    fi
+
+    # .result must be a non-null object (method exists) — guard against silent
+    # pass if bor_getBlockGasParams is missing entirely and .result is null.
+    local result_type
+    result_type=$(echo "$result" | jq -r '.result | type')
+    if [[ "$result_type" != "object" ]]; then
+        echo "FAIL: bor_getBlockGasParams .result is ${result_type}, expected object" >&2
+        return 1
+    fi
+
+    gas_target=$(echo "$result" | jq -r '.result.gasTarget')
+    bfcd=$(echo "$result" | jq -r '.result.baseFeeChangeDenominator')
+
+    echo "Pre-Giugliano block $((FORK_GIUGLIANO - 1)): gasTarget=${gas_target} baseFeeChangeDenominator=${bfcd}" >&3
+
+    [[ "$gas_target" == "null" ]]
+    [[ "$bfcd" == "null" ]]
+}
+
+# bats test_tags=fork-transition,giugliano,gas-params
+@test "1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage" {
+    _wait_for_block $(( FORK_GIUGLIANO + 3 ))
+
+    local block_hex result gas_target_hex
+    block_hex=$(printf '0x%x' "$(( FORK_GIUGLIANO + 2 ))")
+
+    # Get gasTarget from bor_getBlockGasParams
+    result=$(curl -s -X POST "${L2_RPC_URL}" \
+        -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","method":"bor_getBlockGasParams","params":["'"${block_hex}"'"],"id":1}')
+    gas_target_hex=$(echo "$result" | jq -r '.result.gasTarget')
+    [[ -n "$gas_target_hex" && "$gas_target_hex" != "null" ]]
+
+    # Get parent block's gasLimit (gasTarget is computed from parent)
+    local parent_gas_limit
+    parent_gas_limit=$(_gas_limit_at "$(( FORK_GIUGLIANO + 1 ))")
+
+    local gas_target_dec
+    gas_target_dec=$(printf "%d" "$gas_target_hex")
+
+    echo "Parent gasLimit=${parent_gas_limit} gasTarget=${gas_target_dec}" >&3
+
+    # gasTarget should be a fraction of parent gasLimit (target% of gasLimit).
+    # It must be > 0 and <= gasLimit.
+    [[ "$gas_target_dec" -gt 0 ]]
+    [[ "$gas_target_dec" -le "$parent_gas_limit" ]]
+}
+
+# bats test_tags=precompile-consistency,giugliano
+@test "1.2: all precompiles unchanged at Giugliano (same as LisovoPro)" {
+    _wait_for_block $(( FORK_GIUGLIANO + 1 ))
+
+    # Legacy
+    _assert_precompile_active "0x0000000000000000000000000000000000000001" \
+        "$(_ecrecover_input)" "latest" "ecRecover"
+
+    local out
+    out=$(_call_at_block "0x0000000000000000000000000000000000000002" "0x" "latest")
+    [[ "${out}" == "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" ]]
+    echo "  OK: SHA-256 at Giugliano" >&3
+
+    out=$(_call_at_block "0x0000000000000000000000000000000000000004" "0xdeadbeef" "latest")
+    [[ "${out}" == "0xdeadbeef" ]]
+    echo "  OK: identity at Giugliano" >&3
+
+    out=$(_call_at_block "0x0000000000000000000000000000000000000005" "$(_modexp_input)" "latest")
+    [[ "${out}" == "0x08" ]]
+    echo "  OK: modexp at Giugliano" >&3
+
+    # BLS12-381
+    _assert_precompile_active "0x000000000000000000000000000000000000000b" \
+        "$(_bls_g1add_input)" "latest" "G1Add"
+    _assert_precompile_active "0x000000000000000000000000000000000000000f" \
+        "$(_bls_pairing_input)" "latest" "BLS12 Pairing"
+
+    # p256Verify
+    _assert_precompile_active "0x0000000000000000000000000000000000000100" \
+        "$(_p256_input)" "latest" "p256Verify"
+}
+
+# bats test_tags=fork-transition,giugliano,gas-params
+@test "1.3: Giugliano — base fee remains non-zero through fork boundary" {
+    [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
+    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
+
+    local pre_fee post_fee
+    pre_fee=$(_base_fee_at "$(( FORK_GIUGLIANO - 1 ))")
+    post_fee=$(_base_fee_at "$(( FORK_GIUGLIANO + 1 ))")
+
+    echo "Giugliano boundary: baseFee ${pre_fee} → ${post_fee}" >&3
+    [[ "$pre_fee" -gt 0 ]]
+    [[ "$post_fee" -gt 0 ]]
+}
+
+# ════════════════════════════════════════════════════════════════════════════
+#
 #  CHAIN CONTINUITY — each test waits for all forks to pass
 #
 # ════════════════════════════════════════════════════════════════════════════
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: no reorgs at fork boundaries — parent hashes are consistent" {
-    _wait_for_block $(( FORK_LISOVO_PRO + 2 ))
+    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
     local -a fork_blocks=(
         "${FORK_JAIPUR}" "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}"
         "${FORK_NAPOLI}" "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}"
         "${FORK_MADHUGIRI}" "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}"
-        "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
+        "${FORK_LISOVO}" "${FORK_LISOVO_PRO}" "${FORK_GIUGLIANO}"
     )
 
     for fb in "${fork_blocks[@]}"; do
@@ -1291,11 +1472,12 @@ _kzg_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: timestamps strictly increasing across all fork boundaries" {
-    _wait_for_block $(( FORK_LISOVO_PRO + 2 ))
+    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
     local -a fork_blocks=(
         "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}" "${FORK_NAPOLI}"
         "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}" "${FORK_MADHUGIRI}"
         "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}" "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
+        "${FORK_GIUGLIANO}"
     )
 
     for fb in "${fork_blocks[@]}"; do
@@ -1312,11 +1494,12 @@ _kzg_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: base fee exists and is non-zero across all fork boundaries" {
-    _wait_for_block $(( FORK_LISOVO_PRO + 2 ))
+    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
     local -a fork_blocks=(
         "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}" "${FORK_NAPOLI}"
         "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}" "${FORK_MADHUGIRI}"
         "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}" "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
+        "${FORK_GIUGLIANO}"
     )
 
     for fb in "${fork_blocks[@]}"; do

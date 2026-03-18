@@ -286,6 +286,8 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - forced-txs
 - fork-transition
 - gas
+- gas-params
+- giugliano
 - gnosis-safe
 - hv2
 - initcode
