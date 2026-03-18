@@ -38,8 +38,17 @@ setup() {
 function interop_status_query() {
     local interop_ep=$1
     local full_answer=${2:-0}
+    local timeout=${3:-300}
+
+    local start_time
+    start_time=$(date +%s)
+    local end_time=$((start_time + timeout))
 
     while true; do
+        if [[ $(date +%s) -gt $end_time ]]; then
+            echo "Error: Timed out (${timeout}s) waiting for $interop_ep to return a valid answer" >&3
+            exit 1
+        fi
         run cast rpc --rpc-url "$agglayer_rpc_url" "$interop_ep" "$rollup_id"
         if [[ "$status" -ne 0 ]]; then
             echo "Failed to query $interop_ep: $output" >&3
@@ -106,7 +115,7 @@ function send_n_txs_from_aggregator() {
     local n_txs=${1:-1}
     for i in $(seq 1 "$n_txs"); do
         local basefee priority_fee max_fee
-        basefee=$(cast basefee --rpc-url "$l1_rpc_url")
+        basefee=$(cast to-dec "$(cast basefee --rpc-url "$l1_rpc_url")")
         priority_fee=$(( 5 * 1000000000 ))
         max_fee=$(( basefee + priority_fee ))
         run cast send --private-key "$l2_aggregator_private_key" --rpc-url "$l1_rpc_url" \
@@ -173,7 +182,7 @@ function send_n_txs_from_aggregator() {
     cert_records=$(wait_for_n_settled_certs "$agglayer_rpc_url" "$rollup_id" 2 "$baseline_height" 600 8)
 
     local cert_count
-    cert_count=$(echo "$cert_records" | grep -c '{' || true)
+    cert_count=$(echo "$cert_records" | jq -s 'length')
     echo "Settled $cert_count certificates beyond baseline height $baseline_height" >&3
 
     if [[ "$cert_count" -lt 2 ]]; then
@@ -254,7 +263,7 @@ function send_n_txs_from_aggregator() {
     cert_records=$(wait_for_n_settled_certs "$agglayer_rpc_url" "$rollup_id" 2 "$baseline_height" 600 5)
 
     local cert_count
-    cert_count=$(echo "$cert_records" | grep -c '{' || true)
+    cert_count=$(echo "$cert_records" | jq -s 'length')
 
     if [[ "$cert_count" -lt 2 ]]; then
         echo "Error: Expected at least 2 distinct settled certificates, got $cert_count"
@@ -343,7 +352,7 @@ function send_n_txs_from_aggregator() {
     echo "Aggregator balance before drain: $aggregator_balance" >&3
 
     local basefee priority_fee max_fee tx_cost amount_to_send
-    basefee=$(cast basefee --rpc-url "$l1_rpc_url")
+    basefee=$(cast to-dec "$(cast basefee --rpc-url "$l1_rpc_url")")
     priority_fee=$(( 5 * 1000000000 ))
     max_fee=$(( basefee + priority_fee ))
     tx_cost=$(( max_fee * 21000 ))
@@ -370,7 +379,7 @@ function send_n_txs_from_aggregator() {
 
     while [[ $(date +%s) -lt $end_time ]]; do
         local known_header
-        known_header=$(interop_status_query interop_getLatestKnownCertificateHeader 1 2>/dev/null || echo "")
+        known_header=$(interop_status_query interop_getLatestKnownCertificateHeader 1 120 2>/dev/null || echo "")
         if [[ "$known_header" == *"InError"* ]]; then
             echo "Detected InError certificate as expected" >&3
             found_error=1
@@ -383,7 +392,7 @@ function send_n_txs_from_aggregator() {
     echo "Restoring funds to aggregator..." >&3
     local foo_balance
     foo_balance=$(cast balance "$foo_address" --rpc-url "$l1_rpc_url")
-    basefee=$(cast basefee --rpc-url "$l1_rpc_url")
+    basefee=$(cast to-dec "$(cast basefee --rpc-url "$l1_rpc_url")")
     max_fee=$(( basefee + priority_fee ))
     tx_cost=$(( max_fee * 21000 ))
     amount_to_send=$(echo "$foo_balance - $tx_cost" | bc)
@@ -580,6 +589,8 @@ function send_n_txs_from_aggregator() {
             echo "Error: Settlement tx status is not 'done': $tx_status"
             exit 1
         fi
+    else
+        echo "Warning: No settlement_tx_hash field in settled certificate header — skipping tx status check" >&3
     fi
 
     echo "Certificate $cert_id completed full lifecycle to Settled/done" >&3

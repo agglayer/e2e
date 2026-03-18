@@ -3,7 +3,8 @@
 # Provides functions to track certificate lifecycle timing, epoch-based
 # settlement counts, and height progression across multiple certificates.
 
-set -euo pipefail
+# Note: do not use `set -euo pipefail` here — this file is sourced via
+# bats `load`, and those options interfere with bats' error handling.
 
 # get_epoch_configuration
 # Fetches the epoch configuration from the agglayer RPC.
@@ -245,9 +246,9 @@ function measure_settlement_time() {
         header=$(get_cert_header_by_id "$rpc_url" "$cert_id" 2>/dev/null || echo "null")
 
         if [[ -n "$header" && "$header" != "null" ]]; then
-            local status
-            status=$(echo "$header" | jq -r '.status')
-            if [[ "$status" == "Settled" ]]; then
+            local cert_status
+            cert_status=$(echo "$header" | jq -r '.status')
+            if [[ "$cert_status" == "Settled" ]]; then
                 local elapsed=$(( $(date +%s) - start_time ))
                 echo "$elapsed"
                 return 0
