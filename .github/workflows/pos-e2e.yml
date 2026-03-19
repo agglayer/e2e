@@ -28,11 +28,6 @@ on:
         required: false
         type: string
         default: "feat/execution-specs"
-      agglayer-e2e-ref:
-        description: "Tag, branch, or commit of agglayer/e2e to use"
-        required: false
-        type: string
-        default: "main"
       force-run:
         description: "Run tests even if no new bor release is detected"
         required: false
@@ -203,7 +198,7 @@ jobs:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.agglayer-e2e-ref || 'main' }}
+          ref: ${{ github.ref }}
 
       - name: Install kurtosis
         run: |
@@ -427,7 +422,7 @@ jobs:
           enable_ai_analysis: "true"
           host: "github-actions-runners"
           status: ${{ job.status }}
-          ref_e2e: "${{ inputs.agglayer-e2e-ref || 'main' }}"
+          ref_e2e: "${{ github.ref }}"
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -454,7 +449,7 @@ jobs:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.agglayer-e2e-ref || 'main' }}
+          ref: ${{ github.ref }}
 
       - name: Install kurtosis
         run: |
@@ -786,7 +781,7 @@ jobs:
           enable_ai_analysis: "true"
           host: "github-actions-runners"
           status: ${{ job.status }}
-          ref_e2e: "${{ inputs.agglayer-e2e-ref || 'main' }}"
+          ref_e2e: "${{ github.ref }}"
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
