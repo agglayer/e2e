@@ -702,6 +702,10 @@ jobs:
           ARCHIVE_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" rpc)"
           VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
 
+          # Normalize: ensure URLs have exactly one http:// prefix.
+          ARCHIVE_RPC="${ARCHIVE_RPC#http://}" ; ARCHIVE_RPC="${ARCHIVE_RPC#https://}" ; ARCHIVE_RPC="http://${ARCHIVE_RPC}"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}" ; VALIDATOR_RPC="http://${VALIDATOR_RPC}"
+
           echo "Archive RPC: ${ARCHIVE_RPC}"
           echo "Validator RPC: ${VALIDATOR_RPC}"
 
@@ -716,12 +720,12 @@ jobs:
           stall_count=0
 
           while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
-            archive_block=$(curl -sf -X POST "http://${ARCHIVE_RPC}" \
+            archive_block=$(curl -sf -X POST "${ARCHIVE_RPC}" \
               -H "Content-Type: application/json" \
               -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
               | jq -r '.result' | xargs printf "%d" 2>/dev/null) || archive_block=0
 
-            validator_block=$(curl -sf -X POST "http://${VALIDATOR_RPC}" \
+            validator_block=$(curl -sf -X POST "${VALIDATOR_RPC}" \
               -H "Content-Type: application/json" \
               -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
               | jq -r '.result' | xargs printf "%d" 2>/dev/null) || validator_block=0
