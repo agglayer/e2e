@@ -49,7 +49,7 @@ setup() {
 
 # bats test_tags=execution-specs,evm-rpc,evm-gas
 @test "eth_estimateGas for EOA transfer returns 21000" {
-    gas=$(cast estimate --value 1 0x0000000000000000000000000000000000000000)
+    gas=$(cast estimate --from "$eth_address" --value 1 0x0000000000000000000000000000000000000000)
     if [[ "$gas" -ne 21000 ]]; then
         echo "Expected 21000 gas for EOA transfer, got: $gas" >&2
         return 1

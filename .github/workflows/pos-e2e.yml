@@ -197,28 +197,8 @@ jobs:
     needs: check-new-release
     if: needs.check-new-release.outputs.should-run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        test-suite:
-          - name: "execution-specs-protocol"
-            files: "tests/pos/execution-specs/protocol/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-evm"
-            files: "tests/pos/execution-specs/evm/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-transactions"
-            files: "tests/pos/execution-specs/transactions/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-rpc"
-            files: "tests/pos/execution-specs/rpc/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-precompiles"
-            files: "tests/pos/execution-specs/precompiles/"
-            filter-tags: "execution-specs"
-
-    name: ${{ matrix.test-suite.name }}
+    timeout-minutes: 60
+    name: execution-specs
     steps:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v4
@@ -373,6 +353,36 @@ jobs:
       - name: Inspect enclave
         run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
 
+      - name: Wait for all forks to activate
+        run: |
+          # All post-rio forks are set to block 256. Wait for the chain to pass
+          # that point so forks are active and basefee has stabilized before
+          # running any tests.
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          TARGET_BLOCK=270  # 256 + a few blocks buffer for basefee to stabilize
+          MAX_WAIT=300
+          POLL_INTERVAL=5
+          elapsed=0
+
+          echo "Waiting for chain to reach block ${TARGET_BLOCK} (forks activate at 256)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            block=$(curl -sf -X POST "http://${VALIDATOR_RPC}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result' | xargs printf "%d" 2>/dev/null) || block=0
+
+            if [[ "$block" -ge "$TARGET_BLOCK" ]]; then
+              echo "Chain at block ${block} — all forks active."
+              exit 0
+            fi
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+
+          echo "::error::Chain did not reach block ${TARGET_BLOCK} within ${MAX_WAIT}s (stuck at ${block})."
+          exit 1
+
       - name: Run PoS E2E tests
         run: |
           set -eo pipefail
@@ -383,8 +393,14 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
-          echo "Running test suite: ${{ matrix.test-suite.name }}"
-          bats ${{ matrix.test-suite.files }} --filter-tags "${{ matrix.test-suite.filter-tags }}"
+          echo "Running all execution-specs test suites sequentially..."
+          bats \
+            tests/pos/execution-specs/protocol/ \
+            tests/pos/execution-specs/evm/ \
+            tests/pos/execution-specs/transactions/ \
+            tests/pos/execution-specs/rpc/ \
+            tests/pos/execution-specs/precompiles/ \
+            --filter-tags "execution-specs"
 
       - name: Dump enclave logs
         if: failure()
@@ -394,7 +410,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: pos-e2e-dump-${{ matrix.test-suite.name }}-${{ github.run_id }}
+          name: pos-e2e-dump-execution-specs-${{ github.run_id }}
           path: ./dump
 
       - name: Clean up enclave
