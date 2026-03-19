@@ -146,6 +146,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 0x08 ecPairing (alt_bn128): empty input returns 1 (trivial pairing check) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L316) | |
 | 0x09 blake2F: EIP-152 test vector 5 (12 rounds, 'abc' message) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L325) | |
 | 0x0a KZG point evaluation: active on Cancun+ (rejects invalid input) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L363) | |
+| 0x0a KZG: removed after Madhugiri — BALANCE charges cold gas (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L241) | |
+| 0x0a KZG: removed after Madhugiri — EXTCODESIZE charges cold gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L265) | |
+| 0x0a KZG: removed after Madhugiri — eth_call returns empty | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L215) | |
 | 0x0b BLS12-381 G1 Add: identity + G equals G (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L378) | |
 | 0x0c BLS12-381 G1 MSM: scalar-1 times G equals G (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L399) | |
 | 0x0d BLS12-381 G2 Add: identity + G2 equals G2 (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L417) | |
@@ -201,6 +204,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 50 concurrent requests across additional RPC methods succeed | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L316) | |
 | ADDMOD and MULMOD compute correctly | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L964) | |
 | ADDRESS returns the contract's own address | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L301) | |
+| BALANCE on a random non-precompile address costs cold gas (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L188) | |
+| BALANCE on active precompile 0x01 (ecRecover) costs warm gas (~100), not cold (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L120) | |
+| BALANCE on all active precompiles costs warm gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L146) | |
 | BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L718) | |
 | BASEFEE opcode returns value matching block header baseFeePerGas | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L462) | |
 | BLOCKHASH(0) returns zero on Bor (genesis hash not available) | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L18) | |
@@ -248,6 +254,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | EIP-2930 type-1 access list tx fuzz and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L523) | |
 | EXTCODEHASH correctness for EOA, deployed contract, and nonexistent account | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L238) | |
 | EXTCODEHASH for empty account returns zero on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L166) | |
+| EXTCODESIZE on active precompile 0x01 (ecRecover) costs warm gas (~100) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L134) | |
+| EXTCODESIZE on all active precompiles costs warm gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L167) | |
 | Empty batch JSON-RPC returns empty array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1114) | |
 | GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L668) | |
 | Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L606) | |
