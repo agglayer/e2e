@@ -1295,10 +1295,13 @@ _kzg_input() {
         -H "Content-Type: application/json" \
         -d '{"jsonrpc":"2.0","method":"bor_getBlockGasParams","params":["'"${block_hex}"'"],"id":1}')
 
-    # Verify no JSON-RPC error
+    # Verify no JSON-RPC error — skip if method doesn't exist (older bor versions).
     local err
     err=$(echo "$result" | jq -r '.error.message // empty')
     if [[ -n "$err" ]]; then
+        if [[ "$err" == *"does not exist"* || "$err" == *"not available"* ]]; then
+            skip "bor_getBlockGasParams not available on this bor version"
+        fi
         echo "FAIL: bor_getBlockGasParams returned error: ${err}" >&2
         return 1
     fi
@@ -1343,6 +1346,9 @@ _kzg_input() {
     local err
     err=$(echo "$result" | jq -r '.error.message // empty')
     if [[ -n "$err" ]]; then
+        if [[ "$err" == *"does not exist"* || "$err" == *"not available"* ]]; then
+            skip "bor_getBlockGasParams not available on this bor version"
+        fi
         echo "FAIL: bor_getBlockGasParams returned error: ${err}" >&2
         return 1
     fi
@@ -1376,6 +1382,14 @@ _kzg_input() {
     result=$(curl -s -X POST "${L2_RPC_URL}" \
         -H "Content-Type: application/json" \
         -d '{"jsonrpc":"2.0","method":"bor_getBlockGasParams","params":["'"${block_hex}"'"],"id":1}')
+
+    # Skip if method doesn't exist on this bor version.
+    local err
+    err=$(echo "$result" | jq -r '.error.message // empty')
+    if [[ -n "$err" && ("$err" == *"does not exist"* || "$err" == *"not available"*) ]]; then
+        skip "bor_getBlockGasParams not available on this bor version"
+    fi
+
     gas_target_hex=$(echo "$result" | jq -r '.result.gasTarget')
     [[ -n "$gas_target_hex" && "$gas_target_hex" != "null" ]]
 
