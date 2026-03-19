@@ -9,22 +9,27 @@ on:
   workflow_dispatch:
     inputs:
       bor-latest-image:
-        description: "Latest bor Docker image (e.g. 0xpolygon/bor:2.7.0-beta). Leave empty to auto-detect."
+        description: "Bor image for validators and execution-specs tests. Leave empty to auto-detect from GitHub releases."
         required: false
         type: string
         default: ""
       bor-previous-image:
-        description: "Previous major bor Docker image (e.g. 0xpolygon/bor:2.6.3). Leave empty to auto-detect."
+        description: "Previous major bor image (different major.minor). Leave empty to auto-detect."
         required: false
         type: string
         default: ""
       heimdall-v2-image:
-        description: "Heimdall-v2 Docker image (e.g. 0xpolygon/heimdall-v2:0.6.0). Leave empty to auto-detect."
+        description: "Heimdall-v2 image. Leave empty to auto-detect from GitHub releases."
+        required: false
+        type: string
+        default: ""
+      bor-archive-image:
+        description: "Bor image for the archive sync node. Leave empty to use bor-latest. Set to a different version to test cross-version archive sync."
         required: false
         type: string
         default: ""
       kurtosis-pos-ref:
-        description: "Tag, branch, or commit of kurtosis-pos to use"
+        description: "Tag, branch, or commit of kurtosis-pos to use."
         required: false
         type: string
         default: "feat/execution-specs"
@@ -59,6 +64,7 @@ jobs:
       bor-tag: ${{ steps.resolve.outputs.bor-tag }}
       bor-latest-image: ${{ steps.resolve.outputs.bor-latest-image }}
       bor-previous-image: ${{ steps.resolve.outputs.bor-previous-image }}
+      bor-archive-image: ${{ steps.resolve.outputs.bor-archive-image }}
       heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
     steps:
       - name: Resolve bor and heimdall-v2 versions
@@ -73,6 +79,7 @@ jobs:
             echo "bor-latest-image=${{ inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
             echo "bor-previous-image=${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
             echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
+            echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -170,6 +177,14 @@ jobs:
             fi
           fi
 
+          # --- Archive node image -----------------------------------------
+          # Defaults to bor-latest unless explicitly overridden via input.
+          if [[ -n "${{ inputs.bor-archive-image }}" ]]; then
+            echo "bor-archive-image=${{ inputs.bor-archive-image }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "bor-archive-image=0xpolygon/bor:${latest_tag#v}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check cache for previously tested tag
         if: steps.resolve.outputs.bor-tag != 'manual' && steps.resolve.outputs.bor-tag != ''
         id: cache-check
@@ -204,6 +219,7 @@ jobs:
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
@@ -629,8 +645,11 @@ jobs:
 
       - name: Generate archive-sync params
         run: |
+          BOR_ARCHIVE="${{ needs.check-new-release.outputs.bor-archive-image }}"
           BOR_LATEST="${{ needs.check-new-release.outputs.bor-latest-image }}"
           HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+
+          echo "Archive node image: ${BOR_ARCHIVE}"
 
           # existing_participants must match the original deployment exactly
           # (3 validators + 1 RPC) so the archive node gets a unique P2P index.
@@ -643,7 +662,7 @@ jobs:
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
                 el_type: bor
-                el_image: "${BOR_LATEST}"
+                el_image: "${BOR_ARCHIVE}"
 
           dev:
             should_deploy_l1: false
