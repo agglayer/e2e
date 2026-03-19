@@ -208,43 +208,49 @@ _gas_limit_at() {
 }
 
 # ────────────────────────────────────────────────────────────────────────────
-# Helpers — fork feature probes
+# Helpers — bor version detection
 # ────────────────────────────────────────────────────────────────────────────
 
-# Skip the current test if a fork's signature feature is not supported by the
-# running bor version. This handles the case where an older bor (e.g. 2.5.9)
-# doesn't implement newer forks (e.g. Lisovo CLZ, Giugliano gas params).
-#
-# Usage: _skip_if_fork_unsupported "lisovo"
-_skip_if_fork_unsupported() {
-    local fork_name="$1"
-    case "$fork_name" in
-        lisovo)
-            # CLZ opcode (0x1e) was added in Lisovo. Test via eth_call.
-            local result
-            result=$(cast call --rpc-url "${L2_RPC_URL}" --create "0x60011e60005500" 2>&1) || true
-            if [[ "$result" == *"invalid opcode"* || "$result" == *"execution reverted"* || -z "$result" ]]; then
-                skip "Lisovo features (CLZ opcode) not supported by this bor version"
-            fi
-            ;;
-        lisovoPro)
-            # LisovoPro removes KZG. Probe by checking if the node knows about LisovoPro.
-            # On 2.5.9, LisovoPro doesn't exist — but there's no clean way to probe this
-            # without running a tx. Skip probing; tests handle this individually.
-            ;;
-        giugliano)
-            # bor_getBlockGasParams was added in Giugliano.
-            local result
-            result=$(curl -s -X POST "${L2_RPC_URL}" \
-                -H "Content-Type: application/json" \
-                -d '{"jsonrpc":"2.0","method":"bor_getBlockGasParams","params":["0x1"],"id":1}')
-            local err
-            err=$(echo "$result" | jq -r '.error.message // empty')
-            if [[ -n "$err" && ("$err" == *"does not exist"* || "$err" == *"not available"*) ]]; then
-                skip "Giugliano features (bor_getBlockGasParams) not supported by this bor version"
-            fi
-            ;;
-    esac
+# Fetch bor version from web3_clientVersion RPC and cache it.
+# Returns a semver-like string e.g. "2.5.9" or "2.6.5" or "2.7.0-beta".
+# Cached in BOR_VERSION after first call.
+_bor_version() {
+    if [[ -n "${BOR_VERSION:-}" ]]; then
+        echo "$BOR_VERSION"
+        return
+    fi
+    local result
+    result=$(curl -s -X POST "${L2_RPC_URL}" \
+        -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}')
+    # Example response: "bor/v2.5.9-stable-abcdef12/linux-amd64/go1.22.0"
+    BOR_VERSION=$(echo "$result" | jq -r '.result // empty' | sed -E 's|^bor/v([0-9]+\.[0-9]+\.[0-9]+[^/]*).*|\1|')
+    if [[ -z "$BOR_VERSION" ]]; then
+        BOR_VERSION="unknown"
+    fi
+    echo "$BOR_VERSION"
+}
+
+# Compare bor version against a minimum required version.
+# Returns 0 (true) if running version >= required version.
+# Usage: _bor_version_gte "2.6.0"
+_bor_version_gte() {
+    local required="$1"
+    local current
+    current=$(_bor_version)
+    if [[ "$current" == "unknown" ]]; then
+        # Can't determine version — assume latest for safety.
+        return 0
+    fi
+    # Strip pre-release suffix for comparison (2.7.0-beta -> 2.7.0).
+    local current_base required_base
+    current_base=$(echo "$current" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+
+    # Compare using sort -V (version sort).
+    local lower
+    lower=$(printf '%s\n%s' "$current_base" "$required_base" | sort -V | head -1)
+    [[ "$lower" == "$required_base" ]]
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -828,14 +834,25 @@ _kzg_input() {
     [[ "$FORK_MADHUGIRI" -le 10 ]] && skip "Madhugiri at genesis"
     _wait_before_fork "$FORK_MADHUGIRI"
 
-    # On older bor versions (e.g. 2.5.9), KZG is included in every post-Cancun
-    # precompile set and is already active before Madhugiri. Skip gracefully.
     local kzg_out
     kzg_out=$(_call_at_block "0x000000000000000000000000000000000000000a" "$(_kzg_input)" "latest")
-    if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
-        skip "KZG (0x0a) already active before Madhugiri — bor version includes KZG in earlier precompile sets"
+
+    if _bor_version_gte "2.6.0"; then
+        # On 2.6.x+, KZG activates at Lisovo (not before Madhugiri).
+        if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
+            echo "FAIL: KZG (0x0a) unexpectedly active before Madhugiri on bor $(_bor_version)" >&2
+            return 1
+        fi
+        echo "  OK: KZG inactive before Madhugiri [bor $(_bor_version)]" >&3
+    else
+        # On pre-2.6.0, KZG is in all post-Cancun precompile sets — it's active everywhere.
+        if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
+            echo "  OK: KZG active before Madhugiri (expected on bor $(_bor_version) — KZG in all post-Cancun sets)" >&3
+        else
+            echo "FAIL: KZG unexpectedly inactive before Madhugiri on bor $(_bor_version)" >&2
+            return 1
+        fi
     fi
-    echo "  OK: KZG inactive before Madhugiri" >&3
 }
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1035,15 +1052,28 @@ _kzg_input() {
     _assert_precompile_active "0x0000000000000000000000000000000000000100" \
         "$(_p256_input)" "latest" "p256Verify"
 
-    # KZG should still be inactive at Dandeli (activated later at Lisovo).
-    # On older bor versions (e.g. 2.5.9), KZG is included in every post-Cancun
-    # precompile set, so it's already active here. Skip rather than fail.
+    # KZG activation depends on bor version.
     local kzg_out
     kzg_out=$(_call_at_block "0x000000000000000000000000000000000000000a" "$(_kzg_input)" "latest")
+    local kzg_active=false
     if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
-        echo "  SKIP: KZG (0x0a) already active at Dandeli — bor version includes KZG in earlier precompile sets" >&3
+        kzg_active=true
+    fi
+
+    if _bor_version_gte "2.6.0"; then
+        # On 2.6.x+, KZG activates at Lisovo (after Dandeli) — should be inactive here.
+        if [[ "$kzg_active" == "true" ]]; then
+            echo "FAIL: KZG (0x0a) unexpectedly active at Dandeli on bor $(_bor_version)" >&2
+            return 1
+        fi
+        echo "  OK: KZG inactive at Dandeli [bor $(_bor_version)]" >&3
     else
-        echo "  OK: KZG inactive at Dandeli" >&3
+        # On pre-2.6.0, KZG is in all post-Cancun sets — active everywhere.
+        if [[ "$kzg_active" != "true" ]]; then
+            echo "FAIL: KZG unexpectedly inactive at Dandeli on bor $(_bor_version)" >&2
+            return 1
+        fi
+        echo "  OK: KZG active at Dandeli (expected on bor $(_bor_version))" >&3
     fi
 }
 
@@ -1106,14 +1136,28 @@ _kzg_input() {
     [[ "$FORK_LISOVO" -le 10 ]] && skip "Lisovo at genesis"
     _wait_before_fork "$FORK_LISOVO"
 
-    # On older bor versions (e.g. 2.5.9), KZG is included in every post-Cancun
-    # precompile set and is already active before Lisovo. Skip gracefully.
     local kzg_out
     kzg_out=$(_call_at_block "0x000000000000000000000000000000000000000a" "$(_kzg_input)" "latest")
+    local kzg_active=false
     if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
-        skip "KZG (0x0a) already active before Lisovo — bor version includes KZG in earlier precompile sets"
+        kzg_active=true
     fi
-    echo "  OK: KZG inactive before Lisovo" >&3
+
+    if _bor_version_gte "2.6.0"; then
+        # On 2.6.x+, KZG activates at Lisovo — should be inactive before it.
+        if [[ "$kzg_active" == "true" ]]; then
+            echo "FAIL: KZG (0x0a) unexpectedly active before Lisovo on bor $(_bor_version)" >&2
+            return 1
+        fi
+        echo "  OK: KZG inactive before Lisovo [bor $(_bor_version)]" >&3
+    else
+        # On pre-2.6.0, KZG is in all post-Cancun sets — active everywhere.
+        if [[ "$kzg_active" != "true" ]]; then
+            echo "FAIL: KZG unexpectedly inactive before Lisovo on bor $(_bor_version)" >&2
+            return 1
+        fi
+        echo "  OK: KZG active before Lisovo (expected on bor $(_bor_version))" >&3
+    fi
 }
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1124,20 +1168,26 @@ _kzg_input() {
 
 # bats test_tags=fork-transition,opcode,clz,lisovo
 @test "1.3: Lisovo — CLZ opcode succeeds and returns correct value after fork" {
-    _skip_if_fork_unsupported "lisovo"
     _wait_for_block "$FORK_LISOVO"
 
     deploy_runtime "60011e60005500"
     call_contract "$contract_addr"
     local status
     status=$(_receipt_status "$call_receipt")
-    [[ "$status" == "0x1" ]]
 
-    local stored result
-    stored=$(cast storage "$contract_addr" 0 --rpc-url "$L2_RPC_URL")
-    result=$(printf "%d" "$stored")
-    echo "CLZ(1) = ${result} (expect 255)" >&3
-    [[ "$result" -eq 255 ]]
+    if _bor_version_gte "2.6.0"; then
+        # CLZ (0x1e) added in Lisovo — should succeed.
+        [[ "$status" == "0x1" ]]
+        local stored result
+        stored=$(cast storage "$contract_addr" 0 --rpc-url "$L2_RPC_URL")
+        result=$(printf "%d" "$stored")
+        echo "CLZ(1) = ${result} (expect 255) [bor $(_bor_version)]" >&3
+        [[ "$result" -eq 255 ]]
+    else
+        # Pre-2.6.0 bor doesn't implement CLZ — tx reverts.
+        echo "CLZ tx status=${status} (expected 0x0 on bor $(_bor_version) — CLZ not implemented)" >&3
+        [[ "$status" == "0x0" ]]
+    fi
 }
 
 # bats test_tags=precompile-consistency,kzg,lisovo
@@ -1265,13 +1315,20 @@ _kzg_input() {
 
     echo "KZG STATICCALL at LisovoPro: success_flag=${success_flag} (0=active, 1=inactive)" >&3
 
-    # On bor 2.6.x+: KZG is NOT in LisovoPro's precompile table → success_flag=1 (inactive).
-    # On bor 2.5.9:   KZG is in ALL post-Cancun sets → success_flag=0 (still active).
-    # Both are valid for their respective versions. Log the behavior; don't fail.
-    if [[ "$success_flag" -eq 1 ]]; then
-        echo "  KZG correctly removed at LisovoPro (bor 2.6.x+ behavior)" >&3
+    if _bor_version_gte "2.6.0"; then
+        # On 2.6.x+, KZG is removed at LisovoPro — STATICCALL succeeds (no code).
+        if [[ "$success_flag" -ne 1 ]]; then
+            echo "FAIL: KZG still active at LisovoPro on bor $(_bor_version) — should have been removed" >&2
+            return 1
+        fi
+        echo "  KZG correctly removed at LisovoPro [bor $(_bor_version)]" >&3
     else
-        echo "  KZG still active at LisovoPro (bor 2.5.x behavior — no LisovoPro precompile change)" >&3
+        # On pre-2.6.0, KZG is in all post-Cancun sets — still active at LisovoPro.
+        if [[ "$success_flag" -ne 0 ]]; then
+            echo "FAIL: KZG unexpectedly inactive at LisovoPro on bor $(_bor_version)" >&2
+            return 1
+        fi
+        echo "  KZG still active at LisovoPro (expected on bor $(_bor_version) — no LisovoPro precompile removal)" >&3
     fi
 }
 
@@ -1399,7 +1456,7 @@ _kzg_input() {
     err=$(echo "$result" | jq -r '.error.message // empty')
     if [[ -n "$err" ]]; then
         if [[ "$err" == *"does not exist"* || "$err" == *"not available"* ]]; then
-            skip "bor_getBlockGasParams not available on this bor version"
+            skip "bor_getBlockGasParams not available on bor $(_bor_version)"
         fi
         echo "FAIL: bor_getBlockGasParams returned error: ${err}" >&2
         return 1
@@ -1446,7 +1503,7 @@ _kzg_input() {
     err=$(echo "$result" | jq -r '.error.message // empty')
     if [[ -n "$err" ]]; then
         if [[ "$err" == *"does not exist"* || "$err" == *"not available"* ]]; then
-            skip "bor_getBlockGasParams not available on this bor version"
+            skip "bor_getBlockGasParams not available on bor $(_bor_version)"
         fi
         echo "FAIL: bor_getBlockGasParams returned error: ${err}" >&2
         return 1

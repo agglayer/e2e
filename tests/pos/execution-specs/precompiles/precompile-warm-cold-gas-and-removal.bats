@@ -212,7 +212,7 @@ ACTIVE_PRECOMPILES=(
 # ────────────────────────────────────────────────────────────────────────────
 
 # bats test_tags=execution-specs,pos-precompile,precompile-removal
-@test "0x0a KZG: removed after Madhugiri — eth_call returns empty" {
+@test "0x0a KZG: removed after LisovoPro — eth_call returns empty" {
     # First check if BLS12 G1Add (0x0b, added in Madhugiri) is active.
     # If 0x0b is not active, Madhugiri hasn't activated yet → skip.
     local bls_out
@@ -238,7 +238,7 @@ ACTIVE_PRECOMPILES=(
 }
 
 # bats test_tags=execution-specs,pos-precompile,precompile-removal,evm-gas
-@test "0x0a KZG: removed after Madhugiri — BALANCE charges cold gas (2600)" {
+@test "0x0a KZG: removed after LisovoPro — BALANCE charges cold gas (2600)" {
     # Skip if Madhugiri not active.
     local bls_out
     bls_out=$(cast call --rpc-url "${L2_RPC_URL}" \
@@ -262,7 +262,7 @@ ACTIVE_PRECOMPILES=(
 }
 
 # bats test_tags=execution-specs,pos-precompile,precompile-removal,evm-gas
-@test "0x0a KZG: removed after Madhugiri — EXTCODESIZE charges cold gas" {
+@test "0x0a KZG: removed after LisovoPro — EXTCODESIZE charges cold gas" {
     local bls_out
     bls_out=$(cast call --rpc-url "${L2_RPC_URL}" \
         "0x000000000000000000000000000000000000000b" \
