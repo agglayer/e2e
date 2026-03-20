@@ -9,30 +9,40 @@ on:
   workflow_dispatch:
     inputs:
       bor-latest-image:
-        description: "Latest bor Docker image (e.g. 0xpolygon/bor:2.7.0-beta). Leave empty to auto-detect."
+        description: "Bor image for validators and execution-specs tests. Leave empty to auto-detect from GitHub releases."
         required: false
         type: string
         default: ""
       bor-previous-image:
-        description: "Previous major bor Docker image (e.g. 0xpolygon/bor:2.6.3). Leave empty to auto-detect."
+        description: "Previous major bor image (different major.minor). Leave empty to auto-detect."
         required: false
         type: string
         default: ""
       heimdall-v2-image:
-        description: "Heimdall-v2 Docker image (e.g. 0xpolygon/heimdall-v2:0.6.0). Leave empty to auto-detect."
+        description: "Heimdall-v2 image. Leave empty to auto-detect from GitHub releases."
+        required: false
+        type: string
+        default: ""
+      bor-archive-image:
+        description: "Bor image for the archive sync node. Leave empty to use bor-latest. Set to a different version to test cross-version archive sync."
         required: false
         type: string
         default: ""
       kurtosis-pos-ref:
-        description: "Tag, branch, or commit of kurtosis-pos to use"
+        description: "Tag, branch, or commit of kurtosis-pos to use."
         required: false
         type: string
         default: "feat/execution-specs"
-      agglayer-e2e-ref:
-        description: "Tag, branch, or commit of agglayer/e2e to use"
+      test-suite:
+        description: "Which test suites to run."
         required: false
-        type: string
-        default: "main"
+        type: choice
+        options:
+          - all
+          - execution-specs-only
+          - mixed-version-only
+          - fork-transition-only
+        default: "all"
       force-run:
         description: "Run tests even if no new bor release is detected"
         required: false
@@ -64,6 +74,7 @@ jobs:
       bor-tag: ${{ steps.resolve.outputs.bor-tag }}
       bor-latest-image: ${{ steps.resolve.outputs.bor-latest-image }}
       bor-previous-image: ${{ steps.resolve.outputs.bor-previous-image }}
+      bor-archive-image: ${{ steps.resolve.outputs.bor-archive-image }}
       heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
     steps:
       - name: Resolve bor and heimdall-v2 versions
@@ -78,15 +89,17 @@ jobs:
             echo "bor-latest-image=${{ inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
             echo "bor-previous-image=${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
             echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
+            echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           # --- Auto-detect bor versions from GitHub releases -----------------
-          # Fetch recent releases (non-draft) sorted by creation date.
-          # Includes betas, RCs, and stable releases — the most recent tag wins.
+          # Fetch recent releases (non-draft) and sort by semantic version
+          # (not creation date). This ensures v2.7.0-beta2 ranks above v2.6.5
+          # even if the patch was released later.
           echo "Fetching bor releases..."
           all_tags=$(gh api repos/0xPolygon/bor/releases --paginate --jq \
-            '.[] | select(.draft == false) | .tag_name' 2>/dev/null | head -30)
+            '.[] | select(.draft == false) | .tag_name' 2>/dev/null | head -50)
 
           if [[ -z "$all_tags" ]]; then
             echo "::warning::Failed to fetch bor releases."
@@ -102,11 +115,40 @@ jobs:
             version_tags="$all_tags"
           fi
 
-          latest_tag=$(echo "$version_tags" | head -1)
+          # Sort by semantic version (descending). Converts tags to a sortable
+          # format: major.minor.patch.suffix_weight.suffix_num, then sorts
+          # numerically. beta < rc < stable (weights: beta=1, rc=2, stable=3).
+          sorted_tags=$(echo "$version_tags" | while IFS= read -r tag; do
+            # Strip v prefix and split into base version and suffix.
+            ver="${tag#v}"
+            base=$(echo "$ver" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+            suffix=$(echo "$ver" | sed -E 's/^[0-9]+\.[0-9]+\.[0-9]+//' | sed 's/^-//')
+
+            major=$(echo "$base" | cut -d. -f1)
+            minor=$(echo "$base" | cut -d. -f2)
+            patch=$(echo "$base" | cut -d. -f3)
+
+            if [[ -z "$suffix" ]]; then
+              weight=3; suffix_num=0  # stable
+            elif [[ "$suffix" == rc* ]]; then
+              weight=2; suffix_num=$(echo "$suffix" | sed 's/rc//' | sed 's/^$/0/')
+            elif [[ "$suffix" == beta* ]]; then
+              weight=1; suffix_num=$(echo "$suffix" | sed 's/beta//' | sed 's/^$/0/')
+            else
+              weight=0; suffix_num=0
+            fi
+
+            printf "%04d.%04d.%04d.%d.%04d %s\n" "$major" "$minor" "$patch" "$weight" "$suffix_num" "$tag"
+          done | sort -t. -k1,1rn -k2,2rn -k3,3rn -k4,4rn -k5,5rn | awk '{print $2}')
+
+          echo "Sorted tags (highest version first):"
+          echo "$sorted_tags" | head -10
+
+          latest_tag=$(echo "$sorted_tags" | head -1)
           echo "Latest bor tag: $latest_tag"
 
           # Find the previous major release: first tag with a different major.minor.
-          # e.g. if latest is v2.7.0-beta2, previous is v2.6.3 (different 2.7 vs 2.6).
+          # e.g. if latest is v2.7.0-beta2, previous is v2.6.5 (different 2.7 vs 2.6).
           latest_major_minor=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
           previous_tag=""
           while IFS= read -r tag; do
@@ -115,11 +157,11 @@ jobs:
               previous_tag="$tag"
               break
             fi
-          done <<< "$version_tags"
+          done <<< "$sorted_tags"
 
           # Fallback: if no different major.minor found, use the second release.
           if [[ -z "$previous_tag" ]]; then
-            previous_tag=$(echo "$version_tags" | sed -n '2p')
+            previous_tag=$(echo "$sorted_tags" | sed -n '2p')
           fi
           echo "Previous bor tag: $previous_tag"
 
@@ -143,6 +185,14 @@ jobs:
               echo "::warning::Failed to fetch heimdall-v2 release, using 'latest'."
               echo "heimdall-v2-image=0xpolygon/heimdall-v2:latest" >> "$GITHUB_OUTPUT"
             fi
+          fi
+
+          # --- Archive node image -----------------------------------------
+          # Defaults to bor-latest unless explicitly overridden via input.
+          if [[ -n "${{ inputs.bor-archive-image }}" ]]; then
+            echo "bor-archive-image=${{ inputs.bor-archive-image }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "bor-archive-image=0xpolygon/bor:${latest_tag#v}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check cache for previously tested tag
@@ -179,15 +229,12 @@ jobs:
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
-  # Run PoS execution-specs E2E tests on a mixed-version kurtosis devnet.
-  #
-  # The enclave topology mirrors large.yml.norun but with resolved images and
-  # a version mix: latest release on most nodes, previous major on a subset
-  # of validators + an RPC node (similar to large-v270-v263-mix.yml).
+  # Run PoS execution-specs E2E tests on a single-version kurtosis devnet.
   #
   # All hard forks are activated at block 256 (the earliest possible — rio is
   # hardcoded at 256 in heimdall-v2) so tests can exercise the latest features
@@ -195,35 +242,15 @@ jobs:
   # ---------------------------------------------------------------------------
   pos-e2e-tests:
     needs: check-new-release
-    if: needs.check-new-release.outputs.should-run == 'true'
+    if: needs.check-new-release.outputs.should-run == 'true' && (inputs.test-suite == 'all' || inputs.test-suite == 'execution-specs-only' || inputs.test-suite == '')
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        test-suite:
-          - name: "execution-specs-protocol"
-            files: "tests/pos/execution-specs/protocol/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-evm"
-            files: "tests/pos/execution-specs/evm/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-transactions"
-            files: "tests/pos/execution-specs/transactions/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-rpc"
-            files: "tests/pos/execution-specs/rpc/"
-            filter-tags: "execution-specs"
-          - name: "execution-specs-precompiles"
-            files: "tests/pos/execution-specs/precompiles/"
-            filter-tags: "execution-specs"
-
-    name: ${{ matrix.test-suite.name }}
+    timeout-minutes: 60
+    name: execution-specs
     steps:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.agglayer-e2e-ref || 'main' }}
+          ref: ${{ github.ref }}
 
       - name: Install kurtosis
         run: |
@@ -291,66 +318,27 @@ jobs:
       - name: Generate kurtosis params
         run: |
           BOR_LATEST="${{ needs.check-new-release.outputs.bor-latest-image }}"
-          BOR_PREVIOUS="${{ needs.check-new-release.outputs.bor-previous-image }}"
           HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
 
           echo "Bor latest:   ${BOR_LATEST}"
-          echo "Bor previous: ${BOR_PREVIOUS}"
           echo "Heimdall-v2:  ${HV2_IMAGE}"
 
-          # Mixed-version topology based on large.yml.norun:
-          #   - 4 validators on latest, 3 on previous major (7 total, 3 active producers)
-          #   - RPC nodes: 1 latest (stateless), 1 previous (stateful), 1 erigon
-          #   - 1 archive node on latest
+          # Single-version topology for execution-specs tests.
+          # All forks are activated at block 256, so every node must run the
+          # latest bor — older versions don't know about newer forks and would
+          # stall the chain at the fork boundary.
           cat > /tmp/pos-params.yml <<PARAMS
           polygon_pos_package:
             participants:
-              # Validators on latest bor release
-              - kind: validator
-                count: 4
-                el_bor_produce_witness: true
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_LATEST}"
-
-              # Validators on previous major bor release
               - kind: validator
                 count: 3
                 el_bor_produce_witness: true
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
                 el_type: bor
-                el_image: "${BOR_PREVIOUS}"
-
-              # RPC node on latest (stateless sync)
-              - kind: rpc
-                count: 1
-                el_bor_sync_with_witness: true
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
                 el_image: "${BOR_LATEST}"
 
-              # RPC node on previous major
               - kind: rpc
-                count: 1
-                el_bor_sync_with_witness: false
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_PREVIOUS}"
-
-              # Erigon RPC as cross-client control
-              - kind: rpc
-                count: 1
-                el_bor_sync_with_witness: false
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: erigon
-
-              # Archive node on latest
-              - kind: archive
                 count: 1
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
@@ -373,6 +361,61 @@ jobs:
       - name: Inspect enclave
         run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
 
+      - name: Wait for all forks to activate
+        run: |
+          # All post-rio forks are set to block 256. Wait for the chain to pass
+          # that point so forks are active and basefee has stabilized before
+          # running any tests.
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          echo "Validator RPC raw: ${VALIDATOR_RPC}"
+
+          # Normalize: strip any existing scheme, then prepend http://
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}"
+          VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          RPC_URL="http://${VALIDATOR_RPC}"
+          echo "RPC URL: ${RPC_URL}"
+
+          # Sanity check: try one RPC call and show the raw response.
+          echo "Testing RPC connectivity..."
+          curl -sv -X POST "${RPC_URL}" \
+            -H "Content-Type: application/json" \
+            -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' 2>&1 || true
+
+          TARGET_BLOCK=270  # 256 + a few blocks buffer for basefee to stabilize
+          MAX_WAIT=600
+          POLL_INTERVAL=5
+          elapsed=0
+
+          echo "Waiting for chain to reach block ${TARGET_BLOCK} (forks activate at 256)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            response=$(curl -sf -X POST "${RPC_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' 2>/dev/null) || response=""
+
+            if [[ -n "$response" ]]; then
+              block_hex=$(echo "$response" | jq -r '.result // empty')
+              if [[ -n "$block_hex" ]]; then
+                block=$(printf "%d" "$block_hex" 2>/dev/null) || block=0
+              else
+                block=0
+              fi
+            else
+              block=0
+            fi
+
+            if [[ "$block" -ge "$TARGET_BLOCK" ]]; then
+              echo "Chain at block ${block} — all forks active."
+              exit 0
+            fi
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+
+          echo "::error::Chain did not reach block ${TARGET_BLOCK} within ${MAX_WAIT}s (stuck at ${block})."
+          echo "Last RPC response: ${response}"
+          exit 1
+
       - name: Run PoS E2E tests
         run: |
           set -eo pipefail
@@ -383,8 +426,14 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
-          echo "Running test suite: ${{ matrix.test-suite.name }}"
-          bats ${{ matrix.test-suite.files }} --filter-tags "${{ matrix.test-suite.filter-tags }}"
+          echo "Running all execution-specs test suites sequentially..."
+          bats \
+            tests/pos/execution-specs/protocol/ \
+            tests/pos/execution-specs/evm/ \
+            tests/pos/execution-specs/transactions/ \
+            tests/pos/execution-specs/rpc/ \
+            tests/pos/execution-specs/precompiles/ \
+            --filter-tags "execution-specs"
 
       - name: Dump enclave logs
         if: failure()
@@ -394,7 +443,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: pos-e2e-dump-${{ matrix.test-suite.name }}-${{ github.run_id }}
+          name: pos-e2e-dump-execution-specs-${{ github.run_id }}
           path: ./dump
 
       - name: Clean up enclave
@@ -411,7 +460,247 @@ jobs:
           enable_ai_analysis: "true"
           host: "github-actions-runners"
           status: ${{ job.status }}
-          ref_e2e: "${{ inputs.agglayer-e2e-ref || 'main' }}"
+          ref_e2e: "${{ github.ref }}"
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  # ---------------------------------------------------------------------------
+  # Mixed-version execution-specs E2E tests.
+  #
+  # Runs AFTER pos-e2e-tests completes to avoid overlapping enclaves on the
+  # CI runner. Deploys a mixed-version topology: latest bor on most nodes,
+  # previous major on a subset of validators + the RPC node (similar to
+  # large-v270-v263-mix.yml). This validates cross-version compatibility.
+  #
+  # All hard forks are activated at block 256 so the chain runs on the latest
+  # feature set. The previous bor version must support these forks — if it
+  # doesn't, the chain will stall and the test will fail (which is the desired
+  # signal: the previous version is incompatible).
+  # ---------------------------------------------------------------------------
+  pos-mixed-version-tests:
+    needs: [check-new-release, pos-e2e-tests]
+    if: >-
+      always() &&
+      needs.check-new-release.outputs.should-run == 'true' &&
+      needs.check-new-release.result == 'success' &&
+      (needs.pos-e2e-tests.result == 'success' || needs.pos-e2e-tests.result == 'skipped') &&
+      (inputs.test-suite == 'all' || inputs.test-suite == 'mixed-version-only' || inputs.test-suite == '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    name: mixed-version-execution-specs
+    steps:
+      - name: Checkout agglayer/e2e
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Install kurtosis
+        run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install -y kurtosis-cli jq
+          kurtosis analytics disable
+
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@v1.3.1
+
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Install polycli
+        run: |
+          tmp_dir=$(mktemp -d)
+          curl -sL "https://github.com/0xPolygon/polygon-cli/releases/download/${{ env.POLYCLI_VERSION }}/polycli_${{ env.POLYCLI_VERSION }}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
+          mv "$tmp_dir"/* /usr/local/bin/polycli
+          rm -rf "$tmp_dir"
+          chmod +x /usr/local/bin/polycli
+          polycli version
+
+      - name: Checkout kurtosis-pos
+        uses: actions/checkout@v4
+        with:
+          repository: 0xPolygon/kurtosis-pos
+          ref: ${{ env.KURTOSIS_POS_REF }}
+          path: kurtosis-pos
+
+      - name: Patch constants.star (all forks at 256)
+        run: |
+          CONSTANTS="kurtosis-pos/src/config/constants.star"
+          FORKS=(madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano)
+
+          for fork in "${FORKS[@]}"; do
+            if ! grep -qE '^\s+"'"${fork}"'":\s*[0-9]+' "$CONSTANTS"; then
+              echo "::error::Fork '${fork}' not found on an uncommented line in ${CONSTANTS}."
+              exit 1
+            fi
+            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
+          done
+
+          echo "--- Patched EL_HARD_FORK_BLOCKS ---"
+          grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
+
+          for fork in "${FORKS[@]}"; do
+            value=$(grep -E '^\s+"'"${fork}"'":' "$CONSTANTS" | grep -oE '[0-9]+')
+            if [[ "$value" != "256" ]]; then
+              echo "::error::Fork '${fork}' has value ${value}, expected 256 after patching."
+              exit 1
+            fi
+          done
+          echo "All post-rio forks verified at 256."
+
+      - name: Generate kurtosis params (mixed versions)
+        run: |
+          BOR_LATEST="${{ needs.check-new-release.outputs.bor-latest-image }}"
+          BOR_PREVIOUS="${{ needs.check-new-release.outputs.bor-previous-image }}"
+          HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+
+          echo "Bor latest:   ${BOR_LATEST}"
+          echo "Bor previous: ${BOR_PREVIOUS}"
+          echo "Heimdall-v2:  ${HV2_IMAGE}"
+
+          if [[ "$BOR_LATEST" == "$BOR_PREVIOUS" ]]; then
+            echo "::warning::Bor latest and previous are the same image (${BOR_LATEST}). Mixed-version test will still run but won't exercise cross-version compatibility."
+          fi
+
+          # Mixed-version topology: 2 validators on latest, 1 validator + RPC
+          # on the previous major version. This exercises cross-version P2P,
+          # block production, and RPC compatibility.
+          cat > /tmp/pos-mixed-params.yml <<PARAMS
+          polygon_pos_package:
+            participants:
+              - kind: validator
+                count: 2
+                el_bor_produce_witness: true
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_LATEST}"
+
+              - kind: validator
+                count: 1
+                el_bor_produce_witness: true
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_PREVIOUS}"
+
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_PREVIOUS}"
+          PARAMS
+
+          echo "--- Generated params ---"
+          cat /tmp/pos-mixed-params.yml
+
+      - name: Deploy kurtosis-pos enclave (mixed versions)
+        run: |
+          pushd kurtosis-pos
+          kurtosis run \
+            --enclave "${{ env.ENCLAVE_NAME }}" \
+            --args-file /tmp/pos-mixed-params.yml \
+            .
+          popd
+
+      - name: Inspect enclave
+        run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+
+      - name: Wait for all forks to activate
+        run: |
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}"
+          VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          RPC_URL="http://${VALIDATOR_RPC}"
+          echo "RPC URL: ${RPC_URL}"
+
+          echo "Testing RPC connectivity..."
+          curl -sv -X POST "${RPC_URL}" \
+            -H "Content-Type: application/json" \
+            -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' 2>&1 || true
+
+          TARGET_BLOCK=270
+          MAX_WAIT=600
+          POLL_INTERVAL=5
+          elapsed=0
+
+          echo "Waiting for chain to reach block ${TARGET_BLOCK} (forks activate at 256)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            response=$(curl -sf -X POST "${RPC_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' 2>/dev/null) || response=""
+
+            if [[ -n "$response" ]]; then
+              block_hex=$(echo "$response" | jq -r '.result // empty')
+              if [[ -n "$block_hex" ]]; then
+                block=$(printf "%d" "$block_hex" 2>/dev/null) || block=0
+              else
+                block=0
+              fi
+            else
+              block=0
+            fi
+
+            if [[ "$block" -ge "$TARGET_BLOCK" ]]; then
+              echo "Chain at block ${block} — all forks active."
+              exit 0
+            fi
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+
+          echo "::error::Chain did not reach block ${TARGET_BLOCK} within ${MAX_WAIT}s (stuck at ${block})."
+          echo "Last RPC response: ${response}"
+          exit 1
+
+      - name: Run PoS E2E tests (mixed versions)
+        run: |
+          set -eo pipefail
+          set -a
+          source ./tests/.env
+          set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running all execution-specs test suites on mixed-version enclave..."
+          bats \
+            tests/pos/execution-specs/protocol/ \
+            tests/pos/execution-specs/evm/ \
+            tests/pos/execution-specs/transactions/ \
+            tests/pos/execution-specs/rpc/ \
+            tests/pos/execution-specs/precompiles/ \
+            --filter-tags "execution-specs"
+
+      - name: Dump enclave logs
+        if: failure()
+        run: kurtosis dump ./dump
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pos-e2e-dump-mixed-version-${{ github.run_id }}
+          path: ./dump
+
+      - name: Clean up enclave
+        if: always()
+        run: |
+          kurtosis enclave stop "${{ env.ENCLAVE_NAME }}"
+          kurtosis clean
+
+      - name: Record test run in Datadog
+        if: always()
+        continue-on-error: true
+        uses: agglayer/gha-record-e2e-test-run@v1
+        with:
+          enable_ai_analysis: "true"
+          host: "github-actions-runners"
+          status: ${{ job.status }}
+          ref_e2e: "${{ github.ref }}"
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -429,8 +718,14 @@ jobs:
   # test independently waits for its target fork block.
   # ---------------------------------------------------------------------------
   pos-fork-transition-tests:
-    needs: [check-new-release, pos-e2e-tests]
-    if: needs.check-new-release.outputs.should-run == 'true'
+    needs: [check-new-release, pos-e2e-tests, pos-mixed-version-tests]
+    if: >-
+      always() &&
+      needs.check-new-release.outputs.should-run == 'true' &&
+      needs.check-new-release.result == 'success' &&
+      (needs.pos-e2e-tests.result == 'success' || needs.pos-e2e-tests.result == 'skipped') &&
+      (needs.pos-mixed-version-tests.result == 'success' || needs.pos-mixed-version-tests.result == 'skipped') &&
+      (inputs.test-suite == 'all' || inputs.test-suite == 'fork-transition-only' || inputs.test-suite == '')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: fork-transition-tests
@@ -438,7 +733,7 @@ jobs:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.agglayer-e2e-ref || 'main' }}
+          ref: ${{ github.ref }}
 
       - name: Install kurtosis
         run: |
@@ -601,8 +896,11 @@ jobs:
 
       - name: Generate archive-sync params
         run: |
+          BOR_ARCHIVE="${{ needs.check-new-release.outputs.bor-archive-image }}"
           BOR_LATEST="${{ needs.check-new-release.outputs.bor-latest-image }}"
           HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+
+          echo "Archive node image: ${BOR_ARCHIVE}"
 
           # existing_participants must match the original deployment exactly
           # (3 validators + 1 RPC) so the archive node gets a unique P2P index.
@@ -615,7 +913,7 @@ jobs:
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
                 el_type: bor
-                el_image: "${BOR_LATEST}"
+                el_image: "${BOR_ARCHIVE}"
 
           dev:
             should_deploy_l1: false
@@ -674,6 +972,10 @@ jobs:
           ARCHIVE_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" rpc)"
           VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
 
+          # Normalize: ensure URLs have exactly one http:// prefix.
+          ARCHIVE_RPC="${ARCHIVE_RPC#http://}" ; ARCHIVE_RPC="${ARCHIVE_RPC#https://}" ; ARCHIVE_RPC="http://${ARCHIVE_RPC}"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}" ; VALIDATOR_RPC="http://${VALIDATOR_RPC}"
+
           echo "Archive RPC: ${ARCHIVE_RPC}"
           echo "Validator RPC: ${VALIDATOR_RPC}"
 
@@ -688,12 +990,12 @@ jobs:
           stall_count=0
 
           while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
-            archive_block=$(curl -sf -X POST "http://${ARCHIVE_RPC}" \
+            archive_block=$(curl -sf -X POST "${ARCHIVE_RPC}" \
               -H "Content-Type: application/json" \
               -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
               | jq -r '.result' | xargs printf "%d" 2>/dev/null) || archive_block=0
 
-            validator_block=$(curl -sf -X POST "http://${VALIDATOR_RPC}" \
+            validator_block=$(curl -sf -X POST "${VALIDATOR_RPC}" \
               -H "Content-Type: application/json" \
               -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
               | jq -r '.result' | xargs printf "%d" 2>/dev/null) || validator_block=0
@@ -770,18 +1072,24 @@ jobs:
           enable_ai_analysis: "true"
           host: "github-actions-runners"
           status: ${{ job.status }}
-          ref_e2e: "${{ inputs.agglayer-e2e-ref || 'main' }}"
+          ref_e2e: "${{ github.ref }}"
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   # ---------------------------------------------------------------------------
   # Mark release as tested (write cache entry).
-  # Only runs after both test phases succeed.
+  # Only runs after all test phases succeed.
   # ---------------------------------------------------------------------------
   mark-tested:
-    needs: [check-new-release, pos-e2e-tests, pos-fork-transition-tests]
-    if: needs.check-new-release.outputs.bor-tag != 'manual' && needs.check-new-release.outputs.bor-tag != ''
+    needs: [check-new-release, pos-e2e-tests, pos-mixed-version-tests, pos-fork-transition-tests]
+    if: >-
+      always() &&
+      needs.check-new-release.outputs.bor-tag != 'manual' &&
+      needs.check-new-release.outputs.bor-tag != '' &&
+      needs.pos-fork-transition-tests.result == 'success' &&
+      (needs.pos-e2e-tests.result == 'success' || needs.pos-e2e-tests.result == 'skipped') &&
+      (needs.pos-mixed-version-tests.result == 'success' || needs.pos-mixed-version-tests.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Write cache marker
