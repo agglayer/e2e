@@ -336,6 +336,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - prune
 - push0
 - railgun
+- reth-l1
 - rio
 - selfdestruct
 - smooth-crypto-lib
