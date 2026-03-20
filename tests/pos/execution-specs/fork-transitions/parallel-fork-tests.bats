@@ -1111,18 +1111,19 @@ _kzg_input() {
     _wait_before_fork "$FORK_LISOVO"
 
     # Before Lisovo (block ~502), the active fork is MadhugiriPro (block 384+).
-    #   2.5.9:  MadhugiriPro set includes KZG → active
-    #   2.6.x+: MadhugiriPro set does NOT include KZG → inactive
-    local kzg_out
-    # Before Lisovo (block ~502), the active fork is MadhugiriPro (block 384+).
     #   2.5.x:  MadhugiriPro set includes KZG → active
     #   2.6.x+: MadhugiriPro set does NOT include KZG → inactive
-    #
-    # _wait_before_fork ensures the chain is near (but not past) the fork.
-    # Use "latest" — if the chain races past Lisovo due to parallel tests,
-    # _wait_before_fork will have already skipped this test.
     local kzg_out
     kzg_out=$(_call_at_block "0x000000000000000000000000000000000000000a" "$(_kzg_input)" "latest")
+
+    # Re-check chain height — parallel tests can advance the chain past the
+    # fork between _wait_before_fork and the probe.
+    local current_after
+    current_after=$(_current_block)
+    if [[ "$current_after" -ge "$FORK_LISOVO" ]]; then
+        skip "chain raced past Lisovo (block ${current_after}) during probe — parallel execution"
+    fi
+
     local kzg_active=false
     if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
         kzg_active=true
@@ -1130,14 +1131,14 @@ _kzg_input() {
 
     if _bor_version_gte "2.6.0"; then
         if [[ "$kzg_active" == "true" ]]; then
-            echo "FAIL: KZG (0x0a) unexpectedly active before Lisovo on bor $(_bor_version)" >&2
+            echo "FAIL: KZG (0x0a) unexpectedly active before Lisovo (block ${current_after}) on bor $(_bor_version)" >&2
             return 1
         fi
         echo "  OK: KZG inactive before Lisovo [bor $(_bor_version)]" >&3
     else
         # On 2.5.x, KZG is in MadhugiriPro set → already active before Lisovo.
         if [[ "$kzg_active" != "true" ]]; then
-            echo "FAIL: KZG (0x0a) unexpectedly inactive before Lisovo on bor $(_bor_version) — should be in MadhugiriPro set" >&2
+            echo "FAIL: KZG (0x0a) unexpectedly inactive before Lisovo (block ${current_after}) on bor $(_bor_version) — should be in MadhugiriPro set" >&2
             return 1
         fi
         echo "  OK: KZG active before Lisovo (expected on bor $(_bor_version) — in MadhugiriPro set)" >&3
@@ -1527,7 +1528,7 @@ _kzg_input() {
     local err
     err=$(echo "$result" | jq -r '.error.message // empty')
     if [[ -n "$err" && ("$err" == *"does not exist"* || "$err" == *"not available"*) ]]; then
-        skip "bor_getBlockGasParams not available on this bor version"
+        skip "bor_getBlockGasParams not available on bor $(_bor_version)"
     fi
 
     gas_target_hex=$(echo "$result" | jq -r '.result.gasTarget')
