@@ -141,7 +141,7 @@ jobs:
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
-          archive_name="dump_run_with_args_${{ inputs.test-name}}_${{ github.run_id }}"
+          archive_name="dump_agglayer-node-e2e_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
 
@@ -149,7 +149,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-name}}
+          name: agglayer-node-e2e
           path: ./dump
 
       - name: Clean up kurtosis-cdk enclave
