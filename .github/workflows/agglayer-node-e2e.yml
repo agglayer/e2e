@@ -1,18 +1,11 @@
-name: Configurable E2E Execution
-run-name: Run Kurtosis CDK E2E test by @${{ github.actor }}
+name: Agglayer Node E2E
+run-name: Run Agglayer Node E2E test by @${{ github.actor }}
 
-# TODO solve for remote callers setting bats environment variables
-# act --container-options "--group-add $(stat -c %g /var/run/docker.sock)" -s GITHUB_TOKEN=$ACT_GITHUB_TOKEN workflow_call
 on:
   workflow_call:
     inputs:
       kurtosis-cdk-ref:
         description: "The tag, branch, or commit of the kurtosis-cdk package that will be used"
-        required: true
-        type: string
-
-      test-name:
-        description: "The name of the test to run"
         required: true
         type: string
 
@@ -59,8 +52,8 @@ env:
   POLYCLI_VERSION: v0.1.90
 
 jobs:
-  test-cdk-e2e:
-    name: ${{ inputs.test-name }}
+  test-agglayer-node-e2e:
+    name: agglayer-node-e2e
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
@@ -138,14 +131,7 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats tests/cdk/access-list-e2e.bats tests/cdk/basic-e2e.bats
-          if [[ "${{ inputs.test-name }}" == "test-fork9-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork11-rollup-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e-zkevm-bridge" ]]; then
-            bats tests/cdk/e2e.bats tests/cdk/bridge-e2e.bats
-          elif [[ "${{ inputs.test-name }}" == "test-fork12-cdk-validium-e2e" || "${{ inputs.test-name }}" == "test-fork12-rollup-e2e" ]]; then
-            bats tests/cdk/e2e.bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
-          elif [[ "${{ inputs.test-name }}" == "test-fork12-pessimistic-e2e" ]]; then
-            bats tests/aggkit/bridge-e2e.bats tests/aggkit/bridge-e2e-custom-gas.bats
-          fi
+          bats tests/agglayer/bridges.bats tests/agglayer/rpc-tests.bats --filter-tags agglayer
           popd
 
       - name: Dump enclave logs
@@ -155,7 +141,7 @@ jobs:
       - name: Generate archive name
         if: ${{ failure() }}
         run: |
-          archive_name="dump_run_with_args_${{ inputs.test-name}}_${{ github.run_id }}"
+          archive_name="dump_agglayer-node-e2e_${{ github.run_id }}"
           echo "ARCHIVE_NAME=${archive_name}" >> "$GITHUB_ENV"
           echo "Generated archive name: ${archive_name}"
 
@@ -163,7 +149,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-name}}
+          name: agglayer-node-e2e
           path: ./dump
 
       - name: Clean up kurtosis-cdk enclave
