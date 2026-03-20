@@ -383,45 +383,6 @@ _assert_precompile_active() {
 # Assert precompile is active by checking that it reverts on bad input.
 # Active precompile: eth_call returns a revert error. Inactive: returns "0x" result.
 # Distinguishes precompile reverts from infrastructure errors (historical state unavailable).
-_assert_precompile_reverts() {
-    local addr="$1" input="$2" block="$3" label="$4"
-    local block_param
-    if [[ "$block" == "latest" ]]; then
-        block_param='"latest"'
-    else
-        local block_hex
-        block_hex=$(printf '0x%x' "$block")
-        block_param="\"${block_hex}\""
-    fi
-    local result
-    result=$(curl -s -X POST "${L2_RPC_URL}" \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"'"${addr}"'","data":"'"${input}"'"},'"${block_param}"'],"id":1}')
-    local has_error
-    has_error=$(echo "${result}" | jq 'has("error")' 2>/dev/null)
-    local err_msg
-    err_msg=$(echo "${result}" | jq -r '.error.message // empty' 2>/dev/null) || err_msg=""
-
-    if [[ "${has_error}" == "true" ]]; then
-        # Fail on infrastructure errors (not precompile reverts)
-        if [[ "${err_msg}" == *"historical state"* || "${err_msg}" == *"not available"* ]]; then
-            echo "FAIL: ${label} historical state error at block ${block}: ${err_msg}" >&2
-            return 1
-        fi
-        # Precompile revert = active
-        echo "  OK: ${label} active (reverted on bad input) at block ${block}" >&3
-        return 0
-    fi
-
-    local out
-    out=$(echo "${result}" | jq -r '.result // empty' 2>/dev/null) || out=""
-    if [[ "${out}" == "0x" || -z "${out}" ]]; then
-        echo "FAIL: ${label} returned trivial 0x at block ${block} — precompile inactive" >&2
-        return 1
-    fi
-    echo "  OK: ${label} active (returned data) at block ${block}" >&3
-}
-
 # ────────────────────────────────────────────────────────────────────────────
 # Shared test vectors for precompile inputs
 # ────────────────────────────────────────────────────────────────────────────
@@ -522,11 +483,6 @@ _p256_input() {
     echo "${input}"
 }
 
-_kzg_input() {
-    # Empty calldata — active KZG precompile rejects invalid-length input with a
-    # revert (returns ERROR via eth_call). Inactive address returns "0x" (success).
-    echo "0x"
-}
 
 # ════════════════════════════════════════════════════════════════════════════
 #
@@ -843,8 +799,33 @@ _kzg_input() {
     # KZG is not in the Cancun precompile set on any bor version.
     # It only appears in Madhugiri+ (2.5.9) or Lisovo+ (2.6.x+).
     # Before Madhugiri, the chain is in Cancun → KZG must be inactive.
-    _assert_precompile_inactive "0x000000000000000000000000000000000000000a" \
-        "$(_kzg_input)" "latest" "KZG point eval"
+    # Use on-chain STATICCALL (not eth_call) to avoid RPC-level false positives.
+    deploy_runtime "6000600060006000600a5afa600055003d60015500" 500000
+    call_contract "$contract_addr" 500000
+
+    local mined_block
+    mined_block=$(_receipt_block "$call_receipt")
+    if [[ "$mined_block" -ge "$FORK_MADHUGIRI" ]]; then
+        skip "tx mined at block ${mined_block} (>= Madhugiri ${FORK_MADHUGIRI}) — chain raced past fork"
+    fi
+
+    local status
+    status=$(_receipt_status "$call_receipt")
+    [[ "$status" == "0x1" ]]
+
+    local success_flag
+    success_flag=$(cast storage "$contract_addr" 0 --rpc-url "$L2_RPC_URL")
+    success_flag=$(printf "%d" "$success_flag")
+
+    echo "KZG STATICCALL before Madhugiri (block ${mined_block}): success_flag=${success_flag} (0=active, 1=inactive)" >&3
+
+    # success_flag=1 means STATICCALL to 0x0a succeeded (no precompile) = INACTIVE.
+    # KZG is not in Cancun set on any version — must be inactive.
+    if [[ "$success_flag" -ne 1 ]]; then
+        echo "FAIL: KZG (0x0a) unexpectedly active before Madhugiri (block ${mined_block}) on bor $(_bor_version)" >&2
+        return 1
+    fi
+    echo "  OK: KZG inactive before Madhugiri [bor $(_bor_version)]" >&3
 }
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1110,35 +1091,44 @@ _kzg_input() {
     [[ "$FORK_LISOVO" -le 10 ]] && skip "Lisovo at genesis"
     _wait_before_fork "$FORK_LISOVO"
 
-    # Before Lisovo (block ~502), the active fork is MadhugiriPro (block 384+).
-    #   2.5.x:  MadhugiriPro set includes KZG → active
-    #   2.6.x+: MadhugiriPro set does NOT include KZG → inactive
-    local kzg_out
-    kzg_out=$(_call_at_block "0x000000000000000000000000000000000000000a" "$(_kzg_input)" "latest")
+    # Use on-chain STATICCALL to probe KZG — more reliable than eth_call which
+    # can return errors for reasons unrelated to precompile status.
+    # Contract: STATICCALL(gas, 0x0a, 0, 0, 0, 0) → success flag → SSTORE(0)
+    # success=0 means STATICCALL reverted (precompile exists, bad input) = ACTIVE
+    # success=1 means STATICCALL succeeded (no code at address) = INACTIVE
+    deploy_runtime "6000600060006000600a5afa600055003d60015500" 500000
+    call_contract "$contract_addr" 500000
 
     # Re-check chain height — parallel tests can advance the chain past the
-    # fork between _wait_before_fork and the probe.
-    local current_after
-    current_after=$(_current_block)
-    if [[ "$current_after" -ge "$FORK_LISOVO" ]]; then
-        skip "chain raced past Lisovo (block ${current_after}) during probe — parallel execution"
+    # fork between _wait_before_fork and the tx being mined.
+    local mined_block
+    mined_block=$(_receipt_block "$call_receipt")
+    if [[ "$mined_block" -ge "$FORK_LISOVO" ]]; then
+        skip "tx mined at block ${mined_block} (>= Lisovo ${FORK_LISOVO}) — chain raced past fork"
     fi
 
-    local kzg_active=false
-    if [[ "${kzg_out}" == ERROR:* ]] || _is_nontrivial "${kzg_out}"; then
-        kzg_active=true
-    fi
+    local status
+    status=$(_receipt_status "$call_receipt")
+    [[ "$status" == "0x1" ]]
 
+    local success_flag
+    success_flag=$(cast storage "$contract_addr" 0 --rpc-url "$L2_RPC_URL")
+    success_flag=$(printf "%d" "$success_flag")
+
+    echo "KZG STATICCALL before Lisovo (block ${mined_block}): success_flag=${success_flag} (0=active, 1=inactive) [bor $(_bor_version)]" >&3
+
+    # Before Lisovo, the active fork is MadhugiriPro (block 384+).
+    #   2.5.x:  MadhugiriPro set includes KZG → success_flag=0 (active)
+    #   2.6.x+: MadhugiriPro set does NOT include KZG → success_flag=1 (inactive)
     if _bor_version_gte "2.6.0"; then
-        if [[ "$kzg_active" == "true" ]]; then
-            echo "FAIL: KZG (0x0a) unexpectedly active before Lisovo (block ${current_after}) on bor $(_bor_version)" >&2
+        if [[ "$success_flag" -ne 1 ]]; then
+            echo "FAIL: KZG (0x0a) unexpectedly active before Lisovo (block ${mined_block}) on bor $(_bor_version)" >&2
             return 1
         fi
         echo "  OK: KZG inactive before Lisovo [bor $(_bor_version)]" >&3
     else
-        # On 2.5.x, KZG is in MadhugiriPro set → already active before Lisovo.
-        if [[ "$kzg_active" != "true" ]]; then
-            echo "FAIL: KZG (0x0a) unexpectedly inactive before Lisovo (block ${current_after}) on bor $(_bor_version) — should be in MadhugiriPro set" >&2
+        if [[ "$success_flag" -ne 0 ]]; then
+            echo "FAIL: KZG (0x0a) unexpectedly inactive before Lisovo (block ${mined_block}) on bor $(_bor_version) — should be in MadhugiriPro set" >&2
             return 1
         fi
         echo "  OK: KZG active before Lisovo (expected on bor $(_bor_version) — in MadhugiriPro set)" >&3
