@@ -31,7 +31,8 @@ _check_balances() {
         return 1
     fi
 
-    local sender_final_balance=$(cast balance "$sender" --ether --rpc-url "$L2_RPC_URL") || return 1
+    local sender_final_balance
+    sender_final_balance=$(cast balance "$sender" --ether --rpc-url "$L2_RPC_URL") || return 1
     echo "Sender final balance: '$sender_final_balance' wei"
     echo "RPC url: '$L2_RPC_URL'"
 
@@ -105,7 +106,8 @@ _send_eoa_transaction() {
     # Send transaction via cast
     local cast_output tx_hash
     gas_price=$(cast gas-price --rpc-url "$rpc_url")
-    local comp_gas_price=$(bc -l <<<"$gas_price * 3.5" | sed 's/\..*//')
+    local comp_gas_price
+    comp_gas_price=$(bc -l <<<"$gas_price * 3.5" | sed 's/\..*//')
     if [[ $? -ne 0 ]]; then
         echo "Failed to calculate gas price" >&3
         exit 1
@@ -194,7 +196,8 @@ function send_tx() {
     if [[ "$value_or_function_sig" =~ ^[0-9]+(\.[0-9]+)?(ether)?$ ]]; then
         # Case: Ether transfer (EOA transaction)
         # Get initial ether balances of sender and receiver
-        local sender_addr=$(cast wallet address --private-key "$private_key")
+        local sender_addr
+        sender_addr=$(cast wallet address --private-key "$private_key")
         local sender_initial_balance receiver_initial_balance
         sender_initial_balance=$(cast balance "$sender_addr" --ether --rpc-url "$rpc_url") || return 1
         receiver_initial_balance=$(cast balance "$receiver_addr" --ether --rpc-url "$rpc_url") || return 1
