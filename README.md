@@ -350,6 +350,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - transaction-eoa
 - transaction-erc20
 - transaction-erc721
+- transaction-matic
 - transaction-pol
 - transaction-uniswap
 - transient-storage
