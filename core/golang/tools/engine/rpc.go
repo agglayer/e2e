@@ -12,10 +12,7 @@ import (
 
 	"github.com/agglayer/e2e/core/golang/tools/hex"
 	"github.com/agglayer/e2e/core/golang/tools/log"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -214,45 +211,4 @@ func MustGetAuth(privateKeyStr string, chainID uint64) *bind.TransactOpts {
 	return auth
 }
 
-// GetSender gets the sender from the transaction's signature
-func GetSender(tx types.Transaction) (common.Address, error) {
-	signer := types.NewEIP155Signer(tx.ChainId())
-	sender, err := signer.Sender(&tx)
-	if err != nil {
-		return common.Address{}, err
-	}
-	return sender, nil
-}
 
-// TxToMsg converts a transaction to a call message
-func TxToMsg(tx types.Transaction) ethereum.CallMsg {
-	sender, err := GetSender(tx)
-	if err != nil {
-		sender = common.Address{}
-	}
-
-	return ethereum.CallMsg{
-		From:     sender,
-		To:       tx.To(),
-		Gas:      tx.Gas(),
-		GasPrice: tx.GasPrice(),
-		Value:    tx.Value(),
-		Data:     tx.Data(),
-	}
-}
-
-func TxToTxArgs(tx types.Transaction) map[string]any {
-	sender, err := GetSender(tx)
-	if err != nil {
-		sender = common.Address{}
-	}
-
-	return map[string]any{
-		"From":     sender.String(),
-		"To":       tx.To().String(),
-		"Gas":      hex.EncodeUint64(tx.Gas()),
-		"GasPrice": hex.EncodeBig(tx.GasPrice()),
-		"Value":    hex.EncodeBig(tx.Value()),
-		"Input":    hex.EncodeToHex(tx.Data()),
-	}
-}

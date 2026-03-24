@@ -10,9 +10,8 @@ import (
 )
 
 const (
-	char              = "*"
-	borderSize        = 3
-	lineSeparatorSize = 60
+	char       = "*"
+	borderSize = 3
 )
 
 func Tx(t *testing.T, tx *ethTypes.Transaction) {
@@ -45,14 +44,6 @@ func Complements(t *testing.T, msgs ...string) {
 		}
 		t.Log(border(), "└─", msgs[len(msgs)-1])
 	}
-}
-
-func LineSeparator(t *testing.T) {
-	t.Log(strings.Repeat(char, lineSeparatorSize))
-}
-
-func LineBreaker(t *testing.T) {
-	t.Log(border())
 }
 
 func Msg(t *testing.T, args ...any) {
