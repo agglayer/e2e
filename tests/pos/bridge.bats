@@ -126,9 +126,53 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=bridge,transaction-pol
-# @test "bridge native tokens from L2 to L1 and confirm L1 POL balance increased" {
-#   echo TODO
-# }
+@test "withdraw native tokens from L2 and confirm L2 native balance decreased and checkpoint submitted" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get initial L2 native balance and latest checkpoint ID.
+  initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
+  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
+  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+
+  echo "Initial balances and state:"
+  echo "- L2 native balance: ${initial_l2_balance} wei"
+  echo "- Latest checkpoint ID: ${initial_checkpoint_id}"
+
+  # Burn native tokens on L2 to initiate the Plasma exit.
+  withdraw_amount=$(cast to-unit 1ether wei)
+  echo "Burning ${withdraw_amount} wei on L2 (0x1010.withdraw)..."
+  withdraw_receipt=$(cast send \
+    --rpc-url "${L2_RPC_URL}" \
+    --private-key "${PRIVATE_KEY}" \
+    --value "${withdraw_amount}" \
+    --json \
+    "0x0000000000000000000000000000000000001010" \
+    "withdraw(uint256)" "${withdraw_amount}")
+  withdraw_tx_hash=$(echo "${withdraw_receipt}" | jq --raw-output ".transactionHash")
+  withdraw_block_hex=$(echo "${withdraw_receipt}" | jq --raw-output ".blockNumber")
+  withdraw_block=$(printf "%d" "${withdraw_block_hex}")
+  echo "Withdraw tx: ${withdraw_tx_hash} (block ${withdraw_block})"
+
+  # Verify L2 native balance decreased.
+  echo "Verifying L2 native balance decreased..."
+  assert_ether_balance_eventually_lower_or_equal "${address}" $((initial_l2_balance - withdraw_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  # Wait for a new checkpoint on L1 that covers the withdrawal block.
+  # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
+  echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
+  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+
+  # TODO: Complete the Plasma exit on L1 to recover funds.
+  # After the burn block is checkpointed, the remaining steps are:
+  #   1. Build the exit payload: RLP-encoded receipt of the burn tx + Merkle
+  #      proof of that receipt in the block's receipts trie + checkpoint proof.
+  #   2. L1: WithdrawManagerProxy.startExitWithBurntTokens(bytes exitTx)
+  #   3. L1: WithdrawManagerProxy.processExits(address token)
+  #   4. Assert L1 POL balance increased by withdraw_amount.
+  # Proof generation requires constructing the receipts MPT of the burn block,
+  # which is not feasible in pure bash. A dedicated tool (e.g. matic.js or a
+  # custom Go helper) is needed.
+}
 
 # bats test_tags=bridge,transaction-erc20
 @test "bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased" {

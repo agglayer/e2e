@@ -149,6 +149,35 @@ function assert_token_balance_eventually_lower_or_equal() {
   done
 }
 
+function assert_ether_balance_eventually_lower_or_equal() {
+  local address="$1"
+  local target="$2"
+  local rpc_url="$3"
+  local timeout="${4:-90}"
+  local interval="${5:-10}"
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Target: ${target}"
+
+  local start_time
+  start_time=$(date +%s)
+  local end_time
+  end_time=$((start_time + timeout))
+  while true; do
+    if [[ "$(date +%s)" -ge "${end_time}" ]]; then
+      echo "Timeout reached."
+      exit 1
+    fi
+
+    balance=$(cast balance --rpc-url "${rpc_url}" "${address}")
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} wei"
+    if [[ "${balance}" -le "${target}" ]]; then
+      break
+    fi
+
+    sleep "${interval}"
+  done
+}
+
 function assert_ether_balance_eventually_greater_or_equal() {
   local address="$1"
   local target="$2"
