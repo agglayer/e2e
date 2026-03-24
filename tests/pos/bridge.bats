@@ -46,6 +46,46 @@ function wait_for_bor_state_sync() {
   assert_command_eventually_greater_or_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
+# bats test_tags=bridge,transaction-pol
+@test "bridge POL from L1 to L2 and confirm L2 native tokens balance increased" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get the initial balances.
+  initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
+
+  echo "Initial balances:"
+  echo "- L1 POL balance: ${initial_l1_balance}"
+  echo "- L2 native tokens balance: ${initial_l2_balance} wei"
+
+  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
+  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+
+  # Bridge some POL tokens from L1 to L2 to trigger a state sync.
+  # The DepositManager remaps POL to MATIC internally before the state sync,
+  # so the L2 native token balance increases identically to bridging MATIC.
+  bridge_amount=$(cast to-unit 1ether wei)
+
+  echo "Approving the DepositManager contract to spend POL tokens on our behalf..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
+
+  echo "Depositing POL tokens to trigger a state sync..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositERC20(address,uint)" "${L1_POL_TOKEN_ADDRESS}" "${bridge_amount}"
+
+  # Wait for Heimdall and Bor to process the bridge event.
+  wait_for_heimdall_state_sync "${heimdall_state_sync_count}"
+  wait_for_bor_state_sync "${bor_state_sync_count}"
+
+  # Monitor the balances on L1 and L2.
+  echo "Monitoring POL balance on L1..."
+  assert_token_balance_eventually_lower_or_equal "${L1_POL_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance - bridge_amount)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Monitoring native tokens balance on L2..."
+  assert_ether_balance_eventually_greater_or_equal "${address}" $((initial_l2_balance + bridge_amount)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+}
+
 # bats test_tags=bridge,transaction-matic
 @test "bridge MATIC from L1 to L2 and confirm L2 native tokens balance increased" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
