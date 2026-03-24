@@ -519,6 +519,199 @@ jobs:
             tests/pos/execution-specs/precompiles/ \
             --filter-tags "execution-specs"
 
+      # -------------------------------------------------------------------
+      # Archive node sync test.
+      #
+      # Adds an archive node to the running enclave and verifies it can
+      # sync from genesis through all fork boundaries without BAD BLOCK.
+      # -------------------------------------------------------------------
+      - name: Export genesis and contract artifacts
+        run: |
+          set -eo pipefail
+          ARCHIVE_DIR="kurtosis-pos/.github/configs/archive-sync"
+          mkdir -p "$ARCHIVE_DIR"
+
+          kurtosis files inspect "${{ env.ENCLAVE_NAME }}" l2-cl-genesis genesis.json \
+            | jq > "${ARCHIVE_DIR}/l2-cl-genesis.json"
+          kurtosis files inspect "${{ env.ENCLAVE_NAME }}" l2-el-genesis genesis.json \
+            | jq > "${ARCHIVE_DIR}/l2-el-genesis.json"
+          kurtosis files inspect "${{ env.ENCLAVE_NAME }}" matic-contract-addresses contractAddresses.json \
+            | jq > "${ARCHIVE_DIR}/matic-contract-addresses.json"
+
+          jq '.config.blobSchedule = {"cancun":{"target":3,"max":6,"baseFeeUpdateFraction":3338477}}' \
+            "${ARCHIVE_DIR}/l2-el-genesis.json" > "${ARCHIVE_DIR}/l2-el-genesis-patched.json" \
+            && mv "${ARCHIVE_DIR}/l2-el-genesis-patched.json" "${ARCHIVE_DIR}/l2-el-genesis.json"
+
+          for f in l2-cl-genesis.json l2-el-genesis.json matic-contract-addresses.json; do
+            if [[ ! -s "${ARCHIVE_DIR}/${f}" ]] || [[ "$(jq 'type' "${ARCHIVE_DIR}/${f}" 2>/dev/null)" != '"object"' ]]; then
+              echo "::error::Exported file ${f} is empty or invalid."
+              exit 1
+            fi
+          done
+
+      - name: Generate archive-sync params
+        run: |
+          BOR_ARCHIVE="${{ needs.check-new-release.outputs.bor-archive-image }}"
+          BOR_A="${{ matrix.bor_a }}"
+          BOR_B="${{ matrix.bor_b }}"
+          ERIGON_RPC="${{ matrix.erigon_rpc }}"
+          HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+
+          echo "Archive node image: ${BOR_ARCHIVE}"
+
+          # existing_participants must match the deployed topology exactly
+          # so the archive node gets a unique P2P index.
+          cat > /tmp/archive-sync-params.yml <<PARAMS
+          polygon_pos_package:
+            participants:
+              - kind: archive
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_ARCHIVE}"
+
+          dev:
+            should_deploy_l1: false
+            l1_rpc_url: http://el-1-geth-lighthouse:8545
+
+            should_deploy_matic_contracts: false
+            l2_cl_genesis_filepath: .github/configs/archive-sync/l2-cl-genesis.json
+            l2_el_genesis_filepath: .github/configs/archive-sync/l2-el-genesis.json
+            matic_contract_addresses_filepath: .github/configs/archive-sync/matic-contract-addresses.json
+
+            existing_participants:
+              - kind: validator
+                count: 2
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_A}"
+              - kind: validator
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_B}"
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_A}"
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_B}"
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: erigon
+                el_image: "${ERIGON_RPC}"
+          PARAMS
+
+          echo "--- Archive sync params ---"
+          cat /tmp/archive-sync-params.yml
+
+      - name: Add archive node to enclave
+        run: |
+          pushd kurtosis-pos
+          kurtosis run \
+            --enclave "${{ env.ENCLAVE_NAME }}" \
+            --args-file /tmp/archive-sync-params.yml \
+            .
+          popd
+
+      - name: Wait for archive node to sync
+        run: |
+          set -eo pipefail
+
+          ARCHIVE_SERVICE=$(kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}" 2>/dev/null \
+            | grep -oE 'l2-el-[0-9]+-bor-heimdall-v2-archive' | head -1)
+          if [[ -z "$ARCHIVE_SERVICE" ]]; then
+            echo "::error::Could not find archive service in enclave."
+            kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+            exit 1
+          fi
+          echo "Archive service: ${ARCHIVE_SERVICE}"
+
+          ARCHIVE_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" rpc)"
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+
+          ARCHIVE_RPC="${ARCHIVE_RPC#http://}" ; ARCHIVE_RPC="${ARCHIVE_RPC#https://}" ; ARCHIVE_RPC="http://${ARCHIVE_RPC}"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}" ; VALIDATOR_RPC="http://${VALIDATOR_RPC}"
+
+          echo "Archive RPC: ${ARCHIVE_RPC}"
+          echo "Validator RPC: ${VALIDATOR_RPC}"
+
+          # Use the last supported fork block as the minimum sync target.
+          BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          base_ver=$(echo "$BOR_MIN_VERSION" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          MIN_BLOCK=576  # default: FORK_LISOVO_PRO
+          if [[ "$(printf '%s\n%s' "$base_ver" "2.7.0" | sort -V | head -1)" == "2.7.0" ]]; then
+            MIN_BLOCK=640  # FORK_GIUGLIANO
+          fi
+
+          MAX_WAIT=600
+          POLL_INTERVAL=10
+          SYNC_THRESHOLD=5
+          elapsed=0
+          last_archive_block=0
+          stall_count=0
+
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            archive_block=$(curl -sf -X POST "${ARCHIVE_RPC}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result' | xargs printf "%d" 2>/dev/null) || archive_block=0
+
+            validator_block=$(curl -sf -X POST "${VALIDATOR_RPC}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result' | xargs printf "%d" 2>/dev/null) || validator_block=0
+
+            echo "[${elapsed}s] Archive: ${archive_block} | Validator: ${validator_block}"
+
+            bad_blocks=$(kurtosis service logs "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" 2>/dev/null \
+              | tail -200 | grep -c "BAD BLOCK" || true)
+            if [[ "$bad_blocks" -gt 0 ]]; then
+              echo "::error::Archive node encountered BAD BLOCK error."
+              kurtosis service logs "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" 2>/dev/null \
+                | grep -B 2 -A 10 "BAD BLOCK" || true
+              exit 1
+            fi
+
+            if [[ "$archive_block" -ge "$MIN_BLOCK" && "$validator_block" -gt 0 ]]; then
+              gap=$(( validator_block - archive_block ))
+              if [[ "$gap" -le "$SYNC_THRESHOLD" && "$gap" -ge 0 ]]; then
+                echo "Archive node synced! Block ${archive_block} (validator at ${validator_block}, gap ${gap})."
+                exit 0
+              fi
+            fi
+
+            if [[ "$archive_block" -eq "$last_archive_block" && "$archive_block" -gt 0 ]]; then
+              stall_count=$(( stall_count + 1 ))
+              if [[ "$stall_count" -ge 6 ]]; then
+                echo "::error::Archive node stalled at block ${archive_block}."
+                kurtosis service logs "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" 2>/dev/null | tail -50
+                exit 1
+              fi
+            else
+              stall_count=0
+            fi
+            last_archive_block="$archive_block"
+
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+
+          echo "::error::Archive node did not sync within ${MAX_WAIT}s."
+          kurtosis service logs "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" 2>/dev/null | tail -50
+          exit 1
+
       - name: Dump enclave logs
         if: failure()
         run: kurtosis dump ./dump
