@@ -102,13 +102,9 @@ jobs:
             if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
               echo "compat-versions=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
             elif [[ -f "$COMPAT_YML" ]]; then
-              compat_parts=$(python3 -c "
-          import yaml
-          with open('$COMPAT_YML') as f:
-              data = yaml.safe_load(f)
-          versions = data.get('versions') or []
-          print(','.join(v['image'] for v in versions if 'image' in v))
-          " 2>/dev/null) || compat_parts=""
+              compat_parts=$(grep -E '^\s+-?\s*image:\s*' "$COMPAT_YML" \
+                | sed -E 's/.*image:\s*"?([^"]+)"?.*/\1/' \
+                | paste -sd ',' -)
               if [[ -n "$compat_parts" ]]; then
                 echo "compat-versions=${compat_parts}" >> "$GITHUB_OUTPUT"
               else
@@ -222,15 +218,10 @@ jobs:
             echo "compat-versions=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
           elif [[ -f "$COMPAT_YML" ]]; then
             echo "Reading compat versions from ${COMPAT_YML}..."
-            # Extract image values from the curated YAML list.
-            compat_parts=$(python3 -c "
-          import yaml, sys
-          with open('$COMPAT_YML') as f:
-              data = yaml.safe_load(f)
-          versions = data.get('versions') or []
-          images = [v['image'] for v in versions if 'image' in v]
-          print(','.join(images))
-          " 2>/dev/null) || compat_parts=""
+            # Extract image values with grep (no PyYAML dependency needed).
+            compat_parts=$(grep -E '^\s+-?\s*image:\s*' "$COMPAT_YML" \
+              | sed -E 's/.*image:\s*"?([^"]+)"?.*/\1/' \
+              | paste -sd ',' -)
 
             if [[ -n "$compat_parts" ]]; then
               echo "Compat versions: ${compat_parts}"
@@ -280,57 +271,64 @@ jobs:
           # Generate pairwise pairs with el_type metadata.
           # If the curated YAML exists and has el_type fields, use it directly.
           # Otherwise fall back to the comma-separated image list (bor-only).
-          pairs=$(python3 -c "
-          import yaml, json, re, os
+          # Build entries from the curated YAML (using grep — no PyYAML needed).
+          # Each entry in compat-versions.yml has image + el_type fields.
+          declare -a entry_images=()
+          declare -a entry_eltypes=()
 
-          compat_yml = '${COMPAT_YML}'
-          compat_csv = '${COMPAT_CSV}'
+          if [[ -f "$COMPAT_YML" ]]; then
+            # Parse image/el_type pairs by reading lines sequentially.
+            current_image=""
+            current_eltype="bor"
+            while IFS= read -r line; do
+              if [[ "$line" =~ image:\ *\"?([^\"]+)\"? ]]; then
+                current_image="${BASH_REMATCH[1]}"
+              elif [[ "$line" =~ el_type:\ *\"?([^\"]+)\"? ]]; then
+                current_eltype="${BASH_REMATCH[1]}"
+              fi
+              # When we have both, save the entry and reset.
+              if [[ -n "$current_image" && "$line" =~ el_type: ]]; then
+                entry_images+=("$current_image")
+                entry_eltypes+=("$current_eltype")
+                current_image=""
+                current_eltype="bor"
+              fi
+            done < "$COMPAT_YML"
+            # Catch last entry if image came after el_type.
+            [[ -n "$current_image" ]] && entry_images+=("$current_image") && entry_eltypes+=("${current_eltype}")
+          fi
 
-          entries = []
+          # Fall back to CSV (all bor) if no entries from YAML.
+          if [[ ${#entry_images[@]} -eq 0 && -n "$COMPAT_CSV" ]]; then
+            IFS=',' read -ra csv_images <<< "$COMPAT_CSV"
+            for img in "${csv_images[@]}"; do
+              img=$(echo "$img" | xargs)
+              [[ -n "$img" ]] && entry_images+=("$img") && entry_eltypes+=("bor")
+            done
+          fi
 
-          # Try curated YAML first (has el_type per entry).
-          if os.path.isfile(compat_yml):
-              with open(compat_yml) as f:
-                  data = yaml.safe_load(f) or {}
-              for v in (data.get('versions') or []):
-                  if 'image' in v:
-                      entries.append({
-                          'image': v['image'],
-                          'el_type': v.get('el_type', 'bor'),
-                      })
+          echo "Entries for compat testing (${#entry_images[@]}):"
+          for ((i=0; i<${#entry_images[@]}; i++)); do
+            echo "  ${entry_images[$i]} (${entry_eltypes[$i]})"
+          done
 
-          # Fall back to CSV (all bor).
-          if not entries and compat_csv:
-              for img in compat_csv.split(','):
-                  img = img.strip()
-                  if img:
-                      entries.append({'image': img, 'el_type': 'bor'})
-
-          # Deduplicate by image.
-          seen = set()
-          unique = []
-          for e in entries:
-              if e['image'] not in seen:
-                  seen.add(e['image'])
-                  unique.append(e)
-
-          # Generate all pairwise combinations.
-          pairs = []
-          for i in range(len(unique)):
-              for j in range(i + 1, len(unique)):
-                  a, b = unique[i], unique[j]
-                  la = a['image'].rsplit('/', 1)[-1]
-                  lb = b['image'].rsplit('/', 1)[-1]
-                  pairs.append({
-                      'version_a': a['image'],
-                      'version_b': b['image'],
-                      'el_type_a': a['el_type'],
-                      'el_type_b': b['el_type'],
-                      'pair_label': f'{la}-vs-{lb}',
-                  })
-
-          print(json.dumps(pairs, separators=(',', ':')))
-          " 2>/dev/null) || pairs="[]"
+          # Generate all pairwise combinations as JSON.
+          pairs="[]"
+          for ((i=0; i<${#entry_images[@]}; i++)); do
+            for ((j=i+1; j<${#entry_images[@]}; j++)); do
+              va="${entry_images[$i]}"
+              vb="${entry_images[$j]}"
+              eta="${entry_eltypes[$i]}"
+              etb="${entry_eltypes[$j]}"
+              la=$(echo "$va" | sed 's|.*/||')
+              lb=$(echo "$vb" | sed 's|.*/||')
+              pairs=$(echo "$pairs" | jq -c \
+                --arg va "$va" --arg vb "$vb" \
+                --arg eta "$eta" --arg etb "$etb" \
+                --arg lbl "${la}-vs-${lb}" \
+                '. + [{"version_a":$va,"version_b":$vb,"el_type_a":$eta,"el_type_b":$etb,"pair_label":$lbl}]')
+            done
+          done
 
           echo "compat-pairs=${pairs}" >> "$GITHUB_OUTPUT"
           echo "Pairwise combinations ($(echo "$pairs" | jq length)):"
