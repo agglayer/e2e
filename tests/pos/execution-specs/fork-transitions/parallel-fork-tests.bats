@@ -303,7 +303,10 @@ _mix_version_gte() {
 
 # Return the highest fork block that the devnet's bor mix supports.
 _last_supported_fork_block() {
-    local last="$FORK_LISOVO_PRO"
+    local last="$FORK_RIO"
+    _mix_version_gte "2.5.0" && last="$FORK_MADHUGIRI_PRO"
+    _mix_version_gte "2.5.6" && last="$FORK_DANDELI"
+    _mix_version_gte "2.6.0" && last="$FORK_LISOVO_PRO"
     _mix_version_gte "2.7.0" && last="$FORK_GIUGLIANO"
     echo "$last"
 }
@@ -334,8 +337,8 @@ _wait_for_block() {
     fi
 
     local blocks_remaining=$(( target - current ))
-    local timeout=$(( blocks_remaining * 2 + 120 ))
-    [[ "$timeout" -lt 60 ]] && timeout=60
+    local timeout=$(( blocks_remaining * 2 + 180 ))
+    [[ "$timeout" -lt 90 ]] && timeout=90
     [[ "$timeout" -gt 1800 ]] && timeout=1800
 
     echo "  Waiting for block ${target} (current: ${current}, timeout: ${timeout}s)..." >&3

@@ -378,18 +378,42 @@ jobs:
           ref: ${{ env.KURTOSIS_POS_REF }}
           path: kurtosis-pos
 
-      - name: Patch constants.star (all forks at 256)
+      - name: Compute minimum bor version in the mix
+        id: bor-min
+        run: |
+          ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
+          ver_b=$(echo "${{ matrix.bor_b }}" | sed 's|.*:||; s/^v//')
+          base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
+          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
+
+      - name: Patch constants.star (forks supported by min bor version at 256)
         run: |
           CONSTANTS="kurtosis-pos/src/config/constants.star"
-          FORKS=(madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano)
-          for fork in "${FORKS[@]}"; do
-            if ! grep -qE '^\s+"'"${fork}"'":\s*[0-9]+' "$CONSTANTS"; then
-              echo "::error::Fork '${fork}' not found in ${CONSTANTS}."
-              exit 1
-            fi
-            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
-          done
-          echo "--- Patched EL_HARD_FORK_BLOCKS (all at 256) ---"
+          BOR_MIN="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # Helper: check if min version >= required
+          ver_gte() {
+            [[ "$(printf '%s\n%s' "$BOR_MIN" "$1" | sort -V | head -1)" == "$1" ]]
+          }
+
+          FORKS=()
+          ver_gte "2.5.0" && FORKS+=(madhugiri madhugiriPro)
+          ver_gte "2.5.6" && FORKS+=(dandeli)
+          ver_gte "2.6.0" && FORKS+=(lisovo lisovoPro)
+          ver_gte "2.7.0" && FORKS+=(giugliano)
+
+          if [[ ${#FORKS[@]} -eq 0 ]]; then
+            echo "No post-rio forks to patch for min bor version ${BOR_MIN}."
+          else
+            echo "Patching forks for min bor version ${BOR_MIN}: ${FORKS[*]}"
+            for fork in "${FORKS[@]}"; do
+              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
+            done
+          fi
+          echo "--- Patched EL_HARD_FORK_BLOCKS ---"
           grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
 
       - name: Generate kurtosis params
@@ -478,6 +502,7 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
           echo "Running execution-specs (${{ matrix.pair_label }})..."
           bats \
@@ -805,7 +830,11 @@ jobs:
 
             if [[ "$archive_block" -eq "$last_archive_block" && "$archive_block" -gt 0 ]]; then
               stall_count=$(( stall_count + 1 ))
-              [[ "$stall_count" -ge 6 ]] && echo "::error::Archive stalled at ${archive_block}." && exit 1
+              if [[ "$stall_count" -ge 6 ]]; then
+                echo "::error::Archive stalled at block ${archive_block}."
+                kurtosis service logs "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" 2>/dev/null | tail -50
+                exit 1
+              fi
             else
               stall_count=0
             fi
@@ -814,6 +843,7 @@ jobs:
             elapsed=$(( elapsed + POLL_INTERVAL ))
           done
           echo "::error::Archive did not sync within ${MAX_WAIT}s."
+          kurtosis service logs "${{ env.ENCLAVE_NAME }}" "${ARCHIVE_SERVICE}" 2>/dev/null | tail -50
           exit 1
 
       - name: Dump enclave logs
