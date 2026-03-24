@@ -259,6 +259,47 @@ _bor_version_gte() {
     [[ "$lower" == "$required_base" ]]
 }
 
+# Skip the current test if the running bor version does not support the given
+# fork.  The mapping is maintained here — update it when new forks land.
+#
+# Usage:  _require_fork "giugliano"
+#
+# Forks at or before Rio are supported by all bor versions we test, so they
+# are not listed.  Only forks introduced after Rio need a minimum version.
+_require_fork() {
+    local fork_name="$1"
+    local min_version=""
+    case "$fork_name" in
+        madhugiri|madhugiriPro) min_version="2.5.0" ;;
+        dandeli)                min_version="2.5.6" ;;
+        lisovo|lisovoPro)       min_version="2.6.0" ;;
+        giugliano)              min_version="2.7.0" ;;
+        *)                      return 0 ;;  # unknown / genesis fork — no skip
+    esac
+    if ! _bor_version_gte "$min_version"; then
+        skip "fork ${fork_name} requires bor >= ${min_version} (running $(_bor_version))"
+    fi
+}
+
+# Return the highest fork block that the running bor version supports.
+# Used by chain-continuity tests to know how far to wait.
+_last_supported_fork_block() {
+    local last="$FORK_LISOVO_PRO"
+    _bor_version_gte "2.7.0" && last="$FORK_GIUGLIANO"
+    echo "$last"
+}
+
+# Return the list of fork blocks the running bor version supports (space-separated).
+_supported_fork_blocks() {
+    local blocks="${FORK_JAIPUR} ${FORK_DELHI} ${FORK_INDORE} ${FORK_AGRA}"
+    blocks+=" ${FORK_NAPOLI} ${FORK_AHMEDABAD} ${FORK_BHILAI} ${FORK_RIO}"
+    _bor_version_gte "2.5.0" && blocks+=" ${FORK_MADHUGIRI} ${FORK_MADHUGIRI_PRO}"
+    _bor_version_gte "2.5.6" && blocks+=" ${FORK_DANDELI}"
+    _bor_version_gte "2.6.0" && blocks+=" ${FORK_LISOVO} ${FORK_LISOVO_PRO}"
+    _bor_version_gte "2.7.0" && blocks+=" ${FORK_GIUGLIANO}"
+    echo "$blocks"
+}
+
 # ────────────────────────────────────────────────────────────────────────────
 # Helpers — wait for chain progression
 # ────────────────────────────────────────────────────────────────────────────
@@ -1388,6 +1429,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano
 @test "1.3: Giugliano — chain progresses smoothly through fork boundary" {
+    _require_fork "giugliano"
     [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
     _wait_for_block $(( FORK_GIUGLIANO + 2 ))
 
@@ -1405,6 +1447,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator" {
+    _require_fork "giugliano"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
     local block_hex result gas_target bfcd
@@ -1452,6 +1495,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block" {
+    _require_fork "giugliano"
     [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis, no pre-fork blocks"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
@@ -1491,6 +1535,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage" {
+    _require_fork "giugliano"
     _wait_for_block $(( FORK_GIUGLIANO + 3 ))
 
     local block_hex result gas_target_hex
@@ -1528,6 +1573,7 @@ _p256_input() {
 
 # bats test_tags=precompile-consistency,giugliano
 @test "1.2: all precompiles unchanged at Giugliano (same as LisovoPro)" {
+    _require_fork "giugliano"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
     # Legacy
@@ -1560,6 +1606,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — base fee remains non-zero through fork boundary" {
+    _require_fork "giugliano"
     [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
     _wait_for_block $(( FORK_GIUGLIANO + 2 ))
 
@@ -1580,13 +1627,10 @@ _p256_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: no reorgs at fork boundaries — parent hashes are consistent" {
-    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
-    local -a fork_blocks=(
-        "${FORK_JAIPUR}" "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}"
-        "${FORK_NAPOLI}" "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}"
-        "${FORK_MADHUGIRI}" "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}"
-        "${FORK_LISOVO}" "${FORK_LISOVO_PRO}" "${FORK_GIUGLIANO}"
-    )
+    local last_fork
+    last_fork=$(_last_supported_fork_block)
+    _wait_for_block $(( last_fork + 2 ))
+    local -a fork_blocks=( $(_supported_fork_blocks) )
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 0 ]] && continue
@@ -1604,13 +1648,10 @@ _p256_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: timestamps strictly increasing across all fork boundaries" {
-    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
-    local -a fork_blocks=(
-        "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}" "${FORK_NAPOLI}"
-        "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}" "${FORK_MADHUGIRI}"
-        "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}" "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
-        "${FORK_GIUGLIANO}"
-    )
+    local last_fork
+    last_fork=$(_last_supported_fork_block)
+    _wait_for_block $(( last_fork + 2 ))
+    local -a fork_blocks=( $(_supported_fork_blocks) )
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 1 ]] && continue
@@ -1626,13 +1667,10 @@ _p256_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: base fee exists and is non-zero across all fork boundaries" {
-    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
-    local -a fork_blocks=(
-        "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}" "${FORK_NAPOLI}"
-        "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}" "${FORK_MADHUGIRI}"
-        "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}" "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
-        "${FORK_GIUGLIANO}"
-    )
+    local last_fork
+    last_fork=$(_last_supported_fork_block)
+    _wait_for_block $(( last_fork + 2 ))
+    local -a fork_blocks=( $(_supported_fork_blocks) )
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 0 ]] && continue

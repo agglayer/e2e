@@ -282,7 +282,7 @@ jobs:
 
           # Single-version baseline (latest bor + latest erigon).
           if [[ ${#bor_images[@]} -gt 0 ]]; then
-            la=$(echo "${bor_images[0]}" | sed 's|.*/||')
+            la=$(echo "${bor_images[0]}" | sed 's|.*/||; s/:/-/g')
             scenarios=$(echo "$scenarios" | jq -c \
               --arg va "${bor_images[0]}" --arg vb "${bor_images[0]}" \
               --arg eri "$erigon_latest" --arg lbl "${la}-single" \
@@ -293,7 +293,7 @@ jobs:
           for ((i=0; i<${#bor_images[@]}; i++)); do
             for ((j=i+1; j<${#bor_images[@]}; j++)); do
               va="${bor_images[$i]}"; vb="${bor_images[$j]}"
-              la=$(echo "$va" | sed 's|.*/||'); lb=$(echo "$vb" | sed 's|.*/||')
+              la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
               idx=$(( (i + j) % ${#erigon_images[@]} ))
               eri="${erigon_images[$idx]:-$erigon_latest}"
               scenarios=$(echo "$scenarios" | jq -c \
