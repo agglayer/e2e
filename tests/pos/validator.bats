@@ -34,17 +34,17 @@ function generate_new_keypair() {
   echo "Funding the validator account with ETH..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${validator_address}"
 
-  echo "Funding the validator account with MATIC tokens..."
+  echo "Funding the validator account with POL tokens..."
   deposit_amount=$(cast to-unit 1ether wei)      # minimum deposit: 1000000000000000000 (1 ether)
   heimdall_fee_amount=$(cast to-unit 1ether wei) # minimum heimdall fee: 1000000000000000000 (1 ether)
   funding_amount=$((deposit_amount + heimdall_fee_amount))
 
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${funding_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${funding_amount}"
 
-  echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
+  echo "Allowing the StakeManagerProxy contract to spend POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${funding_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${funding_amount}"
 
   echo "Adding new validator to the validator set..."
   accept_delegation=false
