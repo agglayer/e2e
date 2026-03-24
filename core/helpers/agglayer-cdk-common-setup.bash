@@ -72,11 +72,8 @@ _load_helper_scripts() {
     'verify_balance'
     'wait_to_settle_certificate_containing_global_index'
     'assert_block_production'
-    'check_balances'
     'deploy_contract'
     'deploy_test_contracts'
-    'send_eoa_tx'
-    'send_smart_contract_tx'
     'zkevm_bridge_service'
     'kurtosis-helpers'
   )
