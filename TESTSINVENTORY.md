@@ -36,6 +36,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L36) | |
 | bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L77) | |
 | compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L214) | |
+| eth_getTransactionBySenderAndNonce returns a transaction on Reth L1 | [Link](./tests/agglayer/rpc-tests.bats#L11) | |
+| eth_getTransactionBySenderAndNonce returns null for unused nonce | [Link](./tests/agglayer/rpc-tests.bats#L73) | |
 | query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L196) | |
 | query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L161) | |
 | query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L177) | |
