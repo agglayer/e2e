@@ -1630,7 +1630,8 @@ _p256_input() {
     local last_fork
     last_fork=$(_last_supported_fork_block)
     _wait_for_block $(( last_fork + 2 ))
-    local -a fork_blocks=( $(_supported_fork_blocks) )
+    local -a fork_blocks=()
+    read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 0 ]] && continue
@@ -1651,7 +1652,8 @@ _p256_input() {
     local last_fork
     last_fork=$(_last_supported_fork_block)
     _wait_for_block $(( last_fork + 2 ))
-    local -a fork_blocks=( $(_supported_fork_blocks) )
+    local -a fork_blocks=()
+    read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 1 ]] && continue
@@ -1670,7 +1672,8 @@ _p256_input() {
     local last_fork
     last_fork=$(_last_supported_fork_block)
     _wait_for_block $(( last_fork + 2 ))
-    local -a fork_blocks=( $(_supported_fork_blocks) )
+    local -a fork_blocks=()
+    read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 0 ]] && continue
