@@ -377,6 +377,18 @@ function generate_new_keypair() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
     "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${VALIDATOR_ID}"
 
+  # Verify the unstake was initiated on L1: deactivationEpoch must be greater than zero.
+  # validators(uint256) returns (amount, reward, activationEpoch, deactivationEpoch, ...)
+  # where deactivationEpoch is the 4th return value.
+  deactivation_epoch=$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" \
+    "validators(uint256)(uint256,uint256,uint256,uint256,uint256,address,address,uint8)" \
+    "${VALIDATOR_ID}" | sed -n '4p')
+  echo "Validator ${VALIDATOR_ID} deactivationEpoch: ${deactivation_epoch}"
+  [[ "${deactivation_epoch}" -gt "0" ]]
+
+  # Wait for Heimdall to remove the validator at the epoch boundary.
+  # 1 epoch ≈ 256 blocks (~256s at 1s/block), so 300s gives enough headroom.
   echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1)) 180
+  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1)) 300
 }
