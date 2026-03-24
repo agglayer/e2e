@@ -29,7 +29,7 @@ on:
         type: string
         default: ""
       bor-compat-versions:
-        description: "Comma-separated bor images for pairwise version compat matrix (e.g. '0xpolygon/bor:2.7.0-beta3,0xpolygon/bor:2.6.5'). Leave empty to auto-detect latest 3 major.minor lines."
+        description: "Comma-separated bor images for pairwise version compat matrix. Leave empty to auto-detect from recent major.minor lines."
         required: false
         type: string
         default: ""
@@ -46,7 +46,6 @@ on:
           - all
           - execution-specs-only
           - version-compat-only
-          - mixed-version-only
           - fork-transition-only
         default: "all"
       force-run:
@@ -98,9 +97,23 @@ jobs:
             echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
             echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
 
-            # Compat versions: use explicit input or fall back to latest + previous.
+            # Compat versions: use explicit input, curated file, or latest + previous.
+            COMPAT_YML="scripts/version-matrix/compat-versions.yml"
             if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
               echo "compat-versions=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
+            elif [[ -f "$COMPAT_YML" ]]; then
+              compat_parts=$(python3 -c "
+          import yaml
+          with open('$COMPAT_YML') as f:
+              data = yaml.safe_load(f)
+          versions = data.get('versions') or []
+          print(','.join(v['image'] for v in versions if 'image' in v))
+          " 2>/dev/null) || compat_parts=""
+              if [[ -n "$compat_parts" ]]; then
+                echo "compat-versions=${compat_parts}" >> "$GITHUB_OUTPUT"
+              else
+                echo "compat-versions=${{ inputs.bor-latest-image }},${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
+              fi
             else
               echo "compat-versions=${{ inputs.bor-latest-image }},${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
             fi
@@ -161,44 +174,22 @@ jobs:
           latest_tag=$(echo "$sorted_tags" | head -1)
           echo "Latest bor tag: $latest_tag"
 
-          # Find the previous major release: first tag with a different major.minor.
-          # e.g. if latest is v2.7.0-beta2, previous is v2.6.5 (different 2.7 vs 2.6).
+          # Find the previous major release (first tag with a different major.minor)
+          # for legacy outputs (bor-latest-image / bor-previous-image).
           latest_major_minor=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
-          previous_tag=""
+          previous_tag="$latest_tag"
           while IFS= read -r tag; do
-            tag_major_minor=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
-            if [[ "$tag_major_minor" != "$latest_major_minor" ]]; then
+            tag_mm=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
+            if [[ "$tag_mm" != "$latest_major_minor" ]]; then
               previous_tag="$tag"
               break
             fi
           done <<< "$sorted_tags"
 
-          # Fallback: if no different major.minor found, use the second release.
-          if [[ -z "$previous_tag" ]]; then
-            previous_tag=$(echo "$sorted_tags" | sed -n '2p')
-          fi
-          echo "Previous bor tag: $previous_tag"
-
-          # Find a third major release: first tag with yet another major.minor.
-          previous_major_minor=$(echo "$previous_tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
-          third_tag=""
-          while IFS= read -r tag; do
-            tag_major_minor=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
-            if [[ "$tag_major_minor" != "$latest_major_minor" && "$tag_major_minor" != "$previous_major_minor" ]]; then
-              third_tag="$tag"
-              break
-            fi
-          done <<< "$sorted_tags"
-          echo "Third bor tag: ${third_tag:-<none>}"
-
           # Convert tags to docker images: v2.7.0 -> 0xpolygon/bor:2.7.0
           echo "bor-tag=${latest_tag}" >> "$GITHUB_OUTPUT"
           echo "bor-latest-image=0xpolygon/bor:${latest_tag#v}" >> "$GITHUB_OUTPUT"
-          if [[ -n "$previous_tag" ]]; then
-            echo "bor-previous-image=0xpolygon/bor:${previous_tag#v}" >> "$GITHUB_OUTPUT"
-          else
-            echo "bor-previous-image=0xpolygon/bor:${latest_tag#v}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "bor-previous-image=0xpolygon/bor:${previous_tag#v}" >> "$GITHUB_OUTPUT"
 
           # --- Auto-detect heimdall-v2 version -------------------------------
           if [[ -n "${{ inputs.heimdall-v2-image }}" ]]; then
@@ -222,17 +213,35 @@ jobs:
           fi
 
           # --- Build compat version list for pairwise testing -------------------
+          # Priority: 1) workflow input override, 2) curated compat-versions.yml,
+          # 3) auto-detect fallback (latest + previous).
+          COMPAT_YML="scripts/version-matrix/compat-versions.yml"
+
           if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
+            echo "Using compat versions from workflow input."
             echo "compat-versions=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
+          elif [[ -f "$COMPAT_YML" ]]; then
+            echo "Reading compat versions from ${COMPAT_YML}..."
+            # Extract image values from the curated YAML list.
+            compat_parts=$(python3 -c "
+          import yaml, sys
+          with open('$COMPAT_YML') as f:
+              data = yaml.safe_load(f)
+          versions = data.get('versions') or []
+          images = [v['image'] for v in versions if 'image' in v]
+          print(','.join(images))
+          " 2>/dev/null) || compat_parts=""
+
+            if [[ -n "$compat_parts" ]]; then
+              echo "Compat versions: ${compat_parts}"
+              echo "compat-versions=${compat_parts}" >> "$GITHUB_OUTPUT"
+            else
+              echo "::warning::${COMPAT_YML} exists but has no versions. Falling back to auto-detect."
+              echo "compat-versions=0xpolygon/bor:${latest_tag#v},0xpolygon/bor:${previous_tag#v}" >> "$GITHUB_OUTPUT"
+            fi
           else
-            compat_parts="0xpolygon/bor:${latest_tag#v}"
-            if [[ -n "$previous_tag" && "$previous_tag" != "$latest_tag" ]]; then
-              compat_parts="${compat_parts},0xpolygon/bor:${previous_tag#v}"
-            fi
-            if [[ -n "$third_tag" && "$third_tag" != "$latest_tag" && "$third_tag" != "$previous_tag" ]]; then
-              compat_parts="${compat_parts},0xpolygon/bor:${third_tag#v}"
-            fi
-            echo "compat-versions=${compat_parts}" >> "$GITHUB_OUTPUT"
+            echo "No compat-versions.yml found. Auto-detecting latest + previous."
+            echo "compat-versions=0xpolygon/bor:${latest_tag#v},0xpolygon/bor:${previous_tag#v}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check cache for previously tested tag
@@ -567,7 +576,7 @@ jobs:
       needs.check-new-release.outputs.should-run == 'true' &&
       needs.check-new-release.result == 'success' &&
       (needs.pos-e2e-tests.result == 'success' || needs.pos-e2e-tests.result == 'skipped') &&
-      (inputs.test-suite == 'all' || inputs.test-suite == 'version-compat-only' || inputs.test-suite == 'mixed-version-only' || inputs.test-suite == '') &&
+      (inputs.test-suite == 'all' || inputs.test-suite == 'version-compat-only' || inputs.test-suite == '') &&
       needs.check-new-release.outputs.compat-pairs != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 90

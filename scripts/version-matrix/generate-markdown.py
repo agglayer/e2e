@@ -63,19 +63,6 @@ class MarkdownMatrixGenerator:
                 md += self._component_table(components)
                 md += "\n"
 
-        # ----- Known issues -----
-        issues = data.get("known_issues", {})
-        if issues:
-            md += "## Known Issues / Excluded Versions\n\n"
-            md += "Versions listed here are excluded from compatibility testing "
-            md += "due to known bugs or regressions.\n\n"
-            md += "| Component | Version | Reason |\n"
-            md += "|-----------|---------|--------|\n"
-            for comp in sorted(issues):
-                for ver, reason in sorted(issues[comp].items()):
-                    md += f"| {comp} | {ver} | {reason} |\n"
-            md += "\n"
-
         # ----- Status legend -----
         md += "## Status Legend\n\n"
         md += "| Status | Icon | Description |\n"

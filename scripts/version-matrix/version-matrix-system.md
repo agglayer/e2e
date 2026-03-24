@@ -1,15 +1,14 @@
 # PoS Version Matrix System
 
-This document describes the automated version matrix system for PoS E2E testing, which tracks compatibility information for the core PoS components: **bor**, **heimdall-v2**, and **erigon**.
+This document describes the version matrix system for PoS E2E testing, which tracks compatibility information for the core PoS components: **bor**, **heimdall-v2**, and **erigon**.
 
 ## Overview
 
 The version matrix system provides:
 
 - **Automated extraction** of version information from kurtosis-pos defaults and e2e scenario configs
-- **Latest release detection** from GitHub APIs
+- **Latest release detection** from GitHub APIs (including pre-releases)
 - **Status tracking** for each version (matches stable, behind, newer)
-- **Known-issue tracking** for excluding buggy versions from testing
 - **Human-readable documentation** generation
 
 ## Architecture
@@ -18,7 +17,7 @@ The version matrix system provides:
 
 ```
 kurtosis-pos/constants.star ──┐
-                               ├─► extract-versions.py ──► matrix.json ──► generate-markdown.py ──► VERSION_MATRIX.md
+                               ├─► extract-versions.py ──► matrix.json ──► generate-markdown.py ──► POS_VERSION_MATRIX.md
 scenarios/pos/*/params.yml ───┤
                                │
 GitHub APIs ──────────────────┘
@@ -29,16 +28,17 @@ GitHub APIs ──────────────────┘
 1. **Version Extraction** (`extract-versions.py`)
    - Parses `IMAGES` dict from kurtosis-pos `constants.star`
    - Scans e2e scenario `params.yml` files for pinned versions
-   - Fetches latest releases from GitHub
+   - Fetches latest releases (including pre-release) from GitHub
    - Outputs `matrix.json`
 
 2. **Markdown Generation** (`generate-markdown.py`)
-   - Creates `docs/VERSION_MATRIX.md` from `matrix.json`
+   - Creates `docs/POS_VERSION_MATRIX.md` from `matrix.json`
    - Includes status indicators and release links
 
-3. **Known Issues** (`known-issues.yml`)
-   - Tracks versions with known bugs or incompatibilities
-   - Used to exclude versions from the pairwise compatibility matrix
+3. **Compat Versions** (`compat-versions.yml`)
+   - Curated list of bor versions to test in the pos-e2e workflow
+   - Each entry has an image and a reason for inclusion
+   - The pos-e2e workflow reads this file to generate pairwise compat pairs
 
 ## Usage
 
@@ -71,6 +71,6 @@ python3 scripts/version-matrix/generate-markdown.py
 
 | Status | Icon | Description |
 |--------|------|-------------|
-| matches stable | ✅ | Version equals the latest stable release |
-| newer than stable | ⚡️ | Pre-release, RC, or beta ahead of stable |
-| behind stable | 🚨 | Older than the latest stable release |
+| matches stable | ✅ | Version equals the latest release (including pre-release) |
+| newer than stable | ⚡️ | Ahead of the latest release |
+| behind stable | 🚨 | Older than the latest release |

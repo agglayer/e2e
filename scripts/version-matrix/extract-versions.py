@@ -71,8 +71,6 @@ class VersionMatrixExtractor:
             if kurtosis_pos_root
             else None
         )
-        self.known_issues = self._load_known_issues()
-
         # E2E test environments to scan.
         self.test_files = [
             (
@@ -80,14 +78,6 @@ class VersionMatrixExtractor:
                 repo_root / "scenarios" / "pos" / "upgrade" / "params.yml",
             ),
         ]
-
-    def _load_known_issues(self) -> dict:
-        """Load known-issues.yml if it exists."""
-        path = self.repo_root / "scripts" / "version-matrix" / "known-issues.yml"
-        if path.exists():
-            with open(path) as f:
-                return yaml.safe_load(f) or {}
-        return {}
 
     # ------------------------------------------------------------------
     # constants.star parsing
@@ -371,16 +361,6 @@ class VersionMatrixExtractor:
         return "newer than stable"
 
     # ------------------------------------------------------------------
-    # Known issues
-    # ------------------------------------------------------------------
-
-    def get_known_issues_for(self, component: str, version: str) -> Optional[str]:
-        """Return the exclusion reason if this version is known-bad."""
-        issues = self.known_issues.get("excluded_versions", {})
-        comp_issues = issues.get(component, {})
-        return comp_issues.get(version)
-
-    # ------------------------------------------------------------------
     # Output
     # ------------------------------------------------------------------
 
@@ -389,14 +369,12 @@ class VersionMatrixExtractor:
         default_images = self.extract_default_images()
         test_envs = self.extract_test_environments()
 
-        # Serialize dataclasses.
         matrix = {
             "generated_at": datetime.utcnow().isoformat(),
             "default_images": {
                 name: asdict(comp) for name, comp in default_images.items()
             },
             "test_environments": {},
-            "known_issues": self.known_issues.get("excluded_versions", {}),
             "summary": {
                 "total_components": len(COMPONENT_REPOS),
                 "environments": len(test_envs),
@@ -468,12 +446,6 @@ def main():
         stable = comp.get("latest_stable_version", "?")
         print(f"  {name}: {comp['version']} (latest: {latest}, stable: {stable}) [{status}]")
 
-    issues = matrix.get("known_issues", {})
-    if issues:
-        print(f"\nKnown issues ({sum(len(v) for v in issues.values())} excluded versions):")
-        for comp, versions in issues.items():
-            for ver, reason in versions.items():
-                print(f"  {comp} {ver}: {reason}")
 
 
 if __name__ == "__main__":
