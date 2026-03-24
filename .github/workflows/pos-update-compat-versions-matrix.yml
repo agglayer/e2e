@@ -1,0 +1,72 @@
+name: Update PoS Compat Versions
+run-name: Check for new bor/erigon releases
+
+on:
+  schedule:
+    # Check daily at 04:00 UTC (before the pos-e2e run at 06:00).
+    - cron: "0 4 * * *"
+
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-compat-versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install -q requests PyYAML
+
+      - name: Check for new releases
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          output=$(python3 scripts/pos-version-matrix/update-compat-versions.py 2>&1)
+          echo "$output"
+
+          if git diff --quiet scripts/pos-version-matrix/compat-versions.yml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "--- Diff ---"
+            git diff scripts/pos-version-matrix/compat-versions.yml
+          fi
+
+      - name: Create pull request
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="auto/update-compat-versions"
+
+          # Configure git for the github-actions bot.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Create or update the branch.
+          git checkout -B "$BRANCH"
+          git add scripts/pos-version-matrix/compat-versions.yml
+          git commit -m "chore: update compat-versions.yml with new releases"
+          git push -f origin "$BRANCH"
+
+          # Create PR if one doesn't already exist.
+          existing_pr=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [[ -n "$existing_pr" ]]; then
+            echo "PR #${existing_pr} already exists, updated branch."
+          else
+            PR_BODY="New bor/erigon releases detected. This PR adds them to compat-versions.yml."
+            PR_BODY="${PR_BODY}\n\n**Review before merging** — remove any versions that should not be tested and verify the pair count is reasonable."
+            gh pr create \
+              --title "chore: update PoS compat versions with new releases" \
+              --body "$(echo -e "$PR_BODY")" \
+              --head "$BRANCH" \
+              --base main
+          fi

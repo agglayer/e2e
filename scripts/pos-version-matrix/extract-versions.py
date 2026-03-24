@@ -412,7 +412,7 @@ def main():
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent.parent
-    output_path = args.output or repo_root / "scripts" / "version-matrix" / "matrix.json"
+    output_path = args.output or repo_root / "scripts" / "pos-version-matrix" / "matrix.json"
 
     # Try common local paths for kurtosis-pos.
     kp_root = args.kurtosis_pos_root

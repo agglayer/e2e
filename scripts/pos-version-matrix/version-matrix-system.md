@@ -44,7 +44,7 @@ GitHub APIs ──────────────────┘
 
 ```bash
 # Install dependencies
-pip install -r scripts/version-matrix/requirements.txt
+pip install -r scripts/pos-version-matrix/requirements.txt
 
 # Set GitHub token (optional, avoids rate limits)
 export GITHUB_TOKEN="..."

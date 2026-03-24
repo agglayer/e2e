@@ -98,7 +98,7 @@ jobs:
             echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
 
             # Compat versions: use explicit input, curated file, or latest + previous.
-            COMPAT_YML="scripts/version-matrix/compat-versions.yml"
+            COMPAT_YML="scripts/pos-version-matrix/compat-versions.yml"
             if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
               echo "compat-versions=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
             elif [[ -f "$COMPAT_YML" ]]; then
@@ -215,7 +215,7 @@ jobs:
           # --- Build compat version list for pairwise testing -------------------
           # Priority: 1) workflow input override, 2) curated compat-versions.yml,
           # 3) auto-detect fallback (latest + previous).
-          COMPAT_YML="scripts/version-matrix/compat-versions.yml"
+          COMPAT_YML="scripts/pos-version-matrix/compat-versions.yml"
 
           if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
             echo "Using compat versions from workflow input."
@@ -275,7 +275,7 @@ jobs:
         id: gen-compat-matrix
         run: |
           COMPAT_CSV="${{ steps.resolve.outputs.compat-versions }}"
-          COMPAT_YML="scripts/version-matrix/compat-versions.yml"
+          COMPAT_YML="scripts/pos-version-matrix/compat-versions.yml"
 
           # Generate pairwise pairs with el_type metadata.
           # If the curated YAML exists and has el_type fields, use it directly.
