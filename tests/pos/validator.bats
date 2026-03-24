@@ -178,7 +178,7 @@ function generate_new_keypair() {
 }
 
 # bats test_tags=pos-validator,pos-delegate,transaction-pol
-@test "delegate MATIC/POL to a validator" {
+@test "delegate POL to a validator" {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
@@ -235,7 +235,7 @@ function generate_new_keypair() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${DELEGATOR_PRIVATE_KEY}" \
     "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${delegation_amount}"
 
-  echo "Delegating ${delegation_amount} wei (1 MATIC/POL) to validator ${VALIDATOR_ID}..."
+  echo "Delegating ${delegation_amount} wei (1 POL) to validator ${VALIDATOR_ID}..."
   min_shares_to_mint=0
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${DELEGATOR_PRIVATE_KEY}" \
     "${validator_share_address}" "buyVoucherPOL(uint,uint)" "${delegation_amount}" "${min_shares_to_mint}"
@@ -272,7 +272,7 @@ function generate_new_keypair() {
 }
 
 # bats test_tags=pos-validator,pos-undelegate,transaction-pol
-@test "undelegate MATIC/POL from a validator" {
+@test "undelegate POL from a validator" {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
