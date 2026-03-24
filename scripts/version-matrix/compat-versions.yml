@@ -1,4 +1,4 @@
-# PoS version compatibility matrix — curated list of bor versions to test.
+# PoS version compatibility matrix — curated list of EL versions to test.
 #
 # The pos-e2e workflow reads this file to generate pairwise compat pairs.
 # Only versions listed under `versions` are tested. Keep this list focused:
@@ -6,31 +6,32 @@
 #   - Release candidates being validated for rollout
 #   - Remove versions once fully deprecated and no longer in use
 #
+# Each entry must have: image, el_type (bor or erigon), reason.
+# Pairwise pairs are generated across ALL entries (bor-bor, erigon-erigon,
+# and bor-erigon cross-client combinations).
+#
 # If this file is absent or `versions` is empty, the workflow falls back
-# to auto-detecting the latest release from each major.minor line.
+# to auto-detecting the latest bor release from each major.minor line.
 
 versions:
-  # Latest pre-release — validating for next rollout
+  # -- Bor --
   - image: "0xpolygon/bor:2.7.0-beta3"
+    el_type: bor
     reason: "latest pre-release, validating for production"
 
-  # Current stable — running in production
   - image: "0xpolygon/bor:2.6.5"
+    el_type: bor
     reason: "latest 2.6.x stable, active in production"
 
-  # Recent 2.6.x patches — validators may still be on these
-  - image: "0xpolygon/bor:2.6.3"
-    reason: "recent 2.6.x patch, still running on some validators"
-
-  - image: "0xpolygon/bor:2.6.2"
-    reason: "recent 2.6.x patch, kurtosis-pos default image"
-
-  # Previous stable line
   - image: "0xpolygon/bor:2.5.9"
+    el_type: bor
     reason: "latest 2.5.x stable, still active on some nodes"
 
-# Versions explicitly excluded from testing.
-excluded_versions:
-  bor:
-    # Add entries here as: "<version>": "<reason>"
-    {}
+  # -- Erigon --
+  - image: "0xpolygon/erigon:v3.5.0-beta2"
+    el_type: erigon
+    reason: "latest pre-release, validating for production"
+
+  - image: "0xpolygon/erigon:v3.4.0"
+    el_type: erigon
+    reason: "current stable, active in production"
