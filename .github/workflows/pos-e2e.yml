@@ -67,6 +67,7 @@ env:
   ENCLAVE_NAME: pos
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -83,6 +84,13 @@ jobs:
       heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
       compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
     steps:
+      - name: Checkout (for compat-versions.yml)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          sparse-checkout: scripts/pos-version-matrix
+          sparse-checkout-cone-mode: false
+
       - name: Resolve bor and heimdall-v2 versions
         id: resolve
         env:
