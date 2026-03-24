@@ -405,12 +405,28 @@ jobs:
           ver_gte "2.6.0" && FORKS+=(lisovo lisovoPro)
           ver_gte "2.7.0" && FORKS+=(giugliano)
 
+          # Forks NOT supported by the min version must be disabled (set to a
+          # block that will never be reached) so the newer bor in the mix does
+          # not activate them and cause a consensus split.
+          DISABLE=()
+          ver_gte "2.7.0" || DISABLE+=(giugliano)
+          ver_gte "2.6.0" || DISABLE+=(lisovo lisovoPro)
+          ver_gte "2.5.6" || DISABLE+=(dandeli)
+          ver_gte "2.5.0" || DISABLE+=(madhugiri madhugiriPro)
+
           if [[ ${#FORKS[@]} -eq 0 ]]; then
             echo "No post-rio forks to patch for min bor version ${BOR_MIN}."
           else
             echo "Patching forks for min bor version ${BOR_MIN}: ${FORKS[*]}"
             for fork in "${FORKS[@]}"; do
               sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
+            done
+          fi
+
+          if [[ ${#DISABLE[@]} -gt 0 ]]; then
+            echo "Disabling unsupported forks for min bor version ${BOR_MIN}: ${DISABLE[*]}"
+            for fork in "${DISABLE[@]}"; do
+              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/999999999/' "$CONSTANTS"
             done
           fi
           echo "--- Patched EL_HARD_FORK_BLOCKS ---"
