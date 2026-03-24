@@ -62,14 +62,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: agglayer/e2e
           ref: ${{ inputs.agglayer-e2e-ref }}
           path: agglayer-e2e
 
       - name: Checkout kurtosis-cdk
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: 0xPolygon/kurtosis-cdk
           ref: ${{ inputs.kurtosis-cdk-ref }}

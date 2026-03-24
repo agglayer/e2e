@@ -67,7 +67,6 @@ env:
   ENCLAVE_NAME: pos
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -85,7 +84,7 @@ jobs:
       compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
     steps:
       - name: Checkout (for compat-versions.yml)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
           sparse-checkout: scripts/pos-version-matrix
@@ -246,7 +245,7 @@ jobs:
       - name: Check cache for previously tested tag
         if: steps.resolve.outputs.bor-tag != 'manual' && steps.resolve.outputs.bor-tag != ''
         id: cache-check
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/pos-release-cache
           key: pos-e2e-bor-release-${{ steps.resolve.outputs.bor-tag }}
@@ -369,7 +368,7 @@ jobs:
     name: execution-specs
     steps:
       - name: Checkout agglayer/e2e
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -396,7 +395,7 @@ jobs:
           polycli version
 
       - name: Checkout kurtosis-pos
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: 0xPolygon/kurtosis-pos
           ref: ${{ env.KURTOSIS_POS_REF }}
@@ -618,7 +617,7 @@ jobs:
     name: compat (${{ matrix.pair_label }})
     steps:
       - name: Checkout agglayer/e2e
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -645,7 +644,7 @@ jobs:
           polycli version
 
       - name: Checkout kurtosis-pos
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: 0xPolygon/kurtosis-pos
           ref: ${{ env.KURTOSIS_POS_REF }}
@@ -982,7 +981,7 @@ jobs:
     name: fork-transition-tests
     steps:
       - name: Checkout agglayer/e2e
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -1009,7 +1008,7 @@ jobs:
           polycli version
 
       - name: Checkout kurtosis-pos
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: 0xPolygon/kurtosis-pos
           ref: ${{ env.KURTOSIS_POS_REF }}
