@@ -74,14 +74,14 @@ function generate_new_keypair() {
   initial_voting_power=$(eval "${VALIDATOR_POWER_CMD}")
   echo "Initial voting power of the validator (${VALIDATOR_ID}): ${initial_voting_power}."
 
-  echo "Funding the validator acount with MATIC/POL tokens..."
+  echo "Funding the validator acount with POL tokens..."
   stake_update_amount=$(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
 
-  echo "Allowing the StakeManagerProxy contract to spend MATIC/POL tokens on our behalf..."
+  echo "Allowing the StakeManagerProxy contract to spend POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
   echo "Updating the stake of the validator (${VALIDATOR_ID})..."
   stake_rewards=false
@@ -108,10 +108,10 @@ function generate_new_keypair() {
   initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
   echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
 
-  echo "Allowing the StakeManagerProxy contract to spend MATIC/POL tokens on our behalf..."
+  echo "Allowing the StakeManagerProxy contract to spend POL tokens on our behalf..."
   top_up_amount=$(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
 
   echo "Topping up the fee balance of the validator (${VALIDATOR_ADDRESS})..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
@@ -218,22 +218,22 @@ function generate_new_keypair() {
   echo "Transferring ETH from main address to foundry address for gas..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${DELEGATOR_ADDRESS}"
 
-  echo "Transferring MATIC/POL tokens from main address to foundry address..."
+  echo "Transferring POL tokens from main address to foundry address..."
   delegation_amount=$(cast to-unit 1ether wei)
 
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${DELEGATOR_ADDRESS}" "${delegation_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "transfer(address,uint)" "${DELEGATOR_ADDRESS}" "${delegation_amount}"
 
   echo "Verifying foundry address received the tokens..."
   delegator_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${DELEGATOR_ADDRESS}" | cut -d' ' -f1)
+    "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${DELEGATOR_ADDRESS}" | cut -d' ' -f1)
   delegator_eth_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${DELEGATOR_ADDRESS}" --ether)
-  echo "Foundry address MATIC/POL balance: $(cast to-unit ${delegator_pol_balance} ether) POL"
+  echo "Foundry address POL balance: $(cast to-unit ${delegator_pol_balance} ether) POL"
   echo "Foundry address ETH balance: ${delegator_eth_balance} ETH"
 
-  echo "Allowing the StakeManager to spend MATIC/POL tokens on foundry address behalf..."
+  echo "Allowing the StakeManager to spend POL tokens on foundry address behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${DELEGATOR_PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${delegation_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${delegation_amount}"
 
   echo "Delegating ${delegation_amount} wei (1 MATIC/POL) to validator ${VALIDATOR_ID}..."
   min_shares_to_mint=0
