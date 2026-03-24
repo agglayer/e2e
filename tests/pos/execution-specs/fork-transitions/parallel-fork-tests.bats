@@ -276,27 +276,46 @@ _require_fork() {
         giugliano)              min_version="2.7.0" ;;
         *)                      return 0 ;;  # unknown / genesis fork — no skip
     esac
-    if ! _bor_version_gte "$min_version"; then
-        skip "fork ${fork_name} requires bor >= ${min_version} (running $(_bor_version))"
+    # Use BOR_MIN_VERSION (set by CI from the version mix) when available.
+    # This reflects the oldest bor in the devnet, not just the node we query.
+    # Falls back to querying the RPC node's version.
+    local running="${BOR_MIN_VERSION:-$(_bor_version)}"
+    local running_base
+    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    local lower
+    lower=$(printf '%s\n%s' "$running_base" "$min_version" | sort -V | head -1)
+    if [[ "$lower" != "$min_version" ]]; then
+        skip "fork ${fork_name} requires bor >= ${min_version} (oldest in mix: ${running})"
     fi
 }
 
-# Return the highest fork block that the running bor version supports.
-# Used by chain-continuity tests to know how far to wait.
+# Check if the minimum bor version in the mix supports a given version.
+# Uses BOR_MIN_VERSION (from CI) or falls back to _bor_version (RPC query).
+_mix_version_gte() {
+    local required="$1"
+    local running="${BOR_MIN_VERSION:-$(_bor_version)}"
+    local running_base
+    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    local lower
+    lower=$(printf '%s\n%s' "$running_base" "$required" | sort -V | head -1)
+    [[ "$lower" == "$required" ]]
+}
+
+# Return the highest fork block that the devnet's bor mix supports.
 _last_supported_fork_block() {
     local last="$FORK_LISOVO_PRO"
-    _bor_version_gte "2.7.0" && last="$FORK_GIUGLIANO"
+    _mix_version_gte "2.7.0" && last="$FORK_GIUGLIANO"
     echo "$last"
 }
 
-# Return the list of fork blocks the running bor version supports (space-separated).
+# Return the list of fork blocks the devnet's bor mix supports (space-separated).
 _supported_fork_blocks() {
     local blocks="${FORK_JAIPUR} ${FORK_DELHI} ${FORK_INDORE} ${FORK_AGRA}"
     blocks+=" ${FORK_NAPOLI} ${FORK_AHMEDABAD} ${FORK_BHILAI} ${FORK_RIO}"
-    _bor_version_gte "2.5.0" && blocks+=" ${FORK_MADHUGIRI} ${FORK_MADHUGIRI_PRO}"
-    _bor_version_gte "2.5.6" && blocks+=" ${FORK_DANDELI}"
-    _bor_version_gte "2.6.0" && blocks+=" ${FORK_LISOVO} ${FORK_LISOVO_PRO}"
-    _bor_version_gte "2.7.0" && blocks+=" ${FORK_GIUGLIANO}"
+    _mix_version_gte "2.5.0" && blocks+=" ${FORK_MADHUGIRI} ${FORK_MADHUGIRI_PRO}"
+    _mix_version_gte "2.5.6" && blocks+=" ${FORK_DANDELI}"
+    _mix_version_gte "2.6.0" && blocks+=" ${FORK_LISOVO} ${FORK_LISOVO_PRO}"
+    _mix_version_gte "2.7.0" && blocks+=" ${FORK_GIUGLIANO}"
     echo "$blocks"
 }
 

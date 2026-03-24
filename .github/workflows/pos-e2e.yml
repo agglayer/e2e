@@ -450,6 +450,20 @@ jobs:
       - name: Inspect enclave
         run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
 
+      - name: Compute minimum bor version in the mix
+        id: bor-min
+        run: |
+          # Extract version from image tags (e.g. 0xpolygon/bor:2.7.0-beta3 -> 2.7.0-beta3).
+          ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
+          ver_b=$(echo "${{ matrix.bor_b }}" | sed 's|.*:||; s/^v//')
+          # Strip pre-release suffix for comparison.
+          base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          # Pick the lower version.
+          min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
+          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
+
       - name: Run fork-transition tests (parallel)
         run: |
           set -eo pipefail
@@ -459,6 +473,7 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
           # Fork block numbers matching kurtosis-pos constants.star defaults.
           export FORK_JAIPUR=0
@@ -493,6 +508,8 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
           echo "Running execution-specs on compat enclave (${{ matrix.pair_label }})..."
           bats \
             tests/pos/execution-specs/protocol/ \
@@ -518,19 +535,6 @@ jobs:
         run: |
           kurtosis enclave stop "${{ env.ENCLAVE_NAME }}" || true
           kurtosis clean || true
-
-      - name: Record test run in Datadog
-        if: always()
-        continue-on-error: true
-        uses: agglayer/gha-record-e2e-test-run@v1
-        with:
-          enable_ai_analysis: "true"
-          host: "github-actions-runners"
-          status: ${{ job.status }}
-          ref_e2e: "${{ github.ref }}"
-        env:
-          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   # ---------------------------------------------------------------------------
   # Mark release as tested (write cache entry).
