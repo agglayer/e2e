@@ -333,9 +333,11 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - precompile
 - precompile-consistency
 - precompile-fuzz
+- precompile-removal
 - prune
 - push0
 - railgun
+- reth-l1
 - rio
 - selfdestruct
 - smooth-crypto-lib
@@ -354,6 +356,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - tx-gas-limit
 - tx-types
 - validator-set
+- warm-cold
 - weth
 - zkevm-batch
 - zkevm-counters
