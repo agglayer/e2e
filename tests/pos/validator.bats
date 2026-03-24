@@ -205,15 +205,14 @@ function generate_new_keypair() {
   fi
 
   # Check initial validator total stake (own stake + delegated amount).
-  initial_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Initial total validator stake: ${initial_total_stake}"
+  initial_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)" ether)
+  echo "Initial total validator stake: ${initial_total_stake_eth} POL"
 
   # Check initial delegator stake in this validator.
-  initial_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  initial_delegator_stake=$(echo "${initial_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  echo "Initial delegator stake: ${initial_delegator_stake}"
+  initial_delegator_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}" | head -1 | cut -d' ' -f1)" ether)
+  echo "Initial delegator stake: ${initial_delegator_stake_eth} POL"
 
   echo "Transferring ETH from main address to foundry address for gas..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${DELEGATOR_ADDRESS}"
@@ -243,28 +242,20 @@ function generate_new_keypair() {
   echo "Verifying delegation was successful..."
 
   # Check that validator's total stake increased.
-  expected_total_stake=$((initial_total_stake + delegation_amount))
-  final_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Expected total stake: ${expected_total_stake}"
-  echo "Final total stake: ${final_total_stake}"
+  final_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)" ether)
+  echo "Final total stake: ${final_total_stake_eth} POL"
+  [[ $(echo "${final_total_stake_eth} == ${initial_total_stake_eth} + 1" | bc) -eq 1 ]]
 
   # Check that delegator's stake in validator increased.
-  final_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  final_delegator_stake=$(echo "${final_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  expected_delegator_stake=$((initial_delegator_stake + delegation_amount))
-  echo "Expected delegator stake: ${expected_delegator_stake}"
-  echo "Final delegator stake: ${final_delegator_stake}"
-
-  # Verify the stakes match expectations.
-  [[ "${final_total_stake}" -eq "${expected_total_stake}" ]]
-  [[ "${final_delegator_stake}" -eq "${expected_delegator_stake}" ]]
+  final_delegator_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}" | head -1 | cut -d' ' -f1)" ether)
+  echo "Final delegator stake: ${final_delegator_stake_eth} POL"
+  [[ $(echo "${final_delegator_stake_eth} == ${initial_delegator_stake_eth} + 1" | bc) -eq 1 ]]
 
   # Verify L2 voting power matches the updated L1 stake.
   VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-
-  expected_voting_power=$(cast to-unit "${final_total_stake}" ether | cut -d'.' -f1)
+  expected_voting_power=$(echo "${final_total_stake_eth}" | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
   assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
 
@@ -292,20 +283,20 @@ function generate_new_keypair() {
   # Check current delegator stake.
   current_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
     "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  current_delegator_stake=$(echo "${current_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  echo "Current delegator stake: ${current_delegator_stake}"
+  current_delegator_stake_eth=$(cast to-unit "$(echo "${current_delegator_stake_data}" | head -1 | cut -d' ' -f1)" ether)
+  echo "Current delegator stake: ${current_delegator_stake_eth} POL"
 
   # Skip test if delegator has no stake.
-  if [[ "${current_delegator_stake}" == "0" ]]; then
+  if [[ $(echo "${current_delegator_stake_eth} == 0" | bc) -eq 1 ]]; then
     echo "Foundry address has no stake to undelegate, skipping test"
     echo "Run the delegation test first to create stake to undelegate"
     skip "No stake to undelegate"
   fi
 
   # Check current validator total stake.
-  initial_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Initial total validator stake: ${initial_total_stake}"
+  initial_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)" ether)
+  echo "Initial total validator stake: ${initial_total_stake_eth} POL"
 
   # Undelegate the current stake.
   undelegation_amount=$(cast to-unit 1ether wei)
@@ -325,23 +316,16 @@ function generate_new_keypair() {
   echo "Verifying undelegation initiation was successful..."
 
   # Check that validator's total stake decreased.
-  expected_total_stake=$((initial_total_stake - undelegation_amount))
-  new_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Expected total stake: ${expected_total_stake}"
-  echo "New total stake: ${new_total_stake}"
+  new_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)" ether)
+  echo "New total stake: ${new_total_stake_eth} POL"
+  [[ $(echo "${new_total_stake_eth} == ${initial_total_stake_eth} - 1" | bc) -eq 1 ]]
 
   # Check that delegator's active stake decreased.
-  new_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  new_delegator_stake=$(echo "${new_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  expected_delegator_stake=$((current_delegator_stake - undelegation_amount))
-  echo "Expected delegator_stake: ${expected_delegator_stake}"
-  echo "New delegator stake: ${new_delegator_stake}"
-
-  # Verify the stakes match expectations.
-  [[ "${new_total_stake}" -eq "${expected_total_stake}" ]]
-  [[ "${new_delegator_stake}" -eq "${expected_delegator_stake}" ]]
+  new_delegator_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}" | head -1 | cut -d' ' -f1)" ether)
+  echo "New delegator stake: ${new_delegator_stake_eth} POL"
+  [[ $(echo "${new_delegator_stake_eth} == ${current_delegator_stake_eth} - 1" | bc) -eq 1 ]]
 
   # Check that unbond nonce was incremented.
   final_unbond_nonce=$(cast call --rpc-url "${L1_RPC_URL}" \
@@ -351,8 +335,7 @@ function generate_new_keypair() {
 
   # Verify L2 voting power matches the updated L1 stake.
   VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-
-  expected_voting_power=$(cast to-unit "${new_total_stake}" ether | cut -d'.' -f1)
+  expected_voting_power=$(echo "${new_total_stake_eth}" | cut -d'.' -f1)
   echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
   assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
 
