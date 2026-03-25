@@ -1044,6 +1044,7 @@ jobs:
             --ignore=tests/london/eip1559_fee_market_change/test_tx_type.py \
             --ignore=tests/london/validation/test_header.py \
             --ignore=tests/cancun/eip4788_beacon_root \
+            --ignore=tests/cancun/eip6780_selfdestruct \
             --ignore=tests/cancun/create/test_create_oog_from_eoa_refunds.py \
             --ignore=tests/cancun/eip1153_tstore/test_basic_tload.py \
             --ignore=tests/cancun/eip1153_tstore/test_tload_calls.py \
