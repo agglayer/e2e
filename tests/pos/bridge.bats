@@ -177,6 +177,7 @@ function wait_for_bor_state_sync() {
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
+    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
     --tx-hash "${withdraw_tx_hash}" \
     --checkpoint-id $((initial_checkpoint_id + 1)))
   
@@ -279,6 +280,7 @@ function wait_for_bor_state_sync() {
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
+    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
     --tx-hash "${withdraw_tx_hash}" \
     --checkpoint-id $((initial_checkpoint_id + 1)))
 
@@ -382,6 +384,7 @@ function wait_for_bor_state_sync() {
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
+    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
     --tx-hash "${withdraw_tx_hash}" \
     --checkpoint-id $((initial_checkpoint_id + 1)))
 
@@ -494,6 +497,7 @@ function wait_for_bor_state_sync() {
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
+    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
     --tx-hash "${withdraw_tx_hash}" \
     --checkpoint-id $((initial_checkpoint_id + 1)))
 
