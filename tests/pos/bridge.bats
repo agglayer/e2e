@@ -52,6 +52,10 @@ function wait_for_bor_state_sync() {
   assert_command_eventually_greater_or_equal "${bor_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
+##############################################################################
+# POL / MATIC <-> Native L2
+##############################################################################
+
 # bats test_tags=bridge,transaction-pol
 @test "bridge POL from L1 to L2 and confirm native tokens balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
@@ -189,6 +193,10 @@ function wait_for_bor_state_sync() {
   assert_token_balance_eventually_greater_or_equal "${L1_POL_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
+##############################################################################
+# ETH (Native L1) / WETH
+##############################################################################
+
 # bats test_tags=bridge,transaction-eth
 @test "bridge native token from L1 to L2 and confirm WETH balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
@@ -288,6 +296,10 @@ function wait_for_bor_state_sync() {
   assert_ether_balance_eventually_greater_or_equal "${address}" "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
+##############################################################################
+# ERC20
+##############################################################################
+
 # bats test_tags=bridge,transaction-erc20
 @test "bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
@@ -385,6 +397,10 @@ function wait_for_bor_state_sync() {
   echo "Verifying L1 ERC20 balance increased..."
   assert_token_balance_eventually_greater_or_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
+
+##############################################################################
+# ERC721
+##############################################################################
 
 # bats test_tags=bridge,transaction-erc721
 @test "bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2" {
