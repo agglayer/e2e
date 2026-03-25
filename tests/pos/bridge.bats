@@ -8,8 +8,8 @@ setup() {
   pos_setup
 
   # Define state sync count commands.
-  HEIMDALL_STATE_SYNC_COUNT_CMD='curl "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
-  BOR_STATE_SYNC_COUNT_CMD='cast call --gas-limit 15000000 --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
+  heimdall_state_sync_count_cmd='curl "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
+  bor_state_sync_count_cmd='cast call --gas-limit 15000000 --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
 
   # Define timeout and interval for eventually commands.
   timeout_seconds=${TIMEOUT_SECONDS:-"180"}
@@ -25,13 +25,13 @@ function wait_for_heimdall_state_sync() {
     echo "Error: state_sync_count is not set."
     exit 1
   fi
-  if [[ -z "${HEIMDALL_STATE_SYNC_COUNT_CMD}" ]]; then
-    echo "Error: HEIMDALL_STATE_SYNC_COUNT_CMD environment variable is not set."
+  if [[ -z "${heimdall_state_sync_count_cmd}" ]]; then
+    echo "Error: heimdall_state_sync_count_cmd is not set."
     exit 1
   fi
 
   echo "Monitoring state syncs on Heimdall..."
-  assert_command_eventually_greater_or_equal "${HEIMDALL_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_or_equal "${heimdall_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 function wait_for_bor_state_sync() {
@@ -40,13 +40,13 @@ function wait_for_bor_state_sync() {
     echo "Error: state_sync_count is not set."
     exit 1
   fi
-  if [[ -z "${BOR_STATE_SYNC_COUNT_CMD}" ]]; then
-    echo "Error: BOR_STATE_SYNC_COUNT_CMD environment variable is not set."
+  if [[ -z "${bor_state_sync_count_cmd}" ]]; then
+    echo "Error: bor_state_sync_count_cmd is not set."
     exit 1
   fi
 
   echo "Monitoring state syncs on Bor..."
-  assert_command_eventually_greater_or_equal "${BOR_STATE_SYNC_COUNT_CMD}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
+  assert_command_eventually_greater_or_equal "${bor_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-pol
@@ -61,8 +61,8 @@ function wait_for_bor_state_sync() {
   echo "- L1 POL balance: ${initial_l1_balance}"
   echo "- L2 native tokens balance: ${initial_l2_balance} wei"
 
-  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
-  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
 
   # Bridge some POL tokens from L1 to L2 to trigger a state sync.
   # The DepositManager remaps POL to MATIC internally before the state sync,
@@ -99,8 +99,8 @@ function wait_for_bor_state_sync() {
   echo "- L1 MATIC balance: ${initial_l1_balance}"
   echo "- L2 native tokens balance: ${initial_l2_balance} wei"
 
-  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
-  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
 
   # Bridge some MATIC tokens from L1 to L2 to trigger a state sync.
   # 1 MATIC token = 1000000000000000000 wei.
@@ -136,8 +136,8 @@ function wait_for_bor_state_sync() {
   echo "- L1 ETH balance: ${initial_l1_balance}"
   echo "- L2 WETH balance: ${initial_l2_balance}"
 
-  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
-  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
 
   # Bridge some ETH from L1 to L2 to trigger a state sync.
   # The DepositManager wraps ETH into WETH (MaticWeth) on L1, so the L2
@@ -223,8 +223,8 @@ function wait_for_bor_state_sync() {
   echo "- L1: ${initial_l1_balance}"
   echo "- L2: ${initial_l2_balance}"
 
-  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
-  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
 
   # Bridge some ERC20 tokens from L1 to L2.
   # 1 ERC20 token = 1000000000000000000 wei.
@@ -273,8 +273,8 @@ function wait_for_bor_state_sync() {
   echo "- L1: ${initial_l1_balance}"
   echo "- L2: ${initial_l2_balance}"
 
-  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
-  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
 
   # Bridge the ERC721 token from L1 to L2.
   echo "Approving the DepositManager contract to spend ERC721 tokens on our behalf..."
