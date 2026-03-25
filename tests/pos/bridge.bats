@@ -125,7 +125,7 @@ function wait_for_bor_state_sync() {
   assert_ether_balance_eventually_greater_or_equal "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats test_tags=bridge,transaction-pol
+# bats test_tags=withdraw,transaction-pol
 @test "withdraw native tokens from L2 and confirm L2 native balance decreased and checkpoint submitted" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
@@ -213,8 +213,8 @@ function wait_for_bor_state_sync() {
   assert_token_balance_eventually_greater_or_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats test_tags=bridge,transaction-erc20
-# @test "bridge some ERC20 tokens from L2 to L1 and confirm L1 ERC20 balance increased" {
+# bats test_tags=withdraw,transaction-erc20
+# @test "withdraw some ERC20 tokens from L2 to L1 and confirm L1 ERC20 balance increased" {
 #   echo TODO
 # }
 
@@ -262,8 +262,8 @@ function wait_for_bor_state_sync() {
   assert_token_balance_eventually_greater_or_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance + 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats test_tags=bridge,transaction-erc721
-# @test "bridge an ERC721 token from L2 to L1 and confirm L1 ERC721 balance increased" {
+# bats test_tags=withdraw,transaction-erc721
+# @test "withdraw an ERC721 token from L2 to L1 and confirm L1 ERC721 balance increased" {
 #   echo TODO
 # }
 
