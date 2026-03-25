@@ -42,31 +42,14 @@ jobs:
 
       - name: Create pull request
         if: steps.check.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          BRANCH="auto/update-compat-versions"
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: auto/update-compat-versions
+          commit-message: "chore: update compat-versions.yml with new releases"
+          title: "chore: update PoS compat versions with new releases"
+          body: |
+            New bor/erigon releases detected. This PR adds them to compat-versions.yml.
 
-          # Configure git for the github-actions bot.
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # Create or update the branch.
-          git checkout -B "$BRANCH"
-          git add scripts/pos-version-matrix/compat-versions.yml
-          git commit -m "chore: update compat-versions.yml with new releases"
-          git push -f origin "$BRANCH"
-
-          # Create PR if one doesn't already exist.
-          existing_pr=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
-          if [[ -n "$existing_pr" ]]; then
-            echo "PR #${existing_pr} already exists, updated branch."
-          else
-            PR_BODY="New bor/erigon releases detected. This PR adds them to compat-versions.yml."
-            PR_BODY="${PR_BODY}\n\n**Review before merging** — remove any versions that should not be tested and verify the pair count is reasonable."
-            gh pr create \
-              --title "chore: update PoS compat versions with new releases" \
-              --body "$(echo -e "$PR_BODY")" \
-              --head "$BRANCH" \
-              --base main
-          fi
+            **Review before merging** — remove any versions that should not be tested and verify the pair count is reasonable.
+          base: main
