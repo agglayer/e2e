@@ -127,42 +127,6 @@ function wait_for_bor_state_sync() {
   assert_ether_balance_eventually_greater_or_equal "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
-# bats test_tags=bridge,transaction-eth
-@test "bridge native token from L1 to L2 and confirm WETH balance increased on L2" {
-  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
-
-  # Get the initial balances.
-  initial_l1_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${address}")
-  initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_WETH_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
-
-  echo "Initial balances:"
-  echo "- L1 ETH balance: ${initial_l1_balance}"
-  echo "- L2 WETH balance: ${initial_l2_balance}"
-
-  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
-  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
-
-  # Bridge some ETH from L1 to L2 to trigger a state sync.
-  # The DepositManager wraps ETH into WETH (MaticWeth) on L1, so the L2
-  # WETH balance increases rather than the native gas balance.
-  echo "Depositing ETH to trigger a state sync..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    --value "${bridge_amount}" \
-    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositEther()"
-
-  # Wait for Heimdall and Bor to process the bridge event.
-  wait_for_heimdall_state_sync "${heimdall_state_sync_count}"
-  wait_for_bor_state_sync "${bor_state_sync_count}"
-
-  # Monitor the balances on L1 and L2.
-  # L1 ETH decreases by at least bridge_amount (gas costs make it decrease further).
-  echo "Monitoring ETH balance on L1..."
-  assert_ether_balance_eventually_lower_or_equal "${address}" "$(echo "${initial_l1_balance} - ${bridge_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
-
-  echo "Monitoring WETH balance on L2..."
-  assert_token_balance_eventually_greater_or_equal "${L2_WETH_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
-}
-
 # bats test_tags=withdraw,transaction-pol
 @test "withdraw native tokens from L2 and confirm POL balance increased on L1" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
@@ -206,7 +170,7 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
-  payload=(polycli pos exit-proof \
+  payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
     --tx-hash "${withdraw_tx_hash}" \
@@ -223,6 +187,105 @@ function wait_for_bor_state_sync() {
   # Verify L1 POL balance increased by the withdrawn amount.
   echo "Verifying L1 POL balance increased..."
   assert_token_balance_eventually_greater_or_equal "${L1_POL_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+}
+
+# bats test_tags=bridge,transaction-eth
+@test "bridge native token from L1 to L2 and confirm WETH balance increased on L2" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get the initial balances.
+  initial_l1_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${address}")
+  initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_WETH_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+
+  echo "Initial balances:"
+  echo "- L1 ETH balance: ${initial_l1_balance}"
+  echo "- L2 WETH balance: ${initial_l2_balance}"
+
+  heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
+  bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
+
+  # Bridge some ETH from L1 to L2 to trigger a state sync.
+  # The DepositManager wraps ETH into WETH (MaticWeth) on L1, so the L2
+  # WETH balance increases rather than the native gas balance.
+  echo "Depositing ETH to trigger a state sync..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    --value "${bridge_amount}" \
+    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositEther()"
+
+  # Wait for Heimdall and Bor to process the bridge event.
+  wait_for_heimdall_state_sync "${heimdall_state_sync_count}"
+  wait_for_bor_state_sync "${bor_state_sync_count}"
+
+  # Monitor the balances on L1 and L2.
+  # L1 ETH decreases by at least bridge_amount (gas costs make it decrease further).
+  echo "Monitoring ETH balance on L1..."
+  assert_ether_balance_eventually_lower_or_equal "${address}" "$(echo "${initial_l1_balance} - ${bridge_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Monitoring WETH balance on L2..."
+  assert_token_balance_eventually_greater_or_equal "${L2_WETH_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+}
+
+# bats test_tags=withdraw,transaction-eth
+@test "withdraw MaticWeth from L2 and confirm ETH balance increased on L1" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get initial balances and latest checkpoint ID.
+  initial_l1_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${address}")
+  initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_WETH_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
+  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+
+  echo "Initial balances and state:"
+  echo "- L1 ETH balance: ${initial_l1_balance}"
+  echo "- L2 WETH balance: ${initial_l2_balance}"
+  echo "- Latest checkpoint ID: ${initial_checkpoint_id}"
+
+  # Burn MaticWeth on L2 to initiate the Plasma exit.
+  # The WithdrawManager will release the corresponding ETH locked on L1.
+  withdraw_amount=$(cast to-unit 1ether wei)
+  echo "Burning ${withdraw_amount} MaticWeth on L2..."
+  withdraw_receipt=$(cast send \
+    --rpc-url "${L2_RPC_URL}" \
+    --private-key "${PRIVATE_KEY}" \
+    --gas-price 30gwei \
+    --priority-gas-price 30gwei \
+    --json \
+    "${L2_WETH_TOKEN_ADDRESS}" \
+    "withdraw(uint256)" "${withdraw_amount}")
+  withdraw_tx_hash=$(echo "${withdraw_receipt}" | jq --raw-output ".transactionHash")
+  withdraw_block_hex=$(echo "${withdraw_receipt}" | jq --raw-output ".blockNumber")
+  withdraw_block=$(printf "%d" "${withdraw_block_hex}")
+  echo "Withdraw tx: ${withdraw_tx_hash} (block ${withdraw_block})"
+
+  # Verify L2 WETH balance decreased.
+  echo "Verifying L2 WETH balance decreased..."
+  assert_token_balance_eventually_lower_or_equal "${L2_WETH_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} - ${withdraw_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  # Wait for a new checkpoint on L1 that covers the withdrawal block.
+  # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
+  echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
+  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+
+  # Generate the exit payload for the burn transaction.
+  # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  payload=$(polycli pos exit-proof \
+    --l1-rpc-url "${L1_RPC_URL}" \
+    --l2-rpc-url "${L2_RPC_URL}" \
+    --tx-hash "${withdraw_tx_hash}" \
+    --checkpoint-id $((initial_checkpoint_id + 1)))
+
+  # Start the exit on L1 with the generated payload.
+  # MaticWeth is a mintable token on L2, so it uses startExitForMintableBurntTokens.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitForMintableBurntTokens(bytes)" "${payload}"
+
+  # Process the exit on L1.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_WETH_TOKEN_ADDRESS}"
+
+  # Verify L1 ETH balance increased by the withdrawn amount (gas costs excluded).
+  echo "Verifying L1 ETH balance increased..."
+  assert_ether_balance_eventually_greater_or_equal "${address}" "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-erc20
@@ -263,9 +326,65 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=withdraw,transaction-erc20
-# @test "withdraw ERC20 tokens from L2 to L1 and confirm ERC20 balance increased on L1" {
-#   echo TODO
-# }
+@test "withdraw ERC20 tokens from L2 to L1 and confirm ERC20 balance increased on L1" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get initial balances and latest checkpoint ID.
+  initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
+  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+
+  echo "Initial balances and state:"
+  echo "- L1 ERC20 balance: ${initial_l1_balance}"
+  echo "- L2 ERC20 balance: ${initial_l2_balance}"
+  echo "- Latest checkpoint ID: ${initial_checkpoint_id}"
+
+  # Burn ERC20 tokens on L2 to initiate the Plasma exit.
+  withdraw_amount=$(cast to-unit 1ether wei)
+  echo "Burning ${withdraw_amount} ERC20 tokens on L2..."
+  withdraw_receipt=$(cast send \
+    --rpc-url "${L2_RPC_URL}" \
+    --private-key "${PRIVATE_KEY}" \
+    --gas-price 30gwei \
+    --priority-gas-price 30gwei \
+    --json \
+    "${L2_ERC20_TOKEN_ADDRESS}" \
+    "withdraw(uint256)" "${withdraw_amount}")
+  withdraw_tx_hash=$(echo "${withdraw_receipt}" | jq --raw-output ".transactionHash")
+  withdraw_block_hex=$(echo "${withdraw_receipt}" | jq --raw-output ".blockNumber")
+  withdraw_block=$(printf "%d" "${withdraw_block_hex}")
+  echo "Withdraw tx: ${withdraw_tx_hash} (block ${withdraw_block})"
+
+  # Verify L2 ERC20 balance decreased.
+  echo "Verifying L2 ERC20 balance decreased..."
+  assert_token_balance_eventually_lower_or_equal "${L2_ERC20_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} - ${withdraw_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  # Wait for a new checkpoint on L1 that covers the withdrawal block.
+  # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
+  echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
+  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+
+  # Generate the exit payload for the burn transaction.
+  # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  payload=$(polycli pos exit-proof \
+    --l1-rpc-url "${L1_RPC_URL}" \
+    --l2-rpc-url "${L2_RPC_URL}" \
+    --tx-hash "${withdraw_tx_hash}" \
+    --checkpoint-id $((initial_checkpoint_id + 1)))
+
+  # Start the exit on L1 with the generated payload.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
+
+  # Process the exit on L1.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_ERC20_TOKEN_ADDRESS}"
+
+  # Verify L1 ERC20 balance increased by the withdrawn amount.
+  echo "Verifying L1 ERC20 balance increased..."
+  assert_token_balance_eventually_greater_or_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+}
 
 # bats test_tags=bridge,transaction-erc721
 @test "bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2" {
@@ -312,6 +431,65 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=withdraw,transaction-erc721
-# @test "withdraw ERC721 token from L2 to L1 and confirm ERC721 balance increased on L1" {
-#   echo TODO
-# }
+@test "withdraw ERC721 token from L2 to L1 and confirm ERC721 balance increased on L1" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get a token ID owned by the address on L2.
+  token_id=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC721_TOKEN_ADDRESS}" "tokenOfOwnerByIndex(address,uint256)(uint256)" "${address}" 0 | jq --raw-output '.[0]')
+  echo "Withdrawing ERC721 token ID: ${token_id}"
+
+  # Get initial balances and latest checkpoint ID.
+  initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
+  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+
+  echo "Initial balances and state:"
+  echo "- L1 ERC721 balance: ${initial_l1_balance}"
+  echo "- L2 ERC721 balance: ${initial_l2_balance}"
+  echo "- Latest checkpoint ID: ${initial_checkpoint_id}"
+
+  # Burn the ERC721 token on L2 to initiate the Plasma exit.
+  echo "Burning ERC721 token (id: ${token_id}) on L2..."
+  withdraw_receipt=$(cast send \
+    --rpc-url "${L2_RPC_URL}" \
+    --private-key "${PRIVATE_KEY}" \
+    --gas-price 30gwei \
+    --priority-gas-price 30gwei \
+    --json \
+    "${L2_ERC721_TOKEN_ADDRESS}" \
+    "withdraw(uint256)" "${token_id}")
+  withdraw_tx_hash=$(echo "${withdraw_receipt}" | jq --raw-output ".transactionHash")
+  withdraw_block_hex=$(echo "${withdraw_receipt}" | jq --raw-output ".blockNumber")
+  withdraw_block=$(printf "%d" "${withdraw_block_hex}")
+  echo "Withdraw tx: ${withdraw_tx_hash} (block ${withdraw_block})"
+
+  # Verify L2 ERC721 balance decreased.
+  echo "Verifying L2 ERC721 balance decreased..."
+  assert_token_balance_eventually_lower_or_equal "${L2_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l2_balance - 1)) "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  # Wait for a new checkpoint on L1 that covers the withdrawal block.
+  # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
+  echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
+  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+
+  # Generate the exit payload for the burn transaction.
+  # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  payload=$(polycli pos exit-proof \
+    --l1-rpc-url "${L1_RPC_URL}" \
+    --l2-rpc-url "${L2_RPC_URL}" \
+    --tx-hash "${withdraw_tx_hash}" \
+    --checkpoint-id $((initial_checkpoint_id + 1)))
+
+  # Start the exit on L1 with the generated payload.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
+
+  # Process the exit on L1.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_ERC721_TOKEN_ADDRESS}"
+
+  # Verify L1 ERC721 balance increased.
+  echo "Verifying L1 ERC721 balance increased..."
+  assert_token_balance_eventually_greater_or_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance + 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+}
