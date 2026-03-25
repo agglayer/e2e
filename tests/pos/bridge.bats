@@ -194,11 +194,11 @@ function wait_for_bor_state_sync() {
 }
 
 ##############################################################################
-# ETH (Native L1) / WETH
+# ETH (Native L1) / MaticWeth
 ##############################################################################
 
 # bats test_tags=bridge,transaction-eth
-@test "bridge native token from L1 to L2 and confirm WETH balance increased on L2" {
+@test "bridge ETH from L1 to L2 and confirm MaticWeth balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -207,14 +207,14 @@ function wait_for_bor_state_sync() {
 
   echo "Initial balances:"
   echo "- L1 ETH balance: ${initial_l1_balance}"
-  echo "- L2 WETH balance: ${initial_l2_balance}"
+  echo "- L2 MaticWeth balance: ${initial_l2_balance}"
 
   heimdall_state_sync_count=$(eval "${heimdall_state_sync_count_cmd}")
   bor_state_sync_count=$(eval "${bor_state_sync_count_cmd}")
 
   # Bridge some ETH from L1 to L2 to trigger a state sync.
-  # The DepositManager wraps ETH into WETH (MaticWeth) on L1, so the L2
-  # WETH balance increases rather than the native gas balance.
+  # The DepositManager wraps ETH into MaticWeth on L1, so the L2
+  # MaticWeth balance increases rather than the native gas balance.
   echo "Depositing ETH to trigger a state sync..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     --value "${bridge_amount}" \
@@ -229,7 +229,7 @@ function wait_for_bor_state_sync() {
   echo "Monitoring ETH balance on L1..."
   assert_ether_balance_eventually_lower_or_equal "${address}" "$(echo "${initial_l1_balance} - ${bridge_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
-  echo "Monitoring WETH balance on L2..."
+  echo "Monitoring MaticWeth balance on L2..."
   assert_token_balance_eventually_greater_or_equal "${L2_WETH_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
@@ -245,7 +245,7 @@ function wait_for_bor_state_sync() {
 
   echo "Initial balances and state:"
   echo "- L1 ETH balance: ${initial_l1_balance}"
-  echo "- L2 WETH balance: ${initial_l2_balance}"
+  echo "- L2 MaticWeth balance: ${initial_l2_balance}"
   echo "- Latest checkpoint ID: ${initial_checkpoint_id}"
 
   # Burn MaticWeth on L2 to initiate the Plasma exit.
@@ -265,8 +265,8 @@ function wait_for_bor_state_sync() {
   withdraw_block=$(printf "%d" "${withdraw_block_hex}")
   echo "Withdraw tx: ${withdraw_tx_hash} (block ${withdraw_block})"
 
-  # Verify L2 WETH balance decreased.
-  echo "Verifying L2 WETH balance decreased..."
+  # Verify L2 MaticWeth balance decreased.
+  echo "Verifying L2 MaticWeth balance decreased..."
   assert_token_balance_eventually_lower_or_equal "${L2_WETH_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} - ${withdraw_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 
   # Wait for a new checkpoint on L1 that covers the withdrawal block.
