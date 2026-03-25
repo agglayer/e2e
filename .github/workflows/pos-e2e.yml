@@ -43,21 +43,17 @@ on:
         required: false
         type: string
         default: "forks/amsterdam"
-      run-exec-specs:
-        description: "Manually trigger exec-specs matrix tests (bypasses release detection)."
+      run-tests:
+        description: "Select which test jobs to run (bypasses release detection for the selected jobs)."
         required: false
-        type: boolean
-        default: false
-      run-fork-trans:
-        description: "Manually trigger fork-transition matrix tests (bypasses release detection)."
-        required: false
-        type: boolean
-        default: false
-      run-ethereum-exec-specs-remote:
-        description: "Manually trigger ethereum execution-specs remote tests (bypasses release detection)."
-        required: false
-        type: boolean
-        default: false
+        type: choice
+        default: "all"
+        options:
+          - all
+          - exec-specs
+          - fork-trans
+          - matrix
+          - ethereum-exec-specs-remote
       force-run:
         description: "Run tests even if no new bor release is detected"
         required: false
@@ -354,7 +350,8 @@ jobs:
   pos-execution-specs:
     needs: check-new-release
     if: >-
-      (needs.check-new-release.outputs.should-run == 'true' || inputs.run-exec-specs == true) &&
+      (needs.check-new-release.outputs.should-run == 'true' ||
+       inputs.run-tests == 'all' || inputs.run-tests == 'exec-specs' || inputs.run-tests == 'matrix') &&
       needs.check-new-release.outputs.compat-pairs != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -573,7 +570,8 @@ jobs:
   pos-fork-transition:
     needs: check-new-release
     if: >-
-      (needs.check-new-release.outputs.should-run == 'true' || inputs.run-fork-trans == true) &&
+      (needs.check-new-release.outputs.should-run == 'true' ||
+       inputs.run-tests == 'all' || inputs.run-tests == 'fork-trans' || inputs.run-tests == 'matrix') &&
       needs.check-new-release.outputs.compat-pairs != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -909,7 +907,8 @@ jobs:
     needs: [check-new-release, pos-execution-specs, pos-fork-transition]
     if: >-
       always() &&
-      (needs.check-new-release.outputs.should-run == 'true' || inputs.run-ethereum-exec-specs-remote == true)
+      (needs.check-new-release.outputs.should-run == 'true' ||
+       inputs.run-tests == 'all' || inputs.run-tests == 'ethereum-exec-specs-remote')
     runs-on: ubuntu-latest
     timeout-minutes: 120
     name: ethereum-exec-specs-remote (against latest bor)
