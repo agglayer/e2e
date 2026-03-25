@@ -456,7 +456,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | out-of-gas transaction still increments sender nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L160) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L53) | |
-| remove validator | [Link](./tests/pos/validator.bats#L311) | |
+| remove validator | [Link](./tests/pos/validator.bats#L333) | |
 | replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L445) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L18) | |
 | sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L976) | |
@@ -480,6 +480,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L400) | |
 | withdraw native tokens from L2 and confirm native balance decreased on L2 and checkpoint was submitted | [Link](./tests/pos/bridge.bats#L167) | |
+| withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
 
 ## DApps Tests

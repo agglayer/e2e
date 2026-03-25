@@ -307,6 +307,28 @@ function generate_new_keypair() {
   echo "Undelegation test completed successfully!"
 }
 
+# bats test_tags=pos-validator,transaction-pol
+@test "withdraw validator rewards" {
+  initial_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json \
+    "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${validator_address}" | jq --raw-output '.[0]')
+  claimable_reward=$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "validatorReward(uint256)(uint256)" "${validator_id}")
+  echo "Initial POL balance: ${initial_pol_balance}"
+  echo "Claimable reward: ${claimable_reward}"
+
+  echo "Withdrawing rewards for validator ${validator_id}..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "withdrawRewardsPOL(uint256)" "${validator_id}"
+
+  final_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json \
+    "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${validator_address}" | jq --raw-output '.[0]')
+  echo "Final POL balance: ${final_pol_balance}"
+
+  # The balance must have increased by at least the claimable reward observed before withdrawal.
+  # (It may be slightly higher since rewards accrue until the tx is mined.)
+  [[ $(echo "${final_pol_balance} >= ${initial_pol_balance} + ${claimable_reward}" | bc) -eq 1 ]]
+}
+
 # bats test_tags=pos-validator
 @test "remove validator" {
   initial_validator_count=$(eval "${validator_count_cmd}")
