@@ -1,19 +1,21 @@
-name: Update PoS Compat Versions
-run-name: Check for new bor/erigon releases
+name: PoS Compat Versions Check
 
 on:
-  schedule:
-    # Check daily at 04:00 UTC (before the pos-e2e run at 06:00).
-    - cron: "0 4 * * *"
-
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/pos-version-matrix/**"
+      - "scenarios/pos/**"
+      - "tests/pos/**"
+      - ".github/workflows/pos-*.yml"
   workflow_dispatch: {}
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  update-compat-versions:
+  check-compat-versions:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -21,35 +23,25 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: pip install -q requests PyYAML
+        run: pip install -q -r scripts/pos-version-matrix/requirements.txt
 
       - name: Check for new releases
-        id: check
         env:
-          GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          output=$(python3 scripts/pos-version-matrix/update-compat-versions.py 2>&1)
-          echo "$output"
+          python3 scripts/pos-version-matrix/update-compat-versions.py
 
           if git diff --quiet scripts/pos-version-matrix/compat-versions.yml; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "compat-versions.yml is up to date."
           else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "--- Diff ---"
+            echo "New bor/erigon releases are available that are not in compat-versions.yml."
+            echo ""
+            echo "To update, run:"
+            echo "  make update-pos-compat-versions"
+            echo ""
+            echo "then commit the result."
+            echo ""
+            echo "Diff:"
             git diff scripts/pos-version-matrix/compat-versions.yml
+            exit 1
           fi
-
-      - name: Create pull request
-        if: steps.check.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ github.token }}
-          branch: auto/update-compat-versions
-          commit-message: "chore: update compat-versions.yml with new releases"
-          title: "chore: update PoS compat versions with new releases"
-          body: |
-            New bor/erigon releases detected. This PR adds them to compat-versions.yml.
-
-            **Review before merging** — remove any versions that should not be tested and verify the pair count is reasonable.
-          base: main
