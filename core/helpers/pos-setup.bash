@@ -34,9 +34,11 @@ pos_setup() {
     [[ -z "${L1_STAKING_INFO_ADDRESS:-}" ]] ||
     [[ -z "${L1_MATIC_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L1_POL_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L1_WETH_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L1_ERC20_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L1_ERC721_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_STATE_RECEIVER_ADDRESS:-}" ]] ||
+    [[ -z "${L2_WETH_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
     matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | jq)
@@ -75,5 +77,11 @@ pos_setup() {
 
     export L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.RootERC721')}
     echo "L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS}"
+
+    export L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticWeth')}
+    echo "L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS}"
+
+    export L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.MaticWeth')}
+    echo "L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS}"
   fi
 }

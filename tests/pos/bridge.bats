@@ -47,7 +47,7 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=bridge,transaction-pol
-@test "bridge POL from L1 to L2 and confirm L2 native tokens balance increased" {
+@test "bridge POL from L1 to L2 and confirm native tokens balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -87,7 +87,7 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=bridge,transaction-matic
-@test "bridge MATIC from L1 to L2 and confirm L2 native tokens balance increased" {
+@test "bridge MATIC from L1 to L2 and confirm native tokens balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -125,8 +125,46 @@ function wait_for_bor_state_sync() {
   assert_ether_balance_eventually_greater_or_equal "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
+# bats test_tags=bridge,transaction-eth
+@test "bridge ETH from L1 to L2 and confirm WETH balance increased on L2" {
+  address=$(cast wallet address --private-key "${PRIVATE_KEY}")
+
+  # Get the initial balances.
+  initial_l1_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${address}")
+  initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_WETH_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+
+  echo "Initial balances:"
+  echo "- L1 ETH balance: ${initial_l1_balance}"
+  echo "- L2 WETH balance: ${initial_l2_balance}"
+
+  heimdall_state_sync_count=$(eval "${HEIMDALL_STATE_SYNC_COUNT_CMD}")
+  bor_state_sync_count=$(eval "${BOR_STATE_SYNC_COUNT_CMD}")
+
+  # Bridge some ETH from L1 to L2 to trigger a state sync.
+  # The DepositManager wraps ETH into WETH (MaticWeth) on L1, so the L2
+  # WETH balance increases rather than the native gas balance.
+  bridge_amount=$(cast to-unit 1ether wei)
+
+  echo "Depositing ETH to trigger a state sync..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    --value "${bridge_amount}" \
+    "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "depositEther()"
+
+  # Wait for Heimdall and Bor to process the bridge event.
+  wait_for_heimdall_state_sync "${heimdall_state_sync_count}"
+  wait_for_bor_state_sync "${bor_state_sync_count}"
+
+  # Monitor the balances on L1 and L2.
+  # L1 ETH decreases by at least bridge_amount (gas costs make it decrease further).
+  echo "Monitoring ETH balance on L1..."
+  assert_ether_balance_eventually_lower_or_equal "${address}" "$(echo "${initial_l1_balance} - ${bridge_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+
+  echo "Monitoring WETH balance on L2..."
+  assert_token_balance_eventually_greater_or_equal "${L2_WETH_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l2_balance} + ${bridge_amount}" | bc)" "${L2_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+}
+
 # bats test_tags=withdraw,transaction-pol
-@test "withdraw native tokens from L2 and confirm L2 native balance decreased and checkpoint submitted" {
+@test "withdraw native tokens from L2 and confirm native balance decreased on L2 and checkpoint was submitted" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get initial L2 native balance and latest checkpoint ID.
@@ -175,7 +213,7 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=bridge,transaction-erc20
-@test "bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased" {
+@test "bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -214,12 +252,12 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=withdraw,transaction-erc20
-# @test "withdraw some ERC20 tokens from L2 to L1 and confirm L1 ERC20 balance increased" {
+# @test "withdraw ERC20 tokens from L2 to L1 and confirm ERC20 balance increased on L1" {
 #   echo TODO
 # }
 
 # bats test_tags=bridge,transaction-erc721
-@test "bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased" {
+@test "bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Mint an ERC721 token.
@@ -263,6 +301,6 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=withdraw,transaction-erc721
-# @test "withdraw an ERC721 token from L2 to L1 and confirm L1 ERC721 balance increased" {
+# @test "withdraw ERC721 token from L2 to L1 and confirm ERC721 balance increased on L1" {
 #   echo TODO
 # }
