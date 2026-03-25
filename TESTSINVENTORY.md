@@ -387,7 +387,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
-| delegate to a validator | [Link](./tests/pos/validator.bats#L168) | |
+| delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L124) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L150) | |
 | deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L48) | |
@@ -456,7 +456,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | out-of-gas transaction still increments sender nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L160) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L53) | |
-| remove validator | [Link](./tests/pos/validator.bats#L313) | |
+| remove validator | [Link](./tests/pos/validator.bats#L311) | |
 | replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L445) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L18) | |
 | sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L976) | |
@@ -473,10 +473,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | type 1 access list with multiple storage keys is accepted | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L207) | |
 | type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L130) | |
 | type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L175) | |
-| undelegate from a validator | [Link](./tests/pos/validator.bats#L243) | |
-| update signer | [Link](./tests/pos/validator.bats#L143) | |
-| update validator stake | [Link](./tests/pos/validator.bats#L81) | |
-| update validator top-up fee | [Link](./tests/pos/validator.bats#L105) | |
+| undelegate from a validator | [Link](./tests/pos/validator.bats#L241) | |
+| update signer | [Link](./tests/pos/validator.bats#L141) | |
+| update validator stake | [Link](./tests/pos/validator.bats#L79) | |
+| update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L400) | |
 | withdraw native tokens from L2 and confirm native balance decreased on L2 and checkpoint was submitted | [Link](./tests/pos/bridge.bats#L167) | |

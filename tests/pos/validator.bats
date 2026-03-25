@@ -46,8 +46,6 @@ function generate_new_keypair() {
   echo "Initial validator count: ${initial_validator_count}"
 
   echo "Generating a new validator keypair..."
-  # Note: We're using the `generate_new_keypair` function defined below instead of `cast wallet new`
-  # because we need to generate a public key.
   read validator_address validator_public_key validator_private_key < <(generate_new_keypair)
   echo "Address: ${validator_address}"
   echo "Public key: ${validator_public_key}"
