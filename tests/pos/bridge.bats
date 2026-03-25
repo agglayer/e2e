@@ -14,6 +14,9 @@ setup() {
   # Define timeout and interval for eventually commands.
   timeout_seconds=${TIMEOUT_SECONDS:-"180"}
   interval_seconds=${INTERVAL_SECONDS:-"10"}
+
+  # Amount to bridge in each test.
+  bridge_amount=$(cast to-unit 1ether wei)
 }
 
 function wait_for_heimdall_state_sync() {
@@ -64,8 +67,6 @@ function wait_for_bor_state_sync() {
   # Bridge some POL tokens from L1 to L2 to trigger a state sync.
   # The DepositManager remaps POL to MATIC internally before the state sync,
   # so the L2 native token balance increases identically to bridging MATIC.
-  bridge_amount=$(cast to-unit 1ether wei)
-
   echo "Approving the DepositManager contract to spend POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
@@ -103,8 +104,6 @@ function wait_for_bor_state_sync() {
 
   # Bridge some MATIC tokens from L1 to L2 to trigger a state sync.
   # 1 MATIC token = 1000000000000000000 wei.
-  bridge_amount=$(cast to-unit 1ether wei)
-
   echo "Approving the DepositManager contract to spend MATIC tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
@@ -143,8 +142,6 @@ function wait_for_bor_state_sync() {
   # Bridge some ETH from L1 to L2 to trigger a state sync.
   # The DepositManager wraps ETH into WETH (MaticWeth) on L1, so the L2
   # WETH balance increases rather than the native gas balance.
-  bridge_amount=$(cast to-unit 1ether wei)
-
   echo "Depositing ETH to trigger a state sync..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     --value "${bridge_amount}" \
@@ -231,8 +228,6 @@ function wait_for_bor_state_sync() {
 
   # Bridge some ERC20 tokens from L1 to L2.
   # 1 ERC20 token = 1000000000000000000 wei.
-  bridge_amount=$(cast to-unit 1ether wei)
-
   echo "Approving the DepositManager contract to spend ERC20 tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_ERC20_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}" "${bridge_amount}"
