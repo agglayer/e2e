@@ -178,7 +178,7 @@ function generate_new_keypair() {
 }
 
 # bats test_tags=pos-validator,pos-delegate,transaction-pol
-@test "delegate POL to a validator" {
+@test "delegate to a validator" {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
@@ -263,7 +263,7 @@ function generate_new_keypair() {
 }
 
 # bats test_tags=pos-validator,pos-undelegate,transaction-pol
-@test "undelegate POL from a validator" {
+@test "undelegate from a validator" {
   VALIDATOR_ID=${VALIDATOR_ID:-"1"}
   echo "VALIDATOR_ID=${VALIDATOR_ID}"
 
