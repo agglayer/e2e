@@ -178,11 +178,13 @@ function wait_for_bor_state_sync() {
 
   # Burn native tokens on L2 to initiate the Plasma exit.
   withdraw_amount=$(cast to-unit 1ether wei)
-  echo "Burning ${withdraw_amount} wei on L2 (0x1010.withdraw)..."
+  echo "Burning ${withdraw_amount} wei on L2..."
   withdraw_receipt=$(cast send \
     --rpc-url "${L2_RPC_URL}" \
     --private-key "${PRIVATE_KEY}" \
     --value "${withdraw_amount}" \
+    --gas-price 30gwei \
+    --priority-gas-price 30gwei \
     --json \
     "0x0000000000000000000000000000000000001010" \
     "withdraw(uint256)" "${withdraw_amount}")
