@@ -111,7 +111,7 @@ function assert_token_balance_eventually_greater_or_equal() {
 
     balance=$(cast call --json --rpc-url "${rpc_url}" "${contract_address}" "balanceOf(address)(uint)" "${eoa_address}" | jq --raw-output ".[0]")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} tokens"
-    if [[ "${balance}" -ge "${target}" ]]; then
+    if [ "$(echo "${balance} >= ${target}" | bc)" -eq 1 ]; then
       break
     fi
 
@@ -141,7 +141,7 @@ function assert_token_balance_eventually_lower_or_equal() {
 
     balance=$(cast call --json --rpc-url "${rpc_url}" "${contract_address}" "balanceOf(address)(uint)" "${eoa_address}" | jq --raw-output ".[0]")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} tokens"
-    if [[ "${balance}" -le "${target}" ]]; then
+    if [ "$(echo "${balance} <= ${target}" | bc)" -eq 1 ]; then
       break
     fi
 
@@ -170,7 +170,7 @@ function assert_ether_balance_eventually_lower_or_equal() {
 
     balance=$(cast balance --rpc-url "${rpc_url}" "${address}")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} wei"
-    if [[ "${balance}" -le "${target}" ]]; then
+    if [ "$(echo "${balance} <= ${target}" | bc)" -eq 1 ]; then
       break
     fi
 
@@ -199,7 +199,7 @@ function assert_ether_balance_eventually_greater_or_equal() {
 
     balance=$(cast balance --rpc-url "${rpc_url}" "${address}")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Balance: ${balance} wei"
-    if [[ "${balance}" -ge "${target}" ]]; then
+    if [ "$(echo "${balance} >= ${target}" | bc)" -eq 1 ]; then
       break
     fi
 
