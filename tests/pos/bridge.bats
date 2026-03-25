@@ -7,6 +7,10 @@ setup() {
   load "../../core/helpers/scripts/eventually.bash"
   pos_setup
 
+  # Amount to bridge in each test.
+  bridge_amount=$(cast to-unit 1ether wei)
+  echo "bridge_amount=${bridge_amount}"
+
   # Define state sync count commands.
   heimdall_state_sync_count_cmd='curl "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
   bor_state_sync_count_cmd='cast call --gas-limit 15000000 --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
@@ -14,9 +18,8 @@ setup() {
   # Define timeout and interval for eventually commands.
   timeout_seconds=${TIMEOUT_SECONDS:-"180"}
   interval_seconds=${INTERVAL_SECONDS:-"10"}
-
-  # Amount to bridge in each test.
-  bridge_amount=$(cast to-unit 1ether wei)
+  echo "timeout_seconds=${timeout_seconds}"
+  echo "interval_seconds=${interval_seconds}"
 }
 
 function wait_for_heimdall_state_sync() {
