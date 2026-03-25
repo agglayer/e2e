@@ -178,7 +178,7 @@ function wait_for_bor_state_sync() {
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
     --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}"
+    --tx-hash "${withdraw_tx_hash}")
   
   # Start the exit on L1 with the generated payload.
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
@@ -280,7 +280,7 @@ function wait_for_bor_state_sync() {
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
     --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}"
+    --tx-hash "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   # MaticWeth is a mintable token on L2, so it uses startExitForMintableBurntTokens.
@@ -383,7 +383,7 @@ function wait_for_bor_state_sync() {
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
     --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}"
+    --tx-hash "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
@@ -495,7 +495,7 @@ function wait_for_bor_state_sync() {
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
     --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}"
+    --tx-hash "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
