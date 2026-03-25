@@ -23,12 +23,14 @@ COMPONENTS = {
         "el_type": "bor",
         "image_prefix": "0xpolygon/bor:",
         "strip_v": True,
+        "max_lines": 3,  # Track 3 major.minor lines (e.g. 2.7, 2.6, 2.5)
     },
     "erigon": {
         "repo": "0xPolygon/erigon",
         "el_type": "erigon",
         "image_prefix": "0xpolygon/erigon:",
         "strip_v": False,
+        "max_lines": 2,  # Only latest lines — used as RPC endpoint, not pairwise tested
     },
 }
 
@@ -106,15 +108,19 @@ def update_compat_versions(compat_path: Path) -> list:
         if not releases:
             continue
 
-        # Group by major.minor line.
+        # Group by major.minor line (insertion order = newest first from API).
         lines: dict = {}
         for r in releases:
             mm = version_major_minor(r["tag"])
             if mm not in lines:
                 lines[mm] = r
 
-        # Check each major.minor line's latest release.
-        for mm, release in lines.items():
+        # Limit to the N most recent major.minor lines.
+        max_lines = comp_config.get("max_lines", 3)
+        tracked_lines = dict(list(lines.items())[:max_lines])
+
+        # Check each tracked major.minor line's latest release.
+        for mm, release in tracked_lines.items():
             image = make_image(release["tag"], comp_config)
             if image in current_images:
                 continue
