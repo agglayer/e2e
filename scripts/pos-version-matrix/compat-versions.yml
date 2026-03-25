@@ -19,7 +19,10 @@ versions:
   reason: new pre-release (2.7 line), auto-detected
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
-  reason: new stable release (2.6 line), auto-detected
+  reason: latest stable release (2.6 line)
+- image: 0xpolygon/bor:2.5.9
+  el_type: bor
+  reason: latest stable release (2.5 line)
 - image: 0xpolygon/erigon:v3.5.0-beta2
   el_type: erigon
   reason: new pre-release (3.5 line), auto-detected

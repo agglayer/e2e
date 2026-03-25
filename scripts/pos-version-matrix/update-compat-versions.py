@@ -40,9 +40,9 @@ def get_headers() -> dict:
     return {}
 
 
-def fetch_latest_releases(repo: str, max_results: int = 10) -> list:
+def fetch_latest_releases(repo: str, max_results: int = 30) -> list:
     """Fetch recent non-draft releases with valid semver tags."""
-    url = f"https://api.github.com/repos/{repo}/releases?per_page=30"
+    url = f"https://api.github.com/repos/{repo}/releases?per_page=50"
     resp = requests.get(url, timeout=15, headers=get_headers())
     if resp.status_code != 200:
         print(f"Warning: failed to fetch releases for {repo} (HTTP {resp.status_code})")
