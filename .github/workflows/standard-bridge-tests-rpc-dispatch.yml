@@ -44,7 +44,7 @@ jobs:
       testfiles: ${{ steps.set-matrix.outputs.testfiles }}
     steps:
       - name: Checkout agglayer-e2e
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: agglayer/e2e
           ref: ${{ env.AGGLAYER_E2E_REF }}
@@ -105,7 +105,7 @@ jobs:
           env | grep -E 'AGGLAYER_E2E_REF'
 
       - name: Checkout agglayer-e2e
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: agglayer/e2e
           ref: ${{ env.AGGLAYER_E2E_REF }}

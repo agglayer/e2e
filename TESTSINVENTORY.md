@@ -158,49 +158,49 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 0x0f BLS12-381 Pairing: e(G1_infinity, G2) returns 1 (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L462) | |
 | 0x10 BLS12-381 MapFpToG1: Fp element 1 maps to a non-trivial G1 point (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L485) | |
 | 0x11 BLS12-381 MapFp2ToG2: Fp2 element (0,1) maps to a non-trivial G2 point (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L504) | |
-| 1.2: BALANCE(0x0a) on-chain at LisovoPro — warm/cold gas baked into state root | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1298) | |
-| 1.2: BLS12-381 (0x0b–0x11) active after Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L890) | |
-| 1.2: BLS12-381 and p256Verify already active before Madhugiri (via upstream Prague) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L779) | |
-| 1.2: BLS12-381 still active at MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L970) | |
-| 1.2: KZG (0x0a) state before Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1090) | |
-| 1.2: KZG (0x0a) still inactive before Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L795) | |
-| 1.2: KZG point evaluation (0x0a) active in Lisovo era (on-chain tx) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1156) | |
-| 1.2: KZG point evaluation (0x0a) is INACTIVE at LisovoPro (known: missing from precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1257) | |
-| 1.2: all precompiles correct at Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1191) | |
-| 1.2: all precompiles correct at LisovoPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1332) | |
-| 1.2: all precompiles unchanged at Giugliano (same as LisovoPro) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1530) | |
-| 1.2: legacy precompiles (0x01–0x09) active at genesis forks | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L652) | |
-| 1.2: legacy precompiles + BLS + p256 still active at Dandeli | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1009) | |
-| 1.2: legacy precompiles still active at Rio | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L742) | |
-| 1.2: modexp (0x05) correctness at Madhugiri (EIP-7823/7883) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L910) | |
-| 1.2: p256Verify (0x0100) active after MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L962) | |
-| 1.2: p256Verify (0x0100) is DROPPED at Madhugiri (known: missing from Madhugiri precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L873) | |
-| 1.2: p256Verify (0x0100) still inactive in Madhugiri era (before MadhugiriPro re-adds it) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L945) | |
-| 1.3: Agra — PUSH0 opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L502) | |
-| 1.3: Agra — initcode size limit enforced (EIP-3860) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L522) | |
-| 1.3: Ahmedabad — contract > 24KB deploys successfully after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L610) | |
-| 1.3: Ahmedabad — contract > 32KB fails to deploy | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L626) | |
-| 1.3: Dandeli — base fee dynamics change with 65% gas target | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L986) | |
-| 1.3: Giugliano — base fee remains non-zero through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1562) | |
-| 1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1407) | |
-| 1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1454) | |
-| 1.3: Giugliano — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1390) | |
-| 1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1493) | |
-| 1.3: Lisovo — CLZ opcode reverts in transaction before fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1073) | |
-| 1.3: Lisovo — CLZ opcode succeeds and returns correct value after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1132) | |
-| 1.3: LisovoPro — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1243) | |
-| 1.3: Madhugiri — transaction at exactly 33554432 gas is accepted | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L861) | |
-| 1.3: Madhugiri — transaction with gas > 33554432 is rejected (EIP-7825) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L838) | |
-| 1.3: Napoli — MCOPY opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L556) | |
-| 1.3: Napoli — SELFDESTRUCT no longer removes code (EIP-6780) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L587) | |
-| 1.3: Napoli — TSTORE/TLOAD succeed and produce correct state after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L571) | |
-| 1.3: Rio — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L723) | |
-| 1.3: SHA-256 precompile gas stable across Madhugiri boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L922) | |
-| 1.3: base fee exists and is non-zero across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1628) | |
-| 1.3: blake2F precompile gas stable across Dandeli boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1036) | |
-| 1.3: ecRecover precompile gas stable across Lisovo boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1219) | |
-| 1.3: no reorgs at fork boundaries — parent hashes are consistent | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1582) | |
-| 1.3: timestamps strictly increasing across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1606) | |
+| 1.2: BALANCE(0x0a) on-chain at LisovoPro — warm/cold gas baked into state root | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1361) | |
+| 1.2: BLS12-381 (0x0b–0x11) active after Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L953) | |
+| 1.2: BLS12-381 and p256Verify already active before Madhugiri (via upstream Prague) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L842) | |
+| 1.2: BLS12-381 still active at MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1033) | |
+| 1.2: KZG (0x0a) state before Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1153) | |
+| 1.2: KZG (0x0a) still inactive before Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L858) | |
+| 1.2: KZG point evaluation (0x0a) active in Lisovo era (on-chain tx) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1219) | |
+| 1.2: KZG point evaluation (0x0a) is INACTIVE at LisovoPro (known: missing from precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1320) | |
+| 1.2: all precompiles correct at Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1254) | |
+| 1.2: all precompiles correct at LisovoPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1395) | |
+| 1.2: all precompiles unchanged at Giugliano (same as LisovoPro) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1597) | |
+| 1.2: legacy precompiles (0x01–0x09) active at genesis forks | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L715) | |
+| 1.2: legacy precompiles + BLS + p256 still active at Dandeli | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1072) | |
+| 1.2: legacy precompiles still active at Rio | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L805) | |
+| 1.2: modexp (0x05) correctness at Madhugiri (EIP-7823/7883) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L973) | |
+| 1.2: p256Verify (0x0100) active after MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1025) | |
+| 1.2: p256Verify (0x0100) is DROPPED at Madhugiri (known: missing from Madhugiri precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L936) | |
+| 1.2: p256Verify (0x0100) still inactive in Madhugiri era (before MadhugiriPro re-adds it) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1008) | |
+| 1.3: Agra — PUSH0 opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L565) | |
+| 1.3: Agra — initcode size limit enforced (EIP-3860) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L585) | |
+| 1.3: Ahmedabad — contract > 24KB deploys successfully after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L673) | |
+| 1.3: Ahmedabad — contract > 32KB fails to deploy | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L689) | |
+| 1.3: Dandeli — base fee dynamics change with 65% gas target | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1049) | |
+| 1.3: Giugliano — base fee remains non-zero through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1630) | |
+| 1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1471) | |
+| 1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1519) | |
+| 1.3: Giugliano — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1453) | |
+| 1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1559) | |
+| 1.3: Lisovo — CLZ opcode reverts in transaction before fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1136) | |
+| 1.3: Lisovo — CLZ opcode succeeds and returns correct value after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1195) | |
+| 1.3: LisovoPro — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1306) | |
+| 1.3: Madhugiri — transaction at exactly 33554432 gas is accepted | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L924) | |
+| 1.3: Madhugiri — transaction with gas > 33554432 is rejected (EIP-7825) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L901) | |
+| 1.3: Napoli — MCOPY opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L619) | |
+| 1.3: Napoli — SELFDESTRUCT no longer removes code (EIP-6780) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L650) | |
+| 1.3: Napoli — TSTORE/TLOAD succeed and produce correct state after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L634) | |
+| 1.3: Rio — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L786) | |
+| 1.3: SHA-256 precompile gas stable across Madhugiri boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L985) | |
+| 1.3: base fee exists and is non-zero across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1693) | |
+| 1.3: blake2F precompile gas stable across Dandeli boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1099) | |
+| 1.3: ecRecover precompile gas stable across Lisovo boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1282) | |
+| 1.3: no reorgs at fork boundaries — parent hashes are consistent | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1651) | |
+| 1.3: timestamps strictly increasing across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1673) | |
 | 50 concurrent eth_blockNumber requests all succeed and return consistent values | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L14) | |
 | 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L58) | |
 | 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L103) | |

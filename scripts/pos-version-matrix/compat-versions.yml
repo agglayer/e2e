@@ -1,0 +1,31 @@
+# PoS version compatibility matrix — curated version lists for compat testing.
+#
+# The pos-e2e workflow generates pairwise bor combinations and deploys
+# mixed devnets with validators/RPCs split across bor versions, plus
+# erigon RPCs as cross-client controls.
+#
+# Each devnet topology (per bor pair):
+#   - 2 validators on bor version_a
+#   - 1 validator on bor version_b
+#   - 1 RPC on bor version_a
+#   - 1 RPC on bor version_b
+#   - 1 RPC on erigon (latest from erigon_versions)
+#
+# Tests run: fork-transition (staggered forks) + execution-specs (after all forks active).
+
+bor_versions:
+  - image: "0xpolygon/bor:2.7.0-beta3"
+    reason: "latest pre-release, validating for production"
+
+  - image: "0xpolygon/bor:2.6.5"
+    reason: "latest 2.6.x stable, active in production"
+
+  - image: "0xpolygon/bor:2.5.9"
+    reason: "latest 2.5.x stable, still active on some nodes"
+
+erigon_versions:
+  - image: "0xpolygon/erigon:v3.5.0-beta2"
+    reason: "latest pre-release, validating for production"
+
+  - image: "0xpolygon/erigon:v3.4.0"
+    reason: "current stable, active in production"

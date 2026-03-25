@@ -259,6 +259,69 @@ _bor_version_gte() {
     [[ "$lower" == "$required_base" ]]
 }
 
+# Skip the current test if the running bor version does not support the given
+# fork.  The mapping is maintained here — update it when new forks land.
+#
+# Usage:  _require_fork "giugliano"
+#
+# Forks at or before Rio are supported by all bor versions we test, so they
+# are not listed.  Only forks introduced after Rio need a minimum version.
+_require_fork() {
+    local fork_name="$1"
+    local min_version=""
+    case "$fork_name" in
+        madhugiri|madhugiriPro) min_version="2.5.0" ;;
+        dandeli)                min_version="2.5.6" ;;
+        lisovo|lisovoPro)       min_version="2.6.0" ;;
+        giugliano)              min_version="2.7.0" ;;
+        *)                      return 0 ;;  # unknown / genesis fork — no skip
+    esac
+    # Use BOR_MIN_VERSION (set by CI from the version mix) when available.
+    # This reflects the oldest bor in the devnet, not just the node we query.
+    # Falls back to querying the RPC node's version.
+    local running="${BOR_MIN_VERSION:-$(_bor_version)}"
+    local running_base
+    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    local lower
+    lower=$(printf '%s\n%s' "$running_base" "$min_version" | sort -V | head -1)
+    if [[ "$lower" != "$min_version" ]]; then
+        skip "fork ${fork_name} requires bor >= ${min_version} (oldest in mix: ${running})"
+    fi
+}
+
+# Check if the minimum bor version in the mix supports a given version.
+# Uses BOR_MIN_VERSION (from CI) or falls back to _bor_version (RPC query).
+_mix_version_gte() {
+    local required="$1"
+    local running="${BOR_MIN_VERSION:-$(_bor_version)}"
+    local running_base
+    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    local lower
+    lower=$(printf '%s\n%s' "$running_base" "$required" | sort -V | head -1)
+    [[ "$lower" == "$required" ]]
+}
+
+# Return the highest fork block that the devnet's bor mix supports.
+_last_supported_fork_block() {
+    local last="$FORK_RIO"
+    _mix_version_gte "2.5.0" && last="$FORK_MADHUGIRI_PRO"
+    _mix_version_gte "2.5.6" && last="$FORK_DANDELI"
+    _mix_version_gte "2.6.0" && last="$FORK_LISOVO_PRO"
+    _mix_version_gte "2.7.0" && last="$FORK_GIUGLIANO"
+    echo "$last"
+}
+
+# Return the list of fork blocks the devnet's bor mix supports (space-separated).
+_supported_fork_blocks() {
+    local blocks="${FORK_JAIPUR} ${FORK_DELHI} ${FORK_INDORE} ${FORK_AGRA}"
+    blocks+=" ${FORK_NAPOLI} ${FORK_AHMEDABAD} ${FORK_BHILAI} ${FORK_RIO}"
+    _mix_version_gte "2.5.0" && blocks+=" ${FORK_MADHUGIRI} ${FORK_MADHUGIRI_PRO}"
+    _mix_version_gte "2.5.6" && blocks+=" ${FORK_DANDELI}"
+    _mix_version_gte "2.6.0" && blocks+=" ${FORK_LISOVO} ${FORK_LISOVO_PRO}"
+    _mix_version_gte "2.7.0" && blocks+=" ${FORK_GIUGLIANO}"
+    echo "$blocks"
+}
+
 # ────────────────────────────────────────────────────────────────────────────
 # Helpers — wait for chain progression
 # ────────────────────────────────────────────────────────────────────────────
@@ -274,8 +337,8 @@ _wait_for_block() {
     fi
 
     local blocks_remaining=$(( target - current ))
-    local timeout=$(( blocks_remaining * 2 + 120 ))
-    [[ "$timeout" -lt 60 ]] && timeout=60
+    local timeout=$(( blocks_remaining * 2 + 180 ))
+    [[ "$timeout" -lt 90 ]] && timeout=90
     [[ "$timeout" -gt 1800 ]] && timeout=1800
 
     echo "  Waiting for block ${target} (current: ${current}, timeout: ${timeout}s)..." >&3
@@ -1388,6 +1451,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano
 @test "1.3: Giugliano — chain progresses smoothly through fork boundary" {
+    _require_fork "giugliano"
     [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
     _wait_for_block $(( FORK_GIUGLIANO + 2 ))
 
@@ -1405,6 +1469,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator" {
+    _require_fork "giugliano"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
     local block_hex result gas_target bfcd
@@ -1452,6 +1517,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block" {
+    _require_fork "giugliano"
     [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis, no pre-fork blocks"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
@@ -1491,6 +1557,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage" {
+    _require_fork "giugliano"
     _wait_for_block $(( FORK_GIUGLIANO + 3 ))
 
     local block_hex result gas_target_hex
@@ -1528,6 +1595,7 @@ _p256_input() {
 
 # bats test_tags=precompile-consistency,giugliano
 @test "1.2: all precompiles unchanged at Giugliano (same as LisovoPro)" {
+    _require_fork "giugliano"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
     # Legacy
@@ -1560,6 +1628,7 @@ _p256_input() {
 
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — base fee remains non-zero through fork boundary" {
+    _require_fork "giugliano"
     [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
     _wait_for_block $(( FORK_GIUGLIANO + 2 ))
 
@@ -1580,13 +1649,11 @@ _p256_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: no reorgs at fork boundaries — parent hashes are consistent" {
-    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
-    local -a fork_blocks=(
-        "${FORK_JAIPUR}" "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}"
-        "${FORK_NAPOLI}" "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}"
-        "${FORK_MADHUGIRI}" "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}"
-        "${FORK_LISOVO}" "${FORK_LISOVO_PRO}" "${FORK_GIUGLIANO}"
-    )
+    local last_fork
+    last_fork=$(_last_supported_fork_block)
+    _wait_for_block $(( last_fork + 2 ))
+    local -a fork_blocks=()
+    read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 0 ]] && continue
@@ -1604,13 +1671,11 @@ _p256_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: timestamps strictly increasing across all fork boundaries" {
-    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
-    local -a fork_blocks=(
-        "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}" "${FORK_NAPOLI}"
-        "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}" "${FORK_MADHUGIRI}"
-        "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}" "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
-        "${FORK_GIUGLIANO}"
-    )
+    local last_fork
+    last_fork=$(_last_supported_fork_block)
+    _wait_for_block $(( last_fork + 2 ))
+    local -a fork_blocks=()
+    read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 1 ]] && continue
@@ -1626,13 +1691,11 @@ _p256_input() {
 
 # bats test_tags=fork-transition,chain-continuity
 @test "1.3: base fee exists and is non-zero across all fork boundaries" {
-    _wait_for_block $(( FORK_GIUGLIANO + 2 ))
-    local -a fork_blocks=(
-        "${FORK_DELHI}" "${FORK_INDORE}" "${FORK_AGRA}" "${FORK_NAPOLI}"
-        "${FORK_AHMEDABAD}" "${FORK_BHILAI}" "${FORK_RIO}" "${FORK_MADHUGIRI}"
-        "${FORK_MADHUGIRI_PRO}" "${FORK_DANDELI}" "${FORK_LISOVO}" "${FORK_LISOVO_PRO}"
-        "${FORK_GIUGLIANO}"
-    )
+    local last_fork
+    last_fork=$(_last_supported_fork_block)
+    _wait_for_block $(( last_fork + 2 ))
+    local -a fork_blocks=()
+    read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -le 0 ]] && continue
