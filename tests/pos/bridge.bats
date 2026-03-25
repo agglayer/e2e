@@ -52,6 +52,27 @@ function wait_for_bor_state_sync() {
   assert_command_eventually_greater_or_equal "${bor_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
+function generate_exit_payload() {
+  local tx_hash="$1"
+  local deadline=$((SECONDS + timeout_seconds))
+  local payload=""
+  while [[ $SECONDS -lt $deadline ]]; do
+    echo "Trying to generate exit payload for tx ${tx_hash}..."
+    if payload=$(polycli pos exit-proof \
+      --l1-rpc-url "${L1_RPC_URL}" \
+      --l2-rpc-url "${L2_RPC_URL}" \
+      --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
+      --tx-hash "${tx_hash}" 2>/dev/null); then
+      echo "${payload}"
+      return 0
+    fi
+    echo "Checkpoint not yet indexed, retrying in ${interval_seconds}s..."
+    sleep "${interval_seconds}"
+  done
+  echo "Error: failed to generate exit payload for tx ${tx_hash} within ${timeout_seconds} seconds." >&2
+  return 1
+}
+
 ##############################################################################
 # POL / MATIC <-> Native L2
 ##############################################################################
@@ -174,12 +195,9 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(polycli pos exit-proof \
-    --l1-rpc-url "${L1_RPC_URL}" \
-    --l2-rpc-url "${L2_RPC_URL}" \
-    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   echo "Starting the exit on L1 with the generated payload..."
@@ -279,12 +297,9 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(polycli pos exit-proof \
-    --l1-rpc-url "${L1_RPC_URL}" \
-    --l2-rpc-url "${L2_RPC_URL}" \
-    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   # MaticWeth is a mintable token on L2, so it uses startExitForMintableBurntTokens.
@@ -385,12 +400,9 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(polycli pos exit-proof \
-    --l1-rpc-url "${L1_RPC_URL}" \
-    --l2-rpc-url "${L2_RPC_URL}" \
-    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   echo "Starting the exit on L1 with the generated payload..."
@@ -500,12 +512,9 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(polycli pos exit-proof \
-    --l1-rpc-url "${L1_RPC_URL}" \
-    --l2-rpc-url "${L2_RPC_URL}" \
-    --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-    --tx-hash "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
   echo "Starting the exit on L1 with the generated payload..."
