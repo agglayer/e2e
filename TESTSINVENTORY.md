@@ -378,8 +378,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L486) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L509) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L463) | |
-| bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2 | [Link](./tests/pos/bridge.bats#L218) | |
-| bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2 | [Link](./tests/pos/bridge.bats#L260) | |
+| bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2 | [Link](./tests/pos/bridge.bats#L229) | |
+| bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2 | [Link](./tests/pos/bridge.bats#L271) | |
 | bridge MATIC from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L94) | |
 | bridge POL from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L56) | |
 | bridge native token from L1 to L2 and confirm WETH balance increased on L2 | [Link](./tests/pos/bridge.bats#L131) | |
@@ -479,7 +479,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L400) | |
-| withdraw native tokens from L2 and confirm native balance decreased on L2 and checkpoint was submitted | [Link](./tests/pos/bridge.bats#L167) | |
+| withdraw native tokens from L2 and confirm POL balance increased on L1 | [Link](./tests/pos/bridge.bats#L167) | |
 | withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
 

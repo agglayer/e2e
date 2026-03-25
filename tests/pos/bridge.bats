@@ -164,15 +164,17 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=withdraw,transaction-pol
-@test "withdraw native tokens from L2 and confirm native balance decreased on L2 and checkpoint was submitted" {
+@test "withdraw native tokens from L2 and confirm POL balance increased on L1" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
-  # Get initial L2 native balance and latest checkpoint ID.
+  # Get initial balances and latest checkpoint ID.
+  initial_l1_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
   checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
   initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
 
   echo "Initial balances and state:"
+  echo "- L1 POL balance: ${initial_l1_pol_balance}"
   echo "- L2 native balance: ${initial_l2_balance} wei"
   echo "- Latest checkpoint ID: ${initial_checkpoint_id}"
 
@@ -202,16 +204,25 @@ function wait_for_bor_state_sync() {
   echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
   assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
 
-  # TODO: Complete the Plasma exit on L1 to recover funds.
-  # After the burn block is checkpointed, the remaining steps are:
-  #   1. Build the exit payload: RLP-encoded receipt of the burn tx + Merkle
-  #      proof of that receipt in the block's receipts trie + checkpoint proof.
-  #   2. L1: WithdrawManagerProxy.startExitWithBurntTokens(bytes exitTx)
-  #   3. L1: WithdrawManagerProxy.processExits(address token)
-  #   4. Assert L1 POL balance increased by withdraw_amount.
-  # Proof generation requires constructing the receipts MPT of the burn block,
-  # which is not feasible in pure bash. A dedicated tool (e.g. matic.js or a
-  # custom Go helper) is needed.
+  # Generate the exit payload for the burn transaction.
+  # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  payload=(polycli pos exit-proof \
+    --l1-rpc-url "${L1_RPC_URL}" \
+    --l2-rpc-url "${L2_RPC_URL}" \
+    --tx-hash "${withdraw_tx_hash}" \
+    --checkpoint-id $((initial_checkpoint_id + 1)))
+  
+  # Start the exit on L1 with the generated payload.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
+
+  # Process the exit on L1.
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_MATIC_TOKEN_ADDRESS}"
+
+  # Verify L1 POL balance increased by the withdrawn amount.
+  echo "Verifying L1 POL balance increased..."
+  assert_token_balance_eventually_greater_or_equal "${L1_POL_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 # bats test_tags=bridge,transaction-erc20

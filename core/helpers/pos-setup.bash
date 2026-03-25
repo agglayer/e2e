@@ -30,6 +30,7 @@ pos_setup() {
 
   if [[ -z "${L1_GOVERNANCE_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKE_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKING_INFO_ADDRESS:-}" ]] ||
     [[ -z "${L1_MATIC_TOKEN_ADDRESS:-}" ]] ||
@@ -49,6 +50,9 @@ pos_setup() {
 
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
     echo "L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}"
+
+    export L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.WithdrawManagerProxy')}
+    echo "L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}"
 
     export L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakeManagerProxy')}
     echo "L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS}"
