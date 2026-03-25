@@ -38,7 +38,7 @@ on:
         required: false
         type: string
         default: "feat/execution-specs"
-      exec-specs-ref:
+      ethereum-exec-specs-ref:
         description: "Branch or tag of ethereum/execution-specs to use for remote execution tests."
         required: false
         type: string
@@ -62,7 +62,7 @@ env:
   ENCLAVE_NAME: pos
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
-  EXEC_SPECS_REF: ${{ inputs.exec-specs-ref || 'forks/amsterdam' }}
+  EXEC_SPECS_REF: ${{ inputs.ethereum-exec-specs-ref || 'forks/amsterdam' }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -348,7 +348,7 @@ jobs:
       max-parallel: 5
       matrix:
         include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
-    name: exec-specs (${{ matrix.pair_label }})
+    name: pos-exec-specs (${{ matrix.pair_label }})
     steps:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v6
@@ -541,7 +541,7 @@ jobs:
 
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pos-e2e-dump-execspecs-${{ matrix.pair_label }}-${{ github.run_id }}
           path: ./dump
@@ -874,7 +874,7 @@ jobs:
 
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pos-e2e-dump-forktrans-${{ matrix.pair_label }}-${{ github.run_id }}
           path: ./dump
@@ -890,14 +890,14 @@ jobs:
   # bor release via `execute remote`.  Runs after all matrix jobs to maximise
   # available runner resources.
   # ---------------------------------------------------------------------------
-  pos-exec-specs-remote:
+  ethereum-exec-specs-remote:
     needs: [check-new-release, pos-execution-specs, pos-fork-transition]
     if: >-
       always() &&
       needs.check-new-release.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    name: exec-specs-remote (latest bor)
+    name: ethereum-exec-specs-remote (against latest bor)
     steps:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v6
@@ -1079,7 +1079,7 @@ jobs:
 
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pos-e2e-dump-execspecs-remote-${{ github.run_id }}
           path: ./dump
@@ -1095,14 +1095,14 @@ jobs:
   # Only runs after all test phases succeed.
   # ---------------------------------------------------------------------------
   mark-tested:
-    needs: [check-new-release, pos-execution-specs, pos-fork-transition, pos-exec-specs-remote]
+    needs: [check-new-release, pos-execution-specs, pos-fork-transition, ethereum-exec-specs-remote]
     if: >-
       always() &&
       needs.check-new-release.outputs.bor-tag != 'manual' &&
       needs.check-new-release.outputs.bor-tag != '' &&
       needs.pos-execution-specs.result == 'success' &&
       needs.pos-fork-transition.result == 'success' &&
-      needs.pos-exec-specs-remote.result == 'success'
+      needs.ethereum-exec-specs-remote.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Write cache marker
@@ -1112,7 +1112,7 @@ jobs:
           echo "Marked ${{ needs.check-new-release.outputs.bor-tag }} as tested."
 
       - name: Save cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: /tmp/pos-release-cache
           key: pos-e2e-bor-release-${{ needs.check-new-release.outputs.bor-tag }}
