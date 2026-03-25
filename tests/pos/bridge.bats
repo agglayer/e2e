@@ -57,7 +57,7 @@ function generate_exit_payload() {
   local deadline=$((SECONDS + timeout_seconds))
   local payload=""
   while [[ $SECONDS -lt $deadline ]]; do
-    echo "Trying to generate exit payload for tx ${tx_hash}..."
+    echo "Trying to generate exit payload for tx ${tx_hash}..." >&2
     if payload=$(polycli pos exit-proof \
       --l1-rpc-url "${L1_RPC_URL}" \
       --l2-rpc-url "${L2_RPC_URL}" \
@@ -66,7 +66,7 @@ function generate_exit_payload() {
       echo "${payload}"
       return 0
     fi
-    echo "Checkpoint not yet indexed, retrying in ${interval_seconds}s..."
+    echo "Checkpoint not yet indexed, retrying in ${interval_seconds}s..." >&2
     sleep "${interval_seconds}"
   done
   echo "Error: failed to generate exit payload for tx ${tx_hash} within ${timeout_seconds} seconds." >&2
