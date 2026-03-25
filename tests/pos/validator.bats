@@ -314,7 +314,7 @@ function generate_new_keypair() {
 
   echo "Removing the validator from the validator set..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${validator_id}"
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint256)" "${validator_id}"
 
   # Verify the unstake was initiated on L1: deactivationEpoch must be greater than zero.
   # validators(uint256) returns (amount, reward, activationEpoch, deactivationEpoch, ...)
