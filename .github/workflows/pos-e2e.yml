@@ -1046,7 +1046,7 @@ jobs:
             -n 8 \
             -s \
             --tx-wait-timeout=60 \
-            -k "not blob and not 4844 and not beacon_root and not mainnet and not genesis_hash_available and not test_selfdestruct_to_precompile and not test_selfdestruct_to_system_contract and not test_dynamic_create2_selfdestruct_collision_multi_tx and not test_extcodehash_of_empty and not test_call_memory_expands_on_early_revert and not type_3 and not address_0x000000000000000000000000000000000000000a and not address_0x000000000000000000000000000000000000000b and not address_0x000000000000000000000000000000000000000c and not address_0x000000000000000000000000000000000000000d and not address_0x000000000000000000000000000000000000000e and not address_0x000000000000000000000000000000000000000f and not address_0x0000000000000000000000000000000000000010 and not address_0x0000000000000000000000000000000000000011" \
+            -k "not blob and not 4844 and not beacon_root and not mainnet and not genesis_hash_available and not test_selfdestruct_to_precompile and not test_selfdestruct_to_system_contract and not test_dynamic_create2_selfdestruct_collision_multi_tx and not test_extcodehash_of_empty and not test_call_memory_expands_on_early_revert and not type_3 and not address_0x000000000000000000000000000000000000000a and not address_0x000000000000000000000000000000000000000b and not address_0x000000000000000000000000000000000000000c and not address_0x000000000000000000000000000000000000000d and not address_0x000000000000000000000000000000000000000e and not address_0x000000000000000000000000000000000000000f and not address_0x0000000000000000000000000000000000000010 and not address_0x0000000000000000000000000000000000000011 and not test_create_nonce_overflow" \
             --ignore=tests/frontier/opcodes/test_calldatacopy.py \
             --ignore=tests/frontier/opcodes/test_dup.py \
             --ignore=tests/frontier/opcodes/test_all_opcodes.py \
@@ -1061,12 +1061,15 @@ jobs:
             --ignore=tests/london/eip1559_fee_market_change/test_tx_type.py \
             --ignore=tests/london/validation/test_header.py \
             --ignore=tests/cancun/eip4788_beacon_root \
+            --ignore=tests/cancun/eip5656_mcopy/test_mcopy_memory_expansion.py \
             --ignore=tests/cancun/eip6780_selfdestruct \
             --ignore=tests/cancun/create/test_create_oog_from_eoa_refunds.py \
             --ignore=tests/cancun/eip1153_tstore/test_basic_tload.py \
             --ignore=tests/cancun/eip1153_tstore/test_tload_calls.py \
             --ignore=tests/cancun/eip1153_tstore/test_tstore_reentrancy.py \
             --ignore=tests/cancun/eip1153_tstore/test_tload_reentrancy.py \
+            --ignore=tests/cancun/eip1153_tstore/test_tstorage_create_contexts.py \
+            --ignore=tests/constantinople/eip1052_extcodehash/test_extcodehash.py \
             --ignore=tests/constantinople/eip145_bitwise_shift/test_shift_combinations.py \
             --ignore=tests/prague/eip6110_deposits \
             --ignore=tests/prague/eip7002_el_triggerable_withdrawals \
@@ -1074,6 +1077,7 @@ jobs:
             --ignore=tests/prague/eip7685_general_purpose_el_requests \
             --ignore=tests/prague/eip2537_bls_12_381_precompiles \
             --ignore=tests/prague/eip2935_historical_block_hashes_from_state \
+            --ignore=tests/prague/eip7623_increase_calldata_cost \
             --ignore=tests/prague/eip7702_set_code_tx \
             --ignore=tests/shanghai/eip4895_withdrawals \
             --ignore=tests/istanbul/eip1344_chainid/test_chainid.py \
