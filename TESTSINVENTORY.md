@@ -380,9 +380,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L463) | |
 | bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2 | [Link](./tests/pos/bridge.bats#L216) | |
 | bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2 | [Link](./tests/pos/bridge.bats#L260) | |
-| bridge ETH from L1 to L2 and confirm WETH balance increased on L2 | [Link](./tests/pos/bridge.bats#L129) | |
 | bridge MATIC from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L90) | |
 | bridge POL from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L50) | |
+| bridge native token from L1 to L2 and confirm WETH balance increased on L2 | [Link](./tests/pos/bridge.bats#L129) | |
 | coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L318) | |
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |

@@ -126,7 +126,7 @@ function wait_for_bor_state_sync() {
 }
 
 # bats test_tags=bridge,transaction-eth
-@test "bridge ETH from L1 to L2 and confirm WETH balance increased on L2" {
+@test "bridge native token from L1 to L2 and confirm WETH balance increased on L2" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
