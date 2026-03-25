@@ -174,17 +174,20 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  echo "Generating the exit payload for the burn transaction..."
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
     --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
     --tx-hash "${withdraw_tx_hash}")
-  
+
   # Start the exit on L1 with the generated payload.
+  echo "Starting the exit on L1 with the generated payload..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
+  echo "Processing the exit on L1..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_MATIC_TOKEN_ADDRESS}"
 
@@ -276,6 +279,7 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  echo "Generating the exit payload for the burn transaction..."
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
@@ -284,10 +288,12 @@ function wait_for_bor_state_sync() {
 
   # Start the exit on L1 with the generated payload.
   # MaticWeth is a mintable token on L2, so it uses startExitForMintableBurntTokens.
+  echo "Starting the exit on L1 with the generated payload..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitForMintableBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
+  echo "Processing the exit on L1..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_WETH_TOKEN_ADDRESS}"
 
@@ -379,6 +385,7 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  echo "Generating the exit payload for the burn transaction..."
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
@@ -386,10 +393,12 @@ function wait_for_bor_state_sync() {
     --tx-hash "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
+  echo "Starting the exit on L1 with the generated payload..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
+  echo "Processing the exit on L1..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_ERC20_TOKEN_ADDRESS}"
 
@@ -491,6 +500,7 @@ function wait_for_bor_state_sync() {
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
+  echo "Generating the exit payload for the burn transaction..."
   payload=$(polycli pos exit-proof \
     --l1-rpc-url "${L1_RPC_URL}" \
     --l2-rpc-url "${L2_RPC_URL}" \
@@ -498,10 +508,12 @@ function wait_for_bor_state_sync() {
     --tx-hash "${withdraw_tx_hash}")
 
   # Start the exit on L1 with the generated payload.
+  echo "Starting the exit on L1 with the generated payload..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
+  echo "Processing the exit on L1..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_ERC721_TOKEN_ADDRESS}"
 
