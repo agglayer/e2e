@@ -29,6 +29,7 @@ pos_setup() {
   echo "L2_CL_API_URL=${L2_CL_API_URL}"
 
   if [[ -z "${L1_GOVERNANCE_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ROOT_CHAIN_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKE_MANAGER_PROXY_ADDRESS:-}" ]] ||
@@ -47,6 +48,9 @@ pos_setup() {
     # L1 contract addresses.
     export L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.GovernanceProxy')}
     echo "L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS}"
+
+    export L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.RootChainProxy')}
+    echo "L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS}"
 
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
     echo "L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}"
