@@ -379,7 +379,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L509) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L463) | |
 | bridge MATIC from L1 to L2 and confirm L2 native tokens balance increased | [Link](./tests/pos/bridge.bats#L90) | |
-| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L271) | |
 | bridge POL from L1 to L2 and confirm L2 native tokens balance increased | [Link](./tests/pos/bridge.bats#L50) | |
 | bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L222) | |
 | bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L178) | |
