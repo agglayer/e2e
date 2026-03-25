@@ -359,6 +359,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - validator-set
 - warm-cold
 - weth
+- withdraw
 - zkevm-batch
 - zkevm-counters
 
