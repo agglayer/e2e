@@ -908,7 +908,7 @@ jobs:
   ethereum-exec-specs-remote:
     needs: [check-new-release, pos-execution-specs, pos-fork-transition]
     if: >-
-      always() && (
+      !cancelled() && (
         (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
         (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'ethereum-exec-specs-remote'))
       )
