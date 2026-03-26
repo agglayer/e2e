@@ -291,6 +291,40 @@ jobs:
           echo "Erigon versions (${#erigon_images[@]}):"
           printf '  %s\n' "${erigon_images[@]}"
 
+          # --- Parse excluded pairs from compat-versions.yml ---
+          declare -A excluded_set
+          if [[ -f "$COMPAT_YML" ]]; then
+            in_excluded=false
+            img_buf=()
+            while IFS= read -r line; do
+              if [[ "$line" =~ ^excluded_pairs: ]]; then
+                in_excluded=true; continue
+              fi
+              [[ "$in_excluded" != "true" ]] && continue
+              if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
+              if [[ "$line" =~ ^-\ +images: ]]; then
+                if [[ ${#img_buf[@]} -gt 0 ]]; then
+                  echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
+                fi
+                img_buf=(); continue
+              fi
+              if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
+                img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
+                img_buf+=("$img")
+                if [[ ${#img_buf[@]} -eq 2 ]]; then
+                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
+                  img_buf=()
+                fi
+              fi
+            done < "$COMPAT_YML"
+            if [[ ${#img_buf[@]} -gt 0 ]]; then
+              echo "::warning::Incomplete excluded pair at end of file (${#img_buf[@]} image(s)): ${img_buf[*]}"
+            fi
+            echo "Loaded $(( ${#excluded_set[@]} / 2 )) excluded pairs."
+          fi
+
           # --- Generate test scenarios ---
           # 1) Single-version baseline: all latest bor + latest erigon RPC
           # 2) Pairwise bor mixes: validators split + erigon cross-client RPC
@@ -306,49 +340,23 @@ jobs:
               '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           fi
 
-          # --- Load excluded pairs from compat-versions.yml ---
-          declare -A excluded_set
-          if [[ -f "$COMPAT_YML" ]]; then
-            # Parse excluded_pairs: collect image pairs as "imageA|imageB" keys.
-            # Both orderings are stored so lookup works regardless of pair order.
-            in_excluded=false
-            img_buf=()
-            while IFS= read -r line; do
-              if [[ "$line" =~ ^excluded_pairs: ]]; then
-                in_excluded=true; continue
-              fi
-              [[ "$in_excluded" != "true" ]] && continue
-              # Stop at next top-level key (non-indented, non-comment, non-blank).
-              if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
-              if [[ "$line" =~ ^-\ +images: ]]; then
-                img_buf=(); continue
-              fi
-              if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
-                img="${BASH_REMATCH[1]}"
-                img=$(echo "$img" | sed 's/^["'"'"']//; s/["'"'"']$//')
-                img_buf+=("$img")
-                if [[ ${#img_buf[@]} -eq 2 ]]; then
-                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
-                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
-                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
-                  img_buf=()
-                fi
-              fi
-            done < "$COMPAT_YML"
-            echo "Loaded ${#excluded_set[@]} excluded pair entries."
-          fi
-
-          # Pairwise bor mixes (skip excluded pairs).
+          # Pairwise bor-bor mixes (skip excluded pairs).
+          # NOTE: Exclusion only applies to bor-bor pairs; cross-client pairs
+          # are not subject to excluded_pairs filtering.
           for ((i=0; i<${#bor_images[@]}; i++)); do
             for ((j=i+1; j<${#bor_images[@]}; j++)); do
               va="${bor_images[$i]}"; vb="${bor_images[$j]}"
               if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
-                echo "  Skipping excluded pair: ${va} + ${vb}"
+                echo "  Skipping excluded pair: ${va} <-> ${vb}"
                 continue
               fi
               la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
-              idx=$(( (i + j) % ${#erigon_images[@]} ))
-              eri="${erigon_images[$idx]:-$erigon_latest}"
+              if [[ ${#erigon_images[@]} -gt 0 ]]; then
+                idx=$(( (i + j) % ${#erigon_images[@]} ))
+                eri="${erigon_images[$idx]}"
+              else
+                eri="$erigon_latest"
+              fi
               scenarios=$(echo "$scenarios" | jq -c \
                 --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
                 '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
