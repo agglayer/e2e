@@ -164,12 +164,18 @@ def _write_compat_versions(path: Path, data: dict):
 #
 # If this file is absent or `versions` is empty, the workflow falls back
 # to auto-detecting the latest bor release from each major.minor line.
+#
+# `excluded_pairs` (optional): version pairs to skip in pairwise testing.
+# Each entry needs: images (list of 2), reason, and link.
 
 """
     with open(path, "w") as f:
         f.write(header)
+        output = {"versions": data["versions"]}
+        if data.get("excluded_pairs"):
+            output["excluded_pairs"] = data["excluded_pairs"]
         yaml.dump(
-            {"versions": data["versions"]},
+            output,
             f,
             default_flow_style=False,
             sort_keys=False,
