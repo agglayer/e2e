@@ -120,13 +120,30 @@ def update_compat_versions(compat_path: Path) -> list:
         tracked_lines = dict(list(lines.items())[:max_lines])
 
         # Check each tracked major.minor line's latest release.
+        prefix = comp_config["image_prefix"]
         for mm, release in tracked_lines.items():
             image = make_image(release["tag"], comp_config)
+
+            # Remove superseded entries from the same major.minor line.
+            superseded = [
+                v for v in data["versions"]
+                if v.get("image", "").startswith(prefix)
+                and version_major_minor(v["image"].removeprefix(prefix).lstrip("v")) == mm
+                and v["image"] != image
+            ]
+            for old in superseded:
+                data["versions"].remove(old)
+                changes.append(f"  - {old['image']} (superseded by {image})")
+                # Warn if excluded_pairs references the superseded version.
+                for ep in data.get("excluded_pairs", []):
+                    if old["image"] in ep.get("images", []):
+                        print(f"  ! excluded_pairs references superseded image "
+                              f"{old['image']} — update excluded_pairs manually.")
+
             if image in current_images:
                 continue
 
-            # New release not in the list — add it.
-            reason = "new release, auto-detected"
+            # Add the new release.
             if release["prerelease"]:
                 reason = f"new pre-release ({mm} line), auto-detected"
             else:
@@ -215,11 +232,11 @@ def main():
     changes = update_compat_versions(compat_path)
 
     if changes:
-        print(f"\n{len(changes)} new version(s) added to {compat_path.name}:")
+        print(f"\n{len(changes)} change(s) to {compat_path.name}:")
         for c in changes:
             print(c)
     else:
-        print("No new versions found. compat-versions.yml is up to date.")
+        print("No changes needed. compat-versions.yml is up to date.")
 
 
 if __name__ == "__main__":
