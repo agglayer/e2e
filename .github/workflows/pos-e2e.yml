@@ -38,6 +38,22 @@ on:
         required: false
         type: string
         default: "feat/execution-specs"
+      ethereum-exec-specs-ref:
+        description: "Branch or tag of ethereum/execution-specs to use for remote execution tests."
+        required: false
+        type: string
+        default: "forks/amsterdam"
+      run-tests:
+        description: "Select which test jobs to run (bypasses release detection for the selected jobs)."
+        required: false
+        type: choice
+        default: "all"
+        options:
+          - all
+          - pos-exec-specs
+          - fork-trans
+          - matrix
+          - ethereum-exec-specs-remote
       force-run:
         description: "Run tests even if no new bor release is detected"
         required: false
@@ -57,6 +73,7 @@ env:
   ENCLAVE_NAME: pos
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
+  EXEC_SPECS_REF: ${{ inputs.ethereum-exec-specs-ref || 'forks/amsterdam' }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -233,11 +250,10 @@ jobs:
       - name: Generate version compatibility matrix
         id: gen-compat-matrix
         run: |
-          COMPAT_CSV="${{ steps.resolve.outputs.compat-versions }}"
           COMPAT_YML="scripts/pos-version-matrix/compat-versions.yml"
 
           # --- Collect bor and erigon version lists ---
-          # YAML has separate bor_versions / erigon_versions sections.
+          # YAML has flat `versions:` list with `el_type: bor|erigon` discriminator.
           declare -a bor_images=()
           declare -a erigon_images=()
           OVERRIDE="${{ steps.resolve.outputs.compat-versions-override }}"
@@ -247,15 +263,16 @@ jobs:
             IFS=',' read -ra bor_images <<< "$OVERRIDE"
           elif [[ -f "$COMPAT_YML" ]]; then
             echo "Reading versions from ${COMPAT_YML}..."
-            in_bor=false; in_erigon=false
+            pending_img=""
             while IFS= read -r line; do
-              [[ "$line" =~ ^bor_versions: ]] && { in_bor=true; in_erigon=false; continue; }
-              [[ "$line" =~ ^erigon_versions: ]] && { in_erigon=true; in_bor=false; continue; }
-              [[ "$line" =~ ^[a-z] ]] && { in_bor=false; in_erigon=false; continue; }
-              if [[ "$line" =~ image:\ *\"?([^\"]+)\"? ]]; then
-                img="${BASH_REMATCH[1]}"
-                $in_bor && bor_images+=("$img")
-                $in_erigon && erigon_images+=("$img")
+              if [[ "$line" =~ image:\ *\"?([^\"[:space:]]+)\"? ]]; then
+                [[ -n "$pending_img" ]] && echo "::warning::Skipped image without el_type: ${pending_img}"
+                pending_img="${BASH_REMATCH[1]}"
+              elif [[ -n "$pending_img" && "$line" =~ el_type:\ *(bor|erigon) ]]; then
+                el_type="${BASH_REMATCH[1]}"
+                [[ "$el_type" == "bor" ]] && bor_images+=("$pending_img")
+                [[ "$el_type" == "erigon" ]] && erigon_images+=("$pending_img")
+                pending_img=""
               fi
             done < "$COMPAT_YML"
           fi
@@ -274,10 +291,47 @@ jobs:
           echo "Erigon versions (${#erigon_images[@]}):"
           printf '  %s\n' "${erigon_images[@]}"
 
+          # --- Parse excluded pairs from compat-versions.yml ---
+          declare -A excluded_set
+          if [[ -f "$COMPAT_YML" ]]; then
+            in_excluded=false
+            img_buf=()
+            while IFS= read -r line; do
+              if [[ "$line" =~ ^excluded_pairs: ]]; then
+                in_excluded=true; continue
+              fi
+              [[ "$in_excluded" != "true" ]] && continue
+              if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
+              if [[ "$line" =~ ^-\ +images: ]]; then
+                if [[ ${#img_buf[@]} -gt 0 ]]; then
+                  echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
+                fi
+                img_buf=(); continue
+              fi
+              if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
+                img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
+                img_buf+=("$img")
+                if [[ ${#img_buf[@]} -eq 2 ]]; then
+                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
+                  img_buf=()
+                fi
+              fi
+            done < "$COMPAT_YML"
+            if [[ ${#img_buf[@]} -gt 0 ]]; then
+              echo "::warning::Incomplete excluded pair at end of file (${#img_buf[@]} image(s)): ${img_buf[*]}"
+            fi
+            echo "Loaded $(( ${#excluded_set[@]} / 2 )) excluded pairs."
+          fi
+
           # --- Generate test scenarios ---
           # 1) Single-version baseline: all latest bor + latest erigon RPC
           # 2) Pairwise bor mixes: validators split + erigon cross-client RPC
           erigon_latest="${erigon_images[0]:-}"
+          if [[ -z "$erigon_latest" ]]; then
+            echo "::warning::No erigon images found — erigon_rpc will be empty in scenarios."
+          fi
           scenarios="[]"
 
           # Single-version baseline (latest bor + latest erigon).
@@ -289,13 +343,23 @@ jobs:
               '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           fi
 
-          # Pairwise bor mixes.
+          # Pairwise bor-bor mixes (skip excluded pairs).
+          # NOTE: Exclusion only applies to bor-bor pairs; cross-client pairs
+          # are not subject to excluded_pairs filtering.
           for ((i=0; i<${#bor_images[@]}; i++)); do
             for ((j=i+1; j<${#bor_images[@]}; j++)); do
               va="${bor_images[$i]}"; vb="${bor_images[$j]}"
+              if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
+                echo "  Skipping excluded pair: ${va} <-> ${vb}"
+                continue
+              fi
               la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
-              idx=$(( (i + j) % ${#erigon_images[@]} ))
-              eri="${erigon_images[$idx]:-$erigon_latest}"
+              if [[ ${#erigon_images[@]} -gt 0 ]]; then
+                idx=$(( (i + j) % ${#erigon_images[@]} ))
+                eri="${erigon_images[$idx]}"
+              else
+                eri="$erigon_latest"
+              fi
               scenarios=$(echo "$scenarios" | jq -c \
                 --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
                 '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
@@ -333,8 +397,10 @@ jobs:
   pos-execution-specs:
     needs: check-new-release
     if: >-
-      needs.check-new-release.outputs.should-run == 'true' &&
-      needs.check-new-release.outputs.compat-pairs != '[]'
+      needs.check-new-release.outputs.compat-pairs != '[]' && (
+        (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'pos-exec-specs' || inputs.run-tests == 'matrix'))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -342,7 +408,7 @@ jobs:
       max-parallel: 5
       matrix:
         include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
-    name: exec-specs (${{ matrix.pair_label }})
+    name: pos-exec-specs (${{ matrix.pair_label }})
     steps:
       - name: Checkout agglayer/e2e
         uses: actions/checkout@v6
@@ -535,7 +601,7 @@ jobs:
 
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pos-e2e-dump-execspecs-${{ matrix.pair_label }}-${{ github.run_id }}
           path: ./dump
@@ -552,8 +618,10 @@ jobs:
   pos-fork-transition:
     needs: check-new-release
     if: >-
-      needs.check-new-release.outputs.should-run == 'true' &&
-      needs.check-new-release.outputs.compat-pairs != '[]'
+      needs.check-new-release.outputs.compat-pairs != '[]' && (
+        (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'fork-trans' || inputs.run-tests == 'matrix'))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -868,9 +936,220 @@ jobs:
 
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pos-e2e-dump-forktrans-${{ matrix.pair_label }}-${{ github.run_id }}
+          path: ./dump
+
+      - name: Clean up enclave
+        if: always()
+        run: |
+          kurtosis enclave stop "${{ env.ENCLAVE_NAME }}" || true
+          kurtosis clean || true
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Execution-specs remote — run ethereum/execution-specs against latest
+  # bor release via `execute remote`.  Runs after all matrix jobs to maximise
+  # available runner resources.
+  # ---------------------------------------------------------------------------
+  ethereum-exec-specs-remote:
+    needs: [check-new-release, pos-execution-specs, pos-fork-transition]
+    if: >-
+      !cancelled() && (
+        (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'ethereum-exec-specs-remote'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    name: ethereum-exec-specs-remote (against latest bor)
+    steps:
+      - name: Checkout agglayer/e2e
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Install kurtosis
+        run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install -y kurtosis-cli jq
+          kurtosis analytics disable
+
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@v1.3.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Checkout kurtosis-pos
+        uses: actions/checkout@v6
+        with:
+          repository: 0xPolygon/kurtosis-pos
+          ref: ${{ env.KURTOSIS_POS_REF }}
+          path: kurtosis-pos
+
+      - name: Checkout execution-specs
+        uses: actions/checkout@v6
+        with:
+          repository: ethereum/execution-specs
+          ref: ${{ env.EXEC_SPECS_REF }}
+          path: execution-specs
+
+      - name: Install execution-specs dependencies
+        run: |
+          cd execution-specs
+          uv sync
+
+      - name: Patch constants.star (all post-Rio forks at 256)
+        run: |
+          CONSTANTS="kurtosis-pos/src/config/constants.star"
+          for fork in madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano; do
+            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
+          done
+          echo "--- Patched EL_HARD_FORK_BLOCKS ---"
+          grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
+
+      - name: Generate kurtosis params (single-version latest bor)
+        run: |
+          BOR_LATEST="${{ needs.check-new-release.outputs.bor-latest-image }}"
+          HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+
+          echo "Bor (latest): ${BOR_LATEST}  |  Heimdall-v2: ${HV2_IMAGE}"
+
+          cat > /tmp/pos-params.yml <<PARAMS
+          polygon_pos_package:
+            participants:
+              - kind: validator
+                count: 3
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_LATEST}"
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR_LATEST}"
+          PARAMS
+          cat /tmp/pos-params.yml
+
+      - name: Deploy kurtosis-pos enclave
+        run: |
+          pushd kurtosis-pos
+          kurtosis run --enclave "${{ env.ENCLAVE_NAME }}" --args-file /tmp/pos-params.yml .
+          popd
+
+      - name: Inspect enclave
+        run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+
+      - name: Wait for all forks to activate
+        run: |
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          RPC_URL="http://${VALIDATOR_RPC}"
+          TARGET_BLOCK=270
+          MAX_WAIT=600
+          POLL_INTERVAL=5
+          elapsed=0
+          echo "Waiting for block ${TARGET_BLOCK} (forks at 256)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            block=$(curl -sf -X POST "${RPC_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result // empty' | xargs printf "%d" 2>/dev/null) || block=0
+            [[ "$block" -ge "$TARGET_BLOCK" ]] && echo "Block ${block} — all forks active." && exit 0
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+          echo "::error::Chain stuck at block ${block}."
+          exit 1
+
+      - name: Run execution-specs remote tests
+        run: |
+          set -eo pipefail
+          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-4-bor-heimdall-v2-rpc rpc)"
+          L2_RPC_RAW="${L2_RPC_RAW#http://}" ; L2_RPC_RAW="${L2_RPC_RAW#https://}"
+          L2_RPC_URL="http://${L2_RPC_RAW}"
+          L2_PRIVATE_KEY="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"
+          CHAIN_ID="$(cast chain-id --rpc-url "${L2_RPC_URL}")"
+
+          echo "RPC: ${L2_RPC_URL}  |  Chain ID: ${CHAIN_ID}"
+
+          cd execution-specs
+          uv run execute remote \
+            --fork=Prague \
+            --rpc-endpoint="${L2_RPC_URL}" \
+            --rpc-seed-key="${L2_PRIVATE_KEY}" \
+            --chain-id="${CHAIN_ID}" \
+            --default-max-fee-per-blob-gas=1 \
+            --default-max-fee-per-gas=100000000000 \
+            --default-max-priority-fee-per-gas=100000000000 \
+            --default-gas-price=100000000000 \
+            --sender-funding-txs-gas-price=100000000000 \
+            --seed-account-sweep-amount=800000000000000000000 \
+            --max-tx-per-batch=75 \
+            -n 8 \
+            -s \
+            --tx-wait-timeout=60 \
+            -k "not blob and not 4844 and not beacon_root and not mainnet and not genesis_hash_available and not test_selfdestruct_to_precompile and not test_selfdestruct_to_system_contract and not test_dynamic_create2_selfdestruct_collision_multi_tx and not test_extcodehash_of_empty and not test_call_memory_expands_on_early_revert and not type_3 and not address_0x000000000000000000000000000000000000000a and not address_0x000000000000000000000000000000000000000b and not address_0x000000000000000000000000000000000000000c and not address_0x000000000000000000000000000000000000000d and not address_0x000000000000000000000000000000000000000e and not address_0x000000000000000000000000000000000000000f and not address_0x0000000000000000000000000000000000000010 and not address_0x0000000000000000000000000000000000000011 and not test_create_nonce_overflow and not gas_limit_0x07270e00 and not tx_gas_limit_0x07270e00" \
+            --ignore=tests/frontier/opcodes/test_calldatacopy.py \
+            --ignore=tests/frontier/opcodes/test_dup.py \
+            --ignore=tests/frontier/opcodes/test_all_opcodes.py \
+            --ignore=tests/frontier/opcodes/test_blockhash.py \
+            --ignore=tests/frontier/scenarios/test_scenarios.py \
+            --ignore=tests/frontier/validation/test_transaction.py \
+            --ignore=tests/frontier/create/test_create_one_byte.py \
+            --ignore=tests/frontier/precompiles/test_precompile_absence.py \
+            --ignore=tests/homestead/coverage/test_coverage.py \
+            --ignore=tests/byzantium/eip197_ec_pairing/test_gas.py \
+            --ignore=tests/byzantium/eip196_ec_add_mul/test_gas.py \
+            --ignore=tests/london/eip1559_fee_market_change/test_tx_type.py \
+            --ignore=tests/london/validation/test_header.py \
+            --ignore=tests/cancun/eip4788_beacon_root \
+            --ignore=tests/cancun/eip5656_mcopy/test_mcopy_memory_expansion.py \
+            --ignore=tests/cancun/eip6780_selfdestruct \
+            --ignore=tests/cancun/create/test_create_oog_from_eoa_refunds.py \
+            --ignore=tests/cancun/eip1153_tstore/test_basic_tload.py \
+            --ignore=tests/cancun/eip1153_tstore/test_tload_calls.py \
+            --ignore=tests/cancun/eip1153_tstore/test_tstore_reentrancy.py \
+            --ignore=tests/cancun/eip1153_tstore/test_tload_reentrancy.py \
+            --ignore=tests/cancun/eip1153_tstore/test_tstorage_create_contexts.py \
+            --ignore=tests/constantinople/eip1052_extcodehash/test_extcodehash.py \
+            --ignore=tests/constantinople/eip145_bitwise_shift/test_shift_combinations.py \
+            --ignore=tests/prague/eip6110_deposits \
+            --ignore=tests/prague/eip7002_el_triggerable_withdrawals \
+            --ignore=tests/prague/eip7251_consolidations \
+            --ignore=tests/prague/eip7685_general_purpose_el_requests \
+            --ignore=tests/prague/eip2537_bls_12_381_precompiles \
+            --ignore=tests/prague/eip2935_historical_block_hashes_from_state \
+            --ignore=tests/prague/eip7623_increase_calldata_cost \
+            --ignore=tests/prague/eip7702_set_code_tx \
+            --ignore=tests/shanghai/eip4895_withdrawals \
+            --ignore=tests/istanbul/eip1344_chainid/test_chainid.py \
+            tests/frontier/ \
+            tests/homestead/ \
+            tests/tangerine_whistle/ \
+            tests/byzantium/ \
+            tests/constantinople/ \
+            tests/istanbul/ \
+            tests/berlin/ \
+            tests/london/ \
+            tests/paris/ \
+            tests/shanghai/ \
+            tests/cancun/ \
+            tests/prague/
+
+      - name: Dump enclave logs
+        if: failure()
+        run: kurtosis dump ./dump
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pos-e2e-dump-execspecs-remote-${{ github.run_id }}
           path: ./dump
 
       - name: Clean up enclave
@@ -884,13 +1163,14 @@ jobs:
   # Only runs after all test phases succeed.
   # ---------------------------------------------------------------------------
   mark-tested:
-    needs: [check-new-release, pos-execution-specs, pos-fork-transition]
+    needs: [check-new-release, pos-execution-specs, pos-fork-transition, ethereum-exec-specs-remote]
+    # Cache the release when all *executed* test jobs passed. Skipped jobs
+    # (from selective run-tests dispatch) are allowed — only failures block.
     if: >-
-      always() &&
+      !cancelled() &&
       needs.check-new-release.outputs.bor-tag != 'manual' &&
       needs.check-new-release.outputs.bor-tag != '' &&
-      needs.pos-execution-specs.result == 'success' &&
-      needs.pos-fork-transition.result == 'success'
+      !contains(needs.*.result, 'failure')
     runs-on: ubuntu-latest
     steps:
       - name: Write cache marker
@@ -900,7 +1180,7 @@ jobs:
           echo "Marked ${{ needs.check-new-release.outputs.bor-tag }} as tested."
 
       - name: Save cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: /tmp/pos-release-cache
           key: pos-e2e-bor-release-${{ needs.check-new-release.outputs.bor-tag }}
