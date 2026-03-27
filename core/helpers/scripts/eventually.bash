@@ -81,7 +81,7 @@ function assert_command_eventually_greater_or_equal() {
 
     result=$(eval "${command}")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Result: ${result}"
-    if [[ "${result}" -ge "${target}" ]]; then
+    if [[ "${result}" =~ ^[0-9]+$ ]] && [[ "${result}" -ge "${target}" ]]; then
       break
     fi
 

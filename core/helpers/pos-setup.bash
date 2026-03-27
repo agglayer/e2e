@@ -32,6 +32,7 @@ pos_setup() {
     [[ -z "${L1_ROOT_CHAIN_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ERC20_PREDICATE_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKE_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKING_INFO_ADDRESS:-}" ]] ||
     [[ -z "${L1_MATIC_TOKEN_ADDRESS:-}" ]] ||
@@ -57,6 +58,9 @@ pos_setup() {
 
     export L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.WithdrawManagerProxy')}
     echo "L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}"
+
+    export L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.predicates.ERC20Predicate')}
+    echo "L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS}"
 
     export L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakeManagerProxy')}
     echo "L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS}"

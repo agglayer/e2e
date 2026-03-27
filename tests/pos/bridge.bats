@@ -54,15 +54,17 @@ function wait_for_bor_state_sync() {
 
 function generate_exit_payload() {
   local tx_hash="$1"
+  local log_index="${2:-0}"
   local deadline=$((SECONDS + timeout_seconds))
   local payload=""
   while [[ $SECONDS -lt $deadline ]]; do
-    echo "Trying to generate exit payload for tx ${tx_hash}..." >&2
+    echo "Trying to generate exit payload for tx ${tx_hash} (log-index=${log_index})..." >&2
     if payload=$(polycli pos exit-proof \
       --l1-rpc-url "${L1_RPC_URL}" \
       --l2-rpc-url "${L2_RPC_URL}" \
       --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-      --tx-hash "${tx_hash}" 2>/dev/null); then
+      --tx-hash "${tx_hash}" \
+      --log-index "${log_index}" 2>/dev/null); then
       echo "${payload}"
       return 0
     fi
@@ -161,6 +163,8 @@ function generate_exit_payload() {
   initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
   checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
   initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
+  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
 
   echo "Initial balances and state:"
   echo "- L1 POL balance: ${initial_l1_pol_balance}"
@@ -196,22 +200,39 @@ function generate_exit_payload() {
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
+  # The native token (0x1010) emits LogTransfer at log index 0 and Withdraw at log index 1, so we pass --log-index 1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1)
 
-  # Start the exit on L1 with the generated payload.
+  # Start the exit on L1 via the ERC20Predicate contract.
+  # Note: startExitWithBurntTokens is on ERC20Predicate, not on WithdrawManagerProxy.
   echo "Starting the exit on L1 with the generated payload..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
+    --gas-limit 500000 \
+    "${L1_ERC20_PREDICATE_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
-  # Process the exit on L1.
-  echo "Processing the exit on L1..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_MATIC_TOKEN_ADDRESS}"
-
-  # Verify L1 POL balance increased by the withdrawn amount.
-  echo "Verifying L1 POL balance increased..."
-  assert_token_balance_eventually_greater_or_equal "${L1_POL_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  # Process the exit on L1 and verify the POL balance increased.
+  # Exits are queued under MATIC (the rootToken in the Withdraw event topic[1]).
+  # WithdrawManager converts MATIC exits to POL when releasing funds.
+  # processExits is retried in a loop because it may return without processing if the
+  # exit window (HALF_EXIT_PERIOD=1s) has not elapsed yet at the time of the first call.
+  echo "Processing the exit on L1 and verifying POL balance increased..."
+  target_l1_pol_balance="$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)"
+  deadline=$((SECONDS + timeout_seconds))
+  while [[ $SECONDS -lt $deadline ]]; do
+    cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
+      "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_MATIC_TOKEN_ADDRESS}" >/dev/null 2>&1 || true
+    balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] L1 POL balance: ${balance} (target: ${target_l1_pol_balance})"
+    if [ "$(echo "${balance} >= ${target_l1_pol_balance}" | bc)" -eq 1 ]; then
+      break
+    fi
+    sleep "${interval_seconds}"
+  done
+  if [ "$(echo "${balance} >= ${target_l1_pol_balance}" | bc)" -ne 1 ]; then
+    echo "Timeout: L1 POL balance did not reach target within ${timeout_seconds} seconds."
+    exit 1
+  fi
 }
 
 ##############################################################################
@@ -263,6 +284,8 @@ function generate_exit_payload() {
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_WETH_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
   initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
+  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
 
   echo "Initial balances and state:"
   echo "- L1 ETH balance: ${initial_l1_balance}"
@@ -367,6 +390,8 @@ function generate_exit_payload() {
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
   initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
+  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
 
   echo "Initial balances and state:"
   echo "- L1 ERC20 balance: ${initial_l1_balance}"
@@ -480,6 +505,8 @@ function generate_exit_payload() {
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
   initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
+  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
+  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
 
   echo "Initial balances and state:"
   echo "- L1 ERC721 balance: ${initial_l1_balance}"
