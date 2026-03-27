@@ -306,10 +306,46 @@ jobs:
               '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           fi
 
-          # Pairwise bor mixes.
+          # --- Load excluded pairs from compat-versions.yml ---
+          declare -A excluded_set
+          if [[ -f "$COMPAT_YML" ]]; then
+            # Parse excluded_pairs: collect image pairs as "imageA|imageB" keys.
+            # Both orderings are stored so lookup works regardless of pair order.
+            in_excluded=false
+            img_buf=()
+            while IFS= read -r line; do
+              if [[ "$line" =~ ^excluded_pairs: ]]; then
+                in_excluded=true; continue
+              fi
+              [[ "$in_excluded" != "true" ]] && continue
+              # Stop at next top-level key (non-indented, non-comment, non-blank).
+              if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
+              if [[ "$line" =~ ^-\ +images: ]]; then
+                img_buf=(); continue
+              fi
+              if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
+                img="${BASH_REMATCH[1]}"
+                img=$(echo "$img" | sed 's/^["'"'"']//; s/["'"'"']$//')
+                img_buf+=("$img")
+                if [[ ${#img_buf[@]} -eq 2 ]]; then
+                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
+                  img_buf=()
+                fi
+              fi
+            done < "$COMPAT_YML"
+            echo "Loaded ${#excluded_set[@]} excluded pair entries."
+          fi
+
+          # Pairwise bor mixes (skip excluded pairs).
           for ((i=0; i<${#bor_images[@]}; i++)); do
             for ((j=i+1; j<${#bor_images[@]}; j++)); do
               va="${bor_images[$i]}"; vb="${bor_images[$j]}"
+              if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
+                echo "  Skipping excluded pair: ${va} + ${vb}"
+                continue
+              fi
               la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
               idx=$(( (i + j) % ${#erigon_images[@]} ))
               eri="${erigon_images[$idx]:-$erigon_latest}"
