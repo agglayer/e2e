@@ -378,11 +378,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L486) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L509) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L463) | |
-| bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2 | [Link](./tests/pos/bridge.bats#L325) | |
-| bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2 | [Link](./tests/pos/bridge.bats#L427) | |
-| bridge ETH from L1 to L2 and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/bridge.bats#L222) | |
-| bridge MATIC from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L119) | |
-| bridge POL from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L81) | |
+| bridge ERC20 tokens from L1 to L2 and confirm ERC20 balance increased on L2 | [Link](./tests/pos/bridge.bats#L389) | |
+| bridge ERC721 token from L1 to L2 and confirm ERC721 balance increased on L2 | [Link](./tests/pos/bridge.bats#L496) | |
+| bridge ETH from L1 to L2 and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/bridge.bats#L277) | |
+| bridge MATIC from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L166) | |
+| bridge POL from L1 to L2 and confirm native tokens balance increased on L2 | [Link](./tests/pos/bridge.bats#L128) | |
 | coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L318) | |
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
@@ -479,10 +479,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L400) | |
-| withdraw ERC20 tokens from L2 to L1 and confirm ERC20 balance increased on L1 | [Link](./tests/pos/bridge.bats#L362) | |
-| withdraw ERC721 token from L2 to L1 and confirm ERC721 balance increased on L1 | [Link](./tests/pos/bridge.bats#L471) | |
-| withdraw MaticWeth from L2 and confirm ETH balance increased on L1 | [Link](./tests/pos/bridge.bats#L258) | |
-| withdraw native tokens from L2 and confirm POL balance increased on L1 | [Link](./tests/pos/bridge.bats#L156) | |
+| withdraw ERC20 tokens from L2 to L1 and confirm ERC20 balance increased on L1 | [Link](./tests/pos/bridge.bats#L426) | |
+| withdraw ERC721 token from L2 to L1 and confirm ERC721 balance increased on L1 | [Link](./tests/pos/bridge.bats#L540) | |
+| withdraw MaticWeth from L2 and confirm ETH balance increased on L1 | [Link](./tests/pos/bridge.bats#L313) | |
+| withdraw native tokens from L2 and confirm POL balance increased on L1 | [Link](./tests/pos/bridge.bats#L203) | |
 | withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
 
