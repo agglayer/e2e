@@ -557,6 +557,10 @@ setup() {
             wait "$pid" || true
         done
 
+        # Collect the max block from this concurrent batch.
+        # Within a batch, responses may arrive out of order, so we only
+        # enforce monotonicity on the per-batch maximum.
+        local batch_max="$prev_block"
         for i in $(seq 1 10); do
             total=$(( total + 1 ))
             result=$(jq -r '.result // empty' <"$tmpdir/r_$i" 2>/dev/null)
@@ -565,13 +569,16 @@ setup() {
                 continue
             fi
             block_dec=$(printf '%d' "$result" 2>/dev/null) || { failures=$(( failures + 1 )); continue; }
-            if [[ "$block_dec" -lt "$prev_block" ]]; then
-                echo "Block number went backwards: $block_dec < $prev_block" >&2
-                rm -rf "$tmpdir"
-                return 1
+            if [[ "$block_dec" -gt "$batch_max" ]]; then
+                batch_max="$block_dec"
             fi
-            prev_block="$block_dec"
         done
+        if [[ "$batch_max" -lt "$prev_block" ]]; then
+            echo "Block number went backwards across batches: $batch_max < $prev_block" >&2
+            rm -rf "$tmpdir"
+            return 1
+        fi
+        prev_block="$batch_max"
 
         rm -rf "$tmpdir"
         sleep 0.5
