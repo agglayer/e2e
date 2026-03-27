@@ -76,6 +76,33 @@ def version_major_minor(tag: str) -> str:
     return f"{parts[0]}.{parts[1]}" if len(parts) >= 2 else ver
 
 
+def _semver_sort_key(version: str) -> tuple:
+    """Return a sort key for semantic version strings (descending).
+
+    Handles optional -beta/-rc suffixes.  Stable > rc > beta for the
+    same base version.  Returns a tuple of ints suitable for
+    ``sorted(..., key=..., reverse=True)``."""
+    base = re.sub(r"(-beta\d*|-rc\d*)$", "", version)
+    parts = base.split(".")
+    major = int(parts[0]) if len(parts) > 0 and parts[0].isdigit() else 0
+    minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+    patch = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
+
+    suffix = version[len(base):]
+    if not suffix:
+        weight, suffix_num = 3, 0  # stable
+    elif suffix.startswith("-rc"):
+        weight = 2
+        suffix_num = int(suffix.replace("-rc", "") or "0")
+    elif suffix.startswith("-beta"):
+        weight = 1
+        suffix_num = int(suffix.replace("-beta", "") or "0")
+    else:
+        weight, suffix_num = 0, 0
+
+    return (major, minor, patch, weight, suffix_num)
+
+
 def make_image(tag: str, comp_config: dict) -> str:
     prefix = comp_config["image_prefix"]
     if comp_config["strip_v"]:
@@ -128,7 +155,7 @@ def update_compat_versions(compat_path: Path) -> list:
             superseded = [
                 v for v in data["versions"]
                 if v.get("image", "").startswith(prefix)
-                and version_major_minor(v["image"].removeprefix(prefix).lstrip("v")) == mm
+                and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
                 and v["image"] != image
             ]
             for old in superseded:
@@ -143,22 +170,38 @@ def update_compat_versions(compat_path: Path) -> list:
             if image in current_images:
                 continue
 
-            # Add the new release.
+            # Append new entry; the final sort (below) ensures correct order.
             if release["prerelease"]:
                 reason = f"new pre-release ({mm} line), auto-detected"
             else:
                 reason = f"new stable release ({mm} line), auto-detected"
 
-            entry = {
+            data["versions"].append({
                 "image": image,
                 "el_type": comp_config["el_type"],
                 "reason": reason,
-            }
-            data["versions"].append(entry)
+            })
             changes.append(f"  + {image} ({reason})")
 
+    # Sort versions: group by el_type (bor first, then erigon), then
+    # descending semver within each group.  This ensures the latest
+    # version of each component is first — the workflow uses index 0
+    # as the "latest" for single-version baseline tests.
+    el_type_order = {"bor": 0, "erigon": 1}
+    prev_order = [v["image"] for v in data["versions"]]
+    data["versions"].sort(
+        key=lambda v: (
+            el_type_order.get(v.get("el_type", ""), 99),
+            tuple(-x for x in _semver_sort_key(
+                v.get("image", "").split(":")[-1].lstrip("v")
+            )),
+        )
+    )
+    new_order = [v["image"] for v in data["versions"]]
+    if prev_order != new_order and not changes:
+        changes.append("  ~ reordered versions (latest first per component)")
+
     if changes:
-        # Preserve comments by writing with a header.
         _write_compat_versions(compat_path, data)
 
     return changes
@@ -183,7 +226,11 @@ def _read_excluded_pairs_tail(path: Path) -> str:
     start = ep_idx
     while start > 0 and (lines[start - 1].startswith("#") or lines[start - 1].strip() == ""):
         start -= 1
-    return "".join(lines[start:])
+    tail = "".join(lines[start:])
+    # Ensure a blank line separates the yaml.dump output from the tail.
+    if not tail.startswith("\n"):
+        tail = "\n" + tail
+    return tail
 
 
 def _write_compat_versions(path: Path, data: dict):

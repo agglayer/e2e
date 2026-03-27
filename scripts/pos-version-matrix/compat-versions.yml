@@ -14,24 +14,24 @@
 # to auto-detecting the latest bor release from each major.minor line.
 
 versions:
+- image: 0xpolygon/bor:2.7.0
+  el_type: bor
+  reason: latest stable release (2.7 line)
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
   reason: latest stable release (2.6 line)
 - image: 0xpolygon/bor:2.5.9
   el_type: bor
   reason: latest stable release (2.5 line)
+- image: 0xpolygon/erigon:v3.5.0
+  el_type: erigon
+  reason: latest stable release (3.5 line)
 - image: 0xpolygon/erigon:v3.4.0
   el_type: erigon
   reason: new stable release (3.4 line), auto-detected
 - image: 0xpolygon/erigon:v3.3.7
   el_type: erigon
   reason: new stable release (3.3 line), auto-detected
-- image: 0xpolygon/bor:2.7.0
-  el_type: bor
-  reason: new stable release (2.7 line), auto-detected
-- image: 0xpolygon/erigon:v3.5.0
-  el_type: erigon
-  reason: new stable release (3.5 line), auto-detected
 
 # Excluded version pairs — combinations known to fail due to precompile or EVM
 # behavior differences across major versions. These are skipped during pairwise

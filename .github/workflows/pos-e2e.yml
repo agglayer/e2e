@@ -329,6 +329,9 @@ jobs:
           # 1) Single-version baseline: all latest bor + latest erigon RPC
           # 2) Pairwise bor mixes: validators split + erigon cross-client RPC
           erigon_latest="${erigon_images[0]:-}"
+          if [[ -z "$erigon_latest" ]]; then
+            echo "::warning::No erigon images found — erigon_rpc will be empty in scenarios."
+          fi
           scenarios="[]"
 
           # Single-version baseline (latest bor + latest erigon).
@@ -1161,13 +1164,13 @@ jobs:
   # ---------------------------------------------------------------------------
   mark-tested:
     needs: [check-new-release, pos-execution-specs, pos-fork-transition, ethereum-exec-specs-remote]
+    # Cache the release when all *executed* test jobs passed. Skipped jobs
+    # (from selective run-tests dispatch) are allowed — only failures block.
     if: >-
-      always() &&
+      !cancelled() &&
       needs.check-new-release.outputs.bor-tag != 'manual' &&
       needs.check-new-release.outputs.bor-tag != '' &&
-      needs.pos-execution-specs.result == 'success' &&
-      needs.pos-fork-transition.result == 'success' &&
-      needs.ethereum-exec-specs-remote.result == 'success'
+      !contains(needs.*.result, 'failure')
     runs-on: ubuntu-latest
     steps:
       - name: Write cache marker
