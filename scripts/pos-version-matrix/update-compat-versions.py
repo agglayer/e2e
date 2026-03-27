@@ -147,8 +147,34 @@ def update_compat_versions(compat_path: Path) -> list:
     return changes
 
 
+def _read_excluded_pairs_tail(path: Path) -> str:
+    """Return everything from the first blank/comment line before
+    ``excluded_pairs:`` to end-of-file, preserving exact formatting.
+
+    If there is no ``excluded_pairs`` section, returns ``""``."""
+    if not path.exists():
+        return ""
+    lines = path.read_text().splitlines(keepends=True)
+    ep_idx: Optional[int] = None
+    for i, line in enumerate(lines):
+        if line.rstrip() == "excluded_pairs:":
+            ep_idx = i
+            break
+    if ep_idx is None:
+        return ""
+    # Walk backwards to include the comment block above excluded_pairs.
+    start = ep_idx
+    while start > 0 and (lines[start - 1].startswith("#") or lines[start - 1].strip() == ""):
+        start -= 1
+    return "".join(lines[start:])
+
+
 def _write_compat_versions(path: Path, data: dict):
-    """Write compat-versions.yml preserving the header comment."""
+    """Write compat-versions.yml, only touching the ``versions`` section.
+
+    The ``excluded_pairs`` section (and its comment block) is preserved
+    verbatim from the original file — it is never serialised through
+    yaml.dump and must only be edited by hand."""
     header = """\
 # PoS version compatibility matrix — curated list of EL versions to test.
 #
@@ -164,22 +190,21 @@ def _write_compat_versions(path: Path, data: dict):
 #
 # If this file is absent or `versions` is empty, the workflow falls back
 # to auto-detecting the latest bor release from each major.minor line.
-#
-# `excluded_pairs` (optional): version pairs to skip in pairwise testing.
-# Each entry needs: images (list of 2), reason, and link.
 
 """
+    # Capture the excluded_pairs tail before we overwrite the file.
+    tail = _read_excluded_pairs_tail(path)
+
     with open(path, "w") as f:
         f.write(header)
-        output = {"versions": data["versions"]}
-        if data.get("excluded_pairs"):
-            output["excluded_pairs"] = data["excluded_pairs"]
         yaml.dump(
-            output,
+            {"versions": data["versions"]},
             f,
             default_flow_style=False,
             sort_keys=False,
         )
+        if tail:
+            f.write(tail)
 
 
 def main():
