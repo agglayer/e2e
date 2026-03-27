@@ -6,6 +6,30 @@ setup() {
   load "../../core/helpers/pos-setup.bash"
   load "../../core/helpers/scripts/eventually.bash"
   pos_setup
+
+  # Validator under test (genesis validator 1).
+  validator_private_key=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
+  validator_address=$(cast wallet address --private-key "${validator_private_key}")
+  validator_id=${VALIDATOR_ID:-"1"}
+  echo "validator_private_key=${validator_private_key}"
+  echo "validator_address=${validator_address}"
+  echo "validator_id=${validator_id}"
+
+  # Delegator account (default foundry test address).
+  delegator_private_key=${DELEGATOR_PRIVATE_KEY:-"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"}
+  delegator_address=$(cast wallet address --private-key "${delegator_private_key}")
+  echo "delegator_private_key=${delegator_private_key}"
+  echo "delegator_address=${delegator_address}"
+
+  # Common polling commands.
+  validator_count_cmd='curl -s "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
+  validator_power_cmd='curl -s "${L2_CL_API_URL}/stake/validator/${validator_id}" | jq --raw-output ".validator.voting_power"'
+  validator_signer_cmd='curl -s "${L2_CL_API_URL}/stake/validator/${validator_id}" | jq --raw-output ".validator.signer"'
+  top_up_fee_balance_cmd='curl -s "${L2_CL_API_URL}/cosmos/bank/v1beta1/balances/${validator_address}" | jq --raw-output ".balances[] | select(.denom == \"pol\") | .amount"'
+
+  # Define timeout and interval for eventually commands.
+  timeout_seconds=${TIMEOUT_SECONDS:-"180"}
+  interval_seconds=${INTERVAL_SECONDS:-"10"}
 }
 
 function generate_new_keypair() {
@@ -18,15 +42,10 @@ function generate_new_keypair() {
 
 # bats test_tags=pos-validator
 @test "add new validator" {
-  VALIDATOR_COUNT_CMD='curl "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
-  echo "VALIDATOR_COUNT_CMD=${VALIDATOR_COUNT_CMD}"
-
-  initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
+  initial_validator_count=$(eval "${validator_count_cmd}")
   echo "Initial validator count: ${initial_validator_count}"
 
   echo "Generating a new validator keypair..."
-  # Note: We're using the `generate_new_keypair` function defined below instead of `cast wallet new`
-  # because we need to generate a public key.
   read validator_address validator_public_key validator_private_key < <(generate_new_keypair)
   echo "Address: ${validator_address}"
   echo "Public key: ${validator_public_key}"
@@ -34,17 +53,17 @@ function generate_new_keypair() {
   echo "Funding the validator account with ETH..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${validator_address}"
 
-  echo "Funding the validator account with MATIC tokens..."
+  echo "Funding the validator account with POL tokens..."
   deposit_amount=$(cast to-unit 1ether wei)      # minimum deposit: 1000000000000000000 (1 ether)
   heimdall_fee_amount=$(cast to-unit 1ether wei) # minimum heimdall fee: 1000000000000000000 (1 ether)
   funding_amount=$((deposit_amount + heimdall_fee_amount))
 
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${funding_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${funding_amount}"
 
-  echo "Allowing the StakeManagerProxy contract to spend MATIC tokens on our behalf..."
+  echo "Allowing the StakeManagerProxy contract to spend POL tokens on our behalf..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${funding_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${funding_amount}"
 
   echo "Adding new validator to the validator set..."
   accept_delegation=false
@@ -53,77 +72,52 @@ function generate_new_keypair() {
     "${validator_address}" "${deposit_amount}" "${heimdall_fee_amount}" "${accept_delegation}" "${validator_public_key}"
 
   echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count + 1)) 180
+  assert_command_eventually_equal "${validator_count_cmd}" $((initial_validator_count + 1)) "${timeout_seconds}"
 }
 
 # bats test_tags=pos-validator
 @test "update validator stake" {
-  # First validator.
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
-  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+  initial_voting_power=$(eval "${validator_power_cmd}")
+  echo "Initial voting power of the validator (${validator_id}): ${initial_voting_power}."
 
-  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
-  echo "VALIDATOR_ID=${VALIDATOR_ID}"
-
-  VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-  echo "VALIDATOR_POWER_CMD=${VALIDATOR_POWER_CMD}"
-
-  validator_address=$(cast wallet address --private-key "${VALIDATOR_PRIVATE_KEY}")
-  echo "validator_address=${validator_address}"
-
-  initial_voting_power=$(eval "${VALIDATOR_POWER_CMD}")
-  echo "Initial voting power of the validator (${VALIDATOR_ID}): ${initial_voting_power}."
-
-  echo "Funding the validator acount with MATIC/POL tokens..."
+  echo "Funding the validator acount with POL tokens..."
   stake_update_amount=$(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "transfer(address,uint)" "${validator_address}" "${stake_update_amount}"
 
-  echo "Allowing the StakeManagerProxy contract to spend MATIC/POL tokens on our behalf..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
+  echo "Allowing the StakeManagerProxy contract to spend POL tokens on our behalf..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${stake_update_amount}"
 
-  echo "Updating the stake of the validator (${VALIDATOR_ID})..."
+  echo "Updating the stake of the validator (${validator_id})..."
   stake_rewards=false
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "restakePOL(uint,uint,bool)" "${VALIDATOR_ID}" "${stake_update_amount}" "${stake_rewards}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "restakePOL(uint,uint,bool)" "${validator_id}" "${stake_update_amount}" "${stake_rewards}"
 
   echo "Monitoring the voting power of the validator..."
   voting_power_update=$(cast to-unit "${stake_update_amount}"wei ether)
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" $((initial_voting_power + voting_power_update)) 180
+  assert_command_eventually_equal "${validator_power_cmd}" $((initial_voting_power + voting_power_update)) "${timeout_seconds}"
 }
 
 # bats test_tags=pos-validator
 @test "update validator top-up fee" {
-  # First validator.
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
-  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
+  initial_top_up_balance=$(eval "${top_up_fee_balance_cmd}")
+  echo "${validator_address} initial top-up balance: ${initial_top_up_balance}."
 
-  VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS:-"0x97538585a02A3f1B1297EB9979cE1b34ff953f1E"}
-  echo "VALIDATOR_ADDRESS=${VALIDATOR_ADDRESS}"
-
-  TOP_UP_FEE_BALANCE_CMD='curl "${L2_CL_API_URL}/cosmos/bank/v1beta1/balances/${VALIDATOR_ADDRESS}" | jq --raw-output ".balances[] | select(.denom == \"pol\") | .amount"'
-  echo "TOP_UP_FEE_BALANCE_CMD=${TOP_UP_FEE_BALANCE_CMD}"
-
-  initial_top_up_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
-  echo "${VALIDATOR_ADDRESS} initial top-up balance: ${initial_top_up_balance}."
-
-  echo "Allowing the StakeManagerProxy contract to spend MATIC/POL tokens on our behalf..."
+  echo "Allowing the StakeManagerProxy contract to spend POL tokens on our behalf..."
   top_up_amount=$(cast to-unit 1ether wei)
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${top_up_amount}"
 
-  echo "Topping up the fee balance of the validator (${VALIDATOR_ADDRESS})..."
+  echo "Topping up the fee balance of the validator (${validator_address})..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${VALIDATOR_ADDRESS}" "${top_up_amount}"
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "topUpForFee(address,uint)" "${validator_address}" "${top_up_amount}"
 
   echo "Monitoring the top-up balance of the validator..."
   echo "Initial balance: ${initial_top_up_balance}"
 
-  timeout=180
-  interval=10
   start_time=$(date +%s)
-  end_time=$((start_time + timeout))
+  end_time=$((start_time + timeout_seconds))
 
   while true; do
     if [[ "$(date +%s)" -ge "${end_time}" ]]; then
@@ -131,7 +125,7 @@ function generate_new_keypair() {
       exit 1
     fi
 
-    current_balance=$(eval "${TOP_UP_FEE_BALANCE_CMD}")
+    current_balance=$(eval "${top_up_fee_balance_cmd}")
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Current balance: ${current_balance}"
 
     if [[ $(echo "${current_balance} > ${initial_top_up_balance}" | bc) -eq 1 ]]; then
@@ -139,22 +133,13 @@ function generate_new_keypair() {
       break
     fi
 
-    sleep "${interval}"
+    sleep "${interval_seconds}"
   done
 }
 
 # bats test_tags=pos-validator
 @test "update signer" {
-  # First validator.
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
-  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
-
-  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
-  echo "VALIDATOR_ID=${VALIDATOR_ID}"
-
-  VALIDATOR_SIGNER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.signer"'
-
-  initial_signer=$(eval "${VALIDATOR_SIGNER_CMD}")
+  initial_signer=$(eval "${validator_signer_cmd}")
   echo "Initial signer: ${initial_signer}"
 
   # New account:
@@ -170,29 +155,20 @@ function generate_new_keypair() {
     "$(cast calldata "updateSignerUpdateLimit(uint256)" "1")"
 
   echo "Updating signer..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "updateSigner(uint,bytes)" "${VALIDATOR_ID}" "${new_public_key}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "updateSigner(uint,bytes)" "${validator_id}" "${new_public_key}"
 
   echo "Monitoring signer change..."
-  assert_command_eventually_equal "${VALIDATOR_SIGNER_CMD}" "0xd74c0d3dee45a0a9516fb66e31c01536e8756e2a" 180
+  assert_command_eventually_equal "${validator_signer_cmd}" "0xd74c0d3dee45a0a9516fb66e31c01536e8756e2a" "${timeout_seconds}"
 }
 
 # bats test_tags=pos-validator,pos-delegate,transaction-pol
-@test "delegate MATIC/POL to a validator" {
-  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
-  echo "VALIDATOR_ID=${VALIDATOR_ID}"
-
-  # Use the default foundry test address as the delegator.
-  DELEGATOR_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-  DELEGATOR_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  echo "DELEGATOR_PRIVATE_KEY=${DELEGATOR_PRIVATE_KEY}"
-  echo "DELEGATOR_ADDRESS=${DELEGATOR_ADDRESS}"
-
+@test "delegate to a validator" {
   echo "L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS}"
 
   # Get validator's ValidatorShare contract address.
   validator_share_address=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "getValidatorContractAddress(uint)(address)" "${VALIDATOR_ID}")
+    "${L1_STAKING_INFO_ADDRESS}" "getValidatorContractAddress(uint)(address)" "${validator_id}")
   echo "validator_share_address=${validator_share_address}"
 
   # Check if validator accepts delegation.
@@ -205,107 +181,88 @@ function generate_new_keypair() {
   fi
 
   # Check initial validator total stake (own stake + delegated amount).
-  initial_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Initial total validator stake: ${initial_total_stake}"
+  initial_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${validator_id}" | cut -d' ' -f1)" ether)
+  echo "Initial total validator stake: ${initial_total_stake_eth} POL"
 
   # Check initial delegator stake in this validator.
-  initial_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  initial_delegator_stake=$(echo "${initial_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  echo "Initial delegator stake: ${initial_delegator_stake}"
+  initial_delegator_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${delegator_address}" | head -1 | cut -d' ' -f1)" ether)
+  echo "Initial delegator stake: ${initial_delegator_stake_eth} POL"
 
   echo "Transferring ETH from main address to foundry address for gas..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${DELEGATOR_ADDRESS}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --value 1ether "${delegator_address}"
 
-  echo "Transferring MATIC/POL tokens from main address to foundry address..."
+  echo "Transferring POL tokens from main address to foundry address..."
   delegation_amount=$(cast to-unit 1ether wei)
 
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "transfer(address,uint)" "${DELEGATOR_ADDRESS}" "${delegation_amount}"
+    "${L1_POL_TOKEN_ADDRESS}" "transfer(address,uint)" "${delegator_address}" "${delegation_amount}"
 
   echo "Verifying foundry address received the tokens..."
   delegator_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${DELEGATOR_ADDRESS}" | cut -d' ' -f1)
-  delegator_eth_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${DELEGATOR_ADDRESS}" --ether)
-  echo "Foundry address MATIC/POL balance: $(cast to-unit ${delegator_pol_balance} ether) POL"
+    "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${delegator_address}" | cut -d' ' -f1)
+  delegator_eth_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${delegator_address}" --ether)
+  echo "Foundry address POL balance: $(cast to-unit ${delegator_pol_balance} ether) POL"
   echo "Foundry address ETH balance: ${delegator_eth_balance} ETH"
 
-  echo "Allowing the StakeManager to spend MATIC/POL tokens on foundry address behalf..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${DELEGATOR_PRIVATE_KEY}" \
-    "${L1_MATIC_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${delegation_amount}"
+  echo "Allowing the StakeManager to spend POL tokens on foundry address behalf..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${delegator_private_key}" \
+    "${L1_POL_TOKEN_ADDRESS}" "approve(address,uint)" "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "${delegation_amount}"
 
-  echo "Delegating ${delegation_amount} wei (1 MATIC/POL) to validator ${VALIDATOR_ID}..."
+  echo "Delegating ${delegation_amount} wei (1 POL) to validator ${validator_id}..."
   min_shares_to_mint=0
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${DELEGATOR_PRIVATE_KEY}" \
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${delegator_private_key}" \
     "${validator_share_address}" "buyVoucherPOL(uint,uint)" "${delegation_amount}" "${min_shares_to_mint}"
 
   echo "Verifying delegation was successful..."
 
   # Check that validator's total stake increased.
-  expected_total_stake=$((initial_total_stake + delegation_amount))
-  final_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Expected total stake: ${expected_total_stake}"
-  echo "Final total stake: ${final_total_stake}"
+  final_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${validator_id}" | cut -d' ' -f1)" ether)
+  echo "Final total stake: ${final_total_stake_eth} POL"
+  [[ $(echo "${final_total_stake_eth} == ${initial_total_stake_eth} + 1" | bc) -eq 1 ]]
 
   # Check that delegator's stake in validator increased.
-  final_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  final_delegator_stake=$(echo "${final_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  expected_delegator_stake=$((initial_delegator_stake + delegation_amount))
-  echo "Expected delegator stake: ${expected_delegator_stake}"
-  echo "Final delegator stake: ${final_delegator_stake}"
-
-  # Verify the stakes match expectations.
-  [[ "${final_total_stake}" -eq "${expected_total_stake}" ]]
-  [[ "${final_delegator_stake}" -eq "${expected_delegator_stake}" ]]
+  final_delegator_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${delegator_address}" | head -1 | cut -d' ' -f1)" ether)
+  echo "Final delegator stake: ${final_delegator_stake_eth} POL"
+  [[ $(echo "${final_delegator_stake_eth} == ${initial_delegator_stake_eth} + 1" | bc) -eq 1 ]]
 
   # Verify L2 voting power matches the updated L1 stake.
-  VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-
-  expected_voting_power=$(cast to-unit "${final_total_stake}" ether | cut -d'.' -f1)
-  echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
+  expected_voting_power=$(echo "${final_total_stake_eth}" | cut -d'.' -f1)
+  echo "Monitoring L2 voting power sync for validator ${validator_id}..."
+  assert_command_eventually_equal "${validator_power_cmd}" "${expected_voting_power}" "${timeout_seconds}"
 
   echo "Delegation test completed successfully!"
 }
 
 # bats test_tags=pos-validator,pos-undelegate,transaction-pol
-@test "undelegate MATIC/POL from a validator" {
-  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
-  echo "VALIDATOR_ID=${VALIDATOR_ID}"
-
-  # Use same foundry test address as delegator (consistent with delegation test).
-  DELEGATOR_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-  DELEGATOR_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  echo "DELEGATOR_PRIVATE_KEY=${DELEGATOR_PRIVATE_KEY}"
-  echo "DELEGATOR_ADDRESS=${DELEGATOR_ADDRESS}"
-
+@test "undelegate from a validator" {
   echo "L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS}"
 
   # Get validator's ValidatorShare contract address.
   validator_share_address=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "getValidatorContractAddress(uint)(address)" "${VALIDATOR_ID}")
+    "${L1_STAKING_INFO_ADDRESS}" "getValidatorContractAddress(uint)(address)" "${validator_id}")
   echo "validator_share_address=${validator_share_address}"
 
   # Check current delegator stake.
   current_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  current_delegator_stake=$(echo "${current_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  echo "Current delegator stake: ${current_delegator_stake}"
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${delegator_address}")
+  current_delegator_stake_eth=$(cast to-unit "$(echo "${current_delegator_stake_data}" | head -1 | cut -d' ' -f1)" ether)
+  echo "Current delegator stake: ${current_delegator_stake_eth} POL"
 
   # Skip test if delegator has no stake.
-  if [[ "${current_delegator_stake}" == "0" ]]; then
+  if [[ $(echo "${current_delegator_stake_eth} == 0" | bc) -eq 1 ]]; then
     echo "Foundry address has no stake to undelegate, skipping test"
     echo "Run the delegation test first to create stake to undelegate"
     skip "No stake to undelegate"
   fi
 
   # Check current validator total stake.
-  initial_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Initial total validator stake: ${initial_total_stake}"
+  initial_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${validator_id}" | cut -d' ' -f1)" ether)
+  echo "Initial total validator stake: ${initial_total_stake_eth} POL"
 
   # Undelegate the current stake.
   undelegation_amount=$(cast to-unit 1ether wei)
@@ -313,70 +270,87 @@ function generate_new_keypair() {
 
   # Get current unbond nonce for the delegator.
   current_unbond_nonce=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "unbondNonces(address)(uint)" "${DELEGATOR_ADDRESS}")
+    "${validator_share_address}" "unbondNonces(address)(uint)" "${delegator_address}")
   expected_unbond_nonce=$((current_unbond_nonce + 1))
   echo "Expected unbond nonce: ${expected_unbond_nonce}"
 
-  echo "Initiating undelegation of ${undelegation_amount} wei POL from validator ${VALIDATOR_ID}..."
+  echo "Initiating undelegation of ${undelegation_amount} wei POL from validator ${validator_id}..."
   max_shares_to_burn=$(cast --max-uint)
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${DELEGATOR_PRIVATE_KEY}" \
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${delegator_private_key}" \
     "${validator_share_address}" "sellVoucher_newPOL(uint,uint)" "${undelegation_amount}" "${max_shares_to_burn}"
 
   echo "Verifying undelegation initiation was successful..."
 
   # Check that validator's total stake decreased.
-  expected_total_stake=$((initial_total_stake - undelegation_amount))
-  new_total_stake=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${VALIDATOR_ID}" | cut -d' ' -f1)
-  echo "Expected total stake: ${expected_total_stake}"
-  echo "New total stake: ${new_total_stake}"
+  new_total_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKING_INFO_ADDRESS}" "totalValidatorStake(uint)(uint)" "${validator_id}" | cut -d' ' -f1)" ether)
+  echo "New total stake: ${new_total_stake_eth} POL"
+  [[ $(echo "${new_total_stake_eth} == ${initial_total_stake_eth} - 1" | bc) -eq 1 ]]
 
   # Check that delegator's active stake decreased.
-  new_delegator_stake_data=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${DELEGATOR_ADDRESS}")
-  new_delegator_stake=$(echo "${new_delegator_stake_data}" | head -1 | cut -d' ' -f1)
-  expected_delegator_stake=$((current_delegator_stake - undelegation_amount))
-  echo "Expected delegator_stake: ${expected_delegator_stake}"
-  echo "New delegator stake: ${new_delegator_stake}"
-
-  # Verify the stakes match expectations.
-  [[ "${new_total_stake}" -eq "${expected_total_stake}" ]]
-  [[ "${new_delegator_stake}" -eq "${expected_delegator_stake}" ]]
+  new_delegator_stake_eth=$(cast to-unit "$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${validator_share_address}" "getTotalStake(address)(uint,uint)" "${delegator_address}" | head -1 | cut -d' ' -f1)" ether)
+  echo "New delegator stake: ${new_delegator_stake_eth} POL"
+  [[ $(echo "${new_delegator_stake_eth} == ${current_delegator_stake_eth} - 1" | bc) -eq 1 ]]
 
   # Check that unbond nonce was incremented.
   final_unbond_nonce=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${validator_share_address}" "unbondNonces(address)(uint)" "${DELEGATOR_ADDRESS}")
+    "${validator_share_address}" "unbondNonces(address)(uint)" "${delegator_address}")
   echo "Final unbond nonce: ${final_unbond_nonce}"
   [[ "${final_unbond_nonce}" -eq "${expected_unbond_nonce}" ]]
 
   # Verify L2 voting power matches the updated L1 stake.
-  VALIDATOR_POWER_CMD='curl "${L2_CL_API_URL}/stake/validator/${VALIDATOR_ID}" | jq --raw-output ".validator.voting_power"'
-
-  expected_voting_power=$(cast to-unit "${new_total_stake}" ether | cut -d'.' -f1)
-  echo "Monitoring L2 voting power sync for validator ${VALIDATOR_ID}..."
-  assert_command_eventually_equal "${VALIDATOR_POWER_CMD}" "${expected_voting_power}" 180
+  expected_voting_power=$(echo "${new_total_stake_eth}" | cut -d'.' -f1)
+  echo "Monitoring L2 voting power sync for validator ${validator_id}..."
+  assert_command_eventually_equal "${validator_power_cmd}" "${expected_voting_power}" "${timeout_seconds}"
 
   echo "Undelegation test completed successfully!"
 }
 
+# bats test_tags=pos-validator,transaction-pol
+@test "withdraw validator rewards" {
+  initial_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json \
+    "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${validator_address}" | jq --raw-output '.[0]')
+  claimable_reward=$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "validatorReward(uint256)(uint256)" "${validator_id}")
+  echo "Initial POL balance: ${initial_pol_balance}"
+  echo "Claimable reward: ${claimable_reward}"
+
+  echo "Withdrawing rewards for validator ${validator_id}..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "withdrawRewardsPOL(uint256)" "${validator_id}"
+
+  final_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json \
+    "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${validator_address}" | jq --raw-output '.[0]')
+  echo "Final POL balance: ${final_pol_balance}"
+
+  # The balance must have increased by at least the claimable reward observed before withdrawal.
+  # (It may be slightly higher since rewards accrue until the tx is mined.)
+  [[ $(echo "${final_pol_balance} >= ${initial_pol_balance} + ${claimable_reward}" | bc) -eq 1 ]]
+}
+
 # bats test_tags=pos-validator
 @test "remove validator" {
-  # First validator.
-  VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY:-"0x2a4ae8c4c250917781d38d95dafbb0abe87ae2c9aea02ed7c7524685358e49c2"}
-  echo "VALIDATOR_PRIVATE_KEY=${VALIDATOR_PRIVATE_KEY}"
-
-  VALIDATOR_ID=${VALIDATOR_ID:-"1"}
-  echo "VALIDATOR_ID=${VALIDATOR_ID}"
-
-  VALIDATOR_COUNT_CMD='curl "${L2_CL_API_URL}/stake/validators-set" | jq --raw-output ".validator_set.validators | length"'
-
-  initial_validator_count=$(eval "${VALIDATOR_COUNT_CMD}")
+  initial_validator_count=$(eval "${validator_count_cmd}")
   echo "Initial validator count: ${initial_validator_count}"
 
   echo "Removing the validator from the validator set..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${VALIDATOR_PRIVATE_KEY}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint)" "${VALIDATOR_ID}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "unstakePOL(uint256)" "${validator_id}"
 
+  # Verify the unstake was initiated on L1: deactivationEpoch must be greater than zero.
+  # validators(uint256) returns (amount, reward, activationEpoch, deactivationEpoch, ...)
+  # where deactivationEpoch is the 4th return value.
+  deactivation_epoch=$(cast call --rpc-url "${L1_RPC_URL}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" \
+    "validators(uint256)(uint256,uint256,uint256,uint256,uint256,address,address,uint8)" \
+    "${validator_id}" | sed -n '4p')
+  echo "Validator ${validator_id} deactivationEpoch: ${deactivation_epoch}"
+  [[ "${deactivation_epoch}" -gt "0" ]]
+
+  # Wait for Heimdall to remove the validator at the epoch boundary.
+  # 1 epoch ≈ 256 blocks (~256s at 1s/block), so a longer timeout than the default is needed;
+  # set TIMEOUT_SECONDS >= 300 when running this test.
   echo "Monitoring the validator count on Heimdall..."
-  assert_command_eventually_equal "${VALIDATOR_COUNT_CMD}" $((initial_validator_count - 1)) 180
+  assert_command_eventually_equal "${validator_count_cmd}" $((initial_validator_count - 1)) "${timeout_seconds}"
 }

@@ -362,7 +362,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | TSTORE gas cost is less than SSTORE for zero-to-nonzero write | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L393) | |
 | TSTORE in DELEGATECALL shares caller transient storage context | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L444) | |
 | TSTORE reverted by sub-call REVERT is undone | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L284) | |
-| add new validator | [Link](./tests/pos/validator.bats#L20) | |
+| add new validator | [Link](./tests/pos/validator.bats#L44) | |
 | all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L896) | |
 | base fee adjusts between blocks following EIP-1559 dynamics | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L272) | |
 | base fee is present and positive on all recent blocks (PIP-79 invariant) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L62) | |
@@ -378,15 +378,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L486) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L509) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L463) | |
-| bridge MATIC/POL from L1 to L2 and confirm L2 MATIC/POL balance increased | [Link](./tests/pos/bridge.bats#L50) | |
-| bridge MATIC/POL, ERC20, and ERC721 from L1 to L2 and confirm L2 balances increased | [Link](./tests/pos/bridge.bats#L187) | |
-| bridge an ERC721 token from L1 to L2 and confirm L2 ERC721 balance increased | [Link](./tests/pos/bridge.bats#L138) | |
-| bridge some ERC20 tokens from L1 to L2 and confirm L2 ERC20 balance increased | [Link](./tests/pos/bridge.bats#L94) | |
+| bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L389) | |
+| bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L496) | |
+| bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L277) | |
+| bridge MATIC from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L166) | |
+| bridge POL from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L128) | |
 | coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L318) | |
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
-| delegate MATIC/POL to a validator | [Link](./tests/pos/validator.bats#L181) | |
+| delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L124) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L150) | |
 | deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L48) | |
@@ -455,7 +456,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | out-of-gas transaction still increments sender nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L160) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L53) | |
-| remove validator | [Link](./tests/pos/validator.bats#L363) | |
+| remove validator | [Link](./tests/pos/validator.bats#L333) | |
 | replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L445) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L18) | |
 | sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L976) | |
@@ -472,12 +473,17 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | type 1 access list with multiple storage keys is accepted | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L207) | |
 | type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L130) | |
 | type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L175) | |
-| undelegate MATIC/POL from a validator | [Link](./tests/pos/validator.bats#L275) | |
-| update signer | [Link](./tests/pos/validator.bats#L147) | |
-| update validator stake | [Link](./tests/pos/validator.bats#L60) | |
-| update validator top-up fee | [Link](./tests/pos/validator.bats#L97) | |
+| undelegate from a validator | [Link](./tests/pos/validator.bats#L241) | |
+| update signer | [Link](./tests/pos/validator.bats#L141) | |
+| update validator stake | [Link](./tests/pos/validator.bats#L79) | |
+| update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L400) | |
+| withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L426) | |
+| withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L540) | |
+| withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L313) | |
+| withdraw native tokens from L2 via Plasma bridge and confirm POL balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L203) | |
+| withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
 
 ## DApps Tests

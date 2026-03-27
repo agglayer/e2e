@@ -29,13 +29,20 @@ pos_setup() {
   echo "L2_CL_API_URL=${L2_CL_API_URL}"
 
   if [[ -z "${L1_GOVERNANCE_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ROOT_CHAIN_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ERC20_PREDICATE_ADDRESS:-}" ]] ||
+    [[ -z "${L1_ERC721_PREDICATE_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKE_MANAGER_PROXY_ADDRESS:-}" ]] ||
     [[ -z "${L1_STAKING_INFO_ADDRESS:-}" ]] ||
     [[ -z "${L1_MATIC_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L1_POL_TOKEN_ADDRESS:-}" ]] ||
+    [[ -z "${L1_WETH_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L1_ERC20_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L1_ERC721_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_STATE_RECEIVER_ADDRESS:-}" ]] ||
+    [[ -z "${L2_WETH_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
     matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | jq)
@@ -44,8 +51,20 @@ pos_setup() {
     export L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.GovernanceProxy')}
     echo "L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS}"
 
+    export L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.RootChainProxy')}
+    echo "L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS}"
+
     export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
     echo "L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}"
+
+    export L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.WithdrawManagerProxy')}
+    echo "L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}"
+
+    export L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.predicates.ERC20Predicate')}
+    echo "L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS}"
+
+    export L1_ERC721_PREDICATE_ADDRESS=${L1_ERC721_PREDICATE_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.predicates.ERC721Predicate')}
+    echo "L1_ERC721_PREDICATE_ADDRESS=${L1_ERC721_PREDICATE_ADDRESS}"
 
     export L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakeManagerProxy')}
     echo "L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS}"
@@ -55,6 +74,9 @@ pos_setup() {
 
     export L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
     echo "L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS}"
+
+    export L1_POL_TOKEN_ADDRESS=${L1_POL_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.PolToken')}
+    echo "L1_POL_TOKEN_ADDRESS=${L1_POL_TOKEN_ADDRESS}"
 
     export L1_ERC20_TOKEN_ADDRESS=${L1_ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.TestToken')}
     echo "L1_ERC20_TOKEN_ADDRESS=${L1_ERC20_TOKEN_ADDRESS}"
@@ -71,5 +93,11 @@ pos_setup() {
 
     export L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.RootERC721')}
     echo "L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS}"
+
+    export L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticWeth')}
+    echo "L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS}"
+
+    export L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.MaticWeth')}
+    echo "L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS}"
   fi
 }

@@ -350,6 +350,8 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - transaction-eoa
 - transaction-erc20
 - transaction-erc721
+- transaction-eth
+- transaction-matic
 - transaction-pol
 - transaction-uniswap
 - transient-storage
@@ -358,6 +360,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - validator-set
 - warm-cold
 - weth
+- withdraw
 - zkevm-batch
 - zkevm-counters
 
