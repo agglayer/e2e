@@ -52,10 +52,55 @@ function wait_for_bor_state_sync() {
   assert_command_eventually_greater_or_equal "${bor_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
+# process_plasma_exit queues → waits for the exit window → calls processExits once.
+#
+# Instead of a blind retry loop, it reads exitableAt from the on-chain priority queue
+# (WithdrawManager.exitsQueues(token).getMin()) and sleeps precisely until the exit
+# window opens (HALF_EXIT_PERIOD = 1s on devnet, ~7 days on mainnet), then calls
+# processExits with an explicit gas limit.
+#
+# Usage: process_plasma_exit <token_address>
+#   token_address — the L1 root token whose exit queue to check (MATIC, WETH, ERC20, ERC721…)
+function process_plasma_exit() {
+  local token="$1"
+
+  # Resolve the priority queue contract for this token.
+  local queue
+  queue=$(cast call --rpc-url "${L1_RPC_URL}" "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" \
+    "exitsQueues(address)(address)" "${token}")
+  echo "Exit queue for ${token}: ${queue}"
+
+  # Read exitableAt from the queue's min-heap entry.
+  local exitable_at
+  exitable_at=$(cast call --rpc-url "${L1_RPC_URL}" "${queue}" "getMin()(uint256,uint256)" \
+    | awk 'NR==1{print $1}')
+  echo "exitableAt: ${exitable_at}"
+
+  # Compute how many seconds until the exit window opens.
+  local current_ts
+  current_ts=$(cast block --rpc-url "${L1_RPC_URL}" --json | jq -r '.timestamp' | xargs printf "%d\n")
+  local wait_secs=$(( exitable_at - current_ts + 2 ))
+  if [[ $wait_secs -gt 0 ]]; then
+    echo "Exit window opens in ${wait_secs}s (now=${current_ts}, exitableAt=${exitable_at}), sleeping..."
+    sleep "$wait_secs"
+  fi
+
+  # processExits must use --gas-limit: without it cast send auto-estimates gas at the time
+  # of the eth_estimateGas call (which may see a short early-return path when exitableAt has
+  # not elapsed yet), producing a gas estimate too low for the actual ~125K execution.
+  echo "Calling processExits(${token})..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
+    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${token}"
+}
+
 function generate_exit_payload() {
   local tx_hash="$1"
   local log_index="${2:-0}"
-  local deadline=$((SECONDS + timeout_seconds))
+  # Optional 3rd arg overrides timeout; defaults to timeout_seconds.
+  # Withdraw tests pass 2*timeout_seconds because the burn tx may land just before a
+  # checkpoint boundary, requiring polycli to wait for the NEXT checkpoint (~128 blocks later).
+  local timeout="${3:-${timeout_seconds}}"
+  local deadline=$((SECONDS + timeout))
   local payload=""
   while [[ $SECONDS -lt $deadline ]]; do
     echo "Trying to generate exit payload for tx ${tx_hash} (log-index=${log_index})..." >&2
@@ -202,7 +247,7 @@ function generate_exit_payload() {
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   # The native token (0x1010) emits LogTransfer at log index 0 and Withdraw at log index 1, so we pass --log-index 1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1)
+  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 via the ERC20Predicate contract.
   # Note: startExitWithBurntTokens is on ERC20Predicate, not on WithdrawManagerProxy.
@@ -211,28 +256,17 @@ function generate_exit_payload() {
     --gas-limit 500000 \
     "${L1_ERC20_PREDICATE_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
-  # Process the exit on L1 and verify the POL balance increased.
+  # Process the exit on L1.
   # Exits are queued under MATIC (the rootToken in the Withdraw event topic[1]).
   # WithdrawManager converts MATIC exits to POL when releasing funds.
-  # processExits is retried in a loop because it may return without processing if the
-  # exit window (HALF_EXIT_PERIOD=1s) has not elapsed yet at the time of the first call.
-  echo "Processing the exit on L1 and verifying POL balance increased..."
-  target_l1_pol_balance="$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)"
-  deadline=$((SECONDS + timeout_seconds))
-  while [[ $SECONDS -lt $deadline ]]; do
-    cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
-      "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_MATIC_TOKEN_ADDRESS}" >/dev/null 2>&1 || true
-    balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] L1 POL balance: ${balance} (target: ${target_l1_pol_balance})"
-    if [ "$(echo "${balance} >= ${target_l1_pol_balance}" | bc)" -eq 1 ]; then
-      break
-    fi
-    sleep "${interval_seconds}"
-  done
-  if [ "$(echo "${balance} >= ${target_l1_pol_balance}" | bc)" -ne 1 ]; then
-    echo "Timeout: L1 POL balance did not reach target within ${timeout_seconds} seconds."
-    exit 1
-  fi
+  echo "Processing the exit on L1..."
+  process_plasma_exit "${L1_MATIC_TOKEN_ADDRESS}"
+
+  # Verify L1 POL balance increased by the withdrawn amount.
+  echo "Verifying L1 POL balance increased..."
+  assert_token_balance_eventually_greater_or_equal "${L1_POL_TOKEN_ADDRESS}" "${address}" \
+    "$(echo "${initial_l1_pol_balance} + ${withdraw_amount}" | bc)" \
+    "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 ##############################################################################
@@ -321,23 +355,30 @@ function generate_exit_payload() {
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
+  # The MaticWeth contract emits: log 0 = Transfer, log 1 = Withdraw(rootToken=WETH, from, ...).
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 with the generated payload.
-  # MaticWeth is a mintable token on L2, so it uses startExitForMintableBurntTokens.
+  # ERC20Predicate handles WETH exits: it reads rootToken=WETH from the Withdraw event and queues
+  # the exit. processExits(WETH) then calls DepositManager which unwraps WETH and sends ETH to user.
   echo "Starting the exit on L1 with the generated payload..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitForMintableBurntTokens(bytes)" "${payload}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
+    "${L1_ERC20_PREDICATE_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
+  # WETH is queued under L1_WETH_TOKEN_ADDRESS; processExits unwraps WETH to ETH internally.
   echo "Processing the exit on L1..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_WETH_TOKEN_ADDRESS}"
+  process_plasma_exit "${L1_WETH_TOKEN_ADDRESS}"
 
-  # Verify L1 ETH balance increased by the withdrawn amount (gas costs excluded).
+  # Verify L1 ETH balance increased by the withdrawn amount minus gas.
+  # ETH is the gas token: startExitWithBurntTokens and processExits both consume ETH as gas.
+  # We allow up to 0.01 ETH (10^16 wei) to cover gas across both transactions.
   echo "Verifying L1 ETH balance increased..."
-  assert_ether_balance_eventually_greater_or_equal "${address}" "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  local gas_allowance=10000000000000000
+  assert_ether_balance_eventually_greater_or_equal "${address}" \
+    "$(echo "${initial_l1_balance} + ${withdraw_amount} - ${gas_allowance}" | bc)" \
+    "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 ##############################################################################
@@ -426,22 +467,25 @@ function generate_exit_payload() {
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
+  # The ERC20 contract emits: log 0 = Transfer, log 1 = Withdraw(rootToken=ERC20, from, ...).
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 with the generated payload.
+  # ERC20Predicate handles ERC20 exits: reads rootToken from the Withdraw event and queues the exit.
   echo "Starting the exit on L1 with the generated payload..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
+    "${L1_ERC20_PREDICATE_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
   echo "Processing the exit on L1..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_ERC20_TOKEN_ADDRESS}"
+  process_plasma_exit "${L1_ERC20_TOKEN_ADDRESS}"
 
   # Verify L1 ERC20 balance increased by the withdrawn amount.
   echo "Verifying L1 ERC20 balance increased..."
-  assert_token_balance_eventually_greater_or_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_greater_or_equal "${L1_ERC20_TOKEN_ADDRESS}" "${address}" \
+    "$(echo "${initial_l1_balance} + ${withdraw_amount}" | bc)" \
+    "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
 
 ##############################################################################
@@ -540,20 +584,22 @@ function generate_exit_payload() {
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
+  # The ERC721 contract emits: log 0 = Transfer, log 1 = Withdraw(rootToken=ERC721, tokenId).
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}")
+  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 with the generated payload.
+  # ERC721Predicate handles ERC721 exits: reads rootToken from the Withdraw event and queues the exit.
   echo "Starting the exit on L1 with the generated payload..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
+    "${L1_ERC721_PREDICATE_ADDRESS}" "startExitWithBurntTokens(bytes)" "${payload}"
 
   # Process the exit on L1.
   echo "Processing the exit on L1..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${L1_ERC721_TOKEN_ADDRESS}"
+  process_plasma_exit "${L1_ERC721_TOKEN_ADDRESS}"
 
   # Verify L1 ERC721 balance increased.
   echo "Verifying L1 ERC721 balance increased..."
-  assert_token_balance_eventually_greater_or_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" $((initial_l1_balance + 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
+  assert_token_balance_eventually_greater_or_equal "${L1_ERC721_TOKEN_ADDRESS}" "${address}" \
+    $((initial_l1_balance + 1)) "${L1_RPC_URL}" "${timeout_seconds}" "${interval_seconds}"
 }
