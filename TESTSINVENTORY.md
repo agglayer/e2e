@@ -506,6 +506,34 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
 
+## Heimdall Tests
+
+| Test Name | Reference | Notes |
+|-----------|-----------|-------|
+| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L369) | |
+| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L219) | |
+| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L181) | |
+| heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L323) | |
+| heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L280) | |
+| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L220) | |
+| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L134) | |
+| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L275) | |
+| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L182) | |
+| heimdall consensus: all active validators have strictly positive voting power | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L224) | |
+| heimdall consensus: chain is live and advancing | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L187) | |
+| heimdall consensus: commit includes an entry for every validator in the active set | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L281) | |
+| heimdall consensus: quorum of voting power committed each block | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L433) | |
+| heimdall consensus: recent blocks decided at round 0 | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L376) | |
+| heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
+| heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
+| heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
+| heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
+| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L387) | |
+| heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
+| heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
+| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L352) | |
+| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L290) | |
+
 ## DApps Tests
 
 | Test Name | Reference | Notes |
@@ -668,24 +696,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge transaction is indexed and autoclaimed on L2 | [Link](./tests/bridge-hub-api.bats#L14) | |
 | bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L95) | |
 | foo | [Link](./tests/foo.bats#L10) | |
-| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L369) | |
-| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L219) | |
-| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L181) | |
-| heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L323) | |
-| heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L280) | |
-| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L220) | |
-| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L134) | |
-| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L275) | |
-| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L182) | |
-| heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
-| heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
-| heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
-| heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
-| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L387) | |
-| heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
-| heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
-| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L352) | |
-| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L290) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |

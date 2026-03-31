@@ -260,6 +260,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - clerk
 - clz
 - code-size
+- consensus
 - correctness
 - cross-client
 - custom-gas-token
