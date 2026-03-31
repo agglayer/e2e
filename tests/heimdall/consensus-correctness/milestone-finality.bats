@@ -223,8 +223,8 @@ _decode_hash() {
         echo "FAIL: latest milestone has no 'end_block' field" >&2
         return 1
     fi
-    if [[ "${end_block}" -le "${start_block}" ]]; then
-        echo "FAIL: milestone end_block (${end_block}) <= start_block (${start_block}) — invalid range" >&2
+    if [[ "${end_block}" -lt "${start_block}" ]]; then
+        echo "FAIL: milestone end_block (${end_block}) < start_block (${start_block}) — invalid range" >&2
         return 1
     fi
     if [[ -z "${hash}" || "${hash}" == "null" ]]; then
