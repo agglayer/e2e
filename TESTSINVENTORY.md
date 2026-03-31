@@ -673,10 +673,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L181) | |
 | heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L323) | |
 | heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L280) | |
-| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L221) | |
-| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L135) | |
-| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L276) | |
-| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L183) | |
+| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L220) | |
+| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L134) | |
+| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L275) | |
+| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L182) | |
 | heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
 | heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
 | heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |

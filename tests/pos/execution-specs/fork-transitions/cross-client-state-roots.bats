@@ -100,6 +100,9 @@ _block_field_on() {
 }
 
 # Wait for a specific RPC endpoint to reach target block. Timeout scales with distance.
+# Stall detection: if the block number does not advance for STALL_LIMIT × 5s, the
+# client is considered stuck (e.g. at a fork boundary) and the function returns 1
+# immediately rather than burning the full timeout.
 _wait_for_block_on() {
     local target="$1" rpc="$2"
     local current
@@ -110,11 +113,39 @@ _wait_for_block_on() {
     # 3s per block + 5 min buffer, capped at 30 min
     local timeout=$(( remaining * 3 + 300 ))
     [[ "$timeout" -gt 1800 ]] && timeout=1800
+    # 6 consecutive 5-second polls without progress = 30s stall → stuck
+    local STALL_LIMIT=6
 
     echo "  Waiting for block ${target} on ${rpc} (current: ${current}, timeout: ${timeout}s)..." >&3
-    assert_command_eventually_greater_or_equal \
-        "cast block-number --rpc-url ${rpc}" \
-        "${target}" "${timeout}" 5
+
+    local start_time elapsed last_block stall_count
+    start_time=$(date +%s)
+    last_block="$current"
+    stall_count=0
+
+    while true; do
+        elapsed=$(( $(date +%s) - start_time ))
+        if [[ "$elapsed" -ge "$timeout" ]]; then
+            echo "  Timeout reached waiting for block ${target} on ${rpc}." >&3
+            return 1
+        fi
+
+        current=$(_block_number_on "${rpc}" 2>/dev/null || echo "$last_block")
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Block: ${current} / ${target}" >&3
+        [[ "$current" -ge "$target" ]] && return 0
+
+        if [[ "$current" -eq "$last_block" ]]; then
+            stall_count=$(( stall_count + 1 ))
+            if [[ "$stall_count" -ge "$STALL_LIMIT" ]]; then
+                echo "  STUCK: ${rpc} has not advanced from block ${current} for $(( stall_count * 5 ))s — likely stuck at a fork boundary." >&3
+                return 1
+            fi
+        else
+            stall_count=0
+        fi
+        last_block="$current"
+        sleep 5
+    done
 }
 
 # Compare block hashes between Bor and Erigon for each block in the list.
