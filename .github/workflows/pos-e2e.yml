@@ -765,6 +765,78 @@ jobs:
           echo "Running fork-transition tests (${bats_jobs} jobs) for ${{ matrix.pair_label }}..."
           bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats
 
+      - name: Run cross-client state root oracle tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          export FORK_JAIPUR=0
+          export FORK_DELHI=0
+          export FORK_INDORE=0
+          export FORK_AGRA=0
+          export FORK_NAPOLI=0
+          export FORK_AHMEDABAD=0
+          export FORK_BHILAI=0
+          export FORK_RIO=256
+          export FORK_MADHUGIRI=320
+          export FORK_MADHUGIRI_PRO=384
+          export FORK_DANDELI=448
+          export FORK_LISOVO=512
+          export FORK_LISOVO_PRO=576
+          export FORK_GIUGLIANO=640
+
+          echo "Running cross-client state root oracle for ${{ matrix.pair_label }}..."
+          bats tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats
+
+      - name: Run golden state regression tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          # Use the oldest Bor version in the matrix so the golden file covers the
+          # minimum supported release. On a release branch this is the new version.
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          echo "Running golden state regression for Bor v${BOR_MIN_VERSION} (pair: ${{ matrix.pair_label }})..."
+          bats tests/pos/execution-specs/fork-transitions/golden-state-regression.bats
+
+      - name: Run sprint-boundary fork tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # These tests verify fork+sprint boundary intersection using the staggered
+          # fork schedule (same devnet as the other tests in this job). The tests
+          # skip individual cases when the fork block is not a sprint boundary, so
+          # they are safe to run unconditionally against the staggered devnet.
+          export FORK_JAIPUR=0
+          export FORK_DELHI=0
+          export FORK_INDORE=0
+          export FORK_AGRA=0
+          export FORK_NAPOLI=0
+          export FORK_AHMEDABAD=0
+          export FORK_BHILAI=0
+          export FORK_RIO=256
+          export FORK_MADHUGIRI=320
+          export FORK_MADHUGIRI_PRO=384
+          export FORK_DANDELI=448
+          export FORK_LISOVO=512
+          export FORK_LISOVO_PRO=576
+          export FORK_GIUGLIANO=640
+
+          echo "Running sprint-boundary fork tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats
+
       # -------------------------------------------------------------------
       # Archive node sync — adds archive node to running staggered-fork
       # enclave and verifies it syncs through all fork boundaries.
