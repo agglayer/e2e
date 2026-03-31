@@ -58,3 +58,12 @@ excluded_pairs:
     errors on archive sync; execution-specs tests fail due to inconsistent
     precompile behavior across validators.
   link: https://github.com/agglayer/e2e/actions/runs/23532924942/job/68627382263
+- images:
+    - 0xpolygon/bor:2.6.5
+    - 0xpolygon/erigon:v3.5.0
+  reason: >-
+    Erigon v3.5.0 cannot sync past the Lisovo fork (block 512) when bor-2.6.5
+    validators are producing blocks. The cross-client oracle detects a 128-block gap
+    (Erigon stuck at 511, Bor at 639); blocks at the Lisovo activation boundary
+    from bor-2.6.5 are rejected by Erigon v3.5.0.
+  link: https://github.com/agglayer/e2e/actions/runs/23782039592/job/69296808463

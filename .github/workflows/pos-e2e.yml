@@ -344,8 +344,9 @@ jobs:
           fi
 
           # Pairwise bor-bor mixes (skip excluded pairs).
-          # NOTE: Exclusion only applies to bor-bor pairs; cross-client pairs
-          # are not subject to excluded_pairs filtering.
+          # excluded_pairs applies to both bor-bor and bor-erigon combinations:
+          # if the selected erigon is excluded with either bor version, rotate to
+          # the next erigon version until a compatible one is found.
           for ((i=0; i<${#bor_images[@]}; i++)); do
             for ((j=i+1; j<${#bor_images[@]}; j++)); do
               va="${bor_images[$i]}"; vb="${bor_images[$j]}"
@@ -357,6 +358,12 @@ jobs:
               if [[ ${#erigon_images[@]} -gt 0 ]]; then
                 idx=$(( (i + j) % ${#erigon_images[@]} ))
                 eri="${erigon_images[$idx]}"
+                # Rotate past any erigon version excluded with va or vb.
+                for ((k=1; k<${#erigon_images[@]}; k++)); do
+                  [[ -z "${excluded_set["${va}|${eri}"]:-}" && -z "${excluded_set["${vb}|${eri}"]:-}" ]] && break
+                  eri="${erigon_images[$(( (idx + k) % ${#erigon_images[@]} ))]}"
+                  echo "  Rotated erigon to ${eri} (excluded pair avoided for ${va} or ${vb})"
+                done
               else
                 eri="$erigon_latest"
               fi
@@ -544,6 +551,9 @@ jobs:
                 el_image: "${ERIGON_RPC}"
           PARAMS
           cat /tmp/pos-params.yml
+          # CI runners are slower than local machines; bump all 5-minute Starlark waits
+          # to 10 minutes (covers wait.star, deployer.star, and any other star files).
+          find kurtosis-pos -name "*.star" -exec sed -i 's/wait="5m"/wait="10m"/g' {} +
 
       - name: Deploy kurtosis-pos enclave
         run: |
