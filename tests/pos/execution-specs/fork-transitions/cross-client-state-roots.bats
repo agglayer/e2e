@@ -130,18 +130,23 @@ _wait_for_block_on() {
             return 1
         fi
 
-        current=$(_block_number_on "${rpc}" 2>/dev/null || echo "$last_block")
+        local rpc_ok
+        current=$(_block_number_on "${rpc}" 2>/dev/null) && rpc_ok=1 || { rpc_ok=0; current="$last_block"; }
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Block: ${current} / ${target}" >&3
         [[ "$current" -ge "$target" ]] && return 0
 
-        if [[ "$current" -eq "$last_block" ]]; then
-            stall_count=$(( stall_count + 1 ))
-            if [[ "$stall_count" -ge "$STALL_LIMIT" ]]; then
-                echo "  STUCK: ${rpc} has not advanced from block ${current} for $(( stall_count * 5 ))s — likely stuck at a fork boundary." >&3
-                return 1
+        # Only count as a stall when the RPC succeeded but the block didn't advance.
+        # Transient RPC failures (network blips) should not trigger the stall detector.
+        if [[ "$rpc_ok" -eq 1 ]]; then
+            if [[ "$current" -eq "$last_block" ]]; then
+                stall_count=$(( stall_count + 1 ))
+                if [[ "$stall_count" -ge "$STALL_LIMIT" ]]; then
+                    echo "  STUCK: ${rpc} has not advanced from block ${current} for $(( stall_count * 5 ))s — likely stuck at a fork boundary." >&3
+                    return 1
+                fi
+            else
+                stall_count=0
             fi
-        else
-            stall_count=0
         fi
         last_block="$current"
         sleep 5
@@ -289,7 +294,7 @@ _require_min_bor() {
 
 # bats test_tags=cross-client,state-root
 @test "cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor" {
-    _require_min_bor "2.6.0"
+    _require_min_bor "2.5.6"
     [[ "${FORK_DANDELI:-0}" -le 0 ]] && skip "Dandeli at genesis"
 
     # Cap the target at what the running Erigon supports.
@@ -347,6 +352,7 @@ _require_min_bor() {
 
     local target=$(( last_fork + 10 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
 
     local bor_tip erigon_tip
     bor_tip=$(_block_number_on "${L2_RPC_URL}")

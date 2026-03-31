@@ -387,11 +387,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
-| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L336) | |
-| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L291) | |
-| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L319) | |
-| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L277) | |
-| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L262) | |
+| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L341) | |
+| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L296) | |
+| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L324) | |
+| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L282) | |
+| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L267) | |
 | delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L124) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L150) | |
@@ -681,11 +681,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
 | heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
 | heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
-| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L370) | |
+| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L387) | |
 | heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
 | heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
-| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L335) | |
-| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L273) | |
+| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L352) | |
+| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L290) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |
