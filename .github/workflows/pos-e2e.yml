@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: ""
+      erigon-image:
+        description: "Erigon image. Leave empty to auto-detect from GitHub releases."
+        required: false
+        type: string
+        default: ""
       bor-archive-image:
         description: "Bor image for the archive sync node. Leave empty to use bor-latest. Set to a different version to test cross-version archive sync."
         required: false
@@ -88,6 +93,7 @@ jobs:
       bor-previous-image: ${{ steps.resolve.outputs.bor-previous-image }}
       bor-archive-image: ${{ steps.resolve.outputs.bor-archive-image }}
       heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
+      erigon-image: ${{ steps.resolve.outputs.erigon-image }}
       compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
     steps:
       - name: Checkout (for compat-versions.yml)
@@ -109,6 +115,17 @@ jobs:
             echo "bor-latest-image=${{ inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
             echo "bor-previous-image=${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
             echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
+            if [[ -n "${{ inputs.erigon-image }}" ]]; then
+              echo "erigon-image=${{ inputs.erigon-image }}" >> "$GITHUB_OUTPUT"
+            else
+              _eri_tag=$(gh api repos/0xPolygon/erigon/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+              if [[ -n "$_eri_tag" ]]; then
+                echo "erigon-image=0xpolygon/erigon:${_eri_tag}" >> "$GITHUB_OUTPUT"
+              else
+                echo "::warning::Failed to fetch erigon release, using 'latest'."
+                echo "erigon-image=0xpolygon/erigon:latest" >> "$GITHUB_OUTPUT"
+              fi
+            fi
             echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
 
             if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
@@ -201,6 +218,22 @@ jobs:
             fi
           fi
 
+          # --- Auto-detect erigon version ------------------------------------
+          # Note: unlike bor/heimdall which strip the 'v' prefix, erigon Docker
+          # Hub images retain it (e.g. 0xpolygon/erigon:v3.5.0), so we use
+          # ${erigon_tag} directly without the #v strip.
+          if [[ -n "${{ inputs.erigon-image }}" ]]; then
+            echo "erigon-image=${{ inputs.erigon-image }}" >> "$GITHUB_OUTPUT"
+          else
+            erigon_tag=$(gh api repos/0xPolygon/erigon/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+            if [[ -n "$erigon_tag" ]]; then
+              echo "erigon-image=0xpolygon/erigon:${erigon_tag}" >> "$GITHUB_OUTPUT"
+            else
+              echo "::warning::Failed to fetch erigon release, using 'latest'."
+              echo "erigon-image=0xpolygon/erigon:latest" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
           # --- Archive node image -----------------------------------------
           # Defaults to bor-latest unless explicitly overridden via input.
           if [[ -n "${{ inputs.bor-archive-image }}" ]]; then
@@ -257,11 +290,19 @@ jobs:
           declare -a bor_images=()
           declare -a erigon_images=()
           OVERRIDE="${{ steps.resolve.outputs.compat-versions-override }}"
+          ERIGON_OVERRIDE="${{ inputs.erigon-image }}"
 
           if [[ -n "$OVERRIDE" ]]; then
             echo "Using manual override for bor versions."
             IFS=',' read -ra bor_images <<< "$OVERRIDE"
-          elif [[ -f "$COMPAT_YML" ]]; then
+          fi
+
+          if [[ -n "$ERIGON_OVERRIDE" ]]; then
+            echo "Using manual override for erigon: ${ERIGON_OVERRIDE}"
+            erigon_images=("$ERIGON_OVERRIDE")
+          fi
+
+          if [[ -z "$OVERRIDE" || -z "$ERIGON_OVERRIDE" ]] && [[ -f "$COMPAT_YML" ]]; then
             echo "Reading versions from ${COMPAT_YML}..."
             pending_img=""
             while IFS= read -r line; do
@@ -270,8 +311,8 @@ jobs:
                 pending_img="${BASH_REMATCH[1]}"
               elif [[ -n "$pending_img" && "$line" =~ el_type:\ *(bor|erigon) ]]; then
                 el_type="${BASH_REMATCH[1]}"
-                [[ "$el_type" == "bor" ]] && bor_images+=("$pending_img")
-                [[ "$el_type" == "erigon" ]] && erigon_images+=("$pending_img")
+                [[ "$el_type" == "bor" && -z "$OVERRIDE" ]] && bor_images+=("$pending_img")
+                [[ "$el_type" == "erigon" && -z "$ERIGON_OVERRIDE" ]] && erigon_images+=("$pending_img")
                 pending_img=""
               fi
             done < "$COMPAT_YML"
@@ -284,6 +325,15 @@ jobs:
             previous="${{ steps.resolve.outputs.bor-previous-image }}"
             [[ -n "$latest" ]] && bor_images+=("$latest")
             [[ -n "$previous" && "$previous" != "$latest" ]] && bor_images+=("$previous")
+          fi
+
+          # Fallback: auto-detected erigon from resolve step.
+          if [[ ${#erigon_images[@]} -eq 0 ]]; then
+            erigon_fallback="${{ steps.resolve.outputs.erigon-image }}"
+            if [[ -n "$erigon_fallback" ]]; then
+              echo "No erigon versions in YAML — using auto-detected fallback: ${erigon_fallback}"
+              erigon_images=("$erigon_fallback")
+            fi
           fi
 
           echo "Bor versions (${#bor_images[@]}):"
@@ -386,6 +436,7 @@ jobs:
           echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Erigon | \`${{ steps.resolve.outputs.erigon-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Compat pairs | \`${{ steps.gen-compat-matrix.outputs.compat-pairs }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
@@ -551,9 +602,6 @@ jobs:
                 el_image: "${ERIGON_RPC}"
           PARAMS
           cat /tmp/pos-params.yml
-          # CI runners are slower than local machines; bump all 5-minute Starlark waits
-          # to 10 minutes (covers wait.star, deployer.star, and any other star files).
-          find kurtosis-pos -name "*.star" -exec sed -i 's/wait="5m"/wait="10m"/g' {} +
 
       - name: Deploy kurtosis-pos enclave
         run: |
