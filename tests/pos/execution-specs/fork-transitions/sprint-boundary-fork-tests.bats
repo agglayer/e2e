@@ -109,10 +109,19 @@ _wait_for_block() {
         "${target}" "${timeout}" 5
 }
 
-# Get the miner (block producer) for a given block.
+# Get the actual block producer for a given block.
+# Bor's consensus engine unconditionally sets header.Coinbase = 0x0000...000 in Prepare()
+# (consensus/bor/bor.go — rewards are state-sync transfers, not coinbase).
+# The miner field in eth_getBlockByNumber is therefore always the zero address.
+# bor_getAuthor recovers the signer by ecrecover on the 65-byte seal in header.Extra.
 _producer_at() {
     local block="$1"
-    _block_field "$block" "miner"
+    local block_hex
+    block_hex=$(printf '0x%x' "$block")
+    curl -s -m 30 --connect-timeout 5 -X POST "${L2_RPC_URL}" \
+        -H "Content-Type: application/json" \
+        -d "{\"jsonrpc\":\"2.0\",\"method\":\"bor_getAuthor\",\"params\":[\"${block_hex}\"],\"id\":1}" \
+        | jq -r '.result // empty'
 }
 
 # Get the bor signers set at a given block hash from Bor RPC.
