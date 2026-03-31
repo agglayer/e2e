@@ -387,11 +387,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
-| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L256) | |
-| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L225) | |
-| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L240) | |
-| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L211) | |
-| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L196) | |
+| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L329) | |
+| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L284) | |
+| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L312) | |
+| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L270) | |
+| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L255) | |
 | delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L124) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L150) | |

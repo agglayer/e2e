@@ -878,6 +878,7 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          export ERIGON_RPC_VERSION=$(echo "${{ matrix.erigon_rpc }}" | sed 's|.*:||; s/^v//')
 
           export FORK_JAIPUR=0
           export FORK_DELHI=0

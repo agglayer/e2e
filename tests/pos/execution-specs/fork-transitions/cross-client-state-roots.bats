@@ -55,7 +55,6 @@ setup_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
-    load "../../../../core/helpers/scripts/eventually.bash"
     pos_setup
 
     FORK_JAIPUR="${FORK_JAIPUR:-0}"
@@ -72,6 +71,7 @@ setup() {
     FORK_LISOVO="${FORK_LISOVO:-512}"
     FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
     FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
+    ERIGON_RPC_VERSION="${ERIGON_RPC_VERSION:-}"
 
     if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
         skip "No Erigon RPC URL available (no Erigon node in enclave)"
@@ -203,6 +203,41 @@ _version_gte() {
     [[ "$lower" == "$required_base" ]]
 }
 
+# Returns 0 if ERIGON_RPC_VERSION >= required, 1 otherwise. Never calls skip.
+# Use in && chains where a skip would abort the entire test.
+_erigon_gte() {
+    local required="$1"
+    local running="${ERIGON_RPC_VERSION:-}"
+    [[ -z "$running" ]] && return 0
+    running="${running#v}"  # strip leading v (e.g. v3.5.0 → 3.5.0)
+    [[ ! "$running" =~ ^[0-9]+\.[0-9]+ ]] && return 0  # non-semver (e.g. "latest") — don't gate
+    local running_base required_base
+    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    local lower
+    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
+    [[ "$lower" == "$required_base" ]]
+}
+
+# Skip if ERIGON_RPC_VERSION is older than the required version.
+# Erigon fork support lags bor by roughly one release cycle; use this to skip
+# cross-client tests for forks the running Erigon image does not yet implement.
+_require_min_erigon() {
+    local required="$1"
+    local running="${ERIGON_RPC_VERSION:-}"
+    [[ -z "$running" ]] && return 0  # unknown version — don't skip
+    running="${running#v}"  # strip leading v
+    [[ ! "$running" =~ ^[0-9]+\.[0-9]+ ]] && return 0  # non-semver (e.g. "latest") — don't skip
+    local running_base required_base
+    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+    local lower
+    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
+    if [[ "$lower" != "$required_base" ]]; then
+        skip "requires erigon >= ${required} (running: ${ERIGON_RPC_VERSION})"
+    fi
+}
+
 # Skip if BOR_MIN_VERSION is older than the required version.
 _require_min_bor() {
     local required="$1"
@@ -255,21 +290,35 @@ _require_min_bor() {
 # bats test_tags=cross-client,state-root
 @test "cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor" {
     _require_min_bor "2.6.0"
-    [[ "${FORK_LISOVO_PRO:-0}" -le 0 ]] && skip "Lisovo at genesis"
+    [[ "${FORK_DANDELI:-0}" -le 0 ]] && skip "Dandeli at genesis"
 
-    local target=$(( FORK_LISOVO_PRO + 5 ))
+    # Cap the target at what the running Erigon supports.
+    # erigon < 3.5.0 supports up to Dandeli but not Lisovo/LisovoPro.
+    local target
+    if _erigon_gte "3.5.0"; then
+        target=$(( FORK_LISOVO_PRO + 5 ))
+    else
+        target=$(( FORK_DANDELI + 5 ))
+    fi
     _wait_for_block_on "${target}" "${L2_RPC_URL}"
     _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
 
-    _assert_clients_agree \
-        "$(( FORK_DANDELI - 1 ))"   "${FORK_DANDELI}"   "$(( FORK_DANDELI + 1 ))" \
-        "$(( FORK_LISOVO - 1 ))"    "${FORK_LISOVO}"    "$(( FORK_LISOVO + 1 ))" \
-        "$(( FORK_LISOVO_PRO - 1 ))" "${FORK_LISOVO_PRO}" "$(( FORK_LISOVO_PRO + 1 ))"
+    local -a blocks=(
+        "$(( FORK_DANDELI - 1 ))" "${FORK_DANDELI}" "$(( FORK_DANDELI + 1 ))"
+    )
+    if _erigon_gte "3.5.0"; then
+        blocks+=(
+            "$(( FORK_LISOVO - 1 ))"     "${FORK_LISOVO}"     "$(( FORK_LISOVO + 1 ))"
+            "$(( FORK_LISOVO_PRO - 1 ))" "${FORK_LISOVO_PRO}" "$(( FORK_LISOVO_PRO + 1 ))"
+        )
+    fi
+    _assert_clients_agree "${blocks[@]}"
 }
 
 # bats test_tags=cross-client,state-root
 @test "cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash" {
     _require_min_bor "2.7.0"
+    _require_min_erigon "3.5.0"
     [[ "${FORK_GIUGLIANO:-0}" -le 0 ]] && skip "Giugliano at genesis"
 
     local target=$(( FORK_GIUGLIANO + 5 ))
@@ -285,15 +334,17 @@ _require_min_bor() {
 
 # bats test_tags=cross-client,state-root,chain-continuity
 @test "cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks)" {
-    # Wait for chain to pass all supported forks
+    # Advance last_fork through each fork only when both Bor and Erigon support it.
+    # This allows the test to run even when Erigon lags behind Bor in fork support.
     local last_fork="${FORK_RIO}"
     _version_gte "2.5.0" && last_fork="${FORK_MADHUGIRI_PRO}"
     _version_gte "2.5.6" && last_fork="${FORK_DANDELI}"
-    _version_gte "2.6.0" && last_fork="${FORK_LISOVO_PRO}"
-    _version_gte "2.7.0" && last_fork="${FORK_GIUGLIANO}"
+    _version_gte "2.6.0" && _erigon_gte "3.5.0" && last_fork="${FORK_LISOVO_PRO}"
+    _version_gte "2.7.0" && _erigon_gte "3.5.0" && last_fork="${FORK_GIUGLIANO}"
 
     local target=$(( last_fork + 10 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
 
     local bor_tip erigon_tip
     bor_tip=$(_block_number_on "${L2_RPC_URL}")
