@@ -109,14 +109,14 @@ function generate_exit_payload() {
       --l2-rpc-url "${L2_RPC_URL}" \
       --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
       --tx-hash "${tx_hash}" \
-      --log-index "${log_index}" 2>/dev/null); then
+      --log-index "${log_index}"); then
       echo "${payload}"
       return 0
     fi
     echo "Checkpoint not yet indexed, retrying in ${interval_seconds}s..." >&2
     sleep "${interval_seconds}"
   done
-  echo "Error: failed to generate exit payload for tx ${tx_hash} within ${timeout_seconds} seconds." >&2
+  echo "Error: failed to generate exit payload for tx ${tx_hash} within ${timeout} seconds." >&2
   return 1
 }
 
