@@ -387,6 +387,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
 | consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
+| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L256) | |
+| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L225) | |
+| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L240) | |
+| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L211) | |
+| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L196) | |
 | delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L124) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L150) | |
@@ -438,6 +443,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L103) | |
 | fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L58) | |
 | gasUsed <= gasLimit for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L883) | |
+| golden-state: all fork entries in the golden file pass hash comparison | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L270) | |
+| golden-state: block hashes match at Dandeli fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L238) | |
+| golden-state: block hashes match at Giugliano fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L262) | |
+| golden-state: block hashes match at Lisovo fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L246) | |
+| golden-state: block hashes match at LisovoPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L254) | |
+| golden-state: block hashes match at Madhugiri fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L222) | |
+| golden-state: block hashes match at MadhugiriPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L230) | |
+| golden-state: block hashes match at Rio fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L214) | |
+| golden-state: devnet is past the last fork in the golden file | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L199) | |
+| golden-state: golden file is valid JSON and has expected structure | [Link](./tests/pos/execution-specs/fork-transitions/golden-state-regression.bats#L178) | |
 | higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L204) | |
 | insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L501) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
@@ -461,6 +476,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L18) | |
 | sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L976) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
+| sprint-boundary: no reorg at Giugliano fork (sprint+span boundary) | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L243) | |
+| sprint-boundary: no reorg at Rio fork (exact sprint boundary) | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L198) | |
+| sprint-boundary: producer at fork block matches bor_getSignersAtHash | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L215) | |
+| sprint-boundary: timestamps strictly increasing across all sprint-aligned fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L283) | |
+| sprint-boundary: validator set is consistent on Bor and Erigon at each sprint-aligned fork | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L260) | |
 | stack depth limit: 1024 nested calls revert | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L381) | |
 | sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L533) | |
 | total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L188) | |
@@ -648,6 +668,24 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge transaction is indexed and autoclaimed on L2 | [Link](./tests/bridge-hub-api.bats#L14) | |
 | bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L95) | |
 | foo | [Link](./tests/foo.bats#L10) | |
+| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L369) | |
+| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L219) | |
+| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L181) | |
+| heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L323) | |
+| heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L280) | |
+| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L221) | |
+| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L135) | |
+| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L276) | |
+| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L183) | |
+| heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
+| heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
+| heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
+| heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
+| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L370) | |
+| heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
+| heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
+| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L335) | |
+| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L273) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |

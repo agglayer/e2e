@@ -85,11 +85,10 @@ setup() {
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Fetch the event record list from Heimdall clerk.
-# The server requires page and limit params; defaults to page=1&limit=50.
+# The server requires page and limit params.
 # Prints the raw JSON array of event records on stdout, or returns 1 on failure.
-# Accepts optional query params string, e.g. "?page=1&limit=50".
 _get_event_records() {
-    local query="${1:-?page=1&limit=50}"
+    local query="?page=1&limit=50"
     local raw
     raw=$(curl -s -m 30 --connect-timeout 5 \
         "${L2_CL_API_URL}/clerk/event-records/list${query}" 2>/dev/null || true)

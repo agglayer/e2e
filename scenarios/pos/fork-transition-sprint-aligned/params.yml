@@ -8,13 +8,13 @@
 # activates on a block where the old sprint-end and new sprint-start would disagree.
 #
 # Fork schedule (sprint=16):
-#   rio=64          (sprint boundary: 64 % 16 == 0)
-#   madhugiri=128   (sprint boundary: 128 % 16 == 0)
-#   madhugiriPro=192
-#   dandeli=256
-#   lisovo=320
-#   lisovoPro=384
-#   giugliano=448   (also span boundary: 448 % 128 == 0)
+#   rio=256          (sprint+span boundary: 256 % 128 == 0; minimum per bor/heimdall requirement)
+#   madhugiri=320    (sprint boundary: 320 % 16 == 0)
+#   madhugiriPro=384
+#   dandeli=448
+#   lisovo=512
+#   lisovoPro=576
+#   giugliano=640   (also span boundary: 640 % 128 == 0)
 #
 # Compare with the default staggered config (rio=256, 64-block gaps) where forks
 # land mid-sprint. Here every fork lands exactly at a sprint start.
@@ -62,10 +62,10 @@ polygon_pos_package:
     napoli: 0
     ahmedabad: 0
     bhilai: 0
-    rio: 64
-    madhugiri: 128
-    madhugiriPro: 192
-    dandeli: 256
-    lisovo: 320
-    lisovoPro: 384
-    giugliano: 448
+    rio: 256
+    madhugiri: 320
+    madhugiriPro: 384
+    dandeli: 448
+    lisovo: 512
+    lisovoPro: 576
+    giugliano: 640
