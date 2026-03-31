@@ -89,6 +89,7 @@ if [[ -z "$RPC_URL" ]]; then
         echo "ERROR: Could not auto-discover RPC URL. Set --rpc-url or L2_RPC_URL." >&2
         exit 1
     fi
+    RPC_URL="${RPC_URL#http://}"; RPC_URL="${RPC_URL#https://}"
     RPC_URL="http://${RPC_URL}"
 fi
 echo "Using RPC: ${RPC_URL}"

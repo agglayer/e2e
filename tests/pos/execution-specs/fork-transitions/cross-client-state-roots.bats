@@ -36,6 +36,7 @@ setup_file() {
         for i in $(seq 1 12); do
             svc="l2-el-${i}-erigon-heimdall-v2-rpc"
             if erigon_port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
+                erigon_port="${erigon_port#http://}"; erigon_port="${erigon_port#https://}"
                 L2_ERIGON_RPC_URL="http://${erigon_port}"
                 echo "Found Erigon at ${svc}: ${L2_ERIGON_RPC_URL}" >&3
                 break
