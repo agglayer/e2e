@@ -334,17 +334,19 @@ _require_min_bor() {
 
 # bats test_tags=cross-client,state-root,chain-continuity
 @test "cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks)" {
-    # Advance last_fork through each fork only when both Bor and Erigon support it.
-    # This allows the test to run even when Erigon lags behind Bor in fork support.
+    # This test measures live chain tips, which is only meaningful when Erigon can
+    # sync through all supported forks without stalling. Erigon < 3.5.0 stalls at
+    # the Lisovo fork boundary, so the gap will always be large — skip in that case.
+    _require_min_erigon "3.5.0"
+    # Wait for chain to pass all supported forks
     local last_fork="${FORK_RIO}"
     _version_gte "2.5.0" && last_fork="${FORK_MADHUGIRI_PRO}"
     _version_gte "2.5.6" && last_fork="${FORK_DANDELI}"
-    _version_gte "2.6.0" && _erigon_gte "3.5.0" && last_fork="${FORK_LISOVO_PRO}"
-    _version_gte "2.7.0" && _erigon_gte "3.5.0" && last_fork="${FORK_GIUGLIANO}"
+    _version_gte "2.6.0" && last_fork="${FORK_LISOVO_PRO}"
+    _version_gte "2.7.0" && last_fork="${FORK_GIUGLIANO}"
 
     local target=$(( last_fork + 10 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
 
     local bor_tip erigon_tip
     bor_tip=$(_block_number_on "${L2_RPC_URL}")
