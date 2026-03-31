@@ -838,6 +838,55 @@ jobs:
           bats tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats
 
       # -------------------------------------------------------------------
+      # Heimdall-v2 consensus correctness tests — run against the live Heimdall
+      # REST API (L2_CL_API_URL) to verify span, checkpoint, milestone, and
+      # state-sync invariants independently of Bor.
+      # -------------------------------------------------------------------
+      - name: Run Heimdall span and validator-set correctness tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall span/validator-set tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/span-validator-set.bats
+
+      - name: Run Heimdall checkpoint chain integrity tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall checkpoint chain integrity tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats
+
+      - name: Run Heimdall milestone finality tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall milestone finality tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/milestone-finality.bats
+
+      - name: Run Heimdall state-sync event ordering tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall state-sync event ordering tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/statesync-event-ordering.bats
+
+      # -------------------------------------------------------------------
       # Archive node sync — adds archive node to running staggered-fork
       # enclave and verifies it syncs through all fork boundaries.
       # -------------------------------------------------------------------
