@@ -481,7 +481,7 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -502,7 +502,7 @@ jobs:
           ref: ${{ env.KURTOSIS_POS_REF }}
           path: kurtosis-pos
 
-      - name: Compute minimum bor version in the mix
+      - name: Compute minimum and maximum bor version in the mix
         id: bor-min
         run: |
           ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
@@ -510,8 +510,10 @@ jobs:
           base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          max_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | tail -1)
           echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
-          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
+          echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
+          echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
 
       - name: Patch constants.star (forks supported by min bor version at 256)
         run: |
@@ -710,7 +712,7 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -772,7 +774,7 @@ jobs:
           PARAMS
           cat /tmp/pos-params.yml
 
-      - name: Compute minimum bor version in the mix
+      - name: Compute minimum and maximum bor version in the mix
         id: bor-min
         run: |
           ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
@@ -780,8 +782,10 @@ jobs:
           base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          max_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | tail -1)
           echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
-          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
+          echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
+          echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
 
       - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
         run: |
@@ -910,8 +914,9 @@ jobs:
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          export BOR_MAX_VERSION="${{ steps.bor-min.outputs.bor-max-version }}"
 
-          echo "Running fork-boundary state consistency for Bor v${BOR_MIN_VERSION} (pair: ${{ matrix.pair_label }})..."
+          echo "Running fork-boundary state consistency for Bor v${BOR_MIN_VERSION}–${BOR_MAX_VERSION} (pair: ${{ matrix.pair_label }})..."
           bats tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats
 
       - name: Run sprint-boundary fork tests
@@ -1276,7 +1281,7 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6

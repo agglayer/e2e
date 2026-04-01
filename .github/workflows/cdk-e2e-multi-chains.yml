@@ -90,7 +90,7 @@ jobs:
           fi
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
