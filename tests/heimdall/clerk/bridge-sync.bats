@@ -34,7 +34,8 @@ setup_file() {
         local rpc_port
         if rpc_port=$(kurtosis port print "${ENCLAVE_NAME}" \
                 "l2-cl-1-heimdall-v2-bor-validator" rpc 2>/dev/null); then
-            export L2_CL_RPC_URL="http://${rpc_port}"
+            # kurtosis port print already returns a full URL (http://host:port)
+            export L2_CL_RPC_URL="${rpc_port}"
         else
             export L2_CL_RPC_URL="${L2_CL_API_URL/:1317/:26657}"
         fi
@@ -99,7 +100,8 @@ setup() {
         local rpc_port
         if rpc_port=$(kurtosis port print "${ENCLAVE_NAME}" \
                 "l2-cl-1-heimdall-v2-bor-validator" rpc 2>/dev/null); then
-            export L2_CL_RPC_URL="http://${rpc_port}"
+            # kurtosis port print already returns a full URL (http://host:port)
+            export L2_CL_RPC_URL="${rpc_port}"
         else
             export L2_CL_RPC_URL="${L2_CL_API_URL/:1317/:26657}"
         fi
@@ -226,7 +228,7 @@ _get_checkpoint_ack_count() {
 
     # Extract the maximum ID from the list.
     local max_id
-    max_id=$(printf '%s' "${records}" | jq -r '[.[].id // 0] | max' 2>/dev/null || true)
+    max_id=$(printf '%s' "${records}" | jq -r '[.[].id | tonumber] | max' 2>/dev/null || true)
     [[ "${max_id}" =~ ^[0-9]+$ ]] || max_id=0
 
     echo "  max_event_id_in_list=${max_id}  latest_record_id=${latest_record_id}" >&3
@@ -323,12 +325,14 @@ _get_checkpoint_ack_count() {
 # bats test_tags=bridge,correctness,liveness
 @test "heimdall bridge: Heimdall block height is not lagging behind CometBFT tip" {
     # Fetch REST API block height from /status.
+    # Heimdall REST returns flat JSON: {"latest_block_height": 1234, ...}
+    # (no .result.sync_info wrapper, and the value is a number not a string)
     local rest_raw
     rest_raw=$(curl -s -m 15 --connect-timeout 5 \
         "${L2_CL_API_URL}/status" 2>/dev/null || true)
     local rest_height
     rest_height=$(printf '%s' "${rest_raw}" \
-        | jq -r '.result.sync_info.latest_block_height // empty' 2>/dev/null || true)
+        | jq -r '.latest_block_height // empty' 2>/dev/null || true)
     [[ "${rest_height}" =~ ^[0-9]+$ ]] || rest_height=""
 
     # Check if CometBFT RPC is available.
