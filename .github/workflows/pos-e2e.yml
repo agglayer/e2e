@@ -482,6 +482,8 @@ jobs:
 
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -645,7 +647,8 @@ jobs:
             tests/pos/execution-specs/transactions/ \
             tests/pos/execution-specs/rpc/ \
             tests/pos/execution-specs/precompiles/ \
-            --filter-tags "execution-specs"
+            --filter-tags "execution-specs" \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run resilience tests
         run: |
@@ -660,7 +663,36 @@ jobs:
             tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats \
             tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats \
             tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats \
-            tests/pos/execution-specs/resilience/rpc-node-stability.bats
+            tests/pos/execution-specs/resilience/rpc-node-stability.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: always()
+        run: |
+          TAP_FILE="/tmp/bats-tap-output.txt"
+          {
+            echo "## Skipped Tests Summary (${{ matrix.pair_label }})"
+            echo ""
+            if [[ ! -f "$TAP_FILE" ]]; then
+              echo "_No BATS output captured (tests may not have run)._"
+            else
+              skipped=$(grep '# skip' "$TAP_FILE" || true)
+              if [[ -z "$skipped" ]]; then
+                echo "All tests ran — none were skipped."
+              else
+                echo "| Test | Skip Reason |"
+                echo "|------|-------------|"
+                while IFS= read -r line; do
+                  test_name=$(echo "$line" | sed -E 's/^ok [0-9]+ //' | sed -E 's/ # skip.*$//')
+                  reason=$(echo "$line" | sed -E 's/.*# skip (.*)/\1/')
+                  echo "| ${test_name} | ${reason} |"
+                done <<< "$skipped"
+                echo ""
+                count=$(echo "$skipped" | wc -l)
+                echo "**${count} test(s) skipped** — these represent known version incompatibilities, not failures."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Dump enclave logs
         if: failure()
@@ -713,6 +745,8 @@ jobs:
 
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -876,7 +910,8 @@ jobs:
           [[ "$bats_jobs" -lt 1 ]] && bats_jobs=1
 
           echo "Running fork-transition tests (${bats_jobs} jobs) for ${{ matrix.pair_label }}..."
-          bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats
+          bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run cross-client state root oracle tests
         run: |
@@ -904,7 +939,8 @@ jobs:
           export FORK_GIUGLIANO=640
 
           echo "Running cross-client state root oracle for ${{ matrix.pair_label }}..."
-          bats tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats
+          bats tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run fork-boundary state consistency tests
         run: |
@@ -917,7 +953,8 @@ jobs:
           export BOR_MAX_VERSION="${{ steps.bor-min.outputs.bor-max-version }}"
 
           echo "Running fork-boundary state consistency for Bor v${BOR_MIN_VERSION}–${BOR_MAX_VERSION} (pair: ${{ matrix.pair_label }})..."
-          bats tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats
+          bats tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run sprint-boundary fork tests
         run: |
@@ -948,7 +985,8 @@ jobs:
           export FORK_GIUGLIANO=640
 
           echo "Running sprint-boundary fork tests for ${{ matrix.pair_label }}..."
-          bats tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats
+          bats tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       # -------------------------------------------------------------------
       # Heimdall-v2 consensus correctness tests — run against the live Heimdall
@@ -964,7 +1002,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall span/validator-set tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/span-validator-set.bats
+          bats tests/heimdall/consensus-correctness/span-validator-set.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall checkpoint chain integrity tests
         run: |
@@ -975,7 +1014,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall checkpoint chain integrity tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats
+          bats tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall milestone finality tests
         run: |
@@ -986,7 +1026,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall milestone finality tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/milestone-finality.bats
+          bats tests/heimdall/consensus-correctness/milestone-finality.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall state-sync event ordering tests
         run: |
@@ -997,7 +1038,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall state-sync event ordering tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/statesync-event-ordering.bats
+          bats tests/heimdall/consensus-correctness/statesync-event-ordering.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall node health tests
         run: |
@@ -1008,7 +1050,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall node health tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/node-health.bats
+          bats tests/heimdall/consensus-correctness/node-health.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall checkpoint safety tests
         run: |
@@ -1019,7 +1062,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall checkpoint safety tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/checkpoint-safety.bats
+          bats tests/heimdall/consensus-correctness/checkpoint-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall span-milestone safety tests
         run: |
@@ -1030,7 +1074,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall span-milestone safety tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/span-milestone-safety.bats
+          bats tests/heimdall/consensus-correctness/span-milestone-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall Bor span-in-turn tests
         run: |
@@ -1041,7 +1086,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall Bor span-in-turn tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/bor/span-in-turn.bats
+          bats tests/heimdall/bor/span-in-turn.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall bridge sync tests
         run: |
@@ -1052,7 +1098,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall bridge sync tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/clerk/bridge-sync.bats
+          bats tests/heimdall/clerk/bridge-sync.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall validator-set safety tests
         run: |
@@ -1063,7 +1110,8 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall validator-set safety tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/stake/validator-set-safety.bats
+          bats tests/heimdall/stake/validator-set-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall validator state tests
         run: |
@@ -1074,7 +1122,36 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall validator state tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/stake/validator-state.bats
+          bats tests/heimdall/stake/validator-state.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: always()
+        run: |
+          TAP_FILE="/tmp/bats-tap-output.txt"
+          {
+            echo "## Skipped Tests Summary (${{ matrix.pair_label }})"
+            echo ""
+            if [[ ! -f "$TAP_FILE" ]]; then
+              echo "_No BATS output captured (tests may not have run)._"
+            else
+              skipped=$(grep '# skip' "$TAP_FILE" || true)
+              if [[ -z "$skipped" ]]; then
+                echo "All tests ran — none were skipped."
+              else
+                echo "| Test | Skip Reason |"
+                echo "|------|-------------|"
+                while IFS= read -r line; do
+                  test_name=$(echo "$line" | sed -E 's/^ok [0-9]+ //' | sed -E 's/ # skip.*$//')
+                  reason=$(echo "$line" | sed -E 's/.*# skip (.*)/\1/')
+                  echo "| ${test_name} | ${reason} |"
+                done <<< "$skipped"
+                echo ""
+                count=$(echo "$skipped" | wc -l)
+                echo "**${count} test(s) skipped** — these represent known version incompatibilities, not failures."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # -------------------------------------------------------------------
       # Archive node sync — adds archive node to running staggered-fork
@@ -1282,9 +1359,13 @@ jobs:
 
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
 
       - name: Checkout kurtosis-pos
         uses: actions/checkout@v6

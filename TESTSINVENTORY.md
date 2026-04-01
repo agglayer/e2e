@@ -494,16 +494,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | sprint-boundary: validator set is consistent on Bor and Erigon at each sprint-aligned fork | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L260) | |
 | stack depth limit: 1024 nested calls revert | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L381) | |
 | state sync events do not halt block production | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L287) | |
-| state-consistency: all Bor nodes are reachable and producing blocks | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L262) | |
-| state-consistency: all nodes agree on block hashes at Dandeli fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L318) | |
-| state-consistency: all nodes agree on block hashes at Giugliano fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L336) | |
-| state-consistency: all nodes agree on block hashes at Lisovo fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L324) | |
-| state-consistency: all nodes agree on block hashes at LisovoPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L330) | |
-| state-consistency: all nodes agree on block hashes at Madhugiri fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L306) | |
-| state-consistency: all nodes agree on block hashes at MadhugiriPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L312) | |
-| state-consistency: all nodes agree on block hashes at Rio fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L301) | |
-| state-consistency: all supported fork boundaries pass cross-node comparison | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L342) | |
-| state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L276) | |
+| state-consistency: all Bor nodes are reachable and producing blocks | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L280) | |
+| state-consistency: all nodes agree on block hashes at Dandeli fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L337) | |
+| state-consistency: all nodes agree on block hashes at Giugliano fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L357) | |
+| state-consistency: all nodes agree on block hashes at Lisovo fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L343) | |
+| state-consistency: all nodes agree on block hashes at LisovoPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L350) | |
+| state-consistency: all nodes agree on block hashes at Madhugiri fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L325) | |
+| state-consistency: all nodes agree on block hashes at MadhugiriPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L331) | |
+| state-consistency: all nodes agree on block hashes at Rio fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L320) | |
+| state-consistency: all supported fork boundaries pass cross-node comparison | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L364) | |
+| state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L294) | |
 | sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L533) | |
 | total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L188) | |
 | transaction at node-reported gas price succeeds | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L144) | |
@@ -537,11 +537,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall bor: each span producer has a non-empty valid signer address | [Link](./tests/heimdall/bor/span-in-turn.bats#L286) | |
 | heimdall bor: latest span has a non-zero block range (start_block < end_block) | [Link](./tests/heimdall/bor/span-in-turn.bats#L136) | |
 | heimdall bor: span selected_producers have no duplicate signer addresses | [Link](./tests/heimdall/bor/span-in-turn.bats#L230) | |
-| heimdall bridge: Heimdall block height is not lagging behind CometBFT tip | [Link](./tests/heimdall/clerk/bridge-sync.bats#L326) | |
-| heimdall bridge: at least one checkpoint has been acknowledged on L1 | [Link](./tests/heimdall/clerk/bridge-sync.bats#L303) | |
-| heimdall bridge: clerk event record ID does not exceed L1 state counter | [Link](./tests/heimdall/clerk/bridge-sync.bats#L211) | |
+| heimdall bridge: Heimdall block height is not lagging behind CometBFT tip | [Link](./tests/heimdall/clerk/bridge-sync.bats#L336) | |
+| heimdall bridge: at least one checkpoint has been acknowledged on L1 | [Link](./tests/heimdall/clerk/bridge-sync.bats#L313) | |
+| heimdall bridge: clerk event record ID does not exceed L1 state counter | [Link](./tests/heimdall/clerk/bridge-sync.bats#L221) | |
 | heimdall bridge: clerk has processed at least one state sync event | [Link](./tests/heimdall/clerk/bridge-sync.bats#L188) | |
-| heimdall bridge: event records are being processed in a timely manner | [Link](./tests/heimdall/clerk/bridge-sync.bats#L245) | |
+| heimdall bridge: event records are being processed in a timely manner | [Link](./tests/heimdall/clerk/bridge-sync.bats#L255) | |
 | heimdall checkpoint: ACK count is monotonically increasing over time | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L188) | |
 | heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L369) | |
 | heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L219) | |

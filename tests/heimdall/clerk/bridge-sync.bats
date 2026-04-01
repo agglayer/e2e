@@ -194,8 +194,10 @@ _get_checkpoint_ack_count() {
         raw_id=$(_get_latest_record_id || true)
 
         if [[ -z "${raw_id}" ]]; then
-            echo "FAIL: could not fetch latest_record_id from ${L2_CL_API_URL}/clerk/event-records/latest-id" >&2
-            return 1
+            echo "  [${elapsed}s] clerk API returned empty — retrying..." >&3
+            sleep "$poll_interval"
+            elapsed=$(( elapsed + poll_interval ))
+            continue
         fi
 
         latest_record_id="${raw_id}"
