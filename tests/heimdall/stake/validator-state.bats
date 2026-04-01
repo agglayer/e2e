@@ -47,25 +47,30 @@ setup_file() {
         local rpc_port
         if rpc_port=$(kurtosis port print "${ENCLAVE_NAME}" \
                 "l2-cl-1-heimdall-v2-bor-validator" rpc 2>/dev/null); then
-            export L2_CL_RPC_URL="http://${rpc_port}"
+            export L2_CL_RPC_URL="${rpc_port}"
         else
             # Best-effort substitution: swap the REST port for the RPC port.
             export L2_CL_RPC_URL="${L2_CL_API_URL/:1317/:26657}"
         fi
     fi
+    # Normalise — strip double http:// if kurtosis already returns a URL.
+    L2_CL_RPC_URL="${L2_CL_RPC_URL/#http:\/\/http:\/\//http:\/\/}"
+    export L2_CL_RPC_URL
     echo "L2_CL_RPC_URL=${L2_CL_RPC_URL}" >&3
 
-    # Probe the Heimdall stake/validators endpoint.
+    # Probe the validator set via the span endpoint (the /stake/validators
+    # REST endpoint is "Not Implemented" on heimdall-v2, so we use the
+    # latest span's validator_set.validators array instead).
     local probe
     probe=$(curl -s -m 30 --connect-timeout 5 \
-        "${L2_CL_API_URL}/stake/validators" 2>/dev/null \
-        | jq -r '.validators | length' 2>/dev/null || true)
+        "${L2_CL_API_URL}/bor/spans/latest" 2>/dev/null \
+        | jq -r '.span.validator_set.validators | length' 2>/dev/null || true)
 
     if [[ -z "${probe}" || ! "${probe}" =~ ^[0-9]+$ || "${probe}" -eq 0 ]]; then
-        echo "WARNING: Heimdall stake/validators endpoint not reachable or returned no validators at ${L2_CL_API_URL} — all stake tests will be skipped." >&3
+        echo "WARNING: Heimdall span validator set not reachable or returned no validators at ${L2_CL_API_URL} — all stake tests will be skipped." >&3
         echo "1" > "${BATS_FILE_TMPDIR}/heimdall_stake_unavailable"
     else
-        echo "Heimdall stake/validators reachable; active validators=${probe}" >&3
+        echo "Heimdall span validator_set reachable; validators=${probe}" >&3
         echo "0" > "${BATS_FILE_TMPDIR}/heimdall_stake_unavailable"
     fi
 
@@ -97,14 +102,16 @@ setup() {
         local rpc_port
         if rpc_port=$(kurtosis port print "${ENCLAVE_NAME}" \
                 "l2-cl-1-heimdall-v2-bor-validator" rpc 2>/dev/null); then
-            export L2_CL_RPC_URL="http://${rpc_port}"
+            export L2_CL_RPC_URL="${rpc_port}"
         else
             export L2_CL_RPC_URL="${L2_CL_API_URL/:1317/:26657}"
         fi
     fi
+    L2_CL_RPC_URL="${L2_CL_RPC_URL/#http:\/\/http:\/\//http:\/\/}"
+    export L2_CL_RPC_URL
 
     if [[ "$(cat "${BATS_FILE_TMPDIR}/heimdall_stake_unavailable" 2>/dev/null)" != "0" ]]; then
-        skip "Heimdall stake/validators endpoint not reachable at ${L2_CL_API_URL}"
+        skip "Heimdall span validator set not reachable at ${L2_CL_API_URL}"
     fi
 }
 
@@ -112,20 +119,19 @@ setup() {
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Fetch the active validator set from the Heimdall REST API.
-# Tries /stake/validators first, then the gRPC-gateway /v1beta1/ prefix.
+# Fetch all validators from the Heimdall span endpoint.
+# The /stake/validators REST endpoint returns "Not Implemented" on
+# heimdall-v2, so we read validators from the latest span's
+# validator_set.validators array instead.  Each entry contains:
+#   val_id, signer, jailed, voting_power, proposer_priority
 # Prints the raw JSON array of validator objects on stdout, or returns 1.
 _get_validators() {
     local raw
     raw=$(curl -s -m 30 --connect-timeout 5 \
-        "${L2_CL_API_URL}/stake/validators" 2>/dev/null || true)
+        "${L2_CL_API_URL}/bor/spans/latest" 2>/dev/null || true)
     local vals
-    vals=$(printf '%s' "${raw}" | jq -c '.validators // empty' 2>/dev/null || true)
-    if [[ -z "${vals}" || "${vals}" == "null" || "${vals}" == "[]" ]]; then
-        raw=$(curl -s -m 30 --connect-timeout 5 \
-            "${L2_CL_API_URL}/v1beta1/stake/validators" 2>/dev/null || true)
-        vals=$(printf '%s' "${raw}" | jq -c '.validators // empty' 2>/dev/null || true)
-    fi
+    vals=$(printf '%s' "${raw}" \
+        | jq -c '.span.validator_set.validators // empty' 2>/dev/null || true)
     if [[ -z "${vals}" || "${vals}" == "null" || "${vals}" == "[]" ]]; then
         return 1
     fi
@@ -134,10 +140,12 @@ _get_validators() {
 
 # Fetch the CometBFT validator set from the RPC endpoint.
 # Prints the raw JSON result object on stdout, or returns 1.
+# Note: height=0 is rejected by CometBFT ("height must be greater than 0"),
+# so we omit it to get the latest height.
 _get_cometbft_validators_rpc() {
     local raw
     raw=$(curl -s -m 30 --connect-timeout 5 \
-        "${L2_CL_RPC_URL}/validators?height=0&per_page=100" 2>/dev/null || true)
+        "${L2_CL_RPC_URL}/validators?per_page=100" 2>/dev/null || true)
     local result
     result=$(printf '%s' "${raw}" | jq -c '.result // empty' 2>/dev/null || true)
     if [[ -z "${result}" || "${result}" == "null" ]]; then
@@ -178,7 +186,7 @@ _get_cometbft_validators_rpc() {
     for (( i = 0; i < n_validators; i++ )); do
         local vid
         vid=$(printf '%s' "${vals_json}" \
-            | jq -r --argjson idx "${i}" '.[$idx].id // empty')
+            | jq -r --argjson idx "${i}" '(.[$idx].val_id // .[$idx].id // empty)')
         # Validate that id is a non-negative integer before use.
         [[ "${vid}" =~ ^[0-9]+$ ]] || vid=""
 
@@ -230,7 +238,7 @@ _get_cometbft_validators_rpc() {
     for (( i = 0; i < n_validators; i++ )); do
         local vid signer
         vid=$(printf '%s' "${vals_json}" \
-            | jq -r --argjson idx "${i}" '.[$idx].id // empty')
+            | jq -r --argjson idx "${i}" '(.[$idx].val_id // .[$idx].id // empty)')
         signer=$(printf '%s' "${vals_json}" \
             | jq -r --argjson idx "${i}" '.[$idx].signer // empty')
 
@@ -295,7 +303,7 @@ _get_cometbft_validators_rpc() {
             | jq -r --argjson idx "${i}" '.[$idx].jailed // false')
         [[ "${jailed_flag}" == "true" ]] && continue
         vp=$(printf '%s' "${vals_json}" \
-            | jq -r --argjson idx "${i}" '(.[$idx].power // .[$idx].voting_power // 0)')
+            | jq -r --argjson idx "${i}" '(.[$idx].voting_power // .[$idx].power // 0)')
         # Validate that vp is a non-negative integer before arithmetic use.
         [[ "${vp}" =~ ^[0-9]+$ ]] || vp=0
         [[ "${vp}" -eq 0 ]] && continue
@@ -368,7 +376,7 @@ _get_cometbft_validators_rpc() {
     # CometBFT tracks. Including jailed validators would cause a false mismatch.
     local heimdall_count
     heimdall_count=$(printf '%s' "${vals_json}" \
-        | jq '[.[] | select(.jailed != true and (.power // .voting_power // 0 | tonumber) > 0)] | length' \
+        | jq '[.[] | select(.jailed != true and (.voting_power // .power // 0 | tonumber) > 0)] | length' \
         2>/dev/null || true)
     [[ "${heimdall_count}" =~ ^[0-9]+$ ]] || heimdall_count=0
 
