@@ -112,7 +112,7 @@ teardown() {
     # Verify chain continues producing blocks and transactions are included.
 
     local wallets=()
-    for i in $(seq 1 10); do
+    for _i in $(seq 1 10); do
         wallets+=("$(_fund_ephemeral_wallet "0.5ether")")
     done
 

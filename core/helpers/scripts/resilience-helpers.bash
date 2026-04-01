@@ -53,7 +53,7 @@ _assert_rpc_alive() {
     local label="${2:-}"
     local attempts=3
 
-    for i in $(seq 1 "$attempts"); do
+    for _attempt in $(seq 1 "$attempts"); do
         local result
         result=$(cast block-number --rpc-url "$rpc_url" 2>/dev/null)
         if [[ -n "$result" && "$result" =~ ^[0-9]+$ && "$result" -gt 0 ]]; then

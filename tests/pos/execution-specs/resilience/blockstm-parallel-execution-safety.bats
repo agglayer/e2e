@@ -368,7 +368,7 @@ teardown() {
 
     local pk_a="${wallet_a%%:*}" addr_a="${wallet_a##*:}"
     local pk_b="${wallet_b%%:*}" addr_b="${wallet_b##*:}"
-    local pk_c="${wallet_c%%:*}" addr_c="${wallet_c##*:}"
+    local _pk_c="${wallet_c%%:*}" addr_c="${wallet_c##*:}"
 
     echo "Chain: $addr_a -> $addr_b -> $addr_c" >&3
 

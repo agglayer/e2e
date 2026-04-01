@@ -451,6 +451,7 @@ _get_cometbft_validators_rpc() {
         if [[ "${jailed}" != "true" && "${power}" -gt 0 ]]; then
             heimdall_active=$(( heimdall_active + 1 ))
             if [[ -n "${signer}" && "${signer}" != "null" ]]; then
+                # shellcheck disable=SC2034 # reserved for future signer-level cross-check
                 heimdall_signers["${signer}"]=1
             fi
         fi
