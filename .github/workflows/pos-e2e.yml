@@ -509,7 +509,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
     name: pos-exec-specs (${{ matrix.pair_label }})
@@ -772,7 +772,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
     name: fork-trans (${{ matrix.pair_label }})
