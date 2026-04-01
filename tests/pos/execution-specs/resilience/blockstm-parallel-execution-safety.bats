@@ -273,7 +273,12 @@ teardown() {
             local svc="l2-el-${i}-bor-heimdall-v2-${role}"
             local port
             if port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                local candidate="http://${port}"
+                local candidate
+                if [[ "$port" == http://* || "$port" == https://* ]]; then
+                    candidate="$port"
+                else
+                    candidate="http://${port}"
+                fi
                 if [[ "$candidate" != "$L2_RPC_URL" ]]; then
                     second_rpc="$candidate"
                     echo "Found second Bor node at ${svc}: ${second_rpc}" >&3
@@ -355,9 +360,10 @@ teardown() {
     # Verify the final balances are correct.
 
     # Create a chain of 3 wallets: A -> B -> C
+    # Fund B with enough to send 0.5 ETH even if A's transfer hasn't landed yet
     local wallet_a wallet_b wallet_c
     wallet_a=$(_fund_ephemeral_wallet "2ether")
-    wallet_b=$(_fund_ephemeral_wallet "0.001ether")
+    wallet_b=$(_fund_ephemeral_wallet "1ether")
     wallet_c=$(_fund_ephemeral_wallet "0.001ether")
 
     local pk_a="${wallet_a%%:*}" addr_a="${wallet_a##*:}"
