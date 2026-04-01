@@ -651,6 +651,21 @@ jobs:
             tests/pos/execution-specs/precompiles/ \
             --filter-tags "execution-specs"
 
+      - name: Run resilience tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running resilience tests (${{ matrix.pair_label }})..."
+          bats \
+            tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats \
+            tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats \
+            tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats \
+            tests/pos/execution-specs/resilience/rpc-node-stability.bats
+
       - name: Dump enclave logs
         if: failure()
         run: kurtosis dump ./dump
@@ -989,6 +1004,83 @@ jobs:
 
           echo "Running Heimdall state-sync event ordering tests for ${{ matrix.pair_label }}..."
           bats tests/heimdall/consensus-correctness/statesync-event-ordering.bats
+
+      - name: Run Heimdall node health tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall node health tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/node-health.bats
+
+      - name: Run Heimdall checkpoint safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall checkpoint safety tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/checkpoint-safety.bats
+
+      - name: Run Heimdall span-milestone safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall span-milestone safety tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/span-milestone-safety.bats
+
+      - name: Run Heimdall Bor span-in-turn tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall Bor span-in-turn tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/bor/span-in-turn.bats
+
+      - name: Run Heimdall bridge sync tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall bridge sync tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/clerk/bridge-sync.bats
+
+      - name: Run Heimdall validator-set safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall validator-set safety tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/stake/validator-set-safety.bats
+
+      - name: Run Heimdall validator state tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall validator state tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/stake/validator-state.bats
 
       # -------------------------------------------------------------------
       # Archive node sync — adds archive node to running staggered-fork
