@@ -667,7 +667,7 @@ jobs:
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Skipped tests summary
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           TAP_FILE="/tmp/bats-tap-output.txt"
           {
@@ -1126,7 +1126,7 @@ jobs:
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Skipped tests summary
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           TAP_FILE="/tmp/bats-tap-output.txt"
           {
