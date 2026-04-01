@@ -32,26 +32,13 @@
 
 setup_file() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     export L2_ERIGON_RPC_URL
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
-        echo "Discovering Erigon RPC service in enclave '${ENCLAVE_NAME}'..." >&3
-        local erigon_port svc
-        for i in $(seq 1 12); do
-            svc="l2-el-${i}-erigon-heimdall-v2-rpc"
-            if erigon_port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                erigon_port="${erigon_port#http://}"; erigon_port="${erigon_port#https://}"
-                L2_ERIGON_RPC_URL="http://${erigon_port}"
-                echo "Found Erigon at ${svc}: ${L2_ERIGON_RPC_URL}" >&3
-                break
-            fi
-        done
-    fi
-
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
+    _discover_erigon_rpc || {
         echo "WARNING: No Erigon RPC node found — cross-client receipt tests will be skipped." >&3
-    fi
+    }
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -60,22 +47,10 @@ setup_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
-    FORK_JAIPUR="${FORK_JAIPUR:-0}"
-    FORK_DELHI="${FORK_DELHI:-0}"
-    FORK_INDORE="${FORK_INDORE:-0}"
-    FORK_AGRA="${FORK_AGRA:-0}"
-    FORK_NAPOLI="${FORK_NAPOLI:-0}"
-    FORK_AHMEDABAD="${FORK_AHMEDABAD:-0}"
-    FORK_BHILAI="${FORK_BHILAI:-0}"
-    FORK_RIO="${FORK_RIO:-256}"
-    FORK_MADHUGIRI="${FORK_MADHUGIRI:-320}"
-    FORK_MADHUGIRI_PRO="${FORK_MADHUGIRI_PRO:-384}"
-    FORK_DANDELI="${FORK_DANDELI:-448}"
-    FORK_LISOVO="${FORK_LISOVO:-512}"
-    FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
-    FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
+    _setup_fork_env
     ERIGON_RPC_VERSION="${ERIGON_RPC_VERSION:-}"
 
     if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
@@ -86,12 +61,6 @@ setup() {
 # ────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ────────────────────────────────────────────────────────────────────────────
-
-# Return the current block number from a given RPC endpoint.
-_block_number_on() {
-    local rpc="$1"
-    cast block-number --rpc-url "$rpc"
-}
 
 # Query a specific block from an RPC endpoint and return the requested JSON field.
 _block_field_on() {
@@ -122,54 +91,6 @@ _receipt_json_on() {
         -H "Content-Type: application/json" \
         -d "{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionReceipt\",\"params\":[\"${tx_hash}\"],\"id\":1}" \
         | jq '.result'
-}
-
-# Wait for a specific RPC endpoint to reach target block.
-# Stall detection: if block does not advance for STALL_LIMIT consecutive polls, return 1.
-_wait_for_block_on() {
-    local target="$1" rpc="$2"
-    local current
-    current=$(_block_number_on "${rpc}" 2>/dev/null || echo 0)
-    [[ "$current" -ge "$target" ]] && return 0
-
-    local remaining=$(( target - current ))
-    local timeout=$(( remaining * 3 + 300 ))
-    [[ "$timeout" -gt 1800 ]] && timeout=1800
-    local STALL_LIMIT=6
-
-    echo "  Waiting for block ${target} on ${rpc} (current: ${current}, timeout: ${timeout}s)..." >&3
-
-    local start_time elapsed last_block stall_count
-    start_time=$(date +%s)
-    last_block="$current"
-    stall_count=0
-
-    while true; do
-        elapsed=$(( $(date +%s) - start_time ))
-        if [[ "$elapsed" -ge "$timeout" ]]; then
-            echo "  Timeout reached waiting for block ${target} on ${rpc}." >&3
-            return 1
-        fi
-
-        local rpc_ok
-        current=$(_block_number_on "${rpc}" 2>/dev/null) && rpc_ok=1 || { rpc_ok=0; current="$last_block"; }
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Block: ${current} / ${target}" >&3
-        [[ "$current" -ge "$target" ]] && return 0
-
-        if [[ "$rpc_ok" -eq 1 ]]; then
-            if [[ "$current" -eq "$last_block" ]]; then
-                stall_count=$(( stall_count + 1 ))
-                if [[ "$stall_count" -ge "$STALL_LIMIT" ]]; then
-                    echo "  STUCK: ${rpc} has not advanced from block ${current} for $(( stall_count * 5 ))s." >&3
-                    return 1
-                fi
-            else
-                stall_count=0
-            fi
-        fi
-        last_block="$current"
-        sleep 5
-    done
 }
 
 # Compare a single block-level field between Bor and Erigon for each block in the list.
@@ -233,18 +154,6 @@ _tx_hashes_on() {
         | jq -r '.result.transactions[].hash'
 }
 
-# Returns 0 if BOR_MIN_VERSION >= required, 1 otherwise.
-_version_gte() {
-    local required="$1"
-    local running="${BOR_MIN_VERSION:-}"
-    [[ -z "$running" ]] && return 0
-    local running_base required_base lower
-    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
-    [[ "$lower" == "$required_base" ]]
-}
-
 # Returns 0 if ERIGON_RPC_VERSION >= required, 1 otherwise.
 _erigon_gte() {
     local required="$1"
@@ -277,21 +186,6 @@ _require_min_erigon() {
     fi
 }
 
-# Skip if BOR_MIN_VERSION is older than the required version.
-_require_min_bor() {
-    local required="$1"
-    local running="${BOR_MIN_VERSION:-}"
-    [[ -z "$running" ]] && return 0
-    local running_base required_base
-    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    local lower
-    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
-    if [[ "$lower" != "$required_base" ]]; then
-        skip "requires bor >= ${required} (oldest in mix: ${running})"
-    fi
-}
-
 # ────────────────────────────────────────────────────────────────────────────
 # Tests
 # ────────────────────────────────────────────────────────────────────────────
@@ -301,8 +195,8 @@ _require_min_bor() {
     [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     local target=$(( FORK_RIO + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     _assert_block_field_agrees "receiptsRoot" \
         "$(( FORK_RIO - 1 ))" \
@@ -316,8 +210,8 @@ _require_min_bor() {
     [[ "${FORK_MADHUGIRI:-0}" -le 0 ]] && skip "Madhugiri at genesis"
 
     local target=$(( FORK_MADHUGIRI_PRO + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     _assert_block_field_agrees "receiptsRoot" \
         "$(( FORK_MADHUGIRI - 1 ))" \
@@ -335,8 +229,8 @@ _require_min_bor() {
     [[ "${FORK_LISOVO:-0}" -le 0 ]] && skip "Lisovo at genesis"
 
     local target=$(( FORK_LISOVO_PRO + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     _assert_block_field_agrees "receiptsRoot" \
         "$(( FORK_LISOVO - 1 ))" \
@@ -358,29 +252,29 @@ _require_min_bor() {
 
     local last_fork_block="${FORK_RIO}"
 
-    if _version_gte "2.5.0" && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.0"; } && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_MADHUGIRI - 1 ))" "${FORK_MADHUGIRI}" "$(( FORK_MADHUGIRI + 1 ))")
         last_fork_block="${FORK_MADHUGIRI}"
     fi
 
-    if _version_gte "2.5.6" && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.6"; } && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_DANDELI - 1 ))" "${FORK_DANDELI}" "$(( FORK_DANDELI + 1 ))")
         last_fork_block="${FORK_DANDELI}"
     fi
 
-    if _version_gte "2.6.0" && _erigon_gte "3.5.0" && [[ "${FORK_LISOVO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.6.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_LISOVO:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_LISOVO - 1 ))" "${FORK_LISOVO}" "$(( FORK_LISOVO + 1 ))")
         last_fork_block="${FORK_LISOVO}"
     fi
 
-    if _version_gte "2.7.0" && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.7.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_GIUGLIANO - 1 ))" "${FORK_GIUGLIANO}" "$(( FORK_GIUGLIANO + 1 ))")
         last_fork_block="${FORK_GIUGLIANO}"
     fi
 
     local target=$(( last_fork_block + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     _assert_block_field_agrees "gasUsed" "${blocks[@]}"
 }
@@ -395,29 +289,29 @@ _require_min_bor() {
 
     local last_fork_block="${FORK_RIO}"
 
-    if _version_gte "2.5.0" && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.0"; } && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_MADHUGIRI - 1 ))" "${FORK_MADHUGIRI}" "$(( FORK_MADHUGIRI + 1 ))")
         last_fork_block="${FORK_MADHUGIRI}"
     fi
 
-    if _version_gte "2.5.6" && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.6"; } && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_DANDELI - 1 ))" "${FORK_DANDELI}" "$(( FORK_DANDELI + 1 ))")
         last_fork_block="${FORK_DANDELI}"
     fi
 
-    if _version_gte "2.6.0" && _erigon_gte "3.5.0" && [[ "${FORK_LISOVO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.6.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_LISOVO:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_LISOVO - 1 ))" "${FORK_LISOVO}" "$(( FORK_LISOVO + 1 ))")
         last_fork_block="${FORK_LISOVO}"
     fi
 
-    if _version_gte "2.7.0" && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.7.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_GIUGLIANO - 1 ))" "${FORK_GIUGLIANO}" "$(( FORK_GIUGLIANO + 1 ))")
         last_fork_block="${FORK_GIUGLIANO}"
     fi
 
     local target=$(( last_fork_block + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     local diverged=0
     for block in "${blocks[@]}"; do
@@ -461,29 +355,29 @@ _require_min_bor() {
 
     local last_fork_block="${FORK_RIO}"
 
-    if _version_gte "2.5.0" && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.0"; } && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_MADHUGIRI - 1 ))" "${FORK_MADHUGIRI}" "$(( FORK_MADHUGIRI + 1 ))")
         last_fork_block="${FORK_MADHUGIRI}"
     fi
 
-    if _version_gte "2.5.6" && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.6"; } && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_DANDELI - 1 ))" "${FORK_DANDELI}" "$(( FORK_DANDELI + 1 ))")
         last_fork_block="${FORK_DANDELI}"
     fi
 
-    if _version_gte "2.6.0" && _erigon_gte "3.5.0" && [[ "${FORK_LISOVO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.6.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_LISOVO:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_LISOVO - 1 ))" "${FORK_LISOVO}" "$(( FORK_LISOVO + 1 ))")
         last_fork_block="${FORK_LISOVO}"
     fi
 
-    if _version_gte "2.7.0" && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.7.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
         blocks+=("$(( FORK_GIUGLIANO - 1 ))" "${FORK_GIUGLIANO}" "$(( FORK_GIUGLIANO + 1 ))")
         last_fork_block="${FORK_GIUGLIANO}"
     fi
 
     local target=$(( last_fork_block + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     _assert_block_field_agrees "logsBloom" "${blocks[@]}"
 }
@@ -495,8 +389,8 @@ _require_min_bor() {
     # System/state-sync transactions are committed at sprint boundaries (every 16 blocks).
     # Scan a window around the Rio fork to find blocks with transactions.
     local target=$(( FORK_RIO + 20 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     local diverged=0
     local checked=0
@@ -568,24 +462,24 @@ _require_min_bor() {
 
     local last_fork_block="${FORK_RIO}"
 
-    if _version_gte "2.5.0" && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.0"; } && [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
         sample_blocks+=("${FORK_MADHUGIRI}" "$(( FORK_MADHUGIRI + 1 ))")
         last_fork_block="${FORK_MADHUGIRI}"
     fi
 
-    if _version_gte "2.5.6" && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.5.6"; } && _erigon_gte "3.5.0" && [[ "${FORK_DANDELI:-0}" -gt 0 ]]; then
         sample_blocks+=("${FORK_DANDELI}")
         last_fork_block="${FORK_DANDELI}"
     fi
 
-    if _version_gte "2.7.0" && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
+    if { [[ -z "${BOR_MIN_VERSION:-}" ]] || _ver_gte "${BOR_MIN_VERSION%%-*}" "2.7.0"; } && _erigon_gte "3.5.0" && [[ "${FORK_GIUGLIANO:-0}" -gt 0 ]]; then
         sample_blocks+=("${FORK_GIUGLIANO}")
         last_fork_block="${FORK_GIUGLIANO}"
     fi
 
     local target=$(( last_fork_block + 5 ))
-    _wait_for_block_on "${target}" "${L2_RPC_URL}"
-    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
+    _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     local diverged=0
     local checked=0

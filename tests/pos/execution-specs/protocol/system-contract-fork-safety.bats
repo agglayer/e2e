@@ -27,31 +27,11 @@
 
 setup_file() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Discover all Bor RPC endpoints in the enclave (validators + RPCs)
-    local urls=() labels=()
-    for i in $(seq 1 12); do
-        for role in validator rpc; do
-            local svc="l2-el-${i}-bor-heimdall-v2-${role}"
-            local port
-            if port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                port="${port#http://}"; port="${port#https://}"
-                urls+=("http://${port}")
-                labels+=("${svc}")
-            fi
-        done
-    done
-
-    # Persist for per-test setup (bash arrays can't be exported across processes)
-    : > "${BATS_FILE_TMPDIR}/bor_rpc_urls"
-    : > "${BATS_FILE_TMPDIR}/bor_rpc_labels"
-    for idx in "${!urls[@]}"; do
-        echo "${urls[$idx]}" >> "${BATS_FILE_TMPDIR}/bor_rpc_urls"
-        echo "${labels[$idx]}" >> "${BATS_FILE_TMPDIR}/bor_rpc_labels"
-    done
-
-    echo "Discovered ${#urls[@]} Bor node(s): ${labels[*]}" >&3
+    _discover_bor_nodes "${BATS_FILE_TMPDIR}/bor_rpc_urls" "${BATS_FILE_TMPDIR}/bor_rpc_labels"
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -60,6 +40,7 @@ setup_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Load discovered Bor endpoints
@@ -74,13 +55,7 @@ setup() {
     STATE_RECEIVER="${L2_STATE_RECEIVER_ADDRESS:-0x0000000000000000000000000000000000001001}"
 
     # Fork schedule from env vars (matches CI defaults)
-    FORK_RIO="${FORK_RIO:-256}"
-    FORK_MADHUGIRI="${FORK_MADHUGIRI:-320}"
-    FORK_MADHUGIRI_PRO="${FORK_MADHUGIRI_PRO:-384}"
-    FORK_DANDELI="${FORK_DANDELI:-448}"
-    FORK_LISOVO="${FORK_LISOVO:-512}"
-    FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
-    FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
+    _setup_fork_env
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -115,68 +90,12 @@ _build_fork_list() {
     fi
 }
 
-# Returns 0 if version $1 >= $2, 1 otherwise.
-_ver_gte() {
-    local running="$1" required="$2"
-    local lower
-    lower=$(printf '%s\n%s' "$running" "$required" | sort -V | head -1)
-    [[ "$lower" == "$required" ]]
-}
-
-# Wait for the primary L2 RPC to reach the target block.
-# Includes stall detection: if block doesn't advance for 24 x 5s = 120s, returns 1.
-_wait_for_block() {
-    local target="$1"
-    local rpc="${2:-$L2_RPC_URL}"
-    local current
-    current=$(cast block-number --rpc-url "$rpc" 2>/dev/null || echo 0)
-    [[ "$current" -ge "$target" ]] && return 0
-
-    local remaining=$(( target - current ))
-    local timeout=$(( remaining * 3 + 300 ))
-    [[ "$timeout" -gt 1800 ]] && timeout=1800
-    local STALL_LIMIT=24
-
-    echo "  Waiting for block ${target} (current: ${current}, timeout: ${timeout}s)..." >&3
-
-    local start_time elapsed last_block stall_count
-    start_time=$(date +%s)
-    last_block="$current"
-    stall_count=0
-
-    while true; do
-        elapsed=$(( $(date +%s) - start_time ))
-        if [[ "$elapsed" -ge "$timeout" ]]; then
-            echo "  TIMEOUT waiting for block ${target} (stuck at ${current})" >&2
-            return 1
-        fi
-
-        local rpc_ok
-        current=$(cast block-number --rpc-url "$rpc" 2>/dev/null) && rpc_ok=1 || { rpc_ok=0; current="$last_block"; }
-        [[ "$current" -ge "$target" ]] && return 0
-
-        if [[ "$rpc_ok" -eq 1 ]]; then
-            if [[ "$current" -eq "$last_block" ]]; then
-                stall_count=$(( stall_count + 1 ))
-                if [[ "$stall_count" -ge "$STALL_LIMIT" ]]; then
-                    echo "  STUCK: chain has not advanced from block ${current} for $(( stall_count * 5 ))s" >&2
-                    return 1
-                fi
-            else
-                stall_count=0
-            fi
-        fi
-        last_block="$current"
-        sleep 5
-    done
-}
-
 # Ensure the chain has advanced past all fork boundaries we plan to test.
 _wait_past_all_forks() {
     _build_fork_list
     local last_fork="${_FORK_BLOCKS[-1]}"
     local target=$(( last_fork + 3 ))
-    _wait_for_block "${target}" || {
+    _wait_for_block_on "${target}" "$L2_RPC_URL" "L2_RPC" || {
         echo "Chain could not reach block ${target} (last fork at ${last_fork})" >&2
         return 1
     }
@@ -340,7 +259,7 @@ _wait_past_all_forks() {
     local last_fork="${_FORK_BLOCKS[-1]}"
     local target=$(( last_fork + 3 ))
     for idx in "${!BOR_RPC_URLS[@]}"; do
-        _wait_for_block "${target}" "${BOR_RPC_URLS[$idx]}" || {
+        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}" || {
             echo "FAIL: ${BOR_RPC_LABELS[$idx]} could not reach block ${target}" >&2
             return 1
         }

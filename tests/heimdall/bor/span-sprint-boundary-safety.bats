@@ -36,6 +36,7 @@
 
 setup_file() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Probe Heimdall span endpoint.  If not reachable, skip the whole file.
@@ -82,6 +83,7 @@ setup_file() {
 
 setup() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     if [[ "$(cat "${BATS_FILE_TMPDIR}/heimdall_bor_unavailable" 2>/dev/null)" != "0" ]]; then
@@ -132,23 +134,6 @@ _get_span_by_id() {
         return 1
     fi
     printf '%s' "${span}"
-}
-
-# Return the current Bor block number as a decimal integer.
-_bor_block_number() {
-    local hex
-    hex=$(curl -s -m 30 --connect-timeout 5 -X POST "${L2_RPC_URL}" \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-        2>/dev/null \
-        | jq -r '.result // empty' 2>/dev/null || true)
-    if [[ -z "${hex}" || "${hex}" == "null" ]]; then
-        return 1
-    fi
-    if [[ ! "${hex}" =~ ^0x[0-9a-fA-F]{1,16}$ ]]; then
-        return 1
-    fi
-    printf '%d\n' "${hex}"
 }
 
 # Get the miner (block producer) address for a given block number (decimal).
@@ -364,7 +349,7 @@ _require_bor_rpc() {
 
     # Verify start_block has been produced.
     local current_block
-    if ! current_block=$(_bor_block_number); then
+    if ! current_block=$(_block_number_on "$L2_RPC_URL"); then
         skip "Bor RPC not available"
     fi
 
@@ -488,7 +473,7 @@ _require_bor_rpc() {
     local next_block=$(( end_block + 1 ))
 
     local current_block
-    if ! current_block=$(_bor_block_number); then
+    if ! current_block=$(_block_number_on "$L2_RPC_URL"); then
         skip "Bor RPC not available"
     fi
 
@@ -636,7 +621,7 @@ _require_bor_rpc() {
     [[ "${end_block}" =~ ^[0-9]+$ ]] || end_block=0
 
     local current_block
-    if ! current_block=$(_bor_block_number); then
+    if ! current_block=$(_block_number_on "$L2_RPC_URL"); then
         skip "Bor RPC not available"
     fi
 

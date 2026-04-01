@@ -28,31 +28,15 @@
 
 setup_file() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # ── Discover all Bor RPC endpoints in the enclave ──
-    local urls=() labels=()
-    for i in $(seq 1 12); do
-        for role in validator rpc; do
-            local svc="l2-el-${i}-bor-heimdall-v2-${role}"
-            local port
-            if port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                port="${port#http://}"; port="${port#https://}"
-                urls+=("http://${port}")
-                labels+=("${svc}")
-            fi
-        done
-    done
+    _discover_bor_nodes "${BATS_FILE_TMPDIR}/bor_rpc_urls" "${BATS_FILE_TMPDIR}/bor_rpc_labels"
 
-    : > "${BATS_FILE_TMPDIR}/bor_rpc_urls"
-    : > "${BATS_FILE_TMPDIR}/bor_rpc_labels"
-    for idx in "${!urls[@]}"; do
-        echo "${urls[$idx]}" >> "${BATS_FILE_TMPDIR}/bor_rpc_urls"
-        echo "${labels[$idx]}" >> "${BATS_FILE_TMPDIR}/bor_rpc_labels"
-    done
-
-    echo "Discovered ${#urls[@]} Bor node(s): ${labels[*]}" >&3
-    if [[ ${#urls[@]} -lt 2 ]]; then
+    local node_count
+    node_count=$(wc -l < "${BATS_FILE_TMPDIR}/bor_rpc_urls" 2>/dev/null || echo 0)
+    if [[ "${node_count}" -lt 2 ]]; then
         echo "WARNING: Need >=2 Bor nodes for cross-node finality checks" >&3
     fi
 
@@ -83,6 +67,7 @@ setup_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     load "../../../../core/helpers/scripts/resilience-helpers.bash"
     pos_setup
     _require_devnet

@@ -21,26 +21,13 @@
 
 setup_file() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     export L2_ERIGON_RPC_URL
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
-        echo "Discovering Erigon RPC service in enclave '${ENCLAVE_NAME}'..." >&3
-        local erigon_port svc
-        for i in $(seq 1 12); do
-            svc="l2-el-${i}-erigon-heimdall-v2-rpc"
-            if erigon_port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                erigon_port="${erigon_port#http://}"; erigon_port="${erigon_port#https://}"
-                L2_ERIGON_RPC_URL="http://${erigon_port}"
-                echo "Found Erigon at ${svc}: ${L2_ERIGON_RPC_URL}" >&3
-                break
-            fi
-        done
-    fi
-
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
+    _discover_erigon_rpc || {
         echo "WARNING: No Erigon RPC node found — cross-client test will be skipped." >&3
-    fi
+    }
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -49,17 +36,11 @@ setup_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Fork block defaults for the kurtosis devnet.
-    # Delhi and Bhilai are at genesis (block 0) in the devnet.
-    FORK_DELHI="${FORK_DELHI:-0}"
-    FORK_BHILAI="${FORK_BHILAI:-0}"
-    FORK_RIO="${FORK_RIO:-256}"
-    FORK_DANDELI="${FORK_DANDELI:-448}"
-    FORK_LISOVO="${FORK_LISOVO:-512}"
-    FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
-    FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
+    _setup_fork_env
 
     # Minimum base fee enforced by bor (wei).
     MIN_BASE_FEE=7
@@ -68,20 +49,6 @@ setup() {
 # ────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ────────────────────────────────────────────────────────────────────────────
-
-# Skip if BOR_MIN_VERSION is older than the required version.
-_require_min_bor() {
-    local required="$1"
-    local running="${BOR_MIN_VERSION:-}"
-    [[ -z "$running" ]] && return 0  # unknown version -- don't skip
-    local running_base required_base lower
-    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
-    if [[ "$lower" != "$required_base" ]]; then
-        skip "requires bor >= ${required} (oldest in mix: ${running})"
-    fi
-}
 
 # Get base fee (decimal) for a given block number.
 _get_base_fee() {
@@ -109,26 +76,6 @@ _get_block_data() {
     _gl=$(printf "%d" "$(echo "$block_json" | jq -r '.gasLimit // "0x0"')")
 }
 
-# Wait for Bor to reach a target block number (up to timeout seconds).
-_wait_for_block() {
-    local target="$1"
-    local rpc="${2:-$L2_RPC_URL}"
-    local timeout="${3:-300}"
-    local waited=0
-
-    while [[ "$waited" -lt "$timeout" ]]; do
-        local current
-        current=$(cast block-number --rpc-url "$rpc" 2>/dev/null) || { sleep 5; waited=$((waited + 5)); continue; }
-        if [[ "$current" -ge "$target" ]]; then
-            return 0
-        fi
-        sleep 5
-        waited=$((waited + 5))
-    done
-    echo "Timeout: block $target not reached on $rpc after ${timeout}s" >&2
-    return 1
-}
-
 # ────────────────────────────────────────────────────────────────────────────
 # Test 1: Base fee is non-zero at all fork boundaries
 # ────────────────────────────────────────────────────────────────────────────
@@ -152,7 +99,7 @@ _wait_for_block() {
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -gt "$max_fork" ]] && max_fork="$fb"
     done
-    _wait_for_block "$max_fork"
+    _wait_for_block_on "$max_fork" "$L2_RPC_URL" "L2_RPC"
 
     local failures=0
     for fb in "${fork_blocks[@]}"; do
@@ -213,7 +160,7 @@ _wait_for_block() {
     for b in "${check_blocks[@]}"; do
         [[ "$b" -gt "$max_block" ]] && max_block="$b"
     done
-    _wait_for_block "$max_block"
+    _wait_for_block_on "$max_block" "$L2_RPC_URL" "L2_RPC"
 
     local failures=0
     for b in "${check_blocks[@]}"; do
@@ -278,7 +225,7 @@ _wait_for_block() {
         skip "Not enough blocks between last denominator fork and Lisovo"
     fi
 
-    _wait_for_block "$window_end"
+    _wait_for_block_on "$window_end" "$L2_RPC_URL" "L2_RPC"
 
     local denominator=64
     local violations=0
@@ -372,7 +319,7 @@ _wait_for_block() {
         skip "Not enough post-Lisovo blocks to validate (need chain past block $check_end)"
     fi
 
-    _wait_for_block "$check_end"
+    _wait_for_block_on "$check_end" "$L2_RPC_URL" "L2_RPC"
 
     local violations=0
     local checks=0
@@ -426,7 +373,7 @@ _wait_for_block() {
         skip "Not enough blocks between Dandeli and Lisovo to verify target change"
     fi
 
-    _wait_for_block "$(( FORK_DANDELI + 5 ))"
+    _wait_for_block_on "$(( FORK_DANDELI + 5 ))" "$L2_RPC_URL" "L2_RPC"
 
     # Check blocks right after Dandeli activation.
     # The base fee formula with 65% target should produce different results
@@ -537,8 +484,8 @@ _wait_for_block() {
         [[ "$fb" -gt "$max_fork" ]] && max_fork="$fb"
     done
     local target=$(( max_fork + 2 ))
-    _wait_for_block "$target" "$L2_RPC_URL"
-    _wait_for_block "$target" "$L2_ERIGON_RPC_URL" 600
+    _wait_for_block_on "$target" "$L2_RPC_URL" "L2_RPC"
+    _wait_for_block_on "$target" "$L2_ERIGON_RPC_URL" "Erigon"
 
     local failures=0
     for fb in "${fork_blocks[@]}"; do
@@ -596,7 +543,7 @@ _wait_for_block() {
     for fb in "${fork_blocks[@]}"; do
         [[ "$fb" -gt "$max_fork" ]] && max_fork="$fb"
     done
-    _wait_for_block "$(( max_fork + 2 ))"
+    _wait_for_block_on "$(( max_fork + 2 ))" "$L2_RPC_URL" "L2_RPC"
 
     local failures=0
 

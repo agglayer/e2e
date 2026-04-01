@@ -43,6 +43,7 @@
 
 setup_file() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Probe the checkpoint API to confirm reachability and fetch the total count.
@@ -73,6 +74,7 @@ setup_file() {
 
 setup() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     if [[ "$(cat "${BATS_FILE_TMPDIR}/range_invariant_unavailable" 2>/dev/null)" != "0" ]]; then
@@ -190,21 +192,6 @@ _fetch_all_checkpoints() {
     printf '%s' "${checkpoints}" > "${cache_file}"
     echo "  Fetched ${fetched}/${total} checkpoints successfully" >&3
     return 0
-}
-
-# Get the current Bor block number (decimal).
-_get_bor_block_number() {
-    local raw
-    raw=$(curl -s -m 30 --connect-timeout 5 -X POST "${L2_RPC_URL}" \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-        2>/dev/null || true)
-    local hex
-    hex=$(printf '%s' "${raw}" | jq -r '.result // empty' 2>/dev/null || true)
-    if [[ -z "${hex}" || "${hex}" == "null" ]]; then
-        return 1
-    fi
-    printf '%d' "${hex}"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -391,7 +378,7 @@ _get_bor_block_number() {
     fi
 
     local bor_block
-    if ! bor_block=$(_get_bor_block_number); then
+    if ! bor_block=$(_block_number_on "$L2_RPC_URL"); then
         skip "Could not fetch current Bor block number — Bor RPC may not be reachable"
     fi
 

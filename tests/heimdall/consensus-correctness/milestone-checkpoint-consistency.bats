@@ -44,6 +44,7 @@
 
 setup_file() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # ── Probe milestone API ──────────────────────────────────────────────
@@ -93,6 +94,7 @@ setup_file() {
 
 setup() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     if [[ "$(cat "${BATS_FILE_TMPDIR}/ms_cp_milestone_unavailable" 2>/dev/null)" != "0" ]]; then
@@ -223,19 +225,6 @@ _get_checkpoint_by_number() {
         return 1
     fi
     printf '%s' "${cp}"
-}
-
-# Return the current Bor block number as a decimal integer.
-_bor_block_number() {
-    local hex
-    hex=$(curl -s -m 30 --connect-timeout 5 -X POST "${L2_RPC_URL}" \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-        | jq -r '.result // empty')
-    if [[ -z "${hex}" ]]; then
-        return 1
-    fi
-    printf '%d' "${hex}"
 }
 
 # Query a block field from Bor RPC.
@@ -570,7 +559,7 @@ _decode_hash() {
     fi
 
     local current_block
-    if ! current_block=$(_bor_block_number); then
+    if ! current_block=$(_block_number_on "$L2_RPC_URL"); then
         skip "Could not read current block number from Bor"
     fi
 

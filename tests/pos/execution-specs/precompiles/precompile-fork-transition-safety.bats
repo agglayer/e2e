@@ -29,22 +29,12 @@
 
 setup_file() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Discover Erigon RPC for cross-client tests (best effort)
     export L2_ERIGON_RPC_URL
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
-        local erigon_port svc
-        for i in $(seq 1 12); do
-            svc="l2-el-${i}-erigon-heimdall-v2-rpc"
-            if erigon_port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                erigon_port="${erigon_port#http://}"; erigon_port="${erigon_port#https://}"
-                L2_ERIGON_RPC_URL="http://${erigon_port}"
-                echo "Found Erigon at ${svc}: ${L2_ERIGON_RPC_URL}" >&3
-                break
-            fi
-        done
-    fi
+    _discover_erigon_rpc || true
 
     # Discover a second Bor node (RPC, not validator) for cross-node tests
     export L2_BOR_RPC_NODE_URL
@@ -68,16 +58,11 @@ setup_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Fork activation block numbers (matching kurtosis-pos devnet defaults)
-    FORK_RIO="${FORK_RIO:-256}"
-    FORK_MADHUGIRI="${FORK_MADHUGIRI:-320}"
-    FORK_MADHUGIRI_PRO="${FORK_MADHUGIRI_PRO:-384}"
-    FORK_DANDELI="${FORK_DANDELI:-448}"
-    FORK_LISOVO="${FORK_LISOVO:-512}"
-    FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
-    FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
+    _setup_fork_env
 
     # Precompile addresses
     KZG_ADDR="0x000000000000000000000000000000000000000a"
@@ -156,48 +141,6 @@ _is_nontrivial() {
     [[ -n "${data}" && "${data//0/}" != "" ]]
 }
 
-# Wait for a specific block number on the given RPC endpoint.
-_wait_for_block() {
-    local target="$1"
-    local rpc="${2:-${L2_RPC_URL}}"
-    local current
-    current=$(cast block-number --rpc-url "${rpc}" 2>/dev/null || echo 0)
-    [[ "$current" -ge "$target" ]] && return 0
-
-    local remaining=$(( target - current ))
-    local timeout=$(( remaining * 3 + 300 ))
-    [[ "$timeout" -gt 1800 ]] && timeout=1800
-
-    echo "  Waiting for block ${target} on ${rpc} (current: ${current}, timeout: ${timeout}s)..." >&3
-
-    local start_time elapsed
-    start_time=$(date +%s)
-
-    while true; do
-        elapsed=$(( $(date +%s) - start_time ))
-        if [[ "$elapsed" -ge "$timeout" ]]; then
-            echo "  Timeout reached waiting for block ${target} on ${rpc}." >&3
-            return 1
-        fi
-        current=$(cast block-number --rpc-url "${rpc}" 2>/dev/null || echo "$current")
-        [[ "$current" -ge "$target" ]] && return 0
-        sleep 5
-    done
-}
-
-# Skip if BOR_MIN_VERSION is older than the required version.
-_require_min_bor() {
-    local required="$1"
-    local running="${BOR_MIN_VERSION:-}"
-    [[ -z "$running" ]] && return 0
-    local running_base required_base lower
-    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
-    if [[ "$lower" != "$required_base" ]]; then
-        skip "requires bor >= ${required} (oldest in mix: ${running})"
-    fi
-}
 
 # ────────────────────────────────────────────────────────────────────────────
 # Tests
@@ -207,7 +150,7 @@ _require_min_bor() {
 @test "precompile-fork-safety: KZG (0x0a) is NOT active before Lisovo" {
     _require_min_bor "2.6.0"
     local pre_lisovo_block=$(( FORK_LISOVO - 1 ))
-    _wait_for_block "${FORK_LISOVO}"
+    _wait_for_block_on "${FORK_LISOVO}" "$L2_RPC_URL" "L2_RPC"
 
     echo "Testing KZG at block ${pre_lisovo_block} (pre-Lisovo)" >&3
 
@@ -232,7 +175,7 @@ _require_min_bor() {
 # bats test_tags=execution-specs,pos-precompile,fork-activation,kzg
 @test "precompile-fork-safety: KZG (0x0a) IS active at Lisovo block" {
     _require_min_bor "2.6.0"
-    _wait_for_block "$((FORK_LISOVO + 1))"
+    _wait_for_block_on "$((FORK_LISOVO + 1))" "$L2_RPC_URL" "L2_RPC"
 
     echo "Testing KZG at block ${FORK_LISOVO} (Lisovo activation)" >&3
 
@@ -293,7 +236,7 @@ _require_min_bor() {
 # bats test_tags=execution-specs,pos-precompile,fork-activation,kzg
 @test "precompile-fork-safety: KZG (0x0a) is NOT active at LisovoPro" {
     _require_min_bor "2.6.0"
-    _wait_for_block "$((FORK_LISOVO_PRO + 1))"
+    _wait_for_block_on "$((FORK_LISOVO_PRO + 1))" "$L2_RPC_URL" "L2_RPC"
 
     echo "Testing KZG at block ${FORK_LISOVO_PRO} (LisovoPro — KZG removed)" >&3
 
@@ -336,7 +279,7 @@ _require_min_bor() {
 @test "precompile-fork-safety: P256Verify (0x0100) gas cost pre-Lisovo" {
     _require_min_bor "2.6.0"
     local pre_lisovo_block=$(( FORK_LISOVO - 1 ))
-    _wait_for_block "${FORK_LISOVO}"
+    _wait_for_block_on "${FORK_LISOVO}" "$L2_RPC_URL" "L2_RPC"
 
     echo "Estimating P256Verify gas at block ${pre_lisovo_block} (pre-Lisovo, PIP-27 = 3450)" >&3
 
@@ -379,7 +322,7 @@ _require_min_bor() {
 # bats test_tags=execution-specs,pos-precompile,fork-activation,p256,evm-gas
 @test "precompile-fork-safety: P256Verify (0x0100) gas cost at Lisovo" {
     _require_min_bor "2.6.0"
-    _wait_for_block "$((FORK_LISOVO + 1))"
+    _wait_for_block_on "$((FORK_LISOVO + 1))" "$L2_RPC_URL" "L2_RPC"
 
     echo "Estimating P256Verify gas at block ${FORK_LISOVO} (Lisovo, EIP-7951 = 6900)" >&3
 
@@ -423,8 +366,8 @@ _require_min_bor() {
         skip "No secondary Bor RPC node available in enclave"
     fi
 
-    _wait_for_block "$((FORK_LISOVO_PRO + 1))"
-    _wait_for_block "$((FORK_LISOVO_PRO + 1))" "${L2_BOR_RPC_NODE_URL}"
+    _wait_for_block_on "$((FORK_LISOVO_PRO + 1))" "$L2_RPC_URL" "L2_RPC"
+    _wait_for_block_on "$((FORK_LISOVO_PRO + 1))" "${L2_BOR_RPC_NODE_URL}" "BOR_RPC_NODE"
 
     echo "Comparing precompile behavior between validator and RPC node at fork boundaries" >&3
 
@@ -478,7 +421,7 @@ _require_min_bor() {
 # bats test_tags=execution-specs,pos-precompile,fork-activation,kzg,evm-gas
 @test "precompile-fork-safety: gas estimation changes correctly at KZG boundary" {
     _require_min_bor "2.6.0"
-    _wait_for_block "$((FORK_LISOVO + 1))"
+    _wait_for_block_on "$((FORK_LISOVO + 1))" "$L2_RPC_URL" "L2_RPC"
 
     local pre_lisovo_block=$(( FORK_LISOVO - 1 ))
 
@@ -529,8 +472,8 @@ _require_min_bor() {
         skip "No Erigon RPC node available (no Erigon node in enclave)"
     fi
 
-    _wait_for_block "$((FORK_LISOVO + 1))"
-    _wait_for_block "$((FORK_LISOVO + 1))" "${L2_ERIGON_RPC_URL}"
+    _wait_for_block_on "$((FORK_LISOVO + 1))" "$L2_RPC_URL" "L2_RPC"
+    _wait_for_block_on "$((FORK_LISOVO + 1))" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     echo "Comparing precompile behavior between Bor and Erigon at Lisovo boundary" >&3
 

@@ -34,6 +34,7 @@
 
 setup_file() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Probe clerk availability and fetch latest record ID.
@@ -95,6 +96,7 @@ setup_file() {
 
 setup() {
     load "../../../core/helpers/pos-setup.bash"
+    load "../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     if [[ "$(cat "${BATS_FILE_TMPDIR}/clerk_unavailable" 2>/dev/null)" != "0" ]]; then
@@ -138,8 +140,6 @@ setup() {
 @test "statesync-consistency: event records are in chronological order" {
     local total
     total=$(jq 'length' "${BATS_FILE_TMPDIR}/all_records.json")
-    local sorted_count
-    sorted_count=$(jq '[.[].record_time] | sort | length' "${BATS_FILE_TMPDIR}/all_records.json")
     local original_times
     original_times=$(jq -c '[.[].record_time]' "${BATS_FILE_TMPDIR}/all_records.json")
     local sorted_times

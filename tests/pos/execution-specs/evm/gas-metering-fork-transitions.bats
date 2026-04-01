@@ -29,6 +29,7 @@
 
 setup_file() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
 
     # Pre-fund ephemeral wallets (one per test) to avoid nonce conflicts.
@@ -55,23 +56,9 @@ setup_file() {
 
     # Discover Erigon RPC (optional — cross-client test skips if unavailable).
     export L2_ERIGON_RPC_URL
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
-        echo "Discovering Erigon RPC service in enclave '${ENCLAVE_NAME}'..." >&3
-        local erigon_port svc
-        for i in $(seq 1 12); do
-            svc="l2-el-${i}-erigon-heimdall-v2-rpc"
-            if erigon_port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                erigon_port="${erigon_port#http://}"; erigon_port="${erigon_port#https://}"
-                L2_ERIGON_RPC_URL="http://${erigon_port}"
-                echo "Found Erigon at ${svc}: ${L2_ERIGON_RPC_URL}" >&3
-                break
-            fi
-        done
-    fi
-
-    if [[ -z "${L2_ERIGON_RPC_URL:-}" ]]; then
+    _discover_erigon_rpc || {
         echo "WARNING: No Erigon RPC node found — cross-client gas test will be skipped." >&3
-    fi
+    }
 }
 
 teardown_file() {
@@ -84,24 +71,12 @@ teardown_file() {
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     load "../../../../core/helpers/scripts/eventually.bash"
     pos_setup
 
     # Default staggered fork blocks — override via env to match Kurtosis config.
-    FORK_JAIPUR="${FORK_JAIPUR:-0}"
-    FORK_DELHI="${FORK_DELHI:-0}"
-    FORK_INDORE="${FORK_INDORE:-0}"
-    FORK_AGRA="${FORK_AGRA:-0}"
-    FORK_NAPOLI="${FORK_NAPOLI:-0}"
-    FORK_AHMEDABAD="${FORK_AHMEDABAD:-0}"
-    FORK_BHILAI="${FORK_BHILAI:-0}"
-    FORK_RIO="${FORK_RIO:-256}"
-    FORK_MADHUGIRI="${FORK_MADHUGIRI:-320}"
-    FORK_MADHUGIRI_PRO="${FORK_MADHUGIRI_PRO:-384}"
-    FORK_DANDELI="${FORK_DANDELI:-448}"
-    FORK_LISOVO="${FORK_LISOVO:-512}"
-    FORK_LISOVO_PRO="${FORK_LISOVO_PRO:-576}"
-    FORK_GIUGLIANO="${FORK_GIUGLIANO:-640}"
+    _setup_fork_env
 
     # Read pre-funded wallet for this test (created in setup_file).
     local wallet_json
@@ -115,66 +90,6 @@ setup() {
 # ────────────────────────────────────────────────────────────────────────────
 
 _current_block() { cast block-number --rpc-url "$L2_RPC_URL"; }
-
-# Wait until the chain reaches a target block. Dynamic timeout.
-_wait_for_block() {
-    local target="$1"
-    local current
-    current=$(_current_block)
-
-    if [[ "$current" -ge "$target" ]]; then
-        return 0
-    fi
-
-    local blocks_remaining=$(( target - current ))
-    local timeout=$(( blocks_remaining * 2 + 180 ))
-    [[ "$timeout" -lt 90 ]] && timeout=90
-    [[ "$timeout" -gt 1800 ]] && timeout=1800
-
-    echo "  Waiting for block ${target} (current: ${current}, timeout: ${timeout}s)..." >&3
-    assert_command_eventually_greater_or_equal \
-        "cast block-number --rpc-url ${L2_RPC_URL}" \
-        "${target}" "${timeout}" 5
-}
-
-# Fetch bor version from web3_clientVersion RPC and cache it.
-_bor_version() {
-    if [[ -n "${BOR_VERSION:-}" ]]; then
-        echo "$BOR_VERSION"
-        return
-    fi
-    local result
-    result=$(curl -s -X POST "${L2_RPC_URL}" \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}')
-    local raw
-    raw=$(echo "$result" | jq -r '.result // empty')
-    echo "  web3_clientVersion: ${raw}" >&3
-    BOR_VERSION=$(echo "$raw" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+(-beta[0-9]*|-rc[0-9]*)?' | head -1 | sed 's/^v//')
-    if [[ -z "$BOR_VERSION" ]]; then
-        BOR_VERSION="unknown"
-    fi
-    echo "$BOR_VERSION"
-}
-
-# Skip if BOR_MIN_VERSION (or detected version) is older than the required version.
-_require_min_bor() {
-    local required="$1"
-    local running="${BOR_MIN_VERSION:-}"
-    # If BOR_MIN_VERSION is not set, try to detect it.
-    if [[ -z "$running" ]]; then
-        running=$(_bor_version)
-    fi
-    [[ "$running" == "unknown" ]] && return 0  # unknown version — don't skip
-    local running_base required_base
-    running_base=$(echo "$running" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    required_base=$(echo "$required" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-    local lower
-    lower=$(printf '%s\n%s' "$running_base" "$required_base" | sort -V | head -1)
-    if [[ "$lower" != "$required_base" ]]; then
-        skip "requires bor >= ${required} (running: ${running})"
-    fi
-}
 
 # Deploy a contract from runtime bytecode hex. Sets $contract_addr.
 _deploy_runtime() {
@@ -230,7 +145,7 @@ _deploy_initcode() {
     _require_min_bor "2.5.0"
     [[ "${FORK_MADHUGIRI:-0}" -le 0 ]] && skip "Madhugiri at genesis"
 
-    _wait_for_block $(( FORK_MADHUGIRI + 2 ))
+    _wait_for_block_on $(( FORK_MADHUGIRI + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     local max_tx_gas=33554432   # 2^25 per EIP-7825
     local over_limit=$(( max_tx_gas + 1000000 ))
@@ -311,7 +226,7 @@ _deploy_initcode() {
 
 # bats test_tags=gas-metering,sstore,eip-2200
 @test "gas-metering: SSTORE from zero to non-zero gas cost is 20000 at all forks" {
-    _wait_for_block $(( FORK_RIO + 2 ))
+    _wait_for_block_on $(( FORK_RIO + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     # Deploy a contract whose runtime writes a nonzero value to a fresh storage slot.
     # Runtime: PUSH1 0x42 | PUSH1 0x00 | SSTORE | STOP
@@ -352,7 +267,7 @@ _deploy_initcode() {
 
     for block in "${fork_blocks[@]}"; do
         local fork_name="${fork_names[$idx]}"
-        _wait_for_block "$block"
+        _wait_for_block_on "$block" "$L2_RPC_URL" "L2_RPC"
 
         local gas_est
         gas_est=$(cast estimate \
@@ -413,7 +328,7 @@ _deploy_initcode() {
 
 # bats test_tags=gas-metering,eip-2929,cold-access
 @test "gas-metering: CALL to cold address costs 2600 gas across all forks" {
-    _wait_for_block $(( FORK_RIO + 2 ))
+    _wait_for_block_on $(( FORK_RIO + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     # Deploy a contract whose runtime CALLs a cold address (a fresh EOA).
     # We measure gas of calling this contract, which internally does:
@@ -459,7 +374,7 @@ _deploy_initcode() {
 
     # Cross-check: estimate again at a different fork block to verify consistency.
     if [[ "${FORK_MADHUGIRI:-0}" -gt 0 ]]; then
-        _wait_for_block $(( FORK_MADHUGIRI + 2 ))
+        _wait_for_block_on $(( FORK_MADHUGIRI + 2 )) "$L2_RPC_URL" "L2_RPC"
         local madhugiri_gas
         madhugiri_gas=$(cast estimate \
             --rpc-url "$L2_RPC_URL" \
@@ -484,7 +399,7 @@ _deploy_initcode() {
 
 # bats test_tags=gas-metering,eip-3529,gas-refund
 @test "gas-metering: gas refund cap is correctly applied" {
-    _wait_for_block $(( FORK_RIO + 2 ))
+    _wait_for_block_on $(( FORK_RIO + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     # EIP-3529 caps gas refunds at gasUsed/5 (replacing the old gasUsed/2 cap).
     # To test this: deploy a contract that pre-sets many storage slots to nonzero,
@@ -594,7 +509,7 @@ _deploy_initcode() {
 
 # bats test_tags=gas-metering,contract-creation,intrinsic-gas
 @test "gas-metering: intrinsic gas for contract creation consistent across forks" {
-    _wait_for_block $(( FORK_RIO + 2 ))
+    _wait_for_block_on $(( FORK_RIO + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     # Contract creation intrinsic gas = 53000 base (21000 tx + 32000 create).
     # Plus per-byte initcode costs (16 gas per nonzero byte, 4 per zero byte).
@@ -632,7 +547,7 @@ _deploy_initcode() {
 
     for block in "${check_blocks[@]}"; do
         local fork_name="${check_names[$idx]}"
-        _wait_for_block "$block"
+        _wait_for_block_on "$block" "$L2_RPC_URL" "L2_RPC"
 
         local gas_est
         gas_est=$(cast estimate \
@@ -691,7 +606,7 @@ _deploy_initcode() {
 
 # bats test_tags=gas-metering,eth-transfer,intrinsic-gas
 @test "gas-metering: simple ETH transfer gas is 21000 across all forks" {
-    _wait_for_block $(( FORK_RIO + 2 ))
+    _wait_for_block_on $(( FORK_RIO + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     local target_addr
     target_addr=$(cast wallet new --json | jq -r '.[0].address')
@@ -721,7 +636,7 @@ _deploy_initcode() {
     local idx=0
     for block in "${check_blocks[@]}"; do
         local fork_name="${check_names[$idx]}"
-        _wait_for_block "$block"
+        _wait_for_block_on "$block" "$L2_RPC_URL" "L2_RPC"
 
         local gas_est
         gas_est=$(cast estimate \
@@ -782,7 +697,7 @@ _deploy_initcode() {
         skip "No Erigon RPC URL available (no Erigon node in enclave)"
     fi
 
-    _wait_for_block $(( FORK_RIO + 2 ))
+    _wait_for_block_on $(( FORK_RIO + 2 )) "$L2_RPC_URL" "L2_RPC"
 
     # Wait for Erigon to reach the same block.
     local target_block=$(( FORK_RIO + 2 ))
