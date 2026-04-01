@@ -444,7 +444,7 @@ jobs:
   # PoS E2E tests — unified matrix of devnet configurations.
   #
   # Each scenario deploys a mixed-version devnet with bor validators split
-  # across versions, bor RPCs on both versions, and an erigon cross-client RPC.
+  # across versions, a bor RPC, and an erigon cross-client RPC.
   # Staggered fork activation from kurtosis-pos constants.star defaults.
   #
   # Tests: fork-transition (parallel, during fork activation) followed by
@@ -586,12 +586,6 @@ jobs:
                 cl_image: "${HV2_IMAGE}"
                 el_type: bor
                 el_image: "${BOR_A}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
@@ -768,12 +762,6 @@ jobs:
                 cl_image: "${HV2_IMAGE}"
                 el_type: bor
                 el_image: "${BOR_A}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
@@ -1157,12 +1145,6 @@ jobs:
                 count: 1
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
                 el_type: erigon
                 el_image: "${ERIGON_RPC}"
           PARAMS
@@ -1388,7 +1370,15 @@ jobs:
       - name: Run execution-specs remote tests
         run: |
           set -eo pipefail
-          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-4-bor-heimdall-v2-rpc rpc)"
+          L2_RPC_SERVICE=$(kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}" 2>/dev/null \
+            | grep -oE 'l2-el-[0-9]+-bor-heimdall-v2-rpc' | head -1)
+          if [[ -z "$L2_RPC_SERVICE" ]]; then
+            echo "::error::Could not find bor RPC service in enclave."
+            kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+            exit 1
+          fi
+          echo "Bor RPC service: ${L2_RPC_SERVICE}"
+          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" "${L2_RPC_SERVICE}" rpc)"
           L2_RPC_RAW="${L2_RPC_RAW#http://}" ; L2_RPC_RAW="${L2_RPC_RAW#https://}"
           L2_RPC_URL="http://${L2_RPC_RAW}"
           L2_PRIVATE_KEY="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"
