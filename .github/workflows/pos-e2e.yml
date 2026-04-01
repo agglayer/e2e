@@ -463,7 +463,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 2
       matrix:
         include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
     name: pos-exec-specs (${{ matrix.pair_label }})
@@ -681,8 +681,9 @@ jobs:
   # Job 2: Fork-transition + archive sync — staggered forks.
   # ---------------------------------------------------------------------------
   pos-fork-transition:
-    needs: check-new-release
+    needs: [check-new-release, pos-execution-specs]
     if: >-
+      !cancelled() &&
       needs.check-new-release.outputs.compat-pairs != '[]' && (
         (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
         (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'fork-trans' || inputs.run-tests == 'matrix'))
@@ -691,7 +692,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 2
       matrix:
         include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
     name: fork-trans (${{ matrix.pair_label }})
