@@ -343,9 +343,12 @@ jobs:
 
           # --- Parse excluded pairs from compat-versions.yml ---
           declare -A excluded_set
+          excluded_json="[]"
           if [[ -f "$COMPAT_YML" ]]; then
             in_excluded=false
             img_buf=()
+            reason_buf=""
+            link_buf=""
             while IFS= read -r line; do
               if [[ "$line" =~ ^excluded_pairs: ]]; then
                 in_excluded=true; continue
@@ -353,27 +356,50 @@ jobs:
               [[ "$in_excluded" != "true" ]] && continue
               if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
               if [[ "$line" =~ ^-\ +images: ]]; then
-                if [[ ${#img_buf[@]} -gt 0 ]]; then
+                # Flush previous entry if complete.
+                if [[ ${#img_buf[@]} -eq 2 ]]; then
+                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+                  excluded_json=$(echo "$excluded_json" | jq -c \
+                    --arg a "${img_buf[0]}" --arg b "${img_buf[1]}" \
+                    --arg r "$reason_buf" --arg l "$link_buf" \
+                    '. + [{"a":$a,"b":$b,"reason":$r,"link":$l}]')
+                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
+                elif [[ ${#img_buf[@]} -gt 0 ]]; then
                   echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
                 fi
-                img_buf=(); continue
+                img_buf=(); reason_buf=""; link_buf=""; continue
               fi
               if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
                 img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
                 img_buf+=("$img")
-                if [[ ${#img_buf[@]} -eq 2 ]]; then
-                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
-                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
-                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
-                  img_buf=()
-                fi
+              fi
+              if [[ "$line" =~ ^[[:space:]]+reason:\ *(.+)$ ]]; then
+                reason_buf="${BASH_REMATCH[1]}"
+              fi
+              if [[ "$line" =~ ^[[:space:]]+link:\ *(.+)$ ]]; then
+                link_buf="${BASH_REMATCH[1]}"
+              fi
+              # Continuation lines for multi-line reason (YAML >- folded scalar).
+              if [[ -n "$reason_buf" && "$line" =~ ^[[:space:]]{4,}[a-zA-Z] && ! "$line" =~ ^[[:space:]]+(images|reason|link|-) ]]; then
+                reason_buf="${reason_buf} $(echo "$line" | sed 's/^[[:space:]]*//')"
               fi
             done < "$COMPAT_YML"
-            if [[ ${#img_buf[@]} -gt 0 ]]; then
+            # Flush last entry.
+            if [[ ${#img_buf[@]} -eq 2 ]]; then
+              excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+              excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+              excluded_json=$(echo "$excluded_json" | jq -c \
+                --arg a "${img_buf[0]}" --arg b "${img_buf[1]}" \
+                --arg r "$reason_buf" --arg l "$link_buf" \
+                '. + [{"a":$a,"b":$b,"reason":$r,"link":$l}]')
+              echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
+            elif [[ ${#img_buf[@]} -gt 0 ]]; then
               echo "::warning::Incomplete excluded pair at end of file (${#img_buf[@]} image(s)): ${img_buf[*]}"
             fi
-            echo "Loaded $(( ${#excluded_set[@]} / 2 )) excluded pairs."
+            echo "Loaded $(echo "$excluded_json" | jq length) excluded pairs."
           fi
+          echo "excluded-pairs=${excluded_json}" >> "$GITHUB_OUTPUT"
 
           # --- Generate test scenarios ---
           # 1) Single-version baseline: all latest bor + latest erigon RPC
@@ -429,16 +455,36 @@ jobs:
 
       - name: Summary
         run: |
-          echo "### PoS E2E Release Check" >> "$GITHUB_STEP_SUMMARY"
-          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Erigon | \`${{ steps.resolve.outputs.erigon-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Compat pairs | \`${{ steps.gen-compat-matrix.outputs.compat-pairs }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### PoS E2E Release Check"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |"
+            echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |"
+            echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |"
+            echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |"
+            echo "| Erigon | \`${{ steps.resolve.outputs.erigon-image }}\` |"
+            echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |"
+            echo ""
+            echo "#### Test Matrix"
+            echo '${{ steps.gen-compat-matrix.outputs.compat-pairs }}' | jq -r '
+              if length == 0 then "No compat pairs generated."
+              else
+                "| Pair | Bor A | Bor B | Erigon |",
+                "|------|-------|-------|--------|",
+                (.[] | "| \(.pair_label) | `\(.bor_a)` | `\(.bor_b)` | `\(.erigon_rpc)` |")
+              end'
+            echo ""
+            excluded='${{ steps.gen-compat-matrix.outputs.excluded-pairs }}'
+            if [[ $(echo "$excluded" | jq 'length') -gt 0 ]]; then
+              echo "#### Excluded Pairs (Known Incompatible)"
+              echo ""
+              echo "| Version A | Version B | Reason |"
+              echo "|-----------|-----------|--------|"
+              echo "$excluded" | jq -r '.[] | "| `\(.a)` | `\(.b)` | \(.reason) |"'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
   # PoS E2E tests — unified matrix of devnet configurations.
