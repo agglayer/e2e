@@ -195,7 +195,8 @@ teardown() {
             local svc="l2-el-${i}-bor-heimdall-v2-${role}"
             local port
             if port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
-                local candidate_rpc="http://${port}"
+                # kurtosis port print already returns a full URL (e.g. http://127.0.0.1:PORT)
+                local candidate_rpc="${port}"
                 if [[ "$candidate_rpc" != "$L2_RPC_URL" ]]; then
                     second_rpc="$candidate_rpc"
                     echo "Found second Bor node: ${svc} at ${second_rpc}" >&3
@@ -288,19 +289,20 @@ teardown() {
 
     echo "Checking Heimdall API at $L2_CL_API_URL..." >&3
 
-    # Query latest span
+    # Query latest span (note: the correct endpoint is /bor/spans/latest — plural)
     local span_response
-    span_response=$(curl -s -m 10 --connect-timeout 5 "${L2_CL_API_URL}/bor/span/latest" 2>/dev/null) || true
+    span_response=$(curl -s -m 10 --connect-timeout 5 "${L2_CL_API_URL}/bor/spans/latest" 2>/dev/null) || true
 
     if [[ -z "$span_response" ]]; then
         echo "CRITICAL: Heimdall API unreachable — risk of chain halt" >&2
         return 1
     fi
 
+    # Heimdall v2 returns the span under .span (not .result)
     local span_id start_block end_block
-    span_id=$(echo "$span_response" | jq -r '.result.span_id // .result.id // empty')
-    start_block=$(echo "$span_response" | jq -r '.result.start_block // empty')
-    end_block=$(echo "$span_response" | jq -r '.result.end_block // empty')
+    span_id=$(echo "$span_response" | jq -r '.span.id // .result.span_id // .result.id // empty')
+    start_block=$(echo "$span_response" | jq -r '.span.start_block // .result.start_block // empty')
+    end_block=$(echo "$span_response" | jq -r '.span.end_block // .result.end_block // empty')
 
     if [[ -z "$span_id" ]]; then
         echo "CRITICAL: Heimdall returned empty span data" >&2
@@ -312,7 +314,7 @@ teardown() {
 
     # Verify the validator set is non-empty
     local validator_count
-    validator_count=$(echo "$span_response" | jq '.result.selected_producers // .result.validator_set.validators | length' 2>/dev/null) || validator_count=0
+    validator_count=$(echo "$span_response" | jq '.span.selected_producers // .span.validator_set.validators // .result.selected_producers // .result.validator_set.validators | length' 2>/dev/null) || validator_count=0
 
     echo "Validator count in span: $validator_count" >&3
 

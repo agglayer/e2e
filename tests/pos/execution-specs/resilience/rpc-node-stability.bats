@@ -27,7 +27,9 @@ setup() {
 
 teardown() {
     jobs -p | xargs -r kill 2>/dev/null || true
-    [[ -n "${_test_tmpdir:-}" && -d "${_test_tmpdir:-}" ]] && rm -rf "$_test_tmpdir"
+    if [[ -n "${_test_tmpdir:-}" && -d "${_test_tmpdir:-}" ]]; then
+        rm -rf "$_test_tmpdir"
+    fi
 }
 
 # ────────────────────────────────────────────────────────────────────────────
