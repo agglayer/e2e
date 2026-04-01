@@ -898,19 +898,17 @@ jobs:
           echo "Running cross-client state root oracle for ${{ matrix.pair_label }}..."
           bats tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats
 
-      - name: Run golden state regression tests
+      - name: Run fork-boundary state consistency tests
         run: |
           set -eo pipefail
           set -a; source ./tests/.env; set +a
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
-          # Use the oldest Bor version in the matrix so the golden file covers the
-          # minimum supported release. On a release branch this is the new version.
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
-          echo "Running golden state regression for Bor v${BOR_MIN_VERSION} (pair: ${{ matrix.pair_label }})..."
-          bats tests/pos/execution-specs/fork-transitions/golden-state-regression.bats
+          echo "Running fork-boundary state consistency for Bor v${BOR_MIN_VERSION} (pair: ${{ matrix.pair_label }})..."
+          bats tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats
 
       - name: Run sprint-boundary fork tests
         run: |
