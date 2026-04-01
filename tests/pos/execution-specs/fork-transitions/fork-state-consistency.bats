@@ -191,7 +191,10 @@ _assert_all_nodes_agree_at_fork() {
 
     # Wait for all nodes to reach past the fork
     for idx in "${!BOR_RPC_URLS[@]}"; do
-        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}"
+        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}" || {
+            echo "FAIL: ${BOR_RPC_LABELS[$idx]} could not reach block ${target}" >&2
+            return 1
+        }
     done
 
     local diverged=0
@@ -287,7 +290,10 @@ _assert_all_nodes_agree_at_fork() {
     echo "  Waiting for all nodes to reach block ${target} (last fork: ${last_fork})..." >&3
 
     for idx in "${!BOR_RPC_URLS[@]}"; do
-        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}"
+        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}" || {
+            echo "FAIL: ${BOR_RPC_LABELS[$idx]} could not reach block ${target}" >&2
+            return 1
+        }
     done
 }
 
@@ -365,7 +371,10 @@ _assert_all_nodes_agree_at_fork() {
     local last_fork="${fork_blocks[-1]}"
     local target=$(( last_fork + 5 ))
     for idx in "${!BOR_RPC_URLS[@]}"; do
-        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}"
+        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}" || {
+            echo "FAIL: ${BOR_RPC_LABELS[$idx]} could not reach block ${target}" >&2
+            return 1
+        }
     done
 
     # Check each fork
