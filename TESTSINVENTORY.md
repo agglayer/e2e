@@ -381,6 +381,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | baseFee does not diverge over a long block range | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L372) | |
 | baseFee stays within ±5% bounds under transaction load | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L295) | |
 | baseFeePerGas field exists in block headers | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L435) | |
+| basefee-fork: base fee is at least 7 wei (minimum) across all blocks | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L134) | |
+| basefee-fork: base fee is non-zero at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L84) | |
+| basefee-fork: base fee is within 5% boundary post-Lisovo | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L299) | |
+| basefee-fork: base fee transitions smoothly across all fork boundaries | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L525) | |
+| basefee-fork: consecutive blocks have valid base fee transition pre-Lisovo | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L196) | |
+| basefee-fork: cross-client base fee agreement at fork boundaries | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L462) | |
+| basefee-fork: target gas percentage changes at Dandeli | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L359) | |
 | batch JSON-RPC returns array of matching results | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L678) | |
 | batch JSON-RPC under concurrent load: 50 concurrent batch requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L483) | |
 | block coinbase (miner field) is zero address on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L103) | |
@@ -408,6 +415,14 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | consensus: finalized blocks match across nodes | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L186) | |
 | consensus: state sync receipts are deterministic across blocks | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L333) | |
 | contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
+| cross-client-receipts: cumulative gas used matches for shared blocks | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L452) | |
+| cross-client-receipts: gas used in blocks agree at fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L245) | |
+| cross-client-receipts: logs root matches at fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L349) | |
+| cross-client-receipts: receipt root matches at Lisovo boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L226) | |
+| cross-client-receipts: receipt root matches at Madhugiri boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L208) | |
+| cross-client-receipts: receipt root matches at Rio boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L194) | |
+| cross-client-receipts: receipt status codes agree for system transactions | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L386) | |
+| cross-client-receipts: transaction count agrees at fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L283) | |
 | cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L341) | |
 | cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L296) | |
 | cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L324) | |
@@ -455,6 +470,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_sendRawTransaction rejects invalid signature | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L611) | |
 | eth_sendRawTransaction rejects wrong chainId | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L637) | |
 | eth_syncing returns false on synced node | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L590) | |
+| finality: all nodes agree on finalized block hash | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L293) | |
+| finality: finality depth is reasonable | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L533) | |
+| finality: finalized block number is non-zero and advancing | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L160) | |
+| finality: finalized blocks have immutable hashes | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L471) | |
+| finality: milestone block hash matches bor finalized range | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L386) | |
+| finality: safe <= finalized <= latest block ordering | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L221) | |
 | fuzz contract creations and assert individual tx outcomes | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L256) | |
 | fuzz node with EIP-1559 type-2 transactions and verify processing | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L403) | |
 | fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L42) | |
@@ -463,6 +484,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | fuzz node with non-zero calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L206) | |
 | fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L103) | |
 | fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L58) | |
+| gas-metering: CALL to cold address costs 2600 gas across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L330) | |
+| gas-metering: MaxTxGas (30M) enforced at Madhugiri | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L144) | |
+| gas-metering: SSTORE from zero to non-zero gas cost is 20000 at all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L228) | |
+| gas-metering: cross-client gas agreement for identical transactions | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L695) | |
+| gas-metering: gas refund cap is correctly applied | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L401) | |
+| gas-metering: intrinsic gas for contract creation consistent across forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L511) | |
+| gas-metering: simple ETH transfer gas is 21000 across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L608) | |
 | gasUsed <= gasLimit for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L883) | |
 | higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L204) | |
 | insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L501) | |
@@ -480,6 +508,14 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | nonce replacement stress: higher gas replaces pending tx | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L718) | |
 | nonce-gap stress: out-of-order submission resolves correctly | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L600) | |
 | out-of-gas transaction still increments sender nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L160) | |
+| precompile-fork-safety: KZG (0x0a) IS active at Lisovo block | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L176) | |
+| precompile-fork-safety: KZG (0x0a) is NOT active at LisovoPro | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L237) | |
+| precompile-fork-safety: KZG (0x0a) is NOT active before Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L150) | |
+| precompile-fork-safety: P256Verify (0x0100) gas cost at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L323) | |
+| precompile-fork-safety: P256Verify (0x0100) gas cost pre-Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L279) | |
+| precompile-fork-safety: cross-client precompile consistency at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L468) | |
+| precompile-fork-safety: gas estimation changes correctly at KZG boundary | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L422) | |
+| precompile-fork-safety: precompile set changes are consistent across all nodes | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L362) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L53) | |
 | remove validator | [Link](./tests/pos/validator.bats#L333) | |
@@ -505,6 +541,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | state-consistency: all supported fork boundaries pass cross-node comparison | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L364) | |
 | state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L294) | |
 | sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L533) | |
+| system-contract-safety: MRC20 (POL) balance query works across all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L207) | |
+| system-contract-safety: StateReceiver contract code exists at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L172) | |
+| system-contract-safety: ValidatorSet returns same set on all nodes | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L251) | |
+| system-contract-safety: ValidatorSet.currentSpanNumber() returns valid span at all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L398) | |
+| system-contract-safety: ValidatorSet.getValidators() returns valid set at each fork boundary | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L109) | |
+| system-contract-safety: system contract code hash unchanged across fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L331) | |
 | total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L188) | |
 | transaction at node-reported gas price succeeds | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L144) | |
 | transaction with trivially low gas price (1 wei) is rejected | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L117) | |
@@ -533,6 +575,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
+| checkpoint-range: all checkpoint block ranges are contiguous | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L202) | |
+| checkpoint-range: all checkpoint root hashes are unique | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L467) | |
+| checkpoint-range: checkpoint ranges do not overlap | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L286) | |
+| checkpoint-range: checkpoint timestamps are monotonically increasing | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L415) | |
+| checkpoint-range: first checkpoint starts at block 0 or expected genesis | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L333) | |
+| checkpoint-range: latest checkpoint end is close to current bor block | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L368) | |
+| checkpoint-range: no checkpoint has end_block < start_block | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L249) | |
 | heimdall bor: current Bor block is within the latest span's block range | [Link](./tests/heimdall/bor/span-in-turn.bats#L184) | |
 | heimdall bor: each span producer has a non-empty valid signer address | [Link](./tests/heimdall/bor/span-in-turn.bats#L286) | |
 | heimdall bor: latest span has a non-zero block range (start_block < end_block) | [Link](./tests/heimdall/bor/span-in-turn.bats#L136) | |
@@ -588,6 +637,25 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall stake: validator proposer priority values are within safe range | [Link](./tests/heimdall/stake/validator-set-safety.bats#L334) | |
 | heimdall stake: validator set count is non-zero and consistent with CometBFT | [Link](./tests/heimdall/stake/validator-state.bats#L363) | |
 | heimdall stake: validator voting power is within safe integer bounds | [Link](./tests/heimdall/stake/validator-set-safety.bats#L256) | |
+| milestone-checkpoint: all recent milestones reference blocks within checkpoint ranges | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L437) | |
+| milestone-checkpoint: latest milestone block <= latest checkpoint end_block | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L272) | |
+| milestone-checkpoint: milestone block hash matches Bor RPC | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L378) | |
+| milestone-checkpoint: milestone block height references a real Bor block | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L319) | |
+| milestone-checkpoint: milestone count is positive and increasing | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L354) | |
+| milestone-checkpoint: no gap between last milestone and current block > expected interval | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L543) | |
+| span-sprint: all validators in current span have non-zero power | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L399) | |
+| span-sprint: block producer at span boundary is in span's producer list | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L331) | |
+| span-sprint: consecutive spans are contiguous | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L519) | |
+| span-sprint: current block height is within active span range | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L603) | |
+| span-sprint: current span has valid structure | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L182) | |
+| span-sprint: span producer list matches Bor validator set | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L249) | |
+| span-sprint: span transitions have no block production gap | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L455) | |
+| statesync-consistency: all records have valid tx_hash and contract fields | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L193) | |
+| statesync-consistency: event record IDs are strictly sequential | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L117) | |
+| statesync-consistency: event records are in chronological order | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L140) | |
+| statesync-consistency: latest record ID from API matches paginated count | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L215) | |
+| statesync-consistency: no duplicate event record IDs | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L157) | |
+| statesync-consistency: record count matches latest record ID | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L173) | |
 
 ## DApps Tests
 
