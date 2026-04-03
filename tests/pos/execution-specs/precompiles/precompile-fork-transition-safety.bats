@@ -494,11 +494,11 @@ _is_nontrivial() {
         if ! _state_available_at "${block}" "${L2_RPC_URL}" || \
            ! _state_available_at "${block}" "${L2_ERIGON_RPC_URL}"; then
             echo "  SKIP: block ${block} — historical state unavailable on one or both clients" >&3
-            ((skipped++))
+            skipped=$(( skipped + 1 ))
             continue
         fi
 
-        ((compared++))
+        compared=$(( compared + 1 ))
 
         # Compare KZG behavior
         local bor_kzg erigon_kzg
