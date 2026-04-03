@@ -208,10 +208,10 @@ _get_block_data() {
     # Pick a window of 10 consecutive blocks well before Lisovo but after
     # all denominator-changing forks are active.
     local window_start
-    if [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt "${FORK_LISOVO}" ]]; then
+    if [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt 999999999 && "${FORK_DANDELI}" -lt "${FORK_LISOVO}" ]]; then
         # Use blocks right after Dandeli but before Lisovo
         window_start=$(( FORK_DANDELI + 2 ))
-    elif [[ "${FORK_RIO}" -gt 0 ]]; then
+    elif [[ "${FORK_RIO}" -gt 0 && "${FORK_RIO}" -lt 999999999 ]]; then
         window_start=$(( FORK_RIO + 2 ))
     else
         window_start=2
@@ -302,8 +302,8 @@ _get_block_data() {
     #   lowerBound = parentBaseFee * 95 / 100
     #   upperBound = parentBaseFee * 105 / 100
 
-    if [[ "${FORK_LISOVO}" -le 0 ]]; then
-        skip "Lisovo at genesis -- testing a different range"
+    if [[ "${FORK_LISOVO}" -le 0 || "${FORK_LISOVO}" -ge 999999999 ]]; then
+        skip "Lisovo at genesis or disabled -- no post-Lisovo range to check"
     fi
 
     local latest
@@ -366,10 +366,10 @@ _get_block_data() {
 
     _require_min_bor "2.5.6"
 
-    if [[ "${FORK_DANDELI}" -le 0 ]]; then
-        skip "Dandeli at genesis"
+    if [[ "${FORK_DANDELI}" -le 0 || "${FORK_DANDELI}" -ge 999999999 ]]; then
+        skip "Dandeli at genesis or disabled"
     fi
-    if [[ "${FORK_LISOVO}" -le 0 || "${FORK_LISOVO}" -le "$(( FORK_DANDELI + 5 ))" ]]; then
+    if [[ "${FORK_LISOVO}" -le 0 || "${FORK_LISOVO}" -ge 999999999 || "${FORK_LISOVO}" -le "$(( FORK_DANDELI + 5 ))" ]]; then
         skip "Not enough blocks between Dandeli and Lisovo to verify target change"
     fi
 

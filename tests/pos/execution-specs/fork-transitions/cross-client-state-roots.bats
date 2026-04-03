@@ -105,6 +105,11 @@ _block_field_on() {
 # immediately rather than burning the full timeout.
 _wait_for_block_on() {
     local target="$1" rpc="$2"
+
+    if [[ "$target" -ge 999999999 ]]; then
+        skip "Fork not active in this version (target block ${target})"
+    fi
+
     local current
     current=$(_block_number_on "${rpc}" 2>/dev/null || echo 0)
     [[ "$current" -ge "$target" ]] && return 0

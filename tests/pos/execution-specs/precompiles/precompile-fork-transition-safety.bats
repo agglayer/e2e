@@ -64,6 +64,9 @@ setup() {
     # Fork activation block numbers (matching kurtosis-pos devnet defaults)
     _setup_fork_env
 
+    # Skip early if Lisovo fork is not active (avoids 1800s hang in _wait_for_block_on)
+    [[ "${FORK_LISOVO:-999999999}" -ge 999999999 ]] && skip "Lisovo fork not active in this version"
+
     # Precompile addresses
     KZG_ADDR="0x000000000000000000000000000000000000000a"
     P256_ADDR="0x0000000000000000000000000000000000000100"
@@ -236,6 +239,7 @@ _is_nontrivial() {
 # bats test_tags=execution-specs,pos-precompile,fork-activation,kzg
 @test "precompile-fork-safety: KZG (0x0a) is NOT active at LisovoPro" {
     _require_min_bor "2.6.0"
+    [[ "${FORK_LISOVO_PRO:-999999999}" -ge 999999999 ]] && skip "LisovoPro fork not active in this version"
     _wait_for_block_on "$((FORK_LISOVO_PRO + 1))" "$L2_RPC_URL" "L2_RPC"
 
     # Verify historical state is available at the test blocks before proceeding.
@@ -366,6 +370,7 @@ _is_nontrivial() {
 # bats test_tags=execution-specs,pos-precompile,fork-activation,cross-node
 @test "precompile-fork-safety: precompile set changes are consistent across all nodes" {
     _require_min_bor "2.6.0"
+    [[ "${FORK_LISOVO_PRO:-999999999}" -ge 999999999 ]] && skip "LisovoPro fork not active in this version"
 
     if [[ -z "${L2_BOR_RPC_NODE_URL:-}" ]]; then
         skip "No secondary Bor RPC node available in enclave"

@@ -98,6 +98,11 @@ _current_block() {
 
 _wait_for_block() {
     local target="$1"
+
+    if [[ "$target" -ge 999999999 ]]; then
+        skip "Fork not active in this version (target block ${target})"
+    fi
+
     local current
     current=$(_current_block)
     [[ "$current" -ge "$target" ]] && return 0

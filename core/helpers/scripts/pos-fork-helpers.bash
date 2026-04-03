@@ -78,6 +78,11 @@ _block_number_on() {
 # Includes stall detection: if block doesn't advance for STALL_LIMIT * 5s, returns 1.
 _wait_for_block_on() {
     local target="$1" rpc="${2:-$L2_RPC_URL}" label="${3:-${2:-L2_RPC_URL}}"
+
+    if [[ "$target" -ge 999999999 ]]; then
+        skip "Fork not active in this version (target block ${target})"
+    fi
+
     local current
     current=$(_block_number_on "${rpc}" 2>/dev/null || echo 0)
     [[ "$current" -ge "$target" ]] && return 0

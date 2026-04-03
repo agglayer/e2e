@@ -346,6 +346,11 @@ _supported_fork_blocks() {
 # Wait until the chain reaches a target block. Dynamic timeout.
 _wait_for_block() {
     local target="$1"
+
+    if [[ "$target" -ge 999999999 ]]; then
+        skip "Fork not active in this version (target block ${target})"
+    fi
+
     local current
     current=$(_current_block)
 
@@ -1673,7 +1678,7 @@ _p256_input() {
     read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
-        [[ "$fb" -le 0 ]] && continue
+        [[ "$fb" -le 0 || "$fb" -ge 999999999 ]] && continue
         local parent_hash block_parent_hash
         parent_hash=$(_block_field "$(( fb - 1 ))" "hash")
         block_parent_hash=$(_block_field "${fb}" "parentHash")
@@ -1695,7 +1700,7 @@ _p256_input() {
     read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
-        [[ "$fb" -le 1 ]] && continue
+        [[ "$fb" -le 1 || "$fb" -ge 999999999 ]] && continue
         local ts_before ts_at ts_after
         ts_before=$(printf "%d" "$(_block_field "$(( fb - 1 ))" "timestamp")")
         ts_at=$(printf "%d" "$(_block_field "${fb}" "timestamp")")
@@ -1715,7 +1720,7 @@ _p256_input() {
     read -r -a fork_blocks <<< "$(_supported_fork_blocks)"
 
     for fb in "${fork_blocks[@]}"; do
-        [[ "$fb" -le 0 ]] && continue
+        [[ "$fb" -le 0 || "$fb" -ge 999999999 ]] && continue
         local fee
         fee=$(_base_fee_at "${fb}")
         echo "Fork block ${fb}: baseFee = ${fee}" >&3
