@@ -312,7 +312,7 @@ function generate_new_keypair() {
   initial_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json \
     "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint256)" "${validator_address}" | jq --raw-output '.[0]')
   claimable_reward=$(cast call --rpc-url "${L1_RPC_URL}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "validatorReward(uint256)(uint256)" "${validator_id}")
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "validatorReward(uint256)(uint256)" "${validator_id}" | cut -d' ' -f1)
   echo "Initial POL balance: ${initial_pol_balance}"
   echo "Claimable reward: ${claimable_reward}"
 
