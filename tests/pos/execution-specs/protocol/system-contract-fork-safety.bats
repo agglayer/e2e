@@ -32,6 +32,10 @@ setup_file() {
 
     # Discover all Bor RPC endpoints in the enclave (validators + RPCs)
     _discover_bor_nodes "${BATS_FILE_TMPDIR}/bor_rpc_urls" "${BATS_FILE_TMPDIR}/bor_rpc_labels"
+
+    # Discover Bor archive node for historical state fallback
+    export L2_BOR_ARCHIVE_RPC_URL
+    _discover_bor_archive_rpc || true
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -61,6 +65,20 @@ setup() {
 # ────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ────────────────────────────────────────────────────────────────────────────
+
+# Returns the best RPC URL for querying a specific block.
+# Tries L2_RPC_URL first, falls back to archive node if state is pruned.
+# Sets _RPC_FOR_BLOCK to the usable URL, or returns 1 if no node has state.
+_rpc_for_block() {
+    local block="$1"
+    _RPC_FOR_BLOCK="${L2_RPC_URL}"
+    _state_available_at "$block" "${L2_RPC_URL}" && return 0
+    if [[ -n "${L2_BOR_ARCHIVE_RPC_URL:-}" ]] && _state_available_at "$block" "${L2_BOR_ARCHIVE_RPC_URL}"; then
+        _RPC_FOR_BLOCK="${L2_BOR_ARCHIVE_RPC_URL}"
+        return 0
+    fi
+    return 1
+}
 
 # Build the list of fork blocks to test, based on BOR_MIN_VERSION.
 # Populates the global arrays _FORK_NAMES and _FORK_BLOCKS.
@@ -121,18 +139,19 @@ _wait_past_all_forks() {
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
 
-            if ! _state_available_at "$block"; then
+            if ! _rpc_for_block "$block"; then
                 echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
                 skipped=$(( skipped + 1 ))
                 continue
             fi
+            local rpc="${_RPC_FOR_BLOCK}"
 
             # Try getValidators() first (selector 0xb7ab4db5)
             set +e
             local result
             result=$(cast call "$VALIDATOR_SET" \
                 "getValidators()(address[],uint256[])" \
-                --rpc-url "$L2_RPC_URL" \
+                --rpc-url "$rpc" \
                 --block "$block" 2>/dev/null)
             local exit_code=$?
             set -e
@@ -143,7 +162,7 @@ _wait_past_all_forks() {
                 result=$(cast call "$VALIDATOR_SET" \
                     "getBorValidators(uint256)(address[],uint256[])" \
                     "$block" \
-                    --rpc-url "$L2_RPC_URL" \
+                    --rpc-url "$rpc" \
                     --block "$block" 2>/dev/null)
                 exit_code=$?
                 set -e
@@ -196,15 +215,16 @@ _wait_past_all_forks() {
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
 
-            if ! _state_available_at "$block"; then
+            if ! _rpc_for_block "$block"; then
                 echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
                 skipped=$(( skipped + 1 ))
                 continue
             fi
+            local rpc="${_RPC_FOR_BLOCK}"
 
             set +e
             local code
-            code=$(cast code "$STATE_RECEIVER" --rpc-url "$L2_RPC_URL" --block "$block" 2>/dev/null)
+            code=$(cast code "$STATE_RECEIVER" --rpc-url "$rpc" --block "$block" 2>/dev/null)
             local exit_code=$?
             set -e
 
@@ -250,11 +270,12 @@ _wait_past_all_forks() {
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
 
-            if ! _state_available_at "$block"; then
+            if ! _rpc_for_block "$block"; then
                 echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
                 skipped=$(( skipped + 1 ))
                 continue
             fi
+            local rpc="${_RPC_FOR_BLOCK}"
 
             # balanceOf(address) selector: 0x70a08231
             set +e
@@ -262,7 +283,7 @@ _wait_past_all_forks() {
             balance=$(cast call "$MRC20" \
                 "balanceOf(address)(uint256)" \
                 "$query_addr" \
-                --rpc-url "$L2_RPC_URL" \
+                --rpc-url "$rpc" \
                 --block "$block" 2>/dev/null)
             local exit_code=$?
             set -e
@@ -396,11 +417,24 @@ _wait_past_all_forks() {
             local addr="${contracts[$ci]}"
             local cname="${contract_names[$ci]}"
 
+            # Determine best RPC for historical blocks
+            local rpc_pre="${L2_RPC_URL}" rpc_post="${L2_RPC_URL}"
+            if ! _state_available_at "$pre_block" "${L2_RPC_URL}"; then
+                if [[ -n "${L2_BOR_ARCHIVE_RPC_URL:-}" ]] && _state_available_at "$pre_block" "${L2_BOR_ARCHIVE_RPC_URL}"; then
+                    rpc_pre="${L2_BOR_ARCHIVE_RPC_URL}"
+                fi
+            fi
+            if ! _state_available_at "$fblock" "${L2_RPC_URL}"; then
+                if [[ -n "${L2_BOR_ARCHIVE_RPC_URL:-}" ]] && _state_available_at "$fblock" "${L2_BOR_ARCHIVE_RPC_URL}"; then
+                    rpc_post="${L2_BOR_ARCHIVE_RPC_URL}"
+                fi
+            fi
+
             local code_pre code_post
             set +e
-            code_pre=$(cast code "$addr" --rpc-url "$L2_RPC_URL" --block "$pre_block" 2>/dev/null)
+            code_pre=$(cast code "$addr" --rpc-url "$rpc_pre" --block "$pre_block" 2>/dev/null)
             local rc_pre=$?
-            code_post=$(cast code "$addr" --rpc-url "$L2_RPC_URL" --block "$fblock" 2>/dev/null)
+            code_post=$(cast code "$addr" --rpc-url "$rpc_post" --block "$fblock" 2>/dev/null)
             local rc_post=$?
             set -e
 
@@ -464,17 +498,18 @@ _wait_past_all_forks() {
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
 
-            if ! _state_available_at "$block"; then
+            if ! _rpc_for_block "$block"; then
                 echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
                 skipped=$(( skipped + 1 ))
                 continue
             fi
+            local rpc="${_RPC_FOR_BLOCK}"
 
             set +e
             local span
             span=$(cast call "$VALIDATOR_SET" \
                 "currentSpanNumber()(uint256)" \
-                --rpc-url "$L2_RPC_URL" \
+                --rpc-url "$rpc" \
                 --block "$block" 2>/dev/null)
             local exit_code=$?
             set -e

@@ -149,6 +149,25 @@ _discover_erigon_rpc() {
     return 1
 }
 
+# Discover bor archive RPC URL from kurtosis enclave. Sets L2_BOR_ARCHIVE_RPC_URL.
+# Returns 0 if found, 1 if not.
+_discover_bor_archive_rpc() {
+    if [[ -n "${L2_BOR_ARCHIVE_RPC_URL:-}" ]]; then
+        return 0
+    fi
+    local archive_port svc
+    for i in $(seq 1 12); do
+        svc="l2-el-${i}-bor-heimdall-v2-archive"
+        if archive_port=$(kurtosis port print "${ENCLAVE_NAME}" "${svc}" rpc 2>/dev/null); then
+            archive_port="${archive_port#http://}"; archive_port="${archive_port#https://}"
+            L2_BOR_ARCHIVE_RPC_URL="http://${archive_port}"
+            echo "Found Bor archive at ${svc}: ${L2_BOR_ARCHIVE_RPC_URL}" >&3
+            return 0
+        fi
+    done
+    return 1
+}
+
 # Discover all bor RPC endpoints in the enclave.
 # Writes URL and label arrays to the specified BATS_FILE_TMPDIR files.
 # Args: $1 = urls output file, $2 = labels output file

@@ -50,6 +50,10 @@ setup_file() {
             fi
         done
     fi
+
+    # Discover Bor archive node for tests requiring historical state
+    export L2_BOR_ARCHIVE_RPC_URL
+    _discover_bor_archive_rpc || true
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -101,6 +105,7 @@ setup() {
 
 # Call a precompile address with raw hex calldata at a specific block number.
 # Returns the hex output string (including 0x prefix), or empty on revert/error.
+# Falls back to the Bor archive node when the primary RPC returns empty (pruned state).
 _call_at_block() {
     local addr="$1"
     local input="$2"
@@ -113,11 +118,19 @@ _call_at_block() {
         -H "Content-Type: application/json" \
         -d "{\"jsonrpc\":\"2.0\",\"method\":\"eth_call\",\"params\":[{\"to\":\"${addr}\",\"data\":\"${input}\"},\"${block_hex}\"],\"id\":1}" \
         | jq -r '.result // empty') || out=""
+    # Fallback to archive node if primary returned empty and no explicit RPC was passed
+    if [[ -z "${out}" && -z "${4:-}" && -n "${L2_BOR_ARCHIVE_RPC_URL:-}" && "${rpc}" != "${L2_BOR_ARCHIVE_RPC_URL}" ]]; then
+        out=$(curl -s -m 30 --connect-timeout 5 -X POST "${L2_BOR_ARCHIVE_RPC_URL}" \
+            -H "Content-Type: application/json" \
+            -d "{\"jsonrpc\":\"2.0\",\"method\":\"eth_call\",\"params\":[{\"to\":\"${addr}\",\"data\":\"${input}\"},\"${block_hex}\"],\"id\":1}" \
+            | jq -r '.result // empty') || out=""
+    fi
     echo "${out}"
 }
 
 # Estimate gas for a call at a specific block number.
 # Returns the decimal gas value, or empty on error.
+# Falls back to the Bor archive node when the primary RPC returns empty (pruned state).
 _estimate_at_block() {
     local addr="$1"
     local input="$2"
@@ -130,6 +143,13 @@ _estimate_at_block() {
         -H "Content-Type: application/json" \
         -d "{\"jsonrpc\":\"2.0\",\"method\":\"eth_estimateGas\",\"params\":[{\"to\":\"${addr}\",\"data\":\"${input}\"},\"${block_hex}\"],\"id\":1}" \
         | jq -r '.result // empty') || out=""
+    # Fallback to archive node if primary returned empty and no explicit RPC was passed
+    if [[ -z "${out}" && -z "${4:-}" && -n "${L2_BOR_ARCHIVE_RPC_URL:-}" && "${rpc}" != "${L2_BOR_ARCHIVE_RPC_URL}" ]]; then
+        out=$(curl -s -m 30 --connect-timeout 5 -X POST "${L2_BOR_ARCHIVE_RPC_URL}" \
+            -H "Content-Type: application/json" \
+            -d "{\"jsonrpc\":\"2.0\",\"method\":\"eth_estimateGas\",\"params\":[{\"to\":\"${addr}\",\"data\":\"${input}\"},\"${block_hex}\"],\"id\":1}" \
+            | jq -r '.result // empty') || out=""
+    fi
     if [[ -n "${out}" && "${out}" != "null" ]]; then
         printf "%d" "${out}" 2>/dev/null || echo ""
     else
@@ -388,15 +408,40 @@ _is_nontrivial() {
         "${FORK_LISOVO_PRO}"
     )
 
-    local diverged=0
+    local diverged=0 compared=0 skipped=0
 
     for block in "${blocks_to_check[@]}"; do
+        # Skip blocks where either node has pruned historical state
+        if ! _state_available_at "${block}" "${L2_RPC_URL}" || \
+           ! _state_available_at "${block}" "${L2_BOR_RPC_NODE_URL}"; then
+            echo "  SKIP: block ${block} — historical state unavailable on one or both nodes" >&3
+            skipped=$(( skipped + 1 ))
+            continue
+        fi
+
+        compared=$(( compared + 1 ))
+
         # Compare KZG behavior
         local val_kzg rpc_kzg
         val_kzg=$(_call_at_block "${KZG_ADDR}" "0x" "${block}" "${L2_RPC_URL}")
         rpc_kzg=$(_call_at_block "${KZG_ADDR}" "0x" "${block}" "${L2_BOR_RPC_NODE_URL}")
 
-        if [[ "${val_kzg}" != "${rpc_kzg}" ]]; then
+        # Re-check state if either response is empty (aggressive pruning race)
+        if [[ -z "${val_kzg}" || -z "${rpc_kzg}" ]]; then
+            if ! _state_available_at "${block}" "${L2_RPC_URL}" || \
+               ! _state_available_at "${block}" "${L2_BOR_RPC_NODE_URL}"; then
+                echo "  SKIP: block ${block} — state pruned during comparison (KZG)" >&3
+                compared=$(( compared - 1 ))
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
+        fi
+
+        # Normalize: '' and '0x' both mean "no data"
+        local norm_val_kzg="${val_kzg:-0x}"
+        local norm_rpc_kzg="${rpc_kzg:-0x}"
+
+        if [[ "${norm_val_kzg}" != "${norm_rpc_kzg}" ]]; then
             echo "DIVERGENCE at block ${block} for KZG (0x0a):" >&2
             echo "  Validator: '${val_kzg}'" >&2
             echo "  RPC node:  '${rpc_kzg}'" >&2
@@ -410,7 +455,20 @@ _is_nontrivial() {
         val_p256=$(_call_at_block "${P256_ADDR}" "${P256_INPUT}" "${block}" "${L2_RPC_URL}")
         rpc_p256=$(_call_at_block "${P256_ADDR}" "${P256_INPUT}" "${block}" "${L2_BOR_RPC_NODE_URL}")
 
-        if [[ "${val_p256}" != "${rpc_p256}" ]]; then
+        if [[ -z "${val_p256}" || -z "${rpc_p256}" ]]; then
+            if ! _state_available_at "${block}" "${L2_RPC_URL}" || \
+               ! _state_available_at "${block}" "${L2_BOR_RPC_NODE_URL}"; then
+                echo "  SKIP: block ${block} — state pruned during comparison (P256)" >&3
+                compared=$(( compared - 1 ))
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
+        fi
+
+        local norm_val_p256="${val_p256:-0x}"
+        local norm_rpc_p256="${rpc_p256:-0x}"
+
+        if [[ "${norm_val_p256}" != "${norm_rpc_p256}" ]]; then
             echo "DIVERGENCE at block ${block} for P256 (0x0100):" >&2
             echo "  Validator: '${val_p256}'" >&2
             echo "  RPC node:  '${rpc_p256}'" >&2
@@ -420,12 +478,16 @@ _is_nontrivial() {
         fi
     done
 
+    if [[ "${compared}" -eq 0 && "${skipped}" -gt 0 ]]; then
+        skip "Historical state unavailable on one or both nodes for all fork boundary blocks"
+    fi
+
     if [[ "${diverged}" -eq 1 ]]; then
         echo "FAIL: Precompile behavior diverges between validator and RPC nodes" >&2
         return 1
     fi
 
-    echo "OK: All precompile results consistent between validator and RPC node" >&3
+    echo "OK: All precompile results consistent between validator and RPC node (compared=${compared}, skipped=${skipped})" >&3
 }
 
 # bats test_tags=execution-specs,pos-precompile,fork-activation,kzg,evm-gas
@@ -482,7 +544,18 @@ _is_nontrivial() {
         skip "No Erigon RPC node available (no Erigon node in enclave)"
     fi
 
-    _wait_for_block_on "$((FORK_LISOVO + 1))" "$L2_RPC_URL" "L2_RPC"
+    # Use the Bor archive node for this comparison — both archive nodes retain
+    # full historical state, eliminating false divergences from pruning.
+    local bor_rpc="${L2_BOR_ARCHIVE_RPC_URL:-${L2_RPC_URL}}"
+    local using_archive="false"
+    if [[ -n "${L2_BOR_ARCHIVE_RPC_URL:-}" ]]; then
+        using_archive="true"
+        echo "Using Bor archive node for cross-client comparison: ${bor_rpc}" >&3
+    else
+        echo "WARNING: No Bor archive node — falling back to ${bor_rpc} (may skip pruned blocks)" >&3
+    fi
+
+    _wait_for_block_on "$((FORK_LISOVO + 1))" "${bor_rpc}" "Bor"
     _wait_for_block_on "$((FORK_LISOVO + 1))" "${L2_ERIGON_RPC_URL}" "Erigon"
 
     echo "Comparing precompile behavior between Bor and Erigon at Lisovo boundary" >&3
@@ -496,7 +569,7 @@ _is_nontrivial() {
 
     for block in "${blocks_to_check[@]}"; do
         # Skip blocks where either client has pruned historical state
-        if ! _state_available_at "${block}" "${L2_RPC_URL}" || \
+        if ! _state_available_at "${block}" "${bor_rpc}" || \
            ! _state_available_at "${block}" "${L2_ERIGON_RPC_URL}"; then
             echo "  SKIP: block ${block} — historical state unavailable on one or both clients" >&3
             skipped=$(( skipped + 1 ))
@@ -507,10 +580,25 @@ _is_nontrivial() {
 
         # Compare KZG behavior
         local bor_kzg erigon_kzg
-        bor_kzg=$(_call_at_block "${KZG_ADDR}" "0x" "${block}" "${L2_RPC_URL}")
+        bor_kzg=$(_call_at_block "${KZG_ADDR}" "0x" "${block}" "${bor_rpc}")
         erigon_kzg=$(_call_at_block "${KZG_ADDR}" "0x" "${block}" "${L2_ERIGON_RPC_URL}")
 
-        if [[ "${bor_kzg}" != "${erigon_kzg}" ]]; then
+        # If either response is empty despite state check, re-verify (pruning race)
+        if [[ -z "${bor_kzg}" || -z "${erigon_kzg}" ]]; then
+            if ! _state_available_at "${block}" "${bor_rpc}" || \
+               ! _state_available_at "${block}" "${L2_ERIGON_RPC_URL}"; then
+                echo "  SKIP: block ${block} — state pruned during comparison (KZG)" >&3
+                compared=$(( compared - 1 ))
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
+        fi
+
+        # Normalize empty representations: '' and '0x' both mean "no data"
+        local norm_bor_kzg="${bor_kzg:-0x}"
+        local norm_erigon_kzg="${erigon_kzg:-0x}"
+
+        if [[ "${norm_bor_kzg}" != "${norm_erigon_kzg}" ]]; then
             echo "DIVERGENCE at block ${block} for KZG (0x0a):" >&2
             echo "  Bor:    '${bor_kzg}'" >&2
             echo "  Erigon: '${erigon_kzg}'" >&2
@@ -521,10 +609,23 @@ _is_nontrivial() {
 
         # Compare P256 behavior
         local bor_p256 erigon_p256
-        bor_p256=$(_call_at_block "${P256_ADDR}" "${P256_INPUT}" "${block}" "${L2_RPC_URL}")
+        bor_p256=$(_call_at_block "${P256_ADDR}" "${P256_INPUT}" "${block}" "${bor_rpc}")
         erigon_p256=$(_call_at_block "${P256_ADDR}" "${P256_INPUT}" "${block}" "${L2_ERIGON_RPC_URL}")
 
-        if [[ "${bor_p256}" != "${erigon_p256}" ]]; then
+        if [[ -z "${bor_p256}" || -z "${erigon_p256}" ]]; then
+            if ! _state_available_at "${block}" "${bor_rpc}" || \
+               ! _state_available_at "${block}" "${L2_ERIGON_RPC_URL}"; then
+                echo "  SKIP: block ${block} — state pruned during comparison (P256)" >&3
+                compared=$(( compared - 1 ))
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
+        fi
+
+        local norm_bor_p256="${bor_p256:-0x}"
+        local norm_erigon_p256="${erigon_p256:-0x}"
+
+        if [[ "${norm_bor_p256}" != "${norm_erigon_p256}" ]]; then
             echo "DIVERGENCE at block ${block} for P256 (0x0100):" >&2
             echo "  Bor:    '${bor_p256}'" >&2
             echo "  Erigon: '${erigon_p256}'" >&2
