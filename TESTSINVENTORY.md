@@ -487,10 +487,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | gas-metering: CALL to cold address costs 2600 gas across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L330) | |
 | gas-metering: MaxTxGas (30M) enforced at Madhugiri | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L144) | |
 | gas-metering: SSTORE from zero to non-zero gas cost is 20000 at all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L228) | |
-| gas-metering: cross-client gas agreement for identical transactions | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L695) | |
+| gas-metering: cross-client gas agreement for identical transactions | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L696) | |
 | gas-metering: gas refund cap is correctly applied | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L401) | |
-| gas-metering: intrinsic gas for contract creation consistent across forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L511) | |
-| gas-metering: simple ETH transfer gas is 21000 across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L608) | |
+| gas-metering: intrinsic gas for contract creation consistent across forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L512) | |
+| gas-metering: simple ETH transfer gas is 21000 across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L609) | |
 | gasUsed <= gasLimit for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L883) | |
 | higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L204) | |
 | insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L501) | |
@@ -511,11 +511,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | precompile-fork-safety: KZG (0x0a) IS active at Lisovo block | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L176) | |
 | precompile-fork-safety: KZG (0x0a) is NOT active at LisovoPro | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L237) | |
 | precompile-fork-safety: KZG (0x0a) is NOT active before Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L150) | |
-| precompile-fork-safety: P256Verify (0x0100) gas cost at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L323) | |
-| precompile-fork-safety: P256Verify (0x0100) gas cost pre-Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L279) | |
-| precompile-fork-safety: cross-client precompile consistency at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L468) | |
-| precompile-fork-safety: gas estimation changes correctly at KZG boundary | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L422) | |
-| precompile-fork-safety: precompile set changes are consistent across all nodes | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L362) | |
+| precompile-fork-safety: P256Verify (0x0100) gas cost at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L328) | |
+| precompile-fork-safety: P256Verify (0x0100) gas cost pre-Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L284) | |
+| precompile-fork-safety: cross-client precompile consistency at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L473) | |
+| precompile-fork-safety: gas estimation changes correctly at KZG boundary | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L427) | |
+| precompile-fork-safety: precompile set changes are consistent across all nodes | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L367) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L53) | |
 | remove validator | [Link](./tests/pos/validator.bats#L333) | |
@@ -541,12 +541,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | state-consistency: all supported fork boundaries pass cross-node comparison | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L364) | |
 | state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L294) | |
 | sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L533) | |
-| system-contract-safety: MRC20 (POL) balance query works across all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L207) | |
-| system-contract-safety: StateReceiver contract code exists at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L172) | |
-| system-contract-safety: ValidatorSet returns same set on all nodes | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L251) | |
-| system-contract-safety: ValidatorSet.currentSpanNumber() returns valid span at all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L398) | |
+| system-contract-safety: MRC20 (POL) balance query works across all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L236) | |
+| system-contract-safety: StateReceiver contract code exists at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L184) | |
+| system-contract-safety: ValidatorSet returns same set on all nodes | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L291) | |
+| system-contract-safety: ValidatorSet.currentSpanNumber() returns valid span at all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L452) | |
 | system-contract-safety: ValidatorSet.getValidators() returns valid set at each fork boundary | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L109) | |
-| system-contract-safety: system contract code hash unchanged across fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L331) | |
+| system-contract-safety: system contract code hash unchanged across fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L377) | |
 | total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L188) | |
 | transaction at node-reported gas price succeeds | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L144) | |
 | transaction with trivially low gas price (1 wei) is rejected | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L117) | |
@@ -620,12 +620,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall node: has at least one connected peer | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L256) | |
 | heimdall node: is not catching up (fully synced) | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L178) | |
 | heimdall node: latest block height is a positive integer | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L216) | |
-| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L387) | |
+| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L397) | |
 | heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
 | heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
 | heimdall span: next span is being prepared before current span ends | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L295) | |
-| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L352) | |
-| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L290) | |
+| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L362) | |
+| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L300) | |
 | heimdall span: selected_producers count is non-zero and within validator set size | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L528) | |
 | heimdall span: span duration meets minimum sprint length requirement | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L241) | |
 | heimdall stake: CometBFT validator set matches Heimdall active validator set | [Link](./tests/heimdall/stake/validator-set-safety.bats#L411) | |

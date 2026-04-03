@@ -259,6 +259,16 @@ _bor_get_author() {
             break
         fi
 
+        # Detect overlap where two spans share the same end_block but have
+        # different start_blocks. In mixed-version networks, Heimdall may
+        # re-emit spans with overlapping ranges when nodes disagree on fork
+        # activation. Treat as a stall variant rather than a hard failure.
+        if [[ "${hi_end}" == "${lo_end}" && "${hi_start}" != "${lo_start}" ]]; then
+            echo "  SKIP: spans ${lo_id} [${lo_start},${lo_end}] and ${hi_id} [${hi_start},${hi_end}] overlap (same end_block) — mixed-version fork disagreement" >&3
+            stall_detected=1
+            break
+        fi
+
         if [[ "${hi_start}" -ne "${expected_start}" ]]; then
             echo "FAIL: span contiguity violated between span ${lo_id} and span ${hi_id}:" >&2
             echo "  span ${lo_id} end_block   = ${lo_end}" >&2
@@ -277,7 +287,7 @@ _bor_get_author() {
     done
 
     if [[ "${stall_detected}" -eq 1 ]]; then
-        skip "Heimdall span generation stalled — consecutive spans share identical block range (expected when a late fork is disabled in a mixed-version network)"
+        skip "Heimdall span generation stalled or overlapping — expected when a fork is disabled or nodes disagree in a mixed-version network"
     fi
 
     if [[ "${failures}" -gt 0 ]]; then

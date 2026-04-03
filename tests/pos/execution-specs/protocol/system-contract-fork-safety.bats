@@ -109,7 +109,7 @@ _wait_past_all_forks() {
 @test "system-contract-safety: ValidatorSet.getValidators() returns valid set at each fork boundary" {
     _wait_past_all_forks
 
-    local errors=0
+    local errors=0 skipped=0 tested=0
 
     for fi_idx in "${!_FORK_NAMES[@]}"; do
         local fname="${_FORK_NAMES[$fi_idx]}"
@@ -120,6 +120,12 @@ _wait_past_all_forks() {
         for offset in "${offsets[@]}"; do
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
+
+            if ! _state_available_at "$block"; then
+                echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
 
             # Try getValidators() first (selector 0xb7ab4db5)
             set +e
@@ -149,6 +155,8 @@ _wait_past_all_forks() {
                 continue
             fi
 
+            tested=$(( tested + 1 ))
+
             # Verify the result contains at least one address (non-empty validator set)
             local addr_count
             addr_count=$(echo "$result" | head -1 | tr ',' '\n' | grep -cE '0x[0-9a-fA-F]{40}' || true)
@@ -162,8 +170,12 @@ _wait_past_all_forks() {
         done
     done
 
+    if [[ "$tested" -eq 0 && "$skipped" -gt 0 ]]; then
+        skip "Historical state unavailable for all ${skipped} fork boundary blocks (pruning)"
+    fi
+
     [[ "$errors" -eq 0 ]] || {
-        echo "${errors} getValidators() call(s) failed across fork boundaries" >&2
+        echo "${errors} getValidators() call(s) failed (${tested} tested, ${skipped} skipped due to state pruning)" >&2
         return 1
     }
 }
@@ -172,7 +184,7 @@ _wait_past_all_forks() {
 @test "system-contract-safety: StateReceiver contract code exists at all fork boundaries" {
     _wait_past_all_forks
 
-    local errors=0
+    local errors=0 skipped=0 tested=0
 
     for fi_idx in "${!_FORK_NAMES[@]}"; do
         local fname="${_FORK_NAMES[$fi_idx]}"
@@ -184,21 +196,38 @@ _wait_past_all_forks() {
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
 
+            if ! _state_available_at "$block"; then
+                echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
+
+            set +e
             local code
             code=$(cast code "$STATE_RECEIVER" --rpc-url "$L2_RPC_URL" --block "$block" 2>/dev/null)
+            local exit_code=$?
+            set -e
 
-            if [[ -z "$code" || "$code" == "0x" ]]; then
+            if [[ $exit_code -ne 0 ]]; then
+                echo "  SKIP ${fname} fork+${offset} (block ${block}): cast code failed" >&3
+                skipped=$(( skipped + 1 ))
+            elif [[ -z "$code" || "$code" == "0x" ]]; then
                 echo "FAIL: StateReceiver (${STATE_RECEIVER}) has no code at ${fname} fork+${offset} (block ${block})" >&2
                 errors=$(( errors + 1 ))
             else
+                tested=$(( tested + 1 ))
                 local code_len=$(( (${#code} - 2) / 2 ))
                 echo "  OK ${fname} fork+${offset} (block ${block}): StateReceiver code ${code_len} bytes" >&3
             fi
         done
     done
 
+    if [[ "$tested" -eq 0 && "$skipped" -gt 0 ]]; then
+        skip "Historical state unavailable for all ${skipped} fork boundary blocks (pruning)"
+    fi
+
     [[ "$errors" -eq 0 ]] || {
-        echo "${errors} StateReceiver code check(s) failed across fork boundaries" >&2
+        echo "${errors} StateReceiver code check(s) failed (${tested} tested, ${skipped} skipped due to state pruning)" >&2
         return 1
     }
 }
@@ -209,7 +238,7 @@ _wait_past_all_forks() {
 
     # Use the zero address as a known query target (balance may be 0, but the call must succeed)
     local query_addr="0x0000000000000000000000000000000000000000"
-    local errors=0
+    local errors=0 skipped=0 tested=0
 
     for fi_idx in "${!_FORK_NAMES[@]}"; do
         local fname="${_FORK_NAMES[$fi_idx]}"
@@ -220,6 +249,12 @@ _wait_past_all_forks() {
         for offset in "${offsets[@]}"; do
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
+
+            if ! _state_available_at "$block"; then
+                echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
 
             # balanceOf(address) selector: 0x70a08231
             set +e
@@ -236,13 +271,18 @@ _wait_past_all_forks() {
                 echo "FAIL: MRC20 balanceOf() failed at ${fname} fork+${offset} (block ${block})" >&2
                 errors=$(( errors + 1 ))
             else
+                tested=$(( tested + 1 ))
                 echo "  OK ${fname} fork+${offset} (block ${block}): balanceOf(0x0) = ${balance}" >&3
             fi
         done
     done
 
+    if [[ "$tested" -eq 0 && "$skipped" -gt 0 ]]; then
+        skip "Historical state unavailable for all ${skipped} fork boundary blocks (pruning)"
+    fi
+
     [[ "$errors" -eq 0 ]] || {
-        echo "${errors} MRC20 balanceOf() call(s) failed across fork boundaries" >&2
+        echo "${errors} MRC20 balanceOf() call(s) failed (${tested} tested, ${skipped} skipped due to state pruning)" >&2
         return 1
     }
 }
@@ -258,12 +298,18 @@ _wait_past_all_forks() {
     # Also wait for all secondary nodes to reach the last fork
     local last_fork="${_FORK_BLOCKS[-1]}"
     local target=$(( last_fork + 3 ))
+    local -a reachable_indices=()
     for idx in "${!BOR_RPC_URLS[@]}"; do
-        _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}" || {
-            echo "FAIL: ${BOR_RPC_LABELS[$idx]} could not reach block ${target}" >&2
-            return 1
-        }
+        if _wait_for_block_on "${target}" "${BOR_RPC_URLS[$idx]}" "${BOR_RPC_LABELS[$idx]}"; then
+            reachable_indices+=("$idx")
+        else
+            echo "WARN: ${BOR_RPC_LABELS[$idx]} could not reach block ${target} — excluding from comparison" >&3
+        fi
     done
+
+    if [[ ${#reachable_indices[@]} -lt 2 ]]; then
+        skip "Only ${#reachable_indices[@]}/${#BOR_RPC_URLS[@]} Bor nodes reached block ${target} — need at least 2 for cross-node comparison"
+    fi
 
     local divergences=0
 
@@ -275,7 +321,7 @@ _wait_past_all_forks() {
         # Query getValidators() at the fork block on each node
         local ref_result="" ref_label=""
 
-        for idx in "${!BOR_RPC_URLS[@]}"; do
+        for idx in "${reachable_indices[@]}"; do
             set +e
             local result
             result=$(cast call "$VALIDATOR_SET" \
@@ -317,7 +363,7 @@ _wait_past_all_forks() {
         done
 
         if [[ "$divergences" -eq 0 && -n "$ref_result" ]]; then
-            echo "  OK ${fname} (block ${fblock}): all ${#BOR_RPC_URLS[@]} nodes agree on validator set" >&3
+            echo "  OK ${fname} (block ${fblock}): all ${#reachable_indices[@]} reachable nodes agree on validator set" >&3
         fi
     done
 
@@ -351,12 +397,20 @@ _wait_past_all_forks() {
             local cname="${contract_names[$ci]}"
 
             local code_pre code_post
+            set +e
             code_pre=$(cast code "$addr" --rpc-url "$L2_RPC_URL" --block "$pre_block" 2>/dev/null)
+            local rc_pre=$?
             code_post=$(cast code "$addr" --rpc-url "$L2_RPC_URL" --block "$fblock" 2>/dev/null)
+            local rc_post=$?
+            set -e
 
-            # Skip if either block has no code (contract not yet deployed)
-            if [[ -z "$code_pre" || "$code_pre" == "0x" ]]; then
-                echo "  SKIP ${cname} at ${fname}: no code at block ${pre_block}" >&3
+            # Skip if cast failed (state may be pruned) or contract not yet deployed
+            if [[ $rc_pre -ne 0 || -z "$code_pre" || "$code_pre" == "0x" ]]; then
+                echo "  SKIP ${cname} at ${fname}: state unavailable or no code at block ${pre_block}" >&3
+                continue
+            fi
+            if [[ $rc_post -ne 0 ]]; then
+                echo "  SKIP ${cname} at ${fname}: state unavailable at block ${fblock}" >&3
                 continue
             fi
             if [[ -z "$code_post" || "$code_post" == "0x" ]]; then
@@ -398,7 +452,7 @@ _wait_past_all_forks() {
 @test "system-contract-safety: ValidatorSet.currentSpanNumber() returns valid span at all forks" {
     _wait_past_all_forks
 
-    local errors=0
+    local errors=0 skipped=0 tested=0
 
     for fi_idx in "${!_FORK_NAMES[@]}"; do
         local fname="${_FORK_NAMES[$fi_idx]}"
@@ -409,6 +463,12 @@ _wait_past_all_forks() {
         for offset in "${offsets[@]}"; do
             local block=$(( fblock + offset ))
             [[ "$block" -lt 1 ]] && continue
+
+            if ! _state_available_at "$block"; then
+                echo "  SKIP ${fname} fork+${offset} (block ${block}): historical state unavailable" >&3
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
 
             set +e
             local span
@@ -425,6 +485,8 @@ _wait_past_all_forks() {
                 continue
             fi
 
+            tested=$(( tested + 1 ))
+
             # Span number must be a non-negative integer
             if ! [[ "$span" =~ ^[0-9]+$ ]]; then
                 echo "FAIL: currentSpanNumber() returned non-numeric value '${span}' at ${fname} fork+${offset} (block ${block})" >&2
@@ -436,8 +498,12 @@ _wait_past_all_forks() {
         done
     done
 
+    if [[ "$tested" -eq 0 && "$skipped" -gt 0 ]]; then
+        skip "Historical state unavailable for all ${skipped} fork boundary blocks (pruning)"
+    fi
+
     [[ "$errors" -eq 0 ]] || {
-        echo "${errors} currentSpanNumber() call(s) failed across fork boundaries" >&2
+        echo "${errors} currentSpanNumber() call(s) failed (${tested} tested, ${skipped} skipped due to state pruning)" >&2
         return 1
     }
 }

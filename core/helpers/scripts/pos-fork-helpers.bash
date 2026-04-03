@@ -192,6 +192,22 @@ _setup_fork_env() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Historical state availability
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Check if historical state is queryable at a specific block number.
+# Bor nodes with pruning enabled cannot serve eth_call/eth_getCode for blocks
+# older than the retention window (~128 blocks). This helper uses a lightweight
+# eth_getBalance probe on the zero address to detect whether state is available.
+# Returns 0 if state is available, 1 if pruned/unavailable.
+_state_available_at() {
+    local block="$1" rpc="${2:-$L2_RPC_URL}"
+    local result
+    result=$(cast balance "0x0000000000000000000000000000000000000000" \
+        --rpc-url "$rpc" --block "$block" 2>/dev/null) && [[ -n "$result" ]]
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Mixed-version KZG detection
 # ─────────────────────────────────────────────────────────────────────────────
 

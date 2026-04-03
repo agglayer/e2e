@@ -238,6 +238,11 @@ _is_nontrivial() {
     _require_min_bor "2.6.0"
     _wait_for_block_on "$((FORK_LISOVO_PRO + 1))" "$L2_RPC_URL" "L2_RPC"
 
+    # Verify historical state is available at the test blocks before proceeding.
+    if ! _state_available_at "${FORK_LISOVO_PRO}"; then
+        skip "Historical state unavailable at LisovoPro block ${FORK_LISOVO_PRO} (pruning)"
+    fi
+
     echo "Testing KZG at block ${FORK_LISOVO_PRO} (LisovoPro — KZG removed)" >&3
 
     # At LisovoPro, KZG is removed. Calling it should behave like a regular
@@ -477,7 +482,7 @@ _is_nontrivial() {
 
     echo "Comparing precompile behavior between Bor and Erigon at Lisovo boundary" >&3
 
-    local diverged=0
+    local diverged=0 compared=0 skipped=0
     local blocks_to_check=(
         "$((FORK_LISOVO - 1))"
         "${FORK_LISOVO}"
@@ -485,6 +490,16 @@ _is_nontrivial() {
     )
 
     for block in "${blocks_to_check[@]}"; do
+        # Skip blocks where either client has pruned historical state
+        if ! _state_available_at "${block}" "${L2_RPC_URL}" || \
+           ! _state_available_at "${block}" "${L2_ERIGON_RPC_URL}"; then
+            echo "  SKIP: block ${block} — historical state unavailable on one or both clients" >&3
+            ((skipped++))
+            continue
+        fi
+
+        ((compared++))
+
         # Compare KZG behavior
         local bor_kzg erigon_kzg
         bor_kzg=$(_call_at_block "${KZG_ADDR}" "0x" "${block}" "${L2_RPC_URL}")
@@ -514,11 +529,15 @@ _is_nontrivial() {
         fi
     done
 
+    if [[ "${compared}" -eq 0 && "${skipped}" -gt 0 ]]; then
+        skip "Historical state unavailable on one or both clients for all Lisovo boundary blocks"
+    fi
+
     if [[ "${diverged}" -eq 1 ]]; then
         echo "FAIL: Bor and Erigon disagree on precompile behavior at Lisovo boundary" >&2
         echo "  This indicates a consensus-critical precompile activation mismatch" >&2
         return 1
     fi
 
-    echo "OK: Bor and Erigon agree on all precompile results at Lisovo boundary" >&3
+    echo "OK: Bor and Erigon agree on all precompile results at Lisovo boundary (compared=${compared}, skipped=${skipped})" >&3
 }

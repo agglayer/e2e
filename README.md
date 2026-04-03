@@ -274,6 +274,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - contract-creation
 - correctness
 - count
+- critical
 - cross-client
 - cross-node
 - cumulative-gas
@@ -312,6 +313,10 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - fee-delay
 - filter-leak
 - finality
+- fix1
+- fix3
+- fix4
+- fix5
 - forced-txs
 - fork-activation
 - fork-transition
@@ -397,6 +402,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - s0
 - s1
 - safety
+- sanity
 - selfdestruct
 - sender-ordering
 - sequential
