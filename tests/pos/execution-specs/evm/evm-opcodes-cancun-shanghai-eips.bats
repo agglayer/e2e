@@ -5,13 +5,7 @@ setup() {
     load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 1ether
 }
 
 # Helper: deploy a contract from runtime hex, return address via $contract_addr

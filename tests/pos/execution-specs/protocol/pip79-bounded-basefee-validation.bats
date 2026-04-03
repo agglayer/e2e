@@ -293,16 +293,7 @@ _is_lisovo_active() {
 
 # bats test_tags=execution-specs,pip79,lisovo,basefee,stress
 @test "baseFee stays within ±5% bounds under transaction load" {
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    local ephemeral_private_key
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    local ephemeral_address
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-
-    # Fund the ephemeral wallet
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
-        --legacy --gas-limit 21000 --value 2ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 2ether
 
     local before_block
     before_block=$(cast block-number --rpc-url "$L2_RPC_URL")
@@ -461,15 +452,7 @@ _is_lisovo_active() {
 # bats test_tags=execution-specs,pip79,lisovo,basefee
 @test "BASEFEE opcode returns value matching block header baseFeePerGas" {
     # Deploy a contract that uses the BASEFEE opcode (0x48) and stores result.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    local ephemeral_private_key
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    local ephemeral_address
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
-        --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     # Runtime: BASEFEE PUSH1 0x00 SSTORE STOP
     # BASEFEE = 0x48

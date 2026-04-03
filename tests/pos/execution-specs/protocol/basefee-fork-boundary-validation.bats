@@ -82,16 +82,16 @@ _get_block_data() {
 
 # bats test_tags=execution-specs,basefee,fork-activation
 @test "basefee-fork: base fee is non-zero at all fork boundaries" {
-    # Collect all fork blocks that are above genesis.
+    # Collect all fork blocks that are above genesis and not disabled (999999999).
     local -a fork_blocks=()
-    [[ "${FORK_RIO}" -gt 0 ]] && fork_blocks+=("${FORK_RIO}")
-    [[ "${FORK_DANDELI}" -gt 0 ]] && fork_blocks+=("${FORK_DANDELI}")
-    [[ "${FORK_LISOVO}" -gt 0 ]] && fork_blocks+=("${FORK_LISOVO}")
-    [[ "${FORK_LISOVO_PRO}" -gt 0 ]] && fork_blocks+=("${FORK_LISOVO_PRO}")
-    [[ "${FORK_GIUGLIANO}" -gt 0 ]] && fork_blocks+=("${FORK_GIUGLIANO}")
+    [[ "${FORK_RIO}" -gt 0 && "${FORK_RIO}" -lt 999999999 ]] && fork_blocks+=("${FORK_RIO}")
+    [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt 999999999 ]] && fork_blocks+=("${FORK_DANDELI}")
+    [[ "${FORK_LISOVO}" -gt 0 && "${FORK_LISOVO}" -lt 999999999 ]] && fork_blocks+=("${FORK_LISOVO}")
+    [[ "${FORK_LISOVO_PRO}" -gt 0 && "${FORK_LISOVO_PRO}" -lt 999999999 ]] && fork_blocks+=("${FORK_LISOVO_PRO}")
+    [[ "${FORK_GIUGLIANO}" -gt 0 && "${FORK_GIUGLIANO}" -lt 999999999 ]] && fork_blocks+=("${FORK_GIUGLIANO}")
 
     if [[ "${#fork_blocks[@]}" -eq 0 ]]; then
-        skip "All forks are at genesis -- no boundaries to check"
+        skip "All forks are at genesis or disabled -- no boundaries to check"
     fi
 
     # Wait for chain to reach the last fork block.
@@ -135,18 +135,18 @@ _get_block_data() {
     # Spot-check base fee at fork boundaries, mid-fork blocks, and recent blocks.
     local -a check_blocks=()
 
-    # Fork boundary blocks
-    [[ "${FORK_RIO}" -gt 0 ]] && check_blocks+=("${FORK_RIO}")
-    [[ "${FORK_DANDELI}" -gt 0 ]] && check_blocks+=("${FORK_DANDELI}")
-    [[ "${FORK_LISOVO}" -gt 0 ]] && check_blocks+=("${FORK_LISOVO}")
-    [[ "${FORK_LISOVO_PRO}" -gt 0 ]] && check_blocks+=("${FORK_LISOVO_PRO}")
-    [[ "${FORK_GIUGLIANO}" -gt 0 ]] && check_blocks+=("${FORK_GIUGLIANO}")
+    # Fork boundary blocks (exclude disabled forks at 999999999)
+    [[ "${FORK_RIO}" -gt 0 && "${FORK_RIO}" -lt 999999999 ]] && check_blocks+=("${FORK_RIO}")
+    [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt 999999999 ]] && check_blocks+=("${FORK_DANDELI}")
+    [[ "${FORK_LISOVO}" -gt 0 && "${FORK_LISOVO}" -lt 999999999 ]] && check_blocks+=("${FORK_LISOVO}")
+    [[ "${FORK_LISOVO_PRO}" -gt 0 && "${FORK_LISOVO_PRO}" -lt 999999999 ]] && check_blocks+=("${FORK_LISOVO_PRO}")
+    [[ "${FORK_GIUGLIANO}" -gt 0 && "${FORK_GIUGLIANO}" -lt 999999999 ]] && check_blocks+=("${FORK_GIUGLIANO}")
 
     # Mid-fork sample blocks (between fork boundaries)
-    if [[ "${FORK_RIO}" -gt 0 && "${FORK_DANDELI}" -gt "${FORK_RIO}" ]]; then
+    if [[ "${FORK_RIO}" -gt 0 && "${FORK_RIO}" -lt 999999999 && "${FORK_DANDELI}" -gt "${FORK_RIO}" && "${FORK_DANDELI}" -lt 999999999 ]]; then
         check_blocks+=("$(( (FORK_RIO + FORK_DANDELI) / 2 ))")
     fi
-    if [[ "${FORK_DANDELI}" -gt 0 && "${FORK_LISOVO}" -gt "${FORK_DANDELI}" ]]; then
+    if [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt 999999999 && "${FORK_LISOVO}" -gt "${FORK_DANDELI}" && "${FORK_LISOVO}" -lt 999999999 ]]; then
         check_blocks+=("$(( (FORK_DANDELI + FORK_LISOVO) / 2 ))")
     fi
 
@@ -468,14 +468,14 @@ _get_block_data() {
     fi
 
     local -a fork_blocks=()
-    [[ "${FORK_RIO}" -gt 0 ]] && fork_blocks+=("${FORK_RIO}")
-    [[ "${FORK_DANDELI}" -gt 0 ]] && fork_blocks+=("${FORK_DANDELI}")
-    [[ "${FORK_LISOVO}" -gt 0 ]] && fork_blocks+=("${FORK_LISOVO}")
-    [[ "${FORK_LISOVO_PRO}" -gt 0 ]] && fork_blocks+=("${FORK_LISOVO_PRO}")
-    [[ "${FORK_GIUGLIANO}" -gt 0 ]] && fork_blocks+=("${FORK_GIUGLIANO}")
+    [[ "${FORK_RIO}" -gt 0 && "${FORK_RIO}" -lt 999999999 ]] && fork_blocks+=("${FORK_RIO}")
+    [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt 999999999 ]] && fork_blocks+=("${FORK_DANDELI}")
+    [[ "${FORK_LISOVO}" -gt 0 && "${FORK_LISOVO}" -lt 999999999 ]] && fork_blocks+=("${FORK_LISOVO}")
+    [[ "${FORK_LISOVO_PRO}" -gt 0 && "${FORK_LISOVO_PRO}" -lt 999999999 ]] && fork_blocks+=("${FORK_LISOVO_PRO}")
+    [[ "${FORK_GIUGLIANO}" -gt 0 && "${FORK_GIUGLIANO}" -lt 999999999 ]] && fork_blocks+=("${FORK_GIUGLIANO}")
 
     if [[ "${#fork_blocks[@]}" -eq 0 ]]; then
-        skip "All forks at genesis -- no boundaries to compare"
+        skip "All forks at genesis or disabled -- no boundaries to compare"
     fi
 
     # Wait for both clients to reach past the last fork block.
@@ -529,14 +529,14 @@ _get_block_data() {
     # A sudden spike or crash at a fork block indicates misconfigured activation.
 
     local -a fork_blocks=()
-    [[ "${FORK_RIO}" -gt 0 ]] && fork_blocks+=("${FORK_RIO}")
-    [[ "${FORK_DANDELI}" -gt 0 ]] && fork_blocks+=("${FORK_DANDELI}")
-    [[ "${FORK_LISOVO}" -gt 0 ]] && fork_blocks+=("${FORK_LISOVO}")
-    [[ "${FORK_LISOVO_PRO}" -gt 0 ]] && fork_blocks+=("${FORK_LISOVO_PRO}")
-    [[ "${FORK_GIUGLIANO}" -gt 0 ]] && fork_blocks+=("${FORK_GIUGLIANO}")
+    [[ "${FORK_RIO}" -gt 0 && "${FORK_RIO}" -lt 999999999 ]] && fork_blocks+=("${FORK_RIO}")
+    [[ "${FORK_DANDELI}" -gt 0 && "${FORK_DANDELI}" -lt 999999999 ]] && fork_blocks+=("${FORK_DANDELI}")
+    [[ "${FORK_LISOVO}" -gt 0 && "${FORK_LISOVO}" -lt 999999999 ]] && fork_blocks+=("${FORK_LISOVO}")
+    [[ "${FORK_LISOVO_PRO}" -gt 0 && "${FORK_LISOVO_PRO}" -lt 999999999 ]] && fork_blocks+=("${FORK_LISOVO_PRO}")
+    [[ "${FORK_GIUGLIANO}" -gt 0 && "${FORK_GIUGLIANO}" -lt 999999999 ]] && fork_blocks+=("${FORK_GIUGLIANO}")
 
     if [[ "${#fork_blocks[@]}" -eq 0 ]]; then
-        skip "All forks at genesis -- no boundaries to check"
+        skip "All forks at genesis or disabled -- no boundaries to check"
     fi
 
     local max_fork=0

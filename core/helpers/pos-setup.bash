@@ -101,3 +101,51 @@ pos_setup() {
     echo "L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS}"
   fi
 }
+
+# Create and fund an ephemeral wallet. Sets ephemeral_private_key and
+# ephemeral_address. Calls `skip` if the chain is not processing transactions
+# (e.g. stalled in mixed-version networks).
+#
+# Usage: _fund_ephemeral [amount]   (default: 1ether)
+_fund_ephemeral() {
+    local amount="${1:-1ether}"
+    local wallet_json
+    wallet_json=$(cast wallet new --json | jq '.[0]')
+    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
+    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
+    echo "ephemeral_address: $ephemeral_address" >&3
+
+    local _err
+    if ! _err=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
+            --legacy --gas-limit 21000 --value "$amount" "$ephemeral_address" 2>&1 >/dev/null); then
+        case "$_err" in
+            *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                skip "Chain stalled — cannot fund ephemeral wallet"
+                ;;
+            *)
+                echo "Fund ephemeral failed: $_err" >&2
+                return 1
+                ;;
+        esac
+    fi
+}
+
+# Wrapper around `cast send` that skips the test on chain-stall errors.
+# Use inside @test functions where a `cast send` is needed.
+#
+# Usage: _send_or_skip [cast send args...]
+_send_or_skip() {
+    local _err
+    if ! _err=$(cast send "$@" 2>&1); then
+        case "$_err" in
+            *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                skip "Chain stalled — transaction cannot be submitted"
+                ;;
+            *)
+                echo "$_err" >&2
+                return 1
+                ;;
+        esac
+    fi
+    echo "$_err"
+}

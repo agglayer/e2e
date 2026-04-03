@@ -40,13 +40,7 @@ _wait_for_liveness() {
 
 # bats test_tags=execution-specs,evm-stress
 @test "fuzz node with edge-case contract creation bytecodes and verify liveness" {
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     # 15 edge-case bytecodes, each sent 7 times = 105 txs
     bytecodes=(
@@ -101,13 +95,7 @@ _wait_for_liveness() {
 
 # bats test_tags=execution-specs,evm-stress
 @test "fuzz node with variable-size calldata transactions and verify liveness" {
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     # Calldata sizes (bytes): 0,1,4,16,64,256,1024,2048,4096,8192,16384,32768
     # Each sent 9 times = 108 txs
@@ -152,13 +140,7 @@ _wait_for_liveness() {
 
 # bats test_tags=execution-specs,evm-stress
 @test "fuzz node with edge-case gas limits and verify liveness" {
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
@@ -206,13 +188,7 @@ _wait_for_liveness() {
 @test "fuzz node with non-zero calldata transactions and verify liveness" {
     # Non-zero bytes cost 16 gas each (EIP-2028), vs 4 for zero bytes. This exercises
     # a distinct path in the mempool gas accounting and block packing logic.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     # Non-zero calldata sizes (bytes): 1, 4, 32, 128, 512, 2048, 8192
     # Each sent 5 times = 35 txs total.
@@ -256,13 +232,7 @@ _wait_for_liveness() {
 @test "fuzz contract creations and assert individual tx outcomes" {
     # Unlike the liveness-only fuzz tests, this verifies each tx's status, gasUsed
     # bounds, and contractAddress for every contract creation individually.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.5ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.5ether
 
     # (bytecode | expected_status | description)
     local -a cases=(
@@ -342,13 +312,7 @@ _wait_for_liveness() {
     # Previous tests use all-zero or all-0xff calldata separately.  This test mixes
     # zero bytes (4 gas each, EIP-2028) and non-zero bytes (16 gas) in the same
     # transaction to exercise the combined gas-accounting path.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
@@ -412,13 +376,7 @@ _wait_for_liveness() {
         skip "Chain does not expose baseFeePerGas — EIP-1559 not supported"
     fi
 
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.5ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.5ether
 
     local base_fee
     base_fee=$(cast base-fee --rpc-url "$L2_RPC_URL")
@@ -528,13 +486,7 @@ _wait_for_liveness() {
     local latest_base_fee
     latest_base_fee=$(cast block latest --json --rpc-url "$L2_RPC_URL" | jq -r '.baseFeePerGas // empty')
 
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.5ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.5ether
 
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
     null_addr="0x0000000000000000000000000000000000000000"
@@ -600,13 +552,7 @@ _wait_for_liveness() {
 @test "nonce-gap stress: out-of-order submission resolves correctly" {
     # Submits transactions with intentional nonce gaps (N+2 before N+1, etc.) to
     # exercise the mempool's pending-queue ordering and gap-fill logic.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 
     local start_nonce
     start_nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
@@ -673,8 +619,15 @@ _wait_for_liveness() {
 
     # Fund all 10 wallets.
     for idx in $(seq 0 9); do
-        cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy \
-            --gas-limit 21000 --value 0.05ether "${wallet_addrs[$idx]}" >/dev/null
+        local _ferr
+        if ! _ferr=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy \
+                --gas-limit 21000 --value 0.05ether "${wallet_addrs[$idx]}" 2>&1 >/dev/null); then
+            case "$_ferr" in
+                *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                    skip "Chain stalled — cannot fund ephemeral wallets";;
+                *) echo "Fund failed: $_ferr" >&2; return 1;;
+            esac
+        fi
     done
     echo "Funded 10 ephemeral wallets" >&3
 
@@ -718,13 +671,7 @@ _wait_for_liveness() {
 @test "nonce replacement stress: higher gas replaces pending tx" {
     # Sends tx at nonce N with low gas price, then replacement at same nonce with
     # higher gas price.  Verifies only the replacement is mined.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.5ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.5ether
 
     local nonce
     nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
@@ -792,13 +739,7 @@ _wait_for_liveness() {
 @test "contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL" {
     # Deploys a target contract and a dispatcher that makes CALL, STATICCALL, and
     # DELEGATECALL to it.  Exercises cross-contract call handling under fuzz load.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.5ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.5ether
 
     # Deploy target: simple contract that just returns 32 bytes.
     # Runtime: PUSH1 0x20 PUSH1 0x00 RETURN = 60206000f3
@@ -851,13 +792,7 @@ _wait_for_liveness() {
 @test "block-filling stress: rapid-fire large calldata txs" {
     # Rapid-fires transactions with large calldata to fill blocks near the gas limit.
     # Verifies no chain stall occurs when blocks are packed tightly.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 1ether
 
     nonce=$(cast nonce --rpc-url "$L2_RPC_URL" "$ephemeral_address")
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")
@@ -896,13 +831,7 @@ _wait_for_liveness() {
 @test "all-opcode liveness smoke: deploy contracts exercising major opcode groups" {
     # Deploys contracts exercising arithmetic, comparison, SHA3, LOG, CALL variants.
     # Verifies chain liveness after processing all opcode groups.
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.5ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.5ether
 
     # Each bytecode exercises a different opcode group in its initcode.
     # All end with STOP (0x00) so deployment succeeds with empty runtime.

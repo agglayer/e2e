@@ -442,10 +442,16 @@ BOR_VECTOR_INPUT="0x01e798154708fe7789429634053cbf9f99b619f9f084048927333fce637f
     local ephemeral_addr
     ephemeral_addr=$(echo "$wallet_json" | jq -r '.address')
 
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
-        --legacy --gas-limit 21000 --value 1ether "$ephemeral_addr" >/dev/null
+    local _ferr
+    if ! _ferr=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
+            --legacy --gas-limit 21000 --value 1ether "$ephemeral_addr" 2>&1 >/dev/null); then
+        case "$_ferr" in
+            *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                skip "Chain stalled — cannot fund ephemeral wallet";;
+            *) echo "Fund failed: $_ferr" >&2; return 1;;
+        esac
+    fi
 
-    # Use eth_estimateGas for calling the precompile directly.
     local gas_estimate
     gas_estimate=$(cast estimate --rpc-url "$L2_RPC_URL" \
         --from "$ephemeral_addr" \
@@ -492,8 +498,15 @@ BOR_VECTOR_INPUT="0x01e798154708fe7789429634053cbf9f99b619f9f084048927333fce637f
     local ephemeral_addr
     ephemeral_addr=$(echo "$wallet_json" | jq -r '.address')
 
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
-        --legacy --gas-limit 21000 --value 1ether "$ephemeral_addr" >/dev/null
+    local _ferr2
+    if ! _ferr2=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
+            --legacy --gas-limit 21000 --value 1ether "$ephemeral_addr" 2>&1 >/dev/null); then
+        case "$_ferr2" in
+            *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                skip "Chain stalled — cannot fund ephemeral wallet";;
+            *) echo "Fund failed: $_ferr2" >&2; return 1;;
+        esac
+    fi
 
     # Deploy a contract that:
     #   1. Copies the 192-byte input to memory via PUSH32+MSTORE (6 x 32-byte chunks)

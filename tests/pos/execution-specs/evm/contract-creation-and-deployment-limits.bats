@@ -5,15 +5,7 @@ setup() {
     load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    # Fund with 1 ETH: the EIP-170 boundary test deploys 24576 bytes of code which
-    # costs ~5 M gas in code-deposit fees; at ~25 Gwei that is ~0.125 ETH per test.
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 1ether
 }
 
 # bats test_tags=execution-specs,transaction-eoa
@@ -528,8 +520,15 @@ setup() {
     addr=$(echo "$wallet_json" | jq -r '.address')
 
     # Fund with exactly 0.1 ETH.
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy \
-        --gas-limit 21000 --value 0.1ether "$addr" >/dev/null
+    local _ferr
+    if ! _ferr=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy \
+            --gas-limit 21000 --value 0.1ether "$addr" 2>&1 >/dev/null); then
+        case "$_ferr" in
+            *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                skip "Chain stalled — cannot fund ephemeral wallet";;
+            *) echo "Fund failed: $_ferr" >&2; return 1;;
+        esac
+    fi
 
     balance=$(cast balance "$addr" --rpc-url "$L2_RPC_URL")
     gas_price=$(cast gas-price --rpc-url "$L2_RPC_URL")

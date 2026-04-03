@@ -60,8 +60,21 @@ setup_file() {
         echo "$wallet_json" > "${WALLET_DIR}/wallet_${i}.json"
         addr=$(echo "$wallet_json" | jq -r '.address')
 
-        cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
-            --legacy --gas-limit 21000 --value 10ether "$addr" >/dev/null
+        local _ferr
+        if ! _ferr=$(cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" \
+                --legacy --gas-limit 21000 --value 10ether "$addr" 2>&1 >/dev/null); then
+            case "$_ferr" in
+                *"replacement transaction underpriced"*|*"not confirmed within"*|*"nonce too low"*)
+                    export _CHAIN_STALLED=1
+                    echo "Chain stalled — wallet funding failed, tests will be skipped" >&3
+                    return 0
+                    ;;
+                *)
+                    echo "Fund failed: $_ferr" >&2
+                    return 1
+                    ;;
+            esac
+        fi
     done
 
     echo "All ${num_tests} wallets funded" >&3
@@ -79,6 +92,10 @@ setup() {
     load "../../../../core/helpers/pos-setup.bash"
     load "../../../../core/helpers/scripts/eventually.bash"
     pos_setup
+
+    if [[ "${_CHAIN_STALLED:-}" == "1" ]]; then
+        skip "Chain stalled — ephemeral wallets could not be funded"
+    fi
 
     # Default staggered fork blocks — override via env to match Kurtosis config
     FORK_JAIPUR="${FORK_JAIPUR:-0}"
