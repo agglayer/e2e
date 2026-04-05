@@ -148,9 +148,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 0x08 ecPairing (alt_bn128): empty input returns 1 (trivial pairing check) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L316) | |
 | 0x09 blake2F: EIP-152 test vector 5 (12 rounds, 'abc' message) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L325) | |
 | 0x0a KZG point evaluation: active on Cancun+ (rejects invalid input) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L363) | |
-| 0x0a KZG: removed after LisovoPro — BALANCE charges cold gas (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L241) | |
-| 0x0a KZG: removed after LisovoPro — EXTCODESIZE charges cold gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L265) | |
-| 0x0a KZG: removed after LisovoPro — eth_call returns empty | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L215) | |
+| 0x0a KZG: removed after LisovoPro — BALANCE charges cold gas (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L235) | |
+| 0x0a KZG: removed after LisovoPro — EXTCODESIZE charges cold gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L259) | |
+| 0x0a KZG: removed after LisovoPro — eth_call returns empty | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L209) | |
 | 0x0b BLS12-381 G1 Add: identity + G equals G (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L378) | |
 | 0x0c BLS12-381 G1 MSM: scalar-1 times G equals G (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L399) | |
 | 0x0d BLS12-381 G2 Add: identity + G2 equals G2 (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L417) | |
@@ -158,115 +158,115 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | 0x0f BLS12-381 Pairing: e(G1_infinity, G2) returns 1 (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L462) | |
 | 0x10 BLS12-381 MapFpToG1: Fp element 1 maps to a non-trivial G1 point (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L485) | |
 | 0x11 BLS12-381 MapFp2ToG2: Fp2 element (0,1) maps to a non-trivial G2 point (Prague+) | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L504) | |
-| 1.2: BALANCE(0x0a) on-chain at LisovoPro — warm/cold gas baked into state root | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1361) | |
-| 1.2: BLS12-381 (0x0b–0x11) active after Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L953) | |
-| 1.2: BLS12-381 and p256Verify already active before Madhugiri (via upstream Prague) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L842) | |
-| 1.2: BLS12-381 still active at MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1033) | |
-| 1.2: KZG (0x0a) state before Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1153) | |
-| 1.2: KZG (0x0a) still inactive before Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L858) | |
-| 1.2: KZG point evaluation (0x0a) active in Lisovo era (on-chain tx) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1219) | |
-| 1.2: KZG point evaluation (0x0a) is INACTIVE at LisovoPro (known: missing from precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1320) | |
-| 1.2: all precompiles correct at Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1254) | |
-| 1.2: all precompiles correct at LisovoPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1395) | |
-| 1.2: all precompiles unchanged at Giugliano (same as LisovoPro) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1597) | |
-| 1.2: legacy precompiles (0x01–0x09) active at genesis forks | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L715) | |
-| 1.2: legacy precompiles + BLS + p256 still active at Dandeli | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1072) | |
-| 1.2: legacy precompiles still active at Rio | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L805) | |
-| 1.2: modexp (0x05) correctness at Madhugiri (EIP-7823/7883) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L973) | |
-| 1.2: p256Verify (0x0100) active after MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1025) | |
-| 1.2: p256Verify (0x0100) is DROPPED at Madhugiri (known: missing from Madhugiri precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L936) | |
-| 1.2: p256Verify (0x0100) still inactive in Madhugiri era (before MadhugiriPro re-adds it) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1008) | |
-| 1.3: Agra — PUSH0 opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L565) | |
-| 1.3: Agra — initcode size limit enforced (EIP-3860) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L585) | |
-| 1.3: Ahmedabad — contract > 24KB deploys successfully after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L673) | |
-| 1.3: Ahmedabad — contract > 32KB fails to deploy | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L689) | |
-| 1.3: Dandeli — base fee dynamics change with 65% gas target | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1049) | |
-| 1.3: Giugliano — base fee remains non-zero through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1630) | |
-| 1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1471) | |
-| 1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1519) | |
-| 1.3: Giugliano — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1453) | |
-| 1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1559) | |
-| 1.3: Lisovo — CLZ opcode reverts in transaction before fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1136) | |
-| 1.3: Lisovo — CLZ opcode succeeds and returns correct value after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1195) | |
-| 1.3: LisovoPro — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1306) | |
-| 1.3: Madhugiri — transaction at exactly 33554432 gas is accepted | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L924) | |
-| 1.3: Madhugiri — transaction with gas > 33554432 is rejected (EIP-7825) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L901) | |
-| 1.3: Napoli — MCOPY opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L619) | |
-| 1.3: Napoli — SELFDESTRUCT no longer removes code (EIP-6780) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L650) | |
-| 1.3: Napoli — TSTORE/TLOAD succeed and produce correct state after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L634) | |
-| 1.3: Rio — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L786) | |
-| 1.3: SHA-256 precompile gas stable across Madhugiri boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L985) | |
-| 1.3: base fee exists and is non-zero across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1693) | |
-| 1.3: blake2F precompile gas stable across Dandeli boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1099) | |
-| 1.3: ecRecover precompile gas stable across Lisovo boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1282) | |
-| 1.3: no reorgs at fork boundaries — parent hashes are consistent | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1651) | |
-| 1.3: timestamps strictly increasing across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1673) | |
-| 50 concurrent eth_blockNumber requests all succeed and return consistent values | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L14) | |
-| 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L58) | |
-| 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L103) | |
-| 50 concurrent requests across additional RPC methods succeed | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L316) | |
-| ADDMOD and MULMOD compute correctly | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L964) | |
-| ADDRESS returns the contract's own address | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L301) | |
-| BALANCE on a random non-precompile address costs cold gas (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L188) | |
-| BALANCE on active precompile 0x01 (ecRecover) costs warm gas (~100), not cold (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L120) | |
-| BALANCE on all active precompiles costs warm gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L146) | |
-| BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L718) | |
-| BASEFEE opcode returns value matching block header baseFeePerGas | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L462) | |
-| BLOCKHASH(0) returns zero on Bor (genesis hash not available) | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L18) | |
-| BYTE opcode extracts correct byte from word | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L915) | |
+| 1.2: BALANCE(0x0a) on-chain at LisovoPro — warm/cold gas baked into state root | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1383) | |
+| 1.2: BLS12-381 (0x0b–0x11) active after Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L975) | |
+| 1.2: BLS12-381 and p256Verify already active before Madhugiri (via upstream Prague) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L864) | |
+| 1.2: BLS12-381 still active at MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1055) | |
+| 1.2: KZG (0x0a) state before Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1175) | |
+| 1.2: KZG (0x0a) still inactive before Madhugiri | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L880) | |
+| 1.2: KZG point evaluation (0x0a) active in Lisovo era (on-chain tx) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1241) | |
+| 1.2: KZG point evaluation (0x0a) is INACTIVE at LisovoPro (known: missing from precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1342) | |
+| 1.2: all precompiles correct at Lisovo | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1276) | |
+| 1.2: all precompiles correct at LisovoPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1417) | |
+| 1.2: all precompiles unchanged at Giugliano (same as LisovoPro) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1619) | |
+| 1.2: legacy precompiles (0x01–0x09) active at genesis forks | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L737) | |
+| 1.2: legacy precompiles + BLS + p256 still active at Dandeli | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1094) | |
+| 1.2: legacy precompiles still active at Rio | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L827) | |
+| 1.2: modexp (0x05) correctness at Madhugiri (EIP-7823/7883) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L995) | |
+| 1.2: p256Verify (0x0100) active after MadhugiriPro | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1047) | |
+| 1.2: p256Verify (0x0100) is DROPPED at Madhugiri (known: missing from Madhugiri precompile table) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L958) | |
+| 1.2: p256Verify (0x0100) still inactive in Madhugiri era (before MadhugiriPro re-adds it) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1030) | |
+| 1.3: Agra — PUSH0 opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L587) | |
+| 1.3: Agra — initcode size limit enforced (EIP-3860) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L607) | |
+| 1.3: Ahmedabad — contract > 24KB deploys successfully after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L695) | |
+| 1.3: Ahmedabad — contract > 32KB fails to deploy | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L711) | |
+| 1.3: Dandeli — base fee dynamics change with 65% gas target | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1071) | |
+| 1.3: Giugliano — base fee remains non-zero through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1652) | |
+| 1.3: Giugliano — bor_getBlockGasParams returns gasTarget and baseFeeChangeDenominator | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1493) | |
+| 1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1541) | |
+| 1.3: Giugliano — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1475) | |
+| 1.3: Giugliano — gasTarget is consistent with gasLimit and target percentage | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1581) | |
+| 1.3: Lisovo — CLZ opcode reverts in transaction before fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1158) | |
+| 1.3: Lisovo — CLZ opcode succeeds and returns correct value after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1217) | |
+| 1.3: LisovoPro — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1328) | |
+| 1.3: Madhugiri — transaction at exactly 33554432 gas is accepted | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L946) | |
+| 1.3: Madhugiri — transaction with gas > 33554432 is rejected (EIP-7825) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L923) | |
+| 1.3: Napoli — MCOPY opcode succeeds in transaction after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L641) | |
+| 1.3: Napoli — SELFDESTRUCT no longer removes code (EIP-6780) | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L672) | |
+| 1.3: Napoli — TSTORE/TLOAD succeed and produce correct state after fork | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L656) | |
+| 1.3: Rio — chain progresses smoothly through fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L808) | |
+| 1.3: SHA-256 precompile gas stable across Madhugiri boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1007) | |
+| 1.3: base fee exists and is non-zero across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1715) | |
+| 1.3: blake2F precompile gas stable across Dandeli boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1121) | |
+| 1.3: ecRecover precompile gas stable across Lisovo boundary | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1304) | |
+| 1.3: no reorgs at fork boundaries — parent hashes are consistent | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1673) | |
+| 1.3: timestamps strictly increasing across all fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats#L1695) | |
+| 50 concurrent eth_blockNumber requests all succeed and return consistent values | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L15) | |
+| 50 concurrent eth_getBalance requests all return valid results | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L59) | |
+| 50 concurrent eth_getLogs requests all return valid arrays | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L104) | |
+| 50 concurrent requests across additional RPC methods succeed | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L312) | |
+| ADDMOD and MULMOD compute correctly | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L959) | |
+| ADDRESS returns the contract's own address | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L296) | |
+| BALANCE on a random non-precompile address costs cold gas (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L182) | |
+| BALANCE on active precompile 0x01 (ecRecover) costs warm gas (~100), not cold (2600) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L114) | |
+| BALANCE on all active precompiles costs warm gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L140) | |
+| BASEFEE opcode matches block baseFeePerGas | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L713) | |
+| BASEFEE opcode returns value matching block header baseFeePerGas | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L454) | |
+| BLOCKHASH(0) returns zero on Bor (genesis hash not available) | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L13) | |
+| BYTE opcode extracts correct byte from word | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L910) | |
 | BlockSTM: blocks with PIP-16 dependency data produce correct state | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L352) | |
 | BlockSTM: coinbase-reading transactions do not cause state corruption | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L175) | |
 | BlockSTM: high-contention storage slot does not cause chain halt | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L99) | |
 | BlockSTM: rapid same-sender nonce sequence does not cause state divergence | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L43) | |
 | BlockSTM: state roots match across multiple Bor nodes | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L260) | |
-| Bor produces blocks on approximately 2-second sprint cadence | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L237) | |
+| Bor produces blocks on approximately 2-second sprint cadence | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L232) | |
 | BorValidatorSet (0x1000) getBorValidators returns non-empty validator list | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L49) | |
 | BorValidatorSet (0x1000) has deployed code and is callable | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L21) | |
-| CALL with value to non-existent account skips G_NEW_ACCOUNT on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L57) | |
-| CALLDATASIZE returns correct input length | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L866) | |
-| CHAINID returns the correct chain ID (EIP-1344) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L282) | |
-| CLZ applied twice gives correct result | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L636) | |
-| CLZ gas cost matches MUL (both cost 5 gas) | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L345) | |
-| CLZ ignores trailing bits — only leading zeros matter | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L270) | |
-| CLZ inside STATICCALL does not modify state | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L556) | |
-| CLZ is cheaper than computing leading zeros via binary search | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L388) | |
-| CLZ of alternating bit patterns | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L289) | |
-| CLZ of consecutive values near power-of-2 boundary | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L593) | |
-| CLZ of value with only the lowest bit set in each byte | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L622) | |
-| CLZ opcode is active (feature probe) | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L113) | |
-| CLZ result can be used by subsequent arithmetic (CLZ + SHR roundtrip) | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L441) | |
-| CLZ returns correct values for all single-byte powers of 2 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L225) | |
-| CLZ returns correct values for powers of 2 across byte boundaries | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L243) | |
-| CLZ with leading zero bytes followed by non-zero byte | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L313) | |
-| CLZ works correctly inside CALL context | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L487) | |
-| CLZ works correctly inside DELEGATECALL context | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L525) | |
-| CLZ(0) returns 256 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L150) | |
-| CLZ(0x7FFF...FFFF) returns 1 — all bits set except MSB | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L213) | |
-| CLZ(1) returns 255 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L160) | |
-| CLZ(2) returns 254 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L170) | |
-| CLZ(2^254) returns 1 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L202) | |
-| CLZ(2^255) returns 0 — highest bit set | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L191) | |
-| CLZ(max uint256) returns 0 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L180) | |
-| CODESIZE returns correct runtime size | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L818) | |
-| COINBASE opcode returns block miner address | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L546) | |
-| CREATE deploys to the address predicted by cast compute-address | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L82) | |
-| CREATE with maximum value transfer in constructor | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L520) | |
-| CREATE2 address matches keccak256(0xff ++ deployer ++ salt ++ initCodeHash) | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L394) | |
-| CREATE2 deploys child to predicted salt-derived address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L207) | |
-| CREATE2 redeploy after SELFDESTRUCT in creation tx succeeds | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L321) | |
-| Calldata gas accounting: nonzero bytes cost more than zero bytes | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L629) | |
-| Contract creation receipt has contractAddress field | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1036) | |
-| Cross-contract storage isolation: two contracts store different values at slot 0 | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L1022) | |
-| DELEGATECALL preserves caller context: msg.sender stored via proxy | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L60) | |
-| EIP-1559 sender decrease equals value plus effectiveGasPrice times gasUsed | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L238) | |
-| EIP-2930 type-1 access list tx fuzz and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L523) | |
-| EXTCODEHASH correctness for EOA, deployed contract, and nonexistent account | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L238) | |
-| EXTCODEHASH for empty account returns zero on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L166) | |
-| EXTCODESIZE on active precompile 0x01 (ecRecover) costs warm gas (~100) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L134) | |
-| EXTCODESIZE on all active precompiles costs warm gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L167) | |
-| Empty batch JSON-RPC returns empty array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1114) | |
-| GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L668) | |
-| Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L606) | |
+| CALL with value to non-existent account skips G_NEW_ACCOUNT on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L52) | |
+| CALLDATASIZE returns correct input length | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L861) | |
+| CHAINID returns the correct chain ID (EIP-1344) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L277) | |
+| CLZ applied twice gives correct result | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L630) | |
+| CLZ gas cost matches MUL (both cost 5 gas) | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L339) | |
+| CLZ ignores trailing bits — only leading zeros matter | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L264) | |
+| CLZ inside STATICCALL does not modify state | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L550) | |
+| CLZ is cheaper than computing leading zeros via binary search | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L382) | |
+| CLZ of alternating bit patterns | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L283) | |
+| CLZ of consecutive values near power-of-2 boundary | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L587) | |
+| CLZ of value with only the lowest bit set in each byte | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L616) | |
+| CLZ opcode is active (feature probe) | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L107) | |
+| CLZ result can be used by subsequent arithmetic (CLZ + SHR roundtrip) | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L435) | |
+| CLZ returns correct values for all single-byte powers of 2 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L219) | |
+| CLZ returns correct values for powers of 2 across byte boundaries | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L237) | |
+| CLZ with leading zero bytes followed by non-zero byte | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L307) | |
+| CLZ works correctly inside CALL context | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L481) | |
+| CLZ works correctly inside DELEGATECALL context | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L519) | |
+| CLZ(0) returns 256 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L144) | |
+| CLZ(0x7FFF...FFFF) returns 1 — all bits set except MSB | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L207) | |
+| CLZ(1) returns 255 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L154) | |
+| CLZ(2) returns 254 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L164) | |
+| CLZ(2^254) returns 1 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L196) | |
+| CLZ(2^255) returns 0 — highest bit set | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L185) | |
+| CLZ(max uint256) returns 0 | [Link](./tests/pos/execution-specs/evm/eip7939-clz-count-leading-zeros.bats#L174) | |
+| CODESIZE returns correct runtime size | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L813) | |
+| COINBASE opcode returns block miner address | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L541) | |
+| CREATE deploys to the address predicted by cast compute-address | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L77) | |
+| CREATE with maximum value transfer in constructor | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L513) | |
+| CREATE2 address matches keccak256(0xff ++ deployer ++ salt ++ initCodeHash) | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L389) | |
+| CREATE2 deploys child to predicted salt-derived address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L200) | |
+| CREATE2 redeploy after SELFDESTRUCT in creation tx succeeds | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L316) | |
+| Calldata gas accounting: nonzero bytes cost more than zero bytes | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L624) | |
+| Contract creation receipt has contractAddress field | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1066) | |
+| Cross-contract storage isolation: two contracts store different values at slot 0 | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L1017) | |
+| DELEGATECALL preserves caller context: msg.sender stored via proxy | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L55) | |
+| EIP-1559 sender decrease equals value plus effectiveGasPrice times gasUsed | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L233) | |
+| EIP-2930 type-1 access list tx fuzz and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L482) | |
+| EXTCODEHASH correctness for EOA, deployed contract, and nonexistent account | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L233) | |
+| EXTCODEHASH for empty account returns zero on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L161) | |
+| EXTCODESIZE on active precompile 0x01 (ecRecover) costs warm gas (~100) | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L128) | |
+| EXTCODESIZE on all active precompiles costs warm gas | [Link](./tests/pos/execution-specs/precompiles/precompile-warm-cold-gas-and-removal.bats#L161) | |
+| Empty batch JSON-RPC returns empty array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1157) | |
+| GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L663) | |
+| Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L601) | |
 | KZG Bor vector: valid proof returns FIELD_ELEMENTS_PER_BLOB || BLS_MODULUS | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L98) | |
 | KZG c-kzg vector correct_proof_0_0: zero polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L113) | |
 | KZG c-kzg vector correct_proof_1_0: constant polynomial (twos) at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L133) | |
@@ -275,7 +275,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | KZG c-kzg vector correct_proof_4_0: Bor's commitment polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L189) | |
 | KZG c-kzg vector incorrect_proof_0_0: wrong proof for zero polynomial | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L333) | |
 | KZG point evaluation precompile is active at 0x0a | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L83) | |
-| KZG precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L485) | |
+| KZG precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L491) | |
 | KZG precompile gas cost is 50000 (EIP-4844) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L435) | |
 | KZG rejects 192 bytes of all zeros | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L416) | |
 | KZG rejects corrupted proof (bit-flip in Bor vector proof) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L354) | |
@@ -289,45 +289,45 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | KZG rejects versioned hash from different commitment | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L311) | |
 | KZG rejects wrong y value (claim mismatch) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L377) | |
 | KZG rejects wrong z value (evaluation point mismatch) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L396) | |
-| KZG return value is identical across different valid proofs | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L576) | |
-| LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L305) | |
-| MCOPY basic non-overlapping copy of 32 bytes | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L150) | |
-| MCOPY overlapping backward copy (src > dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L200) | |
-| MCOPY overlapping forward copy (src < dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L176) | |
-| MCOPY to high offset triggers memory expansion and charges gas | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L246) | |
-| MCOPY with zero length is a no-op | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L223) | |
+| KZG return value is identical across different valid proofs | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L589) | |
+| LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L300) | |
+| MCOPY basic non-overlapping copy of 32 bytes | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L145) | |
+| MCOPY overlapping backward copy (src > dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L195) | |
+| MCOPY overlapping forward copy (src < dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L171) | |
+| MCOPY to high offset triggers memory expansion and charges gas | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L241) | |
+| MCOPY with zero length is a no-op | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L218) | |
 | MRC20 native token wrapper (0x1010) has deployed code and balance function | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L88) | |
-| Multiple storage slots in one transaction | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L1144) | |
-| NUMBER opcode returns correct block number | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L620) | |
-| Nonce-too-low rejection | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L570) | |
-| OOG during code-deposit phase fails the creation | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L352) | |
-| ORIGIN returns the transaction sender EOA | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L320) | |
-| P256 Wycheproof test vector #1 (signature malleability) verifies correctly | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L492) | |
-| P256 Wycheproof test vector #60 (Shamir edge case) verifies correctly | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L523) | |
-| P256 all-zero input returns empty (invalid point) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L173) | |
-| P256 empty input returns empty output | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L113) | |
-| P256 extra input bytes beyond 160 are ignored (still verifies) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L152) | |
-| P256 invalid input still consumes gas (no gas refund on failure) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L395) | |
-| P256 invalid signature returns empty output | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L85) | |
-| P256 point not on curve returns empty | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L246) | |
-| P256 precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L582) | |
-| P256 precompile gas cost is 6900 (PIP-80 doubled from 3450) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L273) | |
-| P256 precompile is active at 0x0100 | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L55) | |
-| P256 r=0 returns empty (r must be in range 1..n-1) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L197) | |
-| P256 s=0 returns empty (s must be in range 1..n-1) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L222) | |
-| P256 truncated input (less than 160 bytes) returns empty output | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L131) | |
-| P256 valid signature returns 1 | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L70) | |
-| P256 wrong public key for valid signature returns empty | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L551) | |
+| Multiple storage slots in one transaction | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L1139) | |
+| NUMBER opcode returns correct block number | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L615) | |
+| Nonce-too-low rejection | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L565) | |
+| OOG during code-deposit phase fails the creation | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L345) | |
+| ORIGIN returns the transaction sender EOA | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L315) | |
+| P256 Wycheproof test vector #1 (signature malleability) verifies correctly | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L486) | |
+| P256 Wycheproof test vector #60 (Shamir edge case) verifies correctly | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L517) | |
+| P256 all-zero input returns empty (invalid point) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L167) | |
+| P256 empty input returns empty output | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L107) | |
+| P256 extra input bytes beyond 160 are ignored (still verifies) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L146) | |
+| P256 invalid input still consumes gas (no gas refund on failure) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L389) | |
+| P256 invalid signature returns empty output | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L79) | |
+| P256 point not on curve returns empty | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L240) | |
+| P256 precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L576) | |
+| P256 precompile gas cost is 6900 (PIP-80 doubled from 3450) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L267) | |
+| P256 precompile is active at 0x0100 | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L49) | |
+| P256 r=0 returns empty (r must be in range 1..n-1) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L191) | |
+| P256 s=0 returns empty (s must be in range 1..n-1) | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L216) | |
+| P256 truncated input (less than 160 bytes) returns empty output | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L125) | |
+| P256 valid signature returns 1 | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L64) | |
+| P256 wrong public key for valid signature returns empty | [Link](./tests/pos/execution-specs/precompiles/pip80-p256-precompile-gas-adjustment.bats#L545) | |
 | PIP-11: eth_getBlockByNumber 'finalized' returns a valid block | [Link](./tests/pos/execution-specs/protocol/pip11-deterministic-finality-milestones.bats#L17) | |
 | PIP-11: finalized block advances as new blocks are produced | [Link](./tests/pos/execution-specs/protocol/pip11-deterministic-finality-milestones.bats#L98) | |
 | PIP-11: finalized block number is less than or equal to latest block number | [Link](./tests/pos/execution-specs/protocol/pip11-deterministic-finality-milestones.bats#L58) | |
 | PIP-16: block extraData field is non-empty and present | [Link](./tests/pos/execution-specs/protocol/pip16-transaction-dependency-data.bats#L18) | |
 | PIP-16: extraData is consistent across multiple recent blocks | [Link](./tests/pos/execution-specs/protocol/pip16-transaction-dependency-data.bats#L49) | |
 | PIP-20: StateReceiver (0x1001) has StateCommitted event signature | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L174) | |
-| PIP-30 probe: deploy 24577-byte runtime to detect active MAX_CODE_SIZE | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L55) | |
-| PIP-30: deploy 28000-byte runtime succeeds (between EIP-170 and PIP-30 limits) | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L138) | |
-| PIP-30: deploy 32769-byte runtime is rejected (exceeds PIP-30 limit) | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L120) | |
-| PIP-30: deploy exactly 32768-byte runtime succeeds at PIP-30 boundary | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L82) | |
+| PIP-30 probe: deploy 24577-byte runtime to detect active MAX_CODE_SIZE | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L48) | |
+| PIP-30: deploy 28000-byte runtime succeeds (between EIP-170 and PIP-30 limits) | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L131) | |
+| PIP-30: deploy 32769-byte runtime is rejected (exceeds PIP-30 limit) | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L113) | |
+| PIP-30: deploy exactly 32768-byte runtime succeeds at PIP-30 boundary | [Link](./tests/pos/execution-specs/protocol/pip30-increased-max-code-size.bats#L75) | |
 | PIP-36: StateReceiver (0x1001) has replayFailedStateSync function | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L130) | |
 | PIP-45: MRC20 system contract decimals() returns 18 | [Link](./tests/pos/execution-specs/protocol/pip45-matic-to-pol-token-rename.bats#L87) | |
 | PIP-45: MRC20 system contract name() returns valid token name | [Link](./tests/pos/execution-specs/protocol/pip45-matic-to-pol-token-rename.bats#L17) | |
@@ -338,49 +338,49 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | PIP-74: StateSyncTx has expected fields (from, to, input) | [Link](./tests/pos/execution-specs/protocol/pip74-canonical-state-sync-transactions.bats#L68) | |
 | PIP-74: blocks with transactions include StateSyncTx in transactionsRoot | [Link](./tests/pos/execution-specs/protocol/pip74-canonical-state-sync-transactions.bats#L126) | |
 | PIP-74: scan recent blocks for StateSyncTx (type 0x7F) transactions | [Link](./tests/pos/execution-specs/protocol/pip74-canonical-state-sync-transactions.bats#L33) | |
-| PIP-79 active: baseFee deviates from old deterministic formula (Lisovo only) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L98) | |
-| PUSH0 pushes zero onto the stack (EIP-3855) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L60) | |
-| Parent hash chain integrity across 5 blocks | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L903) | |
-| RETURNDATACOPY copies callee return data correctly | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L388) | |
-| RETURNDATASIZE after CALL reflects callee return data length | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L355) | |
-| RETURNDATASIZE before any call returns 0 | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L341) | |
-| REVERT returns data and does not consume all gas | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L425) | |
+| PIP-79 active: baseFee deviates from old deterministic formula (Lisovo only) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L99) | |
+| PUSH0 pushes zero onto the stack (EIP-3855) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L55) | |
+| Parent hash chain integrity across 5 blocks | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L927) | |
+| RETURNDATACOPY copies callee return data correctly | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L383) | |
+| RETURNDATASIZE after CALL reflects callee return data length | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L350) | |
+| RETURNDATASIZE before any call returns 0 | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L336) | |
+| REVERT returns data and does not consume all gas | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L420) | |
 | RPC: concurrent request burst does not crash node | [Link](./tests/pos/execution-specs/resilience/rpc-node-stability.bats#L85) | |
 | RPC: creating many filters does not exhaust node resources | [Link](./tests/pos/execution-specs/resilience/rpc-node-stability.bats#L185) | |
 | RPC: debug_traceBlockByNumber does not crash on recent block | [Link](./tests/pos/execution-specs/resilience/rpc-node-stability.bats#L233) | |
 | RPC: heavy eth_call does not crash node | [Link](./tests/pos/execution-specs/resilience/rpc-node-stability.bats#L145) | |
 | RPC: large eth_getLogs range does not crash node | [Link](./tests/pos/execution-specs/resilience/rpc-node-stability.bats#L40) | |
 | RPC: mixed heavy read + write load does not degrade block production | [Link](./tests/pos/execution-specs/resilience/rpc-node-stability.bats#L281) | |
-| SAR arithmetic right shift sign-extends negative values (EIP-145) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L113) | |
-| SELFBALANCE returns contract's own balance | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L771) | |
-| SELFDESTRUCT during construction leaves no code and zero balance | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L315) | |
-| SELFDESTRUCT in same tx as creation destroys contract code | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L18) | |
-| SELFDESTRUCT inside STATICCALL reverts | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L235) | |
-| SELFDESTRUCT on pre-existing contract: code persists post-Cancun | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L61) | |
-| SELFDESTRUCT sends balance to beneficiary | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L178) | |
-| SELFDESTRUCT to self: balance preserved post-Cancun | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L126) | |
-| SHL left shift: 1 << 4 = 16 (EIP-145) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L79) | |
-| SHR right shift: 0xFF >> 4 = 0x0F (EIP-145) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L96) | |
-| SIGNEXTEND correctly sign-extends byte 0 of 0x80 | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L131) | |
-| SSTORE + SLOAD roundtrip: stored value is retrievable and unwritten slots are zero | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L18) | |
-| SSTORE gas refund: clearing a storage slot uses less gas than setting it | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L409) | |
-| SSTORE overwrite: new value replaces old | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L1083) | |
-| STATICCALL cannot modify state: SSTORE attempt reverts | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L149) | |
-| StateReceiver system contract (0x0000000000000000000000000000000000001001) is callable | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L211) | |
-| Sum of receipt gasUsed matches block gasUsed | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L935) | |
-| TLOAD returns zero for unset transient slot | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L73) | |
-| TSTORE + TLOAD roundtrip returns stored value | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L18) | |
-| TSTORE gas cost is less than SSTORE for zero-to-nonzero write | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L393) | |
-| TSTORE in DELEGATECALL shares caller transient storage context | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L444) | |
-| TSTORE reverted by sub-call REVERT is undone | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L284) | |
+| SAR arithmetic right shift sign-extends negative values (EIP-145) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L108) | |
+| SELFBALANCE returns contract's own balance | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L766) | |
+| SELFDESTRUCT during construction leaves no code and zero balance | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L308) | |
+| SELFDESTRUCT in same tx as creation destroys contract code | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L13) | |
+| SELFDESTRUCT inside STATICCALL reverts | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L230) | |
+| SELFDESTRUCT on pre-existing contract: code persists post-Cancun | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L56) | |
+| SELFDESTRUCT sends balance to beneficiary | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L173) | |
+| SELFDESTRUCT to self: balance preserved post-Cancun | [Link](./tests/pos/execution-specs/evm/eip6780-selfdestruct-cancun-restrictions.bats#L121) | |
+| SHL left shift: 1 << 4 = 16 (EIP-145) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L74) | |
+| SHR right shift: 0xFF >> 4 = 0x0F (EIP-145) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L91) | |
+| SIGNEXTEND correctly sign-extends byte 0 of 0x80 | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L126) | |
+| SSTORE + SLOAD roundtrip: stored value is retrievable and unwritten slots are zero | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L13) | |
+| SSTORE gas refund: clearing a storage slot uses less gas than setting it | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L404) | |
+| SSTORE overwrite: new value replaces old | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L1078) | |
+| STATICCALL cannot modify state: SSTORE attempt reverts | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L144) | |
+| StateReceiver system contract (0x0000000000000000000000000000000000001001) is callable | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L206) | |
+| Sum of receipt gasUsed matches block gasUsed | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L959) | |
+| TLOAD returns zero for unset transient slot | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L68) | |
+| TSTORE + TLOAD roundtrip returns stored value | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L13) | |
+| TSTORE gas cost is less than SSTORE for zero-to-nonzero write | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L388) | |
+| TSTORE in DELEGATECALL shares caller transient storage context | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L439) | |
+| TSTORE reverted by sub-call REVERT is undone | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L279) | |
 | add new validator | [Link](./tests/pos/validator.bats#L44) | |
-| all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L896) | |
-| base fee adjusts between blocks following EIP-1559 dynamics | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L272) | |
-| base fee is present and positive on all recent blocks (PIP-79 invariant) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L62) | |
-| baseFee change rate is tighter than Ethereum mainnet (max ±5% vs ±12.5%) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L234) | |
-| baseFee does not diverge over a long block range | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L372) | |
-| baseFee stays within ±5% bounds under transaction load | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L295) | |
-| baseFeePerGas field exists in block headers | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L435) | |
+| all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L832) | |
+| base fee adjusts between blocks following EIP-1559 dynamics | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L267) | |
+| base fee is present and positive on all recent blocks (PIP-79 invariant) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L63) | |
+| baseFee change rate is tighter than Ethereum mainnet (max ±5% vs ±12.5%) | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L235) | |
+| baseFee does not diverge over a long block range | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L364) | |
+| baseFee stays within ±5% bounds under transaction load | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L296) | |
+| baseFeePerGas field exists in block headers | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L427) | |
 | basefee-fork: base fee is at least 7 wei (minimum) across all blocks | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L134) | |
 | basefee-fork: base fee is non-zero at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L84) | |
 | basefee-fork: base fee is within 5% boundary post-Lisovo | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L299) | |
@@ -388,15 +388,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | basefee-fork: consecutive blocks have valid base fee transition pre-Lisovo | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L196) | |
 | basefee-fork: cross-client base fee agreement at fork boundaries | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L462) | |
 | basefee-fork: target gas percentage changes at Dandeli | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L359) | |
-| batch JSON-RPC returns array of matching results | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L678) | |
-| batch JSON-RPC under concurrent load: 50 concurrent batch requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L483) | |
-| block coinbase (miner field) is zero address on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L103) | |
+| batch JSON-RPC returns array of matching results | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L690) | |
+| batch JSON-RPC under concurrent load: 50 concurrent batch requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L486) | |
+| block coinbase (miner field) is zero address on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L98) | |
 | block production continues across validator rotation | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L338) | |
-| block timestamp monotonicity across 10 consecutive blocks | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L848) | |
-| block-filling stress: rapid-fire large calldata txs | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L851) | |
-| bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L486) | |
-| bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L509) | |
-| bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L463) | |
+| block timestamp monotonicity across 10 consecutive blocks | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L872) | |
+| block-filling stress: rapid-fire large calldata txs | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L793) | |
+| bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L498) | |
+| bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L521) | |
+| bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L475) | |
 | bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L389) | |
 | bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L496) | |
 | bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L277) | |
@@ -405,16 +405,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | chain continues producing blocks across sprint boundaries | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L39) | |
 | chain liveness maintained under transaction flood | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L106) | |
 | chain produces blocks when no transactions are pending | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L177) | |
-| coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L318) | |
-| concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L248) | |
-| consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L183) | |
+| coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L313) | |
+| concurrent write/read race: tx submissions and state reads do not interfere | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L249) | |
+| consecutive block baseFees are within ±5% of each other | [Link](./tests/pos/execution-specs/protocol/pip79-bounded-basefee-validation.bats#L184) | |
 | consensus: Heimdall API is reachable and serving span data | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L282) | |
 | consensus: block headers have valid structure across sprint boundaries | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L39) | |
 | consensus: chain integrity maintained under transaction load | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L427) | |
 | consensus: difficulty values follow expected pattern | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L134) | |
 | consensus: finalized blocks match across nodes | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L186) | |
 | consensus: state sync receipts are deterministic across blocks | [Link](./tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats#L333) | |
-| contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L792) | |
+| contract-to-contract call fuzz: CALL/STATICCALL/DELEGATECALL | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L740) | |
 | cross-client-receipts: cumulative gas used matches for shared blocks | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L452) | |
 | cross-client-receipts: gas used in blocks agree at fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L245) | |
 | cross-client-receipts: logs root matches at fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L349) | |
@@ -423,153 +423,153 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | cross-client-receipts: receipt root matches at Rio boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L194) | |
 | cross-client-receipts: receipt status codes agree for system transactions | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L386) | |
 | cross-client-receipts: transaction count agrees at fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-receipt-consistency.bats#L283) | |
-| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L341) | |
-| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L296) | |
-| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L324) | |
-| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L282) | |
-| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L267) | |
+| cross-client: Bor and Erigon are on the same chain tip (gap ≤ 32 blocks) | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L346) | |
+| cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L301) | |
+| cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L329) | |
+| cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L287) | |
+| cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L272) | |
 | delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
-| deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L124) | |
-| deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L150) | |
-| deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L48) | |
-| deploy contract with 0xEF leading runtime byte is rejected by EIP-3541 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L181) | |
-| deploy initcode exactly at EIP-3860 limit (49152 bytes) succeeds | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L79) | |
-| deploy initcode one byte over EIP-3860 limit (49153 bytes) is rejected | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L99) | |
-| deploy single STOP opcode contract succeeds and code at address is empty | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L20) | |
+| deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L117) | |
+| deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L143) | |
+| deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L41) | |
+| deploy contract with 0xEF leading runtime byte is rejected by EIP-3541 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L174) | |
+| deploy initcode exactly at EIP-3860 limit (49152 bytes) succeeds | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L72) | |
+| deploy initcode one byte over EIP-3860 limit (49153 bytes) is rejected | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L92) | |
+| deploy single STOP opcode contract succeeds and code at address is empty | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L13) | |
 | enforce deterministic fallback behavior | [Link](./tests/pos/veblop/invariants.bats#L156) | |
 | enforce equal block distribution between block producers at the execution layer | [Link](./tests/pos/veblop/invariants.bats#L116) | |
 | enforce equal slot distribution between block producers at the consensus layer | [Link](./tests/pos/veblop/invariants.bats#L68) | |
 | enforce minimum one and maximum three selected producers per span | [Link](./tests/pos/veblop/invariants.bats#L34) | |
-| eth_call does not consume gas or advance nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L118) | |
+| eth_call does not consume gas or advance nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L113) | |
 | eth_call to plain EOA returns 0x | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L60) | |
 | eth_chainId returns a value matching cast chain-id | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L14) | |
 | eth_estimateGas for EOA transfer returns 21000 | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L51) | |
-| eth_estimateGas for failing call returns error | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L758) | |
-| eth_feeHistory returns baseFeePerGas array and oldestBlock | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L315) | |
+| eth_estimateGas for failing call returns error | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L776) | |
+| eth_feeHistory returns baseFeePerGas array and oldestBlock | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L321) | |
 | eth_gasPrice returns a valid non-zero hex value | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L96) | |
-| eth_getBalance at historical block returns correct value | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1072) | |
+| eth_getBalance at historical block returns correct value | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1108) | |
 | eth_getBalance returns non-zero for funded account and zero for unused address | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L161) | |
 | eth_getBlockByHash result matches eth_getBlockByNumber for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L27) | |
-| eth_getBlockByNumber 'earliest' returns genesis block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L536) | |
-| eth_getBlockByNumber 'pending' returns valid response | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L561) | |
-| eth_getBlockByNumber with fullTransactions=true returns full tx objects | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L353) | |
-| eth_getBlockTransactionCountByNumber and ByHash agree on tx count | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L251) | |
+| eth_getBlockByNumber 'earliest' returns genesis block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L548) | |
+| eth_getBlockByNumber 'pending' returns valid response | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L573) | |
+| eth_getBlockByNumber with fullTransactions=true returns full tx objects | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L359) | |
+| eth_getBlockTransactionCountByNumber and ByHash agree on tx count | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L257) | |
 | eth_getCode returns 0x for an EOA | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L114) | |
 | eth_getCode returns non-empty bytecode for L2 StateReceiver contract | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L123) | |
 | eth_getLogs for block 0 to 0 returns a valid array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L86) | |
 | eth_getLogs returns empty array for future block range | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L69) | |
 | eth_getLogs with reversed block range returns error or empty array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L135) | |
-| eth_getProof returns valid Merkle proof structure | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L802) | |
-| eth_getStorageAt returns zero for EOA and valid 32-byte word for contracts | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L280) | |
+| eth_getProof returns valid Merkle proof structure | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L826) | |
+| eth_getStorageAt returns zero for EOA and valid 32-byte word for contracts | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L286) | |
 | eth_getTransactionByHash and ByBlockNumberAndIndex return consistent tx data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L191) | |
-| eth_getTransactionCount returns hex nonce matching cast nonce | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L231) | |
-| eth_getTransactionReceipt has all required EIP fields | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L721) | |
+| eth_getTransactionCount returns hex nonce matching cast nonce | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L237) | |
+| eth_getTransactionReceipt has all required EIP fields | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L733) | |
 | eth_getTransactionReceipt returns null for unknown transaction hash | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L42) | |
-| eth_getUncleCountByBlockNumber returns 0 (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1020) | |
-| eth_maxPriorityFeePerGas returns a valid hex value | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L304) | |
-| eth_sendRawTransaction rejects invalid signature | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L611) | |
-| eth_sendRawTransaction rejects wrong chainId | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L637) | |
-| eth_syncing returns false on synced node | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L590) | |
+| eth_getUncleCountByBlockNumber returns 0 (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1050) | |
+| eth_maxPriorityFeePerGas returns a valid hex value | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L310) | |
+| eth_sendRawTransaction rejects invalid signature | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L623) | |
+| eth_sendRawTransaction rejects wrong chainId | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L649) | |
+| eth_syncing returns false on synced node | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L602) | |
 | finality: all nodes agree on finalized block hash | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L293) | |
 | finality: finality depth is reasonable | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L533) | |
 | finality: finalized block number is non-zero and advancing | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L160) | |
 | finality: finalized blocks have immutable hashes | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L471) | |
 | finality: milestone block hash matches bor finalized range | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L386) | |
 | finality: safe <= finalized <= latest block ordering | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L221) | |
-| fuzz contract creations and assert individual tx outcomes | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L256) | |
-| fuzz node with EIP-1559 type-2 transactions and verify processing | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L403) | |
-| fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L42) | |
-| fuzz node with edge-case gas limits and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L154) | |
-| fuzz node with mixed zero/non-zero calldata and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L341) | |
-| fuzz node with non-zero calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L206) | |
-| fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L103) | |
+| fuzz contract creations and assert individual tx outcomes | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L233) | |
+| fuzz node with EIP-1559 type-2 transactions and verify processing | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L368) | |
+| fuzz node with edge-case contract creation bytecodes and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L43) | |
+| fuzz node with edge-case gas limits and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L143) | |
+| fuzz node with mixed zero/non-zero calldata and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L312) | |
+| fuzz node with non-zero calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L189) | |
+| fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L98) | |
 | fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L58) | |
-| gas-metering: CALL to cold address costs 2600 gas across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L330) | |
-| gas-metering: MaxTxGas (30M) enforced at Madhugiri | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L144) | |
-| gas-metering: SSTORE from zero to non-zero gas cost is 20000 at all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L228) | |
-| gas-metering: cross-client gas agreement for identical transactions | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L696) | |
-| gas-metering: gas refund cap is correctly applied | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L401) | |
-| gas-metering: intrinsic gas for contract creation consistent across forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L512) | |
-| gas-metering: simple ETH transfer gas is 21000 across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L609) | |
-| gasUsed <= gasLimit for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L883) | |
-| higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L204) | |
-| insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L501) | |
+| gas-metering: CALL to cold address costs 2600 gas across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L347) | |
+| gas-metering: MaxTxGas (30M) enforced at Madhugiri | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L161) | |
+| gas-metering: SSTORE from zero to non-zero gas cost is 20000 at all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L245) | |
+| gas-metering: cross-client gas agreement for identical transactions | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L713) | |
+| gas-metering: gas refund cap is correctly applied | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L418) | |
+| gas-metering: intrinsic gas for contract creation consistent across forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L529) | |
+| gas-metering: simple ETH transfer gas is 21000 across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L626) | |
+| gasUsed <= gasLimit for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L907) | |
+| higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L205) | |
+| insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L496) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
 | large return data in constructor near EIP-170 limit (24000 bytes) succeeds | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L576) | |
-| latest block contains required post-London fields and valid shapes | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L415) | |
-| logsBloom is zero for genesis block (no log-emitting txs) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L994) | |
-| mixed concurrent RPC methods succeed without interfering with each other | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L143) | |
-| multi-sender concurrent fuzz: 10 wallets fire txs simultaneously | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L661) | |
-| multi-sender concurrent tx submissions: 10 wallets x 5 txs each | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L415) | |
-| multiple CREATEs in single transaction: factory creates 5 children | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L460) | |
-| nested contract creation: constructor deploys child via CREATE | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L270) | |
-| net_version returns a non-empty numeric string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L389) | |
-| nonce increments by exactly 1 after each successful transaction | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L140) | |
-| nonce replacement stress: higher gas replaces pending tx | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L718) | |
-| nonce-gap stress: out-of-order submission resolves correctly | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L600) | |
-| out-of-gas transaction still increments sender nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L160) | |
-| precompile-fork-safety: KZG (0x0a) IS active at Lisovo block | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L176) | |
-| precompile-fork-safety: KZG (0x0a) is NOT active at LisovoPro | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L237) | |
-| precompile-fork-safety: KZG (0x0a) is NOT active before Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L150) | |
-| precompile-fork-safety: P256Verify (0x0100) gas cost at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L328) | |
-| precompile-fork-safety: P256Verify (0x0100) gas cost pre-Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L284) | |
-| precompile-fork-safety: cross-client precompile consistency at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L473) | |
-| precompile-fork-safety: gas estimation changes correctly at KZG boundary | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L427) | |
-| precompile-fork-safety: precompile set changes are consistent across all nodes | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L367) | |
+| latest block contains required post-London fields and valid shapes | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L427) | |
+| logsBloom is zero for genesis block (no log-emitting txs) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1024) | |
+| mixed concurrent RPC methods succeed without interfering with each other | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L144) | |
+| multi-sender concurrent fuzz: 10 wallets fire txs simultaneously | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L608) | |
+| multi-sender concurrent tx submissions: 10 wallets x 5 txs each | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L411) | |
+| multiple CREATEs in single transaction: factory creates 5 children | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L453) | |
+| nested contract creation: constructor deploys child via CREATE | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L263) | |
+| net_version returns a non-empty numeric string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L401) | |
+| nonce increments by exactly 1 after each successful transaction | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L135) | |
+| nonce replacement stress: higher gas replaces pending tx | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L672) | |
+| nonce-gap stress: out-of-order submission resolves correctly | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L553) | |
+| out-of-gas transaction still increments sender nonce | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L155) | |
+| precompile-fork-safety: KZG (0x0a) IS active at Lisovo block | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L199) | |
+| precompile-fork-safety: KZG (0x0a) is NOT active at LisovoPro | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L260) | |
+| precompile-fork-safety: KZG (0x0a) is NOT active before Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L173) | |
+| precompile-fork-safety: P256Verify (0x0100) gas cost at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L352) | |
+| precompile-fork-safety: P256Verify (0x0100) gas cost pre-Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L308) | |
+| precompile-fork-safety: cross-client precompile consistency at Lisovo | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L540) | |
+| precompile-fork-safety: gas estimation changes correctly at KZG boundary | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L494) | |
+| precompile-fork-safety: precompile set changes are consistent across all nodes | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L391) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
-| recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L53) | |
+| recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L48) | |
 | remove validator | [Link](./tests/pos/validator.bats#L333) | |
-| replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L445) | |
-| sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L18) | |
-| sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L976) | |
+| replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L440) | |
+| sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L13) | |
+| sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1006) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
-| sprint-boundary: no reorg at Giugliano fork (sprint+span boundary) | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L243) | |
-| sprint-boundary: no reorg at Rio fork (exact sprint boundary) | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L198) | |
-| sprint-boundary: producer at fork block matches bor_getSignersAtHash | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L215) | |
-| sprint-boundary: timestamps strictly increasing across all sprint-aligned fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L283) | |
-| sprint-boundary: validator set is consistent on Bor and Erigon at each sprint-aligned fork | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L260) | |
-| stack depth limit: 1024 nested calls revert | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L381) | |
+| sprint-boundary: no reorg at Giugliano fork (sprint+span boundary) | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L248) | |
+| sprint-boundary: no reorg at Rio fork (exact sprint boundary) | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L203) | |
+| sprint-boundary: producer at fork block matches bor_getSignersAtHash | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L220) | |
+| sprint-boundary: timestamps strictly increasing across all sprint-aligned fork boundaries | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L288) | |
+| sprint-boundary: validator set is consistent on Bor and Erigon at each sprint-aligned fork | [Link](./tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats#L265) | |
+| stack depth limit: 1024 nested calls revert | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L374) | |
 | state sync events do not halt block production | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L287) | |
-| state-consistency: all Bor nodes are reachable and producing blocks | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L280) | |
-| state-consistency: all nodes agree on block hashes at Dandeli fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L337) | |
-| state-consistency: all nodes agree on block hashes at Giugliano fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L357) | |
-| state-consistency: all nodes agree on block hashes at Lisovo fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L343) | |
-| state-consistency: all nodes agree on block hashes at LisovoPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L350) | |
-| state-consistency: all nodes agree on block hashes at Madhugiri fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L325) | |
-| state-consistency: all nodes agree on block hashes at MadhugiriPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L331) | |
-| state-consistency: all nodes agree on block hashes at Rio fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L320) | |
-| state-consistency: all supported fork boundaries pass cross-node comparison | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L364) | |
-| state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L294) | |
-| sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L533) | |
-| system-contract-safety: MRC20 (POL) balance query works across all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L236) | |
-| system-contract-safety: StateReceiver contract code exists at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L184) | |
-| system-contract-safety: ValidatorSet returns same set on all nodes | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L291) | |
-| system-contract-safety: ValidatorSet.currentSpanNumber() returns valid span at all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L452) | |
-| system-contract-safety: ValidatorSet.getValidators() returns valid set at each fork boundary | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L109) | |
-| system-contract-safety: system contract code hash unchanged across fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L377) | |
-| total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L188) | |
-| transaction at node-reported gas price succeeds | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L144) | |
-| transaction with trivially low gas price (1 wei) is rejected | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L117) | |
+| state-consistency: all Bor nodes are reachable and producing blocks | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L285) | |
+| state-consistency: all nodes agree on block hashes at Dandeli fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L342) | |
+| state-consistency: all nodes agree on block hashes at Giugliano fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L362) | |
+| state-consistency: all nodes agree on block hashes at Lisovo fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L348) | |
+| state-consistency: all nodes agree on block hashes at LisovoPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L355) | |
+| state-consistency: all nodes agree on block hashes at Madhugiri fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L330) | |
+| state-consistency: all nodes agree on block hashes at MadhugiriPro fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L336) | |
+| state-consistency: all nodes agree on block hashes at Rio fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L325) | |
+| state-consistency: all supported fork boundaries pass cross-node comparison | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L369) | |
+| state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L299) | |
+| sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L536) | |
+| system-contract-safety: MRC20 (POL) balance query works across all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L256) | |
+| system-contract-safety: StateReceiver contract code exists at all fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L203) | |
+| system-contract-safety: ValidatorSet returns same set on all nodes | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L312) | |
+| system-contract-safety: ValidatorSet.currentSpanNumber() returns valid span at all forks | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L486) | |
+| system-contract-safety: ValidatorSet.getValidators() returns valid set at each fork boundary | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L127) | |
+| system-contract-safety: system contract code hash unchanged across fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L398) | |
+| total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L183) | |
+| transaction at node-reported gas price succeeds | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L139) | |
+| transaction with trivially low gas price (1 wei) is rejected | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L112) | |
 | transactions consuming significant gas do not halt chain | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L226) | |
-| transient storage clears between transactions | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L117) | |
-| transient storage is isolated per contract address | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L204) | |
-| type 0 (legacy) receipt has correct type and gasPrice field | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L18) | |
-| type 1 (EIP-2930) access list reduces gas for warm storage access | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L53) | |
-| type 1 access list with multiple storage keys is accepted | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L207) | |
-| type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L130) | |
-| type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L175) | |
+| transient storage clears between transactions | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L112) | |
+| transient storage is isolated per contract address | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L199) | |
+| type 0 (legacy) receipt has correct type and gasPrice field | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L13) | |
+| type 1 (EIP-2930) access list reduces gas for warm storage access | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L48) | |
+| type 1 access list with multiple storage keys is accepted | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L202) | |
+| type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L125) | |
+| type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L170) | |
 | undelegate from a validator | [Link](./tests/pos/validator.bats#L241) | |
 | update signer | [Link](./tests/pos/validator.bats#L141) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L79) | |
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
-| warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L457) | |
-| web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L400) | |
+| warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L452) | |
+| web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L412) | |
 | withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L426) | |
 | withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L540) | |
 | withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L313) | |
 | withdraw native tokens from L2 via Plasma bridge and confirm POL balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L203) | |
 | withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
-| zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L530) | |
+| zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L525) | |
 
 ## Heimdall Tests
 
@@ -614,8 +614,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
 | heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
 | heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
-| heimdall milestone: latest milestone's end_block is within recent Bor history | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L464) | |
-| heimdall milestone: milestone ID is monotonically increasing | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L395) | |
+| heimdall milestone: latest milestone's end_block is within recent Bor history | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L472) | |
+| heimdall milestone: milestone ID is monotonically increasing | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L403) | |
 | heimdall node: chain ID is non-empty and consistent across endpoints | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L130) | |
 | heimdall node: has at least one connected peer | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L256) | |
 | heimdall node: is not catching up (fully synced) | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L178) | |
@@ -626,7 +626,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall span: next span is being prepared before current span ends | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L295) | |
 | heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L362) | |
 | heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L300) | |
-| heimdall span: selected_producers count is non-zero and within validator set size | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L528) | |
+| heimdall span: selected_producers count is non-zero and within validator set size | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L536) | |
 | heimdall span: span duration meets minimum sprint length requirement | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L241) | |
 | heimdall stake: CometBFT validator set matches Heimdall active validator set | [Link](./tests/heimdall/stake/validator-set-safety.bats#L411) | |
 | heimdall stake: active validator set is never empty | [Link](./tests/heimdall/stake/validator-set-safety.bats#L148) | |

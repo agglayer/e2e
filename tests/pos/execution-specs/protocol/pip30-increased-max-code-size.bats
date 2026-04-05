@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,pip30
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 # PIP-30: Increase Max Code Size from 24KB (EIP-170) to 32KB
 # Activated in Ahmedabad hardfork (mainnet block 62,278,656).

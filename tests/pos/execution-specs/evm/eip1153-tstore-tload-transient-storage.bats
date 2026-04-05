@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,eip1153
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"

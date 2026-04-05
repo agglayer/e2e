@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,pip80,lisovo
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 # PIP-80: P256 Precompile Gas Cost Adjustment
 #

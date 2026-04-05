@@ -547,9 +547,7 @@ _is_nontrivial() {
     # Use the Bor archive node for this comparison — both archive nodes retain
     # full historical state, eliminating false divergences from pruning.
     local bor_rpc="${L2_BOR_ARCHIVE_RPC_URL:-${L2_RPC_URL}}"
-    local using_archive="false"
     if [[ -n "${L2_BOR_ARCHIVE_RPC_URL:-}" ]]; then
-        using_archive="true"
         echo "Using Bor archive node for cross-client comparison: ${bor_rpc}" >&3
     else
         echo "WARNING: No Bor archive node — falling back to ${bor_rpc} (may skip pruned blocks)" >&3

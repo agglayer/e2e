@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,pos-precompile,evm-gas
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 # Precompile warm/cold gas behavior and removal tests.
 #

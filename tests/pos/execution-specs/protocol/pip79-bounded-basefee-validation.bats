@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,pip79,lisovo
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 # PIP-79: Bounded-Range Validation for Configurable EIP-1559 Parameters
 #

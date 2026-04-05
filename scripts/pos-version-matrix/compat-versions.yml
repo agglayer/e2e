@@ -14,9 +14,9 @@
 # to auto-detecting the latest bor release from each major.minor line.
 
 versions:
-- image: 0xpolygon/bor:2.7.0
+- image: 0xpolygon/bor:2.7.1-beta
   el_type: bor
-  reason: latest stable release (2.7 line)
+  reason: new pre-release (2.7 line), auto-detected
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
   reason: latest stable release (2.6 line)

@@ -111,6 +111,7 @@ _fund_ephemeral() {
     local amount="${1:-1ether}"
     local wallet_json
     wallet_json=$(cast wallet new --json | jq '.[0]')
+    # shellcheck disable=SC2034  # intentional global: used by calling test scripts
     ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
     ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
     echo "ephemeral_address: $ephemeral_address" >&3
