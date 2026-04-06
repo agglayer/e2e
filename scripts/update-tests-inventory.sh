@@ -36,7 +36,9 @@ extract_test_info() {
     # Extract test names from @test lines
     grep -n "^@test" "$file" | while IFS=: read -r line_num content; do
         # Extract test name from @test "test name"
-        test_name=$(echo "$content" | sed -n 's/@test "\(.*\)" {.*/\1/p')
+        test_name=$(echo "$content" | sed -n \
+            -e 's/@test "\(.*\)" {.*/\1/p' \
+            -e "s/@test '\\(.*\\)' {.*/\\1/p")
         if [[ -n "$test_name" ]]; then
             echo "| $test_name | [Link](./$relative_path#L$line_num) | |"
         fi
@@ -67,6 +69,7 @@ categorize_test() {
 
 # Create temporary file for new inventory
 TEMP_INVENTORY=$(mktemp)
+trap 'rm -f "$TEMP_INVENTORY"' EXIT
 
 # Write header
 cat > "$TEMP_INVENTORY" << 'EOF'
@@ -200,7 +203,7 @@ if [[ -f "$README_FILE" ]]; then
 
   # Generate the current sorted tag list from all .bats files.
   new_tags=$(grep -hoR --include="*.bats" 'test_tags=[^ ]*' "$PROJECT_ROOT" \
-    | sed 's/.*test_tags=//' | tr ',' '\n' | LC_ALL=C sort -u | sed 's/^/- /')
+    | sed 's/.*test_tags=//' | tr ',' '\n' | LC_ALL=C sort -u | sed 's/^/- /') || true
 
   # Use awk to replace the bullet-list block inside the ## test_tags section.
   # State machine:
