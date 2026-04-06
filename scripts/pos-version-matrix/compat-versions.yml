@@ -17,6 +17,9 @@ versions:
 - image: 0xpolygon/bor:2.7.1-beta
   el_type: bor
   reason: new pre-release (2.7 line), auto-detected
+- image: 0xpolygon/bor:2.7.0
+  el_type: bor
+  reason: second latest stable release (2.7 line), adjacent rolling-upgrade coverage
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
   reason: latest stable release (2.6 line)
