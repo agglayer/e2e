@@ -40,7 +40,7 @@ extract_test_info() {
         if [[ -n "$test_name" ]]; then
             echo "| $test_name | [Link](./$relative_path#L$line_num) | |"
         fi
-    done
+    done || true  # grep exits 1 on no matches (e.g. empty/stub file); don't abort
 }
 
 # Function to categorize tests based on file path
@@ -182,7 +182,9 @@ if ! diff -q "$INVENTORY_FILE" "$TEMP_INVENTORY" > /dev/null 2>&1; then
     
     # Show summary of changes
     echo -e "${YELLOW}Summary of changes:${NC}"
-    user_bats_count=$(find "$PROJECT_ROOT" -name "*.bats" -type f | while read -r file; do is_user_test_file "$file" && echo "$file"; done | wc -l)
+    user_bats_count=$(find "$PROJECT_ROOT" -name "*.bats" -type f | while read -r file; do
+        if is_user_test_file "$file"; then echo "$file"; fi
+    done | wc -l)
     echo "- User .bats files found: $user_bats_count"
     echo "- Categories with tests: $(grep -c "^## " "$INVENTORY_FILE")"
 else
