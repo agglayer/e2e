@@ -79,6 +79,10 @@ env:
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
   EXEC_SPECS_REF: ${{ inputs.ethereum-exec-specs-ref || 'forks/amsterdam' }}
+  # Suppress Node.js 20 deprecation warnings from third-party actions
+  # (bats-action, setup-uv, etc.). Actions will be forced to Node 24 by
+  # default starting June 2nd 2026; opt in early.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -514,7 +518,7 @@ jobs:
   # Tests: fork-transition (parallel, during fork activation) followed by
   # execution-specs (after all forks active past block 640).
   # ---------------------------------------------------------------------------
-  # Job 1: Execution-specs — all forks at 256, stable basefee.
+  # Job 1: Execution-specs — staggered forks (256–640), stable basefee.
   # ---------------------------------------------------------------------------
   pos-execution-specs:
     needs: check-new-release
@@ -581,7 +585,7 @@ jobs:
           echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
           echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
 
-      - name: Patch constants.star (forks supported by min bor version at 256)
+      - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
         run: |
           CONSTANTS="kurtosis-pos/src/config/constants.star"
           BOR_MIN="${{ steps.bor-min.outputs.bor-min-version }}"
@@ -591,8 +595,19 @@ jobs:
             [[ "$(printf '%s\n%s' "$BOR_MIN" "$1" | sort -V | head -1)" == "$1" ]]
           }
 
-          # rio is required by all supported bor versions; minimum activation
-          # block is 256 per bor/heimdall consensus requirement.
+          # Staggered fork schedule (64-block gaps). This gives each fork
+          # enough blocks for historical-state queries, base-fee boundary
+          # tests, and the Lisovo→LisovoPro KZG window.
+          declare -A FORK_BLOCKS=(
+            [rio]=256
+            [madhugiri]=320
+            [madhugiriPro]=384
+            [dandeli]=448
+            [lisovo]=512
+            [lisovoPro]=576
+            [giugliano]=640
+          )
+
           FORKS=(rio)
           ver_gte "2.5.0" && FORKS+=(madhugiri madhugiriPro)
           ver_gte "2.5.6" && FORKS+=(dandeli)
@@ -610,7 +625,8 @@ jobs:
 
           echo "Patching forks for min bor version ${BOR_MIN}: ${FORKS[*]}"
           for fork in "${FORKS[@]}"; do
-            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
+            block="${FORK_BLOCKS[$fork]}"
+            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/'"${block}"'/' "$CONSTANTS"
           done
 
           if [[ ${#DISABLE[@]} -gt 0 ]]; then
@@ -622,20 +638,19 @@ jobs:
           echo "--- Patched EL_HARD_FORK_BLOCKS ---"
           grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
 
-          # Write fork schedule env file so test steps derive values from the
-          # same source of truth instead of hardcoding FORK_* exports.
+          # Write fork schedule env file — single source of truth for test steps.
           declare -A FORK_ENV_MAP=(
             [rio]=FORK_RIO [madhugiri]=FORK_MADHUGIRI [madhugiriPro]=FORK_MADHUGIRI_PRO
             [dandeli]=FORK_DANDELI [lisovo]=FORK_LISOVO [lisovoPro]=FORK_LISOVO_PRO
             [giugliano]=FORK_GIUGLIANO
           )
           {
-            echo "# Auto-generated fork schedule — all supported forks at 256"
+            echo "# Auto-generated staggered fork schedule"
             echo "FORK_JAIPUR=0"; echo "FORK_DELHI=0"; echo "FORK_INDORE=0"
             echo "FORK_AGRA=0"; echo "FORK_NAPOLI=0"; echo "FORK_AHMEDABAD=0"
             echo "FORK_BHILAI=0"
             for fork in "${FORKS[@]}"; do
-              echo "${FORK_ENV_MAP[$fork]}=256"
+              echo "${FORK_ENV_MAP[$fork]}=${FORK_BLOCKS[$fork]}"
             done
             for fork in "${DISABLE[@]}"; do
               echo "${FORK_ENV_MAP[$fork]}=999999999"
@@ -699,11 +714,11 @@ jobs:
           VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
           VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
           RPC_URL="http://${VALIDATOR_RPC}"
-          TARGET_BLOCK=270
-          MAX_WAIT=600
+          TARGET_BLOCK=654
+          MAX_WAIT=900
           POLL_INTERVAL=5
           elapsed=0
-          echo "Waiting for block ${TARGET_BLOCK} (forks at 256)..."
+          echo "Waiting for block ${TARGET_BLOCK} (last fork at 640)..."
           while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
             block=$(curl -sf -X POST "${RPC_URL}" \
               -H "Content-Type: application/json" \
@@ -1083,7 +1098,38 @@ jobs:
       # Heimdall-v2 consensus correctness tests — run against the live Heimdall
       # REST API (L2_CL_API_URL) to verify span, checkpoint, milestone, and
       # state-sync invariants independently of Bor.
+      #
+      # Heimdall span 6 starts at block 768.  The fork-transition tests above
+      # wait only to the last fork block (640), so the chain may not have
+      # advanced far enough for span/state-sync tests. Wait here to ensure
+      # the chain has entered span 6 and state-sync events have been produced.
       # -------------------------------------------------------------------
+      - name: Wait for chain to reach span 6 (block 768)
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          RPC_URL="http://${VALIDATOR_RPC}"
+          TARGET_BLOCK=780
+          MAX_WAIT=900
+          POLL_INTERVAL=5
+          elapsed=0
+          echo "Waiting for block ${TARGET_BLOCK} (span 6 starts at 768)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            block=$(curl -sf -X POST "${RPC_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result // empty' | xargs printf "%d" 2>/dev/null) || block=0
+            [[ "$block" -ge "$TARGET_BLOCK" ]] && echo "Block ${block} — span 6 active." && exit 0
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+          echo "::error::Chain stuck at block ${block} — cannot reach span 6."
+          exit 1
+
       - name: Run Heimdall span and validator-set correctness tests
         run: |
           set -eo pipefail

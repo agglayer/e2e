@@ -267,29 +267,29 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Empty batch JSON-RPC returns empty array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1157) | |
 | GASLIMIT opcode matches block gasLimit | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L663) | |
 | Gas limit boundary: exact intrinsic gas (21000) succeeds for simple transfer | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L601) | |
-| KZG Bor vector: valid proof returns FIELD_ELEMENTS_PER_BLOB || BLS_MODULUS | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L98) | |
-| KZG c-kzg vector correct_proof_0_0: zero polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L113) | |
-| KZG c-kzg vector correct_proof_1_0: constant polynomial (twos) at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L133) | |
-| KZG c-kzg vector correct_proof_2_0: non-trivial polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L153) | |
-| KZG c-kzg vector correct_proof_3_0: non-trivial polynomial at origin (alt) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L171) | |
-| KZG c-kzg vector correct_proof_4_0: Bor's commitment polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L189) | |
-| KZG c-kzg vector incorrect_proof_0_0: wrong proof for zero polynomial | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L333) | |
-| KZG point evaluation precompile is active at 0x0a | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L83) | |
-| KZG precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L491) | |
-| KZG precompile gas cost is 50000 (EIP-4844) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L435) | |
-| KZG rejects 192 bytes of all zeros | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L416) | |
-| KZG rejects corrupted proof (bit-flip in Bor vector proof) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L354) | |
-| KZG rejects empty input (0 bytes) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L210) | |
-| KZG rejects mismatched versioned hash (all zeros) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L295) | |
-| KZG rejects mismatched versioned hash (corrupted first byte) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L281) | |
-| KZG rejects oversized input (193 bytes — one extra byte) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L251) | |
-| KZG rejects truncated input (32 bytes — only versioned hash) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L222) | |
-| KZG rejects truncated input (96 bytes — missing commitment and proof) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L234) | |
-| KZG rejects undersized input (191 bytes — one byte short) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L265) | |
-| KZG rejects versioned hash from different commitment | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L311) | |
-| KZG rejects wrong y value (claim mismatch) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L377) | |
-| KZG rejects wrong z value (evaluation point mismatch) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L396) | |
-| KZG return value is identical across different valid proofs | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L589) | |
+| KZG Bor vector: valid proof returns FIELD_ELEMENTS_PER_BLOB || BLS_MODULUS | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L129) | |
+| KZG c-kzg vector correct_proof_0_0: zero polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L144) | |
+| KZG c-kzg vector correct_proof_1_0: constant polynomial (twos) at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L164) | |
+| KZG c-kzg vector correct_proof_2_0: non-trivial polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L184) | |
+| KZG c-kzg vector correct_proof_3_0: non-trivial polynomial at origin (alt) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L202) | |
+| KZG c-kzg vector correct_proof_4_0: Bor's commitment polynomial at origin | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L220) | |
+| KZG c-kzg vector incorrect_proof_0_0: wrong proof for zero polynomial | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L364) | |
+| KZG point evaluation precompile is active at 0x0a | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L109) | |
+| KZG precompile callable from a deployed contract via STATICCALL | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L523) | |
+| KZG precompile gas cost is 50000 (EIP-4844) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L466) | |
+| KZG rejects 192 bytes of all zeros | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L447) | |
+| KZG rejects corrupted proof (bit-flip in Bor vector proof) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L385) | |
+| KZG rejects empty input (0 bytes) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L241) | |
+| KZG rejects mismatched versioned hash (all zeros) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L326) | |
+| KZG rejects mismatched versioned hash (corrupted first byte) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L312) | |
+| KZG rejects oversized input (193 bytes — one extra byte) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L282) | |
+| KZG rejects truncated input (32 bytes — only versioned hash) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L253) | |
+| KZG rejects truncated input (96 bytes — missing commitment and proof) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L265) | |
+| KZG rejects undersized input (191 bytes — one byte short) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L296) | |
+| KZG rejects versioned hash from different commitment | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L342) | |
+| KZG rejects wrong y value (claim mismatch) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L408) | |
+| KZG rejects wrong z value (evaluation point mismatch) | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L427) | |
+| KZG return value is identical across different valid proofs | [Link](./tests/pos/execution-specs/evm/eip4844-kzg-point-evaluation.bats#L632) | |
 | LOG event emission and retrieval via eth_getLogs | [Link](./tests/pos/execution-specs/evm/evm-opcode-storage-and-call-correctness.bats#L300) | |
 | MCOPY basic non-overlapping copy of 32 bytes | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L145) | |
 | MCOPY overlapping backward copy (src > dst) has correct memmove semantics | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L195) | |

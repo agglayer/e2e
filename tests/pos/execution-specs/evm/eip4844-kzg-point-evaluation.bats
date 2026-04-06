@@ -23,22 +23,43 @@
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
+    load "../../../../core/helpers/scripts/pos-fork-helpers.bash"
     pos_setup
+
+    # Fork schedule — needed to pin calls within the KZG-active window.
+    _setup_fork_env
 
     # KZG precompile address
     KZG_ADDR="0x000000000000000000000000000000000000000a"
 
     # Fixed return value on success: FIELD_ELEMENTS_PER_BLOB || BLS_MODULUS
     KZG_SUCCESS="0x000000000000000000000000000000000000000000000000000000000000100073eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001"
+
+    # Block at which KZG is known to be active (midpoint of Lisovo→LisovoPro).
+    # When LisovoPro has already passed, querying "latest" would see KZG as
+    # removed, so all tests pin to this block instead.
+    if [[ "${FORK_LISOVO:-999999999}" -lt 999999999 && "${FORK_LISOVO_PRO:-999999999}" -lt 999999999 && "${FORK_LISOVO_PRO}" -gt "${FORK_LISOVO}" ]]; then
+        KZG_ACTIVE_BLOCK=$(( (FORK_LISOVO + FORK_LISOVO_PRO) / 2 ))
+    elif [[ "${FORK_LISOVO:-999999999}" -lt 999999999 ]]; then
+        KZG_ACTIVE_BLOCK="${FORK_LISOVO}"
+    else
+        KZG_ACTIVE_BLOCK=""
+    fi
 }
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 # Call KZG precompile via eth_call, return output (empty string on revert).
+# Pins to KZG_ACTIVE_BLOCK when available so the call lands within the
+# Lisovo→LisovoPro window where KZG is active (it is removed at LisovoPro).
 _kzg_call() {
     local input="${1:-0x}"
+    local block_flag=()
+    if [[ -n "${KZG_ACTIVE_BLOCK:-}" ]]; then
+        block_flag=(--block "${KZG_ACTIVE_BLOCK}")
+    fi
     local out
-    out=$(cast call --rpc-url "${L2_RPC_URL}" "${KZG_ADDR}" "${input}" 2>/dev/null) || out=""
+    out=$(cast call --rpc-url "${L2_RPC_URL}" "${block_flag[@]}" "${KZG_ADDR}" "${input}" 2>/dev/null) || out=""
     echo "${out}"
 }
 
@@ -64,11 +85,16 @@ _build_kzg_input() {
 }
 
 # Skip if KZG precompile is not active on this chain.
+# Waits for the KZG-active block before probing so the chain has reached it.
 _require_kzg_active() {
+    if [[ -z "${KZG_ACTIVE_BLOCK:-}" ]]; then
+        skip "Lisovo fork not active (KZG precompile never enabled)"
+    fi
+    _wait_for_block_on "${KZG_ACTIVE_BLOCK}" "$L2_RPC_URL" "L2_RPC"
     local out
     out=$(_kzg_call "$BOR_VECTOR_INPUT")
     if [[ "${out}" != "${KZG_SUCCESS}" ]]; then
-        skip "KZG precompile not active at ${KZG_ADDR} (pre-Cancun/Lisovo chain)"
+        skip "KZG precompile not active at ${KZG_ADDR} block ${KZG_ACTIVE_BLOCK} (pre-Cancun/Lisovo chain)"
     fi
 }
 
@@ -81,9 +107,14 @@ BOR_VECTOR_INPUT="0x01e798154708fe7789429634053cbf9f99b619f9f084048927333fce637f
 
 # bats test_tags=execution-specs,eip4844,lisovo,precompile
 @test "KZG point evaluation precompile is active at 0x0a" {
+    if [[ -z "${KZG_ACTIVE_BLOCK:-}" ]]; then
+        skip "Lisovo fork not active (KZG precompile never enabled)"
+    fi
+    _wait_for_block_on "${KZG_ACTIVE_BLOCK}" "$L2_RPC_URL" "L2_RPC"
+
     local out
     out=$(_kzg_call "$BOR_VECTOR_INPUT")
-    echo "KZG output: ${out}" >&3
+    echo "KZG output (block ${KZG_ACTIVE_BLOCK}): ${out}" >&3
 
     if [[ -z "${out}" || "${out}" == "0x" ]]; then
         skip "KZG precompile not active at ${KZG_ADDR}"
@@ -454,6 +485,7 @@ BOR_VECTOR_INPUT="0x01e798154708fe7789429634053cbf9f99b619f9f084048927333fce637f
 
     local gas_estimate
     gas_estimate=$(cast estimate --rpc-url "$L2_RPC_URL" \
+        --block "${KZG_ACTIVE_BLOCK}" \
         --from "$ephemeral_addr" \
         "$KZG_ADDR" "$BOR_VECTOR_INPUT" 2>/dev/null) || true
 
@@ -490,6 +522,17 @@ BOR_VECTOR_INPUT="0x01e798154708fe7789429634053cbf9f99b619f9f084048927333fce637f
 # bats test_tags=execution-specs,eip4844,lisovo,precompile
 @test "KZG precompile callable from a deployed contract via STATICCALL" {
     _require_kzg_active
+
+    # This test sends real transactions; they execute at the current tip.
+    # If LisovoPro has already passed, KZG is removed at latest and the
+    # STATICCALL inside the contract will fail. Skip in that case.
+    if [[ -n "${KZG_ACTIVE_BLOCK:-}" && "${FORK_LISOVO_PRO:-999999999}" -lt 999999999 ]]; then
+        local current_block
+        current_block=$(_block_number_on "$L2_RPC_URL" 2>/dev/null) || current_block=0
+        if [[ "$current_block" -ge "${FORK_LISOVO_PRO}" ]]; then
+            skip "KZG removed at LisovoPro (block ${FORK_LISOVO_PRO}) — cannot test via live transaction at tip ${current_block}"
+        fi
+    fi
 
     local wallet_json
     wallet_json=$(cast wallet new --json | jq '.[0]')
