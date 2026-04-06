@@ -7,8 +7,16 @@
 #   - Remove versions once fully deprecated and no longer in use
 #
 # Each entry must have: image, el_type (bor or erigon), reason.
-# Pairwise pairs are generated across ALL entries (bor-bor, erigon-erigon,
-# and bor-erigon cross-client combinations).
+#
+# Bor strategy: up to THREE entries — latest, second-latest, and latest of the
+# previous major.minor line:
+#   1. Single-version baseline       (latest vs latest)        — regression guard
+#   2. Adjacent rolling-upgrade      (latest vs second-latest) — most common upgrade
+#   3. Cross-minor-line              (latest vs prev-minor)    — laggard node operators
+# If second-latest already lives on a different minor line, entries 2 and 3
+# collapse into one (2 entries total).
+#
+# Erigon strategy: latest N major.minor lines (RPC endpoint, not pairwise-tested).
 #
 # If this file is absent or `versions` is empty, the workflow falls back
 # to auto-detecting the latest bor release from each major.minor line.
@@ -16,51 +24,28 @@
 versions:
 - image: 0xpolygon/bor:2.7.1-beta
   el_type: bor
-  reason: new pre-release (2.7 line), auto-detected
+  reason: latest pre-release (2.7 line), single-version baseline
 - image: 0xpolygon/bor:2.7.0
   el_type: bor
   reason: second latest stable release (2.7 line), adjacent rolling-upgrade coverage
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
-  reason: latest stable release (2.6 line)
-- image: 0xpolygon/bor:2.5.9
-  el_type: bor
-  reason: latest stable release (2.5 line)
+  reason: latest stable release (2.6 line), previous minor-line coverage
 - image: 0xpolygon/erigon:v3.5.0
   el_type: erigon
   reason: latest stable release (3.5 line)
 - image: 0xpolygon/erigon:v3.4.0
   el_type: erigon
   reason: new stable release (3.4 line), auto-detected
-- image: 0xpolygon/erigon:v3.3.7
-  el_type: erigon
-  reason: new stable release (3.3 line), auto-detected
 
 # Excluded version pairs — combinations known to fail due to precompile or EVM
-# behavior differences across major versions. These are skipped during pairwise
-# matrix generation to avoid wasting CI resources on expected failures.
+# behavior differences. These are skipped during pairwise matrix generation.
 #
-# Rule: always keep latest + second-latest release pairs — rolling upgrades
-# across adjacent major versions must always work.
+# Rule: latest + second-latest bor pairs must NEVER be excluded — rolling
+# upgrades between adjacent releases must always work.
 #
 # Each entry needs: images (list of 2), reason, and link (CI run with failure).
 excluded_pairs:
-- images:
-    - 0xpolygon/bor:2.7.0
-    - 0xpolygon/bor:2.5.9
-  reason: >-
-    EVM behavior mismatch across 2 major versions (2.7 vs 2.5). Execution-specs
-    tests fail due to precompile and fork activation differences when validators
-    run incompatible versions.
-  link: https://github.com/agglayer/e2e/actions/runs/23532924942/job/68627382271
-- images:
-    - 0xpolygon/bor:2.6.5
-    - 0xpolygon/bor:2.5.9
-  reason: >-
-    EVM behavior mismatch (2.6 vs 2.5). Fork-transition tests hit BAD BLOCK
-    errors on archive sync; execution-specs tests fail due to inconsistent
-    precompile behavior across validators.
-  link: https://github.com/agglayer/e2e/actions/runs/23532924942/job/68627382263
 - images:
     - 0xpolygon/bor:2.6.5
     - 0xpolygon/erigon:v3.5.0

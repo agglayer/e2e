@@ -23,7 +23,12 @@ COMPONENTS = {
         "el_type": "bor",
         "image_prefix": "0xpolygon/bor:",
         "strip_v": True,
-        "max_lines": 3,  # Track 3 major.minor lines (e.g. 2.7, 2.6, 2.5)
+        # Bor is pairwise-tested: keep up to THREE production-relevant releases:
+        #   1. Latest (globally)           — single-version baseline
+        #   2. Second-latest (globally)    — adjacent rolling-upgrade pair
+        #   3. Latest of the previous major.minor line — cross-minor-line coverage
+        # If second-latest already lives on a different minor line, entries 2 and 3
+        # collapse into one (two entries total).
     },
     "erigon": {
         "repo": "0xPolygon/erigon",
@@ -125,9 +130,8 @@ def existing_images(data: dict) -> set:
 
 
 def update_compat_versions(compat_path: Path) -> list:
-    """Check for new releases and add them. Returns list of changes made."""
+    """Check for new releases and update. Returns list of changes made."""
     data = load_compat_versions(compat_path)
-    current_images = existing_images(data)
     changes = []
 
     for comp_name, comp_config in COMPONENTS.items():
@@ -135,116 +139,124 @@ def update_compat_versions(compat_path: Path) -> list:
         if not releases:
             continue
 
-        # Sort all fetched releases by semver descending to identify global rankings.
+        # Sort all fetched releases by semver descending.
         all_sorted = sorted(
             releases,
             key=lambda r: _semver_sort_key(tag_to_version(r["tag"])),
             reverse=True,
         )
-
-        # The globally second-latest release (position [1] in the sorted list) is
-        # the most likely rolling-upgrade partner for the latest release in
-        # production.  We preserve it in compat-versions.yml even when it falls in
-        # the same major.minor line as the latest — the superseding logic below
-        # skips it so that the adjacent-upgrade pair is always tested.
-        #
-        # Only applied to bor; erigon is used as an RPC endpoint, not
-        # pairwise-tested against itself.
-        second_latest_tag = all_sorted[1]["tag"] if comp_name == "bor" and len(all_sorted) >= 2 else None
-        second_latest_image = make_image(second_latest_tag, comp_config) if second_latest_tag else None
-
-        # Group by major.minor line (insertion order = newest first from API).
-        lines: dict = {}
-        for r in releases:
-            mm = version_major_minor(r["tag"])
-            if mm not in lines:
-                lines[mm] = r
-
-        # Limit to the N most recent major.minor lines.
-        max_lines = comp_config.get("max_lines", 3)
-        tracked_lines = dict(list(lines.items())[:max_lines])
-
-        # Check each tracked major.minor line's latest release.
         prefix = comp_config["image_prefix"]
-        for mm, release in tracked_lines.items():
-            image = make_image(release["tag"], comp_config)
 
-            # Remove superseded entries from the same major.minor line.
-            # Exception: never remove the globally second-latest release —
-            # it must stay in the matrix to cover the adjacent rolling-upgrade
-            # scenario (latest vs. second-latest), which is the most common
-            # production upgrade path.
-            superseded = [
+        if comp_name == "bor":
+            # For bor: keep exactly three production-relevant releases:
+            #   1. Latest (globally)          — single-version baseline
+            #   2. Second-latest (globally)   — adjacent rolling-upgrade pair
+            #   3. Latest of the previous major.minor line — covers node operators
+            #      who haven't yet migrated to the current minor line (e.g. still
+            #      on 2.6.x while latest is 2.7.x).  If second-latest already
+            #      lives on a different minor line this collapses to 2 entries.
+            latest_mm = version_major_minor(all_sorted[0]["tag"])
+            prev_minor_release = next(
+                (r for r in all_sorted if version_major_minor(r["tag"]) != latest_mm),
+                None,
+            )
+
+            keep_releases = list(all_sorted[:2])
+            if prev_minor_release:
+                prev_image = make_image(prev_minor_release["tag"], comp_config)
+                existing_images_in_keep = {make_image(r["tag"], comp_config) for r in keep_releases}
+                if prev_image not in existing_images_in_keep:
+                    keep_releases.append(prev_minor_release)
+
+            keep_images = {make_image(r["tag"], comp_config) for r in keep_releases}
+
+            # Remove any bor entries that are no longer in the keep set.
+            stale = [
                 v for v in data["versions"]
-                if v.get("image", "").startswith(prefix)
-                and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
-                and v["image"] != image
-                and v["image"] != second_latest_image
+                if v.get("image", "").startswith(prefix) and v["image"] not in keep_images
             ]
-            for old in superseded:
+            for old in stale:
                 data["versions"].remove(old)
-                changes.append(f"  - {old['image']} (superseded by {image})")
-                # Warn if excluded_pairs references the superseded version.
+                changes.append(f"  - {old['image']} (no longer in latest/second-latest/prev-minor-line set)")
                 for ep in data.get("excluded_pairs", []):
                     if old["image"] in ep.get("images", []):
-                        print(f"  ! excluded_pairs references superseded image "
+                        print(f"  ! excluded_pairs references removed image "
                               f"{old['image']} — update excluded_pairs manually.")
 
-            if image in current_images:
-                continue
+            # Add any missing entries from the keep set.
+            current = {v["image"] for v in data["versions"]}
+            for i, r in enumerate(keep_releases):
+                image = make_image(r["tag"], comp_config)
+                if image in current:
+                    continue
+                mm = version_major_minor(r["tag"])
+                kind = "pre-release" if r["prerelease"] else "stable release"
+                if i == 0:
+                    reason = f"latest {kind} ({mm} line), single-version baseline"
+                elif i == 1:
+                    reason = f"second latest {kind} ({mm} line), adjacent rolling-upgrade coverage"
+                else:
+                    reason = f"latest {kind} ({mm} line), previous minor-line coverage"
+                data["versions"].append({
+                    "image": image,
+                    "el_type": comp_config["el_type"],
+                    "reason": reason,
+                })
+                changes.append(f"  + {image} ({reason})")
 
-            # Append new entry; the final sort (below) ensures correct order.
-            if release["prerelease"]:
-                reason = f"new pre-release ({mm} line), auto-detected"
-            else:
-                reason = f"new stable release ({mm} line), auto-detected"
+        else:
+            # For erigon (RPC endpoint, not pairwise-tested): track N major.minor lines.
+            lines: dict = {}
+            for r in releases:
+                mm = version_major_minor(r["tag"])
+                if mm not in lines:
+                    lines[mm] = r
 
-            data["versions"].append({
-                "image": image,
-                "el_type": comp_config["el_type"],
-                "reason": reason,
-            })
-            changes.append(f"  + {image} ({reason})")
+            max_lines = comp_config.get("max_lines", 3)
+            tracked_lines = dict(list(lines.items())[:max_lines])
 
-        # Remove bor versions from minor lines outside the tracked set,
-        # unless they are the current second-latest (protected for adjacent-upgrade
-        # coverage).  This prevents stale entries from accumulating when the
-        # globally second-latest shifts to a different minor line across runs.
-        if comp_name == "bor":
+            current = {v["image"] for v in data["versions"]}
+            for mm, release in tracked_lines.items():
+                image = make_image(release["tag"], comp_config)
+
+                # Remove superseded entries from the same major.minor line.
+                superseded = [
+                    v for v in data["versions"]
+                    if v.get("image", "").startswith(prefix)
+                    and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
+                    and v["image"] != image
+                ]
+                for old in superseded:
+                    data["versions"].remove(old)
+                    changes.append(f"  - {old['image']} (superseded by {image})")
+                    for ep in data.get("excluded_pairs", []):
+                        if old["image"] in ep.get("images", []):
+                            print(f"  ! excluded_pairs references superseded image "
+                                  f"{old['image']} — update excluded_pairs manually.")
+
+                if image in current:
+                    continue
+
+                if release["prerelease"]:
+                    reason = f"new pre-release ({mm} line), auto-detected"
+                else:
+                    reason = f"new stable release ({mm} line), auto-detected"
+                data["versions"].append({
+                    "image": image,
+                    "el_type": comp_config["el_type"],
+                    "reason": reason,
+                })
+                changes.append(f"  + {image} ({reason})")
+
+            # Remove erigon entries outside the tracked set.
             stale = [
                 v for v in data["versions"]
                 if v.get("image", "").startswith(prefix)
                 and version_major_minor(v["image"][len(prefix):].lstrip("v")) not in tracked_lines
-                and v["image"] != second_latest_image
             ]
             for old in stale:
                 data["versions"].remove(old)
-                changes.append(f"  - {old['image']} (outside tracked lines, no longer second-latest)")
-                for ep in data.get("excluded_pairs", []):
-                    if old["image"] in ep.get("images", []):
-                        print(f"  ! excluded_pairs references stale image "
-                              f"{old['image']} — update excluded_pairs manually.")
-
-        # Ensure the globally second-latest bor release is always in the matrix.
-        # If it was already added by the tracked_lines loop (i.e. it happens to be
-        # the latest of a different minor line) this is a no-op.  If it lives in
-        # the same minor line as the latest — and was therefore skipped by the
-        # superseding guard above — we add it here explicitly.
-        if second_latest_image:
-            current_after_loop = {v["image"] for v in data["versions"]}
-            if second_latest_image not in current_after_loop:
-                second_mm = version_major_minor(second_latest_tag)
-                second_release = next((r for r in all_sorted if r["tag"] == second_latest_tag), None)
-                if second_release and second_release.get("prerelease"):
-                    reason = f"second latest pre-release ({second_mm} line), adjacent rolling-upgrade coverage"
-                else:
-                    reason = f"second latest stable release ({second_mm} line), adjacent rolling-upgrade coverage"
-                data["versions"].append({
-                    "image": second_latest_image,
-                    "el_type": comp_config["el_type"],
-                    "reason": reason,
-                })
-                changes.append(f"  + {second_latest_image} (second latest, adjacent rolling-upgrade coverage)")
+                changes.append(f"  - {old['image']} (outside tracked erigon lines)")
 
     # Sort versions: group by el_type (bor first, then erigon), then
     # descending semver within each group.  This ensures the latest

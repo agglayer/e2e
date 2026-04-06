@@ -349,6 +349,7 @@ jobs:
             img_buf=()
             reason_buf=""
             link_buf=""
+            in_folded_reason=false
             while IFS= read -r line; do
               if [[ "$line" =~ ^excluded_pairs: ]]; then
                 in_excluded=true; continue
@@ -368,21 +369,25 @@ jobs:
                 elif [[ ${#img_buf[@]} -gt 0 ]]; then
                   echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
                 fi
-                img_buf=(); reason_buf=""; link_buf=""; continue
+                img_buf=(); reason_buf=""; link_buf=""; in_folded_reason=false; continue
               fi
               if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
                 img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
                 img_buf+=("$img")
               fi
               if [[ "$line" =~ ^[[:space:]]+reason:\ *(.+)$ ]]; then
-                reason_buf="${BASH_REMATCH[1]}"
+                _r="${BASH_REMATCH[1]}"
+                # Strip YAML block scalar indicators (>-, >, |) from inline value.
+                case "$_r" in ">-"|">"|"|") reason_buf=""; in_folded_reason=true ;; *) reason_buf="$_r"; in_folded_reason=false ;; esac
               fi
               if [[ "$line" =~ ^[[:space:]]+link:\ *(.+)$ ]]; then
                 link_buf="${BASH_REMATCH[1]}"
               fi
               # Continuation lines for multi-line reason (YAML >- folded scalar).
-              if [[ -n "$reason_buf" && "$line" =~ ^[[:space:]]{4,}[a-zA-Z] && ! "$line" =~ ^[[:space:]]+(images|reason|link|-) ]]; then
-                reason_buf="${reason_buf} $(echo "$line" | sed 's/^[[:space:]]*//')"
+              if [[ "$in_folded_reason" == "true" || ( -n "$reason_buf" ) ]] && \
+                 [[ "$line" =~ ^[[:space:]]{4,}[^[:space:]] ]] && \
+                 [[ ! "$line" =~ ^[[:space:]]+(images|reason|link|-) ]]; then
+                reason_buf="${reason_buf:+${reason_buf} }$(echo "$line" | sed 's/^[[:space:]]*//')"
               fi
             done < "$COMPAT_YML"
             # Flush last entry.
@@ -419,34 +424,44 @@ jobs:
               '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           fi
 
-          # Pairwise bor-bor mixes (skip excluded pairs).
+          # Pairwise bor-bor mixes: always pin one side to the latest (index 0).
+          # This avoids generating stale cross-minor combinations (e.g. 2.7.0 vs
+          # 2.6.5) that don't reflect a realistic production state — any failure
+          # there would be resolved by upgrading, not by holding back older nodes.
           # excluded_pairs applies to both bor-bor and bor-erigon combinations:
           # if the selected erigon is excluded with either bor version, rotate to
           # the next erigon version until a compatible one is found.
-          for ((i=0; i<${#bor_images[@]}; i++)); do
-            for ((j=i+1; j<${#bor_images[@]}; j++)); do
-              va="${bor_images[$i]}"; vb="${bor_images[$j]}"
-              if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
-                echo "  Skipping excluded pair: ${va} <-> ${vb}"
-                continue
-              fi
-              la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
-              if [[ ${#erigon_images[@]} -gt 0 ]]; then
-                idx=$(( (i + j) % ${#erigon_images[@]} ))
-                eri="${erigon_images[$idx]}"
-                # Rotate past any erigon version excluded with va or vb.
-                for ((k=1; k<${#erigon_images[@]}; k++)); do
-                  [[ -z "${excluded_set["${va}|${eri}"]:-}" && -z "${excluded_set["${vb}|${eri}"]:-}" ]] && break
-                  eri="${erigon_images[$(( (idx + k) % ${#erigon_images[@]} ))]}"
-                  echo "  Rotated erigon to ${eri} (excluded pair avoided for ${va} or ${vb})"
-                done
-              else
-                eri="$erigon_latest"
-              fi
-              scenarios=$(echo "$scenarios" | jq -c \
-                --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
-                '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
-            done
+          va="${bor_images[0]}"
+          la=$(echo "$va" | sed 's|.*/||; s/:/-/g')
+          for ((j=1; j<${#bor_images[@]}; j++)); do
+            vb="${bor_images[$j]}"
+            if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
+              echo "  Skipping excluded pair: ${va} <-> ${vb}"
+              continue
+            fi
+            lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
+            if [[ ${#erigon_images[@]} -gt 0 ]]; then
+              idx=$(( j % ${#erigon_images[@]} ))
+              eri="${erigon_images[$idx]}"
+              # Rotate past any erigon version excluded with va or vb.
+              for ((k=1; k<${#erigon_images[@]}; k++)); do
+                [[ -z "${excluded_set["${va}|${eri}"]:-}" && -z "${excluded_set["${vb}|${eri}"]:-}" ]] && break
+                eri="${erigon_images[$(( (idx + k) % ${#erigon_images[@]} ))]}"
+                echo "  Rotated erigon to ${eri} (excluded pair avoided for ${va} or ${vb})"
+              done
+            else
+              eri="$erigon_latest"
+            fi
+            # Guard: if the final eri is still excluded, skip this pair.
+            if [[ ${#erigon_images[@]} -gt 0 ]] && \
+               { [[ -n "${excluded_set["${va}|${eri}"]:-}" ]] || \
+                 [[ -n "${excluded_set["${vb}|${eri}"]:-}" ]]; }; then
+              echo "::warning::No compatible erigon for bor pair ${va} <-> ${vb} — all versions excluded, skipping."
+              continue
+            fi
+            scenarios=$(echo "$scenarios" | jq -c \
+              --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
+              '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           done
 
           echo "compat-pairs=${scenarios}" >> "$GITHUB_OUTPUT"
