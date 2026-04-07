@@ -592,24 +592,24 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | heimdall bridge: clerk has processed at least one state sync event | [Link](./tests/heimdall/clerk/bridge-sync.bats#L188) | |
 | heimdall bridge: event records are being processed in a timely manner | [Link](./tests/heimdall/clerk/bridge-sync.bats#L255) | |
 | heimdall checkpoint: ACK count is monotonically increasing over time | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L188) | |
-| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L369) | |
-| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L219) | |
+| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L392) | |
+| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L242) | |
 | heimdall checkpoint: checkpoint sequence has no numbering gaps in latest 10 | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L289) | |
-| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L181) | |
+| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L204) | |
 | heimdall checkpoint: no two consecutive checkpoints have the same root hash | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L439) | |
 | heimdall checkpoint: proposer address is non-empty and well-formed | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L223) | |
-| heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L323) | |
+| heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L346) | |
 | heimdall checkpoint: root hash length is exactly 32 bytes (66 hex chars with 0x) | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L374) | |
-| heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L280) | |
+| heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L303) | |
 | heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L220) | |
 | heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L134) | |
 | heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L275) | |
 | heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L182) | |
-| heimdall consensus: all active validators have strictly positive voting power | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L224) | |
-| heimdall consensus: chain is live and advancing | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L187) | |
-| heimdall consensus: commit includes an entry for every validator in the active set | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L281) | |
-| heimdall consensus: quorum of voting power committed each block | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L433) | |
-| heimdall consensus: recent blocks decided at round 0 | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L376) | |
+| heimdall consensus: all active validators have strictly positive voting power | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L247) | |
+| heimdall consensus: chain is live and advancing | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L210) | |
+| heimdall consensus: commit includes an entry for every validator in the active set | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L304) | |
+| heimdall consensus: quorum of voting power committed each block | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L456) | |
+| heimdall consensus: recent blocks decided at round 0 | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L399) | |
 | heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
 | heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
 | heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |

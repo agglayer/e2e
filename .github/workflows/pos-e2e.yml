@@ -1130,6 +1130,49 @@ jobs:
           echo "::error::Chain stuck at block ${block} — cannot reach span 6."
           exit 1
 
+      # Trigger an L1→L2 state sync event so clerk/bridge tests don't skip.
+      # In the kurtosis devnet no deposits happen automatically, so without
+      # this step the clerk event record list stays empty and all state-sync
+      # tests are skipped.  A single depositEther() triggers a StateSynced
+      # event that Heimdall's clerk picks up within ~60 s.
+      - name: Trigger L1→L2 state sync event (deposit on L1)
+        run: |
+          set -eo pipefail
+
+          # Resolve L1 RPC URL (strip then re-add http:// to handle both kurtosis output formats)
+          L1_PORT=$(kurtosis port print "${{ env.ENCLAVE_NAME }}" el-1-geth-lighthouse rpc 2>/dev/null ||
+                    kurtosis port print "${{ env.ENCLAVE_NAME }}" el-1-reth-lighthouse rpc 2>/dev/null)
+          L1_PORT="${L1_PORT#http://}" ; L1_PORT="${L1_PORT#https://}"
+          L1_RPC="http://${L1_PORT}"
+
+          MATIC_ADDR=$(kurtosis files inspect "${{ env.ENCLAVE_NAME }}" matic-contract-addresses contractAddresses.json | jq)
+          DEPOSIT_MGR=$(echo "$MATIC_ADDR" | jq -r '.root.DepositManagerProxy')
+          PK="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"
+
+          echo "Triggering L1→L2 state sync via depositEther()..."
+          echo "  L1_RPC=${L1_RPC}  DEPOSIT_MGR=${DEPOSIT_MGR}"
+
+          cast send --rpc-url "${L1_RPC}" --private-key "${PK}" \
+            --value 0.01ether "${DEPOSIT_MGR}" "depositEther()" || {
+            echo "::warning::depositEther() failed — clerk/bridge tests may skip"
+          }
+
+          # Give Heimdall a moment to relay the StateSynced event before tests start.
+          CL_PORT=$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-cl-1-heimdall-v2-bor-validator http)
+          CL_PORT="${CL_PORT#http://}" ; CL_PORT="${CL_PORT#https://}"
+          L2_CL_API="http://${CL_PORT}"
+          echo "Waiting for clerk to pick up the state sync event..."
+          for i in $(seq 1 24); do
+            rid=$(curl -sf -m 10 "${L2_CL_API}/clerk/event-records/latest-id" \
+              | jq -r '.latest_record_id // "0"' 2>/dev/null) || rid=0
+            if [[ "$rid" -gt 0 ]]; then
+              echo "Clerk has event records (latest_record_id=${rid}) after $((i*5))s."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::warning::No clerk events after 120s — tests will poll further on their own"
+
       - name: Run Heimdall span and validator-set correctness tests
         run: |
           set -eo pipefail

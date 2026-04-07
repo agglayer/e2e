@@ -440,9 +440,39 @@ _bor_get_author() {
 
     echo "  Bor current block: ${current_block}" >&3
 
-    # Span may not have started yet (e.g. future span).
+    # If the latest span hasn't started yet, fall back to the span that
+    # covers the current block rather than skipping.  This commonly happens
+    # when Heimdall has committed a future span but Bor hasn't advanced into
+    # it yet (e.g. latest span 7 starts at 896 but chain is at 783 inside
+    # span 6).  The single-version baseline should never skip this test.
     if [[ "${current_block}" -lt "${start_block}" ]]; then
-        skip "Current Bor block (${current_block}) has not reached span ${span_id} start_block (${start_block}) yet"
+        echo "  Latest span ${span_id} starts at ${start_block} but chain is at ${current_block} — falling back to active span" >&3
+        local active_id=$(( span_id - 1 ))
+        if [[ "${active_id}" -lt 0 ]]; then
+            skip "Current block (${current_block}) is before span ${span_id} and no previous span exists"
+        fi
+        local active_span
+        if ! active_span=$(_get_span_by_id "${active_id}"); then
+            skip "Could not fetch span ${active_id} covering current block ${current_block}"
+        fi
+        span_id="${active_id}"
+        start_block=$(printf '%s' "${active_span}" | jq -r '.start_block')
+        end_block=$(printf '%s' "${active_span}" | jq -r '.end_block')
+
+        # Rebuild producer lookup from the active span.
+        producers=()
+        mapfile -t producers < <(printf '%s' "${active_span}" \
+            | jq -r '.selected_producers[]?.signer // empty' \
+            | tr '[:upper:]' '[:lower:]')
+        if [[ "${#producers[@]}" -eq 0 ]]; then
+            skip "span ${span_id} has no selected_producers — cannot perform cross-check"
+        fi
+        local _k; for _k in "${!producer_set[@]}"; do unset "producer_set[$_k]"; done
+        for p in "${producers[@]}"; do
+            producer_set["${p}"]=1
+        done
+        echo "  Using active span ${span_id}: blocks ${start_block}–${end_block}, ${#producers[@]} producer(s)" >&3
+        echo "  producers: ${producers[*]}" >&3
     fi
 
     # Compute 3 sample points within [start_block, end_block] ∩ [0, current_block].

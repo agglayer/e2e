@@ -128,19 +128,42 @@ _heimdall_height() {
 
 # Fetch the active validator set from the Heimdall REST API.
 # Prints the raw JSON array of validator objects, or returns 1.
+#
+# Strategy:
+#   1. /stake/validators-set — heimdall-v2 (returns .validator_set.validators)
+#   2. /stake/validators     — heimdall-v1 (returns .validators)
+#   3. /bor/spans/latest     — fallback via span validator_set
 _get_validators() {
-    local raw
+    local raw vals
+
+    # Attempt 1: /stake/validators-set (heimdall-v2)
     raw=$(curl -s -m 30 --connect-timeout 5 \
-        "${L2_CL_API_URL}/stake/validators" 2>/dev/null || true)
-    local vals
+        "${L2_CL_API_URL}/stake/validators-set" 2>/dev/null || true)
     vals=$(printf '%s' "${raw}" \
-        | jq -r '.validators // empty' 2>/dev/null || true)
+        | jq -c '.validator_set.validators // empty' 2>/dev/null || true)
+
+    # Attempt 2: /stake/validators (heimdall-v1) or /v1beta1/ prefix
+    if [[ -z "${vals}" || "${vals}" == "null" || "${vals}" == "[]" ]]; then
+        raw=$(curl -s -m 30 --connect-timeout 5 \
+            "${L2_CL_API_URL}/stake/validators" 2>/dev/null || true)
+        vals=$(printf '%s' "${raw}" \
+            | jq -c '.validators // empty' 2>/dev/null || true)
+    fi
     if [[ -z "${vals}" || "${vals}" == "null" || "${vals}" == "[]" ]]; then
         raw=$(curl -s -m 30 --connect-timeout 5 \
             "${L2_CL_API_URL}/v1beta1/stake/validators" 2>/dev/null || true)
         vals=$(printf '%s' "${raw}" \
-            | jq -r '.validators // empty' 2>/dev/null || true)
+            | jq -c '.validators // empty' 2>/dev/null || true)
     fi
+
+    # Attempt 3: span validator_set as a last resort
+    if [[ -z "${vals}" || "${vals}" == "null" || "${vals}" == "[]" ]]; then
+        raw=$(curl -s -m 30 --connect-timeout 5 \
+            "${L2_CL_API_URL}/bor/spans/latest" 2>/dev/null || true)
+        vals=$(printf '%s' "${raw}" \
+            | jq -c '.span.validator_set.validators // empty' 2>/dev/null || true)
+    fi
+
     if [[ -z "${vals}" || "${vals}" == "null" || "${vals}" == "[]" ]]; then
         return 1
     fi

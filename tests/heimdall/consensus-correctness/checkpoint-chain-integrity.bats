@@ -143,19 +143,42 @@ _get_checkpoint_by_number() {
 
 # Fetch the active validator signers (lowercase) from Heimdall.
 # Prints a newline-separated list of addresses, or returns 1 on failure.
+#
+# Strategy:
+#   1. /stake/validators-set — available on heimdall-v2 (returns .validator_set.validators[].signer)
+#   2. /stake/validators     — heimdall-v1 (returns .validators[].signer)
+#   3. /bor/spans/latest     — fallback via span producers (returns .span.selected_producers[].signer)
 _get_validator_signers() {
-    local raw
+    local raw signers
+
+    # Attempt 1: /stake/validators-set (heimdall-v2)
     raw=$(curl -s -m 30 --connect-timeout 5 \
-        "${L2_CL_API_URL}/stake/validators" 2>/dev/null || true)
-    local signers
+        "${L2_CL_API_URL}/stake/validators-set" 2>/dev/null || true)
     signers=$(printf '%s' "${raw}" \
-        | jq -r '.validators[]?.signer // empty' 2>/dev/null || true)
+        | jq -r '.validator_set.validators[]?.signer // empty' 2>/dev/null || true)
+
+    # Attempt 2: /stake/validators (heimdall-v1) or /v1beta1/ prefix
+    if [[ -z "${signers}" ]]; then
+        raw=$(curl -s -m 30 --connect-timeout 5 \
+            "${L2_CL_API_URL}/stake/validators" 2>/dev/null || true)
+        signers=$(printf '%s' "${raw}" \
+            | jq -r '.validators[]?.signer // empty' 2>/dev/null || true)
+    fi
     if [[ -z "${signers}" ]]; then
         raw=$(curl -s -m 30 --connect-timeout 5 \
             "${L2_CL_API_URL}/v1beta1/stake/validators" 2>/dev/null || true)
         signers=$(printf '%s' "${raw}" \
             | jq -r '.validators[]?.signer // empty' 2>/dev/null || true)
     fi
+
+    # Attempt 3: span producers as a last resort
+    if [[ -z "${signers}" ]]; then
+        raw=$(curl -s -m 30 --connect-timeout 5 \
+            "${L2_CL_API_URL}/bor/spans/latest" 2>/dev/null || true)
+        signers=$(printf '%s' "${raw}" \
+            | jq -r '.span.selected_producers[]?.signer // empty' 2>/dev/null || true)
+    fi
+
     if [[ -z "${signers}" ]]; then
         return 1
     fi
