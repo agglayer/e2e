@@ -23,7 +23,12 @@ COMPONENTS = {
         "el_type": "bor",
         "image_prefix": "0xpolygon/bor:",
         "strip_v": True,
-        "max_lines": 3,  # Track 3 major.minor lines (e.g. 2.7, 2.6, 2.5)
+        # Bor is pairwise-tested: keep up to THREE production-relevant releases:
+        #   1. Latest (globally)           — single-version baseline
+        #   2. Second-latest (globally)    — adjacent rolling-upgrade pair
+        #   3. Latest of the previous major.minor line — cross-minor-line coverage
+        # If second-latest already lives on a different minor line, entries 2 and 3
+        # collapse into one (two entries total).
     },
     "erigon": {
         "repo": "0xPolygon/erigon",
@@ -125,9 +130,8 @@ def existing_images(data: dict) -> set:
 
 
 def update_compat_versions(compat_path: Path) -> list:
-    """Check for new releases and add them. Returns list of changes made."""
+    """Check for new releases and update. Returns list of changes made."""
     data = load_compat_versions(compat_path)
-    current_images = existing_images(data)
     changes = []
 
     for comp_name, comp_config in COMPONENTS.items():
@@ -135,53 +139,124 @@ def update_compat_versions(compat_path: Path) -> list:
         if not releases:
             continue
 
-        # Group by major.minor line (insertion order = newest first from API).
-        lines: dict = {}
-        for r in releases:
-            mm = version_major_minor(r["tag"])
-            if mm not in lines:
-                lines[mm] = r
-
-        # Limit to the N most recent major.minor lines.
-        max_lines = comp_config.get("max_lines", 3)
-        tracked_lines = dict(list(lines.items())[:max_lines])
-
-        # Check each tracked major.minor line's latest release.
+        # Sort all fetched releases by semver descending.
+        all_sorted = sorted(
+            releases,
+            key=lambda r: _semver_sort_key(tag_to_version(r["tag"])),
+            reverse=True,
+        )
         prefix = comp_config["image_prefix"]
-        for mm, release in tracked_lines.items():
-            image = make_image(release["tag"], comp_config)
 
-            # Remove superseded entries from the same major.minor line.
-            superseded = [
+        if comp_name == "bor":
+            # For bor: keep exactly three production-relevant releases:
+            #   1. Latest (globally)          — single-version baseline
+            #   2. Second-latest (globally)   — adjacent rolling-upgrade pair
+            #   3. Latest of the previous major.minor line — covers node operators
+            #      who haven't yet migrated to the current minor line (e.g. still
+            #      on 2.6.x while latest is 2.7.x).  If second-latest already
+            #      lives on a different minor line this collapses to 2 entries.
+            latest_mm = version_major_minor(all_sorted[0]["tag"])
+            prev_minor_release = next(
+                (r for r in all_sorted if version_major_minor(r["tag"]) != latest_mm),
+                None,
+            )
+
+            keep_releases = list(all_sorted[:2])
+            if prev_minor_release:
+                prev_image = make_image(prev_minor_release["tag"], comp_config)
+                existing_images_in_keep = {make_image(r["tag"], comp_config) for r in keep_releases}
+                if prev_image not in existing_images_in_keep:
+                    keep_releases.append(prev_minor_release)
+
+            keep_images = {make_image(r["tag"], comp_config) for r in keep_releases}
+
+            # Remove any bor entries that are no longer in the keep set.
+            stale = [
                 v for v in data["versions"]
-                if v.get("image", "").startswith(prefix)
-                and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
-                and v["image"] != image
+                if v.get("image", "").startswith(prefix) and v["image"] not in keep_images
             ]
-            for old in superseded:
+            for old in stale:
                 data["versions"].remove(old)
-                changes.append(f"  - {old['image']} (superseded by {image})")
-                # Warn if excluded_pairs references the superseded version.
+                changes.append(f"  - {old['image']} (no longer in latest/second-latest/prev-minor-line set)")
                 for ep in data.get("excluded_pairs", []):
                     if old["image"] in ep.get("images", []):
-                        print(f"  ! excluded_pairs references superseded image "
+                        print(f"  ! excluded_pairs references removed image "
                               f"{old['image']} — update excluded_pairs manually.")
 
-            if image in current_images:
-                continue
+            # Add any missing entries from the keep set.
+            current = {v["image"] for v in data["versions"]}
+            for i, r in enumerate(keep_releases):
+                image = make_image(r["tag"], comp_config)
+                if image in current:
+                    continue
+                mm = version_major_minor(r["tag"])
+                kind = "pre-release" if r["prerelease"] else "stable release"
+                if i == 0:
+                    reason = f"latest {kind} ({mm} line), single-version baseline"
+                elif i == 1:
+                    reason = f"second latest {kind} ({mm} line), adjacent rolling-upgrade coverage"
+                else:
+                    reason = f"latest {kind} ({mm} line), previous minor-line coverage"
+                data["versions"].append({
+                    "image": image,
+                    "el_type": comp_config["el_type"],
+                    "reason": reason,
+                })
+                changes.append(f"  + {image} ({reason})")
 
-            # Append new entry; the final sort (below) ensures correct order.
-            if release["prerelease"]:
-                reason = f"new pre-release ({mm} line), auto-detected"
-            else:
-                reason = f"new stable release ({mm} line), auto-detected"
+        else:
+            # For erigon (RPC endpoint, not pairwise-tested): track N major.minor lines.
+            lines: dict = {}
+            for r in releases:
+                mm = version_major_minor(r["tag"])
+                if mm not in lines:
+                    lines[mm] = r
 
-            data["versions"].append({
-                "image": image,
-                "el_type": comp_config["el_type"],
-                "reason": reason,
-            })
-            changes.append(f"  + {image} ({reason})")
+            max_lines = comp_config.get("max_lines", 3)
+            tracked_lines = dict(list(lines.items())[:max_lines])
+
+            current = {v["image"] for v in data["versions"]}
+            for mm, release in tracked_lines.items():
+                image = make_image(release["tag"], comp_config)
+
+                # Remove superseded entries from the same major.minor line.
+                superseded = [
+                    v for v in data["versions"]
+                    if v.get("image", "").startswith(prefix)
+                    and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
+                    and v["image"] != image
+                ]
+                for old in superseded:
+                    data["versions"].remove(old)
+                    changes.append(f"  - {old['image']} (superseded by {image})")
+                    for ep in data.get("excluded_pairs", []):
+                        if old["image"] in ep.get("images", []):
+                            print(f"  ! excluded_pairs references superseded image "
+                                  f"{old['image']} — update excluded_pairs manually.")
+
+                if image in current:
+                    continue
+
+                if release["prerelease"]:
+                    reason = f"new pre-release ({mm} line), auto-detected"
+                else:
+                    reason = f"new stable release ({mm} line), auto-detected"
+                data["versions"].append({
+                    "image": image,
+                    "el_type": comp_config["el_type"],
+                    "reason": reason,
+                })
+                changes.append(f"  + {image} ({reason})")
+
+            # Remove erigon entries outside the tracked set.
+            stale = [
+                v for v in data["versions"]
+                if v.get("image", "").startswith(prefix)
+                and version_major_minor(v["image"][len(prefix):].lstrip("v")) not in tracked_lines
+            ]
+            for old in stale:
+                data["versions"].remove(old)
+                changes.append(f"  - {old['image']} (outside tracked erigon lines)")
 
     # Sort versions: group by el_type (bor first, then erigon), then
     # descending semver within each group.  This ensures the latest

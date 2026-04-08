@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,pip30
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 # PIP-30: Increase Max Code Size from 24KB (EIP-170) to 32KB
 # Activated in Ahmedabad hardfork (mainnet block 62,278,656).
@@ -13,15 +14,7 @@ setup() {
     load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    # Fund with 2 ETH: deploying 32KB contracts costs ~6.5M gas in code-deposit
-    # (200 gas/byte * 32768 = 6,553,600) plus overhead. At 25 Gwei ~ 0.17 ETH/deploy.
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 2ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 2ether
 }
 
 # Helper: attempt to deploy a contract that RETURNs `size` bytes of zeroed memory.

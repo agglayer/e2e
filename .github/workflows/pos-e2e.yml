@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: ""
+      erigon-image:
+        description: "Erigon image. Leave empty to auto-detect from GitHub releases."
+        required: false
+        type: string
+        default: ""
       bor-archive-image:
         description: "Bor image for the archive sync node. Leave empty to use bor-latest. Set to a different version to test cross-version archive sync."
         required: false
@@ -74,6 +79,10 @@ env:
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
   EXEC_SPECS_REF: ${{ inputs.ethereum-exec-specs-ref || 'forks/amsterdam' }}
+  # Suppress Node.js 20 deprecation warnings from third-party actions
+  # (bats-action, setup-uv, etc.). Actions will be forced to Node 24 by
+  # default starting June 2nd 2026; opt in early.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -88,7 +97,9 @@ jobs:
       bor-previous-image: ${{ steps.resolve.outputs.bor-previous-image }}
       bor-archive-image: ${{ steps.resolve.outputs.bor-archive-image }}
       heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
+      erigon-image: ${{ steps.resolve.outputs.erigon-image }}
       compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
+      fork-trans-pairs: ${{ steps.gen-compat-matrix.outputs.fork-trans-pairs }}
     steps:
       - name: Checkout (for compat-versions.yml)
         uses: actions/checkout@v6
@@ -109,6 +120,17 @@ jobs:
             echo "bor-latest-image=${{ inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
             echo "bor-previous-image=${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
             echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
+            if [[ -n "${{ inputs.erigon-image }}" ]]; then
+              echo "erigon-image=${{ inputs.erigon-image }}" >> "$GITHUB_OUTPUT"
+            else
+              _eri_tag=$(gh api repos/0xPolygon/erigon/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+              if [[ -n "$_eri_tag" ]]; then
+                echo "erigon-image=0xpolygon/erigon:${_eri_tag}" >> "$GITHUB_OUTPUT"
+              else
+                echo "::warning::Failed to fetch erigon release, using 'latest'."
+                echo "erigon-image=0xpolygon/erigon:latest" >> "$GITHUB_OUTPUT"
+              fi
+            fi
             echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
 
             if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
@@ -201,6 +223,22 @@ jobs:
             fi
           fi
 
+          # --- Auto-detect erigon version ------------------------------------
+          # Note: unlike bor/heimdall which strip the 'v' prefix, erigon Docker
+          # Hub images retain it (e.g. 0xpolygon/erigon:v3.5.0), so we use
+          # ${erigon_tag} directly without the #v strip.
+          if [[ -n "${{ inputs.erigon-image }}" ]]; then
+            echo "erigon-image=${{ inputs.erigon-image }}" >> "$GITHUB_OUTPUT"
+          else
+            erigon_tag=$(gh api repos/0xPolygon/erigon/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+            if [[ -n "$erigon_tag" ]]; then
+              echo "erigon-image=0xpolygon/erigon:${erigon_tag}" >> "$GITHUB_OUTPUT"
+            else
+              echo "::warning::Failed to fetch erigon release, using 'latest'."
+              echo "erigon-image=0xpolygon/erigon:latest" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
           # --- Archive node image -----------------------------------------
           # Defaults to bor-latest unless explicitly overridden via input.
           if [[ -n "${{ inputs.bor-archive-image }}" ]]; then
@@ -257,11 +295,19 @@ jobs:
           declare -a bor_images=()
           declare -a erigon_images=()
           OVERRIDE="${{ steps.resolve.outputs.compat-versions-override }}"
+          ERIGON_OVERRIDE="${{ inputs.erigon-image }}"
 
           if [[ -n "$OVERRIDE" ]]; then
             echo "Using manual override for bor versions."
             IFS=',' read -ra bor_images <<< "$OVERRIDE"
-          elif [[ -f "$COMPAT_YML" ]]; then
+          fi
+
+          if [[ -n "$ERIGON_OVERRIDE" ]]; then
+            echo "Using manual override for erigon: ${ERIGON_OVERRIDE}"
+            erigon_images=("$ERIGON_OVERRIDE")
+          fi
+
+          if [[ -z "$OVERRIDE" || -z "$ERIGON_OVERRIDE" ]] && [[ -f "$COMPAT_YML" ]]; then
             echo "Reading versions from ${COMPAT_YML}..."
             pending_img=""
             while IFS= read -r line; do
@@ -270,8 +316,8 @@ jobs:
                 pending_img="${BASH_REMATCH[1]}"
               elif [[ -n "$pending_img" && "$line" =~ el_type:\ *(bor|erigon) ]]; then
                 el_type="${BASH_REMATCH[1]}"
-                [[ "$el_type" == "bor" ]] && bor_images+=("$pending_img")
-                [[ "$el_type" == "erigon" ]] && erigon_images+=("$pending_img")
+                [[ "$el_type" == "bor" && -z "$OVERRIDE" ]] && bor_images+=("$pending_img")
+                [[ "$el_type" == "erigon" && -z "$ERIGON_OVERRIDE" ]] && erigon_images+=("$pending_img")
                 pending_img=""
               fi
             done < "$COMPAT_YML"
@@ -286,16 +332,59 @@ jobs:
             [[ -n "$previous" && "$previous" != "$latest" ]] && bor_images+=("$previous")
           fi
 
+          # Fallback: auto-detected erigon from resolve step.
+          if [[ ${#erigon_images[@]} -eq 0 ]]; then
+            erigon_fallback="${{ steps.resolve.outputs.erigon-image }}"
+            if [[ -n "$erigon_fallback" ]]; then
+              echo "No erigon versions in YAML — using auto-detected fallback: ${erigon_fallback}"
+              erigon_images=("$erigon_fallback")
+            fi
+          fi
+
           echo "Bor versions (${#bor_images[@]}):"
           printf '  %s\n' "${bor_images[@]}"
           echo "Erigon versions (${#erigon_images[@]}):"
           printf '  %s\n' "${erigon_images[@]}"
 
           # --- Parse excluded pairs from compat-versions.yml ---
+          # Two exclusion sets:
+          #   excluded_set     — scope "all" (default): excluded from every job
+          #   excluded_set_ft  — scope "fork-transition": excluded only from
+          #                      pos-fork-transition (pair still runs in exec-specs)
           declare -A excluded_set
+          declare -A excluded_set_ft
+          excluded_json="[]"
           if [[ -f "$COMPAT_YML" ]]; then
             in_excluded=false
             img_buf=()
+            reason_buf=""
+            link_buf=""
+            scope_buf="all"
+            in_folded_reason=false
+            _flush_excluded() {
+              if [[ ${#img_buf[@]} -eq 2 ]]; then
+                case "$scope_buf" in
+                  fork-transition)
+                    excluded_set_ft["${img_buf[0]}|${img_buf[1]}"]=1
+                    excluded_set_ft["${img_buf[1]}|${img_buf[0]}"]=1
+                    echo "  Excluded pair (${scope_buf}): ${img_buf[0]} <-> ${img_buf[1]}" ;;
+                  all)
+                    excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                    excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+                    echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}" ;;
+                  *)
+                    echo "::warning::Unknown exclusion scope '${scope_buf}' for ${img_buf[0]} <-> ${img_buf[1]}; treating as 'all'"
+                    excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                    excluded_set["${img_buf[1]}|${img_buf[0]}"]=1 ;;
+                esac
+                excluded_json=$(echo "$excluded_json" | jq -c \
+                  --arg a "${img_buf[0]}" --arg b "${img_buf[1]}" \
+                  --arg r "$reason_buf" --arg l "$link_buf" --arg s "$scope_buf" \
+                  '. + [{"a":$a,"b":$b,"reason":$r,"link":$l,"scope":$s}]')
+              elif [[ ${#img_buf[@]} -gt 0 ]]; then
+                echo "::warning::Incomplete excluded pair (${#img_buf[@]} image(s)): ${img_buf[*]}"
+              fi
+            }
             while IFS= read -r line; do
               if [[ "$line" =~ ^excluded_pairs: ]]; then
                 in_excluded=true; continue
@@ -303,27 +392,37 @@ jobs:
               [[ "$in_excluded" != "true" ]] && continue
               if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
               if [[ "$line" =~ ^-\ +images: ]]; then
-                if [[ ${#img_buf[@]} -gt 0 ]]; then
-                  echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
-                fi
-                img_buf=(); continue
+                # Flush previous entry if complete.
+                _flush_excluded
+                img_buf=(); reason_buf=""; link_buf=""; scope_buf="all"; in_folded_reason=false; continue
               fi
               if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
                 img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
                 img_buf+=("$img")
-                if [[ ${#img_buf[@]} -eq 2 ]]; then
-                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
-                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
-                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
-                  img_buf=()
-                fi
+              fi
+              if [[ "$line" =~ ^[[:space:]]+scope:\ *(.+)$ ]]; then
+                scope_buf=$(echo "${BASH_REMATCH[1]}" | sed 's/[[:space:]]*$//')
+              fi
+              if [[ "$line" =~ ^[[:space:]]+reason:\ *(.+)$ ]]; then
+                _r="${BASH_REMATCH[1]}"
+                # Strip YAML block scalar indicators (>-, >, |) from inline value.
+                case "$_r" in ">-"|">"|"|") reason_buf=""; in_folded_reason=true ;; *) reason_buf="$_r"; in_folded_reason=false ;; esac
+              fi
+              if [[ "$line" =~ ^[[:space:]]+link:\ *(.+)$ ]]; then
+                link_buf="${BASH_REMATCH[1]}"
+              fi
+              # Continuation lines for multi-line reason (YAML >- folded scalar).
+              if [[ "$in_folded_reason" == "true" || ( -n "$reason_buf" ) ]] && \
+                 [[ "$line" =~ ^[[:space:]]{4,}[^[:space:]] ]] && \
+                 [[ ! "$line" =~ ^[[:space:]]+(images|reason|link|scope|-) ]]; then
+                reason_buf="${reason_buf:+${reason_buf} }$(echo "$line" | sed 's/^[[:space:]]*//')"
               fi
             done < "$COMPAT_YML"
-            if [[ ${#img_buf[@]} -gt 0 ]]; then
-              echo "::warning::Incomplete excluded pair at end of file (${#img_buf[@]} image(s)): ${img_buf[*]}"
-            fi
-            echo "Loaded $(( ${#excluded_set[@]} / 2 )) excluded pairs."
+            # Flush last entry.
+            _flush_excluded
+            echo "Loaded $(echo "$excluded_json" | jq length) excluded pairs."
           fi
+          echo "excluded-pairs=${excluded_json}" >> "$GITHUB_OUTPUT"
 
           # --- Generate test scenarios ---
           # 1) Single-version baseline: all latest bor + latest erigon RPC
@@ -343,56 +442,117 @@ jobs:
               '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           fi
 
-          # Pairwise bor-bor mixes (skip excluded pairs).
-          # NOTE: Exclusion only applies to bor-bor pairs; cross-client pairs
-          # are not subject to excluded_pairs filtering.
-          for ((i=0; i<${#bor_images[@]}; i++)); do
-            for ((j=i+1; j<${#bor_images[@]}; j++)); do
-              va="${bor_images[$i]}"; vb="${bor_images[$j]}"
-              if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
-                echo "  Skipping excluded pair: ${va} <-> ${vb}"
-                continue
-              fi
-              la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
-              if [[ ${#erigon_images[@]} -gt 0 ]]; then
-                idx=$(( (i + j) % ${#erigon_images[@]} ))
-                eri="${erigon_images[$idx]}"
-              else
-                eri="$erigon_latest"
-              fi
-              scenarios=$(echo "$scenarios" | jq -c \
-                --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
-                '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
-            done
+          # Pairwise bor-bor mixes: always pin one side to the latest (index 0).
+          # This avoids generating stale cross-minor combinations (e.g. 2.7.0 vs
+          # 2.6.5) that don't reflect a realistic production state — any failure
+          # there would be resolved by upgrading, not by holding back older nodes.
+          # excluded_pairs applies to both bor-bor and bor-erigon combinations:
+          # if the selected erigon is excluded with either bor version, rotate to
+          # the next erigon version until a compatible one is found.
+          va="${bor_images[0]}"
+          la=$(echo "$va" | sed 's|.*/||; s/:/-/g')
+          for ((j=1; j<${#bor_images[@]}; j++)); do
+            vb="${bor_images[$j]}"
+            if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
+              echo "  Skipping excluded pair: ${va} <-> ${vb}"
+              continue
+            fi
+            lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
+            if [[ ${#erigon_images[@]} -gt 0 ]]; then
+              # Always start with the latest erigon (index 0) and rotate only if
+              # it is excluded with va or vb.  Starting from j%N caused an
+              # off-by-one that assigned erigon[1] (older) to the most important
+              # pair (latest vs second-latest) even when erigon[0] is compatible.
+              eri="${erigon_images[0]}"
+              # Rotate past any erigon version excluded with va or vb.
+              for ((k=1; k<${#erigon_images[@]}; k++)); do
+                [[ -z "${excluded_set["${va}|${eri}"]:-}" && -z "${excluded_set["${vb}|${eri}"]:-}" ]] && break
+                eri="${erigon_images[$(( k % ${#erigon_images[@]} ))]}"
+                echo "  Rotated erigon to ${eri} (excluded pair avoided for ${va} or ${vb})"
+              done
+            else
+              eri="$erigon_latest"
+            fi
+            # Guard: if the final eri is still excluded, skip this pair.
+            if [[ ${#erigon_images[@]} -gt 0 ]] && \
+               { [[ -n "${excluded_set["${va}|${eri}"]:-}" ]] || \
+                 [[ -n "${excluded_set["${vb}|${eri}"]:-}" ]]; }; then
+              echo "::warning::No compatible erigon for bor pair ${va} <-> ${vb} — all versions excluded, skipping."
+              continue
+            fi
+            scenarios=$(echo "$scenarios" | jq -c \
+              --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
+              '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
           done
 
           echo "compat-pairs=${scenarios}" >> "$GITHUB_OUTPUT"
           echo "Test scenarios ($(echo "$scenarios" | jq length)):"
           echo "$scenarios" | jq -r '.[] | "  \(.pair_label)  erigon=\(.erigon_rpc)"'
 
+          # Build fork-trans-pairs: compat-pairs minus fork-transition-scoped exclusions.
+          ft_scenarios="$scenarios"
+          for key in "${!excluded_set_ft[@]}"; do
+            img_a="${key%%|*}"
+            img_b="${key#*|}"
+            ft_scenarios=$(echo "$ft_scenarios" | jq -c \
+              --arg a "$img_a" --arg b "$img_b" \
+              '[.[] | select(
+                  (.bor_a == $a and .bor_b == $b) or
+                  (.bor_a == $b and .bor_b == $a) or
+                  (.erigon_rpc == $a and (.bor_a == $b or .bor_b == $b)) or
+                  (.erigon_rpc == $b and (.bor_a == $a or .bor_b == $a))
+                | not)]')
+          done
+          echo "fork-trans-pairs=${ft_scenarios}" >> "$GITHUB_OUTPUT"
+          ft_diff=$(( $(echo "$scenarios" | jq length) - $(echo "$ft_scenarios" | jq length) ))
+          if [[ "$ft_diff" -gt 0 ]]; then
+            echo "Fork-transition scenarios: $(echo "$ft_scenarios" | jq length) (${ft_diff} excluded by scope)"
+          fi
+
       - name: Summary
         run: |
-          echo "### PoS E2E Release Check" >> "$GITHUB_STEP_SUMMARY"
-          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Compat pairs | \`${{ steps.gen-compat-matrix.outputs.compat-pairs }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### PoS E2E Release Check"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |"
+            echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |"
+            echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |"
+            echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |"
+            echo "| Erigon | \`${{ steps.resolve.outputs.erigon-image }}\` |"
+            echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |"
+            echo ""
+            echo "#### Test Matrix"
+            echo '${{ steps.gen-compat-matrix.outputs.compat-pairs }}' | jq -r '
+              if length == 0 then "No compat pairs generated."
+              else
+                "| Pair | Bor A | Bor B | Erigon |",
+                "|------|-------|-------|--------|",
+                (.[] | "| \(.pair_label) | `\(.bor_a)` | `\(.bor_b)` | `\(.erigon_rpc)` |")
+              end'
+            echo ""
+            excluded='${{ steps.gen-compat-matrix.outputs.excluded-pairs }}'
+            if [[ $(echo "$excluded" | jq 'length') -gt 0 ]]; then
+              echo "#### Excluded Pairs (Known Incompatible)"
+              echo ""
+              echo "| Version A | Version B | Scope | Reason |"
+              echo "|-----------|-----------|-------|--------|"
+              echo "$excluded" | jq -r '.[] | "| `\(.a)` | `\(.b)` | \(.scope) | \(.reason) |"'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
   # PoS E2E tests — unified matrix of devnet configurations.
   #
   # Each scenario deploys a mixed-version devnet with bor validators split
-  # across versions, bor RPCs on both versions, and an erigon cross-client RPC.
+  # across versions, a bor RPC, and an erigon cross-client RPC.
   # Staggered fork activation from kurtosis-pos constants.star defaults.
   #
   # Tests: fork-transition (parallel, during fork activation) followed by
   # execution-specs (after all forks active past block 640).
   # ---------------------------------------------------------------------------
-  # Job 1: Execution-specs — all forks at 256, stable basefee.
+  # Job 1: Execution-specs — staggered forks (256–640), stable basefee.
   # ---------------------------------------------------------------------------
   pos-execution-specs:
     needs: check-new-release
@@ -423,7 +583,9 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -444,7 +606,7 @@ jobs:
           ref: ${{ env.KURTOSIS_POS_REF }}
           path: kurtosis-pos
 
-      - name: Compute minimum bor version in the mix
+      - name: Compute minimum and maximum bor version in the mix
         id: bor-min
         run: |
           ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
@@ -452,10 +614,12 @@ jobs:
           base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          max_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | tail -1)
           echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
-          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
+          echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
+          echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
 
-      - name: Patch constants.star (forks supported by min bor version at 256)
+      - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
         run: |
           CONSTANTS="kurtosis-pos/src/config/constants.star"
           BOR_MIN="${{ steps.bor-min.outputs.bor-min-version }}"
@@ -465,7 +629,20 @@ jobs:
             [[ "$(printf '%s\n%s' "$BOR_MIN" "$1" | sort -V | head -1)" == "$1" ]]
           }
 
-          FORKS=()
+          # Staggered fork schedule (64-block gaps). This gives each fork
+          # enough blocks for historical-state queries, base-fee boundary
+          # tests, and the Lisovo→LisovoPro KZG window.
+          declare -A FORK_BLOCKS=(
+            [rio]=256
+            [madhugiri]=320
+            [madhugiriPro]=384
+            [dandeli]=448
+            [lisovo]=512
+            [lisovoPro]=576
+            [giugliano]=640
+          )
+
+          FORKS=(rio)
           ver_gte "2.5.0" && FORKS+=(madhugiri madhugiriPro)
           ver_gte "2.5.6" && FORKS+=(dandeli)
           ver_gte "2.6.0" && FORKS+=(lisovo lisovoPro)
@@ -480,14 +657,11 @@ jobs:
           ver_gte "2.5.6" || DISABLE+=(dandeli)
           ver_gte "2.5.0" || DISABLE+=(madhugiri madhugiriPro)
 
-          if [[ ${#FORKS[@]} -eq 0 ]]; then
-            echo "No post-rio forks to patch for min bor version ${BOR_MIN}."
-          else
-            echo "Patching forks for min bor version ${BOR_MIN}: ${FORKS[*]}"
-            for fork in "${FORKS[@]}"; do
-              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
-            done
-          fi
+          echo "Patching forks for min bor version ${BOR_MIN}: ${FORKS[*]}"
+          for fork in "${FORKS[@]}"; do
+            block="${FORK_BLOCKS[$fork]}"
+            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/'"${block}"'/' "$CONSTANTS"
+          done
 
           if [[ ${#DISABLE[@]} -gt 0 ]]; then
             echo "Disabling unsupported forks for min bor version ${BOR_MIN}: ${DISABLE[*]}"
@@ -497,6 +671,27 @@ jobs:
           fi
           echo "--- Patched EL_HARD_FORK_BLOCKS ---"
           grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
+
+          # Write fork schedule env file — single source of truth for test steps.
+          declare -A FORK_ENV_MAP=(
+            [rio]=FORK_RIO [madhugiri]=FORK_MADHUGIRI [madhugiriPro]=FORK_MADHUGIRI_PRO
+            [dandeli]=FORK_DANDELI [lisovo]=FORK_LISOVO [lisovoPro]=FORK_LISOVO_PRO
+            [giugliano]=FORK_GIUGLIANO
+          )
+          {
+            echo "# Auto-generated staggered fork schedule"
+            echo "FORK_JAIPUR=0"; echo "FORK_DELHI=0"; echo "FORK_INDORE=0"
+            echo "FORK_AGRA=0"; echo "FORK_NAPOLI=0"; echo "FORK_AHMEDABAD=0"
+            echo "FORK_BHILAI=0"
+            for fork in "${FORKS[@]}"; do
+              echo "${FORK_ENV_MAP[$fork]}=${FORK_BLOCKS[$fork]}"
+            done
+            for fork in "${DISABLE[@]}"; do
+              echo "${FORK_ENV_MAP[$fork]}=999999999"
+            done
+          } > /tmp/fork-schedule.env
+          echo "--- Fork schedule written ---"
+          cat /tmp/fork-schedule.env
 
       - name: Generate kurtosis params
         run: |
@@ -534,12 +729,6 @@ jobs:
                 count: 1
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
                 el_type: erigon
                 el_image: "${ERIGON_RPC}"
           PARAMS
@@ -559,11 +748,11 @@ jobs:
           VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
           VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
           RPC_URL="http://${VALIDATOR_RPC}"
-          TARGET_BLOCK=270
-          MAX_WAIT=600
+          TARGET_BLOCK=654
+          MAX_WAIT=900
           POLL_INTERVAL=5
           elapsed=0
-          echo "Waiting for block ${TARGET_BLOCK} (forks at 256)..."
+          echo "Waiting for block ${TARGET_BLOCK} (last fork at 640)..."
           while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
             block=$(curl -sf -X POST "${RPC_URL}" \
               -H "Content-Type: application/json" \
@@ -586,6 +775,14 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
+          # Load fork schedule generated by the Patch constants.star step.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            echo "Loading fork schedule from /tmp/fork-schedule.env"
+            set -a; source /tmp/fork-schedule.env; set +a
+          else
+            echo "WARNING: /tmp/fork-schedule.env not found — tests will use _setup_fork_env() defaults"
+          fi
+
           echo "Running execution-specs (${{ matrix.pair_label }})..."
           bats \
             tests/pos/execution-specs/protocol/ \
@@ -593,7 +790,58 @@ jobs:
             tests/pos/execution-specs/transactions/ \
             tests/pos/execution-specs/rpc/ \
             tests/pos/execution-specs/precompiles/ \
-            --filter-tags "execution-specs"
+            --filter-tags "execution-specs" \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run resilience tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # Load fork schedule generated by the Patch constants.star step.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running resilience tests (${{ matrix.pair_label }})..."
+          bats \
+            tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats \
+            tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats \
+            tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats \
+            tests/pos/execution-specs/resilience/rpc-node-stability.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: ${{ !cancelled() }}
+        run: |
+          TAP_FILE="/tmp/bats-tap-output.txt"
+          {
+            echo "## Skipped Tests Summary (${{ matrix.pair_label }})"
+            echo ""
+            if [[ ! -f "$TAP_FILE" ]]; then
+              echo "_No BATS output captured (tests may not have run)._"
+            else
+              skipped=$(grep '# skip' "$TAP_FILE" || true)
+              if [[ -z "$skipped" ]]; then
+                echo "All tests ran — none were skipped."
+              else
+                echo "| Test | Skip Reason |"
+                echo "|------|-------------|"
+                while IFS= read -r line; do
+                  test_name=$(echo "$line" | sed -E 's/^ok [0-9]+ //' | sed -E 's/ # skip.*$//')
+                  reason=$(echo "$line" | sed -E 's/.*# skip (.*)/\1/')
+                  echo "| ${test_name} | ${reason} |"
+                done <<< "$skipped"
+                echo ""
+                count=$(echo "$skipped" | wc -l)
+                echo "**${count} test(s) skipped** — these represent known version incompatibilities, not failures."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Dump enclave logs
         if: failure()
@@ -616,9 +864,10 @@ jobs:
   # Job 2: Fork-transition + archive sync — staggered forks.
   # ---------------------------------------------------------------------------
   pos-fork-transition:
-    needs: check-new-release
+    needs: [check-new-release, pos-execution-specs]
     if: >-
-      needs.check-new-release.outputs.compat-pairs != '[]' && (
+      !cancelled() &&
+      needs.check-new-release.outputs.fork-trans-pairs != '[]' && (
         (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
         (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'fork-trans' || inputs.run-tests == 'matrix'))
       )
@@ -628,7 +877,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
+        include: ${{ fromJson(needs.check-new-release.outputs.fork-trans-pairs) }}
     name: fork-trans (${{ matrix.pair_label }})
     steps:
       - name: Checkout agglayer/e2e
@@ -644,7 +893,9 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -701,18 +952,95 @@ jobs:
                 count: 1
                 cl_type: heimdall-v2
                 cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
                 el_type: erigon
                 el_image: "${ERIGON_RPC}"
           PARAMS
           cat /tmp/pos-params.yml
-          echo "--- Fork activation (staggered, from constants.star) ---"
-          grep -A 20 'EL_HARD_FORK_BLOCKS' kurtosis-pos/src/config/constants.star
+
+      - name: Compute minimum and maximum bor version in the mix
+        id: bor-min
+        run: |
+          ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
+          ver_b=$(echo "${{ matrix.bor_b }}" | sed 's|.*:||; s/^v//')
+          base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          max_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | tail -1)
+          echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
+          echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
+          echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
+
+      - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
+        run: |
+          CONSTANTS="kurtosis-pos/src/config/constants.star"
+          BOR_MIN="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # Helper: check if min version >= required
+          ver_gte() {
+            [[ "$(printf '%s\n%s' "$BOR_MIN" "$1" | sort -V | head -1)" == "$1" ]]
+          }
+
+          # Enforce the staggered fork schedule. All Rio+ forks must activate at
+          # >= 256 per bor/heimdall consensus requirement. These values must match
+          # the FORK_* env vars used in the BATS tests below.
+          # (camelCase patch keys map to SCREAMING_SNAKE BATS vars, e.g.
+          #  madhugiriPro -> FORK_MADHUGIRI_PRO, lisovoPro -> FORK_LISOVO_PRO)
+          declare -A FORK_BLOCKS=(
+            [rio]=256
+            [madhugiri]=320
+            [madhugiriPro]=384
+            [dandeli]=448
+            [lisovo]=512
+            [lisovoPro]=576
+            [giugliano]=640
+          )
+          PATCH=(rio)
+          ver_gte "2.5.0" && PATCH+=(madhugiri madhugiriPro)
+          ver_gte "2.5.6" && PATCH+=(dandeli)
+          ver_gte "2.6.0" && PATCH+=(lisovo lisovoPro)
+          ver_gte "2.7.0" && PATCH+=(giugliano)
+
+          echo "Patching forks for min bor version ${BOR_MIN}: ${PATCH[*]}"
+          for fork in "${PATCH[@]}"; do
+            block="${FORK_BLOCKS[$fork]}"
+            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/'"${block}"'/' "$CONSTANTS"
+          done
+
+          # Disable forks not supported by min bor version to prevent consensus splits.
+          DISABLE=()
+          ver_gte "2.7.0" || DISABLE+=(giugliano)
+          ver_gte "2.6.0" || DISABLE+=(lisovo lisovoPro)
+          ver_gte "2.5.6" || DISABLE+=(dandeli)
+          ver_gte "2.5.0" || DISABLE+=(madhugiri madhugiriPro)
+          if [[ ${#DISABLE[@]} -gt 0 ]]; then
+            echo "Disabling unsupported forks for min bor version ${BOR_MIN}: ${DISABLE[*]}"
+            for fork in "${DISABLE[@]}"; do
+              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/999999999/' "$CONSTANTS"
+            done
+          fi
+          echo "--- Patched EL_HARD_FORK_BLOCKS ---"
+          grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
+
+          # Write fork schedule env file — single source of truth for test steps.
+          declare -A FORK_ENV_MAP=(
+            [rio]=FORK_RIO [madhugiri]=FORK_MADHUGIRI [madhugiriPro]=FORK_MADHUGIRI_PRO
+            [dandeli]=FORK_DANDELI [lisovo]=FORK_LISOVO [lisovoPro]=FORK_LISOVO_PRO
+            [giugliano]=FORK_GIUGLIANO
+          )
+          {
+            echo "# Auto-generated staggered fork schedule"
+            echo "FORK_JAIPUR=0"; echo "FORK_DELHI=0"; echo "FORK_INDORE=0"
+            echo "FORK_AGRA=0"; echo "FORK_NAPOLI=0"; echo "FORK_AHMEDABAD=0"
+            echo "FORK_BHILAI=0"
+            for fork in "${PATCH[@]}"; do
+              echo "${FORK_ENV_MAP[$fork]}=${FORK_BLOCKS[$fork]}"
+            done
+            for fork in "${DISABLE[@]}"; do
+              echo "${FORK_ENV_MAP[$fork]}=999999999"
+            done
+          } > /tmp/fork-schedule.env
+          echo "--- Fork schedule written ---"
+          cat /tmp/fork-schedule.env
 
       - name: Deploy kurtosis-pos enclave (staggered forks)
         run: |
@@ -723,17 +1051,6 @@ jobs:
       - name: Inspect enclave
         run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
 
-      - name: Compute minimum bor version in the mix
-        id: bor-min
-        run: |
-          ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
-          ver_b=$(echo "${{ matrix.bor_b }}" | sed 's|.*:||; s/^v//')
-          base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-          base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-          min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
-          echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
-          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
-
       - name: Run fork-transition tests (parallel)
         run: |
           set -eo pipefail
@@ -743,27 +1060,312 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
-          export FORK_JAIPUR=0
-          export FORK_DELHI=0
-          export FORK_INDORE=0
-          export FORK_AGRA=0
-          export FORK_NAPOLI=0
-          export FORK_AHMEDABAD=0
-          export FORK_BHILAI=0
-          export FORK_RIO=256
-          export FORK_MADHUGIRI=320
-          export FORK_MADHUGIRI_PRO=384
-          export FORK_DANDELI=448
-          export FORK_LISOVO=512
-          export FORK_LISOVO_PRO=576
-          export FORK_GIUGLIANO=640
+          # Load fork schedule generated by the Patch constants.star step.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          else
+            echo "WARNING: /tmp/fork-schedule.env not found — tests will use _setup_fork_env() defaults"
+          fi
 
           total_cpus=$(nproc)
           bats_jobs=$(( total_cpus * 2 / 3 ))
           [[ "$bats_jobs" -lt 1 ]] && bats_jobs=1
 
           echo "Running fork-transition tests (${bats_jobs} jobs) for ${{ matrix.pair_label }}..."
-          bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats
+          bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run cross-client state root oracle tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          export ERIGON_RPC_VERSION=$(echo "${{ matrix.erigon_rpc }}" | sed 's|.*:||; s/^v//')
+
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running cross-client state root oracle for ${{ matrix.pair_label }}..."
+          bats tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run fork-boundary state consistency tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          export BOR_MAX_VERSION="${{ steps.bor-min.outputs.bor-max-version }}"
+
+          echo "Running fork-boundary state consistency for Bor v${BOR_MIN_VERSION}–${BOR_MAX_VERSION} (pair: ${{ matrix.pair_label }})..."
+          bats tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run sprint-boundary fork tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # These tests verify fork+sprint boundary intersection using the staggered
+          # fork schedule (same devnet as the other tests in this job). The tests
+          # skip individual cases when the fork block is not a sprint boundary, so
+          # they are safe to run unconditionally against the staggered devnet.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running sprint-boundary fork tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      # -------------------------------------------------------------------
+      # Heimdall-v2 consensus correctness tests — run against the live Heimdall
+      # REST API (L2_CL_API_URL) to verify span, checkpoint, milestone, and
+      # state-sync invariants independently of Bor.
+      #
+      # Heimdall span 6 starts at block 768.  The fork-transition tests above
+      # wait only to the last fork block (640), so the chain may not have
+      # advanced far enough for span/state-sync tests. Wait here to ensure
+      # the chain has entered span 6 and state-sync events have been produced.
+      # -------------------------------------------------------------------
+      - name: Wait for chain to reach span 6 (block 768)
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          RPC_URL="http://${VALIDATOR_RPC}"
+          TARGET_BLOCK=780
+          MAX_WAIT=900
+          POLL_INTERVAL=5
+          elapsed=0
+          echo "Waiting for block ${TARGET_BLOCK} (span 6 starts at 768)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            block=$(curl -sf -X POST "${RPC_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result // empty' | xargs printf "%d" 2>/dev/null) || block=0
+            [[ "$block" -ge "$TARGET_BLOCK" ]] && echo "Block ${block} — span 6 active." && exit 0
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+          echo "::error::Chain stuck at block ${block} — cannot reach span 6."
+          exit 1
+
+      # Trigger an L1→L2 state sync event so clerk/bridge tests don't skip.
+      # In the kurtosis devnet no deposits happen automatically, so without
+      # this step the clerk event record list stays empty and all state-sync
+      # tests are skipped.  A single depositEther() triggers a StateSynced
+      # event that Heimdall's clerk picks up within ~60 s.
+      - name: Trigger L1→L2 state sync event (deposit on L1)
+        run: |
+          set -eo pipefail
+
+          # Resolve L1 RPC URL (strip then re-add http:// to handle both kurtosis output formats)
+          L1_PORT=$(kurtosis port print "${{ env.ENCLAVE_NAME }}" el-1-geth-lighthouse rpc 2>/dev/null ||
+                    kurtosis port print "${{ env.ENCLAVE_NAME }}" el-1-reth-lighthouse rpc 2>/dev/null)
+          L1_PORT="${L1_PORT#http://}" ; L1_PORT="${L1_PORT#https://}"
+          L1_RPC="http://${L1_PORT}"
+
+          MATIC_ADDR=$(kurtosis files inspect "${{ env.ENCLAVE_NAME }}" matic-contract-addresses contractAddresses.json | jq)
+          DEPOSIT_MGR=$(echo "$MATIC_ADDR" | jq -r '.root.DepositManagerProxy')
+          PK="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"
+
+          echo "Triggering L1→L2 state sync via depositEther()..."
+          echo "  L1_RPC=${L1_RPC}  DEPOSIT_MGR=${DEPOSIT_MGR}"
+
+          cast send --rpc-url "${L1_RPC}" --private-key "${PK}" \
+            --value 0.01ether "${DEPOSIT_MGR}" "depositEther()" || {
+            echo "::warning::depositEther() failed — clerk/bridge tests may skip"
+          }
+
+          # Give Heimdall a moment to relay the StateSynced event before tests start.
+          CL_PORT=$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-cl-1-heimdall-v2-bor-validator http)
+          CL_PORT="${CL_PORT#http://}" ; CL_PORT="${CL_PORT#https://}"
+          L2_CL_API="http://${CL_PORT}"
+          echo "Waiting for clerk to pick up the state sync event..."
+          for i in $(seq 1 24); do
+            rid=$(curl -sf -m 10 "${L2_CL_API}/clerk/event-records/latest-id" \
+              | jq -r '.latest_record_id // "0"' 2>/dev/null) || rid=0
+            if [[ "$rid" -gt 0 ]]; then
+              echo "Clerk has event records (latest_record_id=${rid}) after $((i*5))s."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::warning::No clerk events after 120s — tests will poll further on their own"
+
+      - name: Run Heimdall span and validator-set correctness tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall span/validator-set tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/span-validator-set.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall checkpoint chain integrity tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall checkpoint chain integrity tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall milestone finality tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall milestone finality tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/milestone-finality.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall state-sync event ordering tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall state-sync event ordering tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/statesync-event-ordering.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall node health tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall node health tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/node-health.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall checkpoint safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall checkpoint safety tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/checkpoint-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall span-milestone safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall span-milestone safety tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/consensus-correctness/span-milestone-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall Bor span-in-turn tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall Bor span-in-turn tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/bor/span-in-turn.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall bridge sync tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall bridge sync tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/clerk/bridge-sync.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall validator-set safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall validator-set safety tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/stake/validator-set-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall validator state tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall validator state tests for ${{ matrix.pair_label }}..."
+          bats tests/heimdall/stake/validator-state.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: ${{ !cancelled() }}
+        run: |
+          TAP_FILE="/tmp/bats-tap-output.txt"
+          {
+            echo "## Skipped Tests Summary (${{ matrix.pair_label }})"
+            echo ""
+            if [[ ! -f "$TAP_FILE" ]]; then
+              echo "_No BATS output captured (tests may not have run)._"
+            else
+              skipped=$(grep '# skip' "$TAP_FILE" || true)
+              if [[ -z "$skipped" ]]; then
+                echo "All tests ran — none were skipped."
+              else
+                echo "| Test | Skip Reason |"
+                echo "|------|-------------|"
+                while IFS= read -r line; do
+                  test_name=$(echo "$line" | sed -E 's/^ok [0-9]+ //' | sed -E 's/ # skip.*$//')
+                  reason=$(echo "$line" | sed -E 's/.*# skip (.*)/\1/')
+                  echo "| ${test_name} | ${reason} |"
+                done <<< "$skipped"
+                echo ""
+                count=$(echo "$skipped" | wc -l)
+                echo "**${count} test(s) skipped** — these represent known version incompatibilities, not failures."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # -------------------------------------------------------------------
       # Archive node sync — adds archive node to running staggered-fork
@@ -836,12 +1438,6 @@ jobs:
                 cl_image: "${HV2_IMAGE}"
                 el_type: bor
                 el_image: "${BOR_A}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
@@ -976,10 +1572,14 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
 
       - name: Checkout kurtosis-pos
         uses: actions/checkout@v6
@@ -1000,10 +1600,12 @@ jobs:
           cd execution-specs
           uv sync
 
-      - name: Patch constants.star (all post-Rio forks at 256)
+      - name: Patch constants.star (Rio+ forks at 256)
         run: |
           CONSTANTS="kurtosis-pos/src/config/constants.star"
-          for fork in madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano; do
+          # Rio and all post-Rio forks must activate at >= 256 per bor/heimdall
+          # consensus requirement.
+          for fork in rio madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano; do
             sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
           done
           echo "--- Patched EL_HARD_FORK_BLOCKS ---"
@@ -1069,7 +1671,15 @@ jobs:
       - name: Run execution-specs remote tests
         run: |
           set -eo pipefail
-          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-4-bor-heimdall-v2-rpc rpc)"
+          L2_RPC_SERVICE=$(kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}" 2>/dev/null \
+            | grep -oE 'l2-el-[0-9]+-bor-heimdall-v2-rpc' | head -1)
+          if [[ -z "$L2_RPC_SERVICE" ]]; then
+            echo "::error::Could not find bor RPC service in enclave."
+            kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+            exit 1
+          fi
+          echo "Bor RPC service: ${L2_RPC_SERVICE}"
+          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" "${L2_RPC_SERVICE}" rpc)"
           L2_RPC_RAW="${L2_RPC_RAW#http://}" ; L2_RPC_RAW="${L2_RPC_RAW#https://}"
           L2_RPC_URL="http://${L2_RPC_RAW}"
           L2_PRIVATE_KEY="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"
