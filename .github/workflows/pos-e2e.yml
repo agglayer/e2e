@@ -99,6 +99,7 @@ jobs:
       heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
       erigon-image: ${{ steps.resolve.outputs.erigon-image }}
       compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
+      fork-trans-pairs: ${{ steps.gen-compat-matrix.outputs.fork-trans-pairs }}
     steps:
       - name: Checkout (for compat-versions.yml)
         uses: actions/checkout@v6
@@ -346,14 +347,44 @@ jobs:
           printf '  %s\n' "${erigon_images[@]}"
 
           # --- Parse excluded pairs from compat-versions.yml ---
+          # Two exclusion sets:
+          #   excluded_set     — scope "all" (default): excluded from every job
+          #   excluded_set_ft  — scope "fork-transition": excluded only from
+          #                      pos-fork-transition (pair still runs in exec-specs)
           declare -A excluded_set
+          declare -A excluded_set_ft
           excluded_json="[]"
           if [[ -f "$COMPAT_YML" ]]; then
             in_excluded=false
             img_buf=()
             reason_buf=""
             link_buf=""
+            scope_buf="all"
             in_folded_reason=false
+            _flush_excluded() {
+              if [[ ${#img_buf[@]} -eq 2 ]]; then
+                case "$scope_buf" in
+                  fork-transition)
+                    excluded_set_ft["${img_buf[0]}|${img_buf[1]}"]=1
+                    excluded_set_ft["${img_buf[1]}|${img_buf[0]}"]=1
+                    echo "  Excluded pair (${scope_buf}): ${img_buf[0]} <-> ${img_buf[1]}" ;;
+                  all)
+                    excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                    excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
+                    echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}" ;;
+                  *)
+                    echo "::warning::Unknown exclusion scope '${scope_buf}' for ${img_buf[0]} <-> ${img_buf[1]}; treating as 'all'"
+                    excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
+                    excluded_set["${img_buf[1]}|${img_buf[0]}"]=1 ;;
+                esac
+                excluded_json=$(echo "$excluded_json" | jq -c \
+                  --arg a "${img_buf[0]}" --arg b "${img_buf[1]}" \
+                  --arg r "$reason_buf" --arg l "$link_buf" --arg s "$scope_buf" \
+                  '. + [{"a":$a,"b":$b,"reason":$r,"link":$l,"scope":$s}]')
+              elif [[ ${#img_buf[@]} -gt 0 ]]; then
+                echo "::warning::Incomplete excluded pair (${#img_buf[@]} image(s)): ${img_buf[*]}"
+              fi
+            }
             while IFS= read -r line; do
               if [[ "$line" =~ ^excluded_pairs: ]]; then
                 in_excluded=true; continue
@@ -362,22 +393,15 @@ jobs:
               if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
               if [[ "$line" =~ ^-\ +images: ]]; then
                 # Flush previous entry if complete.
-                if [[ ${#img_buf[@]} -eq 2 ]]; then
-                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
-                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
-                  excluded_json=$(echo "$excluded_json" | jq -c \
-                    --arg a "${img_buf[0]}" --arg b "${img_buf[1]}" \
-                    --arg r "$reason_buf" --arg l "$link_buf" \
-                    '. + [{"a":$a,"b":$b,"reason":$r,"link":$l}]')
-                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
-                elif [[ ${#img_buf[@]} -gt 0 ]]; then
-                  echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
-                fi
-                img_buf=(); reason_buf=""; link_buf=""; in_folded_reason=false; continue
+                _flush_excluded
+                img_buf=(); reason_buf=""; link_buf=""; scope_buf="all"; in_folded_reason=false; continue
               fi
               if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
                 img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
                 img_buf+=("$img")
+              fi
+              if [[ "$line" =~ ^[[:space:]]+scope:\ *(.+)$ ]]; then
+                scope_buf=$(echo "${BASH_REMATCH[1]}" | sed 's/[[:space:]]*$//')
               fi
               if [[ "$line" =~ ^[[:space:]]+reason:\ *(.+)$ ]]; then
                 _r="${BASH_REMATCH[1]}"
@@ -390,22 +414,12 @@ jobs:
               # Continuation lines for multi-line reason (YAML >- folded scalar).
               if [[ "$in_folded_reason" == "true" || ( -n "$reason_buf" ) ]] && \
                  [[ "$line" =~ ^[[:space:]]{4,}[^[:space:]] ]] && \
-                 [[ ! "$line" =~ ^[[:space:]]+(images|reason|link|-) ]]; then
+                 [[ ! "$line" =~ ^[[:space:]]+(images|reason|link|scope|-) ]]; then
                 reason_buf="${reason_buf:+${reason_buf} }$(echo "$line" | sed 's/^[[:space:]]*//')"
               fi
             done < "$COMPAT_YML"
             # Flush last entry.
-            if [[ ${#img_buf[@]} -eq 2 ]]; then
-              excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
-              excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
-              excluded_json=$(echo "$excluded_json" | jq -c \
-                --arg a "${img_buf[0]}" --arg b "${img_buf[1]}" \
-                --arg r "$reason_buf" --arg l "$link_buf" \
-                '. + [{"a":$a,"b":$b,"reason":$r,"link":$l}]')
-              echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
-            elif [[ ${#img_buf[@]} -gt 0 ]]; then
-              echo "::warning::Incomplete excluded pair at end of file (${#img_buf[@]} image(s)): ${img_buf[*]}"
-            fi
+            _flush_excluded
             echo "Loaded $(echo "$excluded_json" | jq length) excluded pairs."
           fi
           echo "excluded-pairs=${excluded_json}" >> "$GITHUB_OUTPUT"
@@ -475,6 +489,26 @@ jobs:
           echo "Test scenarios ($(echo "$scenarios" | jq length)):"
           echo "$scenarios" | jq -r '.[] | "  \(.pair_label)  erigon=\(.erigon_rpc)"'
 
+          # Build fork-trans-pairs: compat-pairs minus fork-transition-scoped exclusions.
+          ft_scenarios="$scenarios"
+          for key in "${!excluded_set_ft[@]}"; do
+            img_a="${key%%|*}"
+            img_b="${key#*|}"
+            ft_scenarios=$(echo "$ft_scenarios" | jq -c \
+              --arg a "$img_a" --arg b "$img_b" \
+              '[.[] | select(
+                  (.bor_a == $a and .bor_b == $b) or
+                  (.bor_a == $b and .bor_b == $a) or
+                  (.erigon_rpc == $a and (.bor_a == $b or .bor_b == $b)) or
+                  (.erigon_rpc == $b and (.bor_a == $a or .bor_b == $a))
+                | not)]')
+          done
+          echo "fork-trans-pairs=${ft_scenarios}" >> "$GITHUB_OUTPUT"
+          ft_diff=$(( $(echo "$scenarios" | jq length) - $(echo "$ft_scenarios" | jq length) ))
+          if [[ "$ft_diff" -gt 0 ]]; then
+            echo "Fork-transition scenarios: $(echo "$ft_scenarios" | jq length) (${ft_diff} excluded by scope)"
+          fi
+
       - name: Summary
         run: |
           {
@@ -502,9 +536,9 @@ jobs:
             if [[ $(echo "$excluded" | jq 'length') -gt 0 ]]; then
               echo "#### Excluded Pairs (Known Incompatible)"
               echo ""
-              echo "| Version A | Version B | Reason |"
-              echo "|-----------|-----------|--------|"
-              echo "$excluded" | jq -r '.[] | "| `\(.a)` | `\(.b)` | \(.reason) |"'
+              echo "| Version A | Version B | Scope | Reason |"
+              echo "|-----------|-----------|-------|--------|"
+              echo "$excluded" | jq -r '.[] | "| `\(.a)` | `\(.b)` | \(.scope) | \(.reason) |"'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -833,7 +867,7 @@ jobs:
     needs: [check-new-release, pos-execution-specs]
     if: >-
       !cancelled() &&
-      needs.check-new-release.outputs.compat-pairs != '[]' && (
+      needs.check-new-release.outputs.fork-trans-pairs != '[]' && (
         (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
         (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'fork-trans' || inputs.run-tests == 'matrix'))
       )
@@ -843,7 +877,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
+        include: ${{ fromJson(needs.check-new-release.outputs.fork-trans-pairs) }}
     name: fork-trans (${{ matrix.pair_label }})
     steps:
       - name: Checkout agglayer/e2e

@@ -45,6 +45,9 @@ versions:
 # upgrades between adjacent releases must always work.
 #
 # Each entry needs: images (list of 2), reason, and link (CI run with failure).
+# Optional: scope (default: "all") — restrict exclusion to a specific job:
+#   - "all": excluded from every job (default if omitted)
+#   - "fork-transition": excluded only from pos-fork-transition
 excluded_pairs:
 - images:
     - 0xpolygon/bor:2.6.5
@@ -55,3 +58,17 @@ excluded_pairs:
     (Erigon stuck at 511, Bor at 639); blocks at the Lisovo activation boundary
     from bor-2.6.5 are rejected by Erigon v3.5.0.
   link: https://github.com/agglayer/e2e/actions/runs/23782039592/job/69296808463
+- images:
+    - 0xpolygon/bor:2.6.5
+    - 0xpolygon/bor:2.7.1-beta
+  scope: fork-transition
+  reason: >-
+    Consensus-breaking changes between bor 2.6.x and 2.7.0 cause state-root
+    divergence in mixed-version devnets: block-STM finalStateDB bug fix
+    (0xPolygon/bor#2137), KZG precompile restoration for madhugiri
+    (0xPolygon/bor#2140), and EVM interrupt propagation fix (0xPolygon/bor#2092).
+    With 3 validators needing Tendermint >2/3 unanimity, Heimdall cannot commit
+    span 5 and the chain halts at block 639 (span 4 end). Fork-transition EL
+    tests pass (exec-specs keeps this pair); only span-dependent Heimdall tests
+    are affected.
+  link: https://github.com/agglayer/e2e/actions/runs/23782039592
