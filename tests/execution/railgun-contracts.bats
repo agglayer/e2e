@@ -15,7 +15,7 @@ setup() {
 }
 
 teardown_file() {
-    rm -rf "$TEMP_DIR"
+    if [[ -d "${TEMP_DIR:-}" ]]; then rm -rf "$TEMP_DIR"; fi
 }
 
 # bats test_tags=railgun

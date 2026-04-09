@@ -192,7 +192,6 @@ _require_min_erigon() {
 
 # bats test_tags=cross-client,receipts,rio
 @test "cross-client-receipts: receipt root matches at Rio boundary" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     local target=$(( FORK_RIO + 5 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
@@ -207,7 +206,6 @@ _require_min_erigon() {
 # bats test_tags=cross-client,receipts,madhugiri
 @test "cross-client-receipts: receipt root matches at Madhugiri boundary" {
     _require_min_bor "2.5.0"
-    [[ "${FORK_MADHUGIRI:-0}" -le 0 ]] && skip "Madhugiri at genesis"
 
     local target=$(( FORK_MADHUGIRI_PRO + 5 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
@@ -226,7 +224,6 @@ _require_min_erigon() {
 @test "cross-client-receipts: receipt root matches at Lisovo boundary" {
     _require_min_bor "2.5.6"
     _require_min_erigon "3.5.0"
-    [[ "${FORK_LISOVO:-0}" -le 0 ]] && skip "Lisovo at genesis"
 
     local target=$(( FORK_LISOVO_PRO + 5 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}" "L2_RPC"
@@ -243,7 +240,6 @@ _require_min_erigon() {
 
 # bats test_tags=cross-client,receipts,gas
 @test "cross-client-receipts: gas used in blocks agree at fork boundaries" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     # Collect all fork boundaries that the running versions support
     local -a blocks=(
@@ -281,7 +277,6 @@ _require_min_erigon() {
 
 # bats test_tags=cross-client,receipts,tx-count
 @test "cross-client-receipts: transaction count agrees at fork boundaries" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     local -a blocks=(
         "$(( FORK_RIO - 1 ))" "${FORK_RIO}" "$(( FORK_RIO + 1 ))"
@@ -347,7 +342,6 @@ _require_min_erigon() {
 
 # bats test_tags=cross-client,receipts,logs-bloom
 @test "cross-client-receipts: logs root matches at fork boundaries" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     local -a blocks=(
         "$(( FORK_RIO - 1 ))" "${FORK_RIO}" "$(( FORK_RIO + 1 ))"
@@ -384,7 +378,6 @@ _require_min_erigon() {
 
 # bats test_tags=cross-client,receipts,system-tx
 @test "cross-client-receipts: receipt status codes agree for system transactions" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     # System/state-sync transactions are committed at sprint boundaries (every 16 blocks).
     # Scan a window around the Rio fork to find blocks with transactions.
@@ -450,7 +443,6 @@ _require_min_erigon() {
 
 # bats test_tags=cross-client,receipts,cumulative-gas
 @test "cross-client-receipts: cumulative gas used matches for shared blocks" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
 
     # Spot-check several blocks: a few before Rio, at Rio, after Rio, and
     # at other fork boundaries if supported.

@@ -81,7 +81,7 @@ setup_file() {
 }
 
 teardown_file() {
-    [[ -d "${WALLET_DIR:-}" ]] && rm -rf "$WALLET_DIR"
+    if [[ -d "${WALLET_DIR:-}" ]]; then rm -rf "$WALLET_DIR"; fi
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -806,7 +806,6 @@ _p256_input() {
 
 # bats test_tags=fork-transition,rio
 @test "1.3: Rio — chain progresses smoothly through fork boundary" {
-    [[ "$FORK_RIO" -le 1 ]] && skip "Rio at genesis"
     _wait_for_block $(( FORK_RIO + 2 ))
 
     # In Bor PoS, the miner field is 0x0 — signer is extracted from block seal.
@@ -862,7 +861,6 @@ _p256_input() {
 
 # bats test_tags=precompile-consistency,bls12,p256,pre-madhugiri
 @test "1.2: BLS12-381 and p256Verify already active before Madhugiri (via upstream Prague)" {
-    [[ "$FORK_MADHUGIRI" -le 10 ]] && skip "Madhugiri at genesis"
     _wait_before_fork "$FORK_MADHUGIRI"
 
     # BLS active from genesis via upstream Prague precompile table
@@ -878,7 +876,6 @@ _p256_input() {
 
 # bats test_tags=precompile-consistency,kzg,pre-madhugiri
 @test "1.2: KZG (0x0a) still inactive before Madhugiri" {
-    [[ "$FORK_MADHUGIRI" -le 10 ]] && skip "Madhugiri at genesis"
     _wait_before_fork "$FORK_MADHUGIRI"
 
     # KZG is not in the Cancun precompile set on any bor version.
@@ -1028,7 +1025,6 @@ _p256_input() {
 
 # bats test_tags=precompile-consistency,p256,madhugiri-pro
 @test "1.2: p256Verify (0x0100) still inactive in Madhugiri era (before MadhugiriPro re-adds it)" {
-    [[ "$FORK_MADHUGIRI_PRO" -le 10 ]] && skip "MadhugiriPro at genesis"
     _wait_before_fork "$FORK_MADHUGIRI_PRO"
 
     # p256 is dropped when Madhugiri overrides the upstream Prague precompile table.
@@ -1156,7 +1152,6 @@ _p256_input() {
 
 # bats test_tags=fork-transition,opcode,clz,lisovo
 @test "1.3: Lisovo — CLZ opcode reverts in transaction before fork" {
-    [[ "$FORK_LISOVO" -le 10 ]] && skip "Lisovo at genesis, no pre-fork blocks"
     _wait_before_fork "$FORK_LISOVO"
 
     # Runtime: PUSH1 0x01 CLZ PUSH1 0x00 SSTORE STOP
@@ -1173,7 +1168,6 @@ _p256_input() {
 
 # bats test_tags=precompile-consistency,kzg,lisovo
 @test "1.2: KZG (0x0a) state before Lisovo" {
-    [[ "$FORK_LISOVO" -le 10 ]] && skip "Lisovo at genesis"
     _wait_before_fork "$FORK_LISOVO"
 
     # Probe KZG status via on-chain STATICCALL — more reliable than eth_call.
@@ -1326,7 +1320,6 @@ _p256_input() {
 
 # bats test_tags=fork-transition,lisovopro
 @test "1.3: LisovoPro — chain progresses smoothly through fork boundary" {
-    [[ "$FORK_LISOVO_PRO" -le 1 ]] && skip "LisovoPro at genesis"
     _wait_for_block $(( FORK_LISOVO_PRO + 2 ))
 
     local before_hash after_hash
@@ -1474,7 +1467,6 @@ _p256_input() {
 # bats test_tags=fork-transition,giugliano
 @test "1.3: Giugliano — chain progresses smoothly through fork boundary" {
     _require_fork "giugliano"
-    [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
     _wait_for_block $(( FORK_GIUGLIANO + 2 ))
 
     local before_hash after_hash
@@ -1540,7 +1532,6 @@ _p256_input() {
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — bor_getBlockGasParams returns null fields for pre-Giugliano block" {
     _require_fork "giugliano"
-    [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis, no pre-fork blocks"
     _wait_for_block $(( FORK_GIUGLIANO + 1 ))
 
     local block_hex result gas_target bfcd
@@ -1651,7 +1642,6 @@ _p256_input() {
 # bats test_tags=fork-transition,giugliano,gas-params
 @test "1.3: Giugliano — base fee remains non-zero through fork boundary" {
     _require_fork "giugliano"
-    [[ "$FORK_GIUGLIANO" -le 1 ]] && skip "Giugliano at genesis"
     _wait_for_block $(( FORK_GIUGLIANO + 2 ))
 
     local pre_fee post_fee
