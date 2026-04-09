@@ -285,13 +285,20 @@ _assert_opcodes_present() {
 # bats test_tags=execution-specs,evm-every-opcode,logs
 @test "receipt contains 5 log entries from LOG0 through LOG4" {
     # The contract emits: LOG0 (0 topics), LOG1 (1), LOG2 (2), LOG3 (3), LOG4 (4).
+    # Bor/system may append extra logs (e.g. state sync), so filter by contract address.
     local receipt
     receipt=$(cat "$RECEIPT_FILE")
 
+    local contract_logs
+    contract_logs=$(echo "$receipt" | jq --arg addr "$EVERY_OPCODE_CONTRACT" \
+        '[.logs[] | select(.address == ($addr | ascii_downcase))]')
+
     local log_count
-    log_count=$(echo "$receipt" | jq '.logs | length')
+    log_count=$(echo "$contract_logs" | jq 'length')
     if [[ "$log_count" -ne 5 ]]; then
-        echo "Expected 5 log entries (LOG0-LOG4), got $log_count" >&2
+        echo "Expected 5 log entries from $EVERY_OPCODE_CONTRACT (LOG0-LOG4), got $log_count" >&2
+        echo "All receipt logs:" >&2
+        echo "$receipt" | jq '.logs[] | {address, topics: (.topics | length)}' >&2
         return 1
     fi
 
@@ -299,7 +306,7 @@ _assert_opcodes_present() {
     local expected_topics=(0 1 2 3 4)
     for i in "${!expected_topics[@]}"; do
         local actual_topics
-        actual_topics=$(echo "$receipt" | jq ".logs[$i].topics | length")
+        actual_topics=$(echo "$contract_logs" | jq ".[$i].topics | length")
         if [[ "$actual_topics" -ne "${expected_topics[$i]}" ]]; then
             echo "Log[$i]: expected ${expected_topics[$i]} topics, got $actual_topics" >&2
             return 1
@@ -316,11 +323,15 @@ _assert_opcodes_present() {
     local receipt
     receipt=$(cat "$RECEIPT_FILE")
 
+    local contract_logs
+    contract_logs=$(echo "$receipt" | jq --arg addr "$EVERY_OPCODE_CONTRACT" \
+        '[.logs[] | select(.address == ($addr | ascii_downcase))]')
+
     local expected_data="0x4a6f686e2077617320686572650a"
 
     for i in $(seq 0 4); do
         local data
-        data=$(echo "$receipt" | jq -r ".logs[$i].data")
+        data=$(echo "$contract_logs" | jq -r ".[$i].data")
         if [[ "$data" != "$expected_data" ]]; then
             echo "Log[$i] data mismatch:" >&2
             echo "  expected: $expected_data" >&2
@@ -351,8 +362,14 @@ _assert_opcodes_present() {
     _assert_opcodes_present \
         ADDRESS BALANCE ORIGIN CALLER CALLVALUE CALLDATALOAD CALLDATASIZE \
         CALLDATACOPY CODESIZE CODECOPY GASPRICE EXTCODESIZE EXTCODECOPY \
-        EXTCODEHASH BLOCKHASH COINBASE TIMESTAMP NUMBER PREVRANDAO \
+        EXTCODEHASH BLOCKHASH COINBASE TIMESTAMP NUMBER \
         GASLIMIT CHAINID SELFBALANCE BASEFEE GAS
+
+    # PREVRANDAO was renamed from DIFFICULTY; tracers may use either name.
+    if ! _trace_has_opcode PREVRANDAO && ! _trace_has_opcode DIFFICULTY; then
+        echo "Missing opcodes (1): PREVRANDAO (also checked DIFFICULTY)" >&2
+        return 1
+    fi
 
     echo "All environment and block info opcodes present in trace" >&3
 }
@@ -364,9 +381,14 @@ _assert_opcodes_present() {
     _assert_opcodes_present \
         MLOAD MSTORE MSTORE8 MSIZE MCOPY \
         SLOAD SSTORE \
-        SHA3 \
         JUMP JUMPI JUMPDEST PC \
         POP RETURN RETURNDATASIZE RETURNDATACOPY
+
+    # SHA3 is reported as KECCAK256 by some tracers.
+    if ! _trace_has_opcode SHA3 && ! _trace_has_opcode KECCAK256; then
+        echo "Missing opcodes (1): SHA3 (also checked KECCAK256)" >&2
+        return 1
+    fi
 
     echo "All memory, storage, and flow control opcodes present in trace" >&3
 }
