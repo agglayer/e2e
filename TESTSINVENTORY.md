@@ -478,15 +478,16 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_getLogs for block 0 to 0 returns a valid array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L86) | |
 | eth_getLogs returns empty array for future block range | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L69) | |
 | eth_getLogs with reversed block range returns error or empty array | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L135) | |
-| eth_getLogs: MRC20 (0x1010) events are address-indexed in state-sync blocks | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L442) | |
-| eth_getLogs: StateReceiver (0x1001) events are address-indexed in state-sync blocks | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L405) | |
-| eth_getLogs: address-filtered log count matches receipt log count per address | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L357) | |
-| eth_getLogs: all receipt logs are discoverable via eth_getLogs for the same block | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L635) | |
-| eth_getLogs: combined address+topic filter returns state-sync logs | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L510) | |
-| eth_getLogs: log ordering in address-filtered results matches receipt order | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L479) | |
-| eth_getLogs: multi-block range with address filter includes state-sync logs | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L577) | |
-| eth_getLogs: state-sync logs appear when filtering by contract address | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L281) | |
-| eth_getLogs: state-sync logs appear when filtering by topic only (no address) | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L325) | |
+| eth_getLogs: MRC20 (0x1010) events are address-indexed in state-sync blocks | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L492) | |
+| eth_getLogs: StateReceiver (0x1001) events are address-indexed in state-sync blocks | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L447) | |
+| eth_getLogs: address-filtered log count matches receipt log count per address | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L392) | |
+| eth_getLogs: all receipt logs are discoverable via eth_getLogs for the same block | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L690) | |
+| eth_getLogs: combined address+topic filter returns state-sync logs | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L560) | |
+| eth_getLogs: log ordering in address-filtered results matches receipt order | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L529) | |
+| eth_getLogs: multi-block range with address filter includes state-sync logs | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L627) | |
+| eth_getLogs: range + address + topic filter returns state-sync logs (exact reporter pattern) | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L735) | |
+| eth_getLogs: state-sync logs appear when filtering by contract address | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L283) | |
+| eth_getLogs: state-sync logs appear when filtering by topic only (no address) | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L360) | |
 | eth_getProof returns valid Merkle proof structure | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L826) | |
 | eth_getStorageAt returns zero for EOA and valid 32-byte word for contracts | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L286) | |
 | eth_getTransactionByHash and ByBlockNumberAndIndex return consistent tx data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L191) | |
@@ -577,7 +578,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | state-consistency: devnet has advanced past the last supported fork | [Link](./tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats#L299) | |
 | state-sync tx: from is zero address (0x0) | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L198) | |
 | state-sync tx: gas, gasPrice, value, and nonce are all zero | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L222) | |
-| state-sync tx: receipt exists and has at least one log | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L253) | |
+| state-sync tx: receipt exists and has at least one log | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L255) | |
 | state-sync tx: to is zero address (0x0) | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L210) | |
 | state-sync tx: type is 0x7f (StateSyncTx / PIP-74) | [Link](./tests/pos/execution-specs/rpc/statesync-getlogs-address-index.bats#L186) | |
 | sustained RPC load over 30 seconds with monotonic block advancement | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L536) | |

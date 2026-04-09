@@ -227,18 +227,20 @@ _get_logs() {
     tx_nonce=$(echo "$STATESYNC_TX_JSON" | jq -r '.nonce // "0x0"')
 
     local failed=0
+    local field_name field_val
     for field_name in gas gasPrice value nonce; do
-        local field_val
-        eval "field_val=\$tx_${field_name/P/_p}"
         case "$field_name" in
             gas)      field_val="$tx_gas" ;;
             gasPrice) field_val="$tx_gas_price" ;;
             value)    field_val="$tx_value" ;;
             nonce)    field_val="$tx_nonce" ;;
         esac
-        # Accept "0x0" or "0x" as zero
-        if [[ "$field_val" != "0x0" && "$field_val" != "0x" ]]; then
-            echo "FAIL: ${field_name}=${field_val}, expected 0x0" >&2
+        # Normalize hex to decimal and check for zero.
+        # Handles "0x0", "0x00", "0x000...", and "0x" (empty hex = 0).
+        local decimal_val
+        decimal_val=$(printf '%d' "${field_val:-0x0}" 2>/dev/null || echo "-1")
+        if [[ "$decimal_val" -ne 0 ]]; then
+            echo "FAIL: ${field_name}=${field_val} (decimal: ${decimal_val}), expected 0" >&2
             failed=$(( failed + 1 ))
         fi
     done
@@ -281,7 +283,15 @@ _get_logs() {
 @test "eth_getLogs: state-sync logs appear when filtering by contract address" {
     # For each unique contract address that emitted a log inside the state-sync
     # transaction, verify that eth_getLogs with that address filter returns
-    # at least one log.
+    # the state-sync logs (identified by transactionHash).
+    #
+    # This is the CORE BUG test: the reporter's issue is that address-filtered
+    # eth_getLogs drops state-sync logs entirely. We must check that the specific
+    # state-sync tx's logs are present, not just that *any* logs are returned
+    # (other normal txs from the same address would mask the bug).
+
+    local receipt_json
+    receipt_json=$(cat "${BATS_FILE_TMPDIR}/statesync_receipt.json")
 
     local addresses
     addresses=$(cat "${BATS_FILE_TMPDIR}/statesync_log_addresses.txt")
@@ -293,30 +303,55 @@ _get_logs() {
         [[ -z "$addr" ]] && continue
         tested=$(( tested + 1 ))
 
+        local addr_lower
+        addr_lower=$(echo "$addr" | tr '[:upper:]' '[:lower:]')
+
+        # How many logs does the receipt have from this address?
+        local receipt_count
+        receipt_count=$(echo "$receipt_json" | jq --arg a "$addr_lower" '
+            [.result.logs[] | select(.address | ascii_downcase == $a)] | length
+        ' 2>/dev/null)
+
+        # Query eth_getLogs with address filter for the state-sync block
         local response
         response=$(_get_logs "$STATESYNC_BLOCK_HEX" "$addr")
 
-        local result_count
-        result_count=$(echo "$response" | jq '.result | length' 2>/dev/null)
-
-        if [[ -z "$result_count" || "$result_count" == "null" ]]; then
+        if echo "$response" | jq -e '.error' &>/dev/null; then
             echo "FAIL: eth_getLogs returned error for address ${addr}: $(echo "$response" | jq -c '.error' 2>/dev/null)" >&2
             failed=$(( failed + 1 ))
             continue
         fi
 
-        if [[ "$result_count" -eq 0 ]]; then
-            echo "FAIL: eth_getLogs with address=${addr} returned 0 logs, but receipt shows logs from this address" >&2
+        # Count ONLY the state-sync tx's logs (filter by transactionHash)
+        local statesync_log_count
+        statesync_log_count=$(echo "$response" | jq --arg txh "$STATESYNC_TX_HASH" '
+            [.result[]? | select(.transactionHash | ascii_downcase == ($txh | ascii_downcase))] | length
+        ' 2>/dev/null)
+
+        local total_count
+        total_count=$(echo "$response" | jq '.result | length' 2>/dev/null)
+
+        if [[ "$statesync_log_count" -eq 0 ]]; then
+            echo "FAIL: eth_getLogs with address=${addr} returned ${total_count} total log(s), but 0 from state-sync tx ${STATESYNC_TX_HASH}" >&2
+            echo "  Receipt has ${receipt_count} state-sync log(s) from this address" >&2
+            failed=$(( failed + 1 ))
+        elif [[ "$statesync_log_count" -ne "$receipt_count" ]]; then
+            echo "FAIL: eth_getLogs returned ${statesync_log_count} state-sync log(s) for address=${addr}, receipt has ${receipt_count}" >&2
             failed=$(( failed + 1 ))
         else
-            echo "  OK: address=${addr} → ${result_count} log(s)" >&3
+            echo "  OK: address=${addr} → ${statesync_log_count} state-sync log(s) (${total_count} total in block)" >&3
         fi
     done <<< "$addresses"
 
     echo "Tested ${tested} addresses, ${failed} failures" >&3
 
+    if [[ "$tested" -eq 0 ]]; then
+        echo "FAIL: no contract addresses to test — receipt may have 0 logs" >&2
+        return 1
+    fi
+
     if [[ "$failed" -gt 0 ]]; then
-        echo "eth_getLogs address index is missing logs from state-sync transactions" >&2
+        echo "eth_getLogs address index is missing state-sync logs" >&2
         return 1
     fi
 }
@@ -366,9 +401,11 @@ _get_logs() {
     addresses=$(cat "${BATS_FILE_TMPDIR}/statesync_log_addresses.txt")
 
     local failed=0
+    local tested=0
 
     while IFS= read -r addr; do
         [[ -z "$addr" ]] && continue
+        tested=$(( tested + 1 ))
 
         # Count logs from this address in the receipt
         local addr_lower
@@ -395,6 +432,11 @@ _get_logs() {
             echo "  OK: address=${addr}: ${receipt_count} log(s) match" >&3
         fi
     done <<< "$addresses"
+
+    if [[ "$tested" -eq 0 ]]; then
+        echo "FAIL: no contract addresses to test — receipt may have 0 logs" >&2
+        return 1
+    fi
 
     if [[ "$failed" -gt 0 ]]; then
         return 1
@@ -426,16 +468,24 @@ _get_logs() {
     local response
     response=$(_get_logs "$STATESYNC_BLOCK_HEX" "$state_receiver")
 
+    # Filter to only state-sync tx logs (by transactionHash)
     local getlogs_count
-    getlogs_count=$(echo "$response" | jq '.result | length' 2>/dev/null)
+    getlogs_count=$(echo "$response" | jq --arg txh "$STATESYNC_TX_HASH" '
+        [.result[]? | select(.transactionHash | ascii_downcase == ($txh | ascii_downcase))] | length
+    ' 2>/dev/null)
 
     if [[ -z "$getlogs_count" || "$getlogs_count" == "null" || "$getlogs_count" -eq 0 ]]; then
-        echo "FAIL: eth_getLogs for StateReceiver (0x1001) returned 0 logs" >&2
+        echo "FAIL: eth_getLogs for StateReceiver (0x1001) returned 0 state-sync logs" >&2
         echo "Receipt shows ${sr_log_count} logs from StateReceiver" >&2
         return 1
     fi
 
-    echo "StateReceiver address filter: ${getlogs_count} log(s) from eth_getLogs, ${sr_log_count} in receipt" >&3
+    if [[ "$getlogs_count" -ne "$sr_log_count" ]]; then
+        echo "FAIL: StateReceiver log count mismatch: eth_getLogs=${getlogs_count}, receipt=${sr_log_count}" >&2
+        return 1
+    fi
+
+    echo "StateReceiver address filter: ${getlogs_count} state-sync log(s) match receipt (${sr_log_count})" >&3
 }
 
 # bats test_tags=execution-specs,evm-rpc,state-sync,getlogs
@@ -617,18 +667,23 @@ _get_logs() {
         return 1
     fi
 
-    # Verify at least one of the returned logs is from our state-sync block
-    local matched
-    matched=$(echo "$response" | jq --arg bh "$STATESYNC_BLOCK_HEX" '
+    # Verify state-sync tx logs specifically are in the results (not just any logs from that block)
+    local statesync_matched
+    statesync_matched=$(echo "$response" | jq --arg txh "$STATESYNC_TX_HASH" '
+        [.result[]? | select(.transactionHash | ascii_downcase == ($txh | ascii_downcase))] | length
+    ' 2>/dev/null)
+
+    local block_matched
+    block_matched=$(echo "$response" | jq --arg bh "$STATESYNC_BLOCK_HEX" '
         [.result[]? | select(.blockNumber == $bh)] | length
     ' 2>/dev/null)
 
-    if [[ "$matched" -eq 0 ]]; then
-        echo "FAIL: range query returned ${result_count} logs but none from state-sync block ${STATESYNC_BLOCK_HEX}" >&2
+    if [[ "$statesync_matched" -eq 0 ]]; then
+        echo "FAIL: range query returned ${result_count} logs (${block_matched} from state-sync block) but 0 from state-sync tx ${STATESYNC_TX_HASH}" >&2
         return 1
     fi
 
-    echo "Multi-block range returned ${result_count} total logs, ${matched} from state-sync block" >&3
+    echo "Multi-block range: ${result_count} total, ${block_matched} from block, ${statesync_matched} from state-sync tx" >&3
 }
 
 # bats test_tags=execution-specs,evm-rpc,state-sync,getlogs
@@ -674,4 +729,90 @@ _get_logs() {
     fi
 
     echo "All ${receipt_log_count} receipt logs present in eth_getLogs" >&3
+}
+
+# bats test_tags=execution-specs,evm-rpc,state-sync,getlogs
+@test "eth_getLogs: range + address + topic filter returns state-sync logs (exact reporter pattern)" {
+    # This replicates the EXACT query pattern from the bug report:
+    #   curl -X POST <rpc> -d '{"jsonrpc":"2.0","method":"eth_getLogs","id":1,
+    #     "params":[{"fromBlock":"X","toBlock":"Y",
+    #       "address":"<contract>","topics":["<event_sig>"]}]}'
+    # The reporter saw 0 results with this pattern on ERPC, but correct results
+    # on a direct Bor node.
+
+    local receipt_json
+    receipt_json=$(cat "${BATS_FILE_TMPDIR}/statesync_receipt.json")
+
+    # Pick a log with topics from the state-sync receipt (prefer non-system address)
+    local target
+    target=$(echo "$receipt_json" | jq -c '
+        [.result.logs[] |
+         select((.address | ascii_downcase) != "0x0000000000000000000000000000000000001001" and
+                (.address | ascii_downcase) != "0x0000000000000000000000000000000000001010" and
+                (.topics | length) > 0)] | .[0] // empty
+    ' 2>/dev/null)
+
+    if [[ -z "$target" || "$target" == "null" ]]; then
+        target=$(echo "$receipt_json" | jq -c '
+            [.result.logs[] | select((.topics | length) > 0)] | .[0] // empty
+        ' 2>/dev/null)
+    fi
+
+    if [[ -z "$target" || "$target" == "null" ]]; then
+        skip "No logs with topics in state-sync receipt"
+    fi
+
+    local addr topic0
+    addr=$(echo "$target" | jq -r '.address')
+    topic0=$(echo "$target" | jq -r '.topics[0]')
+
+    # Use a block range (reporter used ~5000 block range)
+    local range_start=$(( STATESYNC_BLOCK_NUM - 5 ))
+    [[ "$range_start" -lt 0 ]] && range_start=0
+    local range_end=$(( STATESYNC_BLOCK_NUM + 5 ))
+    local from_hex to_hex
+    from_hex=$(printf '0x%x' "$range_start")
+    to_hex=$(printf '0x%x' "$range_end")
+
+    echo "Reporter pattern: range=${from_hex}..${to_hex}, address=${addr}, topic=${topic0}" >&3
+
+    # This is the exact eth_getLogs call shape from the bug report
+    local response
+    response=$(curl -s -m 15 --connect-timeout 5 -X POST "$L2_RPC_URL" \
+        -H "Content-Type: application/json" \
+        -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"fromBlock\":\"${from_hex}\",\"toBlock\":\"${to_hex}\",\"address\":\"${addr}\",\"topics\":[\"${topic0}\"]}]}")
+
+    local has_error
+    has_error=$(echo "$response" | jq -r '.error // empty' 2>/dev/null)
+    if [[ -n "$has_error" ]]; then
+        echo "Node returned error: $(echo "$has_error" | head -c 200)" >&3
+        skip "Node rejected range+address+topic query"
+    fi
+
+    local result_count
+    result_count=$(echo "$response" | jq '.result | length' 2>/dev/null)
+
+    if [[ -z "$result_count" || "$result_count" == "null" || "$result_count" -eq 0 ]]; then
+        echo "FAIL: eth_getLogs with range + address + topic returned 0 logs" >&2
+        echo "  fromBlock: ${from_hex}" >&2
+        echo "  toBlock:   ${to_hex}" >&2
+        echo "  address:   ${addr}" >&2
+        echo "  topic0:    ${topic0}" >&2
+        echo "  This is the EXACT pattern from the bug report" >&2
+        return 1
+    fi
+
+    # Verify at least one returned log is from our state-sync tx
+    local statesync_matched
+    statesync_matched=$(echo "$response" | jq --arg txh "$STATESYNC_TX_HASH" '
+        [.result[]? | select(.transactionHash | ascii_downcase == ($txh | ascii_downcase))] | length
+    ' 2>/dev/null)
+
+    if [[ "$statesync_matched" -eq 0 ]]; then
+        echo "FAIL: range+address+topic returned ${result_count} log(s) but none from state-sync tx" >&2
+        echo "  State-sync tx: ${STATESYNC_TX_HASH}" >&2
+        return 1
+    fi
+
+    echo "Reporter pattern: ${statesync_matched} state-sync log(s) found (${result_count} total) ✓" >&3
 }
