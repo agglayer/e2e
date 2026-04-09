@@ -32,18 +32,18 @@ setup_file() {
     local bytecode_file="${project_root}/core/contracts/bin/every-opcode.bin"
 
     if [[ ! -f "$bytecode_file" ]]; then
-        echo "Compiled bytecode not found at $bytecode_file" >&3
-        echo "Run: ./scripts/compile-evm-asm.sh" >&3
-        export _SKIP_ALL="every-opcode.bin not found — run ./scripts/compile-evm-asm.sh"
-        return 0
+        echo "ERROR: Compiled bytecode not found at $bytecode_file" >&2
+        echo "The pre-compiled binary must be committed to the repository." >&2
+        echo "To regenerate: ./scripts/compile-evm-asm.sh" >&2
+        return 1
     fi
 
     local bytecode
     bytecode=$(cat "$bytecode_file" | tr -d '[:space:]')
 
     if [[ -z "$bytecode" ]]; then
-        export _SKIP_ALL="every-opcode.bin is empty"
-        return 0
+        echo "ERROR: every-opcode.bin is empty" >&2
+        return 1
     fi
 
     # Ensure 0x prefix
@@ -143,8 +143,8 @@ setup_file() {
 }
 
 teardown_file() {
-    [[ -f "${RECEIPT_FILE:-}" ]] && rm -f "$RECEIPT_FILE"
-    [[ -f "${TRACE_FILE:-}" ]] && rm -f "$TRACE_FILE"
+    if [[ -f "${RECEIPT_FILE:-}" ]]; then rm -f "$RECEIPT_FILE"; fi
+    if [[ -f "${TRACE_FILE:-}" ]]; then rm -f "$TRACE_FILE"; fi
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -155,6 +155,7 @@ setup() {
     load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
+    # Chain stalls are infra issues — skip rather than fail.
     if [[ -n "${_SKIP_ALL:-}" ]]; then
         skip "$_SKIP_ALL"
     fi
