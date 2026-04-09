@@ -1216,7 +1216,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall span/validator-set tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/span-validator-set.bats \
+          bats tests/pos/heimdall/consensus-correctness/span-validator-set.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall checkpoint chain integrity tests
@@ -1228,7 +1228,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall checkpoint chain integrity tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats \
+          bats tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall milestone finality tests
@@ -1240,7 +1240,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall milestone finality tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/milestone-finality.bats \
+          bats tests/pos/heimdall/consensus-correctness/milestone-finality.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall state-sync event ordering tests
@@ -1252,7 +1252,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall state-sync event ordering tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/statesync-event-ordering.bats \
+          bats tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall node health tests
@@ -1264,7 +1264,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall node health tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/node-health.bats \
+          bats tests/pos/heimdall/consensus-correctness/node-health.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall checkpoint safety tests
@@ -1276,7 +1276,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall checkpoint safety tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/checkpoint-safety.bats \
+          bats tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall span-milestone safety tests
@@ -1288,7 +1288,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall span-milestone safety tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/consensus-correctness/span-milestone-safety.bats \
+          bats tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall Bor span-in-turn tests
@@ -1300,7 +1300,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall Bor span-in-turn tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/bor/span-in-turn.bats \
+          bats tests/pos/heimdall/bor/span-in-turn.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall bridge sync tests
@@ -1312,7 +1312,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall bridge sync tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/clerk/bridge-sync.bats \
+          bats tests/pos/heimdall/clerk/bridge-sync.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall validator-set safety tests
@@ -1324,7 +1324,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall validator-set safety tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/stake/validator-set-safety.bats \
+          bats tests/pos/heimdall/stake/validator-set-safety.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Run Heimdall validator state tests
@@ -1336,7 +1336,7 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
 
           echo "Running Heimdall validator state tests for ${{ matrix.pair_label }}..."
-          bats tests/heimdall/stake/validator-state.bats \
+          bats tests/pos/heimdall/stake/validator-state.bats \
             2>&1 | tee -a /tmp/bats-tap-output.txt
 
       - name: Skipped tests summary

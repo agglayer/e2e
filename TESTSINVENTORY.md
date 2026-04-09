@@ -97,37 +97,51 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| EIP-2935: Checking blocks outside historical serve window | [Link](./tests/pectra/eip2935.bats#L129) | |
-| EIP-2935: Oldest possible historical block hash from state | [Link](./tests/pectra/eip2935.bats#L116) | |
-| EIP-2935: Random historical block hashes from state | [Link](./tests/pectra/eip2935.bats#L94) | |
-| EIP-7623: Check gas cost for 0x00 | [Link](./tests/pectra/eip7623.bats#L102) | |
-| EIP-7623: Check gas cost for 0x000000 | [Link](./tests/pectra/eip7623.bats#L117) | |
-| EIP-7623: Check gas cost for 0x0001 | [Link](./tests/pectra/eip7623.bats#L107) | |
-| EIP-7623: Check gas cost for 0x000100 | [Link](./tests/pectra/eip7623.bats#L112) | |
-| EIP-7623: Check gas cost for 0x00aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff001100220033004400550066007700880099 | [Link](./tests/pectra/eip7623.bats#L122) | |
-| EIP-7623: Check gas cost for 0xffff | [Link](./tests/pectra/eip7623.bats#L127) | |
-| EIP-7623: Check gas cost for empty calldata | [Link](./tests/pectra/eip7623.bats#L97) | |
-| EIP-7685: RequestsHash in block header | [Link](./tests/pectra/eip7685.bats#L59) | |
-| EIP-7691: Max blobs per block | [Link](./tests/pectra/eip7691.bats#L59) | |
-| EIP-7702 Delegated contract with log event | [Link](./tests/pectra/eip7702.bats#L127) | |
-| G1ADD test vectors KO | [Link](./tests/pectra/eip2537.bats#L153) | |
-| G1ADD test vectors OK | [Link](./tests/pectra/eip2537.bats#L148) | |
-| G1MSM test vectors KO | [Link](./tests/pectra/eip2537.bats#L192) | |
-| G1MSM test vectors OK (long test) | [Link](./tests/pectra/eip2537.bats#L187) | |
-| G1MUL test vectors KO | [Link](./tests/pectra/eip2537.bats#L172) | |
-| G1MUL test vectors OK | [Link](./tests/pectra/eip2537.bats#L168) | |
-| G2ADD test vectors KO | [Link](./tests/pectra/eip2537.bats#L163) | |
-| G2ADD test vectors OK | [Link](./tests/pectra/eip2537.bats#L158) | |
-| G2MSM test vectors KO | [Link](./tests/pectra/eip2537.bats#L202) | |
-| G2MSM test vectors OK (long test) | [Link](./tests/pectra/eip2537.bats#L197) | |
-| G2MUL test vectors KO | [Link](./tests/pectra/eip2537.bats#L182) | |
-| G2MUL test vectors OK | [Link](./tests/pectra/eip2537.bats#L177) | |
-| MAP_FP2_TO_G2 test vectors KO | [Link](./tests/pectra/eip2537.bats#L232) | |
-| MAP_FP2_TO_G2 test vectors OK | [Link](./tests/pectra/eip2537.bats#L227) | |
-| MAP_FP_TO_G1 test vectors KO | [Link](./tests/pectra/eip2537.bats#L222) | |
-| MAP_FP_TO_G1 test vectors OK | [Link](./tests/pectra/eip2537.bats#L217) | |
-| PAIRING_CHECK test vectors KO | [Link](./tests/pectra/eip2537.bats#L212) | |
-| PAIRING_CHECK test vectors OK | [Link](./tests/pectra/eip2537.bats#L207) | |
+| EIP-2935: Checking blocks outside historical serve window | [Link](./tests/ethereum-hardforks/pectra/eip2935.bats#L129) | |
+| EIP-2935: Oldest possible historical block hash from state | [Link](./tests/ethereum-hardforks/pectra/eip2935.bats#L116) | |
+| EIP-2935: Random historical block hashes from state | [Link](./tests/ethereum-hardforks/pectra/eip2935.bats#L94) | |
+| EIP-7623: Check gas cost for 0x00 | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L102) | |
+| EIP-7623: Check gas cost for 0x000000 | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L117) | |
+| EIP-7623: Check gas cost for 0x0001 | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L107) | |
+| EIP-7623: Check gas cost for 0x000100 | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L112) | |
+| EIP-7623: Check gas cost for 0x00aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff00110022003300440055006600770088009900aa00bb00cc00dd00ee00ff001100220033004400550066007700880099 | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L122) | |
+| EIP-7623: Check gas cost for 0xffff | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L127) | |
+| EIP-7623: Check gas cost for empty calldata | [Link](./tests/ethereum-hardforks/pectra/eip7623.bats#L97) | |
+| EIP-7685: RequestsHash in block header | [Link](./tests/ethereum-hardforks/pectra/eip7685.bats#L59) | |
+| EIP-7691: Max blobs per block | [Link](./tests/ethereum-hardforks/pectra/eip7691.bats#L59) | |
+| EIP-7702 Delegated contract with log event | [Link](./tests/ethereum-hardforks/pectra/eip7702.bats#L127) | |
+| G1ADD test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L153) | |
+| G1ADD test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L148) | |
+| G1MSM test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L192) | |
+| G1MSM test vectors OK (long test) | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L187) | |
+| G1MUL test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L172) | |
+| G1MUL test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L168) | |
+| G2ADD test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L163) | |
+| G2ADD test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L158) | |
+| G2MSM test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L202) | |
+| G2MSM test vectors OK (long test) | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L197) | |
+| G2MUL test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L182) | |
+| G2MUL test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L177) | |
+| MAP_FP2_TO_G2 test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L232) | |
+| MAP_FP2_TO_G2 test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L227) | |
+| MAP_FP_TO_G1 test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L222) | |
+| MAP_FP_TO_G1 test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L217) | |
+| PAIRING_CHECK test vectors KO | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L212) | |
+| PAIRING_CHECK test vectors OK | [Link](./tests/ethereum-hardforks/pectra/eip2537.bats#L207) | |
+
+## Fusaka Tests
+
+| Test Name | Reference | Notes |
+|-----------|-----------|-------|
+| Modexp calls not valid for fusaka | [Link](./tests/ethereum-hardforks/fusaka/eip7823.bats#L62) | |
+| Modexp gas costs | [Link](./tests/ethereum-hardforks/fusaka/eip7883.bats#L45) | |
+| Modexp regular calls | [Link](./tests/ethereum-hardforks/fusaka/eip7823.bats#L42) | |
+| RLP Execution block size limit 10M  | [Link](./tests/ethereum-hardforks/fusaka/eip7934.bats#L36) | |
+| Test block gas limit increase to 60M | [Link](./tests/ethereum-hardforks/fusaka/eip7935.bats#L19) | |
+| Test new RPC endpoint eth_config | [Link](./tests/ethereum-hardforks/fusaka/eip7910.bats#L19) | |
+| Transaction using new CLZ instruction | [Link](./tests/ethereum-hardforks/fusaka/eip7939.bats#L19) | |
+| Transaction with more than 2^24 gas | [Link](./tests/ethereum-hardforks/fusaka/eip7825.bats#L19) | |
+| p256verify call | [Link](./tests/ethereum-hardforks/fusaka/eip7951.bats#L46) | |
 
 ## POS Tests
 
@@ -220,6 +234,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | BlockSTM: rapid same-sender nonce sequence does not cause state divergence | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L43) | |
 | BlockSTM: state roots match across multiple Bor nodes | [Link](./tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats#L260) | |
 | Bor produces blocks on approximately 2-second sprint cadence | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L232) | |
+| Bor system contracts (ValidatorContract 0x1000, StateReceiver 0x1001) are callable | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L631) | |
 | BorValidatorSet (0x1000) getBorValidators returns non-empty validator list | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L49) | |
 | BorValidatorSet (0x1000) has deployed code and is callable | [Link](./tests/pos/execution-specs/protocol/bor-system-contracts-validator-set-and-mrc20.bats#L21) | |
 | CALL with value to non-existent account skips G_NEW_ACCOUNT on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L52) | |
@@ -373,6 +388,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | TSTORE gas cost is less than SSTORE for zero-to-nonzero write | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L388) | |
 | TSTORE in DELEGATECALL shares caller transient storage context | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L439) | |
 | TSTORE reverted by sub-call REVERT is undone | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L279) | |
+| accumulator stored in slot 0 is non-zero | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L219) | |
 | add new validator | [Link](./tests/pos/validator.bats#L44) | |
 | all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L832) | |
 | base fee adjusts between blocks following EIP-1559 dynamics | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L267) | |
@@ -390,10 +406,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | basefee-fork: target gas percentage changes at Dandeli | [Link](./tests/pos/execution-specs/protocol/basefee-fork-boundary-validation.bats#L359) | |
 | batch JSON-RPC returns array of matching results | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L690) | |
 | batch JSON-RPC under concurrent load: 50 concurrent batch requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L486) | |
+| blake2f precompile (0x09) returns non-trivial output | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L600) | |
 | block coinbase (miner field) is zero address on Bor | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L98) | |
 | block production continues across validator rotation | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L338) | |
 | block timestamp monotonicity across 10 consecutive blocks | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L872) | |
 | block-filling stress: rapid-fire large calldata txs | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L793) | |
+| bn256 precompiles (ecAdd 0x06, ecMul 0x07) return valid curve points | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L558) | |
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L498) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L521) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L475) | |
@@ -403,6 +421,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge MATIC from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L166) | |
 | bridge POL from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L128) | |
 | chain continues producing blocks across sprint boundaries | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L39) | |
+| chain continues producing blocks after heavy all-opcode deployment | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L654) | |
 | chain liveness maintained under transaction flood | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L106) | |
 | chain produces blocks when no transactions are pending | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L177) | |
 | coinbase balance increases by at least the priority fee portion of gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L313) | |
@@ -470,6 +489,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_sendRawTransaction rejects invalid signature | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L623) | |
 | eth_sendRawTransaction rejects wrong chainId | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L649) | |
 | eth_syncing returns false on synced node | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L602) | |
+| every-opcode contract deploys successfully | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L208) | |
 | finality: all nodes agree on finalized block hash | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L293) | |
 | finality: finality depth is reasonable | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L533) | |
 | finality: finalized block number is non-zero and advancing | [Link](./tests/pos/execution-specs/resilience/finality-and-reorg-resistance.bats#L160) | |
@@ -494,11 +514,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | gasUsed <= gasLimit for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L907) | |
 | higher concurrency watermark: 100 and 500 concurrent eth_blockNumber requests | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L205) | |
 | insufficient balance rejection: tx with value+gas > balance is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L496) | |
+| intermediate accumulator written to slot 0x11235813 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L233) | |
 | isolate the current block producer mid-span to trigger a producer rotation | [Link](./tests/pos/veblop/faults.bats#L89) | |
 | large return data in constructor near EIP-170 limit (24000 bytes) succeeds | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L576) | |
 | latest block contains required post-London fields and valid shapes | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L427) | |
+| legacy precompiles (ecrecover, sha256, ripemd160, identity) produced results | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L462) | |
+| log data contains 'John was here' payload | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L312) | |
 | logsBloom is zero for genesis block (no log-emitting txs) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1024) | |
 | mixed concurrent RPC methods succeed without interfering with each other | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L144) | |
+| modexp precompile (0x05) returns expected result | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L532) | |
 | multi-sender concurrent fuzz: 10 wallets fire txs simultaneously | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L608) | |
 | multi-sender concurrent tx submissions: 10 wallets x 5 txs each | [Link](./tests/pos/execution-specs/rpc/rpc-concurrent-load-and-stress.bats#L411) | |
 | multiple CREATEs in single transaction: factory creates 5 children | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L453) | |
@@ -517,9 +541,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | precompile-fork-safety: gas estimation changes correctly at KZG boundary | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L494) | |
 | precompile-fork-safety: precompile set changes are consistent across all nodes | [Link](./tests/pos/execution-specs/precompiles/precompile-fork-transition-safety.bats#L391) | |
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
+| receipt contains 5 log entries from LOG0 through LOG4 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L285) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L48) | |
 | remove validator | [Link](./tests/pos/validator.bats#L333) | |
 | replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L440) | |
+| runtime code is 32 bytes and matches accumulator in slot 0 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L259) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L13) | |
 | sha3Uncles field is empty-list RLP hash (PoS has no uncles) | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L1006) | |
 | spam messages at the consensus layer and ensure the protocol handles them gracefully | [Link](./tests/pos/veblop/faults.bats#L149) | |
@@ -548,6 +574,17 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | system-contract-safety: ValidatorSet.getValidators() returns valid set at each fork boundary | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L127) | |
 | system-contract-safety: system contract code hash unchanged across fork boundaries | [Link](./tests/pos/execution-specs/protocol/system-contract-fork-safety.bats#L398) | |
 | total value is conserved: sender decrease equals recipient increase plus gas cost | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L183) | |
+| trace covers CALL, CALLCODE, DELEGATECALL, STATICCALL | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L410) | |
+| trace covers CREATE and CREATE2 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L419) | |
+| trace covers DUP1-DUP16 and SWAP1-SWAP16 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L388) | |
+| trace covers LOG0-LOG4 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L401) | |
+| trace covers PUSH0 through PUSH32 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L374) | |
+| trace covers arithmetic, comparison, and bitwise opcodes | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L335) | |
+| trace covers blob opcodes (BLOBHASH, BLOBBASEFEE) | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L451) | |
+| trace covers environment and block info opcodes | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L347) | |
+| trace covers memory, storage, and flow control opcodes | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L360) | |
+| trace covers sub-contract terminal opcodes (STOP, REVERT, INVALID, SELFDESTRUCT) | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L437) | |
+| trace covers transient storage (TSTORE, TLOAD) | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L428) | |
 | transaction at node-reported gas price succeeds | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L139) | |
 | transaction with trivially low gas price (1 wei) is rejected | [Link](./tests/pos/execution-specs/evm/bor-chain-specific-evm-behavior.bats#L112) | |
 | transactions consuming significant gas do not halt chain | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L226) | |
@@ -575,87 +612,87 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| checkpoint-range: all checkpoint block ranges are contiguous | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L202) | |
-| checkpoint-range: all checkpoint root hashes are unique | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L467) | |
-| checkpoint-range: checkpoint ranges do not overlap | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L286) | |
-| checkpoint-range: checkpoint timestamps are monotonically increasing | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L415) | |
-| checkpoint-range: first checkpoint starts at block 0 or expected genesis | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L333) | |
-| checkpoint-range: latest checkpoint end is close to current bor block | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L368) | |
-| checkpoint-range: no checkpoint has end_block < start_block | [Link](./tests/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L249) | |
-| heimdall bor: current Bor block is within the latest span's block range | [Link](./tests/heimdall/bor/span-in-turn.bats#L184) | |
-| heimdall bor: each span producer has a non-empty valid signer address | [Link](./tests/heimdall/bor/span-in-turn.bats#L286) | |
-| heimdall bor: latest span has a non-zero block range (start_block < end_block) | [Link](./tests/heimdall/bor/span-in-turn.bats#L136) | |
-| heimdall bor: span selected_producers have no duplicate signer addresses | [Link](./tests/heimdall/bor/span-in-turn.bats#L230) | |
-| heimdall bridge: Heimdall block height is not lagging behind CometBFT tip | [Link](./tests/heimdall/clerk/bridge-sync.bats#L336) | |
-| heimdall bridge: at least one checkpoint has been acknowledged on L1 | [Link](./tests/heimdall/clerk/bridge-sync.bats#L313) | |
-| heimdall bridge: clerk event record ID does not exceed L1 state counter | [Link](./tests/heimdall/clerk/bridge-sync.bats#L221) | |
-| heimdall bridge: clerk has processed at least one state sync event | [Link](./tests/heimdall/clerk/bridge-sync.bats#L188) | |
-| heimdall bridge: event records are being processed in a timely manner | [Link](./tests/heimdall/clerk/bridge-sync.bats#L255) | |
-| heimdall checkpoint: ACK count is monotonically increasing over time | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L188) | |
-| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L392) | |
-| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L242) | |
-| heimdall checkpoint: checkpoint sequence has no numbering gaps in latest 10 | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L289) | |
-| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L204) | |
-| heimdall checkpoint: no two consecutive checkpoints have the same root hash | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L439) | |
-| heimdall checkpoint: proposer address is non-empty and well-formed | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L223) | |
-| heimdall checkpoint: proposer is in active validator set | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L346) | |
-| heimdall checkpoint: root hash length is exactly 32 bytes (66 hex chars with 0x) | [Link](./tests/heimdall/consensus-correctness/checkpoint-safety.bats#L374) | |
-| heimdall checkpoint: root_hash is non-zero | [Link](./tests/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L303) | |
-| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L220) | |
-| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L134) | |
-| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L275) | |
-| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/heimdall/consensus-correctness/statesync-event-ordering.bats#L182) | |
-| heimdall consensus: all active validators have strictly positive voting power | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L247) | |
-| heimdall consensus: chain is live and advancing | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L210) | |
-| heimdall consensus: commit includes an entry for every validator in the active set | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L304) | |
-| heimdall consensus: quorum of voting power committed each block | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L456) | |
-| heimdall consensus: recent blocks decided at round 0 | [Link](./tests/heimdall/consensus-correctness/consensus-liveness.bats#L399) | |
-| heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
-| heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
-| heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
-| heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
-| heimdall milestone: latest milestone's end_block is within recent Bor history | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L472) | |
-| heimdall milestone: milestone ID is monotonically increasing | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L403) | |
-| heimdall node: chain ID is non-empty and consistent across endpoints | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L130) | |
-| heimdall node: has at least one connected peer | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L256) | |
-| heimdall node: is not catching up (fully synced) | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L178) | |
-| heimdall node: latest block height is a positive integer | [Link](./tests/heimdall/consensus-correctness/node-health.bats#L216) | |
-| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L397) | |
-| heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
-| heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
-| heimdall span: next span is being prepared before current span ends | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L295) | |
-| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L362) | |
-| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/heimdall/consensus-correctness/span-validator-set.bats#L300) | |
-| heimdall span: selected_producers count is non-zero and within validator set size | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L536) | |
-| heimdall span: span duration meets minimum sprint length requirement | [Link](./tests/heimdall/consensus-correctness/span-milestone-safety.bats#L241) | |
-| heimdall stake: CometBFT validator set matches Heimdall active validator set | [Link](./tests/heimdall/stake/validator-set-safety.bats#L411) | |
-| heimdall stake: active validator set is never empty | [Link](./tests/heimdall/stake/validator-set-safety.bats#L148) | |
-| heimdall stake: all active validators have non-empty signer addresses | [Link](./tests/heimdall/stake/validator-state.bats#L216) | |
-| heimdall stake: all active validators have unique validator IDs | [Link](./tests/heimdall/stake/validator-state.bats#L162) | |
-| heimdall stake: no more than N validators jailed simultaneously | [Link](./tests/heimdall/stake/validator-set-safety.bats#L201) | |
-| heimdall stake: reported total voting power matches sum of individual validators | [Link](./tests/heimdall/stake/validator-state.bats#L270) | |
-| heimdall stake: validator proposer priority values are within safe range | [Link](./tests/heimdall/stake/validator-set-safety.bats#L334) | |
-| heimdall stake: validator set count is non-zero and consistent with CometBFT | [Link](./tests/heimdall/stake/validator-state.bats#L363) | |
-| heimdall stake: validator voting power is within safe integer bounds | [Link](./tests/heimdall/stake/validator-set-safety.bats#L256) | |
-| milestone-checkpoint: all recent milestones reference blocks within checkpoint ranges | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L437) | |
-| milestone-checkpoint: latest milestone block <= latest checkpoint end_block | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L272) | |
-| milestone-checkpoint: milestone block hash matches Bor RPC | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L378) | |
-| milestone-checkpoint: milestone block height references a real Bor block | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L319) | |
-| milestone-checkpoint: milestone count is positive and increasing | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L354) | |
-| milestone-checkpoint: no gap between last milestone and current block > expected interval | [Link](./tests/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L543) | |
-| span-sprint: all validators in current span have non-zero power | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L399) | |
-| span-sprint: block producer at span boundary is in span's producer list | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L331) | |
-| span-sprint: consecutive spans are contiguous | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L519) | |
-| span-sprint: current block height is within active span range | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L603) | |
-| span-sprint: current span has valid structure | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L182) | |
-| span-sprint: span producer list matches Bor validator set | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L249) | |
-| span-sprint: span transitions have no block production gap | [Link](./tests/heimdall/bor/span-sprint-boundary-safety.bats#L455) | |
-| statesync-consistency: all records have valid tx_hash and contract fields | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L193) | |
-| statesync-consistency: event record IDs are strictly sequential | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L117) | |
-| statesync-consistency: event records are in chronological order | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L140) | |
-| statesync-consistency: latest record ID from API matches paginated count | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L215) | |
-| statesync-consistency: no duplicate event record IDs | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L157) | |
-| statesync-consistency: record count matches latest record ID | [Link](./tests/heimdall/clerk/statesync-sequential-consistency.bats#L173) | |
+| checkpoint-range: all checkpoint block ranges are contiguous | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L202) | |
+| checkpoint-range: all checkpoint root hashes are unique | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L467) | |
+| checkpoint-range: checkpoint ranges do not overlap | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L286) | |
+| checkpoint-range: checkpoint timestamps are monotonically increasing | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L415) | |
+| checkpoint-range: first checkpoint starts at block 0 or expected genesis | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L333) | |
+| checkpoint-range: latest checkpoint end is close to current bor block | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L368) | |
+| checkpoint-range: no checkpoint has end_block < start_block | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-range-invariants.bats#L249) | |
+| heimdall bor: current Bor block is within the latest span's block range | [Link](./tests/pos/heimdall/bor/span-in-turn.bats#L184) | |
+| heimdall bor: each span producer has a non-empty valid signer address | [Link](./tests/pos/heimdall/bor/span-in-turn.bats#L286) | |
+| heimdall bor: latest span has a non-zero block range (start_block < end_block) | [Link](./tests/pos/heimdall/bor/span-in-turn.bats#L136) | |
+| heimdall bor: span selected_producers have no duplicate signer addresses | [Link](./tests/pos/heimdall/bor/span-in-turn.bats#L230) | |
+| heimdall bridge: Heimdall block height is not lagging behind CometBFT tip | [Link](./tests/pos/heimdall/clerk/bridge-sync.bats#L336) | |
+| heimdall bridge: at least one checkpoint has been acknowledged on L1 | [Link](./tests/pos/heimdall/clerk/bridge-sync.bats#L313) | |
+| heimdall bridge: clerk event record ID does not exceed L1 state counter | [Link](./tests/pos/heimdall/clerk/bridge-sync.bats#L221) | |
+| heimdall bridge: clerk has processed at least one state sync event | [Link](./tests/pos/heimdall/clerk/bridge-sync.bats#L188) | |
+| heimdall bridge: event records are being processed in a timely manner | [Link](./tests/pos/heimdall/clerk/bridge-sync.bats#L255) | |
+| heimdall checkpoint: ACK count is monotonically increasing over time | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats#L188) | |
+| heimdall checkpoint: Bor has the end_block of the latest checkpoint | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L392) | |
+| heimdall checkpoint: chain contiguity — checkpoint[i].start_block == checkpoint[i-1].end_block + 1 for latest 5 | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L242) | |
+| heimdall checkpoint: checkpoint sequence has no numbering gaps in latest 10 | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats#L289) | |
+| heimdall checkpoint: latest checkpoint is well-formed (proposer, start_block, end_block, root_hash present) | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L204) | |
+| heimdall checkpoint: no two consecutive checkpoints have the same root hash | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats#L439) | |
+| heimdall checkpoint: proposer address is non-empty and well-formed | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats#L223) | |
+| heimdall checkpoint: proposer is in active validator set | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L346) | |
+| heimdall checkpoint: root hash length is exactly 32 bytes (66 hex chars with 0x) | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats#L374) | |
+| heimdall checkpoint: root_hash is non-zero | [Link](./tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats#L303) | |
+| heimdall clerk: each event record has required non-empty fields (id, contract, tx_hash) | [Link](./tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats#L220) | |
+| heimdall clerk: event record list is sorted by ID in strictly ascending order | [Link](./tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats#L134) | |
+| heimdall clerk: latest-id endpoint is consistent with event record list | [Link](./tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats#L275) | |
+| heimdall clerk: no duplicate IDs in event record list | [Link](./tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats#L182) | |
+| heimdall consensus: all active validators have strictly positive voting power | [Link](./tests/pos/heimdall/consensus-correctness/consensus-liveness.bats#L247) | |
+| heimdall consensus: chain is live and advancing | [Link](./tests/pos/heimdall/consensus-correctness/consensus-liveness.bats#L210) | |
+| heimdall consensus: commit includes an entry for every validator in the active set | [Link](./tests/pos/heimdall/consensus-correctness/consensus-liveness.bats#L304) | |
+| heimdall consensus: quorum of voting power committed each block | [Link](./tests/pos/heimdall/consensus-correctness/consensus-liveness.bats#L456) | |
+| heimdall consensus: recent blocks decided at round 0 | [Link](./tests/pos/heimdall/consensus-correctness/consensus-liveness.bats#L399) | |
+| heimdall milestone: chain contiguity — milestone[i].start_block == milestone[i-1].end_block + 1 for latest 5 | [Link](./tests/pos/heimdall/consensus-correctness/milestone-finality.bats#L295) | |
+| heimdall milestone: end_block is not ahead of current Bor chain tip | [Link](./tests/pos/heimdall/consensus-correctness/milestone-finality.bats#L360) | |
+| heimdall milestone: hash matches Bor block hash at end_block (oracle test) | [Link](./tests/pos/heimdall/consensus-correctness/milestone-finality.bats#L237) | |
+| heimdall milestone: latest milestone is well-formed (proposer, start_block, end_block, hash present) | [Link](./tests/pos/heimdall/consensus-correctness/milestone-finality.bats#L199) | |
+| heimdall milestone: latest milestone's end_block is within recent Bor history | [Link](./tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats#L472) | |
+| heimdall milestone: milestone ID is monotonically increasing | [Link](./tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats#L403) | |
+| heimdall node: chain ID is non-empty and consistent across endpoints | [Link](./tests/pos/heimdall/consensus-correctness/node-health.bats#L130) | |
+| heimdall node: has at least one connected peer | [Link](./tests/pos/heimdall/consensus-correctness/node-health.bats#L256) | |
+| heimdall node: is not catching up (fully synced) | [Link](./tests/pos/heimdall/consensus-correctness/node-health.bats#L178) | |
+| heimdall node: latest block height is a positive integer | [Link](./tests/pos/heimdall/consensus-correctness/node-health.bats#L216) | |
+| heimdall span: bor cross-check — bor_getAuthor(block) is in current span's selected_producers | [Link](./tests/pos/heimdall/consensus-correctness/span-validator-set.bats#L397) | |
+| heimdall span: contiguity — span[i].start_block == span[i-1].end_block + 1 for latest 5 spans | [Link](./tests/pos/heimdall/consensus-correctness/span-validator-set.bats#L207) | |
+| heimdall span: latest span is well-formed (id, start_block, end_block, selected_producers present) | [Link](./tests/pos/heimdall/consensus-correctness/span-validator-set.bats#L170) | |
+| heimdall span: next span is being prepared before current span ends | [Link](./tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats#L295) | |
+| heimdall span: producer count — 1 <= len(selected_producers) <= len(validator_set) | [Link](./tests/pos/heimdall/consensus-correctness/span-validator-set.bats#L362) | |
+| heimdall span: producer membership — every selected_producer is in validator_set | [Link](./tests/pos/heimdall/consensus-correctness/span-validator-set.bats#L300) | |
+| heimdall span: selected_producers count is non-zero and within validator set size | [Link](./tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats#L536) | |
+| heimdall span: span duration meets minimum sprint length requirement | [Link](./tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats#L241) | |
+| heimdall stake: CometBFT validator set matches Heimdall active validator set | [Link](./tests/pos/heimdall/stake/validator-set-safety.bats#L411) | |
+| heimdall stake: active validator set is never empty | [Link](./tests/pos/heimdall/stake/validator-set-safety.bats#L148) | |
+| heimdall stake: all active validators have non-empty signer addresses | [Link](./tests/pos/heimdall/stake/validator-state.bats#L216) | |
+| heimdall stake: all active validators have unique validator IDs | [Link](./tests/pos/heimdall/stake/validator-state.bats#L162) | |
+| heimdall stake: no more than N validators jailed simultaneously | [Link](./tests/pos/heimdall/stake/validator-set-safety.bats#L201) | |
+| heimdall stake: reported total voting power matches sum of individual validators | [Link](./tests/pos/heimdall/stake/validator-state.bats#L270) | |
+| heimdall stake: validator proposer priority values are within safe range | [Link](./tests/pos/heimdall/stake/validator-set-safety.bats#L334) | |
+| heimdall stake: validator set count is non-zero and consistent with CometBFT | [Link](./tests/pos/heimdall/stake/validator-state.bats#L363) | |
+| heimdall stake: validator voting power is within safe integer bounds | [Link](./tests/pos/heimdall/stake/validator-set-safety.bats#L256) | |
+| milestone-checkpoint: all recent milestones reference blocks within checkpoint ranges | [Link](./tests/pos/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L437) | |
+| milestone-checkpoint: latest milestone block <= latest checkpoint end_block | [Link](./tests/pos/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L272) | |
+| milestone-checkpoint: milestone block hash matches Bor RPC | [Link](./tests/pos/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L378) | |
+| milestone-checkpoint: milestone block height references a real Bor block | [Link](./tests/pos/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L319) | |
+| milestone-checkpoint: milestone count is positive and increasing | [Link](./tests/pos/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L354) | |
+| milestone-checkpoint: no gap between last milestone and current block > expected interval | [Link](./tests/pos/heimdall/consensus-correctness/milestone-checkpoint-consistency.bats#L543) | |
+| span-sprint: all validators in current span have non-zero power | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L399) | |
+| span-sprint: block producer at span boundary is in span's producer list | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L331) | |
+| span-sprint: consecutive spans are contiguous | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L519) | |
+| span-sprint: current block height is within active span range | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L603) | |
+| span-sprint: current span has valid structure | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L182) | |
+| span-sprint: span producer list matches Bor validator set | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L249) | |
+| span-sprint: span transitions have no block production gap | [Link](./tests/pos/heimdall/bor/span-sprint-boundary-safety.bats#L455) | |
+| statesync-consistency: all records have valid tx_hash and contract fields | [Link](./tests/pos/heimdall/clerk/statesync-sequential-consistency.bats#L193) | |
+| statesync-consistency: event record IDs are strictly sequential | [Link](./tests/pos/heimdall/clerk/statesync-sequential-consistency.bats#L117) | |
+| statesync-consistency: event records are in chronological order | [Link](./tests/pos/heimdall/clerk/statesync-sequential-consistency.bats#L140) | |
+| statesync-consistency: latest record ID from API matches paginated count | [Link](./tests/pos/heimdall/clerk/statesync-sequential-consistency.bats#L215) | |
+| statesync-consistency: no duplicate event record IDs | [Link](./tests/pos/heimdall/clerk/statesync-sequential-consistency.bats#L157) | |
+| statesync-consistency: record count matches latest record ID | [Link](./tests/pos/heimdall/clerk/statesync-sequential-consistency.bats#L173) | |
 
 ## DApps Tests
 
@@ -787,31 +824,23 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | L1 → Rollup 1 (native) → Rollup 3 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L145) | |
 | L1 → Rollup 3 (native/WETH) → Rollup 1 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L16) | |
 | Measure certificate generation intervals | [Link](./tests/aggkit/trigger-cert-modes.bats#L130) | |
-| Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
-| Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
-| Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
 | Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L243) | |
-| RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
 | Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L147) | |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
 | Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L48) | |
-| Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
 | Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
 | Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L212) | |
 | Test invalid GER injection case A (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L825) | |
 | Test invalid GER injection case A (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L716) | |
 | Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L396) | |
 | Test invalid GER injection case B2 (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L38) | |
-| Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
 | Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
 | Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
 | Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L946) | |
 | Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L509) | |
 | Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L57) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
-| Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
-| Transaction with more than 2^24 gas | [Link](./tests/fusaka/eip7825.bats#L19) | |
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
@@ -819,7 +848,6 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bridge transaction is indexed and autoclaimed on L2 | [Link](./tests/bridge-hub-api.bats#L14) | |
 | bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L95) | |
 | foo | [Link](./tests/foo.bats#L10) | |
-| p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |
 | send ETH and verify pending nonce updates | [Link](./tests/evm-rpc/simple-validations.bats#L64) | |
