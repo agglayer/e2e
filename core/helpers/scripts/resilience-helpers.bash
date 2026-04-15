@@ -3,25 +3,44 @@
 # Shared helpers for resilience test suite.
 # Load from test files with: load "../../../../core/helpers/scripts/resilience-helpers.bash"
 
-# Wait for the chain to advance at least $min_advance blocks past $start_block.
-# Returns the final block number on success.
-# Usage: _wait_for_block_advance <start_block> [min_advance=10] [timeout=120]
+# Return the current block number from the given RPC URL.
+# Usage: _read_block_number <rpc_url>
+_read_block_number() {
+    local rpc_url="$1"
+    local current
+
+    current=$(cast block-number --rpc-url "$rpc_url" 2>/dev/null) || {
+        echo "RPC block query failed for ${rpc_url}" >&2
+        return 1
+    }
+    if [[ ! "$current" =~ ^[0-9]+$ ]]; then
+        echo "Non-numeric block response from ${rpc_url}: ${current}" >&2
+        return 1
+    fi
+
+    echo "$current"
+}
+
+# Wait for the chain to advance at least $min_advance blocks past $start_block
+# on the given RPC URL. Returns the final block number on success.
+# Usage: _wait_for_block_advance <start_block> [min_advance=10] [timeout=120] [rpc_url=$L2_RPC_URL]
 _wait_for_block_advance() {
     local start_block="$1"
     local min_advance="${2:-10}"
     local timeout="${3:-120}"
+    local rpc_url="${4:-$L2_RPC_URL}"
     local target=$(( start_block + min_advance ))
     local elapsed=0
 
     while true; do
         local current
-        current=$(cast block-number --rpc-url "$L2_RPC_URL" 2>/dev/null) || current=0
-        if [[ "$current" -ge "$target" ]]; then
+        current=$(_read_block_number "$rpc_url" 2>/dev/null || true)
+        if [[ -n "$current" && "$current" -ge "$target" ]]; then
             echo "$current"
             return 0
         fi
         if [[ "$elapsed" -ge "$timeout" ]]; then
-            echo "Timeout: chain stuck at block $current, expected >= $target" >&2
+            echo "Timeout: chain stuck at block ${current:-unreachable}, expected >= $target" >&2
             return 1
         fi
         sleep 2
