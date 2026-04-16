@@ -7,27 +7,19 @@
 #   - Remove versions once fully deprecated and no longer in use
 #
 # Each entry must have: image, el_type (bor or erigon), reason.
-#
-# Bor strategy: up to THREE entries — latest, second-latest, and latest of the
-# previous major.minor line:
-#   1. Single-version baseline       (latest vs latest)        — regression guard
-#   2. Adjacent rolling-upgrade      (latest vs second-latest) — most common upgrade
-#   3. Cross-minor-line              (latest vs prev-minor)    — laggard node operators
-# If second-latest already lives on a different minor line, entries 2 and 3
-# collapse into one (2 entries total).
-#
-# Erigon strategy: latest N major.minor lines (RPC endpoint, not pairwise-tested).
+# Pairwise pairs are generated across ALL entries (bor-bor, erigon-erigon,
+# and bor-erigon cross-client combinations).
 #
 # If this file is absent or `versions` is empty, the workflow falls back
 # to auto-detecting the latest bor release from each major.minor line.
 
 versions:
+- image: 0xpolygon/bor:2.7.1
+  el_type: bor
+  reason: latest stable release (2.7 line), single-version baseline
 - image: 0xpolygon/bor:2.7.1-beta
   el_type: bor
   reason: latest pre-release (2.7 line), single-version baseline
-- image: 0xpolygon/bor:2.7.0
-  el_type: bor
-  reason: second latest stable release (2.7 line), adjacent rolling-upgrade coverage
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
   reason: latest stable release (2.6 line), previous minor-line coverage

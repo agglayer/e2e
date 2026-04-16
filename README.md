@@ -283,6 +283,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - dependency-metadata
 - deployment
 - depth
+- destructive
 - difficulty
 - eip-2200
 - eip-2929
@@ -326,6 +327,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - getlogs
 - giugliano
 - gnosis-safe
+- grpc
 - header-integrity
 - health
 - heavy-eth-call
@@ -349,6 +351,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - max-code-size
 - max-tx-gas
 - mcopy
+- metadata
 - milestone
 - milestone-match
 - mixed-load
@@ -365,6 +368,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - optimistic-mode
 - ordering
 - p256
+- pages
 - peers
 - pip11
 - pip16
@@ -393,6 +397,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - railgun
 - range
 - receipts
+- recon
 - references
 - resilience
 - reth-l1
@@ -401,6 +406,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - s0
 - s1
 - safety
+- security
 - selfdestruct
 - sender-ordering
 - sequential
@@ -441,6 +447,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - warm-cold
 - weth
 - withdraw
+- witness
 - zkevm-batch
 - zkevm-counters
 

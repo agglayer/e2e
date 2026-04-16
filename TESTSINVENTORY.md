@@ -388,6 +388,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | TSTORE gas cost is less than SSTORE for zero-to-nonzero write | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L388) | |
 | TSTORE in DELEGATECALL shares caller transient storage context | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L439) | |
 | TSTORE reverted by sub-call REVERT is undone | [Link](./tests/pos/execution-specs/evm/eip1153-tstore-tload-transient-storage.bats#L279) | |
+| WIT: oversized GetWitness request is rejected | [Link](./tests/pos/execution-specs/resilience/witness-request-bounds.bats#L381) | |
+| WIT: oversized GetWitnessMetadata request is rejected | [Link](./tests/pos/execution-specs/resilience/witness-request-bounds.bats#L361) | |
 | accumulator stored in slot 0 is non-zero | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L220) | |
 | add new validator | [Link](./tests/pos/validator.bats#L44) | |
 | all-opcode liveness smoke: deploy contracts exercising major opcode groups | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L832) | |
@@ -514,6 +516,13 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | fuzz node with non-zero calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L189) | |
 | fuzz node with variable-size calldata transactions and verify liveness | [Link](./tests/pos/execution-specs/transactions/evm-transaction-fuzzing-and-liveness.bats#L98) | |
 | fuzz scan: no unknown precompiles in 0x0001..PRECOMPILE_FUZZ_MAX | [Link](./tests/pos/execution-specs/precompiles/precompile-correctness-and-discovery.bats#L58) | |
+| gRPC EXPLOIT: ChainSetHead rewinds the node's chain | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L185) | |
+| gRPC EXPLOIT: DebugPprof exposes runtime heap profile | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L466) | |
+| gRPC EXPLOIT: PeersList exposes full network topology | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L305) | |
+| gRPC EXPLOIT: PeersRemove evicts many peers without authentication | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L327) | |
+| gRPC aftermath: target node can be restored after rewind | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L504) | |
+| gRPC recon: Status returns current block (proves unauthenticated read) | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L172) | |
+| gRPC recon: reflection lists all services without authentication | [Link](./tests/pos/execution-specs/resilience/grpc-admin-exposure.bats#L163) | |
 | gas-metering: CALL to cold address costs 2600 gas across all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L346) | |
 | gas-metering: MaxTxGas (30M) enforced at Madhugiri | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L161) | |
 | gas-metering: SSTORE from zero to non-zero gas cost is 20000 at all forks | [Link](./tests/pos/execution-specs/evm/gas-metering-fork-transitions.bats#L244) | |
