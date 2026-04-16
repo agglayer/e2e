@@ -64,3 +64,16 @@ excluded_pairs:
     tests pass (exec-specs keeps this pair); only span-dependent Heimdall tests
     are affected.
   link: https://github.com/agglayer/e2e/actions/runs/23782039592
+- images:
+    - 0xpolygon/bor:2.6.5
+    - 0xpolygon/bor:2.7.1
+  scope: fork-transition
+  reason: >-
+    Same consensus-breaking changes as the 2.6.5 ↔ 2.7.1-beta pair apply to
+    the stable release: block-STM finalStateDB bug fix (0xPolygon/bor#2137),
+    KZG precompile restoration (0xPolygon/bor#2140), and EVM interrupt
+    propagation fix (0xPolygon/bor#2092). Chain halts at block 639 (span 4 end)
+    because Heimdall cannot commit span 5 with state-root divergence across
+    mixed-version validators. Fork-transition EL tests pass (exec-specs keeps
+    this pair); only span-dependent Heimdall tests are affected.
+  link: https://github.com/agglayer/e2e/actions/runs/23782039592
