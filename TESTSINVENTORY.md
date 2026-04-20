@@ -449,7 +449,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L325) | |
 | cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L285) | |
 | cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L272) | |
-| delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
+| delegate to a validator | [Link](./tests/pos/validator.bats#L141) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L117) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L143) | |
 | deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L41) | |
@@ -619,8 +619,8 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | type 1 access list with multiple storage keys is accepted | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L202) | |
 | type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L125) | |
 | type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L170) | |
-| undelegate from a validator | [Link](./tests/pos/validator.bats#L241) | |
-| update signer | [Link](./tests/pos/validator.bats#L141) | |
+| undelegate from a validator | [Link](./tests/pos/validator.bats#L216) | |
+| update signer | [Link](./tests/pos/validator.bats#L308) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L79) | |
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L452) | |
@@ -629,7 +629,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L540) | |
 | withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L313) | |
 | withdraw native tokens from L2 via Plasma bridge and confirm POL balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L203) | |
-| withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
+| withdraw validator rewards | [Link](./tests/pos/validator.bats#L286) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L525) | |
 
 ## Heimdall Tests
