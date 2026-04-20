@@ -201,7 +201,6 @@ _require_min_bor() {
 
 # bats test_tags=sprint-boundary,fork-transition,no-reorg
 @test "sprint-boundary: no reorg at Rio fork (exact sprint boundary)" {
-    [[ "$FORK_RIO" -le 0 ]] && skip "Rio at genesis"
     # Verify fork block is a sprint boundary
     local sprint=16
     local remainder=$(( FORK_RIO % sprint ))
@@ -218,7 +217,6 @@ _require_min_bor() {
 
 # bats test_tags=sprint-boundary,fork-transition,producer-selection
 @test "sprint-boundary: producer at fork block matches bor_getSignersAtHash" {
-    [[ "$FORK_RIO" -le 0 ]] && skip "Rio at genesis"
     _wait_for_block $(( FORK_RIO + 1 ))
 
     local producer signers
@@ -247,7 +245,6 @@ _require_min_bor() {
 # bats test_tags=sprint-boundary,fork-transition,no-reorg
 @test "sprint-boundary: no reorg at Giugliano fork (sprint+span boundary)" {
     _require_min_bor "2.7.0"
-    [[ "$FORK_GIUGLIANO" -le 0 ]] && skip "Giugliano at genesis"
     local sprint=16
     local remainder=$(( FORK_GIUGLIANO % sprint ))
     if [[ "$remainder" -ne 0 ]]; then

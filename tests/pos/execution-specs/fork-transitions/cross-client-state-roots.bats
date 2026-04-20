@@ -270,8 +270,6 @@ _require_min_bor() {
 
 # bats test_tags=cross-client,state-root
 @test "cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary" {
-    [[ "${FORK_RIO:-0}" -le 0 ]] && skip "Rio at genesis"
-
     local target=$(( FORK_RIO + 5 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}"
     _wait_for_block_on "${target}" "${L2_ERIGON_RPC_URL}"
@@ -286,7 +284,6 @@ _require_min_bor() {
 # bats test_tags=cross-client,state-root
 @test "cross-client: Erigon syncs through Madhugiri forks and agrees with Bor" {
     _require_min_bor "2.5.0"
-    [[ "${FORK_MADHUGIRI:-0}" -le 0 ]] && skip "Madhugiri at genesis"
 
     local target=$(( FORK_MADHUGIRI_PRO + 5 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}"
@@ -300,7 +297,6 @@ _require_min_bor() {
 # bats test_tags=cross-client,state-root
 @test "cross-client: Erigon syncs through Dandeli→Lisovo→LisovoPro and agrees with Bor" {
     _require_min_bor "2.5.6"
-    [[ "${FORK_DANDELI:-0}" -le 0 ]] && skip "Dandeli at genesis"
 
     # Cap the target at what the running Erigon supports.
     # erigon < 3.5.0 supports up to Dandeli but not Lisovo/LisovoPro.
@@ -329,7 +325,6 @@ _require_min_bor() {
 @test "cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash" {
     _require_min_bor "2.7.0"
     _require_min_erigon "3.5.0"
-    [[ "${FORK_GIUGLIANO:-0}" -le 0 ]] && skip "Giugliano at genesis"
 
     local target=$(( FORK_GIUGLIANO + 5 ))
     _wait_for_block_on "${target}" "${L2_RPC_URL}"

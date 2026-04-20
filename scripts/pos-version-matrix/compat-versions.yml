@@ -1,4 +1,4 @@
-# PoS version compatibility matrix — curated list of EL versions to test.
+# PoS version compatibility matrix — curated list of EL + CL versions to test.
 #
 # The pos-e2e workflow reads this file to generate pairwise compat pairs.
 # Only versions listed under `versions` are tested. Keep this list focused:
@@ -6,28 +6,31 @@
 #   - Release candidates being validated for rollout
 #   - Remove versions once fully deprecated and no longer in use
 #
-# Each entry must have: image, el_type (bor or erigon), reason.
+# Each entry must have: image, a type discriminator, and reason.
+#   - EL entries:  el_type: bor | erigon
+#   - CL entries:  cl_type: heimdall-v2
+# Pairwise EL pairs are generated across ALL el_type entries (bor-bor,
+# erigon-erigon, and bor-erigon cross-client combinations).
+# Heimdall-v2 entries drive a separate `pos-heimdall-regression` matrix that
+# pins bor+erigon to latest and varies only the CL image — this isolates
+# heimdall-v2 as the regression variable.
 #
-# Bor strategy: up to THREE entries — latest, second-latest, and latest of the
-# previous major.minor line:
-#   1. Single-version baseline       (latest vs latest)        — regression guard
-#   2. Adjacent rolling-upgrade      (latest vs second-latest) — most common upgrade
-#   3. Cross-minor-line              (latest vs prev-minor)    — laggard node operators
-# If second-latest already lives on a different minor line, entries 2 and 3
-# collapse into one (2 entries total).
-#
-# Erigon strategy: latest N major.minor lines (RPC endpoint, not pairwise-tested).
+# Heimdall-v2 minimum version policy: only v0.6.0 and later are supported.
+# Earlier heimdall-v2 versions are intentionally excluded (pre-GA / not
+# production-bound); entries below that floor are silently dropped by the
+# workflow filter, so there is no need to maintain exclusions for them.
 #
 # If this file is absent or `versions` is empty, the workflow falls back
-# to auto-detecting the latest bor release from each major.minor line.
+# to auto-detecting the latest bor release from each major.minor line and
+# the latest heimdall-v2 release (>= v0.6.0).
 
 versions:
+- image: 0xpolygon/bor:2.7.1
+  el_type: bor
+  reason: latest stable release (2.7 line), single-version baseline
 - image: 0xpolygon/bor:2.7.1-beta
   el_type: bor
   reason: latest pre-release (2.7 line), single-version baseline
-- image: 0xpolygon/bor:2.7.0
-  el_type: bor
-  reason: second latest stable release (2.7 line), adjacent rolling-upgrade coverage
 - image: 0xpolygon/bor:2.6.5
   el_type: bor
   reason: latest stable release (2.6 line), previous minor-line coverage
@@ -37,6 +40,9 @@ versions:
 - image: 0xpolygon/erigon:v3.4.0
   el_type: erigon
   reason: new stable release (3.4 line), auto-detected
+- image: 0xpolygon/heimdall-v2:0.6.0
+  cl_type: heimdall-v2
+  reason: latest stable release (0.6 line), regression baseline (min supported)
 
 # Excluded version pairs — combinations known to fail due to precompile or EVM
 # behavior differences. These are skipped during pairwise matrix generation.
@@ -71,4 +77,17 @@ excluded_pairs:
     span 5 and the chain halts at block 639 (span 4 end). Fork-transition EL
     tests pass (exec-specs keeps this pair); only span-dependent Heimdall tests
     are affected.
+  link: https://github.com/agglayer/e2e/actions/runs/23782039592
+- images:
+    - 0xpolygon/bor:2.6.5
+    - 0xpolygon/bor:2.7.1
+  scope: fork-transition
+  reason: >-
+    Same consensus-breaking changes as the 2.6.5 ↔ 2.7.1-beta pair apply to
+    the stable release: block-STM finalStateDB bug fix (0xPolygon/bor#2137),
+    KZG precompile restoration (0xPolygon/bor#2140), and EVM interrupt
+    propagation fix (0xPolygon/bor#2092). Chain halts at block 639 (span 4 end)
+    because Heimdall cannot commit span 5 with state-root divergence across
+    mixed-version validators. Fork-transition EL tests pass (exec-specs keeps
+    this pair); only span-dependent Heimdall tests are affected.
   link: https://github.com/agglayer/e2e/actions/runs/23782039592

@@ -236,6 +236,7 @@ Naming convention should follow general EVM or Polygon standards.
 grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr ',' '\n' | sort -u | sed 's/^/- /'
 ```
 
+- accumulator
 - acl-accesslist
 - acl-blocklist
 - advancing
@@ -280,7 +281,9 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - custom-gas-token
 - dandeli
 - dependency-metadata
+- deployment
 - depth
+- destructive
 - difficulty
 - eip-2200
 - eip-2929
@@ -302,6 +305,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - erc-4337
 - eth-transfer
 - evm-block
+- evm-every-opcode
 - evm-gas
 - evm-nonce
 - evm-opcode
@@ -323,6 +327,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - getlogs
 - giugliano
 - gnosis-safe
+- grpc
 - header-integrity
 - health
 - heavy-eth-call
@@ -339,12 +344,14 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - lisovopro
 - liveness
 - loadtest
+- logs
 - logs-bloom
 - madhugiri
 - madhugiri-pro
 - max-code-size
 - max-tx-gas
 - mcopy
+- metadata
 - milestone
 - milestone-match
 - mixed-load
@@ -361,6 +368,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - optimistic-mode
 - ordering
 - p256
+- pages
 - peers
 - pip11
 - pip16
@@ -389,6 +397,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - railgun
 - range
 - receipts
+- recon
 - references
 - resilience
 - reth-l1
@@ -397,6 +406,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - s0
 - s1
 - safety
+- security
 - selfdestruct
 - sender-ordering
 - sequential
@@ -437,6 +447,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - warm-cold
 - weth
 - withdraw
+- witness
 - zkevm-batch
 - zkevm-counters
 

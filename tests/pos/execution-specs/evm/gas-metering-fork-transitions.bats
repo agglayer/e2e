@@ -75,7 +75,7 @@ setup_file() {
 }
 
 teardown_file() {
-    [[ -d "${WALLET_DIR:-}" ]] && rm -rf "$WALLET_DIR"
+    if [[ -d "${WALLET_DIR:-}" ]]; then rm -rf "$WALLET_DIR"; fi
 }
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -160,7 +160,6 @@ _deploy_initcode() {
 # bats test_tags=gas-metering,madhugiri,max-tx-gas
 @test "gas-metering: MaxTxGas (30M) enforced at Madhugiri" {
     _require_min_bor "2.5.0"
-    [[ "${FORK_MADHUGIRI:-0}" -le 0 ]] && skip "Madhugiri at genesis"
 
     _wait_for_block_on $(( FORK_MADHUGIRI + 2 )) "$L2_RPC_URL" "L2_RPC"
 
