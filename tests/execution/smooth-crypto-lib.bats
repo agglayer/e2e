@@ -22,11 +22,6 @@ setup() {
     source "$BATS_TEST_DIRNAME/../lxly/bridge-tests-suite-assets/helpers/bridge-tests-helper.bash"
 }
 
-# teardown_file() {
-#     echo "Removing temp directory: $TEMP_DIR" >&3
-#     rm -rf $TEMP_DIR
-# }
-
 # bats test_tags=smooth-crypto-lib
 @test "Setup SmoothCryptoLib" {
     echo "Temp working directory: $TEMP_DIR" >&3
@@ -50,26 +45,6 @@ setup() {
         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json --create "$(jq -r '.bytecode.object' "$contract")" | tee -a smooth-crypto-lib.out > /"$TEMP_DIR"/crypto-lib/"$bn".deploy.json
     done
 }
-
-# HashLE method does not exist anymore.
-# bats test_tags=smooth-crypto-lib
-# @test "Testing SHA512 - HashLE" {
-#     echo "Starting SHA512 Tests" >&3
-#     cd "$TEMP_DIR/crypto-lib" || exit 1
-
-#     echo "Command: cast send --private-key \"$l2_private_key\" --rpc-url \"$l2_rpc_url\" --json \"$(jq -r '.contractAddress' SCL_sha512.json.deploy.json)\" \"HashLE(uint256)\" 0" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_sha512.json.deploy.json)" "HashLE(uint256)" 0
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_sha512.json.deploy.json)" "HashLE(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935
-
-#     cur_nonce=$(cast nonce --rpc-url "$l2_rpc_url" "$l2_eth_address")
-#     for i in {1..256}; do
-#         set -x
-#         echo "Command: cast send --async --nonce $cur_nonce --private-key \"$l2_private_key\" --rpc-url \"$l2_rpc_url\" --json \"$(jq -r '.contractAddress' SCL_sha512.json.deploy.json)\" \"HashLE(uint256)\" \"0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")\"" >&3
-#         cast send --async --nonce $cur_nonce --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_sha512.json.deploy.json)" "HashLE(uint256)" "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3
-#         set +x
-#         cur_nonce=$((cur_nonce + 1))
-#     done
-# }
 
 # bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - BasePointMultiply" {
@@ -162,88 +137,6 @@ setup() {
     wait
 }
 
-# # TODO: Fix ExpandSecret test
-# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
-# # error code -32000: invalid jump destination
-# bats test_tags=smooth-crypto-lib
-# @test "Testing EIP6565 - ExpandSecret" {
-#     echo "Starting EIP6565 ExpandSecret Tests" >&3
-#     cd "$TEMP_DIR/crypto-lib" || exit 1
-
-#     sleep 5
-#     # Test basic cases with main account
-#     echo "Command: cast send --private-key \"$l2_private_key\" --rpc-url \"$l2_rpc_url\" --json \"$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)\" \"ExpandSecret(uint256)\" 0" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "ExpandSecret(uint256)" 0 >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "ExpandSecret(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
-
-#     # Use ephemeral accounts for parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "expand_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-#         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
-        
-#         if (( i % 20 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "expand_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        
-#         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "ExpandSecret(uint256)" "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3 &
-        
-#         if (( i % 50 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-# }
-
-# # TODO: Fix SetKey test
-# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
-# # error code -32000: invalid jump destination
-# bats test_tags=smooth-crypto-lib
-# @test "Testing EIP6565 - SetKey" {
-#     echo "Starting EIP6565 SetKey Tests" >&3
-#     cd "$TEMP_DIR/crypto-lib" || exit 1
-
-#     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SetKey(uint256)" 0 >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SetKey(uint256)" 115792089237316195423570985008687907853269984665640564039457584007913129639935 >&3
-
-#     # Use ephemeral accounts for parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "setkey_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-#         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
-        
-#         if (( i % 20 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "setkey_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        
-#         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "SetKey(uint256)" "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3 &
-        
-#         if (( i % 50 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-# }
-
 # bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - HashInternal" {
     echo "Starting EIP6565 HashInternal Tests" >&3
@@ -303,121 +196,6 @@ setup() {
     done
     wait
 }
-
-# # TODO: Fix Sign test
-# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
-# # error code -32000: invalid jump destination
-# bats test_tags=smooth-crypto-lib
-# @test "Testing EIP6565 - Sign" {
-#     echo "Starting EIP6565 Sign Tests" >&3
-#     cd "$TEMP_DIR/crypto-lib" || exit 1
-
-#     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "Sign(uint256,uint256[2],string)" 0 "[0,0]" "abc123" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "Sign(uint256,uint256[2],string)" 1 "[0,0]" "abc123" >&3
-
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "Sign(uint256,uint256[2],string)" \
-#         115792089237316195423570985008687907853269984665640564039457584007913129639935 \
-#         "[115792089237316195423570985008687907853269984665640564039457584007913129639935,115792089237316195423570985008687907853269984665640564039457584007913129639935]" \
-#         "abc123" >&3
-
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
-    
-#     # Exponential growth tests with main account
-#     hash_value="00112233445566778899AABBCCDDEEFF"
-#     for i in {1.."$exponential_growth_limit"}; do
-#         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "Sign(uint256,uint256[2],string)" \
-#             27066115479399555241574240779398896927011581316434074034167126962687364905698 \
-#             "[42559113093733082793542566282911713742375005736614813947385187293220506342480,109370305882734025219925353605107763559738011796832715623096498452877702410736]" \
-#             "$hash_value" >&3
-#         hash_value="$hash_value$hash_value"
-#     done
-
-#     # Use ephemeral accounts for parallel tests
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "sign_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-#         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
-        
-#         if (( i % 20 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "sign_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        
-#         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "Sign(uint256,uint256[2],string)" \
-#             27066115479399555241574240779398896927011581316434074034167126962687364905698 \
-#             "[42559113093733082793542566282911713742375005736614813947385187293220506342480,109370305882734025219925353605107763559738011796832715623096498452877702410736]" \
-#             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3 &
-            
-#         if (( i % 50 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-# }
-
-# # TODO: Fix SignSlow test
-# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
-# # error code -32000: invalid jump destination
-# bats test_tags=smooth-crypto-lib
-# @test "Testing EIP6565 - SignSlow" {
-#     echo "Starting EIP6565 SignSlow Tests" >&3
-#     cd "$TEMP_DIR/crypto-lib" || exit 1
-
-#     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SignSlow(uint256,string)" 0 "abc123" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SignSlow(uint256,string)" 1 "abc123" >&3
-
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)" "SignSlow(uint256,string)" \
-#         115792089237316195423570985008687907853269984665640564039457584007913129639935 \
-#         "abc123" >&3
-
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565_UTILS.json.deploy.json)
-    
-#     # Exponential growth tests with main account
-#     hash_value="00112233445566778899AABBCCDDEEFF"
-#     for i in {1.."$exponential_growth_limit"}; do
-#         cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "SignSlow(uint256,string)" \
-#             27066115479399555241574240779398896927011581316434074034167126962687364905698 \
-#             "$hash_value" >&3
-#         hash_value="$hash_value$hash_value"
-#     done
-
-#     # Use ephemeral accounts for parallel tests
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "signslow_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-#         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
-        
-#         if (( i % 20 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "signslow_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        
-#         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "SignSlow(uint256,string)" \
-#             27066115479399555241574240779398896927011581316434074034167126962687364905698 \
-#             "0x$(head -c 32 /dev/urandom | xxd -p | tr -d "\n")" >&3 &
-            
-#         if (( i % 50 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-# }
 
 # bats test_tags=smooth-crypto-lib
 @test "Testing EIP6565 - Verify" {
@@ -590,83 +368,6 @@ setup() {
     done
     wait
 }
-
-# # TODO: Fix edCompress test
-# # SCL_EIP6565_UTILS tests seem to work on Kurtosis L1, but fails on CDK-OP-Geth
-# # execution reverted: arithmetic underflow or overflow, data: "0x4e487b710000000000000000000000000000000000000000000000000000000000000011"
-# bats test_tags=smooth-crypto-lib
-# @test "Testing EIP6565 - edCompress" {
-#     echo "Starting EIP6565 edCompress Tests" >&3
-#     cd "$TEMP_DIR/crypto-lib" || exit 1
-
-#     # Test basic cases with main account
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" "[0,0]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" "[1,1]" >&3
-
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
-#             "[115792089237316195423570985008687907853269984665640564039457584007913129639935,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
-#             "[0,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-#     cast send --private-key "$l2_private_key" --rpc-url "$l2_rpc_url" --json "$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)" "edCompress(uint256[2])" \
-#             "[1,115792089237316195423570985008687907853269984665640564039457584007913129639935]" >&3
-
-#     # Use ephemeral accounts for the two sets of 256 parallel tests
-#     local contract_addr=$(jq -r '.contractAddress' SCL_EIP6565.json.deploy.json)
-    
-#     # First set with 0x00
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "edcomp1_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-#         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
-        
-#         if (( i % 20 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "edcomp1_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        
-#         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "edCompress(uint256[2])" \
-#             "[0x00,0x$(head -c 31 /dev/urandom | xxd -p | tr -d "\n")]" >&3 &
-            
-#         if (( i % 50 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     # Second set with 0x01
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "edcomp2_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-#         local ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-        
-#         _fund_ephemeral_account "$ephemeral_address" "$l2_rpc_url" "$l2_private_key" "10000000000000000" &
-        
-#         if (( i % 20 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-    
-#     for i in {1..256}; do
-#         local ephemeral_data=$(_generate_ephemeral_account "edcomp2_$i")
-#         local ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-        
-#         cast send --async --private-key "$ephemeral_private_key" --rpc-url "$l2_rpc_url" --json "$contract_addr" "edCompress(uint256[2])" \
-#             "[0x01,0x$(head -c 31 /dev/urandom | xxd -p | tr -d "\n")]" >&3 &
-            
-#         if (( i % 50 == 0 )); then
-#             wait
-#         fi
-#     done
-#     wait
-# }
 
 # bats test_tags=smooth-crypto-lib
 @test "Testing RIP7212 - verify" {

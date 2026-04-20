@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: ""
+      erigon-image:
+        description: "Erigon image. Leave empty to auto-detect from GitHub releases."
+        required: false
+        type: string
+        default: ""
       bor-archive-image:
         description: "Bor image for the archive sync node. Leave empty to use bor-latest. Set to a different version to test cross-version archive sync."
         required: false
@@ -30,6 +35,11 @@ on:
         default: ""
       bor-compat-versions:
         description: "Comma-separated bor images for pairwise version compat matrix. Leave empty to auto-detect from recent major.minor lines."
+        required: false
+        type: string
+        default: ""
+      heimdall-compat-versions:
+        description: "Comma-separated heimdall-v2 images for regression matrix (v0.6.0+ only). Leave empty to auto-detect from compat-versions.yml / GitHub releases."
         required: false
         type: string
         default: ""
@@ -74,6 +84,10 @@ env:
   POLYCLI_VERSION: v0.1.103
   KURTOSIS_POS_REF: ${{ inputs.kurtosis-pos-ref || 'feat/execution-specs' }}
   EXEC_SPECS_REF: ${{ inputs.ethereum-exec-specs-ref || 'forks/amsterdam' }}
+  # Suppress Node.js 20 deprecation warnings from third-party actions
+  # (bats-action, setup-uv, etc.). Actions will be forced to Node 24 by
+  # default starting June 2nd 2026; opt in early.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -83,12 +97,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should-run: ${{ steps.decide.outputs.should-run }}
-      bor-tag: ${{ steps.resolve.outputs.bor-tag }}
-      bor-latest-image: ${{ steps.resolve.outputs.bor-latest-image }}
-      bor-previous-image: ${{ steps.resolve.outputs.bor-previous-image }}
-      bor-archive-image: ${{ steps.resolve.outputs.bor-archive-image }}
-      heimdall-v2-image: ${{ steps.resolve.outputs.heimdall-v2-image }}
-      compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
+      bor-tag: ${{ steps.compute.outputs.bor-tag }}
+      bor-latest-image: ${{ steps.compute.outputs.bor-latest-image }}
+      bor-previous-image: ${{ steps.compute.outputs.bor-previous-image }}
+      bor-archive-image: ${{ steps.compute.outputs.bor-archive-image }}
+      heimdall-v2-image: ${{ steps.compute.outputs.heimdall-v2-image }}
+      erigon-image: ${{ steps.compute.outputs.erigon-image }}
+      compat-pairs: ${{ steps.compute.outputs.compat-pairs }}
+      fork-trans-pairs: ${{ steps.compute.outputs.fork-trans-pairs }}
     steps:
       - name: Checkout (for compat-versions.yml)
         uses: actions/checkout@v6
@@ -97,302 +113,94 @@ jobs:
           sparse-checkout: scripts/pos-version-matrix
           sparse-checkout-cone-mode: false
 
-      - name: Resolve bor and heimdall-v2 versions
-        id: resolve
+      - name: Install Python deps for compute-release-outputs.py
+        run: python3 -m pip install -r scripts/pos-version-matrix/requirements.txt
+
+      - name: Compute release outputs and compat matrix
+        id: compute
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # --- Manual dispatch with explicit images --------------------------
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.bor-latest-image }}" ]]; then
-            echo "Manual dispatch with explicit images."
-            echo "bor-tag=manual" >> "$GITHUB_OUTPUT"
-            echo "bor-latest-image=${{ inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
-            echo "bor-previous-image=${{ inputs.bor-previous-image }}" >> "$GITHUB_OUTPUT"
-            echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
-            echo "bor-archive-image=${{ inputs.bor-archive-image || inputs.bor-latest-image }}" >> "$GITHUB_OUTPUT"
-
-            if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
-              echo "compat-versions-override=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
-            fi
-            exit 0
-          fi
-
-          # --- Auto-detect bor versions from GitHub releases -----------------
-          # Fetch recent releases (non-draft) and sort by semantic version
-          # (not creation date). This ensures v2.7.0-beta2 ranks above v2.6.5
-          # even if the patch was released later.
-          echo "Fetching bor releases..."
-          all_tags=$(gh api repos/0xPolygon/bor/releases --paginate --jq \
-            '.[] | select(.draft == false) | .tag_name' 2>/dev/null | head -50)
-
-          if [[ -z "$all_tags" ]]; then
-            echo "::warning::Failed to fetch bor releases."
-            echo "bor-tag=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Filter to valid version tags (vX.Y.Z with optional suffix like -beta2).
-          # Excludes one-off test tags like v2.8.0-test1.
-          version_tags=$(echo "$all_tags" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-beta[0-9]*|-rc[0-9]*)?$' || true)
-          if [[ -z "$version_tags" ]]; then
-            echo "::warning::No valid bor version tags found, falling back to all releases."
-            version_tags="$all_tags"
-          fi
-
-          # Sort by semantic version (descending). Converts tags to a sortable
-          # format: major.minor.patch.suffix_weight.suffix_num, then sorts
-          # numerically. beta < rc < stable (weights: beta=1, rc=2, stable=3).
-          sorted_tags=$(echo "$version_tags" | while IFS= read -r tag; do
-            # Strip v prefix and split into base version and suffix.
-            ver="${tag#v}"
-            base=$(echo "$ver" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-            suffix=$(echo "$ver" | sed -E 's/^[0-9]+\.[0-9]+\.[0-9]+//' | sed 's/^-//')
-
-            major=$(echo "$base" | cut -d. -f1)
-            minor=$(echo "$base" | cut -d. -f2)
-            patch=$(echo "$base" | cut -d. -f3)
-
-            if [[ -z "$suffix" ]]; then
-              weight=3; suffix_num=0  # stable
-            elif [[ "$suffix" == rc* ]]; then
-              weight=2; suffix_num=$(echo "$suffix" | sed 's/rc//' | sed 's/^$/0/')
-            elif [[ "$suffix" == beta* ]]; then
-              weight=1; suffix_num=$(echo "$suffix" | sed 's/beta//' | sed 's/^$/0/')
-            else
-              weight=0; suffix_num=0
-            fi
-
-            printf "%04d.%04d.%04d.%d.%04d %s\n" "$major" "$minor" "$patch" "$weight" "$suffix_num" "$tag"
-          done | sort -t. -k1,1rn -k2,2rn -k3,3rn -k4,4rn -k5,5rn | awk '{print $2}')
-
-          echo "Sorted tags (highest version first):"
-          echo "$sorted_tags" | head -10
-
-          latest_tag=$(echo "$sorted_tags" | head -1)
-          echo "Latest bor tag: $latest_tag"
-
-          # Find the previous major release (first tag with a different major.minor)
-          # for legacy outputs (bor-latest-image / bor-previous-image).
-          latest_major_minor=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
-          previous_tag="$latest_tag"
-          while IFS= read -r tag; do
-            tag_mm=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+)\..*/\1/')
-            if [[ "$tag_mm" != "$latest_major_minor" ]]; then
-              previous_tag="$tag"
-              break
-            fi
-          done <<< "$sorted_tags"
-
-          # Convert tags to docker images: v2.7.0 -> 0xpolygon/bor:2.7.0
-          echo "bor-tag=${latest_tag}" >> "$GITHUB_OUTPUT"
-          echo "bor-latest-image=0xpolygon/bor:${latest_tag#v}" >> "$GITHUB_OUTPUT"
-          echo "bor-previous-image=0xpolygon/bor:${previous_tag#v}" >> "$GITHUB_OUTPUT"
-
-          # --- Auto-detect heimdall-v2 version -------------------------------
-          if [[ -n "${{ inputs.heimdall-v2-image }}" ]]; then
-            echo "heimdall-v2-image=${{ inputs.heimdall-v2-image }}" >> "$GITHUB_OUTPUT"
-          else
-            hv2_tag=$(gh api repos/0xPolygon/heimdall-v2/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
-            if [[ -n "$hv2_tag" ]]; then
-              echo "heimdall-v2-image=0xpolygon/heimdall-v2:${hv2_tag#v}" >> "$GITHUB_OUTPUT"
-            else
-              echo "::warning::Failed to fetch heimdall-v2 release, using 'latest'."
-              echo "heimdall-v2-image=0xpolygon/heimdall-v2:latest" >> "$GITHUB_OUTPUT"
-            fi
-          fi
-
-          # --- Archive node image -----------------------------------------
-          # Defaults to bor-latest unless explicitly overridden via input.
-          if [[ -n "${{ inputs.bor-archive-image }}" ]]; then
-            echo "bor-archive-image=${{ inputs.bor-archive-image }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "bor-archive-image=0xpolygon/bor:${latest_tag#v}" >> "$GITHUB_OUTPUT"
-          fi
-
-          # --- Build compat version list for pairwise testing -------------------
-          # Priority: 1) workflow input override, 2) curated compat-versions.yml,
-          # 3) auto-detect fallback (latest + previous).
-          COMPAT_YML="scripts/pos-version-matrix/compat-versions.yml"
-
-          # The compat-versions.yml and pair generation are handled entirely
-          # in the gen-compat-matrix step. We just pass through manual overrides.
-          if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
-            echo "compat-versions-override=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
-          fi
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_BOR_LATEST_IMAGE: ${{ inputs.bor-latest-image }}
+          INPUT_BOR_PREVIOUS_IMAGE: ${{ inputs.bor-previous-image }}
+          INPUT_HEIMDALL_V2_IMAGE: ${{ inputs.heimdall-v2-image }}
+          INPUT_ERIGON_IMAGE: ${{ inputs.erigon-image }}
+          INPUT_BOR_ARCHIVE_IMAGE: ${{ inputs.bor-archive-image }}
+          INPUT_BOR_COMPAT_VERSIONS: ${{ inputs.bor-compat-versions }}
+          INPUT_HEIMDALL_COMPAT_VERSIONS: ${{ inputs.heimdall-compat-versions }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/pos-version-matrix/compute-release-outputs.py
 
       - name: Check cache for previously tested tag
-        if: steps.resolve.outputs.bor-tag != 'manual' && steps.resolve.outputs.bor-tag != ''
+        if: steps.compute.outputs.bor-tag != 'manual' && steps.compute.outputs.bor-tag != ''
         id: cache-check
         uses: actions/cache@v5
         with:
           path: /tmp/pos-release-cache
-          key: pos-e2e-bor-release-${{ steps.resolve.outputs.bor-tag }}
+          key: pos-e2e-bor-release-${{ steps.compute.outputs.bor-tag }}
 
       - name: Determine if tests should run
         id: decide
         run: |
-          if [[ -z "${{ steps.resolve.outputs.bor-tag }}" ]]; then
+          if [[ -z "${{ steps.compute.outputs.bor-tag }}" ]]; then
             echo "No bor tag resolved — skipping."
             echo "should-run=false" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force-run }}" == "true" ]]; then
             echo "Force-run requested."
             echo "should-run=true" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ steps.resolve.outputs.bor-tag }}" == "manual" ]]; then
+          elif [[ "${{ steps.compute.outputs.bor-tag }}" == "manual" ]]; then
             echo "should-run=true" >> "$GITHUB_OUTPUT"
           elif [[ "${{ steps.cache-check.outputs.cache-hit }}" == "true" ]]; then
-            echo "Tag ${{ steps.resolve.outputs.bor-tag }} already tested — skipping."
+            echo "Tag ${{ steps.compute.outputs.bor-tag }} already tested — skipping."
             echo "should-run=false" >> "$GITHUB_OUTPUT"
           else
-            echo "New release detected: ${{ steps.resolve.outputs.bor-tag }}"
+            echo "New release detected: ${{ steps.compute.outputs.bor-tag }}"
             echo "should-run=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Generate version compatibility matrix
-        id: gen-compat-matrix
-        run: |
-          COMPAT_YML="scripts/pos-version-matrix/compat-versions.yml"
-
-          # --- Collect bor and erigon version lists ---
-          # YAML has flat `versions:` list with `el_type: bor|erigon` discriminator.
-          declare -a bor_images=()
-          declare -a erigon_images=()
-          OVERRIDE="${{ steps.resolve.outputs.compat-versions-override }}"
-
-          if [[ -n "$OVERRIDE" ]]; then
-            echo "Using manual override for bor versions."
-            IFS=',' read -ra bor_images <<< "$OVERRIDE"
-          elif [[ -f "$COMPAT_YML" ]]; then
-            echo "Reading versions from ${COMPAT_YML}..."
-            pending_img=""
-            while IFS= read -r line; do
-              if [[ "$line" =~ image:\ *\"?([^\"[:space:]]+)\"? ]]; then
-                [[ -n "$pending_img" ]] && echo "::warning::Skipped image without el_type: ${pending_img}"
-                pending_img="${BASH_REMATCH[1]}"
-              elif [[ -n "$pending_img" && "$line" =~ el_type:\ *(bor|erigon) ]]; then
-                el_type="${BASH_REMATCH[1]}"
-                [[ "$el_type" == "bor" ]] && bor_images+=("$pending_img")
-                [[ "$el_type" == "erigon" ]] && erigon_images+=("$pending_img")
-                pending_img=""
-              fi
-            done < "$COMPAT_YML"
-          fi
-
-          # Fallback: auto-detect latest + previous bor.
-          if [[ ${#bor_images[@]} -eq 0 ]]; then
-            echo "No bor versions found. Falling back to auto-detect."
-            latest="${{ steps.resolve.outputs.bor-latest-image }}"
-            previous="${{ steps.resolve.outputs.bor-previous-image }}"
-            [[ -n "$latest" ]] && bor_images+=("$latest")
-            [[ -n "$previous" && "$previous" != "$latest" ]] && bor_images+=("$previous")
-          fi
-
-          echo "Bor versions (${#bor_images[@]}):"
-          printf '  %s\n' "${bor_images[@]}"
-          echo "Erigon versions (${#erigon_images[@]}):"
-          printf '  %s\n' "${erigon_images[@]}"
-
-          # --- Parse excluded pairs from compat-versions.yml ---
-          declare -A excluded_set
-          if [[ -f "$COMPAT_YML" ]]; then
-            in_excluded=false
-            img_buf=()
-            while IFS= read -r line; do
-              if [[ "$line" =~ ^excluded_pairs: ]]; then
-                in_excluded=true; continue
-              fi
-              [[ "$in_excluded" != "true" ]] && continue
-              if [[ "$line" =~ ^[a-zA-Z] ]]; then break; fi
-              if [[ "$line" =~ ^-\ +images: ]]; then
-                if [[ ${#img_buf[@]} -gt 0 ]]; then
-                  echo "::warning::Incomplete excluded pair (only ${#img_buf[@]} image(s)): ${img_buf[*]}"
-                fi
-                img_buf=(); continue
-              fi
-              if [[ "$line" =~ ^[[:space:]]+-\ +(.+)$ ]]; then
-                img=$(echo "${BASH_REMATCH[1]}" | sed 's/^["'"'"']//; s/["'"'"']$//; s/[[:space:]]*$//')
-                img_buf+=("$img")
-                if [[ ${#img_buf[@]} -eq 2 ]]; then
-                  excluded_set["${img_buf[0]}|${img_buf[1]}"]=1
-                  excluded_set["${img_buf[1]}|${img_buf[0]}"]=1
-                  echo "  Excluded pair: ${img_buf[0]} <-> ${img_buf[1]}"
-                  img_buf=()
-                fi
-              fi
-            done < "$COMPAT_YML"
-            if [[ ${#img_buf[@]} -gt 0 ]]; then
-              echo "::warning::Incomplete excluded pair at end of file (${#img_buf[@]} image(s)): ${img_buf[*]}"
-            fi
-            echo "Loaded $(( ${#excluded_set[@]} / 2 )) excluded pairs."
-          fi
-
-          # --- Generate test scenarios ---
-          # 1) Single-version baseline: all latest bor + latest erigon RPC
-          # 2) Pairwise bor mixes: validators split + erigon cross-client RPC
-          erigon_latest="${erigon_images[0]:-}"
-          if [[ -z "$erigon_latest" ]]; then
-            echo "::warning::No erigon images found — erigon_rpc will be empty in scenarios."
-          fi
-          scenarios="[]"
-
-          # Single-version baseline (latest bor + latest erigon).
-          if [[ ${#bor_images[@]} -gt 0 ]]; then
-            la=$(echo "${bor_images[0]}" | sed 's|.*/||; s/:/-/g')
-            scenarios=$(echo "$scenarios" | jq -c \
-              --arg va "${bor_images[0]}" --arg vb "${bor_images[0]}" \
-              --arg eri "$erigon_latest" --arg lbl "${la}-single" \
-              '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
-          fi
-
-          # Pairwise bor-bor mixes (skip excluded pairs).
-          # NOTE: Exclusion only applies to bor-bor pairs; cross-client pairs
-          # are not subject to excluded_pairs filtering.
-          for ((i=0; i<${#bor_images[@]}; i++)); do
-            for ((j=i+1; j<${#bor_images[@]}; j++)); do
-              va="${bor_images[$i]}"; vb="${bor_images[$j]}"
-              if [[ -n "${excluded_set["${va}|${vb}"]:-}" ]]; then
-                echo "  Skipping excluded pair: ${va} <-> ${vb}"
-                continue
-              fi
-              la=$(echo "$va" | sed 's|.*/||; s/:/-/g'); lb=$(echo "$vb" | sed 's|.*/||; s/:/-/g')
-              if [[ ${#erigon_images[@]} -gt 0 ]]; then
-                idx=$(( (i + j) % ${#erigon_images[@]} ))
-                eri="${erigon_images[$idx]}"
-              else
-                eri="$erigon_latest"
-              fi
-              scenarios=$(echo "$scenarios" | jq -c \
-                --arg va "$va" --arg vb "$vb" --arg eri "$eri" --arg lbl "${la}-vs-${lb}" \
-                '. + [{"bor_a":$va,"bor_b":$vb,"erigon_rpc":$eri,"pair_label":$lbl}]')
-            done
-          done
-
-          echo "compat-pairs=${scenarios}" >> "$GITHUB_OUTPUT"
-          echo "Test scenarios ($(echo "$scenarios" | jq length)):"
-          echo "$scenarios" | jq -r '.[] | "  \(.pair_label)  erigon=\(.erigon_rpc)"'
 
       - name: Summary
         run: |
-          echo "### PoS E2E Release Check" >> "$GITHUB_STEP_SUMMARY"
-          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor latest | \`${{ steps.resolve.outputs.bor-latest-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor previous | \`${{ steps.resolve.outputs.bor-previous-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Bor archive | \`${{ steps.resolve.outputs.bor-archive-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Heimdall-v2 | \`${{ steps.resolve.outputs.heimdall-v2-image }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Compat pairs | \`${{ steps.gen-compat-matrix.outputs.compat-pairs }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### PoS E2E Release Check"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Bor latest | \`${{ steps.compute.outputs.bor-latest-image }}\` |"
+            echo "| Bor previous | \`${{ steps.compute.outputs.bor-previous-image }}\` |"
+            echo "| Bor archive | \`${{ steps.compute.outputs.bor-archive-image }}\` |"
+            echo "| Heimdall-v2 | \`${{ steps.compute.outputs.heimdall-v2-image }}\` |"
+            echo "| Erigon | \`${{ steps.compute.outputs.erigon-image }}\` |"
+            echo "| Should run | \`${{ steps.decide.outputs.should-run }}\` |"
+            echo ""
+            echo "#### Test Matrix (EL + CL version mixing)"
+            echo '${{ steps.compute.outputs.compat-pairs }}' | jq -r '
+              if length == 0 then "No compat pairs generated."
+              else
+                "| Pair | Bor A | Bor B | Heimdall A | Heimdall B | Erigon |",
+                "|------|-------|-------|------------|------------|--------|",
+                (.[] | "| \(.pair_label) | `\(.bor_a)` | `\(.bor_b)` | `\(.heimdall_a)` | `\(.heimdall_b)` | `\(.erigon_rpc)` |")
+              end'
+            echo ""
+            excluded='${{ steps.compute.outputs.excluded-pairs }}'
+            if [[ $(echo "$excluded" | jq 'length') -gt 0 ]]; then
+              echo "#### Excluded Pairs (Known Incompatible)"
+              echo ""
+              echo "| Version A | Version B | Scope | Reason |"
+              echo "|-----------|-----------|-------|--------|"
+              echo "$excluded" | jq -r '.[] | "| `\(.a)` | `\(.b)` | \(.scope) | \(.reason) |"'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
   # PoS E2E tests — unified matrix of devnet configurations.
   #
   # Each scenario deploys a mixed-version devnet with bor validators split
-  # across versions, bor RPCs on both versions, and an erigon cross-client RPC.
+  # across versions, a bor RPC, and an erigon cross-client RPC.
   # Staggered fork activation from kurtosis-pos constants.star defaults.
   #
   # Tests: fork-transition (parallel, during fork activation) followed by
   # execution-specs (after all forks active past block 640).
   # ---------------------------------------------------------------------------
-  # Job 1: Execution-specs — all forks at 256, stable basefee.
+  # Job 1: Execution-specs — staggered forks (256–640), stable basefee.
   # ---------------------------------------------------------------------------
   pos-execution-specs:
     needs: check-new-release
@@ -423,7 +231,9 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -444,7 +254,7 @@ jobs:
           ref: ${{ env.KURTOSIS_POS_REF }}
           path: kurtosis-pos
 
-      - name: Compute minimum bor version in the mix
+      - name: Compute minimum and maximum bor version in the mix
         id: bor-min
         run: |
           ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
@@ -452,60 +262,31 @@ jobs:
           base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
           min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          max_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | tail -1)
           echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
-          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
+          echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
+          echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
 
-      - name: Patch constants.star (forks supported by min bor version at 256)
-        run: |
-          CONSTANTS="kurtosis-pos/src/config/constants.star"
-          BOR_MIN="${{ steps.bor-min.outputs.bor-min-version }}"
-
-          # Helper: check if min version >= required
-          ver_gte() {
-            [[ "$(printf '%s\n%s' "$BOR_MIN" "$1" | sort -V | head -1)" == "$1" ]]
-          }
-
-          FORKS=()
-          ver_gte "2.5.0" && FORKS+=(madhugiri madhugiriPro)
-          ver_gte "2.5.6" && FORKS+=(dandeli)
-          ver_gte "2.6.0" && FORKS+=(lisovo lisovoPro)
-          ver_gte "2.7.0" && FORKS+=(giugliano)
-
-          # Forks NOT supported by the min version must be disabled (set to a
-          # block that will never be reached) so the newer bor in the mix does
-          # not activate them and cause a consensus split.
-          DISABLE=()
-          ver_gte "2.7.0" || DISABLE+=(giugliano)
-          ver_gte "2.6.0" || DISABLE+=(lisovo lisovoPro)
-          ver_gte "2.5.6" || DISABLE+=(dandeli)
-          ver_gte "2.5.0" || DISABLE+=(madhugiri madhugiriPro)
-
-          if [[ ${#FORKS[@]} -eq 0 ]]; then
-            echo "No post-rio forks to patch for min bor version ${BOR_MIN}."
-          else
-            echo "Patching forks for min bor version ${BOR_MIN}: ${FORKS[*]}"
-            for fork in "${FORKS[@]}"; do
-              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
-            done
-          fi
-
-          if [[ ${#DISABLE[@]} -gt 0 ]]; then
-            echo "Disabling unsupported forks for min bor version ${BOR_MIN}: ${DISABLE[*]}"
-            for fork in "${DISABLE[@]}"; do
-              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/999999999/' "$CONSTANTS"
-            done
-          fi
-          echo "--- Patched EL_HARD_FORK_BLOCKS ---"
-          grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
+      - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
+        env:
+          BOR_MIN_VERSION: ${{ steps.bor-min.outputs.bor-min-version }}
+        run: scripts/pos-e2e/patch-constants-star.sh
 
       - name: Generate kurtosis params
         run: |
           BOR_A="${{ matrix.bor_a }}"
           BOR_B="${{ matrix.bor_b }}"
           ERIGON_RPC="${{ matrix.erigon_rpc }}"
-          HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+          # Heimdall is mixed alongside bor: validators running BOR_A also run
+          # HV2_A (majority); validators running BOR_B run HV2_B (minority).
+          # Both are equal today (v0.6.0 only) — the split activates when
+          # compat-versions.yml carries a second heimdall release.  Fallback to
+          # resolve-step heimdall-v2-image if matrix field is missing (backwards
+          # compat with pre-fold pipelines).
+          HV2_A="${{ matrix.heimdall_a || needs.check-new-release.outputs.heimdall-v2-image }}"
+          HV2_B="${{ matrix.heimdall_b || needs.check-new-release.outputs.heimdall-v2-image }}"
 
-          echo "Bor A: ${BOR_A}  |  Bor B: ${BOR_B}  |  Erigon: ${ERIGON_RPC}"
+          echo "Bor: ${BOR_A} / ${BOR_B}  |  Heimdall: ${HV2_A} / ${HV2_B}  |  Erigon: ${ERIGON_RPC}"
 
           cat > /tmp/pos-params.yml <<PARAMS
           polygon_pos_package:
@@ -514,32 +295,26 @@ jobs:
                 count: 2
                 el_bor_produce_witness: true
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_A}"
               - kind: validator
                 count: 1
                 el_bor_produce_witness: true
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_B}"
                 el_type: bor
                 el_image: "${BOR_B}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_A}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: erigon
                 el_image: "${ERIGON_RPC}"
           PARAMS
@@ -558,24 +333,7 @@ jobs:
         run: |
           VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
           VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
-          RPC_URL="http://${VALIDATOR_RPC}"
-          TARGET_BLOCK=270
-          MAX_WAIT=600
-          POLL_INTERVAL=5
-          elapsed=0
-          echo "Waiting for block ${TARGET_BLOCK} (forks at 256)..."
-          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
-            block=$(curl -sf -X POST "${RPC_URL}" \
-              -H "Content-Type: application/json" \
-              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-              | jq -r '.result // empty' | xargs printf "%d" 2>/dev/null) || block=0
-            [[ "$block" -ge "$TARGET_BLOCK" ]] && echo "Block ${block} — all forks active." && exit 0
-            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
-            sleep "$POLL_INTERVAL"
-            elapsed=$(( elapsed + POLL_INTERVAL ))
-          done
-          echo "::error::Chain stuck at block ${block}."
-          exit 1
+          scripts/pos-e2e/wait-for-block.sh "http://${VALIDATOR_RPC}" 654 900 5 "last fork at 640"
 
       - name: Run execution-specs tests
         run: |
@@ -586,6 +344,14 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
+          # Load fork schedule generated by the Patch constants.star step.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            echo "Loading fork schedule from /tmp/fork-schedule.env"
+            set -a; source /tmp/fork-schedule.env; set +a
+          else
+            echo "WARNING: /tmp/fork-schedule.env not found — tests will use _setup_fork_env() defaults"
+          fi
+
           echo "Running execution-specs (${{ matrix.pair_label }})..."
           bats \
             tests/pos/execution-specs/protocol/ \
@@ -593,7 +359,34 @@ jobs:
             tests/pos/execution-specs/transactions/ \
             tests/pos/execution-specs/rpc/ \
             tests/pos/execution-specs/precompiles/ \
-            --filter-tags "execution-specs"
+            --filter-tags "execution-specs" \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run resilience tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # Load fork schedule generated by the Patch constants.star step.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running resilience tests (${{ matrix.pair_label }})..."
+          bats \
+            tests/pos/execution-specs/resilience/blockstm-parallel-execution-safety.bats \
+            tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats \
+            tests/pos/execution-specs/resilience/consensus-finality-edge-cases.bats \
+            tests/pos/execution-specs/resilience/rpc-node-stability.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: ${{ !cancelled() }}
+        run: scripts/pos-e2e/summarize-skipped-tests.sh "${{ matrix.pair_label }}"
 
       - name: Dump enclave logs
         if: failure()
@@ -616,9 +409,10 @@ jobs:
   # Job 2: Fork-transition + archive sync — staggered forks.
   # ---------------------------------------------------------------------------
   pos-fork-transition:
-    needs: check-new-release
+    needs: [check-new-release, pos-execution-specs]
     if: >-
-      needs.check-new-release.outputs.compat-pairs != '[]' && (
+      !cancelled() &&
+      needs.check-new-release.outputs.fork-trans-pairs != '[]' && (
         (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
         (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'fork-trans' || inputs.run-tests == 'matrix'))
       )
@@ -628,7 +422,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        include: ${{ fromJson(needs.check-new-release.outputs.compat-pairs) }}
+        include: ${{ fromJson(needs.check-new-release.outputs.fork-trans-pairs) }}
     name: fork-trans (${{ matrix.pair_label }})
     steps:
       - name: Checkout agglayer/e2e
@@ -644,7 +438,9 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install bats
         uses: bats-core/bats-action@3.0.0
@@ -670,9 +466,11 @@ jobs:
           BOR_A="${{ matrix.bor_a }}"
           BOR_B="${{ matrix.bor_b }}"
           ERIGON_RPC="${{ matrix.erigon_rpc }}"
-          HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+          # Heimdall mixes alongside bor (see pos-execution-specs for rationale).
+          HV2_A="${{ matrix.heimdall_a || needs.check-new-release.outputs.heimdall-v2-image }}"
+          HV2_B="${{ matrix.heimdall_b || needs.check-new-release.outputs.heimdall-v2-image }}"
 
-          echo "Bor A: ${BOR_A}  |  Bor B: ${BOR_B}  |  Erigon: ${ERIGON_RPC}"
+          echo "Bor: ${BOR_A} / ${BOR_B}  |  Heimdall: ${HV2_A} / ${HV2_B}  |  Erigon: ${ERIGON_RPC}"
 
           cat > /tmp/pos-params.yml <<PARAMS
           polygon_pos_package:
@@ -681,38 +479,48 @@ jobs:
                 count: 2
                 el_bor_produce_witness: true
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_A}"
               - kind: validator
                 count: 1
                 el_bor_produce_witness: true
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_B}"
                 el_type: bor
                 el_image: "${BOR_B}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_A}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: erigon
                 el_image: "${ERIGON_RPC}"
           PARAMS
           cat /tmp/pos-params.yml
-          echo "--- Fork activation (staggered, from constants.star) ---"
-          grep -A 20 'EL_HARD_FORK_BLOCKS' kurtosis-pos/src/config/constants.star
+
+      - name: Compute minimum and maximum bor version in the mix
+        id: bor-min
+        run: |
+          ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
+          ver_b=$(echo "${{ matrix.bor_b }}" | sed 's|.*:||; s/^v//')
+          base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
+          max_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | tail -1)
+          echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
+          echo "bor-max-version=${max_ver}" >> "$GITHUB_OUTPUT"
+          echo "Bor version range: ${min_ver} — ${max_ver} (from ${ver_a}, ${ver_b})"
+
+      - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
+        env:
+          BOR_MIN_VERSION: ${{ steps.bor-min.outputs.bor-min-version }}
+        run: scripts/pos-e2e/patch-constants-star.sh
 
       - name: Deploy kurtosis-pos enclave (staggered forks)
         run: |
@@ -723,17 +531,6 @@ jobs:
       - name: Inspect enclave
         run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
 
-      - name: Compute minimum bor version in the mix
-        id: bor-min
-        run: |
-          ver_a=$(echo "${{ matrix.bor_a }}" | sed 's|.*:||; s/^v//')
-          ver_b=$(echo "${{ matrix.bor_b }}" | sed 's|.*:||; s/^v//')
-          base_a=$(echo "$ver_a" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-          base_b=$(echo "$ver_b" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
-          min_ver=$(printf '%s\n%s' "$base_a" "$base_b" | sort -V | head -1)
-          echo "bor-min-version=${min_ver}" >> "$GITHUB_OUTPUT"
-          echo "Minimum bor version in mix: ${min_ver} (from ${ver_a}, ${ver_b})"
-
       - name: Run fork-transition tests (parallel)
         run: |
           set -eo pipefail
@@ -743,27 +540,233 @@ jobs:
           export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
           export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
 
-          export FORK_JAIPUR=0
-          export FORK_DELHI=0
-          export FORK_INDORE=0
-          export FORK_AGRA=0
-          export FORK_NAPOLI=0
-          export FORK_AHMEDABAD=0
-          export FORK_BHILAI=0
-          export FORK_RIO=256
-          export FORK_MADHUGIRI=320
-          export FORK_MADHUGIRI_PRO=384
-          export FORK_DANDELI=448
-          export FORK_LISOVO=512
-          export FORK_LISOVO_PRO=576
-          export FORK_GIUGLIANO=640
+          # Load fork schedule generated by the Patch constants.star step.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          else
+            echo "WARNING: /tmp/fork-schedule.env not found — tests will use _setup_fork_env() defaults"
+          fi
 
           total_cpus=$(nproc)
           bats_jobs=$(( total_cpus * 2 / 3 ))
           [[ "$bats_jobs" -lt 1 ]] && bats_jobs=1
 
           echo "Running fork-transition tests (${bats_jobs} jobs) for ${{ matrix.pair_label }}..."
-          bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats
+          bats --jobs "$bats_jobs" tests/pos/execution-specs/fork-transitions/parallel-fork-tests.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run cross-client state root oracle tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          export ERIGON_RPC_VERSION=$(echo "${{ matrix.erigon_rpc }}" | sed 's|.*:||; s/^v//')
+
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running cross-client state root oracle for ${{ matrix.pair_label }}..."
+          bats tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run fork-boundary state consistency tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+          export BOR_MAX_VERSION="${{ steps.bor-min.outputs.bor-max-version }}"
+
+          echo "Running fork-boundary state consistency for Bor v${BOR_MIN_VERSION}–${BOR_MAX_VERSION} (pair: ${{ matrix.pair_label }})..."
+          bats tests/pos/execution-specs/fork-transitions/fork-state-consistency.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run sprint-boundary fork tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          # These tests verify fork+sprint boundary intersection using the staggered
+          # fork schedule (same devnet as the other tests in this job). The tests
+          # skip individual cases when the fork block is not a sprint boundary, so
+          # they are safe to run unconditionally against the staggered devnet.
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running sprint-boundary fork tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/execution-specs/fork-transitions/sprint-boundary-fork-tests.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      # -------------------------------------------------------------------
+      # Heimdall-v2 consensus correctness tests — run against the live Heimdall
+      # REST API (L2_CL_API_URL) to verify span, checkpoint, milestone, and
+      # state-sync invariants independently of Bor.
+      #
+      # Heimdall span 6 starts at block 768.  The fork-transition tests above
+      # wait only to the last fork block (640), so the chain may not have
+      # advanced far enough for span/state-sync tests. Wait here to ensure
+      # the chain has entered span 6 and state-sync events have been produced.
+      # -------------------------------------------------------------------
+      - name: Wait for chain to reach span 6 (block 768)
+        run: |
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          scripts/pos-e2e/wait-for-block.sh "http://${VALIDATOR_RPC}" 780 900 5 "span 6 starts at 768"
+
+      - name: Trigger L1→L2 state sync event (deposit on L1)
+        # Without an L1 deposit the kurtosis devnet never emits a StateSynced
+        # event, so clerk/bridge tests would all skip.  A single depositEther()
+        # triggers the event and Heimdall's clerk picks it up within ~60 s.
+        env:
+          ENCLAVE_NAME: ${{ env.ENCLAVE_NAME }}
+        run: scripts/pos-e2e/trigger-state-sync.sh
+
+      - name: Run Heimdall span and validator-set correctness tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall span/validator-set tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/span-validator-set.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall checkpoint chain integrity tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall checkpoint chain integrity tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall milestone finality tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall milestone finality tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/milestone-finality.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall state-sync event ordering tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall state-sync event ordering tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall node health tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall node health tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/node-health.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall checkpoint safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall checkpoint safety tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall span-milestone safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall span-milestone safety tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall Bor span-in-turn tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall Bor span-in-turn tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/bor/span-in-turn.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall bridge sync tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall bridge sync tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/clerk/bridge-sync.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall validator-set safety tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall validator-set safety tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/stake/validator-set-safety.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Run Heimdall validator state tests
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+
+          echo "Running Heimdall validator state tests for ${{ matrix.pair_label }}..."
+          bats tests/pos/heimdall/stake/validator-state.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: ${{ !cancelled() }}
+        run: scripts/pos-e2e/summarize-skipped-tests.sh "${{ matrix.pair_label }}"
 
       # -------------------------------------------------------------------
       # Archive node sync — adds archive node to running staggered-fork
@@ -799,7 +802,12 @@ jobs:
           BOR_A="${{ matrix.bor_a }}"
           BOR_B="${{ matrix.bor_b }}"
           ERIGON_RPC="${{ matrix.erigon_rpc }}"
-          HV2_IMAGE="${{ needs.check-new-release.outputs.heimdall-v2-image }}"
+          # Mirror the existing_participants' heimdall split (HV2_A for majority
+          # + BOR_A group, HV2_B for BOR_B minority).  The newly-added archive
+          # node tracks the majority CL (HV2_A) since that is the consensus
+          # state its chain data must match.
+          HV2_A="${{ matrix.heimdall_a || needs.check-new-release.outputs.heimdall-v2-image }}"
+          HV2_B="${{ matrix.heimdall_b || needs.check-new-release.outputs.heimdall-v2-image }}"
 
           cat > /tmp/archive-sync-params.yml <<PARAMS
           polygon_pos_package:
@@ -807,7 +815,7 @@ jobs:
               - kind: archive
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_ARCHIVE}"
           dev:
@@ -821,31 +829,25 @@ jobs:
               - kind: validator
                 count: 2
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_A}"
               - kind: validator
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_B}"
                 el_type: bor
                 el_image: "${BOR_B}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: bor
                 el_image: "${BOR_A}"
               - kind: rpc
                 count: 1
                 cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
-                el_type: bor
-                el_image: "${BOR_B}"
-              - kind: rpc
-                count: 1
-                cl_type: heimdall-v2
-                cl_image: "${HV2_IMAGE}"
+                cl_image: "${HV2_A}"
                 el_type: erigon
                 el_image: "${ERIGON_RPC}"
           PARAMS
@@ -976,10 +978,14 @@ jobs:
           kurtosis analytics disable
 
       - name: Install foundry
-        uses: foundry-rs/foundry-toolchain@v1.3.1
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
 
       - name: Checkout kurtosis-pos
         uses: actions/checkout@v6
@@ -1000,10 +1006,12 @@ jobs:
           cd execution-specs
           uv sync
 
-      - name: Patch constants.star (all post-Rio forks at 256)
+      - name: Patch constants.star (Rio+ forks at 256)
         run: |
           CONSTANTS="kurtosis-pos/src/config/constants.star"
-          for fork in madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano; do
+          # Rio and all post-Rio forks must activate at >= 256 per bor/heimdall
+          # consensus requirement.
+          for fork in rio madhugiri madhugiriPro dandeli lisovo lisovoPro giugliano; do
             sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/256/' "$CONSTANTS"
           done
           echo "--- Patched EL_HARD_FORK_BLOCKS ---"
@@ -1047,29 +1055,20 @@ jobs:
         run: |
           VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
           VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
-          RPC_URL="http://${VALIDATOR_RPC}"
-          TARGET_BLOCK=270
-          MAX_WAIT=600
-          POLL_INTERVAL=5
-          elapsed=0
-          echo "Waiting for block ${TARGET_BLOCK} (forks at 256)..."
-          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
-            block=$(curl -sf -X POST "${RPC_URL}" \
-              -H "Content-Type: application/json" \
-              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-              | jq -r '.result // empty' | xargs printf "%d" 2>/dev/null) || block=0
-            [[ "$block" -ge "$TARGET_BLOCK" ]] && echo "Block ${block} — all forks active." && exit 0
-            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
-            sleep "$POLL_INTERVAL"
-            elapsed=$(( elapsed + POLL_INTERVAL ))
-          done
-          echo "::error::Chain stuck at block ${block}."
-          exit 1
+          scripts/pos-e2e/wait-for-block.sh "http://${VALIDATOR_RPC}" 270 600 5 "forks at 256"
 
       - name: Run execution-specs remote tests
         run: |
           set -eo pipefail
-          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-4-bor-heimdall-v2-rpc rpc)"
+          L2_RPC_SERVICE=$(kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}" 2>/dev/null \
+            | grep -oE 'l2-el-[0-9]+-bor-heimdall-v2-rpc' | head -1)
+          if [[ -z "$L2_RPC_SERVICE" ]]; then
+            echo "::error::Could not find bor RPC service in enclave."
+            kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+            exit 1
+          fi
+          echo "Bor RPC service: ${L2_RPC_SERVICE}"
+          L2_RPC_RAW="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" "${L2_RPC_SERVICE}" rpc)"
           L2_RPC_RAW="${L2_RPC_RAW#http://}" ; L2_RPC_RAW="${L2_RPC_RAW#https://}"
           L2_RPC_URL="http://${L2_RPC_RAW}"
           L2_PRIVATE_KEY="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"

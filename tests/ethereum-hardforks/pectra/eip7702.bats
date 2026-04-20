@@ -29,7 +29,7 @@ setup_file() {
     l2_address=$(cast wallet address --private-key $l2_private_key)
     export l2_address
 
-    delegated_bytecode=$(cat contracts/Delegated.json | jq -r .bytecode.object)
+    delegated_bytecode=$(cat "$BATS_TEST_DIRNAME/contracts/Delegated.json" | jq -r .bytecode.object)
     export delegated_bytecode
 
     # Random wallet

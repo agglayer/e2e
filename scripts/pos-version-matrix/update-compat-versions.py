@@ -20,17 +20,37 @@ from typing import Optional
 COMPONENTS = {
     "bor": {
         "repo": "0xPolygon/bor",
-        "el_type": "bor",
+        "type_field": "el_type",
+        "type_value": "bor",
         "image_prefix": "0xpolygon/bor:",
         "strip_v": True,
-        "max_lines": 3,  # Track 3 major.minor lines (e.g. 2.7, 2.6, 2.5)
+        # Bor is pairwise-tested: keep up to THREE production-relevant releases:
+        #   1. Latest (globally)           — single-version baseline
+        #   2. Second-latest (globally)    — adjacent rolling-upgrade pair
+        #   3. Latest of the previous major.minor line — cross-minor-line coverage
+        # If second-latest already lives on a different minor line, entries 2 and 3
+        # collapse into one (two entries total).
     },
     "erigon": {
         "repo": "0xPolygon/erigon",
-        "el_type": "erigon",
+        "type_field": "el_type",
+        "type_value": "erigon",
         "image_prefix": "0xpolygon/erigon:",
         "strip_v": False,
         "max_lines": 2,  # Only latest lines — used as RPC endpoint, not pairwise tested
+    },
+    "heimdall-v2": {
+        "repo": "0xPolygon/heimdall-v2",
+        "type_field": "cl_type",
+        "type_value": "heimdall-v2",
+        "image_prefix": "0xpolygon/heimdall-v2:",
+        "strip_v": True,
+        # Heimdall-v2 drives the pos-heimdall-regression matrix (CL isolated,
+        # bor+erigon pinned to latest).  Track every major.minor line at or
+        # above the minimum supported version so new releases are exercised
+        # as regression candidates automatically.
+        "max_lines": 5,
+        "min_version": "0.6.0",  # pre-GA versions are intentionally excluded
     },
 }
 
@@ -124,10 +144,21 @@ def existing_images(data: dict) -> set:
     return {v["image"] for v in data.get("versions", []) if "image" in v}
 
 
+def _meets_min_version(tag: str, min_version: Optional[str]) -> bool:
+    """True iff ``tag`` (with or without leading 'v') is >= ``min_version``.
+
+    Uses the same weighted semver key as ``_semver_sort_key`` so
+    pre-release suffixes (-beta, -rc) compare correctly."""
+    if not min_version:
+        return True
+    return _semver_sort_key(tag_to_version(tag)) >= _semver_sort_key(
+        tag_to_version(min_version)
+    )
+
+
 def update_compat_versions(compat_path: Path) -> list:
-    """Check for new releases and add them. Returns list of changes made."""
+    """Check for new releases and update. Returns list of changes made."""
     data = load_compat_versions(compat_path)
-    current_images = existing_images(data)
     changes = []
 
     for comp_name, comp_config in COMPONENTS.items():
@@ -135,63 +166,154 @@ def update_compat_versions(compat_path: Path) -> list:
         if not releases:
             continue
 
-        # Group by major.minor line (insertion order = newest first from API).
-        lines: dict = {}
-        for r in releases:
-            mm = version_major_minor(r["tag"])
-            if mm not in lines:
-                lines[mm] = r
-
-        # Limit to the N most recent major.minor lines.
-        max_lines = comp_config.get("max_lines", 3)
-        tracked_lines = dict(list(lines.items())[:max_lines])
-
-        # Check each tracked major.minor line's latest release.
-        prefix = comp_config["image_prefix"]
-        for mm, release in tracked_lines.items():
-            image = make_image(release["tag"], comp_config)
-
-            # Remove superseded entries from the same major.minor line.
-            superseded = [
-                v for v in data["versions"]
-                if v.get("image", "").startswith(prefix)
-                and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
-                and v["image"] != image
-            ]
-            for old in superseded:
-                data["versions"].remove(old)
-                changes.append(f"  - {old['image']} (superseded by {image})")
-                # Warn if excluded_pairs references the superseded version.
-                for ep in data.get("excluded_pairs", []):
-                    if old["image"] in ep.get("images", []):
-                        print(f"  ! excluded_pairs references superseded image "
-                              f"{old['image']} — update excluded_pairs manually.")
-
-            if image in current_images:
+        min_version = comp_config.get("min_version")
+        if min_version:
+            releases = [r for r in releases if _meets_min_version(r["tag"], min_version)]
+            if not releases:
+                print(
+                    f"  No {comp_name} releases meet the minimum version "
+                    f"v{min_version}; skipping."
+                )
                 continue
 
-            # Append new entry; the final sort (below) ensures correct order.
-            if release["prerelease"]:
-                reason = f"new pre-release ({mm} line), auto-detected"
-            else:
-                reason = f"new stable release ({mm} line), auto-detected"
+        # Sort all fetched releases by semver descending.
+        all_sorted = sorted(
+            releases,
+            key=lambda r: _semver_sort_key(tag_to_version(r["tag"])),
+            reverse=True,
+        )
+        prefix = comp_config["image_prefix"]
 
-            data["versions"].append({
-                "image": image,
-                "el_type": comp_config["el_type"],
-                "reason": reason,
-            })
-            changes.append(f"  + {image} ({reason})")
+        if comp_name == "bor":
+            # For bor: keep exactly three production-relevant releases:
+            #   1. Latest (globally)          — single-version baseline
+            #   2. Second-latest (globally)   — adjacent rolling-upgrade pair
+            #   3. Latest of the previous major.minor line — covers node operators
+            #      who haven't yet migrated to the current minor line (e.g. still
+            #      on 2.6.x while latest is 2.7.x).  If second-latest already
+            #      lives on a different minor line this collapses to 2 entries.
+            latest_mm = version_major_minor(all_sorted[0]["tag"])
+            prev_minor_release = next(
+                (r for r in all_sorted if version_major_minor(r["tag"]) != latest_mm),
+                None,
+            )
 
-    # Sort versions: group by el_type (bor first, then erigon), then
-    # descending semver within each group.  This ensures the latest
-    # version of each component is first — the workflow uses index 0
-    # as the "latest" for single-version baseline tests.
-    el_type_order = {"bor": 0, "erigon": 1}
+            keep_releases = list(all_sorted[:2])
+            if prev_minor_release:
+                prev_image = make_image(prev_minor_release["tag"], comp_config)
+                existing_images_in_keep = {make_image(r["tag"], comp_config) for r in keep_releases}
+                if prev_image not in existing_images_in_keep:
+                    keep_releases.append(prev_minor_release)
+
+            keep_images = {make_image(r["tag"], comp_config) for r in keep_releases}
+
+            # Remove any bor entries that are no longer in the keep set.
+            stale = [
+                v for v in data["versions"]
+                if v.get("image", "").startswith(prefix) and v["image"] not in keep_images
+            ]
+            for old in stale:
+                data["versions"].remove(old)
+                changes.append(f"  - {old['image']} (no longer in latest/second-latest/prev-minor-line set)")
+                for ep in data.get("excluded_pairs", []):
+                    if old["image"] in ep.get("images", []):
+                        print(f"  ! excluded_pairs references removed image "
+                              f"{old['image']} — update excluded_pairs manually.")
+
+            # Add any missing entries from the keep set.
+            current = {v["image"] for v in data["versions"]}
+            for i, r in enumerate(keep_releases):
+                image = make_image(r["tag"], comp_config)
+                if image in current:
+                    continue
+                mm = version_major_minor(r["tag"])
+                kind = "pre-release" if r["prerelease"] else "stable release"
+                if i == 0:
+                    reason = f"latest {kind} ({mm} line), single-version baseline"
+                elif i == 1:
+                    reason = f"second latest {kind} ({mm} line), adjacent rolling-upgrade coverage"
+                else:
+                    reason = f"latest {kind} ({mm} line), previous minor-line coverage"
+                data["versions"].append({
+                    "image": image,
+                    comp_config["type_field"]: comp_config["type_value"],
+                    "reason": reason,
+                })
+                changes.append(f"  + {image} ({reason})")
+
+        else:
+            # For erigon (RPC endpoint, not pairwise-tested) and heimdall-v2
+            # (CL-isolated regression): track N major.minor lines.
+            lines: dict = {}
+            for r in releases:
+                mm = version_major_minor(r["tag"])
+                if mm not in lines:
+                    lines[mm] = r
+
+            max_lines = comp_config.get("max_lines", 3)
+            tracked_lines = dict(list(lines.items())[:max_lines])
+
+            current = {v["image"] for v in data["versions"]}
+            for mm, release in tracked_lines.items():
+                image = make_image(release["tag"], comp_config)
+
+                # Remove superseded entries from the same major.minor line.
+                superseded = [
+                    v for v in data["versions"]
+                    if v.get("image", "").startswith(prefix)
+                    and version_major_minor(v["image"][len(prefix):].lstrip("v")) == mm
+                    and v["image"] != image
+                ]
+                for old in superseded:
+                    data["versions"].remove(old)
+                    changes.append(f"  - {old['image']} (superseded by {image})")
+                    for ep in data.get("excluded_pairs", []):
+                        if old["image"] in ep.get("images", []):
+                            print(f"  ! excluded_pairs references superseded image "
+                                  f"{old['image']} — update excluded_pairs manually.")
+
+                if image in current:
+                    continue
+
+                if release["prerelease"]:
+                    reason = f"new pre-release ({mm} line), auto-detected"
+                else:
+                    reason = f"new stable release ({mm} line), auto-detected"
+                data["versions"].append({
+                    "image": image,
+                    comp_config["type_field"]: comp_config["type_value"],
+                    "reason": reason,
+                })
+                changes.append(f"  + {image} ({reason})")
+
+            # Remove entries outside the tracked set (applies to both erigon
+            # and heimdall-v2; prefix is unique per component).
+            stale = [
+                v for v in data["versions"]
+                if v.get("image", "").startswith(prefix)
+                and version_major_minor(v["image"][len(prefix):].lstrip("v")) not in tracked_lines
+            ]
+            for old in stale:
+                data["versions"].remove(old)
+                changes.append(f"  - {old['image']} (outside tracked {comp_name} lines)")
+
+    # Sort versions: group by component type (bor, erigon, heimdall-v2),
+    # then descending semver within each group.  The workflow uses index 0
+    # of each group as the "latest" for single-version baselines.
+    def _component_order(v: dict) -> int:
+        el = v.get("el_type")
+        if el == "bor":
+            return 0
+        if el == "erigon":
+            return 1
+        if v.get("cl_type") == "heimdall-v2":
+            return 2
+        return 99
+
     prev_order = [v["image"] for v in data["versions"]]
     data["versions"].sort(
         key=lambda v: (
-            el_type_order.get(v.get("el_type", ""), 99),
+            _component_order(v),
             tuple(-x for x in _semver_sort_key(
                 v.get("image", "").split(":")[-1].lstrip("v")
             )),
@@ -240,7 +362,7 @@ def _write_compat_versions(path: Path, data: dict):
     verbatim from the original file — it is never serialised through
     yaml.dump and must only be edited by hand."""
     header = """\
-# PoS version compatibility matrix — curated list of EL versions to test.
+# PoS version compatibility matrix — curated list of EL + CL versions to test.
 #
 # The pos-e2e workflow reads this file to generate pairwise compat pairs.
 # Only versions listed under `versions` are tested. Keep this list focused:
@@ -248,12 +370,23 @@ def _write_compat_versions(path: Path, data: dict):
 #   - Release candidates being validated for rollout
 #   - Remove versions once fully deprecated and no longer in use
 #
-# Each entry must have: image, el_type (bor or erigon), reason.
-# Pairwise pairs are generated across ALL entries (bor-bor, erigon-erigon,
-# and bor-erigon cross-client combinations).
+# Each entry must have: image, a type discriminator, and reason.
+#   - EL entries:  el_type: bor | erigon
+#   - CL entries:  cl_type: heimdall-v2
+# Pairwise EL pairs are generated across ALL el_type entries (bor-bor,
+# erigon-erigon, and bor-erigon cross-client combinations).
+# Heimdall-v2 entries drive a separate `pos-heimdall-regression` matrix that
+# pins bor+erigon to latest and varies only the CL image — this isolates
+# heimdall-v2 as the regression variable.
+#
+# Heimdall-v2 minimum version policy: only v0.6.0 and later are supported.
+# Earlier heimdall-v2 versions are intentionally excluded (pre-GA / not
+# production-bound); entries below that floor are silently dropped by the
+# workflow filter, so there is no need to maintain exclusions for them.
 #
 # If this file is absent or `versions` is empty, the workflow falls back
-# to auto-detecting the latest bor release from each major.minor line.
+# to auto-detecting the latest bor release from each major.minor line and
+# the latest heimdall-v2 release (>= v0.6.0).
 
 """
     # Capture the excluded_pairs tail before we overwrite the file.

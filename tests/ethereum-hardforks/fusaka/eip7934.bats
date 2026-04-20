@@ -9,7 +9,7 @@ setup() {
     sender_address=$(echo "$sender" | jq -r .address)
     sender_private_key=$(echo "$sender" | jq -r .private_key)
 
-    source "$BATS_TEST_DIRNAME/../../core/helpers/scripts/fund.bash"
+    source "$BATS_TEST_DIRNAME/../../../core/helpers/scripts/fund.bash"
     fund_up_to $l1_private_key $sender_address "$(cast to-wei 10)" $l1_rpc_url
 
     export sender_private_key
@@ -19,7 +19,7 @@ setup() {
 
 setup_file() {
     # shellcheck source=core/helpers/common.bash
-    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    source "$BATS_TEST_DIRNAME/../../../core/helpers/common.bash"
     _setup_vars
 }
 

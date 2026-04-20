@@ -11,7 +11,7 @@ setup() {
 
 setup_file() {
     # shellcheck source=core/helpers/common.bash
-    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    source "$BATS_TEST_DIRNAME/../../../core/helpers/common.bash"
     _setup_vars
 
 }

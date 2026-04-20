@@ -1,0 +1,71 @@
+# Sprint-Aligned Fork Transition Scenario
+# =========================================
+# All fork activation blocks are set to exact sprint boundaries (multiples of 16)
+# so that IsSprintStart() fires simultaneously with fork activation.
+#
+# This tests the intersection that historically causes producer selection disagreement:
+# when a fork that changes sprint length, validator rotation, or producer delay rules
+# activates on a block where the old sprint-end and new sprint-start would disagree.
+#
+# Fork schedule (sprint=16):
+#   rio=256          (sprint+span boundary: 256 % 128 == 0; minimum per bor/heimdall requirement)
+#   madhugiri=320    (sprint boundary: 320 % 16 == 0)
+#   madhugiriPro=384
+#   dandeli=448
+#   lisovo=512
+#   lisovoPro=576
+#   giugliano=640   (also span boundary: 640 % 128 == 0)
+#
+# Compare with the default staggered config (rio=256, 64-block gaps) where forks
+# land mid-sprint. Here every fork lands exactly at a sprint start.
+#
+# Topology: same as upgrade scenario — 4 Bor validators + 1 Bor RPC + 1 Erigon RPC.
+# Substitute actual image versions via environment variables or CI matrix.
+
+polygon_pos_package:
+  participants:
+    - kind: validator
+      count: 2
+      el_bor_produce_witness: true
+      cl_type: heimdall-v2
+      cl_image: "${HV2_IMAGE:-0xpolygon/heimdall-v2:latest}"
+      el_type: bor
+      el_image: "${BOR_IMAGE:-0xpolygon/bor:latest}"
+
+    - kind: validator
+      count: 2
+      el_bor_produce_witness: true
+      cl_type: heimdall-v2
+      cl_image: "${HV2_IMAGE:-0xpolygon/heimdall-v2:latest}"
+      el_type: bor
+      el_image: "${BOR_IMAGE:-0xpolygon/bor:latest}"
+
+    - kind: rpc
+      count: 1
+      cl_type: heimdall-v2
+      cl_image: "${HV2_IMAGE:-0xpolygon/heimdall-v2:latest}"
+      el_type: bor
+      el_image: "${BOR_IMAGE:-0xpolygon/bor:latest}"
+
+    - kind: rpc
+      count: 1
+      cl_type: heimdall-v2
+      cl_image: "${HV2_IMAGE:-0xpolygon/heimdall-v2:latest}"
+      el_type: erigon
+      el_image: "${ERIGON_IMAGE:-0xpolygon/erigon:latest}"
+
+  el_hard_fork_blocks:
+    jaipur: 0
+    delhi: 0
+    indore: 0
+    agra: 0
+    napoli: 0
+    ahmedabad: 0
+    bhilai: 0
+    rio: 256
+    madhugiri: 320
+    madhugiriPro: 384
+    dandeli: 448
+    lisovo: 512
+    lisovoPro: 576
+    giugliano: 640

@@ -1,17 +1,12 @@
 #!/usr/bin/env bats
 # bats file_tags=pos,execution-specs,evm-opcode-state
+# shellcheck disable=SC2154  # ephemeral_address/ephemeral_private_key set by _fund_ephemeral
 
 setup() {
     load "../../../../core/helpers/pos-setup.bash"
     pos_setup
 
-    local wallet_json
-    wallet_json=$(cast wallet new --json | jq '.[0]')
-    ephemeral_private_key=$(echo "$wallet_json" | jq -r '.private_key')
-    ephemeral_address=$(echo "$wallet_json" | jq -r '.address')
-    echo "ephemeral_address: $ephemeral_address" >&3
-
-    cast send --rpc-url "$L2_RPC_URL" --private-key "$PRIVATE_KEY" --legacy --gas-limit 21000 --value 0.1ether "$ephemeral_address" >/dev/null
+    _fund_ephemeral 0.1ether
 }
 
 # bats test_tags=execution-specs,transaction-eoa

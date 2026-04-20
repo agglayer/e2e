@@ -36,11 +36,13 @@ extract_test_info() {
     # Extract test names from @test lines
     grep -n "^@test" "$file" | while IFS=: read -r line_num content; do
         # Extract test name from @test "test name"
-        test_name=$(echo "$content" | sed -n 's/@test "\(.*\)" {.*/\1/p')
+        test_name=$(echo "$content" | sed -n \
+            -e 's/@test "\(.*\)" {.*/\1/p' \
+            -e "s/@test '\\(.*\\)' {.*/\\1/p")
         if [[ -n "$test_name" ]]; then
             echo "| $test_name | [Link](./$relative_path#L$line_num) | |"
         fi
-    done
+    done || true  # grep exits 1 on no matches (e.g. empty/stub file); don't abort
 }
 
 # Function to categorize tests based on file path
@@ -53,7 +55,9 @@ categorize_test() {
         */tests/execution/*) echo "Execution Layer Tests" ;;
         */tests/op/*) echo "CDK OP Geth Tests" ;;
         */tests/cdk/*) echo "CDK Tests" ;;
-        */tests/pectra/*) echo "Pectra Tests" ;;
+        */tests/ethereum-hardforks/pectra/*) echo "Pectra Tests" ;;
+        */tests/ethereum-hardforks/fusaka/*) echo "Fusaka Tests" ;;
+        */tests/pos/heimdall/*) echo "Heimdall Tests" ;;
         */tests/pos/*) echo "POS Tests" ;;
         */tests/dapps/*) echo "DApps Tests" ;;
         */tests/ethereum-test-cases/*) echo "Ethereum Test Cases" ;;
@@ -66,6 +70,7 @@ categorize_test() {
 
 # Create temporary file for new inventory
 TEMP_INVENTORY=$(mktemp)
+trap 'rm -f "$TEMP_INVENTORY"' EXIT
 
 # Write header
 cat > "$TEMP_INVENTORY" << 'EOF'
@@ -82,7 +87,9 @@ categories["AggLayer Tests"]=""
 categories["CDK Erigon Tests"]=""
 categories["CDK Tests"]=""
 categories["Pectra Tests"]=""
+categories["Fusaka Tests"]=""
 categories["POS Tests"]=""
+categories["Heimdall Tests"]=""
 categories["DApps Tests"]=""
 categories["Ethereum Test Cases"]=""
 categories["Execution Layer Tests"]=""
@@ -103,7 +110,7 @@ while IFS= read -r file; do
 done < <(find "$PROJECT_ROOT" -name "*.bats" -type f | sort)
 
 # Generate inventory for each category (only if it has files)
-for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "POS Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
+for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "Fusaka Tests" "POS Tests" "Heimdall Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
     if [[ -n "${categories[$category]}" ]]; then
         echo "" >> "$TEMP_INVENTORY"
         echo "## $category" >> "$TEMP_INVENTORY"
@@ -180,7 +187,9 @@ if ! diff -q "$INVENTORY_FILE" "$TEMP_INVENTORY" > /dev/null 2>&1; then
     
     # Show summary of changes
     echo -e "${YELLOW}Summary of changes:${NC}"
-    user_bats_count=$(find "$PROJECT_ROOT" -name "*.bats" -type f | while read -r file; do is_user_test_file "$file" && echo "$file"; done | wc -l)
+    user_bats_count=$(find "$PROJECT_ROOT" -name "*.bats" -type f | while read -r file; do
+        if is_user_test_file "$file"; then echo "$file"; fi
+    done | wc -l)
     echo "- User .bats files found: $user_bats_count"
     echo "- Categories with tests: $(grep -c "^## " "$INVENTORY_FILE")"
 else
@@ -196,7 +205,7 @@ if [[ -f "$README_FILE" ]]; then
 
   # Generate the current sorted tag list from all .bats files.
   new_tags=$(grep -hoR --include="*.bats" 'test_tags=[^ ]*' "$PROJECT_ROOT" \
-    | sed 's/.*test_tags=//' | tr ',' '\n' | LC_ALL=C sort -u | sed 's/^/- /')
+    | sed 's/.*test_tags=//' | tr ',' '\n' | LC_ALL=C sort -u | sed 's/^/- /') || true
 
   # Use awk to replace the bullet-list block inside the ## test_tags section.
   # State machine:

@@ -11,12 +11,12 @@ setup() {
 
 setup_file() {
     # shellcheck source=core/helpers/common.bash
-    source "$BATS_TEST_DIRNAME/../../core/helpers/common.bash"
+    source "$BATS_TEST_DIRNAME/../../../core/helpers/common.bash"
     _setup_vars
 
-    contract_bytecode=$(cat $PROJECT_ROOT/tests/fusaka/contracts/PreModExp.json | jq -r .bytecode.object)
+    contract_bytecode=$(cat $PROJECT_ROOT/tests/ethereum-hardforks/fusaka/contracts/PreModExp.json | jq -r .bytecode.object)
     if [ -z "$contract_bytecode" ]; then
-        echo "❌ Failed to read bytecode from $PROJECT_ROOT/tests/fusaka/contracts/PreModExp.json" >&3
+        echo "❌ Failed to read bytecode from $PROJECT_ROOT/tests/ethereum-hardforks/fusaka/contracts/PreModExp.json" >&3
         exit 1
     fi
     export contract_bytecode
