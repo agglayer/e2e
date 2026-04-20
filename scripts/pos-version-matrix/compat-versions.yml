@@ -1,4 +1,4 @@
-# PoS version compatibility matrix — curated list of EL versions to test.
+# PoS version compatibility matrix — curated list of EL + CL versions to test.
 #
 # The pos-e2e workflow reads this file to generate pairwise compat pairs.
 # Only versions listed under `versions` are tested. Keep this list focused:
@@ -6,12 +6,23 @@
 #   - Release candidates being validated for rollout
 #   - Remove versions once fully deprecated and no longer in use
 #
-# Each entry must have: image, el_type (bor or erigon), reason.
-# Pairwise pairs are generated across ALL entries (bor-bor, erigon-erigon,
-# and bor-erigon cross-client combinations).
+# Each entry must have: image, a type discriminator, and reason.
+#   - EL entries:  el_type: bor | erigon
+#   - CL entries:  cl_type: heimdall-v2
+# Pairwise EL pairs are generated across ALL el_type entries (bor-bor,
+# erigon-erigon, and bor-erigon cross-client combinations).
+# Heimdall-v2 entries drive a separate `pos-heimdall-regression` matrix that
+# pins bor+erigon to latest and varies only the CL image — this isolates
+# heimdall-v2 as the regression variable.
+#
+# Heimdall-v2 minimum version policy: only v0.6.0 and later are supported.
+# Earlier heimdall-v2 versions are intentionally excluded (pre-GA / not
+# production-bound); entries below that floor are silently dropped by the
+# workflow filter, so there is no need to maintain exclusions for them.
 #
 # If this file is absent or `versions` is empty, the workflow falls back
-# to auto-detecting the latest bor release from each major.minor line.
+# to auto-detecting the latest bor release from each major.minor line and
+# the latest heimdall-v2 release (>= v0.6.0).
 
 versions:
 - image: 0xpolygon/bor:2.7.1
@@ -29,6 +40,9 @@ versions:
 - image: 0xpolygon/erigon:v3.4.0
   el_type: erigon
   reason: new stable release (3.4 line), auto-detected
+- image: 0xpolygon/heimdall-v2:0.6.0
+  cl_type: heimdall-v2
+  reason: latest stable release (0.6 line), regression baseline (min supported)
 
 # Excluded version pairs — combinations known to fail due to precompile or EVM
 # behavior differences. These are skipped during pairwise matrix generation.

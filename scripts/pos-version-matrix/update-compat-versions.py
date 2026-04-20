@@ -20,7 +20,8 @@ from typing import Optional
 COMPONENTS = {
     "bor": {
         "repo": "0xPolygon/bor",
-        "el_type": "bor",
+        "type_field": "el_type",
+        "type_value": "bor",
         "image_prefix": "0xpolygon/bor:",
         "strip_v": True,
         # Bor is pairwise-tested: keep up to THREE production-relevant releases:
@@ -32,10 +33,24 @@ COMPONENTS = {
     },
     "erigon": {
         "repo": "0xPolygon/erigon",
-        "el_type": "erigon",
+        "type_field": "el_type",
+        "type_value": "erigon",
         "image_prefix": "0xpolygon/erigon:",
         "strip_v": False,
         "max_lines": 2,  # Only latest lines — used as RPC endpoint, not pairwise tested
+    },
+    "heimdall-v2": {
+        "repo": "0xPolygon/heimdall-v2",
+        "type_field": "cl_type",
+        "type_value": "heimdall-v2",
+        "image_prefix": "0xpolygon/heimdall-v2:",
+        "strip_v": True,
+        # Heimdall-v2 drives the pos-heimdall-regression matrix (CL isolated,
+        # bor+erigon pinned to latest).  Track every major.minor line at or
+        # above the minimum supported version so new releases are exercised
+        # as regression candidates automatically.
+        "max_lines": 5,
+        "min_version": "0.6.0",  # pre-GA versions are intentionally excluded
     },
 }
 
@@ -129,6 +144,18 @@ def existing_images(data: dict) -> set:
     return {v["image"] for v in data.get("versions", []) if "image" in v}
 
 
+def _meets_min_version(tag: str, min_version: Optional[str]) -> bool:
+    """True iff ``tag`` (with or without leading 'v') is >= ``min_version``.
+
+    Uses the same weighted semver key as ``_semver_sort_key`` so
+    pre-release suffixes (-beta, -rc) compare correctly."""
+    if not min_version:
+        return True
+    return _semver_sort_key(tag_to_version(tag)) >= _semver_sort_key(
+        tag_to_version(min_version)
+    )
+
+
 def update_compat_versions(compat_path: Path) -> list:
     """Check for new releases and update. Returns list of changes made."""
     data = load_compat_versions(compat_path)
@@ -138,6 +165,16 @@ def update_compat_versions(compat_path: Path) -> list:
         releases = fetch_latest_releases(comp_config["repo"])
         if not releases:
             continue
+
+        min_version = comp_config.get("min_version")
+        if min_version:
+            releases = [r for r in releases if _meets_min_version(r["tag"], min_version)]
+            if not releases:
+                print(
+                    f"  No {comp_name} releases meet the minimum version "
+                    f"v{min_version}; skipping."
+                )
+                continue
 
         # Sort all fetched releases by semver descending.
         all_sorted = sorted(
@@ -199,13 +236,14 @@ def update_compat_versions(compat_path: Path) -> list:
                     reason = f"latest {kind} ({mm} line), previous minor-line coverage"
                 data["versions"].append({
                     "image": image,
-                    "el_type": comp_config["el_type"],
+                    comp_config["type_field"]: comp_config["type_value"],
                     "reason": reason,
                 })
                 changes.append(f"  + {image} ({reason})")
 
         else:
-            # For erigon (RPC endpoint, not pairwise-tested): track N major.minor lines.
+            # For erigon (RPC endpoint, not pairwise-tested) and heimdall-v2
+            # (CL-isolated regression): track N major.minor lines.
             lines: dict = {}
             for r in releases:
                 mm = version_major_minor(r["tag"])
@@ -243,12 +281,13 @@ def update_compat_versions(compat_path: Path) -> list:
                     reason = f"new stable release ({mm} line), auto-detected"
                 data["versions"].append({
                     "image": image,
-                    "el_type": comp_config["el_type"],
+                    comp_config["type_field"]: comp_config["type_value"],
                     "reason": reason,
                 })
                 changes.append(f"  + {image} ({reason})")
 
-            # Remove erigon entries outside the tracked set.
+            # Remove entries outside the tracked set (applies to both erigon
+            # and heimdall-v2; prefix is unique per component).
             stale = [
                 v for v in data["versions"]
                 if v.get("image", "").startswith(prefix)
@@ -256,17 +295,25 @@ def update_compat_versions(compat_path: Path) -> list:
             ]
             for old in stale:
                 data["versions"].remove(old)
-                changes.append(f"  - {old['image']} (outside tracked erigon lines)")
+                changes.append(f"  - {old['image']} (outside tracked {comp_name} lines)")
 
-    # Sort versions: group by el_type (bor first, then erigon), then
-    # descending semver within each group.  This ensures the latest
-    # version of each component is first — the workflow uses index 0
-    # as the "latest" for single-version baseline tests.
-    el_type_order = {"bor": 0, "erigon": 1}
+    # Sort versions: group by component type (bor, erigon, heimdall-v2),
+    # then descending semver within each group.  The workflow uses index 0
+    # of each group as the "latest" for single-version baselines.
+    def _component_order(v: dict) -> int:
+        el = v.get("el_type")
+        if el == "bor":
+            return 0
+        if el == "erigon":
+            return 1
+        if v.get("cl_type") == "heimdall-v2":
+            return 2
+        return 99
+
     prev_order = [v["image"] for v in data["versions"]]
     data["versions"].sort(
         key=lambda v: (
-            el_type_order.get(v.get("el_type", ""), 99),
+            _component_order(v),
             tuple(-x for x in _semver_sort_key(
                 v.get("image", "").split(":")[-1].lstrip("v")
             )),
@@ -315,7 +362,7 @@ def _write_compat_versions(path: Path, data: dict):
     verbatim from the original file — it is never serialised through
     yaml.dump and must only be edited by hand."""
     header = """\
-# PoS version compatibility matrix — curated list of EL versions to test.
+# PoS version compatibility matrix — curated list of EL + CL versions to test.
 #
 # The pos-e2e workflow reads this file to generate pairwise compat pairs.
 # Only versions listed under `versions` are tested. Keep this list focused:
@@ -323,12 +370,23 @@ def _write_compat_versions(path: Path, data: dict):
 #   - Release candidates being validated for rollout
 #   - Remove versions once fully deprecated and no longer in use
 #
-# Each entry must have: image, el_type (bor or erigon), reason.
-# Pairwise pairs are generated across ALL entries (bor-bor, erigon-erigon,
-# and bor-erigon cross-client combinations).
+# Each entry must have: image, a type discriminator, and reason.
+#   - EL entries:  el_type: bor | erigon
+#   - CL entries:  cl_type: heimdall-v2
+# Pairwise EL pairs are generated across ALL el_type entries (bor-bor,
+# erigon-erigon, and bor-erigon cross-client combinations).
+# Heimdall-v2 entries drive a separate `pos-heimdall-regression` matrix that
+# pins bor+erigon to latest and varies only the CL image — this isolates
+# heimdall-v2 as the regression variable.
+#
+# Heimdall-v2 minimum version policy: only v0.6.0 and later are supported.
+# Earlier heimdall-v2 versions are intentionally excluded (pre-GA / not
+# production-bound); entries below that floor are silently dropped by the
+# workflow filter, so there is no need to maintain exclusions for them.
 #
 # If this file is absent or `versions` is empty, the workflow falls back
-# to auto-detecting the latest bor release from each major.minor line.
+# to auto-detecting the latest bor release from each major.minor line and
+# the latest heimdall-v2 release (>= v0.6.0).
 
 """
     # Capture the excluded_pairs tail before we overwrite the file.

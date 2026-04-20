@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: ""
+      heimdall-compat-versions:
+        description: "Comma-separated heimdall-v2 images for regression matrix (v0.6.0+ only). Leave empty to auto-detect from compat-versions.yml / GitHub releases."
+        required: false
+        type: string
+        default: ""
       kurtosis-pos-ref:
         description: "Tag, branch, or commit of kurtosis-pos to use."
         required: false
@@ -57,6 +62,7 @@ on:
           - all
           - pos-exec-specs
           - fork-trans
+          - heimdall-regression
           - matrix
           - ethereum-exec-specs-remote
       force-run:
@@ -100,6 +106,7 @@ jobs:
       erigon-image: ${{ steps.resolve.outputs.erigon-image }}
       compat-pairs: ${{ steps.gen-compat-matrix.outputs.compat-pairs }}
       fork-trans-pairs: ${{ steps.gen-compat-matrix.outputs.fork-trans-pairs }}
+      heimdall-compat-pairs: ${{ steps.gen-compat-matrix.outputs.heimdall-compat-pairs }}
     steps:
       - name: Checkout (for compat-versions.yml)
         uses: actions/checkout@v6
@@ -135,6 +142,9 @@ jobs:
 
             if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
               echo "compat-versions-override=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
+            fi
+            if [[ -n "${{ inputs.heimdall-compat-versions }}" ]]; then
+              echo "heimdall-compat-versions-override=${{ inputs.heimdall-compat-versions }}" >> "$GITHUB_OUTPUT"
             fi
             exit 0
           fi
@@ -256,6 +266,9 @@ jobs:
           # in the gen-compat-matrix step. We just pass through manual overrides.
           if [[ -n "${{ inputs.bor-compat-versions }}" ]]; then
             echo "compat-versions-override=${{ inputs.bor-compat-versions }}" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ -n "${{ inputs.heimdall-compat-versions }}" ]]; then
+            echo "heimdall-compat-versions-override=${{ inputs.heimdall-compat-versions }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check cache for previously tested tag
@@ -509,6 +522,123 @@ jobs:
             echo "Fork-transition scenarios: $(echo "$ft_scenarios" | jq length) (${ft_diff} excluded by scope)"
           fi
 
+          # --- Collect heimdall-v2 versions for the regression matrix ----------
+          # Heimdall-v2 regression pins bor + erigon to the latest images and
+          # varies only the CL image so any failure isolates a heimdall-v2
+          # regression.  Minimum supported version is v0.6.0 (enforced below);
+          # older tags are silently dropped — they are not production-bound.
+          #
+          # Priority of sources:
+          #   1. inputs.heimdall-compat-versions (manual override, comma list)
+          #   2. cl_type: heimdall-v2 entries in compat-versions.yml
+          #   3. auto-detect: recent heimdall-v2 releases from GitHub
+          #
+          # Minimum version filter used by sources 2 and 3. Keep in sync with
+          # compat-versions.yml header comment.
+          HV2_MIN="0.6.0"
+
+          # Semver-compare helper: returns 0 (true) iff $1 >= $2.
+          # Handles pre-release suffixes like -beta / -rc.
+          hv2_gte() {
+            local have="${1#v}"; local want="${2#v}"
+            [[ "$have" == "$want" ]] && return 0
+            [[ "$(printf '%s\n%s' "$have" "$want" | sort -V | head -1)" == "$want" ]]
+          }
+
+          declare -a heimdall_images=()
+          HV2_OVERRIDE="${{ steps.resolve.outputs.heimdall-compat-versions-override }}"
+          if [[ -n "$HV2_OVERRIDE" ]]; then
+            echo "Using manual override for heimdall-v2 versions."
+            IFS=',' read -ra _hv2_raw <<< "$HV2_OVERRIDE"
+            for img in "${_hv2_raw[@]}"; do
+              img="${img## }"; img="${img%% }"
+              [[ -z "$img" ]] && continue
+              ver="${img##*:}"; ver="${ver#v}"
+              if hv2_gte "$ver" "$HV2_MIN"; then
+                heimdall_images+=("$img")
+              else
+                echo "::warning::Skipping ${img} (< v${HV2_MIN}); not in regression matrix."
+              fi
+            done
+          fi
+
+          if [[ ${#heimdall_images[@]} -eq 0 && -f "$COMPAT_YML" ]]; then
+            echo "Reading heimdall-v2 entries from ${COMPAT_YML}..."
+            pending_img=""
+            while IFS= read -r line; do
+              if [[ "$line" =~ image:\ *\"?([^\"[:space:]]+)\"? ]]; then
+                pending_img="${BASH_REMATCH[1]}"
+              elif [[ -n "$pending_img" && "$line" =~ cl_type:\ *heimdall-v2 ]]; then
+                ver="${pending_img##*:}"; ver="${ver#v}"
+                if hv2_gte "$ver" "$HV2_MIN"; then
+                  heimdall_images+=("$pending_img")
+                else
+                  echo "  Skipping ${pending_img} (< v${HV2_MIN})"
+                fi
+                pending_img=""
+              elif [[ "$line" =~ el_type: ]]; then
+                # Reached an EL entry — clear any dangling image buffer.
+                pending_img=""
+              fi
+            done < "$COMPAT_YML"
+          fi
+
+          if [[ ${#heimdall_images[@]} -eq 0 ]]; then
+            echo "No heimdall-v2 entries in YAML — auto-detecting from GitHub releases."
+            hv2_all=$(gh api repos/0xPolygon/heimdall-v2/releases --paginate --jq \
+              '.[] | select(.draft == false) | .tag_name' 2>/dev/null | head -30 || true)
+            if [[ -n "$hv2_all" ]]; then
+              # Filter to semver-shaped tags and enforce min version.
+              while IFS= read -r tag; do
+                [[ -z "$tag" ]] && continue
+                [[ "$tag" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-beta[0-9]*|-rc[0-9]*)?$ ]] || continue
+                ver="${tag#v}"
+                if hv2_gte "$ver" "$HV2_MIN"; then
+                  heimdall_images+=("0xpolygon/heimdall-v2:${ver}")
+                fi
+              done <<< "$hv2_all"
+            fi
+          fi
+
+          # Final fallback: use the resolve-step's single heimdall-v2-image
+          # (already enforces the same min version for auto-detect downstream).
+          if [[ ${#heimdall_images[@]} -eq 0 ]]; then
+            hv2_fallback="${{ steps.resolve.outputs.heimdall-v2-image }}"
+            if [[ -n "$hv2_fallback" ]]; then
+              ver="${hv2_fallback##*:}"; ver="${ver#v}"
+              if hv2_gte "$ver" "$HV2_MIN"; then
+                echo "Using resolve-step heimdall-v2 as regression fallback: ${hv2_fallback}"
+                heimdall_images=("$hv2_fallback")
+              else
+                echo "::warning::resolve-step heimdall-v2 ${hv2_fallback} is below v${HV2_MIN} — regression matrix will be empty."
+              fi
+            fi
+          fi
+
+          echo "Heimdall-v2 regression versions (${#heimdall_images[@]}):"
+          printf '  %s\n' "${heimdall_images[@]}"
+
+          # Build heimdall-compat-pairs: one scenario per heimdall version,
+          # pinning bor to bor_images[0] (latest) and erigon to erigon_images[0].
+          # Label format: heimdall-<version>-vs-bor-<version>
+          hv2_scenarios="[]"
+          if [[ ${#heimdall_images[@]} -gt 0 && ${#bor_images[@]} -gt 0 ]]; then
+            bor_latest="${bor_images[0]}"
+            erigon_latest_hv2="${erigon_images[0]:-}"
+            bor_label=$(echo "$bor_latest" | sed 's|.*/||; s/:/-/g')
+            for img in "${heimdall_images[@]}"; do
+              hv_label=$(echo "$img" | sed 's|.*/||; s/:/-/g')
+              lbl="${hv_label}-vs-${bor_label}"
+              hv2_scenarios=$(echo "$hv2_scenarios" | jq -c \
+                --arg hv "$img" --arg bor "$bor_latest" \
+                --arg eri "$erigon_latest_hv2" --arg lbl "$lbl" \
+                '. + [{"heimdall":$hv,"bor":$bor,"erigon_rpc":$eri,"pair_label":$lbl}]')
+            done
+          fi
+          echo "heimdall-compat-pairs=${hv2_scenarios}" >> "$GITHUB_OUTPUT"
+          echo "Heimdall regression scenarios ($(echo "$hv2_scenarios" | jq length)):"
+          echo "$hv2_scenarios" | jq -r '.[] | "  \(.pair_label)  bor=\(.bor)  erigon=\(.erigon_rpc)"'
+
       - name: Summary
         run: |
           {
@@ -530,6 +660,15 @@ jobs:
                 "| Pair | Bor A | Bor B | Erigon |",
                 "|------|-------|-------|--------|",
                 (.[] | "| \(.pair_label) | `\(.bor_a)` | `\(.bor_b)` | `\(.erigon_rpc)` |")
+              end'
+            echo ""
+            echo "#### Heimdall-v2 Regression Matrix (min v0.6.0)"
+            echo '${{ steps.gen-compat-matrix.outputs.heimdall-compat-pairs }}' | jq -r '
+              if length == 0 then "No heimdall-v2 regression scenarios generated."
+              else
+                "| Scenario | Heimdall | Bor | Erigon |",
+                "|----------|----------|-----|--------|",
+                (.[] | "| \(.pair_label) | `\(.heimdall)` | `\(.bor)` | `\(.erigon_rpc)` |")
               end'
             echo ""
             excluded='${{ steps.gen-compat-matrix.outputs.excluded-pairs }}'
@@ -1544,12 +1683,331 @@ jobs:
           kurtosis clean || true
 
   # ---------------------------------------------------------------------------
-  # Job 3: Execution-specs remote — run ethereum/execution-specs against latest
+  # Job 3: Heimdall-v2 regression — isolate heimdall-v2 as the only variable.
+  #
+  # Deploys a uniform devnet (all validators + RPCs share the same heimdall-v2
+  # image, latest bor, latest erigon) for each heimdall-v2 version in the
+  # regression matrix (v0.6.0+).  Runs the full Heimdall consensus-correctness
+  # test suite so any failure attributes to the heimdall image under test
+  # rather than to a bor/erigon mix.  The EL-level and cross-version tests are
+  # already covered by pos-execution-specs and pos-fork-transition; this job
+  # focuses exclusively on CL-level invariants.
+  # ---------------------------------------------------------------------------
+  pos-heimdall-regression:
+    needs: check-new-release
+    if: >-
+      needs.check-new-release.outputs.heimdall-compat-pairs != '[]' && (
+        (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.run-tests == 'all' || inputs.run-tests == 'heimdall-regression' || inputs.run-tests == 'matrix'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include: ${{ fromJson(needs.check-new-release.outputs.heimdall-compat-pairs) }}
+    name: heimdall-regression (${{ matrix.pair_label }})
+    steps:
+      - name: Checkout agglayer/e2e
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Install kurtosis
+        run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install -y kurtosis-cli jq
+          kurtosis analytics disable
+
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@v1.7.0
+        with:
+          cache: false
+
+      - name: Install bats
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Install polycli
+        run: |
+          tmp_dir=$(mktemp -d)
+          curl -sL "https://github.com/0xPolygon/polygon-cli/releases/download/${{ env.POLYCLI_VERSION }}/polycli_${{ env.POLYCLI_VERSION }}_linux_amd64.tar.gz" | tar -xz -C "$tmp_dir"
+          mv "$tmp_dir"/* /usr/local/bin/polycli
+          rm -rf "$tmp_dir"
+          chmod +x /usr/local/bin/polycli
+          polycli version
+
+      - name: Checkout kurtosis-pos
+        uses: actions/checkout@v6
+        with:
+          repository: 0xPolygon/kurtosis-pos
+          ref: ${{ env.KURTOSIS_POS_REF }}
+          path: kurtosis-pos
+
+      - name: Compute bor version (uniform across validators/rpcs)
+        id: bor-min
+        run: |
+          ver=$(echo "${{ matrix.bor }}" | sed 's|.*:||; s/^v//')
+          base=$(echo "$ver" | sed -E 's/(-beta[0-9]*|-rc[0-9]*)$//')
+          echo "bor-min-version=${base}" >> "$GITHUB_OUTPUT"
+          echo "bor-max-version=${base}" >> "$GITHUB_OUTPUT"
+          echo "Bor version (uniform): ${ver} (base: ${base})"
+
+      - name: Patch constants.star (staggered Rio+ schedule, minimum 256)
+        run: |
+          CONSTANTS="kurtosis-pos/src/config/constants.star"
+          BOR_MIN="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          ver_gte() {
+            [[ "$(printf '%s\n%s' "$BOR_MIN" "$1" | sort -V | head -1)" == "$1" ]]
+          }
+
+          # Same staggered schedule as pos-fork-transition; heimdall tests
+          # require span 6 (block 768) which only the staggered schedule
+          # reliably reaches before timeout.
+          declare -A FORK_BLOCKS=(
+            [rio]=256
+            [madhugiri]=320
+            [madhugiriPro]=384
+            [dandeli]=448
+            [lisovo]=512
+            [lisovoPro]=576
+            [giugliano]=640
+          )
+
+          PATCH=(rio)
+          ver_gte "2.5.0" && PATCH+=(madhugiri madhugiriPro)
+          ver_gte "2.5.6" && PATCH+=(dandeli)
+          ver_gte "2.6.0" && PATCH+=(lisovo lisovoPro)
+          ver_gte "2.7.0" && PATCH+=(giugliano)
+
+          echo "Patching forks for bor version ${BOR_MIN}: ${PATCH[*]}"
+          for fork in "${PATCH[@]}"; do
+            block="${FORK_BLOCKS[$fork]}"
+            sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/'"${block}"'/' "$CONSTANTS"
+          done
+
+          DISABLE=()
+          ver_gte "2.7.0" || DISABLE+=(giugliano)
+          ver_gte "2.6.0" || DISABLE+=(lisovo lisovoPro)
+          ver_gte "2.5.6" || DISABLE+=(dandeli)
+          ver_gte "2.5.0" || DISABLE+=(madhugiri madhugiriPro)
+          if [[ ${#DISABLE[@]} -gt 0 ]]; then
+            echo "Disabling unsupported forks: ${DISABLE[*]}"
+            for fork in "${DISABLE[@]}"; do
+              sed -i -E '/^\s+"'"${fork}"'":/s/[0-9]+/999999999/' "$CONSTANTS"
+            done
+          fi
+          echo "--- Patched EL_HARD_FORK_BLOCKS ---"
+          grep -A 20 '^EL_HARD_FORK_BLOCKS' "$CONSTANTS"
+
+          declare -A FORK_ENV_MAP=(
+            [rio]=FORK_RIO [madhugiri]=FORK_MADHUGIRI [madhugiriPro]=FORK_MADHUGIRI_PRO
+            [dandeli]=FORK_DANDELI [lisovo]=FORK_LISOVO [lisovoPro]=FORK_LISOVO_PRO
+            [giugliano]=FORK_GIUGLIANO
+          )
+          {
+            echo "# Auto-generated staggered fork schedule"
+            echo "FORK_JAIPUR=0"; echo "FORK_DELHI=0"; echo "FORK_INDORE=0"
+            echo "FORK_AGRA=0"; echo "FORK_NAPOLI=0"; echo "FORK_AHMEDABAD=0"
+            echo "FORK_BHILAI=0"
+            for fork in "${PATCH[@]}"; do
+              echo "${FORK_ENV_MAP[$fork]}=${FORK_BLOCKS[$fork]}"
+            done
+            for fork in "${DISABLE[@]}"; do
+              echo "${FORK_ENV_MAP[$fork]}=999999999"
+            done
+          } > /tmp/fork-schedule.env
+          cat /tmp/fork-schedule.env
+
+      - name: Generate kurtosis params (uniform heimdall-v2)
+        run: |
+          BOR="${{ matrix.bor }}"
+          ERIGON_RPC="${{ matrix.erigon_rpc }}"
+          HV2_IMAGE="${{ matrix.heimdall }}"
+
+          echo "Heimdall-v2: ${HV2_IMAGE}  |  Bor: ${BOR}  |  Erigon: ${ERIGON_RPC}"
+
+          # All validators share the same bor+heimdall; RPCs add erigon
+          # cross-client coverage. This isolates the heimdall image as the
+          # regression variable; any bor/erigon-induced failures would show
+          # up in pos-execution-specs or pos-fork-transition first.
+          cat > /tmp/pos-params.yml <<PARAMS
+          polygon_pos_package:
+            participants:
+              - kind: validator
+                count: 3
+                el_bor_produce_witness: true
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR}"
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: bor
+                el_image: "${BOR}"
+              - kind: rpc
+                count: 1
+                cl_type: heimdall-v2
+                cl_image: "${HV2_IMAGE}"
+                el_type: erigon
+                el_image: "${ERIGON_RPC}"
+          PARAMS
+          cat /tmp/pos-params.yml
+
+      - name: Deploy kurtosis-pos enclave
+        run: |
+          pushd kurtosis-pos
+          kurtosis run --enclave "${{ env.ENCLAVE_NAME }}" --args-file /tmp/pos-params.yml .
+          popd
+
+      - name: Inspect enclave
+        run: kurtosis enclave inspect "${{ env.ENCLAVE_NAME }}"
+
+      - name: Wait for chain to reach span 6 (block 768)
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+
+          VALIDATOR_RPC="$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-el-1-bor-heimdall-v2-validator rpc)"
+          VALIDATOR_RPC="${VALIDATOR_RPC#http://}" ; VALIDATOR_RPC="${VALIDATOR_RPC#https://}"
+          RPC_URL="http://${VALIDATOR_RPC}"
+          TARGET_BLOCK=780
+          MAX_WAIT=900
+          POLL_INTERVAL=5
+          elapsed=0
+          echo "Waiting for block ${TARGET_BLOCK} (span 6 starts at 768)..."
+          while [[ "$elapsed" -lt "$MAX_WAIT" ]]; do
+            block=$(curl -sf -X POST "${RPC_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+              | jq -r '.result // empty' | xargs printf "%d" 2>/dev/null) || block=0
+            [[ "$block" -ge "$TARGET_BLOCK" ]] && echo "Block ${block} — span 6 active." && exit 0
+            echo "[${elapsed}s] Block: ${block} / ${TARGET_BLOCK}"
+            sleep "$POLL_INTERVAL"
+            elapsed=$(( elapsed + POLL_INTERVAL ))
+          done
+          echo "::error::Chain stuck at block ${block} — cannot reach span 6."
+          exit 1
+
+      - name: Trigger L1→L2 state sync event (deposit on L1)
+        run: |
+          set -eo pipefail
+          L1_PORT=$(kurtosis port print "${{ env.ENCLAVE_NAME }}" el-1-geth-lighthouse rpc 2>/dev/null ||
+                    kurtosis port print "${{ env.ENCLAVE_NAME }}" el-1-reth-lighthouse rpc 2>/dev/null)
+          L1_PORT="${L1_PORT#http://}" ; L1_PORT="${L1_PORT#https://}"
+          L1_RPC="http://${L1_PORT}"
+
+          MATIC_ADDR=$(kurtosis files inspect "${{ env.ENCLAVE_NAME }}" matic-contract-addresses contractAddresses.json | jq)
+          DEPOSIT_MGR=$(echo "$MATIC_ADDR" | jq -r '.root.DepositManagerProxy')
+          PK="0xd40311b5a5ca5eaeb48dfba5403bde4993ece8eccf4190e98e19fcd4754260ea"
+
+          echo "Triggering L1→L2 state sync via depositEther()..."
+          cast send --rpc-url "${L1_RPC}" --private-key "${PK}" \
+            --value 0.01ether "${DEPOSIT_MGR}" "depositEther()" || {
+            echo "::warning::depositEther() failed — clerk/bridge tests may skip"
+          }
+
+          CL_PORT=$(kurtosis port print "${{ env.ENCLAVE_NAME }}" l2-cl-1-heimdall-v2-bor-validator http)
+          CL_PORT="${CL_PORT#http://}" ; CL_PORT="${CL_PORT#https://}"
+          L2_CL_API="http://${CL_PORT}"
+          echo "Waiting for clerk to pick up the state sync event..."
+          for i in $(seq 1 24); do
+            rid=$(curl -sf -m 10 "${L2_CL_API}/clerk/event-records/latest-id" \
+              | jq -r '.latest_record_id // "0"' 2>/dev/null) || rid=0
+            if [[ "$rid" -gt 0 ]]; then
+              echo "Clerk has event records (latest_record_id=${rid}) after $((i*5))s."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::warning::No clerk events after 120s — tests will poll further on their own"
+
+      - name: Run Heimdall consensus-correctness suite
+        run: |
+          set -eo pipefail
+          set -a; source ./tests/.env; set +a
+          export BATS_LIB_PATH="$PWD/core/helpers/lib"
+          export PROJECT_ROOT="$PWD"
+          export ENCLAVE_NAME="${{ env.ENCLAVE_NAME }}"
+          export BOR_MIN_VERSION="${{ steps.bor-min.outputs.bor-min-version }}"
+
+          if [[ -f /tmp/fork-schedule.env ]]; then
+            set -a; source /tmp/fork-schedule.env; set +a
+          fi
+
+          echo "Running Heimdall consensus-correctness suite for ${{ matrix.pair_label }}..."
+          # Grouped by suite to keep per-test TAP output clear; any failure
+          # attributes to the heimdall image in matrix.heimdall.
+          bats \
+            tests/pos/heimdall/consensus-correctness/span-validator-set.bats \
+            tests/pos/heimdall/consensus-correctness/checkpoint-chain-integrity.bats \
+            tests/pos/heimdall/consensus-correctness/milestone-finality.bats \
+            tests/pos/heimdall/consensus-correctness/statesync-event-ordering.bats \
+            tests/pos/heimdall/consensus-correctness/node-health.bats \
+            tests/pos/heimdall/consensus-correctness/checkpoint-safety.bats \
+            tests/pos/heimdall/consensus-correctness/span-milestone-safety.bats \
+            tests/pos/heimdall/bor/span-in-turn.bats \
+            tests/pos/heimdall/clerk/bridge-sync.bats \
+            tests/pos/heimdall/stake/validator-set-safety.bats \
+            tests/pos/heimdall/stake/validator-state.bats \
+            2>&1 | tee -a /tmp/bats-tap-output.txt
+
+      - name: Skipped tests summary
+        if: ${{ !cancelled() }}
+        run: |
+          TAP_FILE="/tmp/bats-tap-output.txt"
+          {
+            echo "## Heimdall Regression Skipped Tests (${{ matrix.pair_label }})"
+            echo ""
+            if [[ ! -f "$TAP_FILE" ]]; then
+              echo "_No BATS output captured (tests may not have run)._"
+            else
+              skipped=$(grep '# skip' "$TAP_FILE" || true)
+              if [[ -z "$skipped" ]]; then
+                echo "All tests ran — none were skipped."
+              else
+                echo "| Test | Skip Reason |"
+                echo "|------|-------------|"
+                while IFS= read -r line; do
+                  test_name=$(echo "$line" | sed -E 's/^ok [0-9]+ //' | sed -E 's/ # skip.*$//')
+                  reason=$(echo "$line" | sed -E 's/.*# skip (.*)/\1/')
+                  echo "| ${test_name} | ${reason} |"
+                done <<< "$skipped"
+                echo ""
+                count=$(echo "$skipped" | wc -l)
+                echo "**${count} test(s) skipped** — review to confirm none are heimdall-version regressions masquerading as skips."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Dump enclave logs
+        if: failure()
+        run: kurtosis dump ./dump
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pos-e2e-dump-heimdall-regression-${{ matrix.pair_label }}-${{ github.run_id }}
+          path: ./dump
+
+      - name: Clean up enclave
+        if: always()
+        run: |
+          kurtosis enclave stop "${{ env.ENCLAVE_NAME }}" || true
+          kurtosis clean || true
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Execution-specs remote — run ethereum/execution-specs against latest
   # bor release via `execute remote`.  Runs after all matrix jobs to maximise
   # available runner resources.
   # ---------------------------------------------------------------------------
   ethereum-exec-specs-remote:
-    needs: [check-new-release, pos-execution-specs, pos-fork-transition]
+    needs: [check-new-release, pos-execution-specs, pos-fork-transition, pos-heimdall-regression]
     if: >-
       !cancelled() && (
         (github.event_name == 'schedule' && needs.check-new-release.outputs.should-run == 'true') ||
@@ -1773,7 +2231,7 @@ jobs:
   # Only runs after all test phases succeed.
   # ---------------------------------------------------------------------------
   mark-tested:
-    needs: [check-new-release, pos-execution-specs, pos-fork-transition, ethereum-exec-specs-remote]
+    needs: [check-new-release, pos-execution-specs, pos-fork-transition, pos-heimdall-regression, ethereum-exec-specs-remote]
     # Cache the release when all *executed* test jobs passed. Skipped jobs
     # (from selective run-tests dispatch) are allowed — only failures block.
     if: >-
