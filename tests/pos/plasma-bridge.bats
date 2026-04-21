@@ -225,6 +225,7 @@ function generate_exit_payload() {
     --value "${withdraw_amount}" \
     --gas-price 30gwei \
     --priority-gas-price 30gwei \
+    --gas-limit 200000 \
     --json \
     "0x0000000000000000000000000000000000001010" \
     "withdraw(uint256)" "${withdraw_amount}")
@@ -335,6 +336,7 @@ function generate_exit_payload() {
     --private-key "${PRIVATE_KEY}" \
     --gas-price 30gwei \
     --priority-gas-price 30gwei \
+    --gas-limit 200000 \
     --json \
     "${L2_WETH_TOKEN_ADDRESS}" \
     "withdraw(uint256)" "${withdraw_amount}")
@@ -447,6 +449,7 @@ function generate_exit_payload() {
     --private-key "${PRIVATE_KEY}" \
     --gas-price 30gwei \
     --priority-gas-price 30gwei \
+    --gas-limit 200000 \
     --json \
     "${L2_ERC20_TOKEN_ADDRESS}" \
     "withdraw(uint256)" "${withdraw_amount}")
@@ -564,6 +567,7 @@ function generate_exit_payload() {
     --private-key "${PRIVATE_KEY}" \
     --gas-price 30gwei \
     --priority-gas-price 30gwei \
+    --gas-limit 200000 \
     --json \
     "${L2_ERC721_TOKEN_ADDRESS}" \
     "withdraw(uint256)" "${token_id}")

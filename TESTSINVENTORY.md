@@ -417,9 +417,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L498) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L521) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L475) | |
-| bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L389) | |
-| bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L496) | |
-| bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L277) | |
+| bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L391) | |
+| bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L499) | |
+| bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L278) | |
 | bridge MATIC from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L166) | |
 | bridge POL from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L128) | |
 | chain continues producing blocks across sprint boundaries | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L39) | |
@@ -449,7 +449,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | cross-client: Erigon syncs through Giugliano and agrees with Bor on block hash | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L325) | |
 | cross-client: Erigon syncs through Madhugiri forks and agrees with Bor | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L285) | |
 | cross-client: Erigon syncs through Rio and agrees with Bor at fork boundary | [Link](./tests/pos/execution-specs/fork-transitions/cross-client-state-roots.bats#L272) | |
-| delegate to a validator | [Link](./tests/pos/validator.bats#L166) | |
+| delegate to a validator | [Link](./tests/pos/validator.bats#L141) | |
 | deploy contract that returns 24577 runtime bytes is rejected by EIP-170 | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L117) | |
 | deploy contract that returns exactly 24576 runtime bytes succeeds (EIP-170 boundary) | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L143) | |
 | deploy contract that reverts in constructor leaves no code at deployed address | [Link](./tests/pos/execution-specs/evm/contract-creation-and-deployment-limits.bats#L41) | |
@@ -562,7 +562,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | receipt contains 5 log entries from LOG0 through LOG4 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L286) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L48) | |
-| remove validator | [Link](./tests/pos/validator.bats#L333) | |
+| remove validator | [Link](./tests/pos/validator.bats#L308) | |
 | replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L440) | |
 | runtime code is 32 bytes and matches accumulator in slot 0 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L260) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L13) | |
@@ -619,17 +619,17 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | type 1 access list with multiple storage keys is accepted | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L202) | |
 | type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L125) | |
 | type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L170) | |
-| undelegate from a validator | [Link](./tests/pos/validator.bats#L241) | |
-| update signer | [Link](./tests/pos/validator.bats#L141) | |
+| undelegate from a validator | [Link](./tests/pos/validator.bats#L216) | |
+| update signer | [Link](./tests/pos/validator.bats#L334) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L79) | |
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L452) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L412) | |
-| withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L426) | |
-| withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L540) | |
-| withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L313) | |
+| withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L428) | |
+| withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L543) | |
+| withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L314) | |
 | withdraw native tokens from L2 via Plasma bridge and confirm POL balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L203) | |
-| withdraw validator rewards | [Link](./tests/pos/validator.bats#L311) | |
+| withdraw validator rewards | [Link](./tests/pos/validator.bats#L286) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L525) | |
 
 ## Heimdall Tests
