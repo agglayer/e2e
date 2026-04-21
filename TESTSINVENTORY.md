@@ -417,9 +417,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L498) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L521) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L475) | |
-| bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L389) | |
-| bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L496) | |
-| bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L277) | |
+| bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L391) | |
+| bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L499) | |
+| bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L278) | |
 | bridge MATIC from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L166) | |
 | bridge POL from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2 | [Link](./tests/pos/plasma-bridge.bats#L128) | |
 | chain continues producing blocks across sprint boundaries | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L39) | |
@@ -625,9 +625,9 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L452) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L412) | |
-| withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L426) | |
-| withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L540) | |
-| withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L313) | |
+| withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L428) | |
+| withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L543) | |
+| withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L314) | |
 | withdraw native tokens from L2 via Plasma bridge and confirm POL balance increased on L1 | [Link](./tests/pos/plasma-bridge.bats#L203) | |
 | withdraw validator rewards | [Link](./tests/pos/validator.bats#L286) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L525) | |
