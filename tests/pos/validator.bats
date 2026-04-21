@@ -305,31 +305,6 @@ function generate_new_keypair() {
 }
 
 # bats test_tags=pos-validator
-@test "update signer" {
-  initial_signer=$(eval "${validator_signer_cmd}")
-  echo "Initial signer: ${initial_signer}"
-
-  # New account:
-  # - address: 0xd74c0D3dEe45a0a9516fB66E31C01536e8756e2A
-  # - public key: 0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908
-  # - private-key: 0xf118c1f07cd6e1a417175f6316a5a36707da7be07cf5e360a9397e8a52bc690f
-  new_public_key="0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908"
-
-  echo "Updating signer update limit..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_GOVERNANCE_PROXY_ADDRESS}" "update(address,bytes)" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" \
-    "$(cast calldata "updateSignerUpdateLimit(uint256)" "1")"
-
-  echo "Updating signer..."
-  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
-    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "updateSigner(uint,bytes)" "${validator_id}" "${new_public_key}"
-
-  echo "Monitoring signer change..."
-  assert_command_eventually_equal "${validator_signer_cmd}" "0xd74c0d3dee45a0a9516fb66e31c01536e8756e2a" "${timeout_seconds}"
-}
-
-# bats test_tags=pos-validator
 @test "remove validator" {
   initial_validator_count=$(eval "${validator_count_cmd}")
   echo "Initial validator count: ${initial_validator_count}"
@@ -353,4 +328,29 @@ function generate_new_keypair() {
   # set TIMEOUT_SECONDS >= 300 when running this test.
   echo "Monitoring the validator count on Heimdall..."
   assert_command_eventually_equal "${validator_count_cmd}" $((initial_validator_count - 1)) "${timeout_seconds}"
+}
+
+# bats test_tags=pos-validator
+@test "update signer" {
+  initial_signer=$(eval "${validator_signer_cmd}")
+  echo "Initial signer: ${initial_signer}"
+
+  # New account:
+  # - address: 0xd74c0D3dEe45a0a9516fB66E31C01536e8756e2A
+  # - public key: 0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908
+  # - private-key: 0xf118c1f07cd6e1a417175f6316a5a36707da7be07cf5e360a9397e8a52bc690f
+  new_public_key="0x125925a928ac0c6c2aea9005ebaf358098ecdf6f6c455b041056dfb89f4ac8eda42f1d72a1274b88d8b9989c3e4bfabf0775d574a9f3b0d53002f8ff4c9d9908"
+
+  echo "Updating signer update limit..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
+    "${L1_GOVERNANCE_PROXY_ADDRESS}" "update(address,bytes)" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" \
+    "$(cast calldata "updateSignerUpdateLimit(uint256)" "1")"
+
+  echo "Updating signer..."
+  cast send --rpc-url "${L1_RPC_URL}" --private-key "${validator_private_key}" \
+    "${L1_STAKE_MANAGER_PROXY_ADDRESS}" "updateSigner(uint,bytes)" "${validator_id}" "${new_public_key}"
+
+  echo "Monitoring signer change..."
+  assert_command_eventually_equal "${validator_signer_cmd}" "0xd74c0d3dee45a0a9516fb66e31c01536e8756e2a" "${timeout_seconds}"
 }

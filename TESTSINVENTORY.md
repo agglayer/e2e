@@ -562,7 +562,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | prune TxIndexer | [Link](./tests/pos/heimdall-v2.bats#L86) | |
 | receipt contains 5 log entries from LOG0 through LOG4 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L286) | |
 | recipient balance increases by exactly the value sent | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L48) | |
-| remove validator | [Link](./tests/pos/validator.bats#L333) | |
+| remove validator | [Link](./tests/pos/validator.bats#L308) | |
 | replay protection: same signed tx submitted twice does not double-spend | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L440) | |
 | runtime code is 32 bytes and matches accumulator in slot 0 | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L260) | |
 | sender balance decreases by exactly gas cost plus value transferred | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L13) | |
@@ -620,7 +620,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | type 2 (EIP-1559) effectiveGasPrice = baseFee + min(priorityFee, maxFee - baseFee) | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L125) | |
 | type 2 maxFeePerGas below baseFee is rejected | [Link](./tests/pos/execution-specs/transactions/transaction-types-and-gas-pricing.bats#L170) | |
 | undelegate from a validator | [Link](./tests/pos/validator.bats#L216) | |
-| update signer | [Link](./tests/pos/validator.bats#L308) | |
+| update signer | [Link](./tests/pos/validator.bats#L334) | |
 | update validator stake | [Link](./tests/pos/validator.bats#L79) | |
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L452) | |
