@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 # bats file_tags=pos
+# shellcheck disable=SC2154  # heimdall_state_sync_count_cmd/bor_state_sync_count_cmd are defined by pos-bridge.bash
 
 # Plasma bridge tests — see ./README.md for how Plasma relates to pos-portal.
 

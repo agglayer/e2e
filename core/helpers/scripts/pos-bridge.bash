@@ -5,6 +5,10 @@
 # Assumes pos_setup() has already been called (defines L1/L2 env vars, timeout_seconds,
 # interval_seconds).
 
+# Variables set by test environment setup functions - disable shellcheck warnings
+# shellcheck disable=SC2154
+declare timeout_seconds interval_seconds
+
 # Commands that read the current state-sync counter on each side. Re-evaluated via
 # `eval` by the eventually helpers so ${L2_CL_API_URL} / ${L2_RPC_URL} are picked up
 # at the time of the call.
