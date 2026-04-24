@@ -1,4 +1,4 @@
-.PHONY: check-dependencies compile-contracts update-tests-inventory update-pos-compat-versions
+.PHONY: check-dependencies compile-contracts update-tests-inventory
 
 check-dependencies:
 	./scripts/check-dependencies.sh
@@ -14,11 +14,4 @@ compile-contracts:
 ## Updates TESTSINVENTORY.md and the test_tags section of README.md.
 update-tests-inventory:
 	./scripts/update-tests-inventory.sh
-
-## Run before opening a PR that touches PoS-related files.
-## Fetches the latest bor/erigon releases and updates scripts/pos-version-matrix/compat-versions.yml.
-## Requires a GITHUB_TOKEN env var to avoid rate limits: GITHUB_TOKEN=<pat> make update-pos-compat-versions
-update-pos-compat-versions:
-	pip install -q -r scripts/pos-version-matrix/requirements.txt
-	python3 scripts/pos-version-matrix/update-compat-versions.py
 

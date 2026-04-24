@@ -57,8 +57,6 @@ categorize_test() {
         */tests/cdk/*) echo "CDK Tests" ;;
         */tests/ethereum-hardforks/pectra/*) echo "Pectra Tests" ;;
         */tests/ethereum-hardforks/fusaka/*) echo "Fusaka Tests" ;;
-        */tests/pos/heimdall/*) echo "Heimdall Tests" ;;
-        */tests/pos/*) echo "POS Tests" ;;
         */tests/dapps/*) echo "DApps Tests" ;;
         */tests/ethereum-test-cases/*) echo "Ethereum Test Cases" ;;
         */tests/polycli-loadtests/*) echo "Load Tests" ;;
@@ -88,8 +86,6 @@ categories["CDK Erigon Tests"]=""
 categories["CDK Tests"]=""
 categories["Pectra Tests"]=""
 categories["Fusaka Tests"]=""
-categories["POS Tests"]=""
-categories["Heimdall Tests"]=""
 categories["DApps Tests"]=""
 categories["Ethereum Test Cases"]=""
 categories["Execution Layer Tests"]=""
@@ -107,10 +103,10 @@ while IFS= read -r file; do
             categories["$category"]+="$file"$'\n'
         fi
     fi
-done < <(find "$PROJECT_ROOT" -name "*.bats" -type f | sort)
+done < <(cd "$PROJECT_ROOT" && git ls-files -- '*.bats' | sed "s|^|${PROJECT_ROOT}/|" | sort)
 
 # Generate inventory for each category (only if it has files)
-for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "Fusaka Tests" "POS Tests" "Heimdall Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
+for category in "LxLy Tests" "AggLayer Tests" "CDK Erigon Tests" "CDK Tests" "Pectra Tests" "Fusaka Tests" "DApps Tests" "Ethereum Test Cases" "Execution Layer Tests" "Load Tests" "CDK OP Geth Tests" "Full System Tests" "Other Tests" "Miscellaneous Tests"; do
     if [[ -n "${categories[$category]}" ]]; then
         echo "" >> "$TEMP_INVENTORY"
         echo "## $category" >> "$TEMP_INVENTORY"
@@ -204,7 +200,7 @@ if [[ -f "$README_FILE" ]]; then
   echo -e "${GREEN}Updating README.md test_tags section...${NC}"
 
   # Generate the current sorted tag list from all .bats files.
-  new_tags=$(grep -hoR --include="*.bats" 'test_tags=[^ ]*' "$PROJECT_ROOT" \
+  new_tags=$( (cd "$PROJECT_ROOT" && git ls-files -z -- '*.bats' | xargs -0 grep -hoE 'test_tags=[^ ]*') \
     | sed 's/.*test_tags=//' | tr ',' '\n' | LC_ALL=C sort -u | sed 's/^/- /') || true
 
   # Use awk to replace the bullet-list block inside the ## test_tags section.
