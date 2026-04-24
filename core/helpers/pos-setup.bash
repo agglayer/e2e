@@ -45,84 +45,82 @@ pos_setup() {
     [[ -z "${L2_WETH_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC20_TOKEN_ADDRESS:-}" ]] ||
     [[ -z "${L2_ERC721_TOKEN_ADDRESS:-}" ]]; then
-    matic_contract_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses contractAddresses.json | jq)
+    plasma_bridge_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" plasma-bridge-addresses contractAddresses.json | jq)
 
     # L1 contract addresses.
-    export L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.GovernanceProxy')}
+    export L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.GovernanceProxy')}
     echo "L1_GOVERNANCE_PROXY_ADDRESS=${L1_GOVERNANCE_PROXY_ADDRESS}"
 
-    export L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.RootChainProxy')}
+    export L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.RootChainProxy')}
     echo "L1_ROOT_CHAIN_PROXY_ADDRESS=${L1_ROOT_CHAIN_PROXY_ADDRESS}"
 
-    export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
+    export L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.DepositManagerProxy')}
     echo "L1_DEPOSIT_MANAGER_PROXY_ADDRESS=${L1_DEPOSIT_MANAGER_PROXY_ADDRESS}"
 
-    export L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.WithdrawManagerProxy')}
+    export L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.WithdrawManagerProxy')}
     echo "L1_WITHDRAW_MANAGER_PROXY_ADDRESS=${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}"
 
-    export L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.predicates.ERC20Predicate')}
+    export L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.predicates.ERC20Predicate')}
     echo "L1_ERC20_PREDICATE_ADDRESS=${L1_ERC20_PREDICATE_ADDRESS}"
 
-    export L1_ERC721_PREDICATE_ADDRESS=${L1_ERC721_PREDICATE_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.predicates.ERC721Predicate')}
+    export L1_ERC721_PREDICATE_ADDRESS=${L1_ERC721_PREDICATE_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.predicates.ERC721Predicate')}
     echo "L1_ERC721_PREDICATE_ADDRESS=${L1_ERC721_PREDICATE_ADDRESS}"
 
-    export L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakeManagerProxy')}
+    export L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.StakeManagerProxy')}
     echo "L1_STAKE_MANAGER_PROXY_ADDRESS=${L1_STAKE_MANAGER_PROXY_ADDRESS}"
 
-    export L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.StakingInfo')}
+    export L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.StakingInfo')}
     echo "L1_STAKING_INFO_ADDRESS=${L1_STAKING_INFO_ADDRESS}"
 
-    export L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
+    export L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.tokens.MaticToken')}
     echo "L1_MATIC_TOKEN_ADDRESS=${L1_MATIC_TOKEN_ADDRESS}"
 
-    export L1_POL_TOKEN_ADDRESS=${L1_POL_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.PolToken')}
+    export L1_POL_TOKEN_ADDRESS=${L1_POL_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.tokens.PolToken')}
     echo "L1_POL_TOKEN_ADDRESS=${L1_POL_TOKEN_ADDRESS}"
 
-    export L1_ERC20_TOKEN_ADDRESS=${L1_ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.TestToken')}
+    export L1_ERC20_TOKEN_ADDRESS=${L1_ERC20_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.tokens.TestToken')}
     echo "L1_ERC20_TOKEN_ADDRESS=${L1_ERC20_TOKEN_ADDRESS}"
 
-    export L1_ERC721_TOKEN_ADDRESS=${L1_ERC721_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.RootERC721')}
+    export L1_ERC721_TOKEN_ADDRESS=${L1_ERC721_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.tokens.RootERC721')}
     echo "L1_ERC721_TOKEN_ADDRESS=${L1_ERC721_TOKEN_ADDRESS}"
 
     # L2 contract addresses.
     export L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS:-$(kurtosis files inspect "${ENCLAVE_NAME}" l2-el-genesis genesis.json | jq --raw-output '.config.bor.stateReceiverContract')}
     echo "L2_STATE_RECEIVER_ADDRESS=${L2_STATE_RECEIVER_ADDRESS}"
 
-    export L2_ERC20_TOKEN_ADDRESS=${L2_ERC20_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.TestToken')}
+    export L2_ERC20_TOKEN_ADDRESS=${L2_ERC20_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.child.tokens.TestToken')}
     echo "L2_ERC20_TOKEN_ADDRESS=${L2_ERC20_TOKEN_ADDRESS}"
 
-    export L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.RootERC721')}
+    export L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.child.tokens.RootERC721')}
     echo "L2_ERC721_TOKEN_ADDRESS=${L2_ERC721_TOKEN_ADDRESS}"
 
-    export L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.root.tokens.MaticWeth')}
+    export L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.root.tokens.MaticWeth')}
     echo "L1_WETH_TOKEN_ADDRESS=${L1_WETH_TOKEN_ADDRESS}"
 
-    export L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.MaticWeth')}
+    export L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS:-$(echo "${plasma_bridge_addresses}" | jq --raw-output '.child.tokens.MaticWeth')}
     echo "L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS}"
   fi
 
-  # pos-portal (PoS bridge) addresses — only present when the devnet deploys pos-portal.
-  # Read from the dedicated artifact; skip silently if it isn't in the enclave.
+  # pos-bridge addresses (pos-portal)
   if [[ -z "${L1_ROOT_CHAIN_MANAGER_PROXY:-}" ]] ||
     [[ -z "${L1_ERC20_PORTAL_PREDICATE_PROXY:-}" ]] ||
     [[ -z "${L1_DUMMY_ERC20:-}" ]] ||
     [[ -z "${L2_DUMMY_ERC1155:-}" ]]; then
-    if pos_portal_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses-with-pos-portal contractAddresses.json 2>/dev/null | jq); then
-      export L1_ROOT_CHAIN_MANAGER_PROXY=${L1_ROOT_CHAIN_MANAGER_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.RootChainManagerProxy')}
-      export L1_ERC20_PORTAL_PREDICATE_PROXY=${L1_ERC20_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC20PredicateProxy')}
-      export L1_ERC721_PORTAL_PREDICATE_PROXY=${L1_ERC721_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC721PredicateProxy')}
-      export L1_ERC1155_PORTAL_PREDICATE_PROXY=${L1_ERC1155_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC1155PredicateProxy')}
-      export L1_ETHER_PORTAL_PREDICATE_PROXY=${L1_ETHER_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.EtherPredicateProxy')}
-      export L1_DUMMY_ERC20=${L1_DUMMY_ERC20:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC20')}
-      export L2_DUMMY_ERC20=${L2_DUMMY_ERC20:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC20')}
-      export L1_DUMMY_ERC721=${L1_DUMMY_ERC721:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC721')}
-      export L2_DUMMY_ERC721=${L2_DUMMY_ERC721:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC721')}
-      export L1_DUMMY_ERC1155=${L1_DUMMY_ERC1155:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC1155')}
-      export L2_DUMMY_ERC1155=${L2_DUMMY_ERC1155:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC1155')}
-      export L2_MATIC_WETH=${L2_MATIC_WETH:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.MaticWETH')}
-      echo "L1_ROOT_CHAIN_MANAGER_PROXY=${L1_ROOT_CHAIN_MANAGER_PROXY}"
-      echo "L2_MATIC_WETH=${L2_MATIC_WETH}"
-    fi
+    pos_portal_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" pos-portal-addresses contractAddresses.json | jq)
+    export L1_ROOT_CHAIN_MANAGER_PROXY=${L1_ROOT_CHAIN_MANAGER_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.RootChainManagerProxy')}
+    export L1_ERC20_PORTAL_PREDICATE_PROXY=${L1_ERC20_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC20PredicateProxy')}
+    export L1_ERC721_PORTAL_PREDICATE_PROXY=${L1_ERC721_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC721PredicateProxy')}
+    export L1_ERC1155_PORTAL_PREDICATE_PROXY=${L1_ERC1155_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC1155PredicateProxy')}
+    export L1_ETHER_PORTAL_PREDICATE_PROXY=${L1_ETHER_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.EtherPredicateProxy')}
+    export L1_DUMMY_ERC20=${L1_DUMMY_ERC20:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC20')}
+    export L2_DUMMY_ERC20=${L2_DUMMY_ERC20:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC20')}
+    export L1_DUMMY_ERC721=${L1_DUMMY_ERC721:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC721')}
+    export L2_DUMMY_ERC721=${L2_DUMMY_ERC721:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC721')}
+    export L1_DUMMY_ERC1155=${L1_DUMMY_ERC1155:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC1155')}
+    export L2_DUMMY_ERC1155=${L2_DUMMY_ERC1155:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC1155')}
+    export L2_MATIC_WETH=${L2_MATIC_WETH:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.MaticWETH')}
+    echo "L1_ROOT_CHAIN_MANAGER_PROXY=${L1_ROOT_CHAIN_MANAGER_PROXY}"
+    echo "L2_MATIC_WETH=${L2_MATIC_WETH}"
   fi
 }
 

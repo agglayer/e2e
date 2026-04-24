@@ -26,7 +26,7 @@ _mint_dummy_erc20() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-eth
-@test "bridge ETH from L1 to L2 via PoS bridge and confirm MaticWETH balance increased on L2" {
+@test "bridge ETH from L1 to L2 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   initial_l1_eth=$(cast balance --rpc-url "${L1_RPC_URL}" "${address}")
@@ -48,7 +48,7 @@ _mint_dummy_erc20() {
 }
 
 # bats test_tags=withdraw,transaction-eth
-@test "withdraw ETH from L2 via PoS bridge and confirm ETH balance increased on L1" {
+@test "withdraw ETH from L2 to L1 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Seed L2 MaticWETH if empty (bridge 1 ETH in first).
@@ -93,7 +93,7 @@ _mint_dummy_erc20() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-erc20
-@test "bridge ERC20 from L1 to L2 via PoS bridge and confirm ChildERC20 balance increased on L2" {
+@test "bridge ERC20 from L1 to L2 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Ensure the deployer holds enough DummyERC20 to cover the deposit.
@@ -128,7 +128,7 @@ _mint_dummy_erc20() {
 }
 
 # bats test_tags=withdraw,transaction-erc20
-@test "withdraw ERC20 from L2 to L1 via PoS bridge and confirm DummyERC20 balance increased on L1" {
+@test "withdraw ERC20 from L2 to L1 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Seed L2 balance if needed by running a deposit first. To keep this test self-contained
@@ -180,7 +180,7 @@ _mint_dummy_erc20() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-erc721
-@test "bridge ERC721 from L1 to L2 via PoS bridge and confirm ChildERC721 ownership on L2" {
+@test "bridge ERC721 from L1 to L2 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
   # Use timestamp as tokenId to avoid collisions across reruns.
   token_id=$(( $(date +%s%N) ))
@@ -211,7 +211,7 @@ _mint_dummy_erc20() {
 }
 
 # bats test_tags=withdraw,transaction-erc721
-@test "withdraw ERC721 from L2 to L1 via PoS bridge and confirm ownership returned on L1" {
+@test "withdraw ERC721 from L2 to L1 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
   token_id=$(( $(date +%s%N) ))
 
@@ -258,7 +258,7 @@ _mint_dummy_erc20() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-erc1155
-@test "bridge ERC1155 from L1 to L2 via PoS bridge and confirm ChildERC1155 balance increased on L2" {
+@test "bridge ERC1155 from L1 to L2 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
   # Fresh id per run so balances don't leak between runs.
   id=$(( $(date +%s%N) ))
@@ -290,7 +290,7 @@ _mint_dummy_erc20() {
 }
 
 # bats test_tags=withdraw,transaction-erc1155
-@test "withdraw ERC1155 from L2 to L1 via PoS bridge and confirm balance increased on L1" {
+@test "withdraw ERC1155 from L2 to L1 via pos bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
   id=$(( $(date +%s%N) ))
   amount=100

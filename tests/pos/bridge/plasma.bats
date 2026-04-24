@@ -55,7 +55,7 @@ process_plasma_exit() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-pol
-@test "bridge POL from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2" {
+@test "bridge POL from L1 to L2 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -93,7 +93,7 @@ process_plasma_exit() {
 }
 
 # bats test_tags=bridge,transaction-matic
-@test "bridge MATIC from L1 to L2 via Plasma bridge and confirm native tokens balance increased on L2" {
+@test "bridge MATIC from L1 to L2 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -130,7 +130,7 @@ process_plasma_exit() {
 }
 
 # bats test_tags=withdraw,transaction-pol
-@test "withdraw native tokens from L2 via Plasma bridge and confirm POL balance increased on L1" {
+@test "withdraw native tokens from L2 to L1 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get initial balances and latest checkpoint ID.
@@ -202,7 +202,7 @@ process_plasma_exit() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-eth
-@test "bridge ETH from L1 to L2 via Plasma bridge and confirm MaticWeth balance increased on L2" {
+@test "bridge ETH from L1 to L2 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -238,7 +238,7 @@ process_plasma_exit() {
 }
 
 # bats test_tags=withdraw,transaction-eth
-@test "withdraw MaticWeth from L2 via Plasma bridge and confirm ETH balance increased on L1" {
+@test "withdraw MaticWeth from L2 to L1 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get initial balances and latest checkpoint ID.
@@ -312,7 +312,7 @@ process_plasma_exit() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-erc20
-@test "bridge ERC20 tokens from L1 to L2 via Plasma bridge and confirm ERC20 balance increased on L2" {
+@test "bridge ERC20 from L1 to L2 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get the initial balances.
@@ -349,7 +349,7 @@ process_plasma_exit() {
 }
 
 # bats test_tags=withdraw,transaction-erc20
-@test "withdraw ERC20 tokens from L2 to L1 via Plasma bridge and confirm ERC20 balance increased on L1" {
+@test "withdraw ERC20 from L2 to L1 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get initial balances and latest checkpoint ID.
@@ -417,7 +417,7 @@ process_plasma_exit() {
 ##############################################################################
 
 # bats test_tags=bridge,transaction-erc721
-@test "bridge ERC721 token from L1 to L2 via Plasma bridge and confirm ERC721 balance increased on L2" {
+@test "bridge ERC721 from L1 to L2 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Mint an ERC721 token.
@@ -461,7 +461,7 @@ process_plasma_exit() {
 }
 
 # bats test_tags=withdraw,transaction-erc721
-@test "withdraw ERC721 token from L2 to L1 via Plasma bridge and confirm ERC721 balance increased on L1" {
+@test "withdraw ERC721 from L2 to L1 via plasma bridge" {
   address=$(cast wallet address --private-key "${PRIVATE_KEY}")
 
   # Get a token ID owned by the address on L2.
