@@ -100,6 +100,30 @@ pos_setup() {
     export L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS:-$(echo "${matic_contract_addresses}" | jq --raw-output '.child.tokens.MaticWeth')}
     echo "L2_WETH_TOKEN_ADDRESS=${L2_WETH_TOKEN_ADDRESS}"
   fi
+
+  # pos-portal (PoS bridge) addresses — only present when the devnet deploys pos-portal.
+  # Read from the dedicated artifact; skip silently if it isn't in the enclave.
+  if [[ -z "${L1_ROOT_CHAIN_MANAGER_PROXY:-}" ]] ||
+    [[ -z "${L1_ERC20_PORTAL_PREDICATE_PROXY:-}" ]] ||
+    [[ -z "${L1_DUMMY_ERC20:-}" ]] ||
+    [[ -z "${L2_DUMMY_ERC1155:-}" ]]; then
+    if pos_portal_addresses=$(kurtosis files inspect "${ENCLAVE_NAME}" matic-contract-addresses-with-pos-portal contractAddresses.json 2>/dev/null | jq); then
+      export L1_ROOT_CHAIN_MANAGER_PROXY=${L1_ROOT_CHAIN_MANAGER_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.RootChainManagerProxy')}
+      export L1_ERC20_PORTAL_PREDICATE_PROXY=${L1_ERC20_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC20PredicateProxy')}
+      export L1_ERC721_PORTAL_PREDICATE_PROXY=${L1_ERC721_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC721PredicateProxy')}
+      export L1_ERC1155_PORTAL_PREDICATE_PROXY=${L1_ERC1155_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.ERC1155PredicateProxy')}
+      export L1_ETHER_PORTAL_PREDICATE_PROXY=${L1_ETHER_PORTAL_PREDICATE_PROXY:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.EtherPredicateProxy')}
+      export L1_DUMMY_ERC20=${L1_DUMMY_ERC20:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC20')}
+      export L2_DUMMY_ERC20=${L2_DUMMY_ERC20:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC20')}
+      export L1_DUMMY_ERC721=${L1_DUMMY_ERC721:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC721')}
+      export L2_DUMMY_ERC721=${L2_DUMMY_ERC721:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC721')}
+      export L1_DUMMY_ERC1155=${L1_DUMMY_ERC1155:-$(echo "${pos_portal_addresses}" | jq --raw-output '.root.posPortal.DummyERC1155')}
+      export L2_DUMMY_ERC1155=${L2_DUMMY_ERC1155:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.DummyERC1155')}
+      export L2_MATIC_WETH=${L2_MATIC_WETH:-$(echo "${pos_portal_addresses}" | jq --raw-output '.child.posPortal.MaticWETH')}
+      echo "L1_ROOT_CHAIN_MANAGER_PROXY=${L1_ROOT_CHAIN_MANAGER_PROXY}"
+      echo "L2_MATIC_WETH=${L2_MATIC_WETH}"
+    fi
+  fi
 }
 
 # Create and fund an ephemeral wallet. Sets ephemeral_private_key and

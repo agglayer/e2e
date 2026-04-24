@@ -1,82 +1,39 @@
 #!/usr/bin/env bats
 # bats file_tags=pos
 
+# Plasma bridge tests — see ./README.md for how Plasma relates to pos-portal.
+
 setup() {
-  # Load libraries.
-  load "../../core/helpers/pos-setup.bash"
-  load "../../core/helpers/scripts/eventually.bash"
+  load "../../../core/helpers/pos-setup.bash"
+  load "../../../core/helpers/scripts/eventually.bash"
+  load "../../../core/helpers/scripts/pos-bridge.bash"
   pos_setup
 
-  # Amount to bridge in each test.
   bridge_amount=$(cast to-unit 1ether wei)
-  echo "bridge_amount=${bridge_amount}"
-
-  # Define state sync count commands.
-  heimdall_state_sync_count_cmd='curl "${L2_CL_API_URL}/clerk/event-records/count" | jq -r ".count"'
-  bor_state_sync_count_cmd='cast call --gas-limit 15000000 --rpc-url "${L2_RPC_URL}" "${L2_STATE_RECEIVER_ADDRESS}" "lastStateId()(uint)"'
-
-  # Define timeout and interval for eventually commands.
   timeout_seconds=${TIMEOUT_SECONDS:-"180"}
   interval_seconds=${INTERVAL_SECONDS:-"10"}
-  echo "timeout_seconds=${timeout_seconds}"
-  echo "interval_seconds=${interval_seconds}"
-}
-
-function wait_for_heimdall_state_sync() {
-  state_sync_count="$1"
-  if [[ -z "${state_sync_count}" ]]; then
-    echo "Error: state_sync_count is not set."
-    exit 1
-  fi
-  if [[ -z "${heimdall_state_sync_count_cmd}" ]]; then
-    echo "Error: heimdall_state_sync_count_cmd is not set."
-    exit 1
-  fi
-
-  echo "Monitoring state syncs on Heimdall..."
-  assert_command_eventually_greater_or_equal "${heimdall_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
-}
-
-function wait_for_bor_state_sync() {
-  state_sync_count="$1"
-  if [[ -z "${state_sync_count}" ]]; then
-    echo "Error: state_sync_count is not set."
-    exit 1
-  fi
-  if [[ -z "${bor_state_sync_count_cmd}" ]]; then
-    echo "Error: bor_state_sync_count_cmd is not set."
-    exit 1
-  fi
-
-  echo "Monitoring state syncs on Bor..."
-  assert_command_eventually_greater_or_equal "${bor_state_sync_count_cmd}" $((state_sync_count + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
 # process_plasma_exit queues → waits for the exit window → calls processExits once.
+# Plasma-specific (no equivalent in pos-portal).
 #
-# Instead of a blind retry loop, it reads exitableAt from the on-chain priority queue
+# Instead of a blind retry loop, reads exitableAt from the on-chain priority queue
 # (WithdrawManager.exitsQueues(token).getMin()) and sleeps precisely until the exit
 # window opens (HALF_EXIT_PERIOD = 1s on devnet, ~7 days on mainnet), then calls
 # processExits with an explicit gas limit.
-#
-# Usage: process_plasma_exit <token_address>
-#   token_address — the L1 root token whose exit queue to check (MATIC, WETH, ERC20, ERC721…)
-function process_plasma_exit() {
+process_plasma_exit() {
   local token="$1"
 
-  # Resolve the priority queue contract for this token.
   local queue
   queue=$(cast call --rpc-url "${L1_RPC_URL}" "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" \
     "exitsQueues(address)(address)" "${token}")
   echo "Exit queue for ${token}: ${queue}"
 
-  # Read exitableAt from the queue's min-heap entry.
   local exitable_at
   exitable_at=$(cast call --rpc-url "${L1_RPC_URL}" "${queue}" "getMin()(uint256,uint256)" \
     | awk 'NR==1{print $1}')
   echo "exitableAt: ${exitable_at}"
 
-  # Compute how many seconds until the exit window opens.
   local current_ts
   current_ts=$(cast block --rpc-url "${L1_RPC_URL}" --json | jq -r '.timestamp' | xargs printf "%d\n")
   local wait_secs=$(( exitable_at - current_ts + 2 ))
@@ -91,33 +48,6 @@ function process_plasma_exit() {
   echo "Calling processExits(${token})..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" --gas-limit 500000 \
     "${L1_WITHDRAW_MANAGER_PROXY_ADDRESS}" "processExits(address)" "${token}"
-}
-
-function generate_exit_payload() {
-  local tx_hash="$1"
-  local log_index="${2:-0}"
-  # Optional 3rd arg overrides timeout; defaults to timeout_seconds.
-  # Withdraw tests pass 2*timeout_seconds because the burn tx may land just before a
-  # checkpoint boundary, requiring polycli to wait for the NEXT checkpoint (~128 blocks later).
-  local timeout="${3:-${timeout_seconds}}"
-  local deadline=$((SECONDS + timeout))
-  local payload=""
-  while [[ $SECONDS -lt $deadline ]]; do
-    echo "Trying to generate exit payload for tx ${tx_hash} (log-index=${log_index})..." >&2
-    if payload=$(polycli pos exit-proof \
-      --l1-rpc-url "${L1_RPC_URL}" \
-      --l2-rpc-url "${L2_RPC_URL}" \
-      --root-chain-address "${L1_ROOT_CHAIN_PROXY_ADDRESS}" \
-      --tx-hash "${tx_hash}" \
-      --log-index "${log_index}"); then
-      echo "${payload}"
-      return 0
-    fi
-    echo "Checkpoint not yet indexed, retrying in ${interval_seconds}s..." >&2
-    sleep "${interval_seconds}"
-  done
-  echo "Error: failed to generate exit payload for tx ${tx_hash} within ${timeout} seconds." >&2
-  return 1
 }
 
 ##############################################################################
@@ -206,10 +136,7 @@ function generate_exit_payload() {
   # Get initial balances and latest checkpoint ID.
   initial_l1_pol_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_POL_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast balance --rpc-url "${L2_RPC_URL}" "${address}")
-  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
-  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
-  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
-  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
+  initial_checkpoint_id=$(latest_checkpoint_id)
 
   echo "Initial balances and state:"
   echo "- L1 POL balance: ${initial_l1_pol_balance}"
@@ -241,14 +168,14 @@ function generate_exit_payload() {
   # Wait for a new checkpoint on L1 that covers the withdrawal block.
   # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
   echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
-  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+  wait_for_new_checkpoint "${initial_checkpoint_id}"
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   # The native token (0x1010) emits LogTransfer at log index 0 and Withdraw at log index 1, so we pass --log-index 1.
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
+  payload=$(generate_pos_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 via the ERC20Predicate contract.
   # Note: startExitWithBurntTokens is on ERC20Predicate, not on WithdrawManagerProxy.
@@ -317,10 +244,7 @@ function generate_exit_payload() {
   # Get initial balances and latest checkpoint ID.
   initial_l1_balance=$(cast balance --rpc-url "${L1_RPC_URL}" "${address}")
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_WETH_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
-  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
-  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
-  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
-  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
+  initial_checkpoint_id=$(latest_checkpoint_id)
 
   echo "Initial balances and state:"
   echo "- L1 ETH balance: ${initial_l1_balance}"
@@ -352,14 +276,14 @@ function generate_exit_payload() {
   # Wait for a new checkpoint on L1 that covers the withdrawal block.
   # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
   echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
-  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+  wait_for_new_checkpoint "${initial_checkpoint_id}"
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   # The MaticWeth contract emits: log 0 = Transfer, log 1 = Withdraw(rootToken=WETH, from, ...).
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
+  payload=$(generate_pos_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 with the generated payload.
   # ERC20Predicate handles WETH exits: it reads rootToken=WETH from the Withdraw event and queues
@@ -431,10 +355,7 @@ function generate_exit_payload() {
   # Get initial balances and latest checkpoint ID.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC20_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
-  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
-  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
-  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
-  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
+  initial_checkpoint_id=$(latest_checkpoint_id)
 
   echo "Initial balances and state:"
   echo "- L1 ERC20 balance: ${initial_l1_balance}"
@@ -465,14 +386,14 @@ function generate_exit_payload() {
   # Wait for a new checkpoint on L1 that covers the withdrawal block.
   # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
   echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
-  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+  wait_for_new_checkpoint "${initial_checkpoint_id}"
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   # The ERC20 contract emits: log 0 = Transfer, log 1 = Withdraw(rootToken=ERC20, from, ...).
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
+  payload=$(generate_pos_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 with the generated payload.
   # ERC20Predicate handles ERC20 exits: reads rootToken from the Withdraw event and queues the exit.
@@ -550,10 +471,7 @@ function generate_exit_payload() {
   # Get initial balances and latest checkpoint ID.
   initial_l1_balance=$(cast call --rpc-url "${L1_RPC_URL}" --json "${L1_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
   initial_l2_balance=$(cast call --rpc-url "${L2_RPC_URL}" --json "${L2_ERC721_TOKEN_ADDRESS}" "balanceOf(address)(uint)" "${address}" | jq --raw-output '.[0]')
-  checkpoint_count_cmd='curl -s "${L2_CL_API_URL}/checkpoints/latest" | jq --raw-output ".checkpoint.id"'
-  initial_checkpoint_id=$(eval "${checkpoint_count_cmd}")
-  # Default to 0 if no checkpoint has been produced yet (fresh enclave).
-  [[ "${initial_checkpoint_id}" == "null" ]] && initial_checkpoint_id=0
+  initial_checkpoint_id=$(latest_checkpoint_id)
 
   echo "Initial balances and state:"
   echo "- L1 ERC721 balance: ${initial_l1_balance}"
@@ -583,14 +501,14 @@ function generate_exit_payload() {
   # Wait for a new checkpoint on L1 that covers the withdrawal block.
   # This confirms validators have attested to the burn, which is a prerequisite for building a valid exit Merkle proof.
   echo "Waiting for a new checkpoint to cover L2 block ${withdraw_block}..."
-  assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_checkpoint_id + 1)) "${timeout_seconds}" "${interval_seconds}"
+  wait_for_new_checkpoint "${initial_checkpoint_id}"
 
   # Generate the exit payload for the burn transaction.
   # It includes the burn tx receipt, a Merkle proof of that receipt in the block's receipts trie, and a checkpoint proof.
   # Retried in a loop because the checkpoint may not yet be indexed by polycli even after being confirmed on L1.
   # The ERC721 contract emits: log 0 = Transfer, log 1 = Withdraw(rootToken=ERC721, tokenId).
   echo "Generating the exit payload for the burn transaction..."
-  payload=$(generate_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
+  payload=$(generate_pos_exit_payload "${withdraw_tx_hash}" 1 $((2 * timeout_seconds)))
 
   # Start the exit on L1 with the generated payload.
   # ERC721Predicate handles ERC721 exits: reads rootToken from the Withdraw event and queues the exit.

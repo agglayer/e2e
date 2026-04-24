@@ -430,6 +430,7 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - system-tx
 - trace
 - transaction-eoa
+- transaction-erc1155
 - transaction-erc20
 - transaction-erc721
 - transaction-eth
