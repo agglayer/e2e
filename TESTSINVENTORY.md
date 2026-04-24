@@ -417,15 +417,15 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | bor_getAuthor returns a valid address for latest block | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L498) | |
 | bor_getCurrentValidators returns a non-empty validator list | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L521) | |
 | bor_getSnapshot returns snapshot with validator data | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L475) | |
-| bridge ERC1155 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L261) | |
-| bridge ERC20 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L315) | |
-| bridge ERC20 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L96) | |
-| bridge ERC721 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L420) | |
-| bridge ERC721 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L183) | |
-| bridge ETH from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L205) | |
-| bridge ETH from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L29) | |
-| bridge MATIC from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L96) | |
-| bridge POL from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L58) | |
+| bridge ERC1155 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L262) | |
+| bridge ERC20 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L316) | |
+| bridge ERC20 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L97) | |
+| bridge ERC721 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L421) | |
+| bridge ERC721 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L184) | |
+| bridge ETH from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L206) | |
+| bridge ETH from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L30) | |
+| bridge MATIC from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L97) | |
+| bridge POL from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L59) | |
 | chain continues producing blocks across sprint boundaries | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L39) | |
 | chain continues producing blocks after heavy all-opcode deployment | [Link](./tests/pos/execution-specs/evm/every-opcode-coverage.bats#L677) | |
 | chain liveness maintained under transaction flood | [Link](./tests/pos/execution-specs/resilience/chain-liveness-under-stress.bats#L106) | |
@@ -629,14 +629,14 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | update validator top-up fee | [Link](./tests/pos/validator.bats#L103) | |
 | warm COINBASE access costs less than cold access to arbitrary address (EIP-3651) | [Link](./tests/pos/execution-specs/evm/evm-opcodes-cancun-shanghai-eips.bats#L452) | |
 | web3_clientVersion returns a non-empty version string | [Link](./tests/pos/execution-specs/rpc/rpc-method-conformance-and-validation.bats#L412) | |
-| withdraw ERC1155 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L293) | |
-| withdraw ERC20 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L352) | |
-| withdraw ERC20 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L131) | |
-| withdraw ERC721 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L464) | |
-| withdraw ERC721 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L214) | |
-| withdraw ETH from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L51) | |
-| withdraw MaticWeth from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L241) | |
-| withdraw native tokens from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L133) | |
+| withdraw ERC1155 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L294) | |
+| withdraw ERC20 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L353) | |
+| withdraw ERC20 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L132) | |
+| withdraw ERC721 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L465) | |
+| withdraw ERC721 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L215) | |
+| withdraw ETH from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L52) | |
+| withdraw MaticWeth from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L242) | |
+| withdraw native tokens from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L134) | |
 | withdraw validator rewards | [Link](./tests/pos/validator.bats#L286) | |
 | zero-value self-transfer: only gas consumed, nonce increments | [Link](./tests/pos/execution-specs/transactions/transaction-balance-nonce-and-replay-invariants.bats#L525) | |
 
