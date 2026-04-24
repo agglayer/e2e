@@ -1,5 +1,5 @@
 #!/bin/bash
-# Shared helpers for Polygon PoS bridge tests (both Plasma and pos-portal).
+# Shared helpers for Polygon PoS bridge tests (both plasma and pos bridge).
 # Sourced from tests/pos/bridge/*.bats via `load` in setup().
 #
 # Assumes pos_setup() has already been called (defines L1/L2 env vars, timeout_seconds,
@@ -55,8 +55,8 @@ wait_for_new_checkpoint() {
   assert_command_eventually_greater_or_equal "${checkpoint_count_cmd}" $((initial_id + 1)) "${timeout_seconds}" "${interval_seconds}"
 }
 
-# Generate the ABI-encoded exit payload for a burn tx on L2 via polycli. Both Plasma's
-# ERC20PredicateBurnOnly.startExitWithBurntTokens(bytes) and pos-portal's
+# Generate the ABI-encoded exit payload for a burn tx on L2 via polycli. Both the plasma
+# bridge's ERC20PredicateBurnOnly.startExitWithBurntTokens(bytes) and the pos bridge's
 # RootChainManager.exit(bytes) consume the same format.
 #
 # Usage: generate_pos_exit_payload <tx_hash> [log_index=0] [timeout=${timeout_seconds}]

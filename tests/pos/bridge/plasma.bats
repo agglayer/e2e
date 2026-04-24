@@ -2,7 +2,7 @@
 # bats file_tags=pos
 # shellcheck disable=SC2154  # heimdall_state_sync_count_cmd/bor_state_sync_count_cmd are defined by pos-bridge.bash
 
-# Plasma bridge tests — see ./README.md for how Plasma relates to pos-portal.
+# Plasma bridge tests — see ./README.md for how plasma relates to pos bridge.
 
 setup() {
   load "../../../core/helpers/pos-setup.bash"
@@ -16,7 +16,7 @@ setup() {
 }
 
 # process_plasma_exit queues → waits for the exit window → calls processExits once.
-# Plasma-specific (no equivalent in pos-portal).
+# Plasma-specific (no equivalent in pos bridge).
 #
 # Instead of a blind retry loop, reads exitableAt from the on-chain priority queue
 # (WithdrawManager.exitsQueues(token).getMin()) and sleeps precisely until the exit

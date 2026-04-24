@@ -9,7 +9,7 @@ Polygon PoS has always had two bridges in production, targeting different token 
 | Bridge | Governing contract on L1 | Token classes it carries | On-chain L2 representation |
 |---|---|---|---|
 | **Plasma** | `DepositManagerProxy` / `WithdrawManagerProxy` | POL, MATIC, ETH, ERC20, ERC721 | Native gas token at `0x…1010` and child copies |
-| **PoS (pos-portal)** | `RootChainManagerProxy` / `ChildChainManagerProxy` | ERC20, ERC721, ERC1155, ETH | Per-type child token contracts (`ChildERC20`, `ChildERC721`, `ChildERC1155`, `MaticWETH`) |
+| **PoS (pos bridge)** | `RootChainManagerProxy` / `ChildChainManagerProxy` | ERC20, ERC721, ERC1155, ETH | Per-type child token contracts (`ChildERC20`, `ChildERC721`, `ChildERC1155`, `MaticWETH`) |
 
 The two bridges aren't interchangeable. A given token maps to exactly one.
 
@@ -50,7 +50,7 @@ Both suites follow the same skeleton; the entry points and the withdraw path dif
 ## Files
 
 - [`plasma.bats`](./plasma.bats) — Plasma bridge suite. Covers POL, MATIC, ETH, ERC20, ERC721.
-- [`pos.bats`](./pos.bats) — PoS (pos-portal) bridge suite. Covers ETH, ERC20, ERC721, ERC1155.
+- [`pos.bats`](./pos.bats) — pos bridge suite. Covers ETH, ERC20, ERC721, ERC1155.
 
 Shared helpers (state-sync waiters, exit-payload generation, address resolution) live in `../../core/helpers/pos-setup.bash` and `../../core/helpers/scripts/eventually.bash`.
 
@@ -98,4 +98,4 @@ Withdraws take several minutes per test — each needs a fresh L1 checkpoint to 
 - **2020-2021** — `pos-portal` built to generalise the bridge for ERC20/721/1155/Ether. Two bridges co-exist ever since; each token class is assigned to one.
 - **July 2021** — typed-tx (EIP-1559) support added to `ERC20PredicateBurnOnly` / `ERC721PredicateBurnOnly` (commit `2e3d42c8`). The non-burn-only variants (`ERC20Predicate`, `ERC721Predicate`) never got the fix — they still call `toList()` on the raw typed receipt and silently revert for typed burns.
 - **September 2024** — MATIC → POL migration. POL and MATIC remain plasma-bridged; pos-portal mappings for both are zero on mainnet today. `DepositManager` was upgraded to auto-convert deposited MATIC to POL and to pay out POL on native withdraws.
-- **May 2025** — pos-portal migrated its test infra from Truffle to Hardhat. The deploy migration scripts (`scripts/1_initial_migration.js` through `5_initialize_child_chain_contracts.js`) were left in place but are no longer wired to a runner — pos-portal has no maintained end-to-end deploy path at HEAD. `kurtosis-pos` deploys it through its own Foundry-based orchestration (`pos-portal-deployer` image).
+- **May 2025** — pos-portal migrated its test infra from Truffle to Hardhat. The deploy migration scripts (`scripts/1_initial_migration.js` through `5_initialize_child_chain_contracts.js`) were left in place but are no longer wired to a runner — pos-portal has no maintained end-to-end deploy path at HEAD. `kurtosis-pos` deploys it through its own Foundry-based orchestration (`pos-contract-deployer` image).

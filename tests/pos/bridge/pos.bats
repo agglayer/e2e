@@ -2,7 +2,7 @@
 # bats file_tags=pos
 # shellcheck disable=SC2154  # heimdall_state_sync_count_cmd/bor_state_sync_count_cmd are defined by pos-bridge.bash
 
-# pos-portal (PoS) bridge tests — see ./README.md for how Plasma relates to pos-portal.
+# pos bridge tests — see ./README.md for how plasma relates to pos bridge.
 
 setup() {
   load "../../../core/helpers/pos-setup.bash"
@@ -110,7 +110,7 @@ _mint_dummy_erc20() {
 
   echo "Approving ERC20Predicate to spend DummyERC20..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_DUMMY_ERC20}" "approve(address,uint)" "${L1_ERC20_PORTAL_PREDICATE_PROXY}" "${bridge_amount}"
+    "${L1_DUMMY_ERC20}" "approve(address,uint)" "${L1_ERC20_BRIDGE_PREDICATE_PROXY}" "${bridge_amount}"
 
   echo "Calling RootChainManager.depositFor..."
   # depositData for ERC20 is abi.encode(amount) — a single uint256 word.
@@ -139,7 +139,7 @@ _mint_dummy_erc20() {
     echo "L2 balance is 0, bridging in first..."
     _mint_dummy_erc20 "${bridge_amount}"
     cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-      "${L1_DUMMY_ERC20}" "approve(address,uint)" "${L1_ERC20_PORTAL_PREDICATE_PROXY}" "${bridge_amount}"
+      "${L1_DUMMY_ERC20}" "approve(address,uint)" "${L1_ERC20_BRIDGE_PREDICATE_PROXY}" "${bridge_amount}"
     hm=$(eval "${heimdall_state_sync_count_cmd}")
     bc_=$(eval "${bor_state_sync_count_cmd}")
     deposit_data=$(cast abi-encode "f(uint256)" "${bridge_amount}")
@@ -195,7 +195,7 @@ _mint_dummy_erc20() {
 
   echo "Approving ERC721Predicate..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_DUMMY_ERC721}" "approve(address,uint)" "${L1_ERC721_PORTAL_PREDICATE_PROXY}" "${token_id}"
+    "${L1_DUMMY_ERC721}" "approve(address,uint)" "${L1_ERC721_BRIDGE_PREDICATE_PROXY}" "${token_id}"
 
   echo "Calling RootChainManager.depositFor for ERC721..."
   deposit_data=$(cast abi-encode "f(uint256)" "${token_id}")
@@ -220,7 +220,7 @@ _mint_dummy_erc20() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_DUMMY_ERC721}" "mint(uint256)" "${token_id}"
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_DUMMY_ERC721}" "approve(address,uint)" "${L1_ERC721_PORTAL_PREDICATE_PROXY}" "${token_id}"
+    "${L1_DUMMY_ERC721}" "approve(address,uint)" "${L1_ERC721_BRIDGE_PREDICATE_PROXY}" "${token_id}"
   hm=$(eval "${heimdall_state_sync_count_cmd}")
   bc_=$(eval "${bor_state_sync_count_cmd}")
   deposit_data=$(cast abi-encode "f(uint256)" "${token_id}")
@@ -274,7 +274,7 @@ _mint_dummy_erc20() {
 
   echo "setApprovalForAll on ERC1155Predicate..."
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_DUMMY_ERC1155}" "setApprovalForAll(address,bool)" "${L1_ERC1155_PORTAL_PREDICATE_PROXY}" true
+    "${L1_DUMMY_ERC1155}" "setApprovalForAll(address,bool)" "${L1_ERC1155_BRIDGE_PREDICATE_PROXY}" true
 
   echo "Calling RootChainManager.depositFor for ERC1155..."
   # depositData = abi.encode(uint256[] ids, uint256[] amounts, bytes data).
@@ -300,7 +300,7 @@ _mint_dummy_erc20() {
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
     "${L1_DUMMY_ERC1155}" "mint(address,uint256,uint256)" "${address}" "${id}" "${amount}"
   cast send --rpc-url "${L1_RPC_URL}" --private-key "${PRIVATE_KEY}" \
-    "${L1_DUMMY_ERC1155}" "setApprovalForAll(address,bool)" "${L1_ERC1155_PORTAL_PREDICATE_PROXY}" true
+    "${L1_DUMMY_ERC1155}" "setApprovalForAll(address,bool)" "${L1_ERC1155_BRIDGE_PREDICATE_PROXY}" true
   hm=$(eval "${heimdall_state_sync_count_cmd}")
   bc_=$(eval "${bor_state_sync_count_cmd}")
   deposit_data=$(cast abi-encode "f(uint256[],uint256[],bytes)" "[${id}]" "[${amount}]" "0x")
