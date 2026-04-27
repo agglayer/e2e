@@ -51,17 +51,6 @@ if [[ "${PACKAGE}" == "kurtosis-cdk" ]]; then
     export_env_var "L2_RPC_URL" "$(kurtosis port print "${ENCLAVE_NAME}" cdk-erigon-rpc-001 rpc)"
     export_env_var "L2_SEQUENCER_RPC_URL" "$(kurtosis port print "${ENCLAVE_NAME}" cdk-erigon-sequencer-001 rpc)"
 
-elif [[ "${PACKAGE}" == "kurtosis-polygon-pos" ]]; then
-    ENCLAVE_NAME="pos"
-    ARGS_FILE="https://raw.githubusercontent.com/0xPolygon/kurtosis-polygon-pos/refs/tags/${VERSION}/${ARGS_FILE}"
-    echo "ENCLAVE_NAME=${ENCLAVE_NAME}"
-    echo "ARGS_FILE=${ARGS_FILE}"
-
-    # Deploy the package.
-    kurtosis run --enclave "${ENCLAVE_NAME}" --args-file "${ARGS_FILE}" "github.com/0xPolygon/kurtosis-polygon-pos@${VERSION}"
-
-    export_env_var "L1_RPC_URL" "http://$(kurtosis port print "${ENCLAVE_NAME}" el-1-geth-lighthouse rpc)"
-
 elif [[ "${PACKAGE}" == "optimism-package" ]]; then
     ENCLAVE_NAME="op"
     ARGS_FILE="https://raw.githubusercontent.com/ethpandaops/optimism-package/${VERSION}/${ARGS_FILE}"
