@@ -296,17 +296,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | bridge ERC1155 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L262) | |
 | bridge ERC20 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L316) | |
-| bridge ERC20 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L316) | |
 | bridge ERC20 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L97) | |
-| bridge ERC721 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L421) | |
 | bridge ERC721 from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L421) | |
 | bridge ERC721 from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L184) | |
 | bridge ETH from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L206) | |
-| bridge ETH from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L206) | |
 | bridge ETH from L1 to L2 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L30) | |
 | bridge MATIC from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L97) | |
-| bridge MATIC from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L97) | |
-| bridge POL from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L59) | |
 | bridge POL from L1 to L2 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L59) | |
 | bridge transaction is indexed and autoclaimed on L2 | [Link](./tests/bridge-hub-api.bats#L14) | |
 | bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L95) | |
@@ -320,15 +315,11 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | trigger local balance tree underflow bridge revert | [Link](./tests/pessimistic/local-balance-tree-underflow.bats#L18) | |
 | withdraw ERC1155 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L294) | |
 | withdraw ERC20 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L353) | |
-| withdraw ERC20 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L353) | |
 | withdraw ERC20 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L132) | |
-| withdraw ERC721 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L465) | |
 | withdraw ERC721 from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L465) | |
 | withdraw ERC721 from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L215) | |
 | withdraw ETH from L2 to L1 via pos bridge | [Link](./tests/pos/bridge/pos.bats#L52) | |
 | withdraw MaticWeth from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L242) | |
-| withdraw MaticWeth from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L242) | |
-| withdraw native tokens from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L134) | |
 | withdraw native tokens from L2 to L1 via plasma bridge | [Link](./tests/pos/bridge/plasma.bats#L134) | |
 
 ## Kurtosis Tests
