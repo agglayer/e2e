@@ -263,17 +263,17 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L108) | |
-| Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L274) | |
-| Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L354) | |
-| Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L194) | |
-| Bridge message A → Bridge asset B → Claim asset A → Claim message B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L10) | |
-| Bridge message A → Bridge asset B → Claim message A → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L71) | |
-| Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L132) | |
+| Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L108) | **Migrated to Go** (`TestCommitteeUpdates`) — skipped for op-pessimistic |
+| Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L274) | **Migrated to Go** (`TestBridgeNightly`) — skipped for op-pessimistic |
+| Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L354) | **Migrated to Go** (`TestBridgeNightly`) — skipped for op-pessimistic |
+| Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L194) | **Migrated to Go** (`TestBridgeNightly`) — skipped for op-pessimistic |
+| Bridge message A → Bridge asset B → Claim asset A → Claim message B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L10) | **Migrated to Go** (`TestBridgeNightly`) — skipped for op-pessimistic |
+| Bridge message A → Bridge asset B → Claim message A → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L71) | **Migrated to Go** (`TestBridgeNightly`) — skipped for op-pessimistic |
+| Bridge message A → Claim message A → Bridge asset B → Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L132) | **Migrated to Go** (`TestBridgeNightly`) — skipped for op-pessimistic |
 | Custom gas token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L10) | |
 | Custom gas token withdrawal L2 -> L1 | [Link](./tests/aggkit/bridge-e2e-custom-gas.bats#L78) | |
-| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | |
-| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | |
+| ERC20 token deposit L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L33) | **Migrated to Go** (`TestBridgeCore`) — skipped for op-pessimistic |
+| ERC20 token deposit L2 -> L1 | [Link](./tests/aggkit/bridge-e2e.bats#L115) | **Migrated to Go** (`TestBridgeCore`) — skipped for op-pessimistic |
 | Inject LatestBlock-N GER - A case PP (another test) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L933) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L64) | |
 | L1 → Rollup 1 (custom gas token) → Rollup 3 -> Rollup 2 | [Link](./tests/aggkit/bridge-e2e-3-chains.bats#L196) | |
@@ -283,24 +283,24 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Modexp calls not valid for fusaka | [Link](./tests/fusaka/eip7823.bats#L62) | |
 | Modexp gas costs | [Link](./tests/fusaka/eip7883.bats#L45) | |
 | Modexp regular calls | [Link](./tests/fusaka/eip7823.bats#L42) | |
-| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L243) | |
+| Native token transfer L1 -> L2 | [Link](./tests/aggkit/bridge-e2e.bats#L243) | **Migrated to Go** (`TestBridgeCore`) — skipped for op-pessimistic |
 | RLP Execution block size limit 10M  | [Link](./tests/fusaka/eip7934.bats#L36) | |
-| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L147) | |
+| Remove single validator from committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L147) | **Migrated to Go** (`TestCommitteeUpdates`) — skipped for op-pessimistic |
 | Test Aggoracle committee | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee.bats#L10) | |
 | Test L2 to L2 bridge | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L15) | |
-| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L48) | |
+| Test Sovereign Chain Bridge Events | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L48) | **Migrated to Go** (`TestSovereignChain`) — skipped for op-pessimistic |
 | Test block gas limit increase to 60M | [Link](./tests/fusaka/eip7935.bats#L19) | |
-| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | |
-| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L212) | |
+| Test execute multiple claimMessages via testClaim with internal reentrancy and bridgeAsset call | [Link](./tests/aggkit/claim-reetrancy.bats#L472) | **Migrated to Go** (`TestClaimReentrancy`) — skipped for op-pessimistic |
+| Test inject invalid GER on L2 (bridges are valid) | [Link](./tests/aggkit/bridge-sovereign-chain-e2e.bats#L212) | **Migrated to Go** (`TestSovereignChain`) — skipped for op-pessimistic |
 | Test invalid GER injection case A (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L825) | |
 | Test invalid GER injection case A (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L716) | |
 | Test invalid GER injection case B2 (FEP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L396) | |
 | Test invalid GER injection case B2 (PP mode) | [Link](./tests/aggkit/latest-n-injected-ger.bats#L38) | |
 | Test new RPC endpoint eth_config | [Link](./tests/fusaka/eip7910.bats#L19) | |
-| Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | |
-| Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | |
-| Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L946) | |
-| Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L509) | |
+| Test reentrancy protection for bridge claims - should prevent double claiming | [Link](./tests/aggkit/claim-reetrancy.bats#L67) | **Migrated to Go** (`TestClaimReentrancy`) — skipped for op-pessimistic |
+| Test triple claim internal calls -> 1 fail (same global index), 1 success (same global index) and 1 fail (different global index) | [Link](./tests/aggkit/internal-claims.bats#L1344) | **Migrated to Go** (`TestInternalClaims`) — skipped for op-pessimistic |
+| Test triple claim internal calls -> 1 fail, 1 success and 1 fail | [Link](./tests/aggkit/internal-claims.bats#L946) | **Migrated to Go** (`TestInternalClaims`) — skipped for op-pessimistic |
+| Test triple claim internal calls -> 1 success, 1 fail and 1 success | [Link](./tests/aggkit/internal-claims.bats#L509) | **Migrated to Go** (`TestInternalClaims`) — skipped for op-pessimistic |
 | Test triple claim internal calls -> 3 success | [Link](./tests/aggkit/internal-claims.bats#L57) | |
 | Test zkCounters | [Link](./tests/zkevm/zk-counters-tests.bats#L10) | |
 | Transaction using new CLZ instruction | [Link](./tests/fusaka/eip7939.bats#L19) | |
@@ -308,7 +308,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Transfer message L2 to L2 | [Link](./tests/aggkit/bridge-e2e-2-chains.bats#L68) | |
 | Transfer message | [Link](./tests/aggkit/bridge-e2e.bats#L11) | |
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
-| Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
+| Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | **Migrated to Go** (`TestCertificateSettlement`) — skipped for op-pessimistic |
 | foo | [Link](./tests/foo.bats#L10) | |
 | p256verify call | [Link](./tests/fusaka/eip7951.bats#L46) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |

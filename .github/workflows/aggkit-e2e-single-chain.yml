@@ -182,18 +182,28 @@ jobs:
           if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-succinct-aggoracle-committee" ]]; then
             run_test ./tests/aggkit/bridge-e2e-aggoracle-committee.bats
           else
-            # Always-run tests
-            run_test ./tests/aggkit/bridge-e2e.bats
-            run_test ./tests/aggkit/e2e-pp.bats
-            run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
+            # Tests below are gated by test-name so that the op-pessimistic leg does NOT run them
+            # (they have been migrated to the Go e2e suite in aggkit/test/e2e and are now gated by
+            # test-go-e2e.yml). The op-succinct (FEP) leg still runs them since FEP migration is
+            # out of scope and the legacy bats remain the authoritative coverage there.
+            # See aggkit PR feat/migrate-e2e and issue #1524 for the migration context.
+            if [[ "${{ inputs.test-name }}" != "test-single-l2-network-op-pessimistic" ]]; then
+              # Always-run tests (migrated to Go for op-pessimistic; kept for FEP/op-succinct)
+              run_test ./tests/aggkit/bridge-e2e.bats
+              run_test ./tests/aggkit/e2e-pp.bats
+              run_test ./tests/aggkit/bridge-sovereign-chain-e2e.bats
+            fi
 
             # Extra tests, whose execution is time consuming
             if [[ "${{ inputs.execute-all-tests }}" == "true" ]]; then
               run_test ./tests/op/optimistic-mode.bats
-              run_test ./tests/aggkit/bridge-e2e-nightly.bats
-              run_test ./tests/aggkit/internal-claims.bats
-              run_test ./tests/aggkit/claim-reetrancy.bats
-              run_test ./tests/aggkit/aggsender-committee-updates.bats
+              if [[ "${{ inputs.test-name }}" != "test-single-l2-network-op-pessimistic" ]]; then
+                # Migrated to Go for op-pessimistic; kept for FEP/op-succinct
+                run_test ./tests/aggkit/bridge-e2e-nightly.bats
+                run_test ./tests/aggkit/internal-claims.bats
+                run_test ./tests/aggkit/claim-reetrancy.bats
+                run_test ./tests/aggkit/aggsender-committee-updates.bats
+              fi
             fi
           fi
 
