@@ -54,7 +54,7 @@ env:
 jobs:
   test-agglayer-node-e2e:
     name: agglayer-node-e2e
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout agglayer-e2e
         uses: actions/checkout@v6
