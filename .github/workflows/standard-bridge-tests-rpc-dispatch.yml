@@ -83,14 +83,18 @@ jobs:
       L1_FUNDED_PRIVATE_KEY: ${{ secrets.L1_FUNDED_PRIVATE_KEY }}
       L2_FUNDED_PRIVATE_KEY: ${{ secrets.L2_FUNDED_PRIVATE_KEY }}
       # Network-specific RPC endpoints from secrets
-      BALI_01_RPC_ENDPOINT: ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
-      BALI_37_RPC_ENDPOINT: ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
+      # Active target networks: bali-65-op and bali-72-op
+      BALI_65_RPC_ENDPOINT: ${{ secrets.L2_BALI_65_RPC_ENDPOINT }}
+      BALI_72_RPC_ENDPOINT: ${{ secrets.L2_BALI_72_RPC_ENDPOINT }}
+      # Disabled bali networks (re-enable with matching secrets if targeting them)
+      # BALI_01_RPC_ENDPOINT: ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
+      # BALI_37_RPC_ENDPOINT: ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
       # BALI_48_RPC_ENDPOINT: ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
-      BALI_49_RPC_ENDPOINT: ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
-      BALI_52_RPC_ENDPOINT: ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
-      BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
-      BALI_66_RPC_ENDPOINT: ${{ secrets.L2_BALI_66_RPC_ENDPOINT }}
-      BALI_68_RPC_ENDPOINT: ${{ secrets.L2_BALI_68_RPC_ENDPOINT }}
+      # BALI_49_RPC_ENDPOINT: ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
+      # BALI_52_RPC_ENDPOINT: ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
+      # BALI_57_RPC_ENDPOINT: ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+      # BALI_66_RPC_ENDPOINT: ${{ secrets.L2_BALI_66_RPC_ENDPOINT }}
+      # BALI_68_RPC_ENDPOINT: ${{ secrets.L2_BALI_68_RPC_ENDPOINT }}
       # Cardona-specific RPC endpoints from secrets
       # CARDONA_01_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_01_RPC_ENDPOINT }}
       CARDONA_48_RPC_ENDPOINT: ${{ secrets.L2_CARDONA_48_RPC_ENDPOINT }}
@@ -166,37 +170,22 @@ jobs:
           
           # Validate Bali network endpoints (if using bali environment)
           if [[ "${{ inputs.network-environment || 'spec' }}" == "bali" ]]; then
-            echo "Validating Bali-01 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
-            echo "Bali-01 chain ID validation passed"
-            
-            echo "Validating Bali-37 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
-            echo "Bali-37 chain ID validation passed"
-            
-            # echo "Validating Bali-48 endpoint..."
-            # cast chain-id --rpc-url ${{ secrets.L2_BALI_48_RPC_ENDPOINT }}
-            # echo "Bali-48 chain ID validation passed"
+            echo "Validating Bali-65 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_65_RPC_ENDPOINT }}
+            echo "Bali-65 chain ID validation passed"
 
-            echo "Validating Bali-49 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
-            echo "Bali-49 chain ID validation passed"
+            echo "Validating Bali-72 endpoint..."
+            cast chain-id --rpc-url ${{ secrets.L2_BALI_72_RPC_ENDPOINT }}
+            echo "Bali-72 chain ID validation passed"
 
-            echo "Validating Bali-52 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
-            echo "Bali-52 chain ID validation passed"
-
-            echo "Validating Bali-57 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
-            echo "Bali-57 chain ID validation passed"
-
-            echo "Validating Bali-66 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_66_RPC_ENDPOINT }}
-            echo "Bali-66 chain ID validation passed"
-
-            echo "Validating Bali-68 endpoint..."
-            cast chain-id --rpc-url ${{ secrets.L2_BALI_68_RPC_ENDPOINT }}
-            echo "Bali-68 chain ID validation passed"
+            # Disabled bali networks (validation skipped)
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_01_RPC_ENDPOINT }}
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_37_RPC_ENDPOINT }}
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_49_RPC_ENDPOINT }}
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_52_RPC_ENDPOINT }}
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_57_RPC_ENDPOINT }}
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_66_RPC_ENDPOINT }}
+            # cast chain-id --rpc-url ${{ secrets.L2_BALI_68_RPC_ENDPOINT }}
           fi
           
           # Validate Cardona network endpoints (if using cardona environment)
@@ -278,64 +267,26 @@ jobs:
           
           # Set network-specific configurations based on environment
           if [[ "$NETWORK_ENV" == "bali" ]]; then
-            # Set all Bali network configurations
-            export BALI_NETWORK_1_RPC_URL="${{ env.BALI_01_RPC_ENDPOINT }}"
-            export BALI_NETWORK_1_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-            
-            export BALI_NETWORK_37_RPC_URL="${{ env.BALI_37_RPC_ENDPOINT }}"
-            export BALI_NETWORK_37_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-            
-            # export BALI_NETWORK_48_RPC_URL="${{ env.BALI_48_RPC_ENDPOINT }}"
-            # export BALI_NETWORK_48_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            # Set active Bali network configurations: bali-65-op and bali-72-op
+            export BALI_NETWORK_65_RPC_URL="${{ env.BALI_65_RPC_ENDPOINT }}"
+            export BALI_NETWORK_65_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-            export BALI_NETWORK_49_RPC_URL="${{ env.BALI_49_RPC_ENDPOINT }}"
-            export BALI_NETWORK_49_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            export BALI_NETWORK_72_RPC_URL="${{ env.BALI_72_RPC_ENDPOINT }}"
+            export BALI_NETWORK_72_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
 
-            export BALI_NETWORK_52_RPC_URL="${{ env.BALI_52_RPC_ENDPOINT }}"
-            export BALI_NETWORK_52_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-
-            export BALI_NETWORK_57_RPC_URL="${{ env.BALI_57_RPC_ENDPOINT }}"
-            export BALI_NETWORK_57_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-
-            export BALI_NETWORK_66_RPC_URL="${{ env.BALI_66_RPC_ENDPOINT }}"
-            export BALI_NETWORK_66_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
-
-            export BALI_NETWORK_68_RPC_URL="${{ env.BALI_68_RPC_ENDPOINT }}"
-            export BALI_NETWORK_68_PRIVATE_KEY="${{ env.L2_FUNDED_PRIVATE_KEY }}"
+            # Disabled bali networks (1, 37, 48, 49, 52, 57, 66, 68) are
+            # commented out in bali-networks.env; do not re-export them here
+            # unless you also re-enable their blocks and add matching secrets.
 
             # Verify Bali environment setup
             echo "Verifying Bali environment setup:"
-            echo "Bali-01 RPC URL: ${BALI_NETWORK_1_RPC_URL:0:20}..."
-            echo "Bali-01 Bridge Address: $BALI_NETWORK_1_BRIDGE_ADDR"
-            echo "Bali-01 Bridge Service: $BALI_NETWORK_1_BRIDGE_SERVICE_URL"
-            
-            echo "Bali-37 RPC URL: ${BALI_NETWORK_37_RPC_URL:0:20}..."
-            echo "Bali-37 Bridge Address: $BALI_NETWORK_37_BRIDGE_ADDR"
-            echo "Bali-37 Bridge Service: $BALI_NETWORK_37_BRIDGE_SERVICE_URL"
-            
-            # echo "Bali-48 RPC URL: ${BALI_NETWORK_48_RPC_URL:0:20}..."
-            # echo "Bali-48 Bridge Address: $BALI_NETWORK_48_BRIDGE_ADDR"
-            # echo "Bali-48 Bridge Service: $BALI_NETWORK_48_BRIDGE_SERVICE_URL"
+            echo "Bali-65 RPC URL: ${BALI_NETWORK_65_RPC_URL:0:20}..."
+            echo "Bali-65 Bridge Address: $BALI_NETWORK_65_BRIDGE_ADDR"
+            echo "Bali-65 Bridge Service: $BALI_NETWORK_65_BRIDGE_SERVICE_URL"
 
-            echo "Bali-49 RPC URL: ${BALI_NETWORK_49_RPC_URL:0:20}..."
-            echo "Bali-49 Bridge Address: $BALI_NETWORK_49_BRIDGE_ADDR"
-            echo "Bali-49 Bridge Service: $BALI_NETWORK_49_BRIDGE_SERVICE_URL"
-
-            echo "Bali-52 RPC URL: ${BALI_NETWORK_52_RPC_URL:0:20}..."
-            echo "Bali-52 Bridge Address: $BALI_NETWORK_52_BRIDGE_ADDR"
-            echo "Bali-52 Bridge Service: $BALI_NETWORK_52_BRIDGE_SERVICE_URL"
-            
-            echo "Bali-57 RPC URL: ${BALI_NETWORK_57_RPC_URL:0:20}..."
-            echo "Bali-57 Bridge Address: $BALI_NETWORK_57_BRIDGE_ADDR"
-            echo "Bali-57 Bridge Service: $BALI_NETWORK_57_BRIDGE_SERVICE_URL"
-
-            echo "Bali-66 RPC URL: ${BALI_NETWORK_66_RPC_URL:0:20}..."
-            echo "Bali-66 Bridge Address: $BALI_NETWORK_66_BRIDGE_ADDR"
-            echo "Bali-66 Bridge Service: $BALI_NETWORK_66_BRIDGE_SERVICE_URL"
-
-            echo "Bali-68 RPC URL: ${BALI_NETWORK_68_RPC_URL:0:20}..."
-            echo "Bali-68 Bridge Address: $BALI_NETWORK_68_BRIDGE_ADDR"
-            echo "Bali-68 Bridge Service: $BALI_NETWORK_68_BRIDGE_SERVICE_URL"
+            echo "Bali-72 RPC URL: ${BALI_NETWORK_72_RPC_URL:0:20}..."
+            echo "Bali-72 Bridge Address: $BALI_NETWORK_72_BRIDGE_ADDR"
+            echo "Bali-72 Bridge Service: $BALI_NETWORK_72_BRIDGE_SERVICE_URL"
 
           elif [[ "$NETWORK_ENV" == "cardona" ]]; then
             # Set all Cardona network configurations
