@@ -55,26 +55,21 @@ _agglayer_rpc_url() {
     echo "${AGGLAYER_RPC_URL:-}"
 }
 
-# Snapshot each unique non-L1 network's latest settled certificate height and
-# epoch from Agglayer's interop RPC, appending rows to
-# <output_dir>/agglayer_settlement.csv with a phase column (start|end).
+# Global store for settlement snapshots, keyed "<phase>_<network>" -> settled height.
+declare -gA AGGLAYER_SETTLED_HEIGHTS=()
+
+# Snapshot each unique non-L1 network's latest settled certificate height from
+# Agglayer's interop RPC into AGGLAYER_SETTLED_HEIGHTS (in-memory, no file).
 # No-op (with one log line) when no Agglayer RPC URL is configured.
 #
-# Usage: _agglayer_settlement_snapshot <scenarios_file> <phase> <output_dir>
+# Usage: _agglayer_settlement_snapshot <scenarios_file> <phase>   (phase: start|end)
 _agglayer_settlement_snapshot() {
     local scenarios_file="$1"
     local phase="$2"
-    local output_dir="$3"
-    local csv="$output_dir/agglayer_settlement.csv"
 
-    if [[ ! -s "$csv" ]]; then
-        echo "phase,network,rollup_id,settled_height,epoch_number,captured_ms" > "$csv"
-    fi
-
-    local unique_networks
+    local unique_networks captured_any=false
     unique_networks=$(jq -r '.[].FromNetwork, .[].ToNetwork' "$scenarios_file" | sort -u)
 
-    local captured_any=false
     while IFS= read -r network_id; do
         [[ -n "$network_id" && "$network_id" != "0" ]] || continue
 
@@ -83,42 +78,33 @@ _agglayer_settlement_snapshot() {
         [[ -n "$rpc_url" ]] || continue
         captured_any=true
 
-        local rollup_id
+        local rollup_id height
         rollup_id=$(_get_network_config "$network_id" "network_id" 2>/dev/null || echo "$network_id")
-
-        local header height epoch
-        header=$(cast rpc --rpc-url "$rpc_url" interop_getLatestSettledCertificateHeader "$rollup_id" 2>/dev/null || echo "")
-        height=$(echo "$header" | jq -r '.height // empty' 2>/dev/null || echo "")
-        epoch=$(echo "$header" | jq -r '.epoch_number // empty' 2>/dev/null || echo "")
-
-        echo "${phase},${network_id},${rollup_id},${height:-NA},${epoch:-NA},$(_now_ms)" >> "$csv"
+        height=$(cast rpc --rpc-url "$rpc_url" interop_getLatestSettledCertificateHeader "$rollup_id" 2>/dev/null | jq -r '.height // empty' 2>/dev/null || echo "")
+        AGGLAYER_SETTLED_HEIGHTS["${phase}_${network_id}"]="${height:-NA}"
     done <<< "$unique_networks"
 
     if ! $captured_any; then
-        _log_file_descriptor "3" "ℹ️  Agglayer settlement snapshot ($phase) skipped: export AGGLAYER_RPC_URL (or <PREFIX>_AGGLAYER_RPC_URL) to record certificate settlement heights."
+        _log_file_descriptor "3" "ℹ️  Agglayer settlement metrics disabled (set AGGLAYER_RPC_URL or <PREFIX>_AGGLAYER_RPC_URL to record certificate settlement)."
     fi
 }
 
-# Print settled-certificate deltas (certs settled during the run) per network,
-# comparing the start and end phases in agglayer_settlement.csv. Emits nothing
-# when the file only has a header (Tier 2 disabled).
+# Print certificates settled during the run (end minus start settled height) per
+# network, to fd 3. Emits nothing when Tier 2 was disabled or a baseline is missing.
 _agglayer_settlement_report() {
-    local output_dir="$1"
-    local csv="$output_dir/agglayer_settlement.csv"
-    [[ -s "$csv" ]] || return 0
-
-    awk -F, '
-        NR==1 { next }
-        $1=="start" { start[$2]=$4; rid[$2]=$3 }
-        $1=="end"   { end[$2]=$4 }
-        END {
-            printed=0
-            for (net in end) {
-                if (start[net]=="" || start[net]=="NA" || end[net]=="NA") continue
-                if (!printed) { print "Certificates settled during run (Agglayer):"; printed=1 }
-                printf "  network %s (rollup %s): settled height %s -> %s (+%d)\n", net, rid[net], start[net], end[net], (end[net]-start[net])
-            }
-        }'
+    local key net start end printed=false
+    for key in "${!AGGLAYER_SETTLED_HEIGHTS[@]}"; do
+        [[ "$key" == start_* ]] || continue
+        net="${key#start_}"
+        start="${AGGLAYER_SETTLED_HEIGHTS[start_${net}]}"
+        end="${AGGLAYER_SETTLED_HEIGHTS[end_${net}]:-NA}"
+        [[ "$start" != "NA" && "$end" != "NA" ]] || continue
+        if ! $printed; then
+            _log_file_descriptor "3" "Certificates settled during run (Agglayer):"
+            printed=true
+        fi
+        _log_file_descriptor "3" "  network ${net}: settled height ${start} -> ${end} (+$((end - start)))"
+    done
 }
 
 # Print latency percentiles for a numeric column of a CSV (nearest-rank, mawk-safe).

@@ -48,9 +48,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/benchmark-helper.bash"
 # =============================================================================
 
 # Write a single scenario result line. The pipe-delimited format is:
-#   TEST_<index>|<bridge_result>|<claim_result>|<bridge_ms>|<claim_ms>|<e2e_ms>|<deposit_count>|<error_message>
-# error_message is kept last because it may itself contain '|'. Timing fields
-# are empty for early-exit failures that occur before timing starts.
+#   TEST_<index>|<bridge_result>|<claim_result>|<bridge_ms>|<claim_ms>|<e2e_ms>|<deposit_count>|<bridge_tx_hash>|<claim_tx_hash>|<error_message>
+# error_message is kept last because it may itself contain '|'. Timing / hash
+# fields are empty for early-exit failures that occur before they are known.
 _write_test_result() {
     local result_file="$1"
     local test_index="$2"
@@ -60,8 +60,12 @@ _write_test_result() {
     local claim_ms="$6"
     local e2e_ms="$7"
     local deposit_count="$8"
-    local error_message="$9"
-    echo "TEST_${test_index}|${bridge_result}|${claim_result}|${bridge_ms}|${claim_ms}|${e2e_ms}|${deposit_count}|${error_message}" > "$result_file"
+    local bridge_tx_hash="$9"
+    local claim_tx_hash="${10}"
+    local error_message="${11}"
+    # Collapse newlines so the record stays a single parseable line.
+    error_message=$(printf '%s' "$error_message" | tr '\n\r' '  ')
+    echo "TEST_${test_index}|${bridge_result}|${claim_result}|${bridge_ms}|${claim_ms}|${e2e_ms}|${deposit_count}|${bridge_tx_hash}|${claim_tx_hash}|${error_message}" > "$result_file"
 }
 
 # Add a helper function for safe cast send operations
@@ -889,7 +893,7 @@ _run_single_bridge_test() {
         xxd -p /dev/zero | tr -d "\n" | head -c 97000 > "$temp_file"
         if [[ ! -f "$temp_file" ]]; then
             _log_file_descriptor "2" "Failed to create huge metadata file"
-            _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to create metadata file"
+            _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Failed to create metadata file"
             return 1
         fi
     elif [[ "$test_meta_data" == "Max" ]]; then
@@ -904,7 +908,7 @@ _run_single_bridge_test() {
         fi
         if [[ ! -f "$temp_file" ]]; then
             _log_file_descriptor "2" "Failed to create max metadata file"
-            _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to create metadata file"
+            _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Failed to create metadata file"
             return 1
         fi
     fi
@@ -954,21 +958,21 @@ _run_single_bridge_test() {
     # Add metadata with test_index and token_type parameters
     if ! bridge_command=$(_add_metadata_to_command "$bridge_command" "$test_meta_data" "$test_index" "$test_token"); then
         _log_file_descriptor "2" "Failed to add metadata to command"
-        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to add metadata"
+        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Failed to add metadata"
         return 1
     fi
 
     # Add force update flag
     if ! bridge_command=$(_add_force_update_to_command "$bridge_command" "$test_force_update"); then
         _log_file_descriptor "2" "Failed to add force update to command"
-        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to add force update flag"
+        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Failed to add force update flag"
         return 1
     fi
 
     # Setup amount and add to command (now with metadata parameter)
     if ! bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit" "$from_network"); then
         _log_file_descriptor "2" "Failed to add amount to command"
-        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to add amount"
+        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Failed to add amount"
         return 1
     fi
 
@@ -996,6 +1000,7 @@ _run_single_bridge_test() {
     local bridge_start_ms bridge_end_ms
     local claim_start_ms="" claim_end_ms=""
     local bridge_ms="" claim_ms="" e2e_ms=""
+    local bridge_tx_hash="" claim_tx_hash=""
     bridge_start_ms=$(_now_ms)
 
     while [[ $bridge_attempt -lt $max_bridge_retries ]]; do
@@ -1246,7 +1251,8 @@ _run_single_bridge_test() {
     if [[ $bridge_status -eq 0 ]]; then
         _log_file_descriptor "2" "Bridge output: $bridge_output"
         deposit_count=$(echo "$bridge_output" | awk '/depositCount=/ {gsub(/.*depositCount=/, ""); gsub(/\x1b\[[0-9;]*m/, ""); print}')
-        _log_file_descriptor "2" "Extracted deposit count: $deposit_count"
+        bridge_tx_hash=$(echo "$bridge_output" | sed -E 's/\x1b\[[0-9;]*m//g' | sed -n 's/.*txHash=\(0x[a-fA-F0-9]*\).*/\1/p' | tail -1)
+        _log_file_descriptor "2" "Extracted deposit count: $deposit_count, bridge tx: $bridge_tx_hash"
     fi
     
     local bridge_result="FAIL"
@@ -1300,7 +1306,7 @@ _run_single_bridge_test() {
                     "Message") claim_command="$claim_command message" ;;
                     *) 
                         _log_file_descriptor "2" "Unrecognized Bridge Type for claim: $test_bridge_type"
-                        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Unrecognized Bridge Type for claim"
+                        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Unrecognized Bridge Type for claim"
                         return 1 
                         ;;
                 esac
@@ -1315,7 +1321,7 @@ _run_single_bridge_test() {
                 if [[ -z "$selected_bridge_service_url" ]]; then
                     _log_file_descriptor "2" "ERROR: Bridge service URL is empty for network $source_network_id -> $dest_network_id"
                     _log_file_descriptor "2" "Source network: $source_network_id, Destination network: $dest_network_id"
-                    _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Bridge service URL is empty - configuration error"
+                    _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "" "" "Bridge service URL is empty - configuration error"
                     return 1
                 fi
                 
@@ -1466,6 +1472,7 @@ _run_single_bridge_test() {
                     done
                 
                 claim_end_ms=$(_now_ms)
+                claim_tx_hash=$(echo "$claim_output" | sed -E 's/\x1b\[[0-9;]*m//g' | sed -n 's/.*txHash=\(0x[a-fA-F0-9]*\).*/\1/p' | tail -1)
                 _log_file_descriptor "2" "Claim command output for test $test_index: $claim_output"
 
                 # Validate claim result with array support
@@ -1595,9 +1602,9 @@ _run_single_bridge_test() {
     e2e_ms=$(_elapsed_ms "$bridge_start_ms" "${claim_end_ms:-$bridge_end_ms}")
 
     _write_test_result "$result_file" "$test_index" "$bridge_result" "$claim_result" \
-        "$bridge_ms" "$claim_ms" "$e2e_ms" "$deposit_count" "$error_message"
+        "$bridge_ms" "$claim_ms" "$e2e_ms" "$deposit_count" "$bridge_tx_hash" "$claim_tx_hash" "$error_message"
 
-    _log_file_descriptor "2" "Completed bridge test $test_index (bridge=${bridge_ms}ms claim=${claim_ms}ms e2e=${e2e_ms}ms)"
+    _log_file_descriptor "2" "Completed bridge test $test_index (bridge=${bridge_ms}ms claim=${claim_ms}ms e2e=${e2e_ms}ms tx=${bridge_tx_hash:-none})"
 }
 
 
@@ -1605,168 +1612,81 @@ _collect_and_report_results() {
     local output_dir="$1"
     local total_scenarios="$2"
     local scenarios_file="$3"
-    
+
     _log_file_descriptor "3" ""
     _log_file_descriptor "3" "Collecting and analyzing test results..."
-    
-    # Initialize counters
-    local total_tests=0 passed_bridge=0 passed_claim=0 failed_tests=0
-    
-    local summary_file="$output_dir/test_summary.txt"
-    local detailed_results="$output_dir/detailed_results.txt"
-    
-    # Create summary file header
-    {
-        echo ""
-        echo "========================================"
-        echo "       TEST RESULTS SUMMARY             "
-        echo "========================================"
-        printf "%-8s %-8s %-8s %-10s %s\n" "TEST" "BRIDGE" "CLAIM" "E2E(ms)" "ERROR"
-        echo "----------------------------------------"
-    } | tee "$summary_file" >&3
-    
-    # Create detailed results file header
-    echo "DETAILED TEST RESULTS" > "$detailed_results"
-    echo "====================" >> "$detailed_results"
-    echo "" >> "$detailed_results"
 
-    # Machine-readable per-scenario latency data for benchmarking.
-    local latencies_csv="$output_dir/latencies.csv"
-    echo "test_index,from_network,to_network,bridge_type,token,amount,metadata,deposit_count,bridge_result,claim_result,bridge_ms,claim_ms,e2e_ms" > "$latencies_csv"
-    
-    # Process each test result
+    local total_tests=0 passed_bridge=0 passed_claim=0 failed_tests=0
+
+    # Single machine-readable results file: one row per scenario, everything in it.
+    local results_csv="$output_dir/results.csv"
+    echo "test_index,from_network,to_network,bridge_type,token,amount,metadata,expected_process,expected_claim,bridge_result,claim_result,deposit_count,bridge_tx_hash,claim_tx_hash,bridge_ms,claim_ms,e2e_ms,error" > "$results_csv"
+
+    # Human-readable summary table -> console (fd 3) only; no duplicate files.
+    printf "\n%-7s %-9s %-7s %-7s %-9s %-66s %s\n" "TEST" "DIR" "BRIDGE" "CLAIM" "E2E(ms)" "BRIDGE_TX" "ERROR" >&3
+
+    local i
     for i in $(seq 0 $((total_scenarios - 1))); do
-        local result_file="/tmp/test_result_${i}.txt"
         local scenario
         scenario=$(jq -c ".[$i]" "$scenarios_file")
-        
-        # Extract scenario details for detailed report
-        local test_bridge_type
-        test_bridge_type=$(echo "$scenario" | jq -r '.BridgeType')
-        local test_token
-        test_token=$(echo "$scenario" | jq -r '.Token')
-        local test_amount
-        test_amount=$(echo "$scenario" | jq -r '.Amount')
-        local test_meta_data
-        test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
-        local expected_result_process
-        expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
-        local from_network to_network
+        local bt tok amt meta exp_p exp_c from_network to_network
+        bt=$(echo "$scenario" | jq -r '.BridgeType')
+        tok=$(echo "$scenario" | jq -r '.Token')
+        amt=$(echo "$scenario" | jq -r '.Amount')
+        meta=$(echo "$scenario" | jq -r '.MetaData')
+        exp_p=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
+        exp_c=$(echo "$scenario" | jq -r '.ExpectedResultClaim')
         from_network=$(echo "$scenario" | jq -r '.FromNetwork')
         to_network=$(echo "$scenario" | jq -r '.ToNetwork')
 
-        {
-            echo "Test $i:"
-            echo "  Bridge Type: $test_bridge_type"
-            echo "  Token: $test_token"
-            echo "  Amount: $test_amount"
-            echo "  Metadata: $test_meta_data"
-            echo "  Expected: $expected_result_process"
-        } >> "$detailed_results"
-        
+        local result_file="/tmp/test_result_${i}.txt"
+        local test_id bridge_result claim_result bridge_ms claim_ms e2e_ms deposit_count bridge_tx_hash claim_tx_hash error_msg
         if [[ -f "$result_file" ]]; then
-            local result_line
-            result_line=$(cat "$result_file")
-            local test_id bridge_result claim_result bridge_ms claim_ms e2e_ms deposit_count error_msg
-            IFS='|' read -r test_id bridge_result claim_result bridge_ms claim_ms e2e_ms deposit_count error_msg <<< "$result_line"
-
-            # Display to both console (fd 3) and summary file
-            printf "%-8s %-8s %-8s %-10s %s\n" "$test_id" "$bridge_result" "$claim_result" "${e2e_ms:-N/A}" "$error_msg" | tee -a "$summary_file" >&3
-
-            echo "  Result: $bridge_result" >> "$detailed_results"
-            echo "  Latency: bridge=${bridge_ms:-N/A}ms claim=${claim_ms:-N/A}ms e2e=${e2e_ms:-N/A}ms" >> "$detailed_results"
-            [[ -n "$error_msg" ]] && echo "  Error: $error_msg" >> "$detailed_results"
-            echo "${i},${from_network},${to_network},${test_bridge_type},${test_token},${test_amount},${test_meta_data},${deposit_count},${bridge_result},${claim_result},${bridge_ms},${claim_ms},${e2e_ms}" >> "$latencies_csv"
-            
-            total_tests=$((total_tests + 1))
-            [[ "$bridge_result" == "PASS" ]] && passed_bridge=$((passed_bridge + 1))
-            [[ "$claim_result" == "PASS" ]] && passed_claim=$((passed_claim + 1))
-            [[ "$bridge_result" == "FAIL" || "$claim_result" == "FAIL" ]] && failed_tests=$((failed_tests + 1))
+            IFS='|' read -r test_id bridge_result claim_result bridge_ms claim_ms e2e_ms deposit_count bridge_tx_hash claim_tx_hash error_msg < "$result_file"
         else
-            # Display timeout to both console and summary file
-            printf "%-8s %-8s %-8s %-10s %s\n" "TEST_$i" "TIMEOUT" "N/A" "N/A" "Test timed out or failed to complete" | tee -a "$summary_file" >&3
-            echo "  Result: TIMEOUT" >> "$detailed_results"
-            echo "${i},${from_network},${to_network},${test_bridge_type},${test_token},${test_amount},${test_meta_data},,TIMEOUT,N/A,,," >> "$latencies_csv"
-            failed_tests=$((failed_tests + 1))
-            total_tests=$((total_tests + 1))
+            bridge_result="TIMEOUT"; claim_result="N/A"
+            bridge_ms=""; claim_ms=""; e2e_ms=""; deposit_count=""; bridge_tx_hash=""; claim_tx_hash=""
+            error_msg="Test timed out or failed to complete"
         fi
-        
-        echo "" >> "$detailed_results"
+
+        total_tests=$((total_tests + 1))
+        [[ "$bridge_result" == "PASS" ]] && passed_bridge=$((passed_bridge + 1))
+        [[ "$claim_result" == "PASS" ]] && passed_claim=$((passed_claim + 1))
+        [[ "$bridge_result" != "PASS" || "$claim_result" == "FAIL" ]] && failed_tests=$((failed_tests + 1))
+
+        # Sanitize free-text fields so commas/newlines cannot break CSV columns.
+        local exp_p_csv exp_c_csv err_csv err_short
+        exp_p_csv=$(printf '%s' "$exp_p" | tr ',\n\r' ';  ')
+        exp_c_csv=$(printf '%s' "$exp_c" | tr ',\n\r' ';  ')
+        err_csv=$(printf '%s' "$error_msg" | tr ',\n\r' ';  ' | cut -c1-300)
+        printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+            "$i" "$from_network" "$to_network" "$bt" "$tok" "$amt" "$meta" "$exp_p_csv" "$exp_c_csv" \
+            "$bridge_result" "$claim_result" "$deposit_count" "$bridge_tx_hash" "$claim_tx_hash" \
+            "$bridge_ms" "$claim_ms" "$e2e_ms" "$err_csv" >> "$results_csv"
+
+        err_short=$(printf '%s' "$error_msg" | tr '\n\r' '  ' | cut -c1-60)
+        printf "%-7s %-9s %-7s %-7s %-9s %-66s %s\n" \
+            "TEST_$i" "${from_network}->${to_network}" "$bridge_result" "$claim_result" \
+            "${e2e_ms:-N/A}" "${bridge_tx_hash:-N/A}" "$err_short" >&3
     done
-    
-    # Summary footer - display to both console and file
+
     {
-        echo "----------------------------------------"
-        echo "Total Tests: $total_tests"
-        echo "Bridge Success: $passed_bridge/$total_tests"
-        echo "Claim Success: $passed_claim (out of applicable tests)"
-        echo "Failed Tests: $failed_tests"
-        echo "========================================"
-    } | tee -a "$summary_file" >&3
-    
-    # Benchmark: latency distribution + Agglayer settlement snapshot/report.
-    _agglayer_settlement_snapshot "$scenarios_file" "end" "$output_dir"
-    {
+        echo "-----------------------------------------------------------------------------"
+        echo "Total: $total_tests | Bridge PASS: $passed_bridge | Claim PASS: $passed_claim | Failed: $failed_tests"
         echo ""
-        echo "===== LATENCY (timed scenarios, milliseconds) ====="
-        echo "bridge_ms : $(_latency_percentiles "$latencies_csv" bridge_ms)"
-        echo "claim_ms  : $(_latency_percentiles "$latencies_csv" claim_ms)"
-        echo "e2e_ms    : $(_latency_percentiles "$latencies_csv" e2e_ms)"
-        _agglayer_settlement_report "$output_dir"
-    } | tee "$output_dir/latency_summary.txt" >&3
+        echo "Latency (timed scenarios, ms):"
+        echo "  bridge : $(_latency_percentiles "$results_csv" bridge_ms)"
+        echo "  claim  : $(_latency_percentiles "$results_csv" claim_ms)"
+        echo "  e2e    : $(_latency_percentiles "$results_csv" e2e_ms)"
+    } >&3
 
-    # Save test configuration for reference
-    jq '.' "$scenarios_file" > "$output_dir/test_scenarios.json"
-    
-    # Create README file
-    cat > "$output_dir/README.txt" << EOF
-Bridge Test Results - $(date)
-==============================
+    # Agglayer certificate settlement (printed only when AGGLAYER_RPC_URL is set).
+    _agglayer_settlement_snapshot "$scenarios_file" "end"
+    _agglayer_settlement_report
 
-Files in this directory:
-- test_summary.txt: Quick overview of all test results (incl. e2e latency)
-- detailed_results.txt: Detailed test scenarios with results + per-stage latency
-- latencies.csv: Machine-readable per-scenario latency data (for benchmarking)
-- latency_summary.txt: Latency percentiles + certificates settled during the run
-- agglayer_settlement.csv: Agglayer settled-cert heights (only if AGGLAYER_RPC_URL set)
-- test_scenarios.json: Original test configuration
-- bridge_test_*.log: Individual bridge test execution logs
-
-Total Tests: $total_tests
-Bridge Passed: $passed_bridge
-Claim Passed: $passed_claim
-Failed: $failed_tests
-
-Quick commands:
-  # View summary
-  cat test_summary.txt
-
-  # View detailed results
-  cat detailed_results.txt
-
-  # Debug specific test failure
-  cat bridge_test_<test_number>.log
-EOF
-    
-    # Print summary to terminal with emojis for better visibility
     _log_file_descriptor "3" ""
-    _log_file_descriptor "3" "========================================"
-    _log_file_descriptor "3" "         FINAL RESULTS                  "
-    _log_file_descriptor "3" "========================================"
-    _log_file_descriptor "3" "📊 Total Tests: $total_tests"
-    _log_file_descriptor "3" "✅ Bridge Success: $passed_bridge/$total_tests"
-    _log_file_descriptor "3" "🎯 Claim Success: $passed_claim (out of applicable)"
-    if [[ $failed_tests -gt 0 ]]; then
-        _log_file_descriptor "3" "❌ Failed Tests: $failed_tests"
-    else
-        _log_file_descriptor "3" "🎉 All tests passed!"
-    fi
-    _log_file_descriptor "3" ""
-    _log_file_descriptor "3" "📁 Results directory: $output_dir"
-    _log_file_descriptor "3" "📄 Quick summary: cat $summary_file"
-    _log_file_descriptor "3" "📋 Full details: cat $detailed_results"
-    
-    # Return failure count for test result
+    _log_file_descriptor "3" "📄 Results (one row per scenario): $results_csv"
+
     return $failed_tests
 }
 
