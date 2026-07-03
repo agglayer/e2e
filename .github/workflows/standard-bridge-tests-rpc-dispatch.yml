@@ -16,7 +16,7 @@ on:
         type: string
       network-environment:
         description: "Target network environment (bali, cardona, spec)"
-        default: "spec"
+        default: "bali"
         required: true
         type: choice
         options:
