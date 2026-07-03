@@ -39,9 +39,30 @@ source "$PROJECT_ROOT/core/helpers/logger.bash"
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/network-registry.bash"
 
+# Source the benchmark / timing helpers
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/benchmark-helper.bash"
+
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
+# Write a single scenario result line. The pipe-delimited format is:
+#   TEST_<index>|<bridge_result>|<claim_result>|<bridge_ms>|<claim_ms>|<e2e_ms>|<deposit_count>|<error_message>
+# error_message is kept last because it may itself contain '|'. Timing fields
+# are empty for early-exit failures that occur before timing starts.
+_write_test_result() {
+    local result_file="$1"
+    local test_index="$2"
+    local bridge_result="$3"
+    local claim_result="$4"
+    local bridge_ms="$5"
+    local claim_ms="$6"
+    local e2e_ms="$7"
+    local deposit_count="$8"
+    local error_message="$9"
+    echo "TEST_${test_index}|${bridge_result}|${claim_result}|${bridge_ms}|${claim_ms}|${e2e_ms}|${deposit_count}|${error_message}" > "$result_file"
+}
 
 # Add a helper function for safe cast send operations
 _safe_cast_send() {
@@ -52,36 +73,23 @@ _safe_cast_send() {
     
     local output
     local status
-    
-    # First attempt: Use EIP-1559 (non-legacy) transaction
-    # _log_file_descriptor "3" "Attempting non-legacy transaction"
+
+    # First attempt: EIP-1559 (non-legacy) transaction.
     if output=$(cast send --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
-        # _log_file_descriptor "3" "Non-legacy transaction succeeded"
-        # echo "$output"
         return 0
     else
         status=$?
-        # _log_file_descriptor "3" "Non-legacy transaction failed: $output"
-        
-        # Check if the failure is due to EIP-1559 not being supported or EIP-1559 related errors
+        # Fall back to a legacy transaction only if the failure looks EIP-1559 related.
         if echo "$output" | grep -q -E "(unsupported feature: eip1559|EIP-1559|type 2 transactions|not supported|tip higher than fee cap|priority fee higher|gasFeeCap.*tip)"; then
-            # _log_file_descriptor "3" "EIP-1559 not supported or EIP-1559 error detected, falling back to legacy transaction"
-            
-            # Second attempt: Use legacy transaction as fallback
             if output=$(cast send --legacy --rpc-url "$rpc_url" --private-key "$private_key" "${cast_args[@]}" 2>&1); then
-                # _log_file_descriptor "3" "Legacy transaction succeeded"
-                # echo "$output"
                 return 0
             else
                 local legacy_status=$?
-                # _log_file_descriptor "3" "Legacy transaction also failed: $output"
-                # echo "$output"
+                _log_file_descriptor "3" "$output"
                 return $legacy_status
             fi
         else
-            # Non-EIP-1559 related error, don't retry with legacy
-            # _log_file_descriptor "3" "Non-EIP-1559 error, not retrying"
-             _log_file_descriptor "3" "$output"
+            _log_file_descriptor "3" "$output"
             return $status
         fi
     fi
@@ -640,14 +648,12 @@ _setup_ephemeral_accounts_in_bulk() {
     fi
 
     # Bulk fund and approve ERC20 tokens to ephemeral accounts
-    # _log_file_descriptor "2" "Bulk funding and approving ERC20 tokens for $total_scenarios ephemeral accounts"
     target_address=$(cast wallet address --private-key "$target_private_key")
-    
+
     # Fund and approve LocalERC20 tokens
     if [[ -n "$test_erc20_addr" && "$test_erc20_addr" != "0x0000000000000000000000000000000000000000" ]]; then
         # Fund private key to make sure it has enough balance to approve in multicall3 transaction
         _safe_cast_send "$target_rpc_url" "$target_private_key" "$test_erc20_addr" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
-        # _log_file_descriptor "2" "Bulk funding LocalERC20 tokens ($test_erc20_addr) with approvals for bridge ($bridge_addr)"
         local erc20_fund_output
         if ! erc20_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_addr" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with LocalERC20 tokens"
@@ -660,7 +666,6 @@ _setup_ephemeral_accounts_in_bulk() {
     if [[ -n "$test_erc20_buggy_addr" && "$test_erc20_buggy_addr" != "0x0000000000000000000000000000000000000000" ]]; then
         # Fund private key to make sure it has enough balance to approve in multicall3 transaction
         _safe_cast_send "$target_rpc_url" "$target_private_key" "$test_erc20_buggy_addr" 'mint(address,uint256)' "$target_address" "$(cast max-uint)"
-        # _log_file_descriptor "2" "Bulk funding Buggy ERC20 tokens ($test_erc20_buggy_addr) with approvals for bridge ($bridge_addr)"
         local buggy_fund_output
         if ! buggy_fund_output=$(polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$test_erc20_buggy_addr" --token-amount "$(cast max-uint)" --approve-spender "$bridge_addr" --approve-amount "$(cast max-uint)" 2>&1); then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with Buggy ERC20 tokens"
@@ -679,7 +684,6 @@ _setup_ephemeral_accounts_in_bulk() {
     if [[ -n "$gas_token_address" && "$gas_token_address" != "0x0000000000000000000000000000000000000000" && "$gas_token_address" != "$custom_gas_token_addr" ]]; then
         # Fund private key to make sure it has enough balance to approve in multicall3 transaction
         _safe_cast_send "$target_rpc_url" "$target_private_key" "$gas_token_address" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
-        # _log_file_descriptor "2" "Bulk funding GasToken tokens ($gas_token_address) with approvals for bridge ($bridge_addr)"
         if ! polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$gas_token_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1; then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with GasToken tokens"
             return 1
@@ -690,72 +694,11 @@ _setup_ephemeral_accounts_in_bulk() {
     if [[ -n "$pp_weth_address" && "$pp_weth_address" != "0x0000000000000000000000000000000000000000" ]]; then
         # Fund private key to make sure it has enough balance to approve in multicall3 transaction
         _safe_cast_send "$target_rpc_url" "$target_private_key" "$pp_weth_address" 'mint(address,uint256)' $target_address 1000000000000000000000000000000
-        # _log_file_descriptor "2" "Bulk funding WETH tokens ($pp_weth_address) with approvals for bridge ($bridge_addr)"
         if ! polycli fund --rpc-url "$target_rpc_url" --number "$total_scenarios" --private-key "$target_private_key" --file /tmp/wallets-funded.json --seed "ephemeral_test" --token-address "$pp_weth_address" --token-amount 1000000000000000000000000000 --approve-spender "$bridge_addr" --approve-amount 1000000000000000000000000000 >/dev/null 2>&1; then
             _log_file_descriptor "2" "ERROR: Failed to fund ephemeral accounts with WETH tokens"
             return 1
         fi
     fi
-}
-
-_setup_single_test_account() {
-    local test_index="$1"
-    local scenario="$2"
-    
-    _log_file_descriptor "2" "Setting up account for test $test_index"
-    
-    # Extract scenario parameters including network information
-    local test_token
-    test_token=$(echo "$scenario" | jq -r '.Token')
-    local test_amount
-    test_amount=$(echo "$scenario" | jq -r '.Amount')
-    local test_meta_data
-    test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
-    local from_network
-    from_network=$(echo "$scenario" | jq -r '.FromNetwork')
-    local to_network
-    to_network=$(echo "$scenario" | jq -r '.ToNetwork')
-    
-    # Set source and destination networks based on FromNetwork and ToNetwork
-    local source_rpc_url source_network_id source_bridge_addr source_private_key
-    local dest_rpc_url dest_network_id dest_bridge_addr dest_private_key
-    
-    # Get source network configuration
-    source_rpc_url=$(_get_network_config "$from_network" "rpc_url")
-    source_network_id=$(_get_network_config "$from_network" "network_id")
-    source_bridge_addr=$(_get_network_config "$from_network" "bridge_addr")
-    source_private_key=$(_get_network_config "$from_network" "private_key")
-    
-    # Get destination network configuration
-    dest_rpc_url=$(_get_network_config "$to_network" "rpc_url")
-    dest_network_id=$(_get_network_config "$to_network" "network_id")
-    dest_bridge_addr=$(_get_network_config "$to_network" "bridge_addr")
-    dest_private_key=$(_get_network_config "$to_network" "private_key")
-    
-    _log_file_descriptor "2" "Configured for network $from_network -> network $to_network bridge setup"
-    
-    # Generate ephemeral account
-    local ephemeral_data
-    ephemeral_data=$(_generate_ephemeral_account "$test_index")
-    local ephemeral_private_key
-    ephemeral_private_key=$(echo "$ephemeral_data" | cut -d' ' -f1)
-    local ephemeral_address
-    ephemeral_address=$(echo "$ephemeral_data" | cut -d' ' -f2)
-    
-    _log_file_descriptor "2" "Generated ephemeral account for test $test_index: $ephemeral_address"
-    _log_file_descriptor "2" "Private key for ephemeral account $test_index: $ephemeral_private_key"
-    
-    # Test if ephemeral_private_key is valid
-    if [[ -z "$ephemeral_private_key" || "$ephemeral_private_key" == "0x" ]]; then
-        _log_file_descriptor "2" "Failed to generate ephemeral private key for test $test_index"
-        return 1
-    fi
-    
-    # Both token funding and approvals are now handled in bulk by _setup_ephemeral_accounts_in_bulk()
-    # No individual token setup or approval is needed here
-    
-    _log_file_descriptor "2" "Account setup completed for test $test_index (network $from_network -> $to_network) - tokens and approvals handled in bulk"
-    return 0
 }
 
 
@@ -796,9 +739,7 @@ _check_already_claimed() {
 _validate_bridge_error() {
     local expected_result="$1"
     local output="$2"
-    
-    # Check for "already claimed" patterns first - these should generally be treated as success
-    _check_already_claimed "$output"
+
     _log_file_descriptor "2" "Validating bridge error - Expected: $expected_result"
     _log_file_descriptor "2" "Bridge output: $output"
     
@@ -948,7 +889,7 @@ _run_single_bridge_test() {
         xxd -p /dev/zero | tr -d "\n" | head -c 97000 > "$temp_file"
         if [[ ! -f "$temp_file" ]]; then
             _log_file_descriptor "2" "Failed to create huge metadata file"
-            echo "TEST_$test_index|FAIL|N/A|Failed to create metadata file" > "$result_file"
+            _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to create metadata file"
             return 1
         fi
     elif [[ "$test_meta_data" == "Max" ]]; then
@@ -963,7 +904,7 @@ _run_single_bridge_test() {
         fi
         if [[ ! -f "$temp_file" ]]; then
             _log_file_descriptor "2" "Failed to create max metadata file"
-            echo "TEST_$test_index|FAIL|N/A|Failed to create metadata file" > "$result_file"
+            _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to create metadata file"
             return 1
         fi
     fi
@@ -996,34 +937,12 @@ _run_single_bridge_test() {
     fi
     bridge_command="$bridge_command --token-address $token_addr"
 
-    # Add metadata with test_index and token_type parameters
-    if ! bridge_command=$(_add_metadata_to_command "$bridge_command" "$test_meta_data" "$test_index" "$test_token"); then
-        _log_file_descriptor "2" "Failed to add metadata to command"
-        echo "TEST_$test_index|FAIL|N/A|Failed to add metadata" > "$result_file"
-        return 1
-    fi
-
-    # Add force update flag
-    if ! bridge_command=$(_add_force_update_to_command "$bridge_command" "$test_force_update"); then
-        _log_file_descriptor "2" "Failed to add force update to command"
-        echo "TEST_$test_index|FAIL|N/A|Failed to add force update flag" > "$result_file"
-        return 1
-    fi
-
-    # Setup amount and add to command (now with metadata parameter)
-    if ! bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit" "$from_network"); then
-        _log_file_descriptor "2" "Failed to add amount to command"
-        echo "TEST_$test_index|FAIL|N/A|Failed to add amount" > "$result_file"
-        return 1
-    fi
-
-    # Add final command parameters - use source bridge address and ephemeral private key
-    bridge_command="$bridge_command --bridge-address $source_bridge_addr --private-key $ephemeral_private_key"
-    
-    # Determine appropriate gas limit based on operation complexity - stay within block limits
-    local base_gas_limit=""
+    # Determine the gas limit for this scenario BEFORE building the amount flags:
+    # _setup_amount_and_add_to_command reads the numeric value out of base_gas_limit
+    # and always appends --gas-limit to the command.
+    local base_gas_limit
     if [[ "$test_meta_data" == "Max" ]]; then
-        base_gas_limit="--gas-limit 25000000"  # Reduced from 30M to stay under block limit
+        base_gas_limit="--gas-limit 25000000"   # kept under the block gas limit
     elif [[ "$test_meta_data" == "Huge" ]]; then
         base_gas_limit="--gas-limit 15000000"
     elif [[ "$test_amount" == "Max" ]]; then
@@ -1031,8 +950,32 @@ _run_single_bridge_test() {
     else
         base_gas_limit="--gas-limit 1500000"
     fi
-    
-    # Add base gas limit if not already set by amount function
+
+    # Add metadata with test_index and token_type parameters
+    if ! bridge_command=$(_add_metadata_to_command "$bridge_command" "$test_meta_data" "$test_index" "$test_token"); then
+        _log_file_descriptor "2" "Failed to add metadata to command"
+        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to add metadata"
+        return 1
+    fi
+
+    # Add force update flag
+    if ! bridge_command=$(_add_force_update_to_command "$bridge_command" "$test_force_update"); then
+        _log_file_descriptor "2" "Failed to add force update to command"
+        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to add force update flag"
+        return 1
+    fi
+
+    # Setup amount and add to command (now with metadata parameter)
+    if ! bridge_command=$(_setup_amount_and_add_to_command "$bridge_command" "$test_amount" "$ephemeral_private_key" "$test_token" "$test_index" "$test_meta_data" "$base_gas_limit" "$from_network"); then
+        _log_file_descriptor "2" "Failed to add amount to command"
+        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Failed to add amount"
+        return 1
+    fi
+
+    # Add final command parameters - use source bridge address and ephemeral private key
+    bridge_command="$bridge_command --bridge-address $source_bridge_addr --private-key $ephemeral_private_key"
+
+    # Safety net: ensure a gas limit is present (the amount helper normally adds one).
     if [[ ! "$bridge_command" =~ --gas-limit ]]; then
         bridge_command="$bridge_command $base_gas_limit"
     fi
@@ -1047,7 +990,14 @@ _run_single_bridge_test() {
     local max_bridge_retries=3
     local bridge_attempt=0
     local retry_bridge=false
-    
+
+    # Benchmark timing (epoch ms). bridge_* brackets deposit submission+receipt;
+    # claim_* brackets the wait-for-claimable + claim (gated by Agglayer settlement).
+    local bridge_start_ms bridge_end_ms
+    local claim_start_ms="" claim_end_ms=""
+    local bridge_ms="" claim_ms="" e2e_ms=""
+    bridge_start_ms=$(_now_ms)
+
     while [[ $bridge_attempt -lt $max_bridge_retries ]]; do
         bridge_attempt=$((bridge_attempt + 1))
         _log_file_descriptor "2" "Bridge attempt $bridge_attempt for test $test_index"
@@ -1285,11 +1235,13 @@ _run_single_bridge_test() {
         fi
     fi
     
+    bridge_end_ms=$(_now_ms)
+
     _log_file_descriptor "2" "Bridge command completed for test $test_index with status $bridge_status"
     if [[ $bridge_status -ne 0 ]]; then
         _log_file_descriptor "2" "Bridge output: $bridge_output"
     fi
-    
+
     local deposit_count=""
     if [[ $bridge_status -eq 0 ]]; then
         _log_file_descriptor "2" "Bridge output: $bridge_output"
@@ -1348,7 +1300,7 @@ _run_single_bridge_test() {
                     "Message") claim_command="$claim_command message" ;;
                     *) 
                         _log_file_descriptor "2" "Unrecognized Bridge Type for claim: $test_bridge_type"
-                        echo "TEST_$test_index|FAIL|N/A|Unrecognized Bridge Type for claim" > "$result_file"
+                        _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Unrecognized Bridge Type for claim"
                         return 1 
                         ;;
                 esac
@@ -1363,7 +1315,7 @@ _run_single_bridge_test() {
                 if [[ -z "$selected_bridge_service_url" ]]; then
                     _log_file_descriptor "2" "ERROR: Bridge service URL is empty for network $source_network_id -> $dest_network_id"
                     _log_file_descriptor "2" "Source network: $source_network_id, Destination network: $dest_network_id"
-                    echo "TEST_$test_index|FAIL|N/A|Bridge service URL is empty - configuration error" > "$result_file"
+                    _write_test_result "$result_file" "$test_index" FAIL N/A "" "" "" "" "Bridge service URL is empty - configuration error"
                     return 1
                 fi
                 
@@ -1374,6 +1326,7 @@ _run_single_bridge_test() {
                 local claim_output claim_status
                 local max_claim_retries=5  # Increased from 3 to handle Merkle proof retrieval delays
                 local claim_attempt=0
+                claim_start_ms=$(_now_ms)
 
                 while [[ $claim_attempt -lt $max_claim_retries ]]; do
                         claim_attempt=$((claim_attempt + 1))
@@ -1512,6 +1465,7 @@ _run_single_bridge_test() {
                         fi
                     done
                 
+                claim_end_ms=$(_now_ms)
                 _log_file_descriptor "2" "Claim command output for test $test_index: $claim_output"
 
                 # Validate claim result with array support
@@ -1631,11 +1585,19 @@ _run_single_bridge_test() {
     
     # Clean up temporary files for this test
     rm -f "/tmp/huge_data_${test_index}.hex" "/tmp/max_data_${test_index}.hex"
-    
-    # Write result to file
-    echo "TEST_$test_index|$bridge_result|$claim_result|$error_message" > "$result_file"
-    
-    _log_file_descriptor "2" "Completed bridge test $test_index"
+
+    # Compute benchmark latencies (ms). e2e spans deposit submission -> claim
+    # confirmed (or -> bridge completion when no claim was executed).
+    bridge_ms=$(_elapsed_ms "$bridge_start_ms" "$bridge_end_ms")
+    if [[ -n "$claim_start_ms" && -n "$claim_end_ms" ]]; then
+        claim_ms=$(_elapsed_ms "$claim_start_ms" "$claim_end_ms")
+    fi
+    e2e_ms=$(_elapsed_ms "$bridge_start_ms" "${claim_end_ms:-$bridge_end_ms}")
+
+    _write_test_result "$result_file" "$test_index" "$bridge_result" "$claim_result" \
+        "$bridge_ms" "$claim_ms" "$e2e_ms" "$deposit_count" "$error_message"
+
+    _log_file_descriptor "2" "Completed bridge test $test_index (bridge=${bridge_ms}ms claim=${claim_ms}ms e2e=${e2e_ms}ms)"
 }
 
 
@@ -1659,7 +1621,7 @@ _collect_and_report_results() {
         echo "========================================"
         echo "       TEST RESULTS SUMMARY             "
         echo "========================================"
-        printf "%-8s %-8s %-8s %s\n" "TEST" "BRIDGE" "CLAIM" "ERROR"
+        printf "%-8s %-8s %-8s %-10s %s\n" "TEST" "BRIDGE" "CLAIM" "E2E(ms)" "ERROR"
         echo "----------------------------------------"
     } | tee "$summary_file" >&3
     
@@ -1667,6 +1629,10 @@ _collect_and_report_results() {
     echo "DETAILED TEST RESULTS" > "$detailed_results"
     echo "====================" >> "$detailed_results"
     echo "" >> "$detailed_results"
+
+    # Machine-readable per-scenario latency data for benchmarking.
+    local latencies_csv="$output_dir/latencies.csv"
+    echo "test_index,from_network,to_network,bridge_type,token,amount,metadata,deposit_count,bridge_result,claim_result,bridge_ms,claim_ms,e2e_ms" > "$latencies_csv"
     
     # Process each test result
     for i in $(seq 0 $((total_scenarios - 1))); do
@@ -1685,7 +1651,10 @@ _collect_and_report_results() {
         test_meta_data=$(echo "$scenario" | jq -r '.MetaData')
         local expected_result_process
         expected_result_process=$(echo "$scenario" | jq -r '.ExpectedResultProcess')
-        
+        local from_network to_network
+        from_network=$(echo "$scenario" | jq -r '.FromNetwork')
+        to_network=$(echo "$scenario" | jq -r '.ToNetwork')
+
         {
             echo "Test $i:"
             echo "  Bridge Type: $test_bridge_type"
@@ -1698,13 +1667,16 @@ _collect_and_report_results() {
         if [[ -f "$result_file" ]]; then
             local result_line
             result_line=$(cat "$result_file")
-            IFS='|' read -r test_id bridge_result claim_result error_msg <<< "$result_line"
-            
+            local test_id bridge_result claim_result bridge_ms claim_ms e2e_ms deposit_count error_msg
+            IFS='|' read -r test_id bridge_result claim_result bridge_ms claim_ms e2e_ms deposit_count error_msg <<< "$result_line"
+
             # Display to both console (fd 3) and summary file
-            printf "%-8s %-8s %-8s %s\n" "$test_id" "$bridge_result" "$claim_result" "$error_msg" | tee -a "$summary_file" >&3
-            
+            printf "%-8s %-8s %-8s %-10s %s\n" "$test_id" "$bridge_result" "$claim_result" "${e2e_ms:-N/A}" "$error_msg" | tee -a "$summary_file" >&3
+
             echo "  Result: $bridge_result" >> "$detailed_results"
+            echo "  Latency: bridge=${bridge_ms:-N/A}ms claim=${claim_ms:-N/A}ms e2e=${e2e_ms:-N/A}ms" >> "$detailed_results"
             [[ -n "$error_msg" ]] && echo "  Error: $error_msg" >> "$detailed_results"
+            echo "${i},${from_network},${to_network},${test_bridge_type},${test_token},${test_amount},${test_meta_data},${deposit_count},${bridge_result},${claim_result},${bridge_ms},${claim_ms},${e2e_ms}" >> "$latencies_csv"
             
             total_tests=$((total_tests + 1))
             [[ "$bridge_result" == "PASS" ]] && passed_bridge=$((passed_bridge + 1))
@@ -1712,8 +1684,9 @@ _collect_and_report_results() {
             [[ "$bridge_result" == "FAIL" || "$claim_result" == "FAIL" ]] && failed_tests=$((failed_tests + 1))
         else
             # Display timeout to both console and summary file
-            printf "%-8s %-8s %-8s %s\n" "TEST_$i" "TIMEOUT" "N/A" "Test timed out or failed to complete" | tee -a "$summary_file" >&3
+            printf "%-8s %-8s %-8s %-10s %s\n" "TEST_$i" "TIMEOUT" "N/A" "N/A" "Test timed out or failed to complete" | tee -a "$summary_file" >&3
             echo "  Result: TIMEOUT" >> "$detailed_results"
+            echo "${i},${from_network},${to_network},${test_bridge_type},${test_token},${test_amount},${test_meta_data},,TIMEOUT,N/A,,," >> "$latencies_csv"
             failed_tests=$((failed_tests + 1))
             total_tests=$((total_tests + 1))
         fi
@@ -1731,6 +1704,17 @@ _collect_and_report_results() {
         echo "========================================"
     } | tee -a "$summary_file" >&3
     
+    # Benchmark: latency distribution + Agglayer settlement snapshot/report.
+    _agglayer_settlement_snapshot "$scenarios_file" "end" "$output_dir"
+    {
+        echo ""
+        echo "===== LATENCY (timed scenarios, milliseconds) ====="
+        echo "bridge_ms : $(_latency_percentiles "$latencies_csv" bridge_ms)"
+        echo "claim_ms  : $(_latency_percentiles "$latencies_csv" claim_ms)"
+        echo "e2e_ms    : $(_latency_percentiles "$latencies_csv" e2e_ms)"
+        _agglayer_settlement_report "$output_dir"
+    } | tee "$output_dir/latency_summary.txt" >&3
+
     # Save test configuration for reference
     jq '.' "$scenarios_file" > "$output_dir/test_scenarios.json"
     
@@ -1740,8 +1724,11 @@ Bridge Test Results - $(date)
 ==============================
 
 Files in this directory:
-- test_summary.txt: Quick overview of all test results
-- detailed_results.txt: Detailed test scenarios with results
+- test_summary.txt: Quick overview of all test results (incl. e2e latency)
+- detailed_results.txt: Detailed test scenarios with results + per-stage latency
+- latencies.csv: Machine-readable per-scenario latency data (for benchmarking)
+- latency_summary.txt: Latency percentiles + certificates settled during the run
+- agglayer_settlement.csv: Agglayer settled-cert heights (only if AGGLAYER_RPC_URL set)
 - test_scenarios.json: Original test configuration
 - bridge_test_*.log: Individual bridge test execution logs
 
@@ -1885,10 +1872,9 @@ _get_bridge_service_url() {
         echo "$kurtosis_net2_bridge_service"
         return 0
     fi
-    
-    if [[ -z "${bridge_service_url:-}" ]]; then
-        _log_file_descriptor "2" "ERROR: No bridge service URL found for network $network_id"
-        _log_file_descriptor "2" "ERROR: Please ensure NETWORK_ENVIRONMENT is set correctly and the network's .env file is sourced"
-        return 1
-    fi
+
+    # Reached only when no configured (or Kurtosis) bridge service URL matched.
+    _log_file_descriptor "2" "ERROR: No bridge service URL found for network $network_id"
+    _log_file_descriptor "2" "ERROR: Ensure NETWORK_ENVIRONMENT is set and the network's .env file is sourced"
+    return 1
 }

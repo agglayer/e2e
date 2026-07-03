@@ -284,6 +284,11 @@ _calculate_test_erc20_address() {
     
     local successful_count=${#successful_setups[@]}
     
+    # Benchmark: record the Agglayer settled-certificate baseline right before the
+    # bridge run (no-op with a log line unless AGGLAYER_RPC_URL / <PREFIX>_AGGLAYER_RPC_URL
+    # is set). The matching "end" snapshot is taken in _collect_and_report_results.
+    _agglayer_settlement_snapshot "$scenarios_file" "start" "$output_dir"
+
     # ========================================
     # PARALLEL BRIDGE TESTS PHASE
     # ========================================
