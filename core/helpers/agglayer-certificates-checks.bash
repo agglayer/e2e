@@ -9,6 +9,15 @@ check_null() {
     [[ -z "$1" || "$1" == "null" ]]
 }
 
+# Resolve the agglayer read-RPC URL. Prefers the AGGLAYER_READRPC_URL override, which is required
+# after the agglayer container is relaunched outside Kurtosis (e.g. during an image-upgrade
+# scenario, when `kurtosis port print` can no longer see the container). When the override is
+# unset, falls back to querying the running Kurtosis enclave, preserving the previous behavior for
+# all existing callers.
+_agglayer_readrpc_url() {
+    echo "${AGGLAYER_READRPC_URL:-$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)}"
+}
+
 # Generic function to wait for a condition with retry and timeout
 wait_for_condition() {
     local check_type="$1"  # e.g., null_cert, non_null_cert, block_increase, settled_cert
@@ -30,9 +39,9 @@ wait_for_condition() {
             "null_cert"|"non_null_cert"|"settled_cert")
                 local output
                 if [[ "$check_type" == "settled_cert" ]]; then
-                    output=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq '.' 2>/dev/null)
+                    output=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestSettledCertificateHeader 1 | jq '.' 2>/dev/null)
                 else
-                    output=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null)
+                    output=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null)
                 fi
 
                 case "$check_type" in
@@ -55,14 +64,14 @@ wait_for_condition() {
             "block_increase")
                 # Only set first_block once, outside the retry loop
                 if [[ -z "$first_block" ]]; then
-                    first_block=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+                    first_block=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
                     echo "Initial block: $first_block" >&"$output_file"
                 fi
 
                 sleep "$retry_interval"
 
                 local second_block
-                second_block=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
+                second_block=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestSettledCertificateHeader 1 | jq -r '.metadata' | perl -e '$_=<>; s/^\s+|\s+$//g; s/^0x//; $_=pack("H*",$_); my ($v,$f,$o,$c)=unpack("C Q> L> L>",$_); printf "{\"v\":%d,\"f\":%d,\"o\":%d,\"c\":%d}\n", $v, $f, $o, $c' | jq '.f + .o')
                 echo "Latest block: $second_block" >&"$output_file"
 
                 if [[ "$second_block" -gt "$first_block" ]]; then
@@ -75,14 +84,14 @@ wait_for_condition() {
             "height_increase")
                 # Only set first_height once, outside the retry loop
                 if [[ -z "$first_height" ]]; then
-                    first_height=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
+                    first_height=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
                     echo "Initial height: $first_height" >&"$output_file"
                 fi
 
                 sleep "$retry_interval"
 
                 local second_height
-                second_height=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
+                second_height=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestSettledCertificateHeader 1 | jq -r '.height')
                 echo "Latest height: $second_height" >&"$output_file"
 
                 if [[ "$second_height" -gt "$first_height" ]]; then
@@ -137,12 +146,14 @@ print_settlement_info() {
 
     # Fetch VerifyPessimisticStateTransition events
     echo "VerifyPessimisticStateTransition(uint32,bytes32,bytes32,bytes32,bytes32,bytes32,address) events recorded: " >&3
+    # shellcheck disable=SC2327,SC2328  # pre-existing: events output intentionally goes to the log fd (3)
     if ! events=$(cast logs --json --rpc-url "$l1_rpc_url" --address "$rollup_manager_address" 0xdf47e7dbf79874ec576f516c40bc1483f7c8ddf4b45bfd4baff4650f1229a711 2>&1 | jq '.' >&3); then
         echo "Error: Failed to fetch VerifyPessimisticStateTransition events: $events" >&3
     fi
 
     # Fetch OutputProposed events
     echo "OutputProposed(bytes32,uint256,uint256,uint256) events recorded: " >&3
+    # shellcheck disable=SC2327,SC2328  # pre-existing: events output intentionally goes to the log fd (3)
     if ! events=$(cast logs --json --rpc-url "$l1_rpc_url" --address "$rollup_address" 0xa7aaf2512769da4e444e3de247be2564225c2e7a8f74cfe528e46e17d24868e2 2>&1 | jq '.' >&3); then
         echo "Error: Failed to fetch OutputProposed events: $events" >&3
     fi
@@ -159,7 +170,7 @@ wait_for_null_cert() {
 
 check_for_null_cert() {
     local output
-    output=$(cast rpc --rpc-url "$(kurtosis port print "${kurtosis_enclave_name-""}" agglayer aglr-readrpc)" interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null)
+    output=$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestPendingCertificateHeader 1 | jq '.' 2>/dev/null)
     if check_null "$output"; then
         echo "Null latest pending certificate confirmed" >&3
         return 0
