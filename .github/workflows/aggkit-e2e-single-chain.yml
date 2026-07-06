@@ -64,6 +64,12 @@ on:
         type: boolean
         default: true
 
+      aggkit-config-artifact:
+        description: "Optional artifact name holding aggkit-owned kurtosis config templates (aggkit-config.template.toml / aggkit-cdk-config.template.toml). When set, they are overlaid on kurtosis-cdk's static_files before the package runs, letting aggkit own its e2e config without a kurtosis-cdk change."
+        required: false
+        type: string
+        default: ""
+
 permissions:
   contents: read
   packages: write
@@ -130,6 +136,27 @@ jobs:
           fi
           echo '${{ inputs.kurtosis-cdk-args }}'
           echo '${{ inputs.kurtosis-cdk-args }}' | jq --arg img '${{ inputs.docker-image-override }}' --arg tag '${{ inputs.docker-tag }}' '.args[$img] = $tag' | tee /tmp/kurtosis-args.json
+
+      # Let aggkit own its e2e config: overlay the aggkit-provided config
+      # templates onto kurtosis-cdk's static_files before the package renders
+      # them. No-op when the input is unset (other consumers are unaffected).
+      - name: Download aggkit config override
+        if: inputs.aggkit-config-artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.aggkit-config-artifact }}
+          path: /tmp/aggkit-config
+      - name: Apply aggkit config override
+        if: inputs.aggkit-config-artifact != ''
+        run: |
+          set -eo pipefail
+          dst=kurtosis-cdk/static_files/chain/shared/aggkit
+          cp /tmp/aggkit-config/aggkit-config.template.toml "$dst/config.toml"
+          if [[ -f /tmp/aggkit-config/aggkit-cdk-config.template.toml ]]; then
+            cp /tmp/aggkit-config/aggkit-cdk-config.template.toml "$dst/cdk-config.toml"
+          fi
+          echo "Applied aggkit-owned config templates over kurtosis-cdk static_files:"
+          ls -l "$dst"
 
       - name: Startup the kurtosis-cdk package
         run: |
