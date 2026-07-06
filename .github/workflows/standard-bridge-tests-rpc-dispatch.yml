@@ -226,6 +226,56 @@ jobs:
             exit 1
           fi
 
+      - name: Validate root wallet funding
+        run: |
+          pushd agglayer-e2e || exit 1
+
+          NETWORK_ENV="${{ inputs.network-environment || 'spec' }}"
+          export NETWORK_ENVIRONMENT="$NETWORK_ENV"
+
+          # Load committed network config (for any static values), then override
+          # RPC endpoints and funded keys from secrets. Only the RPC + private-key
+          # subset the balance check needs is exported here. NOTE: keep the active
+          # networks below in sync with the "Run e2e tests" step.
+          CONFIG_FILE="tests/lxly/bridge-tests-suite-assets/networks/${NETWORK_ENV}-networks.env"
+          if [[ -f "$CONFIG_FILE" ]]; then
+            set -a
+            source "$CONFIG_FILE"
+            set +a
+          fi
+
+          # Reference the job-level env vars directly ($VAR), NOT via ${{ }}
+          # interpolation, so secret values are never spliced into this script's
+          # source (avoids the standard Actions shell-injection surface).
+          # L1 (network 0)
+          export SEPOLIA_RPC_URL="$SEPOLIA_RPC_ENDPOINT"
+          export SEPOLIA_PRIVATE_KEY="$L1_FUNDED_PRIVATE_KEY"
+
+          # L2 networks (RPC + funded key only)
+          if [[ "$NETWORK_ENV" == "bali" ]]; then
+            export BALI_NETWORK_65_RPC_URL="$BALI_65_RPC_ENDPOINT"
+            export BALI_NETWORK_65_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+            export BALI_NETWORK_72_RPC_URL="$BALI_72_RPC_ENDPOINT"
+            export BALI_NETWORK_72_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+          elif [[ "$NETWORK_ENV" == "cardona" ]]; then
+            export CARDONA_NETWORK_48_RPC_URL="$CARDONA_48_RPC_ENDPOINT"
+            export CARDONA_NETWORK_48_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+            export CARDONA_NETWORK_50_RPC_URL="$CARDONA_50_RPC_ENDPOINT"
+            export CARDONA_NETWORK_50_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+            export CARDONA_NETWORK_51_RPC_URL="$CARDONA_51_RPC_ENDPOINT"
+            export CARDONA_NETWORK_51_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+            export CARDONA_NETWORK_52_RPC_URL="$CARDONA_52_RPC_ENDPOINT"
+            export CARDONA_NETWORK_52_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+          elif [[ "$NETWORK_ENV" == "spec" ]]; then
+            export SPEC_NETWORK_1_RPC_URL="$SPEC_01_RPC_ENDPOINT"
+            export SPEC_NETWORK_1_PRIVATE_KEY="$L2_FUNDED_PRIVATE_KEY"
+          fi
+
+          # Headroom over the raw drip requirement (default 1.2x). Override if needed:
+          # export FUNDING_CHECK_MARGIN_PCT=120
+          bash tests/lxly/bridge-tests-suite-assets/helpers/check-root-wallet-funding.bash
+          popd
+
       - name: Run e2e tests
         run: |
           pushd agglayer-e2e || exit 1
