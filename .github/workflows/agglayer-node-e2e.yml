@@ -43,6 +43,18 @@ on:
         type: string
         default: "cdk"
 
+      bats-files:
+        description: "Space-separated list of bats test files to run"
+        required: false
+        type: string
+        default: "tests/agglayer/bridges.bats tests/agglayer/rpc-tests.bats"
+
+      bats-filter-tags:
+        description: "Value passed to bats --filter-tags"
+        required: false
+        type: string
+        default: "agglayer"
+
 permissions:
   contents: read
   packages: write
@@ -123,6 +135,9 @@ jobs:
           popd
 
       - name: Run e2e tests
+        env:
+          BATS_FILES: ${{ inputs.bats-files }}
+          BATS_FILTER_TAGS: ${{ inputs.bats-filter-tags }}
         run: |
           pushd agglayer-e2e || exit 1
           set -a
@@ -131,7 +146,8 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats tests/agglayer/bridges.bats tests/agglayer/rpc-tests.bats --filter-tags agglayer
+          # shellcheck disable=SC2086  # BATS_FILES is intentionally unquoted to word-split the file list
+          bats $BATS_FILES --filter-tags "$BATS_FILTER_TAGS"
           popd
 
       - name: Dump enclave logs
