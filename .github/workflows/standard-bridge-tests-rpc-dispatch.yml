@@ -244,9 +244,10 @@ jobs:
             set +a
           fi
 
-          # Reference the job-level env vars directly ($VAR), NOT via ${{ }}
-          # interpolation, so secret values are never spliced into this script's
-          # source (avoids the standard Actions shell-injection surface).
+          # Reference the job-level env vars directly ($VAR), NOT via GitHub
+          # Actions expression interpolation, so secret values are never spliced
+          # into this script's source (avoids the standard Actions shell-injection
+          # surface).
           # L1 (network 0)
           export SEPOLIA_RPC_URL="$SEPOLIA_RPC_ENDPOINT"
           export SEPOLIA_PRIVATE_KEY="$L1_FUNDED_PRIVATE_KEY"
