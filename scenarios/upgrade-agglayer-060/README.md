@@ -8,16 +8,26 @@ and after** the upgrade.
 This exercises the real `0.5.x -> 0.6` storage-schema migration (the settlement column families
 are created on first open of the 0.5.x RocksDB) while keeping the rest of the network running.
 
-## The inflight-settlement guard
+## The settlement gate (`QUIESCE_BEFORE_UPGRADE`)
 
-`0.6.0-rc.2` does **not** migrate a pre-phase-1 *inflight* settlement across a restart (that fix
-lands in a later rc). A certificate mid-settlement at restart would stall the network. The
-scenario therefore **quiesces settlement before the swap**: it stops the aggsender (`aggkit-001`)
-so no new certificates are produced, then blocks until the latest pending certificate is `null`.
-If it cannot drain within `QUIESCE_TIMEOUT`, it refuses to upgrade.
+A 0.5.x agglayer node does not record settlement **job-ids** (those columns are new in 0.6). When
+you swap a 0.5.1 node to 0.6.0-rc.4 while a certificate is **mid-settlement** (state `Candidate`
+with a settlement tx already submitted), rc.4's startup recovery scan finds no job-id to resume and
+the certificate orchestrator hard-errors — `"Candidate certificate has no settlement job id"` — so
+that certificate is parked in `InError` and settlement stalls at that height. (Verified on rc.4:
+the DB schema migration and the *backlog* resume fine; only an actively-settling carry-over cert
+breaks.)
 
-Once a with-migration rc (e.g. rc.3) is available, point `AGGLAYER_IMAGE_RC` at it and relax the
-quiesce gate to also cover the inflight-migration path.
+The scenario therefore **quiesces settlement before the swap by default**
+(`QUIESCE_BEFORE_UPGRADE=true`): it stops the aggsender (`aggkit-001`) so no new certificates are
+produced, then blocks until the latest pending certificate is `null`, refusing to upgrade if it
+cannot drain within `QUIESCE_TIMEOUT`. This is the safe, supported 0.5.1 → 0.6.0-rc.4 path.
+
+Set `QUIESCE_BEFORE_UPGRADE=false` to swap **with settlement in-flight** (aggsender/spammer keep
+running, and the scenario waits for a non-null pending certificate first). This is an opt-in path:
+it is **expected to fail for a 0.5.x → 0.6 upgrade** on rc.4 (the job-id limitation above) and is
+retained to (a) reproduce that limitation and (b) cover 0.6.x → 0.6.y upgrades, where job-ids
+already exist so the in-flight settlement can be resumed.
 
 ## Run
 

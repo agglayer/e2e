@@ -7,16 +7,17 @@
 # Flow:
 #   1. Bring up a PP (pessimistic) OP-stack devnet on the STABLE agglayer image.
 #   2. Verify bridging + certificate settlement BEFORE the upgrade.
-#   3. Quiesce settlement: stop the aggsender and drain all in-flight certificates to null.
-#      This is the guard for the known 0.6.0-rc.2 limitation — it does NOT migrate a pre-phase-1
-#      inflight settlement across restart (that fix lands in a later rc), so a certificate mid-
-#      settlement at restart would stall the network. We refuse to upgrade until pending == null.
+#   3. Settlement gate (QUIESCE_BEFORE_UPGRADE). Default true: drain all in-flight certificates to
+#      null before the swap. rc.4 migrates the DB schema and resumes its OWN (0.6, job-id-tracked)
+#      settlement jobs, but it cannot resume a 0.5.x certificate that was already mid-settlement
+#      (no job-id -> InError), so a 0.5.1->0.6 upgrade must quiesce first. Set false to swap with
+#      settlement in-flight (opt-in; see README).
 #   4. Swap the agglayer node container to the RC image, preserving its /etc/agglayer bind-mount
 #      (config + keystore(s) + RocksDB). Opening the 0.5.x DB with 0.6 runs the storage schema
 #      migration (adds settlement column families).
 #   5. Verify migration succeeded and settled state was preserved.
-#   6. Restart the aggsender and re-verify bridging + settlement AFTER the upgrade (a NEW cert
-#      must be produced and settled — forward progress past the migration).
+#   6. Re-verify bridging + settlement AFTER the upgrade (a NEW cert must be produced and settled —
+#      forward progress past the migration; the aggsender is restarted first if it was quiesced).
 #
 # The scenario tears down its enclave on exit (set KEEP_ENCLAVE=true to keep it for debugging).
 
@@ -34,11 +35,16 @@ load_env
 : "${ENCLAVE_NAME:=agglayer-upgrade-060}"
 : "${KURTOSIS_CDK:=${HOME}/kurtosis-cdk}"
 : "${AGGLAYER_IMAGE_STABLE:=ghcr.io/agglayer/agglayer:0.5.1}"
-: "${AGGLAYER_IMAGE_RC:=ghcr.io/agglayer/agglayer:0.6.0-rc.2}"
+: "${AGGLAYER_IMAGE_RC:=ghcr.io/agglayer/agglayer:0.6.0-rc.4}"
 : "${AGGLAYER_READRPC_HOST_PORT:=14444}"
 : "${SETTLE_TIMEOUT:=1200}"
 : "${SETTLE_RETRY_INTERVAL:=20}"
 : "${QUIESCE_TIMEOUT:=1200}"
+# Default true: drain all in-flight certificates before the swap. rc.4 cannot resume a certificate
+# that was already mid-settlement on 0.5.x (no settlement job-id in the migrated DB -> InError),
+# so a 0.5.1->0.6 upgrade must quiesce first. Set false to swap with settlement in-flight (opt-in;
+# fails for 0.5.x->0.6 carry-over on rc.4, expected OK for 0.6.x->0.6.y). See README.
+: "${QUIESCE_BEFORE_UPGRADE:=true}"
 : "${KEEP_ENCLAVE:=false}"
 : "${POLYCLI_VERSION:=v0.1.90}"
 
@@ -144,18 +150,40 @@ verify_settlement_live "before upgrade"
 pre_height="$(settled_height)"
 echo "pre-upgrade settled height: $pre_height"
 
-# ---- 3. quiesce settlement (the migration guard) ----------------------------------------------
-log "Quiescing settlement before the upgrade (draining in-flight certificates)"
-# Stop the aggsender so no NEW certificates are produced; keep the agglayer node up so any
-# already-pending certificate finishes settling. Best-effort stop of an optional bridge spammer.
-kurtosis service stop "$ENCLAVE_NAME" bridge-spammer-001 >/dev/null 2>&1 || true
-kurtosis service stop "$ENCLAVE_NAME" aggkit-001 || fail "could not stop aggsender aggkit-001"
-# shellcheck disable=SC2034
-timeout="$QUIESCE_TIMEOUT"
-wait_for_null_cert || fail "in-flight settlement did not drain within ${QUIESCE_TIMEOUT}s — refusing to upgrade (would stall on 0.6.0-rc.2)"
-# shellcheck disable=SC2034
-timeout="$SETTLE_TIMEOUT"
-echo "settlement quiesced: latest pending certificate is null"
+# ---- 3. settlement gate before the upgrade ----------------------------------------------------
+# Default (true): drain all in-flight certificates before the swap. rc.4 applies the declared
+# RocksDB column-family options when reopening the DB and resumes its own job-id-tracked settlement
+# jobs, but it canNOT resume a 0.5.x certificate that was already mid-settlement (no settlement
+# job-id in the migrated DB -> InError, stalling settlement), so a 0.5.1->0.6 upgrade must quiesce
+# first. Set false to swap with settlement IN-FLIGHT (opt-in; verified to fail for 0.5.x carry-over
+# on rc.4, expected to work for 0.6.x->0.6.y where job-ids already exist).
+quiesced=false
+if [[ "$QUIESCE_BEFORE_UPGRADE" == "true" ]]; then
+    log "Quiescing settlement before the upgrade (draining in-flight certificates)"
+    # Stop the aggsender so no NEW certificates are produced; keep the agglayer node up so any
+    # already-pending certificate finishes settling. Best-effort stop of an optional bridge spammer.
+    kurtosis service stop "$ENCLAVE_NAME" bridge-spammer-001 >/dev/null 2>&1 || true
+    kurtosis service stop "$ENCLAVE_NAME" aggkit-001 || fail "could not stop aggsender aggkit-001"
+    # shellcheck disable=SC2034
+    timeout="$QUIESCE_TIMEOUT"
+    wait_for_null_cert || fail "in-flight settlement did not drain within ${QUIESCE_TIMEOUT}s — refusing to upgrade (would stall on 0.6.0-rc.2)"
+    # shellcheck disable=SC2034
+    timeout="$SETTLE_TIMEOUT"
+    quiesced=true
+    echo "settlement quiesced: latest pending certificate is null"
+else
+    log "Upgrading with settlement IN-FLIGHT (QUIESCE_BEFORE_UPGRADE=false) — exercising rc.4+ inflight migration"
+    # Keep the aggsender + spammer running so a certificate is mid-settlement at swap time. Wait
+    # (best-effort) for a non-null pending certificate so the in-flight path is actually covered;
+    # proceed regardless if the network happens to be idle at swap time.
+    # shellcheck disable=SC2034
+    timeout="$QUIESCE_TIMEOUT"
+    wait_for_non_null_cert || echo "note: no pending certificate appeared within ${QUIESCE_TIMEOUT}s; upgrading anyway (clean-DB migration only)"
+    # shellcheck disable=SC2034
+    timeout="$SETTLE_TIMEOUT"
+    inflight_cert="$(cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestPendingCertificateHeader 1 2>/dev/null | jq -c '.' 2>/dev/null || echo null)"
+    echo "pending certificate at swap time: $inflight_cert"
+fi
 
 # ---- 4. swap the agglayer node to the RC image ------------------------------------------------
 log "Upgrading agglayer node -> $AGGLAYER_IMAGE_RC"
@@ -197,9 +225,13 @@ until cast rpc --rpc-url "$AGGLAYER_READRPC_URL" interop_getEpochConfiguration >
     fi
     sleep 5
 done
-if docker logs agglayer 2>&1 | grep -qiE 'panic|inflight|FATAL'; then
+# In quiesced mode an "inflight" mention flags the rc.2 stall we guarded against; in the default
+# in-flight mode it is the expected migration/resume path, so only panic/FATAL are fatal there.
+fatal_log_pat='panic|FATAL'
+[[ "$quiesced" == "true" ]] && fatal_log_pat='panic|inflight|FATAL'
+if docker logs agglayer 2>&1 | grep -qiE "$fatal_log_pat"; then
     docker logs --tail 200 agglayer || true
-    fail "RC agglayer logged a panic / inflight-migration / FATAL error"
+    fail "RC agglayer logged a fatal error (matched /$fatal_log_pat/)"
 fi
 docker logs agglayer 2>&1 | grep -iE 'migrat' | tail -20 || true
 post_up_height="$(settled_height)"
@@ -207,9 +239,13 @@ echo "post-upgrade settled height (pre-restart): $post_up_height"
 (( post_up_height >= pre_height )) || fail "settled height regressed after migration ($post_up_height < $pre_height)"
 
 # ---- 6. verify AFTER the upgrade --------------------------------------------------------------
-log "Restarting the aggsender and re-verifying"
-kurtosis service start "$ENCLAVE_NAME" aggkit-001 || fail "could not restart aggsender aggkit-001"
-kurtosis service start "$ENCLAVE_NAME" bridge-spammer-001 >/dev/null 2>&1 || true
+log "Re-verifying bridging + settlement after the upgrade"
+# Only restart the aggsender/spammer if we quiesced them; in the default in-flight path they were
+# left running and reconnect to the relaunched node on their own.
+if [[ "$quiesced" == "true" ]]; then
+    kurtosis service start "$ENCLAVE_NAME" aggkit-001 || fail "could not restart aggsender aggkit-001"
+    kurtosis service start "$ENCLAVE_NAME" bridge-spammer-001 >/dev/null 2>&1 || true
+fi
 verify_bridging_and_rpc "after upgrade"
 verify_settlement_live "after upgrade"
 
