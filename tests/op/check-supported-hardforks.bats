@@ -37,8 +37,8 @@ setup() {
 
 # bats test_tags=bridge,check-hardfork
 @test "Check L2 supported forks" {
-    op_el_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep op-el-1-op-geth-op-node-001 | awk '{print $1}')
-    op_el_container_name=op-el-1-op-geth-op-node-001--$op_el_uuid
+    op_el_uuid=$(kurtosis enclave inspect --full-uuids $kurtosis_enclave_name | grep op-el-1-op-reth-op-node-001 | awk '{print $1}')
+    op_el_container_name=op-el-1-op-reth-op-node-001--$op_el_uuid
 
     docker cp $op_el_container_name:/network-configs/genesis-$l2_chain_id.json $working_directory/genesis-$l2_chain_id.json
     jq -r ".config" $working_directory/genesis-$l2_chain_id.json > $working_directory/supported-forks-$l2_chain_id.json

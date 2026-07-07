@@ -13,7 +13,7 @@ setup_file() {
     export kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"pectra"}
     if [[ -n "$L2_RPC_URL" ]]; then
         export l2_rpc_url="$L2_RPC_URL"
-    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc 2>/dev/null); then
+    elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-reth-op-node-001 rpc 2>/dev/null); then
         export l2_rpc_url
     elif l2_rpc_url=$(kurtosis port print "$kurtosis_enclave_name" cdk-erigon-rpc-001 rpc 2>/dev/null); then
         export l2_rpc_url
