@@ -9,9 +9,9 @@ kurtosis_enclave_name="$ENCLAVE_NAME"
 
 # If condition for CI to determines whether to use mock prover or network prover
 if [[ $MOCK_MODE == true ]]; then
-  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > initial-fep.yml
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-succinct/mock-prover.yml" > initial-fep.yml
 else
-  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml" > tmp-fep.yml
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-succinct/real-prover.yml" > tmp-fep.yml
 
     # Create a yml with FEP consensus with a real SP1 Key if needed
     # shellcheck disable=SC2016
