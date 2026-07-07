@@ -100,11 +100,14 @@ kurtosis_agglayer_container() {
 }
 
 # Run the CI agglayer bats suite (bridging L1<->L2 + interop_* settlement assertions).
+# bridges.bats reads core/contracts/bin/*.bin via a repo-root-relative path, so bats must run from
+# PROJECT_ROOT. Use a subshell so the caller's CWD stays at $SCRIPT_DIR (chain.yml / load-env rely
+# on it).
 verify_bridging_and_rpc() {
     log "Bridging + agglayer-RPC verification ($1)"
-    bats "$PROJECT_ROOT/tests/agglayer/bridges.bats" \
-         "$PROJECT_ROOT/tests/agglayer/rpc-tests.bats" \
-         --filter-tags agglayer
+    ( cd "$PROJECT_ROOT" && bats "tests/agglayer/bridges.bats" \
+         "tests/agglayer/rpc-tests.bats" \
+         --filter-tags agglayer )
 }
 
 # Confirm settlement is live: a settled cert exists and the settled height is advancing.
