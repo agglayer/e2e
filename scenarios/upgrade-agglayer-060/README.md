@@ -63,8 +63,8 @@ settlement/quiesce timeouts.
   CI matrix and enable the reth-specific `rpc-tests.bats`). Current kurtosis-cdk HEAD has **no
   `reth_image` default**, so `reth_image` MUST be set in the args (already done here) or Starlark
   crashes with `el_image=None`. If reth-as-L1 proves incomplete on your kurtosis-cdk HEAD, either
-  pin `KURTOSIS_CDK=github.com/0xPolygon/kurtosis-cdk@6f5c0f0c...` (where the reth-L1 matrix is
-  CI-proven) or fall back to the default geth L1 (drop `l1_el_type`/`reth_image` — note the
+  pin `KURTOSIS_CDK=github.com/0xPolygon/kurtosis-cdk@test/agglayer-0.6.0-rc.2` or fall back to the
+  default geth L1 (drop `l1_el_type`/`reth_image` — note the
   reth-only rpc-tests will then not apply, so run only `bridges.bats`).
 - **Apple Silicon (arm64) hosts.** Several required polygonlabs images (e.g.
   `agglayer-contracts:v12.2.3`) are published `linux/amd64` only. Contract deployment is

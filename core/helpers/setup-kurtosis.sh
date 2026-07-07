@@ -11,7 +11,7 @@ export_env_var() {
 }
 
 PACKAGE=${1:-"kurtosis-cdk"}
-VERSION=${2:-"v0.3.2"}
+VERSION=${2:-"v0.5.20"}
 ARGS_FILE=${3:-".github/tests/combinations/fork12-cdk-erigon-validium.yml"}
 ENCLAVE_NAME=${4:-"cdk"}
 CUSTOM_AGGLAYER_IMAGE=${CUSTOM_AGGLAYER_IMAGE:-""} # Allow optional override.
