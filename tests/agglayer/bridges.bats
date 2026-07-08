@@ -19,6 +19,12 @@ setup_file() {
     _fund_claim_tx_manager
 }
 
+setup() {
+    # bats does not propagate functions sourced in setup_file to test bodies; source the shared
+    # cert helper per-test so _assert_cert_header_schema is available inside the @test that uses it.
+    # shellcheck source=core/helpers/agglayer-certificates-checks.bash
+    source "$BATS_TEST_DIRNAME/../../core/helpers/agglayer-certificates-checks.bash"
+}
 
 _fund_claim_tx_manager() {
     local balance
@@ -249,6 +255,38 @@ _fund_claim_tx_manager() {
     if [[ -n "$missing_fields" ]]; then
         echo "Missing fields: $missing_fields"
         exit 1
+    fi
+}
+
+# bats test_tags=agglayer-rpc
+@test "agglayer certificate headers are well-formed (0.6 schema + value shapes)" {
+    # Beyond the presence-only checks above, assert the fuller 0.6 certificate-header contract via
+    # the shared _assert_cert_header_schema helper: expected field set AND value shapes (32-byte hex
+    # roots/ids, hex metadata, numeric network_id/height, network_id matching this L2).
+    local known settled deadline=$((SECONDS + 120))
+    # This test runs after the bridge tests above, which settle certificates, so a known certificate
+    # normally already exists. Wait briefly rather than skipping immediately, so a slow/fresh network
+    # still exercises the schema assertion instead of silently skipping.
+    while true; do
+        known=$(cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestKnownCertificateHeader "$l2_network_id" 2>/dev/null)
+        [[ -n "$known" && "$known" != "null" ]] && break
+        (( SECONDS >= deadline )) && skip "no known certificate appeared within 120s"
+        sleep 5
+    done
+    _assert_cert_header_schema "$known" "$l2_network_id" || exit 1
+
+    settled=$(cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$l2_network_id")
+    if [[ -n "$settled" && "$settled" != "null" ]]; then
+        _assert_cert_header_schema "$settled" "$l2_network_id" || exit 1
+        # A settled certificate additionally carries concrete (non-null) settlement fields.
+        if ! echo "$settled" | jq -e '
+                (.epoch_number       | type == "number") and
+                (.certificate_index  | type == "number") and
+                (.settlement_tx_hash | test("^0x[0-9a-fA-F]{64}$"))
+            ' >/dev/null; then
+            echo "settled certificate is missing concrete settlement fields: $settled"
+            exit 1
+        fi
     fi
 }
 
