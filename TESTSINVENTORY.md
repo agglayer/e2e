@@ -20,7 +20,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| a multisig-signed certificate is accepted and settles | [Link](./tests/agglayer/multisig-threshold.bats#L83) | |
+| a multisig-signed certificate is accepted and settles | [Link](./tests/agglayer/multisig-threshold.bats#L84) | |
 | admin_getCertificate returns certificate data for valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L43) | |
 | admin_getCertificate returns error for invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L101) | |
 | admin_removePendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L181) | |
@@ -38,7 +38,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | certificate settlement advances across multiple epochs without throttling | [Link](./tests/agglayer/rate-limiting.bats#L67) | |
 | certificate settlement advances while optimistic mode is enabled | [Link](./tests/agglayer/optimistic-mode.bats#L75) | |
 | compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L214) | |
-| ecdsa-multisig rollup exposes a consistent signer committee and threshold | [Link](./tests/agglayer/multisig-threshold.bats#L48) | |
+| ecdsa-multisig rollup exposes a consistent signer committee and threshold | [Link](./tests/agglayer/multisig-threshold.bats#L49) | |
 | eth_getTransactionBySenderAndNonce returns a transaction on Reth L1 | [Link](./tests/agglayer/rpc-tests.bats#L11) | |
 | eth_getTransactionBySenderAndNonce returns null for unused nonce | [Link](./tests/agglayer/rpc-tests.bats#L73) | |
 | optimistic mode can be enabled and disabled by the sovereign admin | [Link](./tests/agglayer/optimistic-mode.bats#L62) | |
