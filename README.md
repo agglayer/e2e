@@ -239,8 +239,11 @@ grep -hoR --include="*.bats" 'test_tags=[^ ]*' . | sed 's/.*test_tags=//' | tr '
 - acl-accesslist
 - acl-blocklist
 - agglayer-admin
-- agglayer-cert
-- agglayer-nonce
+- agglayer-dual-signer
+- agglayer-multisig
+- agglayer-optimistic
+- agglayer-rate-limiting
+- agglayer-restart
 - agglayer-rpc
 - bridge
 - bridge-erc20

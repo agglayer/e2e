@@ -20,9 +20,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Agglayer random cert test | [Link](./tests/agglayer/cert-tests.bats#L157) | |
-| Agglayer valid cert fake deposit test | [Link](./tests/agglayer/cert-tests.bats#L114) | |
-| Agglayer valid cert test | [Link](./tests/agglayer/cert-tests.bats#L73) | |
+| a multisig-signed certificate is accepted and settles | [Link](./tests/agglayer/multisig-threshold.bats#L83) | |
 | admin_getCertificate returns certificate data for valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L43) | |
 | admin_getCertificate returns error for invalid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L101) | |
 | admin_removePendingCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L181) | |
@@ -31,28 +29,27 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
 | admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
 | admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
-| aggregator with no funds | [Link](./tests/agglayer/nonce-tests.bats#L295) | |
-| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L112) | |
-| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L36) | |
-| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L77) | |
+| agglayer certificate headers are well-formed (0.6 schema + value shapes) | [Link](./tests/agglayer/bridges.bats#L262) | |
+| agglayer removes the per-epoch certificate rate limit (send-tx unlimited) | [Link](./tests/agglayer/rate-limiting.bats#L41) | |
+| agglayer runs with two distinct settlement signers (cert vs tx) | [Link](./tests/agglayer/dual-signer.bats#L58) | |
+| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L118) | |
+| bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L42) | |
+| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L83) | |
+| certificate settlement advances across multiple epochs without throttling | [Link](./tests/agglayer/rate-limiting.bats#L67) | |
+| certificate settlement advances while optimistic mode is enabled | [Link](./tests/agglayer/optimistic-mode.bats#L75) | |
 | compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L214) | |
+| ecdsa-multisig rollup exposes a consistent signer committee and threshold | [Link](./tests/agglayer/multisig-threshold.bats#L48) | |
 | eth_getTransactionBySenderAndNonce returns a transaction on Reth L1 | [Link](./tests/agglayer/rpc-tests.bats#L11) | |
 | eth_getTransactionBySenderAndNonce returns null for unused nonce | [Link](./tests/agglayer/rpc-tests.bats#L73) | |
-| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L196) | |
-| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L161) | |
-| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L177) | |
-| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L237) | |
-| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L256) | |
-| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L218) | |
-| send 1 tx per block until a new certificate settles | [Link](./tests/agglayer/nonce-tests.bats#L266) | |
-| send a tx using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L180) | |
-| send many async txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L199) | |
-| send many txs using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L190) | |
-| send tx with nonce+1 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L208) | |
-| send tx with nonce+2 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L222) | |
-| send txs from nonce+1 to nonce+11 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L237) | |
-| send txs from nonce+2 to nonce+12 using aggregator private key | [Link](./tests/agglayer/nonce-tests.bats#L251) | |
-| wait for a new certificate to be settled | [Link](./tests/agglayer/nonce-tests.bats#L173) | |
+| optimistic mode can be enabled and disabled by the sovereign admin | [Link](./tests/agglayer/optimistic-mode.bats#L62) | |
+| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L202) | |
+| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L167) | |
+| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L183) | |
+| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L243) | |
+| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L294) | |
+| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L224) | |
+| settlement resumes after an agglayer node restart (0.6 settlement job-id persistence) | [Link](./tests/agglayer/restart-resume.bats#L36) | |
+| settlement transactions come from one dedicated wallet, independent of the co-signer | [Link](./tests/agglayer/dual-signer.bats#L72) | |
 
 ## CDK Erigon Tests
 
