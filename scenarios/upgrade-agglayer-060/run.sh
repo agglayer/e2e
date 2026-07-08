@@ -8,10 +8,10 @@
 #   1. Bring up a PP (pessimistic) OP-stack devnet on the STABLE agglayer image.
 #   2. Verify bridging + certificate settlement BEFORE the upgrade.
 #   3. Settlement gate (QUIESCE_BEFORE_UPGRADE). Default true: drain all in-flight certificates to
-#      null before the swap. rc.4 migrates the DB schema and resumes its OWN (0.6, job-id-tracked)
-#      settlement jobs, but it cannot resume a 0.5.x certificate that was already mid-settlement
-#      (no job-id -> InError), so a 0.5.1->0.6 upgrade must quiesce first. Set false to swap with
-#      settlement in-flight (opt-in; see README).
+#      null before the swap. The 0.6 node migrates the DB schema and resumes its OWN (0.6,
+#      job-id-tracked) settlement jobs, but it cannot resume a 0.5.x certificate that was already
+#      mid-settlement (no job-id -> InError), so a 0.5.1->0.6 upgrade must quiesce first. Set false
+#      to swap with settlement in-flight (opt-in; see README).
 #   4. Swap the agglayer node container to the RC image, preserving its /etc/agglayer bind-mount
 #      (config + keystore(s) + RocksDB). Opening the 0.5.x DB with 0.6 runs the storage schema
 #      migration (adds settlement column families).
@@ -22,6 +22,11 @@
 # The scenario tears down its enclave on exit (set KEEP_ENCLAVE=true to keep it for debugging).
 
 set -euo pipefail
+
+# The shared certificate-settlement helpers (core/helpers/agglayer-certificates-checks.bash) write
+# their diagnostics to fd 3 (the bats log fd). This scenario runs as a plain script, so open fd 3 to
+# stdout; otherwise those writes fail with "Bad file descriptor".
+exec 3>&1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -35,15 +40,15 @@ load_env
 : "${ENCLAVE_NAME:=agglayer-upgrade-060}"
 : "${KURTOSIS_CDK:=${HOME}/kurtosis-cdk}"
 : "${AGGLAYER_IMAGE_STABLE:=ghcr.io/agglayer/agglayer:0.5.1}"
-: "${AGGLAYER_IMAGE_RC:=ghcr.io/agglayer/agglayer:0.6.0-rc.4}"
+: "${AGGLAYER_IMAGE_RC:=ghcr.io/agglayer/agglayer:0.6.0-rc.5}"
 : "${AGGLAYER_READRPC_HOST_PORT:=14444}"
 : "${SETTLE_TIMEOUT:=1200}"
 : "${SETTLE_RETRY_INTERVAL:=20}"
 : "${QUIESCE_TIMEOUT:=1200}"
-# Default true: drain all in-flight certificates before the swap. rc.4 cannot resume a certificate
-# that was already mid-settlement on 0.5.x (no settlement job-id in the migrated DB -> InError),
-# so a 0.5.1->0.6 upgrade must quiesce first. Set false to swap with settlement in-flight (opt-in;
-# fails for 0.5.x->0.6 carry-over on rc.4, expected OK for 0.6.x->0.6.y). See README.
+# Default true: drain all in-flight certificates before the swap. A 0.6 node cannot resume a
+# certificate that was already mid-settlement on 0.5.x (no settlement job-id in the migrated DB ->
+# InError), so a 0.5.1->0.6 upgrade must quiesce first. Set false to swap with settlement in-flight
+# (opt-in; fails for 0.5.x->0.6 carry-over, expected OK for 0.6.x->0.6.y). See README.
 : "${QUIESCE_BEFORE_UPGRADE:=true}"
 : "${KEEP_ENCLAVE:=false}"
 : "${POLYCLI_VERSION:=v0.1.90}"
@@ -151,12 +156,12 @@ pre_height="$(settled_height)"
 echo "pre-upgrade settled height: $pre_height"
 
 # ---- 3. settlement gate before the upgrade ----------------------------------------------------
-# Default (true): drain all in-flight certificates before the swap. rc.4 applies the declared
-# RocksDB column-family options when reopening the DB and resumes its own job-id-tracked settlement
-# jobs, but it canNOT resume a 0.5.x certificate that was already mid-settlement (no settlement
-# job-id in the migrated DB -> InError, stalling settlement), so a 0.5.1->0.6 upgrade must quiesce
-# first. Set false to swap with settlement IN-FLIGHT (opt-in; verified to fail for 0.5.x carry-over
-# on rc.4, expected to work for 0.6.x->0.6.y where job-ids already exist).
+# Default (true): drain all in-flight certificates before the swap. The 0.6 node applies the
+# declared RocksDB column-family options when reopening the DB and resumes its own job-id-tracked
+# settlement jobs, but it canNOT resume a 0.5.x certificate that was already mid-settlement (no
+# settlement job-id in the migrated DB -> InError, stalling settlement), so a 0.5.1->0.6 upgrade
+# must quiesce first. Set false to swap with settlement IN-FLIGHT (opt-in; verified to fail for
+# 0.5.x carry-over, expected to work for 0.6.x->0.6.y where job-ids already exist).
 quiesced=false
 if [[ "$QUIESCE_BEFORE_UPGRADE" == "true" ]]; then
     log "Quiescing settlement before the upgrade (draining in-flight certificates)"
@@ -166,13 +171,13 @@ if [[ "$QUIESCE_BEFORE_UPGRADE" == "true" ]]; then
     kurtosis service stop "$ENCLAVE_NAME" aggkit-001 || fail "could not stop aggsender aggkit-001"
     # shellcheck disable=SC2034
     timeout="$QUIESCE_TIMEOUT"
-    wait_for_null_cert || fail "in-flight settlement did not drain within ${QUIESCE_TIMEOUT}s — refusing to upgrade (would stall on 0.6.0-rc.2)"
+    wait_for_null_cert || fail "in-flight settlement did not drain within ${QUIESCE_TIMEOUT}s — refusing to upgrade (0.5.x carry-over would stall on 0.6)"
     # shellcheck disable=SC2034
     timeout="$SETTLE_TIMEOUT"
     quiesced=true
     echo "settlement quiesced: latest pending certificate is null"
 else
-    log "Upgrading with settlement IN-FLIGHT (QUIESCE_BEFORE_UPGRADE=false) — exercising rc.4+ inflight migration"
+    log "Upgrading with settlement IN-FLIGHT (QUIESCE_BEFORE_UPGRADE=false) — exercising 0.6 inflight migration"
     # Keep the aggsender + spammer running so a certificate is mid-settlement at swap time. Wait
     # (best-effort) for a non-null pending certificate so the in-flight path is actually covered;
     # proceed regardless if the network happens to be idle at swap time.
@@ -225,8 +230,8 @@ until cast rpc --rpc-url "$AGGLAYER_READRPC_URL" interop_getEpochConfiguration >
     fi
     sleep 5
 done
-# In quiesced mode an "inflight" mention flags the rc.2 stall we guarded against; in the default
-# in-flight mode it is the expected migration/resume path, so only panic/FATAL are fatal there.
+# In quiesced mode an "inflight" mention flags the carry-over stall we guarded against; in the
+# default in-flight mode it is the expected migration/resume path, so only panic/FATAL are fatal there.
 fatal_log_pat='panic|FATAL'
 [[ "$quiesced" == "true" ]] && fatal_log_pat='panic|inflight|FATAL'
 if docker logs agglayer 2>&1 | grep -qiE "$fatal_log_pat"; then
