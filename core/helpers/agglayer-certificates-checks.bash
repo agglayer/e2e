@@ -198,3 +198,92 @@ ensure_non_null_cert() {
         wait_for_non_null_cert
     fi
 }
+
+# ------------------------------------------------------------------------------------------------
+# Additional run-free helpers (usable from both bats and plain-shell scenarios) for the agglayer
+# 0.6 correctness tests. They resolve the read-RPC via _agglayer_readrpc_url and default to the
+# L2 network id 1 (matching the other helpers here). Value-returning helpers echo ONLY the value
+# on stdout so they can be captured; diagnostics go to fd 3 (the bats log fd).
+# ------------------------------------------------------------------------------------------------
+
+# Echo the latest settled certificate header JSON for a network (default 1), or "null".
+_agglayer_latest_settled_header() {
+    local net="${1:-1}"
+    cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestSettledCertificateHeader "$net" 2>/dev/null \
+        | jq -c '.' 2>/dev/null || echo "null"
+}
+
+# Echo the latest settled certificate id for a network (default 1), or "null".
+latest_settled_cert_id() {
+    _agglayer_latest_settled_header "${1:-1}" | jq -r 'if type=="object" then .certificate_id else "null" end' 2>/dev/null || echo "null"
+}
+
+# Echo "<epoch_number> <height>" for the latest settled certificate (default net 1); "null null" if none.
+settled_epoch_and_height() {
+    _agglayer_latest_settled_header "${1:-1}" \
+        | jq -r 'if type=="object" then "\(.epoch_number // "null") \(.height // "null")" else "null null" end' 2>/dev/null \
+        || echo "null null"
+}
+
+# Echo the status of the latest KNOWN certificate for a network (default 1), or "null".
+latest_known_cert_status() {
+    local net="${1:-1}"
+    cast rpc --rpc-url "$(_agglayer_readrpc_url)" interop_getLatestKnownCertificateHeader "$net" 2>/dev/null \
+        | jq -r 'if type=="object" then (.status // "null") else "null" end' 2>/dev/null || echo "null"
+}
+
+# Wait until the latest settled certificate id differs from $1 (a previously captured id) — i.e. a
+# NEW certificate has settled — for network $2 (default 1). Uses the globals `timeout` and
+# `retry_interval`. Echoes the new id on success. Returns 1 on timeout.
+wait_for_new_settled_cert() {
+    local prev_id="$1" net="${2:-1}" start=$SECONDS cur
+    echo "Waiting for a NEW settled certificate (prev=$prev_id, net=$net)..." >&3
+    while true; do
+        cur=$(latest_settled_cert_id "$net")
+        if [[ -n "$cur" && "$cur" != "null" && "$cur" != "$prev_id" ]]; then
+            echo "New settled certificate: $cur" >&3
+            echo "$cur"
+            return 0
+        fi
+        if (( SECONDS - start >= timeout )); then
+            echo "Error: Timeout (${timeout}s) waiting for a new settled certificate (still $cur)" >&3
+            return 1
+        fi
+        sleep "$retry_interval"
+    done
+}
+
+# Assert a certificate-header JSON has the expected agglayer 0.6 field set and well-formed values.
+# Usage: _assert_cert_header_schema "$json" [expected_network_id]
+# Fields epoch_number / certificate_index / settlement_tx_hash are present but may be null until the
+# certificate settles, so only presence (not value shape) is asserted for those.
+_assert_cert_header_schema() {
+    local json="$1" expected_net="${2:-}"
+    local required='["certificate_id","certificate_index","epoch_number","height","metadata","network_id","new_local_exit_root","prev_local_exit_root","settlement_tx_hash","status"]'
+    local missing
+    missing=$(echo "$json" | jq -r --argjson f "$required" '($f - (keys)) | join(",")' 2>/dev/null)
+    if [[ -n "$missing" ]]; then
+        echo "certificate header missing fields: $missing (got: $(echo "$json" | jq -c 'keys' 2>/dev/null))" >&3
+        return 1
+    fi
+    if ! echo "$json" | jq -e '
+            (.certificate_id       | test("^0x[0-9a-fA-F]{64}$")) and
+            (.prev_local_exit_root | test("^0x[0-9a-fA-F]{64}$")) and
+            (.new_local_exit_root  | test("^0x[0-9a-fA-F]{64}$")) and
+            (.metadata             | test("^0x[0-9a-fA-F]+$"))      and
+            (.network_id | type == "number") and
+            (.height     | type == "number") and
+            (.status     | type == "string")
+        ' >/dev/null 2>&1; then
+        echo "certificate header failed value-shape checks: $json" >&3
+        return 1
+    fi
+    if [[ -n "$expected_net" ]]; then
+        local nid; nid=$(echo "$json" | jq -r '.network_id')
+        if [[ "$nid" != "$expected_net" ]]; then
+            echo "certificate header network_id mismatch: got $nid want $expected_net" >&3
+            return 1
+        fi
+    fi
+    return 0
+}
