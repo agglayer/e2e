@@ -27,8 +27,9 @@ setup_file() {
     # download failure abort setup_file (which would fail every test instead of letting them self-skip).
     local crp
     crp=$(curl -s "$(kurtosis port print "$kurtosis_enclave_name" contracts-001 http)/opt/zkevm/create_rollup_parameters.json" 2>/dev/null || true)
-    export expected_threshold="$(echo "$crp" | jq -r '.aggchainParams.threshold // empty' 2>/dev/null)"
-    export expected_signers="$(echo "$crp" | jq -r '(.aggchainParams.signers // []) | length' 2>/dev/null)"
+    expected_threshold="$(echo "$crp" | jq -r '.aggchainParams.threshold // empty' 2>/dev/null)"
+    expected_signers="$(echo "$crp" | jq -r '(.aggchainParams.signers // []) | length' 2>/dev/null)"
+    export expected_threshold expected_signers
 }
 
 setup() {
