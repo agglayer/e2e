@@ -131,7 +131,14 @@ jobs:
           export BATS_LIB_PATH="$PWD/core/helpers/lib"
           export PROJECT_ROOT="$PWD"
           export ENCLAVE_NAME="${{ inputs.kurtosis-cdk-enclave-name }}"
-          bats tests/agglayer/bridges.bats tests/agglayer/rpc-tests.bats --filter-tags agglayer
+          # rate-limiting + restart-resume run on any agglayer enclave this workflow is called with
+          # (they self-skip only when an external AGGLAYER_*_URL override is set). restart-resume is
+          # last because it restarts the agglayer node. The consensus-specific suites
+          # (dual-signer / optimistic-mode / multisig-threshold) need dedicated enclaves and belong
+          # in their own jobs, so they are intentionally not listed here.
+          bats tests/agglayer/bridges.bats tests/agglayer/rpc-tests.bats \
+               tests/agglayer/rate-limiting.bats tests/agglayer/restart-resume.bats \
+               --filter-tags agglayer
           popd
 
       - name: Dump enclave logs
