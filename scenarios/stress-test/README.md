@@ -67,14 +67,6 @@ bats container-stress.bats --filter "Memory stress"
 bats container-stress.bats --filter "I/O stress"
 ```
 
-### Example Environment File
-
-```bash
-# env.example or .env
-STRESS_DURATION=30s
-CONTAINER_MAPPINGS_FILE="./assets/container_mappings.json"
-```
-
 ## What the Tests Do
 
 ### CPU Stress Test (`@test "CPU stress test with matrix operations"`)
