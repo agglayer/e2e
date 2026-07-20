@@ -1,5 +1,5 @@
-name: Configurable E2E Execution
-run-name: Run Kurtosis CDK E2E test by @${{ github.actor }}
+name: Aggkit E2E - Single Chain
+run-name: Run Aggkit single-chain E2E by @${{ github.actor }}
 
 on:
   workflow_call:

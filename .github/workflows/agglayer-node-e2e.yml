@@ -53,7 +53,7 @@ env:
 
 jobs:
   test-agglayer-node-e2e:
-    name: agglayer-node-e2e
+    name: run
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout agglayer-e2e
