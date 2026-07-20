@@ -75,7 +75,7 @@ agg_oracle_committee_total_members="$AGGORACLE_COMMITTEE_NUMBER"
 
 # curl aggchain-ecdsa-multisig.yml file
 echo "📥 Downloading aggchain-ecdsa-multisig.yml file..."
-curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-geth/aggchain-ecdsa-multisig.yml" > initial-aggchain-ecdsa-multisig.yml
+curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-reth/sovereign-ecdsa-multisig.yml" > initial-aggchain-ecdsa-multisig.yml
 
 # Modify configs to enable Aggsender Validator and AggOracle Committee
 echo "🔧 Modifying YAML config to enable Aggsender Validator and AggOracle Committee..."

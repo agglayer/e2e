@@ -14,9 +14,9 @@ range_vkey_commitment="0x2ebb1e0d5380158f22adf3750cc6056100a133d274fd7c5b457148f
 
 # If condition for CI to determines whether to use mock prover or network prover
 if [[ $MOCK_MODE == true ]]; then
-  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct.yml" > tmp-pp.yml
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-succinct/mock-prover.yml" > tmp-pp.yml
 else
-  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/chains/op-succinct-real-prover.yml" > tmp-pp.yml
+  curl -s "https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/$kurtosis_hash/.github/tests/op-succinct/real-prover.yml" > tmp-pp.yml
 fi
 
 # TODO we should make sure that op_succinct can run with PP

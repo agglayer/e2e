@@ -4,8 +4,8 @@
 setup() {
     # Define Variables
     kurtosis_enclave_name=${KURTOSIS_ENCLAVE_NAME:-"cdk"}
-    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-geth-lighthouse rpc)"}
-    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-geth-op-node-001 rpc)"}
+    l1_rpc_url=${L1_RPC_URL:-"http://$(kurtosis port print "$kurtosis_enclave_name" el-1-reth-lighthouse rpc)"}
+    l2_rpc_url=${L2_RPC_URL:-"$(kurtosis port print "$kurtosis_enclave_name" op-el-1-op-reth-op-node-001 rpc)"}
     admin_address=${ADMIN_ADDRESS:-"0xE34aaF64b29273B7D567FCFc40544c014EEe9970"}
     private_key=${PRIVATE_KEY:-"0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625"}
     bridge_address=${BRIDGE_ADDRESS:-"0x9D86b4ec07d7e292F296Dad324b14C06F058a4f1"}

@@ -1,5 +1,5 @@
-name: Configurable E2E Execution
-run-name: Run Kurtosis CDK E2E test on ${{ inputs.kurtosis_cdk_ref }} by @${{ github.actor }}
+name: Aggkit E2E - Multi Chain
+run-name: Run Aggkit multi-chain E2E by @${{ github.actor }}
 
 on:
   workflow_call:
@@ -78,7 +78,7 @@ permissions:
 
 jobs:
   test-multi-aggkit-e2e:
-    name: Multi chains E2E test
+    name: Aggkit multi-chain E2E
     runs-on: ubuntu-latest
     steps:
       - name: Checkout agglayer-e2e

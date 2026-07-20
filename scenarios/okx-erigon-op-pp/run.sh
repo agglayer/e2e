@@ -6,7 +6,7 @@ done
 sudo rm -rf aggkit aggkit-bridge chaindata jwt.txt op-deployer-output opgeth-data regenesis.json rollup.json regenesis.json.tmp rollup.json.tmp regenesisTool op-deployer-work agglayer-contracts
 kurtosis clean --all
 
-kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/cdk-erigon/sovereign.yml github.com/0xPolygon/kurtosis-cdk
+kurtosis run --enclave=cdk --args-file=https://raw.githubusercontent.com/0xPolygon/kurtosis-cdk/main/.github/tests/cdk-erigon/sovereign-pessimistic.yml github.com/0xPolygon/kurtosis-cdk
 
 sleep 60 # Wait for the bridge spammer to generate some traffic
 kurtosis service stop cdk bridge-spammer-001

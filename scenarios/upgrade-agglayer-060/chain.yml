@@ -1,0 +1,17 @@
+# Base network for the upgrade-agglayer-060 scenario: a PP (pessimistic) network on OP-stack,
+# started on the STABLE agglayer image. The scenario upgrades the agglayer node to the RC image
+# (AGGLAYER_IMAGE_RC) at runtime; run.sh rewrites the agglayer_image line below from
+# AGGLAYER_IMAGE_STABLE before launching, so this value is just the documented default.
+#
+# Mirrors the agglayer CI validated matrix (op-reth sequencer + reth L1 + aggkit 0.5.4 +
+# pessimistic consensus). Uses current kurtosis-cdk HEAD conventions (sequencer_type: op-reth
+# triggers the OP-stack; there is no deploy_optimism_rollup arg on HEAD).
+args:
+  sequencer_type: op-reth
+  consensus_contract_type: pessimistic
+  aggkit_image: ghcr.io/agglayer/aggkit:0.5.4
+  l1_el_type: reth
+  # reth_image is REQUIRED when l1_el_type=reth — kurtosis-cdk HEAD has no reth_image default,
+  # so omitting it crashes Starlark (el_image=None). Matches the agglayer CI matrix pin.
+  reth_image: ghcr.io/paradigmxyz/reth:v1.11.3
+  agglayer_image: ghcr.io/agglayer/agglayer:0.5.1
