@@ -220,8 +220,9 @@ _generate_and_fund_wallet() {
     echo "🛠 Raw wallet JSON output:"
     echo "$wallet_json"
 
-    PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '.[0].private_key')
-    PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '.[0].address')
+    # (.data? // .) keeps compatibility with both cast < 1.8 (bare array) and >= 1.8 (versioned envelope)
+    PRIVATE_KEY_VALUE=$(echo "$wallet_json" | jq -r '(.data? // .)[0].private_key')
+    PUBLIC_ADDRESS_VALUE=$(echo "$wallet_json" | jq -r '(.data? // .)[0].address')
 
     echo "🛠 Extracted PRIVATE_KEY: $PRIVATE_KEY_VALUE"
     echo "🛠 Extracted PUBLIC_ADDRESS: $PUBLIC_ADDRESS_VALUE"

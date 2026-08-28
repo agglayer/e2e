@@ -37,9 +37,10 @@ function polycli_bridge_asset_get_info() {
         fi
 
         # get the event data for the bridge asset
+        # (.data? // .) keeps compatibility with both cast < 1.8 (bare output) and >= 1.8 (versioned envelope)
         bridge_deposit_log_data=$(cast receipt --rpc-url $rpc_url $bridge_tx_hash --json | jq -r \
             --arg bridge_addr "$bridge_addr" '
-            .logs[] 
+            (.data? // .) | .logs[]
             | select((.address|ascii_downcase) == ($bridge_addr | ascii_downcase)
             and .topics == ["0x501781209a1f8899323b96b4ef08b168df93e0a90c673d1e4cce39366cb62f9b"]) 
         | .data')
@@ -51,7 +52,7 @@ function polycli_bridge_asset_get_info() {
         # get the deposit count by decoding the event
         # BridgeEvent (uint8 leafType, uint32 originNetwork, address originAddress, uint32 destinationNetwork, address destinationAddress, uint256 amount, bytes metadata, uint32 depositCount)
         event_sig='BridgeEvent(uint8,uint32,address,uint32,address,uint256,bytes,uint32)'
-        deposit_count=$(cast decode-event "$bridge_deposit_log_data" --sig "$event_sig" --json | jq -r '.[7]')
+        deposit_count=$(cast decode-event "$bridge_deposit_log_data" --sig "$event_sig" --json | jq -r '(.data? // .)[7]')
         if [[ -z "$deposit_count" ]]; then
             echo "Deposit count is empty"
             exit 1

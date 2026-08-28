@@ -43,7 +43,8 @@ function _setup_vars() {
     echo "ℹ️ PROJECT_ROOT=$PROJECT_ROOT BATS_LIB_PATH=$BATS_LIB_PATH" >&3
 
     # foo address for whatever it's needed for
-    foo=$(cast wallet new --json | jq .[0])
+    # (.data? // .) keeps compatibility with both cast < 1.8 (bare array) and >= 1.8 (versioned envelope)
+    foo=$(cast wallet new --json | jq '(.data? // .)[0]')
     foo_address=$(echo "$foo" | jq -r .address)
     foo_private_key=$(echo "$foo" | jq -r .private_key)
     export foo_address foo_private_key
