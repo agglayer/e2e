@@ -11,7 +11,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # List of container names to exclude
-EXCLUDE_CONTAINERS=("kurtosis-" "validator-key-generation-cl-validator-keystore" "test-runner" "contracts-001")
+EXCLUDE_CONTAINERS=("kurtosis-" "validator-key-generation-cl-validator-keystore" "test-runner" "contracts-001" "vc-1-geth-lighthouse" "proxyd" "postgres" "cl-1-lighthouse-geth" "el-1-geth-lighthouse")
 
 # Get list of running container names, excluding specified ones, and join with commas
 CONTAINERS=$(docker ps --format '{{.Names}}' | grep -v -E "$(IFS="|"; echo "${EXCLUDE_CONTAINERS[*]}")" | tr '\n' ',' | sed 's/,$//')
