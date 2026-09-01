@@ -123,7 +123,8 @@ _fund_claim_tx_manager() {
     fi
     init_code=$(cat core/contracts/bin/erc20permitmock.bin)
     constructor_data=$(cast abi-encode 'f(string name, string symbol, address initAccount, uint256 initBalance)' "agglayer e2e" "e2e" "$l2_eth_address" 100000000000000000000)
-    erc20_addr=$(cast create2 --salt "$(cast hz)" --init-code "$(cast concat-hex "$init_code" "$constructor_data" )")
+    # foundry >= 1.8 prints "<address>\t<salt>"; keep only the address
+    erc20_addr=$(cast create2 --salt "$(cast hz)" --init-code "$(cast concat-hex "$init_code" "$constructor_data" )" | awk '{ print $1 }')
     erc20_code=$(cast code --rpc-url "$l2_rpc_url" "$erc20_addr")
     if [[ $erc20_code == "0x" ]]; then
         cast send \

@@ -121,7 +121,8 @@ _calculate_test_erc20_address() {
     local constructor_args
     constructor_args=$(cast abi-encode 'f(string,string,address,uint256)' 'Bridge Test' 'BT' "$eth_address" 100000000000000000000 | sed 's/0x//')
     
-    cast create2 --salt $salt --init-code $erc_20_bytecode"$constructor_args"
+    # foundry >= 1.8 prints "<address>\t<salt>"; keep only the address
+    cast create2 --salt $salt --init-code $erc_20_bytecode"$constructor_args" | awk '{ print $1 }'
 }
 
 # =============================================================================

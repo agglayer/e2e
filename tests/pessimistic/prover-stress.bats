@@ -22,7 +22,8 @@ setup() {
 
     # ✅ Deploy stress contract (if not already deployed)
     local stress_addr deployed_code
-    stress_addr=$(cast create2 --salt "$salt" --init-code "$(cat core/contracts/bin/evm-stress.bin)")
+    # foundry >= 1.8 prints "<address>\t<salt>"; keep only the address
+    stress_addr=$(cast create2 --salt "$salt" --init-code "$(cat core/contracts/bin/evm-stress.bin)" | awk '{ print $1 }')
     deployed_code=$(cast code --rpc-url "$L2_RPC_URL" "$stress_addr")
 
     if [[ "$deployed_code" == "0x" ]]; then
