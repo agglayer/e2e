@@ -7,14 +7,14 @@ Table of tests currently implemented or being implemented in the E2E repository.
 
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
-| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L131) | |
-| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L201) | |
-| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L435) | |
+| Initial setup | [Link](./tests/lxly/bridge-tests-suite.bats#L132) | |
+| Process bridge scenarios with dynamic network routing and claim deposits in parallel | [Link](./tests/lxly/bridge-tests-suite.bats#L202) | |
+| Reclaim test funds | [Link](./tests/lxly/bridge-tests-suite.bats#L436) | |
 | bridge L2 ("$NETWORK_TARGET") originated token from L2 to L1 | [Link](./tests/lxly/multi-chain-bridge.bats#L115) | |
 | bridge l2 originated token from L2 to L1 and back to L2 | [Link](./tests/lxly/lxly.bats#L117) | |
 | bridge native eth from L1 to L2 ("$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L70) | |
 | bridge native eth from l1 to l2 | [Link](./tests/lxly/lxly.bats#L31) | |
-| cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L249) | |
+| cross-chain bridge between different L2 networks (target:"$NETWORK_TARGET") | [Link](./tests/lxly/multi-chain-bridge.bats#L250) | |
 
 ## AggLayer Tests
 
@@ -29,7 +29,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
 | admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
 | admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
-| agglayer certificate headers are well-formed (0.6 schema + value shapes) | [Link](./tests/agglayer/bridges.bats#L262) | |
+| agglayer certificate headers are well-formed (0.6 schema + value shapes) | [Link](./tests/agglayer/bridges.bats#L263) | |
 | agglayer removes the per-epoch certificate rate limit (send-tx unlimited) | [Link](./tests/agglayer/rate-limiting.bats#L41) | |
 | agglayer runs with two distinct settlement signers (cert vs tx) | [Link](./tests/agglayer/dual-signer.bats#L58) | |
 | bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L118) | |
@@ -42,12 +42,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_getTransactionBySenderAndNonce returns a transaction on Reth L1 | [Link](./tests/agglayer/rpc-tests.bats#L11) | |
 | eth_getTransactionBySenderAndNonce returns null for unused nonce | [Link](./tests/agglayer/rpc-tests.bats#L73) | |
 | optimistic mode can be enabled and disabled by the sovereign admin | [Link](./tests/agglayer/optimistic-mode.bats#L62) | |
-| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L202) | |
-| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L167) | |
-| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L183) | |
-| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L243) | |
-| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L294) | |
-| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L224) | |
+| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L203) | |
+| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L168) | |
+| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L184) | |
+| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L244) | |
+| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L295) | |
+| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L225) | |
 | settlement resumes after an agglayer node restart (0.6 settlement job-id persistence) | [Link](./tests/agglayer/restart-resume.bats#L36) | |
 | settlement transactions come from one dedicated wallet, independent of the co-signer | [Link](./tests/agglayer/dual-signer.bats#L72) | |
 
