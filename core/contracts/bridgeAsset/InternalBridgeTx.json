@@ -1,0 +1,347 @@
+{
+  "abi": [
+    {
+      "type": "constructor",
+      "inputs": [
+        {
+          "name": "_bridgeAddress",
+          "type": "address",
+          "internalType": "contract IPolygonZkEVMBridgeV2"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    { "type": "fallback", "stateMutability": "payable" },
+    { "type": "receive", "stateMutability": "payable" },
+    {
+      "type": "function",
+      "name": "bridgeAddress",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "contract IPolygonZkEVMBridgeV2"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "onMessageReceived",
+      "inputs": [
+        {
+          "name": "originAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        { "name": "originNetwork", "type": "uint32", "internalType": "uint32" },
+        { "name": "data1", "type": "bytes", "internalType": "bytes" }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "updateBridgeParameters",
+      "inputs": [
+        {
+          "name": "_destinationNetwork1",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "_destinationAddress1",
+          "type": "address",
+          "internalType": "address"
+        },
+        { "name": "_amount1", "type": "uint256", "internalType": "uint256" },
+        { "name": "_token1", "type": "address", "internalType": "address" },
+        {
+          "name": "_forceUpdateGlobalExitRoot1",
+          "type": "bool",
+          "internalType": "bool"
+        },
+        { "name": "_permitData1", "type": "bytes", "internalType": "bytes" },
+        {
+          "name": "_destinationNetwork2",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "_destinationAddress2",
+          "type": "address",
+          "internalType": "address"
+        },
+        { "name": "_amount2", "type": "uint256", "internalType": "uint256" },
+        { "name": "_token2", "type": "address", "internalType": "address" },
+        {
+          "name": "_forceUpdateGlobalExitRoot2",
+          "type": "bool",
+          "internalType": "bool"
+        },
+        { "name": "_permitData2", "type": "bytes", "internalType": "bytes" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "BridgeTransactionExecuted",
+      "inputs": [
+        {
+          "name": "destinationNetwork",
+          "type": "uint32",
+          "indexed": false,
+          "internalType": "uint32"
+        },
+        {
+          "name": "destinationAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "MessageReceived",
+      "inputs": [
+        {
+          "name": "destinationAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "UpdateBridgeParameters",
+      "inputs": [],
+      "anonymous": false
+    }
+  ],
+  "bytecode": {
+    "object": "0x60a034606c57601f610bc438819003918201601f19168301916001600160401b03831184841017607057808492602094604052833981010312606c57516001600160a01b0381168103606c57608052604051610b3f90816100858239608051818181604f01526105e30152f35b5f80fd5b634e487b7160e01b5f52604160045260245ffdfe6080806040526004361015610011575b005b5f905f3560e01c9081631806b5f2146104fb57508063186c95a2146100815763a3c573eb0361000f573461007e578060031936011261007e576040517f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03168152602090f35b80fd5b503461007e5761018036600319011261007e576004359063ffffffff821680920361007e576024356001600160a01b03811681036104f7576064356001600160a01b038116908190036104f3576084358015158091036104ef5760a43567ffffffffffffffff81116104eb576100fb903690600401610aa3565b60c4359063ffffffff82168092036104e75760e435926001600160a01b03841684036104e357610124356001600160a01b03811695908690036104df5761014435968715158098036104db576101643567ffffffffffffffff81116104d757610168903690600401610aa3565b99909b8b5491640100000000600160c01b039060201b169167ffffffffffffffff60c01b1617178a556044356001556002549160ff60a01b9060a01b16916affffffffffffffffffffff60a81b16171760025567ffffffffffffffff82116104c3576101d5600354610ad1565b601f8111610460575b508790601f83116001146103de5761020d92918991836102e0575b50508160011b915f199060031b1c19161790565b6003555b60045491640100000000600160c01b039060201b169167ffffffffffffffff60c01b161717600455610104356005556006549160ff60a01b9060a01b16916affffffffffffffffffffff60a81b16171760065567ffffffffffffffff81116103ca5761027e600754610ad1565b601f8111610367575b5081601f82116001146102eb57819083946102b594926102e05750508160011b915f199060031b1c19161790565b6007555b7f2d68573849e67fd5860888f93f5fa762f0de2b7b4eeb224ced1de97a614789de8180a180f35b013590505f806101f9565b601f198216937fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c68891845b86811061034f5750836001959610610336575b505050811b016007556102b9565b01355f19600384901b60f8161c191690555f8080610328565b90926020600181928686013581550194019101610315565b600783527fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c688601f830160051c810191602084106103c0575b601f0160051c01905b8181106103b55750610287565b8381556001016103a8565b909150819061039f565b634e487b7160e01b82526041600452602482fd5b600389527fc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b91601f1984168a5b818110610448575090846001959493921061042f575b505050811b01600355610211565b01355f19600384901b60f8161c191690555f8080610421565b9193602060018192878701358155019501920161040b565b600389527fc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b601f840160051c810191602085106104b9575b601f0160051c01905b8181106104ae57506101de565b8981556001016104a1565b9091508190610498565b634e487b7160e01b88526041600452602488fd5b8a80fd5b8980fd5b8880fd5b8780fd5b8680fd5b8480fd5b8380fd5b8280fd5b5080fd5b82606036600319011261095357610510610a58565b50610519610a6e565b5060443567ffffffffffffffff811161095357366023820112156109535780600401359067ffffffffffffffff8211610a4457610560601f8301601f191660200185610a81565b818452366024838301011161095357815f926024602093018387013784010152815167ffffffffffffffff8111610a445761059c600854610ad1565b601f81116109e1575b50602092601f8211600114610962576105d5929382915f926109575750508160011b915f199060031b1c19161790565b6008555b6001545f546002547f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169290833b156109535760405163cd58657960e01b815263ffffffff8416600482015260209390931c6001600160a01b039081166024850152604484018390528116606484015260a01c60ff161515608483015260c060a483015260035482905f9061067581610ad1565b908160c48501526001811690815f1461093157506001146108d9575b50918180845f95500391865af190816108c4575b5061086f575b600554908260045460065493833b156104f35760405163cd58657960e01b815263ffffffff8316600482015260209290921c6001600160a01b039081166024840152604483018290528516606483015260a09490941c60ff161515608482015260c060a482015260075490938491839061072481610ad1565b908160c48601526001811690815f1461084d57506001146107f3575b50839491838281935003925af191826107de575b5050610788575b7fdf9f4a3ac608a3edf2b45dafa2b30a40073df2a24c06756d4a68210b7de0a8b86020604051338152a180f35b6004546005546040805163ffffffff841681526001600160a01b03602094851c16938101939093528201527f02e4c49d2b3292f9b51e364abbda3e6b8aa1df17b775ed2aac12ba8f333a6c3b90606090a161075b565b816107e891610a81565b6104f7578183610754565b600785528491507fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c6885b818310610830575050820160e40183610740565b805483890160e4015288955087945060209092019160010161081c565b60ff191660e48087019190915291151560051b85019091019150849050610740565b81546001546040805163ffffffff841681526001600160a01b03602094851c16938101939093528201527f02e4c49d2b3292f9b51e364abbda3e6b8aa1df17b775ed2aac12ba8f333a6c3b90606090a16106ab565b6108d19193505f90610a81565b5f91836106a5565b60035f90815291507fc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b5b818310610917575050810160e40181610691565b805483870160e40152859350602090920191600101610903565b60ff191660e48086019190915291151560051b84019091019150829050610691565b5f80fd5b0151905084806101f9565b601f1982169360085f527ff3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3915f5b8681106109c957508360019596106109b1575b505050811b016008556105d9565b01515f1960f88460031b161c191690558380806109a3565b91926020600181928685015181550194019201610990565b60085f527ff3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3601f830160051c81019160208410610a3a575b601f0160051c01905b818110610a2f57506105a5565b5f8155600101610a22565b9091508190610a19565b634e487b7160e01b5f52604160045260245ffd5b600435906001600160a01b038216820361095357565b6024359063ffffffff8216820361095357565b90601f8019910116810190811067ffffffffffffffff821117610a4457604052565b9181601f840112156109535782359167ffffffffffffffff8311610953576020838186019501011161095357565b90600182811c92168015610aff575b6020831014610aeb57565b634e487b7160e01b5f52602260045260245ffd5b91607f1691610ae056fea2646970667358221220652d1b9f97707ce41df7297cf7131ae8c85ab765d7a815ad7d2ec3c53255da5364736f6c634300081c0033",
+    "sourceMap": "91:3348:1:-:0;;;;;;;;;;;;;-1:-1:-1;;91:3348:1;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;880:30;;91:3348;;;;;;;;880:30;91:3348;;;;;;;;;;;;-1:-1:-1;91:3348:1;;;;;;-1:-1:-1;91:3348:1;;;;;-1:-1:-1;91:3348:1",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080806040526004361015610011575b005b5f905f3560e01c9081631806b5f2146104fb57508063186c95a2146100815763a3c573eb0361000f573461007e578060031936011261007e576040517f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03168152602090f35b80fd5b503461007e5761018036600319011261007e576004359063ffffffff821680920361007e576024356001600160a01b03811681036104f7576064356001600160a01b038116908190036104f3576084358015158091036104ef5760a43567ffffffffffffffff81116104eb576100fb903690600401610aa3565b60c4359063ffffffff82168092036104e75760e435926001600160a01b03841684036104e357610124356001600160a01b03811695908690036104df5761014435968715158098036104db576101643567ffffffffffffffff81116104d757610168903690600401610aa3565b99909b8b5491640100000000600160c01b039060201b169167ffffffffffffffff60c01b1617178a556044356001556002549160ff60a01b9060a01b16916affffffffffffffffffffff60a81b16171760025567ffffffffffffffff82116104c3576101d5600354610ad1565b601f8111610460575b508790601f83116001146103de5761020d92918991836102e0575b50508160011b915f199060031b1c19161790565b6003555b60045491640100000000600160c01b039060201b169167ffffffffffffffff60c01b161717600455610104356005556006549160ff60a01b9060a01b16916affffffffffffffffffffff60a81b16171760065567ffffffffffffffff81116103ca5761027e600754610ad1565b601f8111610367575b5081601f82116001146102eb57819083946102b594926102e05750508160011b915f199060031b1c19161790565b6007555b7f2d68573849e67fd5860888f93f5fa762f0de2b7b4eeb224ced1de97a614789de8180a180f35b013590505f806101f9565b601f198216937fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c68891845b86811061034f5750836001959610610336575b505050811b016007556102b9565b01355f19600384901b60f8161c191690555f8080610328565b90926020600181928686013581550194019101610315565b600783527fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c688601f830160051c810191602084106103c0575b601f0160051c01905b8181106103b55750610287565b8381556001016103a8565b909150819061039f565b634e487b7160e01b82526041600452602482fd5b600389527fc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b91601f1984168a5b818110610448575090846001959493921061042f575b505050811b01600355610211565b01355f19600384901b60f8161c191690555f8080610421565b9193602060018192878701358155019501920161040b565b600389527fc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b601f840160051c810191602085106104b9575b601f0160051c01905b8181106104ae57506101de565b8981556001016104a1565b9091508190610498565b634e487b7160e01b88526041600452602488fd5b8a80fd5b8980fd5b8880fd5b8780fd5b8680fd5b8480fd5b8380fd5b8280fd5b5080fd5b82606036600319011261095357610510610a58565b50610519610a6e565b5060443567ffffffffffffffff811161095357366023820112156109535780600401359067ffffffffffffffff8211610a4457610560601f8301601f191660200185610a81565b818452366024838301011161095357815f926024602093018387013784010152815167ffffffffffffffff8111610a445761059c600854610ad1565b601f81116109e1575b50602092601f8211600114610962576105d5929382915f926109575750508160011b915f199060031b1c19161790565b6008555b6001545f546002547f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169290833b156109535760405163cd58657960e01b815263ffffffff8416600482015260209390931c6001600160a01b039081166024850152604484018390528116606484015260a01c60ff161515608483015260c060a483015260035482905f9061067581610ad1565b908160c48501526001811690815f1461093157506001146108d9575b50918180845f95500391865af190816108c4575b5061086f575b600554908260045460065493833b156104f35760405163cd58657960e01b815263ffffffff8316600482015260209290921c6001600160a01b039081166024840152604483018290528516606483015260a09490941c60ff161515608482015260c060a482015260075490938491839061072481610ad1565b908160c48601526001811690815f1461084d57506001146107f3575b50839491838281935003925af191826107de575b5050610788575b7fdf9f4a3ac608a3edf2b45dafa2b30a40073df2a24c06756d4a68210b7de0a8b86020604051338152a180f35b6004546005546040805163ffffffff841681526001600160a01b03602094851c16938101939093528201527f02e4c49d2b3292f9b51e364abbda3e6b8aa1df17b775ed2aac12ba8f333a6c3b90606090a161075b565b816107e891610a81565b6104f7578183610754565b600785528491507fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c6885b818310610830575050820160e40183610740565b805483890160e4015288955087945060209092019160010161081c565b60ff191660e48087019190915291151560051b85019091019150849050610740565b81546001546040805163ffffffff841681526001600160a01b03602094851c16938101939093528201527f02e4c49d2b3292f9b51e364abbda3e6b8aa1df17b775ed2aac12ba8f333a6c3b90606090a16106ab565b6108d19193505f90610a81565b5f91836106a5565b60035f90815291507fc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b5b818310610917575050810160e40181610691565b805483870160e40152859350602090920191600101610903565b60ff191660e48086019190915291151560051b84019091019150829050610691565b5f80fd5b0151905084806101f9565b601f1982169360085f527ff3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3915f5b8681106109c957508360019596106109b1575b505050811b016008556105d9565b01515f1960f88460031b161c191690558380806109a3565b91926020600181928685015181550194019201610990565b60085f527ff3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3601f830160051c81019160208410610a3a575b601f0160051c01905b818110610a2f57506105a5565b5f8155600101610a22565b9091508190610a19565b634e487b7160e01b5f52604160045260245ffd5b600435906001600160a01b038216820361095357565b6024359063ffffffff8216820361095357565b90601f8019910116810190811067ffffffffffffffff821117610a4457604052565b9181601f840112156109535782359167ffffffffffffffff8311610953576020838186019501011161095357565b90600182811c92168015610aff575b6020831014610aeb57565b634e487b7160e01b5f52602260045260245ffd5b91607f1691610ae056fea2646970667358221220652d1b9f97707ce41df7297cf7131ae8c85ab765d7a815ad7d2ec3c53255da5364736f6c634300081c0033",
+    "sourceMap": "91:3348:1:-:0;;;;;;;;;;-1:-1:-1;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;323:52;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1666:16;91:3348;;;;;;;;;;;;;;;;1666:16;91:3348;;;;;;;1758:26;91:3348;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1758:26;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;1951:18;91:3348;1979:16;91:3348;;;;;;;;;;;;;;;;1979:16;91:3348;;;;;;;2071:26;91:3348;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2071:26;91:3348;;2113:24;;;;91:3348;;;;;;-1:-1:-1;91:3348:1;;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;2071:26;91:3348;;;;;;-1:-1:-1;;1758:26:1;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2071:26;91:3348;;;;;;1951:18;91:3348;;;;;;;;;;;;1951:18;91:3348;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;91:3348:1;;;;;-1:-1:-1;;;91:3348:1;;;;;;;;;1758:26;91:3348;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;1758:26;91:3348;;;;;;-1:-1:-1;;1758:26:1;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1758:26;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;91:3348:1;;;;;-1:-1:-1;;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;91:3348:1;;;;;;:::i;:::-;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;91:3348:1;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2299:12;91:3348;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2299:12;91:3348;;;;;;2504:6;91:3348;2362:13;-1:-1:-1;;;;;91:3348:1;;;2362:223;;;;;91:3348;;-1:-1:-1;;;2362:223:1;;91:3348;;;;2362:223;;91:3348;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2564:11;91:3348;;;-1:-1:-1;;91:3348:1;;;:::i;:::-;;;;;;;2395:7;91:3348;;2395:7;;91:3348;2395:7;;;91:3348;;;;;;;;;;;;;2362:223;;;;;;;;;;91:3348;2358:433;;;91:3348;2875:7;91:3348;;;;;2984:6;91:3348;2842:223;;;;;;91:3348;;-1:-1:-1;;;2842:223:1;;91:3348;;;;2842:223;;91:3348;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;3044:11;91:3348;;;;;;;;;;:::i;:::-;;;;;;;2395:7;91:3348;;2395:7;;91:3348;2395:7;;;91:3348;;;;;;;;;;;;;;2842:223;;;;;;;;;91:3348;2838:423;;;;91:3348;3276:27;91:3348;;;3292:10;91:3348;;3276:27;91:3348;;2838:423;91:3348;;2875:7;91:3348;;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;3085:76;;91:3348;;3085:76;2838:423;;2842:223;;;;;:::i;:::-;91:3348;;2842:223;;;;91:3348;3044:11;91:3348;;;;-1:-1:-1;91:3348:1;;;;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;;;;;;;-1:-1:-1;91:3348:1;;-1:-1:-1;91:3348:1;;;;;2395:7;91:3348;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;2875:7;91:3348;;;;;;;-1:-1:-1;91:3348:1;;-1:-1:-1;91:3348:1;;2358:433;91:3348;;2395:7;91:3348;;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;;;;;;;;;;2605:76;;91:3348;;2605:76;2358:433;;2362:223;;;;;91:3348;2362:223;;:::i;:::-;91:3348;2362:223;;;;91:3348;2564:11;91:3348;;;;;-1:-1:-1;91:3348:1;;;;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;;;;;;;-1:-1:-1;91:3348:1;;;;;2395:7;91:3348;;;;-1:-1:-1;;91:3348:1;;;;;;;;;;;;;;;;;;;;-1:-1:-1;91:3348:1;;-1:-1:-1;91:3348:1;;2362:223;91:3348;;;;;;;-1:-1:-1;91:3348:1;;;;;;;;;;2299:12;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;;2299:12;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2299:12;91:3348;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;91:3348:1;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;91:3348:1;;;;;;:::o;:::-;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {},
+    "immutableReferences": {
+      "305": [
+        { "start": 79, "length": 32 },
+        { "start": 1507, "length": 32 }
+      ]
+    }
+  },
+  "methodIdentifiers": {
+    "bridgeAddress()": "a3c573eb",
+    "onMessageReceived(address,uint32,bytes)": "1806b5f2",
+    "updateBridgeParameters(uint32,address,uint256,address,bool,bytes,uint32,address,uint256,address,bool,bytes)": "186c95a2"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.28+commit.7893614a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IPolygonZkEVMBridgeV2\",\"name\":\"_bridgeAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"destinationNetwork\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgeTransactionExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"}],\"name\":\"MessageReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"UpdateBridgeParameters\",\"type\":\"event\"},{\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"inputs\":[],\"name\":\"bridgeAddress\",\"outputs\":[{\"internalType\":\"contract IPolygonZkEVMBridgeV2\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"originAddress\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"originNetwork\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"data1\",\"type\":\"bytes\"}],\"name\":\"onMessageReceived\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"_destinationNetwork1\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"_destinationAddress1\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount1\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_token1\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_forceUpdateGlobalExitRoot1\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"_permitData1\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"_destinationNetwork2\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"_destinationAddress2\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount2\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_token2\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_forceUpdateGlobalExitRoot2\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"_permitData2\",\"type\":\"bytes\"}],\"name\":\"updateBridgeParameters\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"core/contracts/bridgeAsset/InternalBridgeTx.sol\":\"InternalBridgeTx\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/\",\":@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/\",\":erc4626-tests/=lib/openzeppelin-contracts-upgradeable/lib/erc4626-tests/\",\":forge-std/=lib/forge-std/src/\",\":halmos-cheatcodes/=lib/openzeppelin-contracts-upgradeable/lib/halmos-cheatcodes/src/\",\":openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/\",\":openzeppelin-contracts/=lib/openzeppelin-contracts/\"],\"viaIR\":true},\"sources\":{\"core/contracts/bridgeAsset/Interfaces.sol\":{\"keccak256\":\"0x24710daa0affa083e6f7a2c79544d2095a1ae82cdb739144fe8a1886d1104017\",\"license\":\"AGPL-3.0\",\"urls\":[\"bzz-raw://d6eec59e7d3b40a1acbf7a951303ec65a09f9e55195458bdad2f47f1a9ecc7fe\",\"dweb:/ipfs/QmXeQaWMEQxitoGEHoHnNe7t8eibA19eSFPNA3PZGbJiWG\"]},\"core/contracts/bridgeAsset/InternalBridgeTx.sol\":{\"keccak256\":\"0x58aa1e8529b23c0d4deac6b2db1eeb60a8beb23ab62d5a42b2fd2743644868f6\",\"license\":\"AGPL-3.0\",\"urls\":[\"bzz-raw://d995301fcdacd0046199496a8dab786c9b646447c59cc60ab9672ab786843956\",\"dweb:/ipfs/QmZRKhdjXzLzrrbM4tCu6g1QYXYVHgM3xZpYhZGEeigf6E\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": { "version": "0.8.28+commit.7893614a" },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "contract IPolygonZkEVMBridgeV2",
+              "name": "_bridgeAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint32",
+              "name": "destinationNetwork",
+              "type": "uint32",
+              "indexed": false
+            },
+            {
+              "internalType": "address",
+              "name": "destinationAddress",
+              "type": "address",
+              "indexed": false
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "BridgeTransactionExecuted",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "destinationAddress",
+              "type": "address",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "MessageReceived",
+          "anonymous": false
+        },
+        {
+          "inputs": [],
+          "type": "event",
+          "name": "UpdateBridgeParameters",
+          "anonymous": false
+        },
+        { "inputs": [], "stateMutability": "payable", "type": "fallback" },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "bridgeAddress",
+          "outputs": [
+            {
+              "internalType": "contract IPolygonZkEVMBridgeV2",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "originAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint32",
+              "name": "originNetwork",
+              "type": "uint32"
+            },
+            { "internalType": "bytes", "name": "data1", "type": "bytes" }
+          ],
+          "stateMutability": "payable",
+          "type": "function",
+          "name": "onMessageReceived"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint32",
+              "name": "_destinationNetwork1",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "_destinationAddress1",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_amount1",
+              "type": "uint256"
+            },
+            { "internalType": "address", "name": "_token1", "type": "address" },
+            {
+              "internalType": "bool",
+              "name": "_forceUpdateGlobalExitRoot1",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "_permitData1",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint32",
+              "name": "_destinationNetwork2",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address",
+              "name": "_destinationAddress2",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_amount2",
+              "type": "uint256"
+            },
+            { "internalType": "address", "name": "_token2", "type": "address" },
+            {
+              "internalType": "bool",
+              "name": "_forceUpdateGlobalExitRoot2",
+              "type": "bool"
+            },
+            { "internalType": "bytes", "name": "_permitData2", "type": "bytes" }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "updateBridgeParameters"
+        },
+        { "inputs": [], "stateMutability": "payable", "type": "receive" }
+      ],
+      "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
+      "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+    },
+    "settings": {
+      "remappings": [
+        "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+        "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+        "erc4626-tests/=lib/openzeppelin-contracts-upgradeable/lib/erc4626-tests/",
+        "forge-std/=lib/forge-std/src/",
+        "halmos-cheatcodes/=lib/openzeppelin-contracts-upgradeable/lib/halmos-cheatcodes/src/",
+        "openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/",
+        "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+      ],
+      "optimizer": { "enabled": true, "runs": 200 },
+      "metadata": { "bytecodeHash": "ipfs" },
+      "compilationTarget": {
+        "core/contracts/bridgeAsset/InternalBridgeTx.sol": "InternalBridgeTx"
+      },
+      "evmVersion": "cancun",
+      "libraries": {},
+      "viaIR": true
+    },
+    "sources": {
+      "core/contracts/bridgeAsset/Interfaces.sol": {
+        "keccak256": "0x24710daa0affa083e6f7a2c79544d2095a1ae82cdb739144fe8a1886d1104017",
+        "urls": [
+          "bzz-raw://d6eec59e7d3b40a1acbf7a951303ec65a09f9e55195458bdad2f47f1a9ecc7fe",
+          "dweb:/ipfs/QmXeQaWMEQxitoGEHoHnNe7t8eibA19eSFPNA3PZGbJiWG"
+        ],
+        "license": "AGPL-3.0"
+      },
+      "core/contracts/bridgeAsset/InternalBridgeTx.sol": {
+        "keccak256": "0x58aa1e8529b23c0d4deac6b2db1eeb60a8beb23ab62d5a42b2fd2743644868f6",
+        "urls": [
+          "bzz-raw://d995301fcdacd0046199496a8dab786c9b646447c59cc60ab9672ab786843956",
+          "dweb:/ipfs/QmZRKhdjXzLzrrbM4tCu6g1QYXYVHgM3xZpYhZGEeigf6E"
+        ],
+        "license": "AGPL-3.0"
+      }
+    },
+    "version": 1
+  },
+  "id": 1
+}
