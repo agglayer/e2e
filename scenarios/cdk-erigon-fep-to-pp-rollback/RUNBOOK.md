@@ -234,7 +234,7 @@ deposits made after the rollback and again after the migration are claimed on L2
 `L1InfoTree` stage keeps injecting global exit roots throughout.
 
 <!-- OBS:ERIGON_HEALTH -->
-`zkevm_getBatchByNumber(34)`, the batch holding block 164, before the rollback and once the rollback block is final: `sendSequencesTxHash` 0xe815d05a…e63da0 -> null, `verifyBatchTxHash` null -> null, `closed` True -> True, `accInputHash` unchanged, `zkevm_isBlockVirtualized(164)` true -> false, `zkevm_isBlockConsolidated` false -> false.
+`zkevm_getBatchByNumber(34)`, the batch holding block 164, before the rollback and once the rollback block is final: `sendSequencesTxHash` 0xe815d05a…e63da0 -> null, `verifyBatchTxHash` null -> null, `closed` true -> true, `accInputHash` unchanged, `zkevm_isBlockVirtualized(164)` true -> false, `zkevm_isBlockConsolidated` false -> false.
 
 Probe results (`NN-erigon-health-<stage>.json`, both nodes, every stage). Reference block: 164 (the in-window withdrawal, batch 34); before it exists the pre-break withdrawal block is used.
 

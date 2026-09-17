@@ -182,7 +182,7 @@ def batch_meta_line():
     fmt = lambda v: (sh(v) if isinstance(v, str) and v.startswith("0x") and len(v) > 20 else json.dumps(v))
     return (f"`zkevm_getBatchByNumber({int(b['ref_block_batch'])})`, the batch holding block {b['ref_block']}, before the rollback and once the rollback block is final: "
             f"`sendSequencesTxHash` {fmt(bb.get('sendSequencesTxHash'))} -> {fmt(ab.get('sendSequencesTxHash'))}, "
-            f"`verifyBatchTxHash` {fmt(bb.get('verifyBatchTxHash'))} -> {fmt(ab.get('verifyBatchTxHash'))}, `closed` {bb.get('closed')} -> {ab.get('closed')}, "
+            f"`verifyBatchTxHash` {fmt(bb.get('verifyBatchTxHash'))} -> {fmt(ab.get('verifyBatchTxHash'))}, `closed` {fmt(bb.get('closed'))} -> {fmt(ab.get('closed'))}, "
             f"`accInputHash` {'unchanged' if bb.get('accInputHash') == ab.get('accInputHash') else 'CHANGED'}, "
             f"`zkevm_isBlockVirtualized({b['ref_block']})` {b['zkevm_isBlockVirtualized_ref_block']} -> {a['zkevm_isBlockVirtualized_ref_block']}, "
             f"`zkevm_isBlockConsolidated` {b['zkevm_isBlockConsolidated_ref_block']} -> {a['zkevm_isBlockConsolidated_ref_block']}.")
