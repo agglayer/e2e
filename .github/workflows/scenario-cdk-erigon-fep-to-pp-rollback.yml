@@ -1,0 +1,99 @@
+name: Scenario - cdk-erigon FEP to PP with rollback
+run-name: FEP to PP rollback scenario by @${{ github.actor }}
+
+# Deploys a Silicon-like cdk-erigon validium with kurtosis-cdk on an amd64 runner and runs
+# scenarios/cdk-erigon-fep-to-pp-rollback/run.sh end to end. Runs on pull requests that touch the
+# scenario code (not its docs or evidence) and on manual dispatch: a run takes about 25 minutes and
+# deploys ~15 services. Evidence (command outputs, logs, state snapshots and browser screenshots of
+# the Kurtosis Enclave Manager) is uploaded as an artifact.
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/cdk-erigon-fep-to-pp-rollback/**"
+      - "!scenarios/cdk-erigon-fep-to-pp-rollback/**/*.md"
+      - "!scenarios/cdk-erigon-fep-to-pp-rollback/evidence/**"
+      - ".github/workflows/scenario-cdk-erigon-fep-to-pp-rollback.yml"
+  workflow_dispatch:
+    inputs:
+      kurtosis-cdk-ref:
+        description: "kurtosis-cdk commit to deploy (empty = assets/kurtosis-cdk.ref)"
+        required: false
+        type: string
+        default: ""
+
+concurrency:
+  group: fep-to-pp-rollback-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  POLYCLI_VERSION: v0.1.120
+  KURTOSIS_VERSION: 1.19.0
+  SCENARIO_DIR: scenarios/cdk-erigon-fep-to-pp-rollback
+  ENCLAVE_NAME: fep-to-pp-rollback
+
+jobs:
+  scenario:
+    name: Run scenario
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install foundry
+        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1.9.1, same pin as agglayer-node-e2e.yml
+
+      - name: Install polycli
+        run: |
+          pushd "$(mktemp -d)" || exit 1
+          curl -s -L "https://github.com/0xPolygon/polygon-cli/releases/download/${POLYCLI_VERSION}/polycli_${POLYCLI_VERSION}_linux_amd64.tar.gz" > polycli.tar.gz
+          tar xf polycli.tar.gz
+          sudo mv polycli_* /usr/local/bin/polycli
+          polycli version
+          popd
+
+      - name: Install kurtosis cli and jq
+        # The apt repository lags (served 1.15.2); the kurtosis-cdk ref pinned by the scenario needs a
+        # Kurtosis with the Starlark types the current ethereum-package uses. Install the exact release.
+        run: |
+          curl -sSL -o /tmp/kurtosis-cli.deb "https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/download/${KURTOSIS_VERSION}/kurtosis-cli_${KURTOSIS_VERSION}_linux_amd64.deb"
+          sudo apt-get install -y /tmp/kurtosis-cli.deb jq
+          kurtosis analytics disable
+          kurtosis version
+
+      - name: Run the scenario
+        working-directory: ${{ env.SCENARIO_DIR }}
+        env:
+          KEEP_ENCLAVE: "true"
+          EVIDENCE_DIR: ${{ github.workspace }}/${{ env.SCENARIO_DIR }}/evidence/ci-run
+          INPUT_KURTOSIS_CDK_REF: ${{ inputs.kurtosis-cdk-ref || '' }}
+        run: |
+          if [[ -n "$INPUT_KURTOSIS_CDK_REF" ]]; then export KURTOSIS_CDK_REF="$INPUT_KURTOSIS_CDK_REF"; fi
+          ./run.sh
+
+      - name: Screenshots of the running enclave (Kurtosis Enclave Manager)
+        if: always()
+        working-directory: ${{ env.SCENARIO_DIR }}/scripts
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          node screenshots.mjs "$ENCLAVE_NAME" ../evidence/ci-run/screenshots \
+            aggkit-001 cdk-erigon-sequencer-001 cdk-erigon-rpc-001 agglayer cdk-node-001 \
+            || echo "::warning::screenshots could not be taken"
+
+      - name: Tear down the enclave
+        if: always()
+        run: kurtosis enclave rm -f "$ENCLAVE_NAME" || true
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fep-to-pp-rollback-evidence
+          path: ${{ env.SCENARIO_DIR }}/evidence/ci-run
+          if-no-files-found: warn
+          retention-days: 30
