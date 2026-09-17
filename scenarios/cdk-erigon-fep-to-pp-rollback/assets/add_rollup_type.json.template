@@ -1,0 +1,16 @@
+{
+    "type": "EOA",
+    "consensusContract": "AggchainECDSAMultisig",
+    "consensusContractAddress": "",
+    "polygonRollupManagerAddress": "REPLACE_ROLLUP_MANAGER",
+    "verifierAddress": "0x0000000000000000000000000000000000000000",
+    "description": "Type: AggchainECDSAMultisig (devnet copy of mainnet rollup type 14)",
+    "forkID": 0,
+    "deployerPvtKey": "REPLACE_ADMIN_PRIVATE_KEY",
+    "maxFeePerGas": "",
+    "maxPriorityFeePerGas": "",
+    "multiplierGas": "",
+    "genesisRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "programVKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "outputPath": "add_rollup_type_output_ecdsamultisig.json"
+}
