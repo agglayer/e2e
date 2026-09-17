@@ -1,0 +1,45 @@
+[90m11:41PM[0m [32mINF[0m [1mNo destination address specified. Using private key's address[0m [36mdestAddress=[0m0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+[90m11:41PM[0m [33mWRN[0m [1munable to retrieve bridge deposit[0m [36mcode=[0m2
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:41PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:41PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:41PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [32mINF[0m [1mThe deposit is ready to be claimed[0m
+[90m11:42PM[0m [32mINF[0m [1mClaim transaction sent[0m [36mtxHash=[0m0xe91533d99898dc4e804ff535fff0e4051087908b9ee9272e18df5c1c6e2f5290
+[90m11:42PM[0m [31mERR[0m [1mDeposit transaction failed[0m [36mtxHash=[0m0xe91533d99898dc4e804ff535fff0e4051087908b9ee9272e18df5c1c6e2f5290
+[90m11:42PM[0m [32mINF[0m [1mPerhaps try increasing the gas limit[0m [36mGasUsed=[0m100887 [36mcumulativeGasUsedForTx=[0m86214
+[90m11:41PM[0m [32mINF[0m [1mNo destination address specified. Using private key's address[0m [36mdestAddress=[0m0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+[90m11:41PM[0m [33mWRN[0m [1munable to retrieve bridge deposit[0m [36mcode=[0m2
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:41PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:41PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:41PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:41PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:42PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:42PM[0m [32mINF[0m [1mThe deposit is ready to be claimed[0m
+[90m11:42PM[0m [32mINF[0m [1mClaim transaction sent[0m [36mtxHash=[0m0xe91533d99898dc4e804ff535fff0e4051087908b9ee9272e18df5c1c6e2f5290
+[90m11:42PM[0m [31mERR[0m [1mDeposit transaction failed[0m [36mtxHash=[0m0xe91533d99898dc4e804ff535fff0e4051087908b9ee9272e18df5c1c6e2f5290
+[90m11:42PM[0m [32mINF[0m [1mPerhaps try increasing the gas limit[0m [36mGasUsed=[0m100887 [36mcumulativeGasUsedForTx=[0m86214
+
+[exit=0]
+

@@ -1,0 +1,44 @@
+# Aggkit (aggsender only) configuration for a cdk-erigon chain migrated from FEP to PP.
+#
+# This is the config.toml template from agglayer/runbooks upgrades/cdk-erigon_fep-to-pp.md,
+# with the network-specific values replaced by REPLACE_* placeholders that run.sh fills in from
+# the Kurtosis deployment. Field names, sections and defaults are kept as in the runbook so the
+# file a partner ends up with is the same shape as the one validated here.
+PathRWData = "/data"                                          # Persistent directory
+L1URL = "REPLACE_L1_URL"                                      # L1_URL
+L2URL = "REPLACE_L2_URL"                                      # L2_URL (needs debug_* methods)
+rollupCreationBlockNumber = REPLACE_ROLLUP_CREATION_BLOCK     # Rollup SC deployment block
+rollupManagerCreationBlockNumber = REPLACE_ROLLUP_MANAGER_BLOCK # Rollup Manager SC deployment block
+genesisBlockNumber = REPLACE_ROLLUP_MANAGER_BLOCK             # Rollup Manager SC deployment block
+
+[L1Config]
+BridgeAddr = "REPLACE_L1_BRIDGE"                              # L1 bridge contract address
+chainId = REPLACE_L1_CHAIN_ID                                 # L1 chain id
+polygonZkEVMGlobalExitRootAddress = "REPLACE_L1_GER"          # L1 GER SC address
+polygonRollupManagerAddress = "REPLACE_ROLLUP_MANAGER"        # L1 Rollup Manager SC address
+polTokenAddress = "REPLACE_POL_TOKEN"                         # L1 POL token SC address
+polygonZkEVMAddress = "REPLACE_ROLLUP_ADDRESS"                # L1 Rollup SC address
+
+[L2Config]
+BridgeAddr = "REPLACE_L2_BRIDGE"                              # L2 bridge contract address
+GlobalExitRootAddr = "REPLACE_L2_GER"                         # L2 GER SC address
+
+[AggSender]
+# Not in the runbook template. aggkit 0.8.1 defaults to Mode = "Auto", which reads the consensus type
+# from the rollup contract; on a legacy PolygonValidiumEtrog (before initMigration) that call reverts
+# and aggkit exits ("aggsender mode is AUTO, but can't get contract mode from rollup contract"). Auto
+# resolves AggchainECDSAMultisig to PessimisticProof anyway, so it is set explicitly.
+Mode = "PessimisticProof"
+AggsenderPrivateKey = {Path = "/etc/aggkit/sequencer.keystore", Password = "REPLACE_KEYSTORE_PASSWORD"}
+CertificateSendInterval = "1m"
+CheckStatusCertificateInterval = "1m"
+CheckSettledInterval = "5s"
+RetryCertAfterInError = true
+SaveCertificatesToFilesPath = "/tmp"
+RequireNoFEPBlockGap = true
+MaxL2BlockNumber = REPLACE_MAX_L2_BLOCK
+MaxCertSize = 0
+DryRun = REPLACE_DRY_RUN
+  [AggSender.AgglayerClient.GRPC]
+  URL = "REPLACE_AGGLAYER_GRPC_URL"                           # Devnet agglayer, plaintext gRPC
+  UseTLS = false

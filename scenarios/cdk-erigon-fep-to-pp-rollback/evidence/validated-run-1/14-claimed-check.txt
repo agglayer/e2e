@@ -1,0 +1,5 @@
+$ l1_call 0xC8cbEBf950B9Df44d987c8619f092beA980fF038 isClaimed(uint32,uint32)(bool) 1 1
+true
+
+[exit=0]
+

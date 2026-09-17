@@ -1,0 +1,400 @@
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.625] [5/13 Execution] Finish block 260 with 0 transactions... info-tree-index=3 taken=3.012676061s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.625] [5/13 Execution] Starting verification request batch-number=53 blocks-range=[257;260] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.625] [5/13 Execution] Finished verification request batch-number=53 blocks-range=[257;259] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.626] [cdk-metric] duration: 205.45µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.626] RPC Daemon notified of new headers       from=259 to=260 amount=1 hash=0x4cd44e1e6e93a1cd55e6c8065061b60d0a10f5565b81e1f1f0bc631a7bde2da8 header sending=12.519µs log sending=300ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.626] [5/13 Execution] Starting block 261 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.626] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.626] [cdk-metric] duration: 20.13µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.631] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.637] Generating witness timing                batch=53 blockFrom=257 blockTo=260 taken=10.984147ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.637] [cdk-metric] duration: 11.056697ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=11 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.637] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x05abb09e7e98039bedd7ecafc67e00c5e29aedcf8cc9777c480201fdfc10f1ef oldRoot=0xa95b2cf9739f9ace3d6f58381007a71a43495cbeee7dfb1acadc4c98ff78eeb3 batch=53 witness-size="18 kB" data-stream-size="1.2 kB" blocks-count=4 correlation=1d4946a8-1f58-4072-b54b-5711a5f98e31
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.642] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=53 blocks-count=4 our-counters="map[A:1 B:77 D:0 K:11 M:0 P:1258 S:1082 SHA:0]" exec-counters="map[A:0 B:65 D:0 K:7 M:0 P:780 S:799 SHA:0]" exec-root=0x05abb09e7e98039bedd7ecafc67e00c5e29aedcf8cc9777c480201fdfc10f1ef our-root=0x05abb09e7e98039bedd7ecafc67e00c5e29aedcf8cc9777c480201fdfc10f1ef exec-old-root=0xa95b2cf9739f9ace3d6f58381007a71a43495cbeee7dfb1acadc4c98ff78eeb3 our-old-root=0xa95b2cf9739f9ace3d6f58381007a71a43495cbeee7dfb1acadc4c98ff78eeb3 correlation=1d4946a8-1f58-4072-b54b-5711a5f98e31
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:10.643] [cdk-metric] duration: 5.87253ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=5 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:11.128] [cdk-metric] duration: 20.44µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:11.628] [cdk-metric] duration: 25.808µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:12.130] [cdk-metric] duration: 32.929µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:12.631] [cdk-metric] duration: 40.581µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.132] [cdk-metric] duration: 26.69µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.634] [5/13 Execution] Increment trie hashes started previousRootHeight=256 calculatingRootHeight=261
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.634] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.635] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.635] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.637] [cdk-metric] duration: 3.010657531s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3010 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.637] [5/13 Execution] Finish block 261 with 0 transactions... info-tree-index=3 taken=3.010811904s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.637] [5/13 Execution] Starting verification request batch-number=53 blocks-range=[257;261] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.637] [5/13 Execution] Finished verification request batch-number=53 blocks-range=[257;260] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.637] [cdk-metric] duration: 199.561µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.638] RPC Daemon notified of new headers       from=260 to=261 amount=1 hash=0xf8d00f20598ff36e03eceb9d335b399b1cf0628b6ccc7f023666117e20a268b4 header sending=15.042µs log sending=792ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.638] [5/13 Execution] Finish batch 53... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.638] [5/13 Execution] Finished sequencing stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.639] [8/13 CallTraces] Started 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.641] [8/13 CallTraces] Finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.641] [13/13 Finish] Started 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [13/13 Finish] Finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] Timings (slower than 50ms)               Execution=15.065s alloc=26.3MB sys=64.3MB
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [1/13 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [1/13 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [1/13 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [2/13 L1SequencerSyncer] Starting L1 Sequencer sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [2/13 L1SequencerSyncer] L1 Sequencer sync finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [2/13 L1SequencerSyncer] Finished L1 Sequencer sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.642] [3/13 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [3/13 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [3/13 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [4/13 L1BlockSync] Starting L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [4/13 L1BlockSync] Skipping L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [4/13 L1BlockSync] Finished L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [5/13 Execution] Starting sequencing stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [5/13 Execution] Starting batch 54... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [5/13 Execution] Starting block 262 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [cdk-metric] duration: 18.778µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.643] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.650] Generating witness timing                batch=53 blockFrom=257 blockTo=261 taken=12.515066ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.650] [cdk-metric] duration: 12.599284ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=12 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.650] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 oldRoot=0xa95b2cf9739f9ace3d6f58381007a71a43495cbeee7dfb1acadc4c98ff78eeb3 batch=53 witness-size="18 kB" data-stream-size="1.5 kB" blocks-count=5 correlation=16699476-de77-4269-9a2d-da156535accc
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.655] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=53 blocks-count=5 our-counters="map[A:1 B:94 D:0 K:13 M:0 P:1556 S:1262 SHA:0]" exec-counters="map[A:0 B:80 D:0 K:8 M:0 P:963 S:970 SHA:0]" exec-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 our-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 exec-old-root=0xa95b2cf9739f9ace3d6f58381007a71a43495cbeee7dfb1acadc4c98ff78eeb3 our-old-root=0xa95b2cf9739f9ace3d6f58381007a71a43495cbeee7dfb1acadc4c98ff78eeb3 correlation=16699476-de77-4269-9a2d-da156535accc
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:13.655] [cdk-metric] duration: 5.369934ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=5 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:14.144] [cdk-metric] duration: 34.542µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:14.645] [cdk-metric] duration: 30.006µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:15.147] [cdk-metric] duration: 33.1µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:15.648] [cdk-metric] duration: 34.672µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.149] [cdk-metric] duration: 30.857µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.651] [5/13 Execution] Increment trie hashes started previousRootHeight=261 calculatingRootHeight=262
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.651] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.652] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.652] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.654] [cdk-metric] duration: 3.011169466s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3011 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.654] [5/13 Execution] Finish block 262 with 0 transactions... info-tree-index=3 taken=3.011309738s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.654] [5/13 Execution] Starting verification request batch-number=54 blocks-range=[262;262] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.654] [5/13 Execution] Finished verification request batch-number=53 blocks-range=[257;261] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.655] [cdk-metric] duration: 168.224µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.655] RPC Daemon notified of new headers       from=261 to=262 amount=1 hash=0x3ecb75e4a0fdbf86cff92cbc8ac6b0ab0cb7bd809969fd986adb084af42a1a3c header sending=17.216µs log sending=291ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.656] [5/13 Execution] Starting block 263 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.656] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.656] [cdk-metric] duration: 18.478µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.659] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.664] Generating witness timing                batch=54 blockFrom=262 blockTo=262 taken=9.309068ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.664] [cdk-metric] duration: 9.357732ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=9 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.664] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x5728bc1b20cc75c86ce858c072f43e484fbaabcec49a4d0dbd4334e100648632 oldRoot=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 batch=54 witness-size="18 kB" data-stream-size="400 B" blocks-count=1 correlation=64f766de-3277-482f-9094-460285ec02d8
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.667] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=54 blocks-count=1 our-counters="map[A:1 B:26 D:0 K:5 M:0 P:364 S:542 SHA:0]" exec-counters="map[A:0 B:20 D:0 K:4 M:0 P:218 S:286 SHA:0]" exec-root=0x5728bc1b20cc75c86ce858c072f43e484fbaabcec49a4d0dbd4334e100648632 our-root=0x5728bc1b20cc75c86ce858c072f43e484fbaabcec49a4d0dbd4334e100648632 exec-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 our-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 correlation=64f766de-3277-482f-9094-460285ec02d8
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:16.667] [cdk-metric] duration: 3.335084ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=3 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:17.157] [cdk-metric] duration: 41.262µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:17.658] [cdk-metric] duration: 27.401µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:18.160] [cdk-metric] duration: 27.351µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:18.661] [cdk-metric] duration: 23.325µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.162] [cdk-metric] duration: 21.983µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.663] [5/13 Execution] Increment trie hashes started previousRootHeight=261 calculatingRootHeight=263
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.664] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.665] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.665] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.667] [cdk-metric] duration: 3.010913928s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3010 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.667] [5/13 Execution] Finish block 263 with 0 transactions... info-tree-index=3 taken=3.011082787s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.667] [5/13 Execution] Starting verification request batch-number=54 blocks-range=[262;263] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.667] [5/13 Execution] Finished verification request batch-number=54 blocks-range=[262;262] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.667] [cdk-metric] duration: 148.804µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.668] RPC Daemon notified of new headers       from=262 to=263 amount=1 hash=0xf11ea637dc8bd7647a6286a4bcfe02167685ea6d8bed118d2e9281b0f55b0e25 header sending=16.415µs log sending=331ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.668] [5/13 Execution] Starting block 264 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.668] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.668] [cdk-metric] duration: 10.005µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.672] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.677] Generating witness timing                batch=54 blockFrom=262 blockTo=263 taken=10.010281ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.677] [cdk-metric] duration: 10.060166ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=10 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.677] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x4a2e96b092962540f72f8f33d45d4127b91b2c208f19e00da6e2b0bc4cc29da8 oldRoot=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 batch=54 witness-size="18 kB" data-stream-size="664 B" blocks-count=2 correlation=513d9102-3659-49e8-a374-c6a4fea3248e
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.681] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=54 blocks-count=2 our-counters="map[A:1 B:43 D:0 K:7 M:0 P:662 S:722 SHA:0]" exec-counters="map[A:0 B:35 D:0 K:5 M:0 P:406 S:457 SHA:0]" exec-root=0x4a2e96b092962540f72f8f33d45d4127b91b2c208f19e00da6e2b0bc4cc29da8 our-root=0x4a2e96b092962540f72f8f33d45d4127b91b2c208f19e00da6e2b0bc4cc29da8 exec-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 our-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 correlation=513d9102-3659-49e8-a374-c6a4fea3248e
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:19.681] [cdk-metric] duration: 3.843625ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=3 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:20.168] [cdk-metric] duration: 37.307µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:20.670] [cdk-metric] duration: 37.065µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:21.172] [cdk-metric] duration: 29.255µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:21.673] [cdk-metric] duration: 24.056µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.174] [cdk-metric] duration: 27.252µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.675] [5/13 Execution] Increment trie hashes started previousRootHeight=261 calculatingRootHeight=264
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.676] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.677] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.677] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.680] [cdk-metric] duration: 3.012188598s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3012 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.680] [5/13 Execution] Finish block 264 with 0 transactions... info-tree-index=3 taken=3.012293997s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.680] [5/13 Execution] Starting verification request batch-number=54 blocks-range=[262;264] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.680] [5/13 Execution] Finished verification request batch-number=54 blocks-range=[262;263] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.682] [cdk-metric] duration: 1.413703ms, task: write-stream, subtask1: writeblockstostream duration-ms=1 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.682] RPC Daemon notified of new headers       from=263 to=264 amount=1 hash=0xd894afb0b02495b98a076e9136d40c32f9fe11d4dffe0509fc193a3de1f62c70 header sending=10.827µs log sending=370ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.682] [5/13 Execution] Starting block 265 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.682] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.682] [cdk-metric] duration: 21.002µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.690] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.698] Generating witness timing                batch=54 blockFrom=262 blockTo=264 taken=16.465457ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.698] [cdk-metric] duration: 17.697401ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=17 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.698] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0xaf0d7b3ba6488c494f8102462b8a8abe7ed5b77cb33db5cef904a7d53470834a oldRoot=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 batch=54 witness-size="18 kB" data-stream-size="928 B" blocks-count=3 correlation=af60ac88-f7da-4178-a5b6-699861a8ae54
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.703] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=54 blocks-count=3 our-counters="map[A:1 B:60 D:0 K:9 M:0 P:960 S:902 SHA:0]" exec-counters="map[A:0 B:50 D:0 K:6 M:0 P:587 S:628 SHA:0]" exec-root=0xaf0d7b3ba6488c494f8102462b8a8abe7ed5b77cb33db5cef904a7d53470834a our-root=0xaf0d7b3ba6488c494f8102462b8a8abe7ed5b77cb33db5cef904a7d53470834a exec-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 our-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 correlation=af60ac88-f7da-4178-a5b6-699861a8ae54
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:22.703] [cdk-metric] duration: 4.799563ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=4 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:23.184] [cdk-metric] duration: 28.683µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:23.686] [cdk-metric] duration: 29.535µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:24.187] [cdk-metric] duration: 38.307µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:24.688] [cdk-metric] duration: 50.687µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.190] [cdk-metric] duration: 24.056µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.691] [5/13 Execution] Increment trie hashes started previousRootHeight=261 calculatingRootHeight=265
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.691] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.692] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.692] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.694] [cdk-metric] duration: 3.011736028s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3011 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.694] [5/13 Execution] Finish block 265 with 0 transactions... info-tree-index=3 taken=3.011855148s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.694] [5/13 Execution] Starting verification request batch-number=54 blocks-range=[262;265] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.694] [5/13 Execution] Finished verification request batch-number=54 blocks-range=[262;264] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.694] [cdk-metric] duration: 160.742µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.695] RPC Daemon notified of new headers       from=264 to=265 amount=1 hash=0x158fb7ae1cce693a377206e1f3d007a2ba574742eb0aa4c38a719af62c94bb28 header sending=15.664µs log sending=821ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.695] [5/13 Execution] Starting block 266 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.695] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.695] [cdk-metric] duration: 17.786µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.700] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.706] Generating witness timing                batch=54 blockFrom=262 blockTo=265 taken=11.290808ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.706] [cdk-metric] duration: 11.360654ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=11 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.706] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0xf5a25f644f94d7dbcad83b82f9f416ae1943849e7bc0e89ad8d282f48942daf9 oldRoot=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 batch=54 witness-size="18 kB" data-stream-size="1.2 kB" blocks-count=4 correlation=8f5d1e61-3542-47ca-9fb2-8d68db49856f
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.711] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=54 blocks-count=4 our-counters="map[A:1 B:77 D:0 K:11 M:0 P:1258 S:1082 SHA:0]" exec-counters="map[A:0 B:65 D:0 K:7 M:0 P:768 S:799 SHA:0]" exec-root=0xf5a25f644f94d7dbcad83b82f9f416ae1943849e7bc0e89ad8d282f48942daf9 our-root=0xf5a25f644f94d7dbcad83b82f9f416ae1943849e7bc0e89ad8d282f48942daf9 exec-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 our-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 correlation=8f5d1e61-3542-47ca-9fb2-8d68db49856f
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:25.711] [cdk-metric] duration: 4.951362ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=4 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:26.196] [cdk-metric] duration: 27.011µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:26.697] [cdk-metric] duration: 29.124µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:27.198] [cdk-metric] duration: 21.152µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:27.700] [cdk-metric] duration: 15.693µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.202] [cdk-metric] duration: 20.801µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.704] [5/13 Execution] Increment trie hashes started previousRootHeight=261 calculatingRootHeight=266
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.705] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.706] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.706] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.708] [cdk-metric] duration: 3.013097394s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3013 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.709] [5/13 Execution] Finish block 266 with 0 transactions... info-tree-index=3 taken=3.013325549s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.709] [5/13 Execution] Starting verification request batch-number=54 blocks-range=[262;266] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.709] [5/13 Execution] Finished verification request batch-number=54 blocks-range=[262;265] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.710] [cdk-metric] duration: 145.439µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.710] RPC Daemon notified of new headers       from=265 to=266 amount=1 hash=0x9a63909cd5e544471c0417e8c7d12f1a8adf0a41e0dabd1bfaad4182b553ccf4 header sending=20.681µs log sending=351ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.710] [5/13 Execution] Finish batch 54... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.713] [5/13 Execution] Finished sequencing stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.714] [8/13 CallTraces] Started 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.714] [8/13 CallTraces] Finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.715] [13/13 Finish] Started 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.715] [13/13 Finish] Finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.715] Timings (slower than 50ms)               Execution=15.07s alloc=39.0MB sys=64.3MB
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [1/13 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [1/13 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [1/13 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [2/13 L1SequencerSyncer] Starting L1 Sequencer sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [2/13 L1SequencerSyncer] L1 Sequencer sync finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [2/13 L1SequencerSyncer] Finished L1 Sequencer sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.716] [3/13 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.717] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.727] Generating witness timing                batch=54 blockFrom=262 blockTo=266 taken=17.563567ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.727] [cdk-metric] duration: 17.752902ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=17 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.727] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 oldRoot=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 batch=54 witness-size="18 kB" data-stream-size="1.5 kB" blocks-count=5 correlation=46d7740a-6dbb-4e02-9846-782a03176c27
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.727] [3/13 L1InfoTree] Info tree updates      count=1 latestIndex=4
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.728] [3/13 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.728] [4/13 L1BlockSync] Starting L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.728] [4/13 L1BlockSync] Skipping L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.728] [4/13 L1BlockSync] Finished L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.728] [5/13 Execution] Starting sequencing stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.729] [5/13 Execution] Starting batch 55... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.729] [5/13 Execution] Starting block 267 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.729] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.729] [cdk-metric] duration: 21.011µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.733] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=54 blocks-count=5 our-counters="map[A:1 B:94 D:0 K:13 M:0 P:1556 S:1262 SHA:0]" exec-counters="map[A:0 B:80 D:0 K:8 M:0 P:954 S:970 SHA:0]" exec-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 our-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 exec-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 our-old-root=0xbe193ffd83abb7ccc66cd81aed4858fd747c9af0245099da9755ebc4befbee16 correlation=46d7740a-6dbb-4e02-9846-782a03176c27
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:28.733] [cdk-metric] duration: 6.006021ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=6 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:29.230] [cdk-metric] duration: 18.899µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:29.731] [cdk-metric] duration: 27.412µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:30.232] [cdk-metric] duration: 33.711µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:30.733] [cdk-metric] duration: 31.908µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.234] [cdk-metric] duration: 25.489µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.736] [5/13 Execution] Increment trie hashes started previousRootHeight=266 calculatingRootHeight=267
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.740] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.741] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.741] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.744] [cdk-metric] duration: 3.015049066s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3015 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.744] [5/13 Execution] Finish block 267 with 0 transactions... info-tree-index=4 taken=3.015145841s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.744] [5/13 Execution] Starting verification request batch-number=55 blocks-range=[267;267] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.744] [5/13 Execution] Finished verification request batch-number=54 blocks-range=[262;266] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.744] [cdk-metric] duration: 155.365µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.745] RPC Daemon notified of new headers       from=266 to=267 amount=1 hash=0x525ef8f777d2545fe6a0299b11c7e82152b06145daa1c2dbc206e92da40474ce header sending=7.201µs log sending=321ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.745] [5/13 Execution] Starting block 268 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.745] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.745] [cdk-metric] duration: 23.455µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.749] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.754] Generating witness timing                batch=55 blockFrom=267 blockTo=267 taken=9.914086ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.754] [cdk-metric] duration: 9.962971ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=9 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.754] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x8aef752fe05fd769621fe724e5ee845fb3638b60fc68c844c00765142fb17960 oldRoot=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 batch=55 witness-size="21 kB" data-stream-size="408 B" blocks-count=1 correlation=9e274912-9333-4fb8-b683-143c70248dca
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.758] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=55 blocks-count=1 our-counters="map[A:1 B:27 D:0 K:38 M:0 P:364 S:792 SHA:0]" exec-counters="map[A:0 B:25 D:0 K:38 M:0 P:268 S:537 SHA:0]" exec-root=0x8aef752fe05fd769621fe724e5ee845fb3638b60fc68c844c00765142fb17960 our-root=0x8aef752fe05fd769621fe724e5ee845fb3638b60fc68c844c00765142fb17960 exec-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 our-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 correlation=9e274912-9333-4fb8-b683-143c70248dca
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:31.758] [cdk-metric] duration: 4.106745ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=4 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:32.246] [cdk-metric] duration: 21.983µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:32.748] [cdk-metric] duration: 21.533µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:33.249] [cdk-metric] duration: 27.792µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:33.750] [cdk-metric] duration: 27.542µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.252] [cdk-metric] duration: 25.799µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.753] [5/13 Execution] Increment trie hashes started previousRootHeight=266 calculatingRootHeight=268
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.753] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.754] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.755] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.757] [cdk-metric] duration: 3.011683504s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3011 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.757] [5/13 Execution] Finish block 268 with 0 transactions... info-tree-index=4 taken=3.011793731s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.757] [5/13 Execution] Starting verification request batch-number=55 blocks-range=[267;268] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.757] [5/13 Execution] Finished verification request batch-number=55 blocks-range=[267;267] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.757] [cdk-metric] duration: 201.684µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.758] RPC Daemon notified of new headers       from=267 to=268 amount=1 hash=0x937a213eb9c94d4dcce0a37beb16d394878f54f3b4e025448560a01c85cfb549 header sending=12.249µs log sending=290ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.758] [5/13 Execution] Starting block 269 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.758] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.758] [cdk-metric] duration: 49.305µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.762] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.768] Generating witness timing                batch=55 blockFrom=267 blockTo=268 taken=10.744199ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.768] [cdk-metric] duration: 10.799943ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=10 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.768] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x759941df997f71c6209ca8792f201bf2d9b240111cc8458dd57fbf3f5eba10c7 oldRoot=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 batch=55 witness-size="21 kB" data-stream-size="672 B" blocks-count=2 correlation=fa6f3133-27b0-47f5-8139-8b8e8d381242
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.773] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=55 blocks-count=2 our-counters="map[A:1 B:43 D:0 K:7 M:0 P:662 S:722 SHA:0]" exec-counters="map[A:0 B:40 D:0 K:39 M:0 P:456 S:708 SHA:0]" exec-root=0x759941df997f71c6209ca8792f201bf2d9b240111cc8458dd57fbf3f5eba10c7 our-root=0x759941df997f71c6209ca8792f201bf2d9b240111cc8458dd57fbf3f5eba10c7 exec-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 our-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 correlation=fa6f3133-27b0-47f5-8139-8b8e8d381242
+[cdk-erigon-sequencer-001] [WARN] [09-17|23:42:34.773] Counter undershoot                       counter=K erigon=7 legacy=39 batch=55
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:34.773] [cdk-metric] duration: 4.721272ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=4 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:35.259] [cdk-metric] duration: 22.054µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:35.760] [cdk-metric] duration: 41.823µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:36.261] [cdk-metric] duration: 29.324µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:36.763] [cdk-metric] duration: 26.06µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.264] [cdk-metric] duration: 26.51µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.766] [5/13 Execution] Increment trie hashes started previousRootHeight=266 calculatingRootHeight=269
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.766] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.767] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.767] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.769] [cdk-metric] duration: 3.011035943s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3011 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.769] [5/13 Execution] Finish block 269 with 0 transactions... info-tree-index=4 taken=3.011148172s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.769] [5/13 Execution] Starting verification request batch-number=55 blocks-range=[267;269] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.769] [5/13 Execution] Finished verification request batch-number=55 blocks-range=[267;268] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.770] [cdk-metric] duration: 186.682µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.770] RPC Daemon notified of new headers       from=268 to=269 amount=1 hash=0x0139d4602728d274f09ba6e3eed2a5f3204fe68bb9589b6538c6058c2c6183b0 header sending=14.682µs log sending=300ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.770] [5/13 Execution] Starting block 270 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.770] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.770] [cdk-metric] duration: 17.676µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.775] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.781] Generating witness timing                batch=55 blockFrom=267 blockTo=269 taken=11.397195ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.781] [cdk-metric] duration: 11.61209ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=11 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.781] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0xd102a42a36d0c4e8030186c7433228b7278a006117c7cd1b622ee1bc25f6d63f oldRoot=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 batch=55 witness-size="21 kB" data-stream-size="936 B" blocks-count=3 correlation=baa1c8cd-1965-43d9-94f0-3db511b7d26c
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.786] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=55 blocks-count=3 our-counters="map[A:1 B:60 D:0 K:9 M:0 P:960 S:902 SHA:0]" exec-counters="map[A:0 B:55 D:0 K:40 M:0 P:641 S:879 SHA:0]" exec-root=0xd102a42a36d0c4e8030186c7433228b7278a006117c7cd1b622ee1bc25f6d63f our-root=0xd102a42a36d0c4e8030186c7433228b7278a006117c7cd1b622ee1bc25f6d63f exec-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 our-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 correlation=baa1c8cd-1965-43d9-94f0-3db511b7d26c
+[cdk-erigon-sequencer-001] [WARN] [09-17|23:42:37.786] Counter undershoot                       counter=K erigon=9 legacy=40 batch=55
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:37.786] [cdk-metric] duration: 5.134474ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=5 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:38.272] [cdk-metric] duration: 30.606µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:38.415] [Limbo pool processor] Starting 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:38.415] [Limbo pool processor] End 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:38.773] [cdk-metric] duration: 19.75µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:39.274] [cdk-metric] duration: 43.365µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:39.775] [cdk-metric] duration: 36.204µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.277] [cdk-metric] duration: 42.925µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.779] [5/13 Execution] Increment trie hashes started previousRootHeight=266 calculatingRootHeight=270
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.779] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.780] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.780] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.782] [cdk-metric] duration: 3.011992235s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3011 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.782] [5/13 Execution] Finish block 270 with 0 transactions... info-tree-index=4 taken=3.01216845s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.782] [5/13 Execution] Starting verification request batch-number=55 blocks-range=[267;270] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.782] [5/13 Execution] Finished verification request batch-number=55 blocks-range=[267;269] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.783] [cdk-metric] duration: 175.205µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.783] RPC Daemon notified of new headers       from=269 to=270 amount=1 hash=0x7c15e7dd16f5dacd2f975e9261529ef97849a5f287cc8e330f9366538e297375 header sending=12.508µs log sending=310ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.783] [5/13 Execution] Starting block 271 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.784] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.784] [cdk-metric] duration: 13.851µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.788] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.797] Generating witness timing                batch=55 blockFrom=267 blockTo=270 taken=14.627225ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.797] [cdk-metric] duration: 14.70978ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=14 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.798] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x93051db24e2fa04193ce1b1627b3ed56f64ae8a97e79fae8f109ea0b9eea93c5 oldRoot=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 batch=55 witness-size="21 kB" data-stream-size="1.2 kB" blocks-count=4 correlation=9fe2820d-56b7-4865-af43-f7ec9c9dfad2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.803] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=55 blocks-count=4 our-counters="map[A:1 B:77 D:0 K:11 M:0 P:1258 S:1082 SHA:0]" exec-counters="map[A:0 B:70 D:0 K:41 M:0 P:822 S:1050 SHA:0]" exec-root=0x93051db24e2fa04193ce1b1627b3ed56f64ae8a97e79fae8f109ea0b9eea93c5 our-root=0x93051db24e2fa04193ce1b1627b3ed56f64ae8a97e79fae8f109ea0b9eea93c5 exec-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 our-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 correlation=9fe2820d-56b7-4865-af43-f7ec9c9dfad2
+[cdk-erigon-sequencer-001] [WARN] [09-17|23:42:40.803] Counter undershoot                       counter=K erigon=11 legacy=41 batch=55
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:40.803] [cdk-metric] duration: 5.870569ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=5 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:41.285] [cdk-metric] duration: 29.094µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:41.786] [cdk-metric] duration: 27.441µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:42.287] [cdk-metric] duration: 34.962µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:42.784] [cdk-metric] duration: 544.512µs, task: rpc, subtask1: sendrawtransaction duration-ms=0 task=rpc subtask1=sendrawtransaction
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:42.789] [cdk-metric] duration: 52.119µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:42.790] [cdk-metric] duration: 25.729µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.291] [cdk-metric] duration: 79.98µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.793] [5/13 Execution] Increment trie hashes started previousRootHeight=266 calculatingRootHeight=271
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.794] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.796] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.796] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.798] [cdk-metric] duration: 3.014743968s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3014 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.798] [5/13 Execution] Finish block 271 with 1 transactions... (32403 gas/s) info-tree-index=4 taken=3.014907575s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.798] [5/13 Execution] Starting verification request batch-number=55 blocks-range=[267;271] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.798] [5/13 Execution] Finished verification request batch-number=55 blocks-range=[267;270] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.799] [cdk-metric] duration: 181.954µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.800] RPC Daemon notified of new headers       from=270 to=271 amount=1 hash=0xe2150dcdfb7eff6e6dcb0f2294fdeb1843f4a48282dfc3dcb18a3cc5e96b1467 header sending=36.555µs log sending=291ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.800] [5/13 Execution] Finish batch 55... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.801] [5/13 Execution] Finished sequencing stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.801] [8/13 CallTraces] Started 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.803] [8/13 CallTraces] Finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.804] [13/13 Finish] Started 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.804] [13/13 Finish] Finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.804] Timings (slower than 50ms)               Execution=15.072s alloc=32.4MB sys=64.3MB
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.804] [1/13 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.804] [1/13 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.804] [1/13 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [2/13 L1SequencerSyncer] Starting L1 Sequencer sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [2/13 L1SequencerSyncer] L1 Sequencer sync finished 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [2/13 L1SequencerSyncer] Finished L1 Sequencer sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [3/13 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [3/13 L1InfoTree] Info tree updates      count=0 latestIndex=4
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [3/13 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [4/13 L1BlockSync] Starting L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [4/13 L1BlockSync] Skipping L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [4/13 L1BlockSync] Finished L1 block sync stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.805] [5/13 Execution] Starting sequencing stage 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.806] [5/13 Execution] Starting batch 56... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.806] [5/13 Execution] Starting block 272 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.806] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.806] [cdk-metric] duration: 21.332µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.806] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.816] Generating witness timing                batch=55 blockFrom=267 blockTo=271 taken=17.50639ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.817] [cdk-metric] duration: 17.598359ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=17 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.817] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 oldRoot=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 batch=55 witness-size="29 kB" data-stream-size="4.0 kB" blocks-count=5 correlation=d8072903-f92b-4ac2-b21c-693d6933cbb8
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.875] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=55 blocks-count=5 our-counters="map[A:11855 B:35534 D:394 K:89 M:449 P:4352 S:655539 SHA:0]" exec-counters="map[A:4337 B:13601 D:377 K:116 M:228 P:2569 S:279296 SHA:0]" exec-root=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 our-root=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 exec-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 our-old-root=0x2e391fa24b405538b73f7e2f2a42d478b8721703066d55be0f0a569a0a5e7491 correlation=d8072903-f92b-4ac2-b21c-693d6933cbb8
+[cdk-erigon-sequencer-001] [WARN] [09-17|23:42:43.875] Counter undershoot                       counter=K erigon=89 legacy=116 batch=55
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:43.875] [cdk-metric] duration: 58.836042ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=58 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:44.307] [cdk-metric] duration: 22.243µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:44.808] [cdk-metric] duration: 18.899µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:44.854] [cdk-metric] duration: 478.272µs, task: rpc, subtask1: sendrawtransaction duration-ms=0 task=rpc subtask1=sendrawtransaction
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:45.309] [cdk-metric] duration: 63.405µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:45.310] [cdk-metric] duration: 29.625µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:45.811] [cdk-metric] duration: 52.98µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.313] [cdk-metric] duration: 61.512µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.815] [5/13 Execution] Increment trie hashes started previousRootHeight=271 calculatingRootHeight=272
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.816] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.817] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.817] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.820] [cdk-metric] duration: 3.01379199s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3013 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.820] [5/13 Execution] Finish block 272 with 1 transactions... (28606 gas/s) info-tree-index=4 taken=3.013968106s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.820] [5/13 Execution] Starting verification request batch-number=56 blocks-range=[272;272] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.820] [5/13 Execution] Finished verification request batch-number=55 blocks-range=[267;271] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.820] [cdk-metric] duration: 291.7µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.821] RPC Daemon notified of new headers       from=271 to=272 amount=1 hash=0x8ef413b1c3d79e96ff89799358a6a618bf8ba23a8617c49a7e721674ef24cdb3 header sending=11.908µs log sending=280ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.821] [5/13 Execution] Starting block 273 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.821] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.821] [cdk-metric] duration: 26.17µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.825] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.835] Generating witness timing                batch=56 blockFrom=272 blockTo=272 taken=14.499077ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.835] [cdk-metric] duration: 14.571165ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=14 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.835] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0xb212ba870b983ceccc7b974e854456764e2d750fb8cd6b69b4dc6d403a128427 oldRoot=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 batch=56 witness-size="28 kB" data-stream-size="2.9 kB" blocks-count=1 correlation=06a1271b-d4e6-450f-bfa2-5f77273b6256
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.895] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=56 blocks-count=1 our-counters="map[A:11811 B:35216 D:385 K:81 M:436 P:2743 S:647019 SHA:0]" exec-counters="map[A:4337 B:13375 D:373 K:78 M:216 P:1523 S:272831 SHA:0]" exec-root=0xb212ba870b983ceccc7b974e854456764e2d750fb8cd6b69b4dc6d403a128427 our-root=0xb212ba870b983ceccc7b974e854456764e2d750fb8cd6b69b4dc6d403a128427 exec-old-root=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 our-old-root=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 correlation=06a1271b-d4e6-450f-bfa2-5f77273b6256
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:46.895] [cdk-metric] duration: 60.14962ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=60 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:47.322] [cdk-metric] duration: 39.25µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:47.823] [cdk-metric] duration: 56.105µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:48.324] [cdk-metric] duration: 58.378µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:48.825] [cdk-metric] duration: 33.26µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.326] [cdk-metric] duration: 26.32µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.828] [5/13 Execution] Increment trie hashes started previousRootHeight=271 calculatingRootHeight=273
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.828] [5/13 Execution] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.829] [5/13 Execution] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.829] [5/13 Execution] Increment ended 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.831] [cdk-metric] duration: 3.010038366s, task: stage_sequence_execute, subtask1: evm, subtask2: smt duration-ms=3010 task=stage_sequence_execute subtask1=evm subtask2=smt
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.831] [5/13 Execution] Finish block 273 with 0 transactions... info-tree-index=4 taken=3.010167671s
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.831] [5/13 Execution] Starting verification request batch-number=56 blocks-range=[272;273] pending-requests=2
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.831] [5/13 Execution] Finished verification request batch-number=56 blocks-range=[272;272] is-valid=true pending-requests=1
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.832] [cdk-metric] duration: 165.65µs, task: write-stream, subtask1: writeblockstostream duration-ms=0 task=write-stream subtask1=writeblockstostream
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.832] RPC Daemon notified of new headers       from=272 to=273 amount=1 hash=0x33db2da993c9ed6e959d0eaf0e81de754ed61d6db87dcbf0639ec8e7957aa754 header sending=12.569µs log sending=380ns
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.832] [5/13 Execution] Starting block 274 (forkid 12)... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.833] [5/13 Execution] Waiting for txs from the pool... 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.833] [cdk-metric] duration: 48.864µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.836] [api.generateWitness] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.846] Generating witness timing                batch=56 blockFrom=272 blockTo=273 taken=14.120987ms
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.846] [cdk-metric] duration: 14.184252ms, task: witness, subtask1: getwitnessbyblockrange duration-ms=14 task=witness subtask1=getwitnessbyblockrange
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.846] Sending request to grpc server           grpcUrl=zkevm-stateless-executor-001:50071 ourRoot=0x44a2c3242824a22956a77d8fdbc59f5934cb0f4d25f6ddf6999ff497c871b96b oldRoot=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 batch=56 witness-size="28 kB" data-stream-size="3.2 kB" blocks-count=2 correlation=9c2a5d0c-5bed-45b4-b63c-320867913571
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.902] executor result                          match=true grpcUrl=zkevm-stateless-executor-001:50071 batch=56 blocks-count=2 our-counters="map[A:11811 B:35233 D:385 K:83 M:436 P:3041 S:647199 SHA:0]" exec-counters="map[A:4337 B:13390 D:373 K:79 M:216 P:1702 S:273002 SHA:0]" exec-root=0x44a2c3242824a22956a77d8fdbc59f5934cb0f4d25f6ddf6999ff497c871b96b our-root=0x44a2c3242824a22956a77d8fdbc59f5934cb0f4d25f6ddf6999ff497c871b96b exec-old-root=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 our-old-root=0xb380dc5105429b802b1ec409154df7b40f040d52d3b4edecaa7be74745e69264 correlation=9c2a5d0c-5bed-45b4-b63c-320867913571
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:49.902] [cdk-metric] duration: 56.724632ms, task: legacy-executor-verifier, subtask1: verify-async duration-ms=56 task=legacy-executor-verifier subtask1=verify-async
+[cdk-erigon-sequencer-001] [INFO] [09-17|23:42:50.334] [cdk-metric] duration: 38.708µs, task: txpool, subtask1: get-transactions duration-ms=0 task=txpool subtask1=get-transactions

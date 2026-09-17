@@ -1,0 +1,8 @@
+$ claim_on_l1 1 in-gap
+[90m11:48PM[0m [32mINF[0m [1mNo destination address specified. Using private key's address[0m [36mdestAddress=[0m0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+[90m11:48PM[0m [32mINF[0m [1mThe deposit is ready to be claimed[0m
+[90m11:48PM[0m [32mINF[0m [1mClaim transaction sent[0m [36mtxHash=[0m0xb123a871d7cdc3ac67aac710cf23eb70709c0451ca896f1aab9c2c7e6afee814
+[90m11:48PM[0m [32mINF[0m [1mTransaction successful[0m [36mtxHash=[0m0xb123a871d7cdc3ac67aac710cf23eb70709c0451ca896f1aab9c2c7e6afee814
+
+[exit=0]
+

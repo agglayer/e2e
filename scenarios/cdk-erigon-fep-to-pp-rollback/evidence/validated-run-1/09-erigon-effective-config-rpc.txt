@@ -1,0 +1,9 @@
+$ kexec cdk-erigon-rpc-001 grep -nE 'pool-manager-url|disable-virtual-counters|mock-witness-generation' /etc/cdk-erigon/config.yaml
+The command was successfully executed and returned '0'.
+162:zkevm.disable-virtual-counters: true
+182:# zkevm.pool-manager-url: http://zkevm-pool-manager-001:8545
+986:zkevm.mock-witness-generation: true
+
+
+[exit=0]
+
