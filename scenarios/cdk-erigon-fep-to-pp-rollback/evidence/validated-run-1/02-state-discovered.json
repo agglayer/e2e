@@ -1,24 +1,24 @@
 {
   "label": "discovered",
-  "at": "2026-09-17T10:51:08Z",
+  "at": "2026-09-17T23:30:33Z",
   "l1": {
-    "block": "127",
-    "finalized": "104"
+    "block": "131",
+    "finalized": "112"
   },
   "rollup_manager": {
     "rollupContract": "0x414e9E227e4b589aF92200508aF5399576530E4e",
     "chainID": 2151908,
     "forkID": 12,
     "lastLocalExitRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "lastBatchSequenced": 3,
+    "lastBatchSequenced": 2,
     "lastVerifiedBatch": 1,
     "lastVerifiedBatchBeforeUpgrade": 0,
     "rollupTypeID": 1,
     "rollupVerifierType": 0
   },
   "l2": {
-    "block": "25",
-    "batch": "6",
+    "block": "27",
+    "batch": "7",
     "virtualBatch": "1",
     "verifiedBatch": "0",
     "forkId": "12",

@@ -1,34 +1,34 @@
-[aggkit-001] 2026-09-17T11:02:25.426Z	[34mINFO[0m	config/config.go:374	Loading configuration: saveConfigPath: , setDefaultVars: true, allowDeprecatedFields: false	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.426Z	[34mINFO[0m	config/config.go:378	Setting default vars	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.431Z	[35mDEBUG[0m	config/config_render.go:120	ResolveCycle: pending vars: [L1Config.polygonZkEVMAddress L2URL L1Config.polygonRollupManagerAddress rollupManagerCreationBlockNumber L1URL SequencerPrivateKeyPath SequencerPrivateKeyPassword L1Config.polygonZkEVMAddress rollupCreationBlockNumber L1Config.polygonRollupManagerAddress]	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.436Z	[34mINFO[0m	cmd/run.go:78	Starting application	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.436Z	[34mINFO[0m	common/retry_handler_delays.go:127	executing dial http://el-1-reth-lighthouse:8545 rpc try 1/5 (next delay: 2s)	{"pid": 7, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.084Z	[34mINFO[0m	config/config.go:374	Loading configuration: saveConfigPath: , setDefaultVars: true, allowDeprecatedFields: false	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.085Z	[34mINFO[0m	config/config.go:378	Setting default vars	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.091Z	[35mDEBUG[0m	config/config_render.go:120	ResolveCycle: pending vars: [L1Config.polygonZkEVMAddress L2URL L1Config.polygonRollupManagerAddress rollupManagerCreationBlockNumber L1URL SequencerPrivateKeyPath SequencerPrivateKeyPassword L1Config.polygonZkEVMAddress rollupCreationBlockNumber L1Config.polygonRollupManagerAddress]	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.097Z	[34mINFO[0m	cmd/run.go:78	Starting application	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.097Z	[34mINFO[0m	common/retry_handler_delays.go:127	executing dial http://el-1-reth-lighthouse:8545 rpc try 1/5 (next delay: 2s)	{"pid": 6, "version": "v0.8.1"}
 [aggkit-001] Version:      v0.8.1
 [aggkit-001] Git revision: 05036f1
 [aggkit-001] Git branch:   HEAD
 [aggkit-001] Go version:   go1.25.5
 [aggkit-001] Built:        Wed, 11 Feb 2026 15:21:33 +0000
 [aggkit-001] OS/Arch:      linux/amd64
-[aggkit-001] 2026-09-17T11:02:25.436Z	[34mINFO[0m	common/retry_handler_delays.go:133	successful run dial http://el-1-reth-lighthouse:8545 rpc in try 1/5	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.436Z	[34mINFO[0m	common/retry_handler_delays.go:127	executing dial http://cdk-erigon-rpc-001:8545 rpc try 1/5 (next delay: 2s)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.436Z	[34mINFO[0m	common/retry_handler_delays.go:133	successful run dial http://cdk-erigon-rpc-001:8545 rpc in try 1/5	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.439Z	[34mINFO[0m	db/migrations.go:52	successfully ran 3 migrations from migrations: reorgdetector0001, reorgdetector0002, basedb0001, 	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.443Z	[34mINFO[0m	db/migrations.go:52	successfully ran 3 migrations from migrations: reorgdetector0001, reorgdetector0002, basedb0001, 	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.444Z	[34mINFO[0m	common/retry_handler_delays.go:127	executing dial http://el-1-reth-lighthouse:8545 rpc try 1/5 (next delay: 2s)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.444Z	[34mINFO[0m	common/retry_handler_delays.go:133	successful run dial http://el-1-reth-lighthouse:8545 rpc in try 1/5	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.448Z	[34mINFO[0m	querier/rollup_data_querier.go:64	retrieved rollup id 1 from rollup manager	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.456Z	[34mINFO[0m	db/migrations.go:52	successfully ran 9 migrations from migrations: l1infotreesync0001, l1infotreesync0002, l1infotreesync0003, l1infotreesync0004, rollup_exit_tree001, l1_info_tree001, rollup_exit_tree002, l1_info_tree002, basedb0001, 	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.460Z	[34mINFO[0m	l1infotreesync/downloader.go:43	sanity check GlobalExitRoot (0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674) SC OK. DepositCount: 4	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.460Z	[34mINFO[0m	l1infotreesync/downloader.go:33	sanity check RollupManager(0x6c6c009cC348976dB4A908c92B24433d4F6edA43) SC OK. Bridge address: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.460Z	[34mINFO[0m	sync/evmdownloader.go:84	downloader initialized with block finality: FinalizedBlock, finalized block type: FinalizedBlock. SyncChunkSize: 100	{"pid": 7, "version": "v0.8.1", "syncer": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.460Z	[34mINFO[0m	l1infotreesync/l1infotreesync.go:161	starting l1infotreesync	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.461Z	[34mINFO[0m	compatibility/compatibility_db_contents.go:78	compatibilityCheck: no data stored, storing runtime data: [ChainID: 271828, Addresses: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674, 0x6c6c009cC348976dB4A908c92B24433d4F6edA43, ]	{"pid": 7, "version": "v0.8.1", "module": "compatibilityCheck"}
-[aggkit-001] 2026-09-17T11:02:25.461Z	[34mINFO[0m	sync/evmdriver.go:160	Starting sync... lastProcessedBlock 44	{"pid": 7, "version": "v0.8.1", "syncer": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.462Z	[34mINFO[0m	bridgesync/bridgesync.go:136	Bridge sync L2BridgeSyncer, syncing full claims: true	{"pid": 7, "version": "v0.8.1", "module": "L2BridgeSyncer"}
-[aggkit-001] 2026-09-17T11:02:25.464Z	[34mINFO[0m	bridgesync/bridgesync.go:498	sanityCheckContract(bridge:0xC8cbEBf950B9Df44d987c8619f092beA980fF038) OK. lastUpdatedDespositCount: 2	{"pid": 7, "version": "v0.8.1", "module": "L2BridgeSyncer"}
-[aggkit-001] 2026-09-17T11:02:25.481Z	[34mINFO[0m	db/migrations.go:52	successfully ran 15 migrations from migrations: bridgesync0001, bridgesync0002, bridgesync0003, bridgesync0004, bridgesync0005, bridgesync0006, bridgesync0007, bridgesync0008, bridgesync0009, bridgesync0010, bridgesync0011, bridgesync0012, tree001, tree002, basedb0001, 	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.488Z	[34mINFO[0m	sync/evmdownloader.go:84	downloader initialized with block finality: LatestBlock, finalized block type: LatestBlock. SyncChunkSize: 100	{"pid": 7, "version": "v0.8.1", "syncer": "L2BridgeSyncer"}
-[aggkit-001] 2026-09-17T11:02:25.488Z	[34mINFO[0m	bridgesync/bridgesync.go:222	L2BridgeSyncer created:
+[aggkit-001] 2026-09-17T23:43:41.097Z	[34mINFO[0m	common/retry_handler_delays.go:133	successful run dial http://el-1-reth-lighthouse:8545 rpc in try 1/5	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.097Z	[34mINFO[0m	common/retry_handler_delays.go:127	executing dial http://cdk-erigon-rpc-001:8545 rpc try 1/5 (next delay: 2s)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.097Z	[34mINFO[0m	common/retry_handler_delays.go:133	successful run dial http://cdk-erigon-rpc-001:8545 rpc in try 1/5	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.101Z	[34mINFO[0m	db/migrations.go:52	successfully ran 3 migrations from migrations: reorgdetector0001, reorgdetector0002, basedb0001, 	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.116Z	[34mINFO[0m	db/migrations.go:52	successfully ran 3 migrations from migrations: reorgdetector0001, reorgdetector0002, basedb0001, 	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.117Z	[34mINFO[0m	common/retry_handler_delays.go:127	executing dial http://el-1-reth-lighthouse:8545 rpc try 1/5 (next delay: 2s)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.117Z	[34mINFO[0m	common/retry_handler_delays.go:133	successful run dial http://el-1-reth-lighthouse:8545 rpc in try 1/5	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.122Z	[34mINFO[0m	querier/rollup_data_querier.go:64	retrieved rollup id 1 from rollup manager	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.129Z	[34mINFO[0m	db/migrations.go:52	successfully ran 9 migrations from migrations: l1infotreesync0001, l1infotreesync0002, l1infotreesync0003, l1infotreesync0004, rollup_exit_tree001, l1_info_tree001, rollup_exit_tree002, l1_info_tree002, basedb0001, 	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.133Z	[34mINFO[0m	l1infotreesync/downloader.go:43	sanity check GlobalExitRoot (0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674) SC OK. DepositCount: 5	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.134Z	[34mINFO[0m	l1infotreesync/downloader.go:33	sanity check RollupManager(0x6c6c009cC348976dB4A908c92B24433d4F6edA43) SC OK. Bridge address: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.134Z	[34mINFO[0m	sync/evmdownloader.go:84	downloader initialized with block finality: FinalizedBlock, finalized block type: FinalizedBlock. SyncChunkSize: 100	{"pid": 6, "version": "v0.8.1", "syncer": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.134Z	[34mINFO[0m	l1infotreesync/l1infotreesync.go:161	starting l1infotreesync	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.134Z	[34mINFO[0m	compatibility/compatibility_db_contents.go:78	compatibilityCheck: no data stored, storing runtime data: [ChainID: 271828, Addresses: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674, 0x6c6c009cC348976dB4A908c92B24433d4F6edA43, ]	{"pid": 6, "version": "v0.8.1", "module": "compatibilityCheck"}
+[aggkit-001] 2026-09-17T23:43:41.134Z	[34mINFO[0m	sync/evmdriver.go:160	Starting sync... lastProcessedBlock 45	{"pid": 6, "version": "v0.8.1", "syncer": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.135Z	[34mINFO[0m	bridgesync/bridgesync.go:136	Bridge sync L2BridgeSyncer, syncing full claims: true	{"pid": 6, "version": "v0.8.1", "module": "L2BridgeSyncer"}
+[aggkit-001] 2026-09-17T23:43:41.136Z	[34mINFO[0m	bridgesync/bridgesync.go:498	sanityCheckContract(bridge:0xC8cbEBf950B9Df44d987c8619f092beA980fF038) OK. lastUpdatedDespositCount: 2	{"pid": 6, "version": "v0.8.1", "module": "L2BridgeSyncer"}
+[aggkit-001] 2026-09-17T23:43:41.151Z	[34mINFO[0m	db/migrations.go:52	successfully ran 15 migrations from migrations: bridgesync0001, bridgesync0002, bridgesync0003, bridgesync0004, bridgesync0005, bridgesync0006, bridgesync0007, bridgesync0008, bridgesync0009, bridgesync0010, bridgesync0011, bridgesync0012, tree001, tree002, basedb0001, 	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.156Z	[34mINFO[0m	sync/evmdownloader.go:84	downloader initialized with block finality: LatestBlock, finalized block type: LatestBlock. SyncChunkSize: 100	{"pid": 6, "version": "v0.8.1", "syncer": "L2BridgeSyncer"}
+[aggkit-001] 2026-09-17T23:43:41.156Z	[34mINFO[0m	bridgesync/bridgesync.go:222	L2BridgeSyncer created:
 [aggkit-001]   dbPath: /data/bridgel2sync.sqlite
 [aggkit-001]   initialBlock: 0
 [aggkit-001]   blockFinality: LatestBlock
@@ -38,34 +38,20 @@
 [aggkit-001]   retryAfterErrorPeriod: 1s
 [aggkit-001]   syncBlockChunkSize: 100
 [aggkit-001]   ReorgDetector: ReorgDetector{network: l2, finalized: {LatestBlock 0}, check_interval: 2s}
-[aggkit-001]   waitForNewBlocksPeriod: 3s	{"pid": 7, "version": "v0.8.1", "module": "L2BridgeSyncer"}
-[aggkit-001] 2026-09-17T11:02:25.489Z	[34mINFO[0m	cmd/run.go:923	Starting txn_sender backfilling process	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.489Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:60	Starting txn_sender backfilling process	{"pid": 7, "version": "v0.8.1", "module": "tx-sender-backfill"}
-[aggkit-001] 2026-09-17T11:02:25.489Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:75	Starting backfill for bridge table	{"pid": 7, "version": "v0.8.1", "module": "tx-sender-backfill"}
-[aggkit-001] 2026-09-17T11:02:25.489Z	[34mINFO[0m	bridgesync/bridgesync.go:308	starting bridge synchronizer	{"pid": 7, "version": "v0.8.1", "module": "L2BridgeSyncer"}
-[aggkit-001] 2026-09-17T11:02:25.489Z	[34mINFO[0m	compatibility/compatibility_db_contents.go:78	compatibilityCheck: no data stored, storing runtime data: [ChainID: 2151908, Addresses: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038, DBVersion: 1]	{"pid": 7, "version": "v0.8.1", "module": "compatibilityCheck"}
-[aggkit-001] 2026-09-17T11:02:25.490Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:84	No records need backfilling in bridge table	{"pid": 7, "version": "v0.8.1", "module": "tx-sender-backfill"}
-[aggkit-001] 2026-09-17T11:02:25.490Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:67	Backfilling completed	{"pid": 7, "version": "v0.8.1", "module": "tx-sender-backfill"}
-[aggkit-001] 2026-09-17T11:02:25.490Z	[34mINFO[0m	cmd/run.go:951	txn_sender backfilling completed in 1.352255ms	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.490Z	[34mINFO[0m	agglayer/rate_limit_wrapper.go:38	Rate limiting enabled for method 'SendCertificate': RateLimitConfig{NumRequests: 15, Period: 1m0s}	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.491Z	[34mINFO[0m	sync/evmdriver.go:160	Starting sync... lastProcessedBlock 0	{"pid": 7, "version": "v0.8.1", "syncer": "L2BridgeSyncer"}
-[aggkit-001] 2026-09-17T11:02:25.568Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 71 processed with 2 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.569Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=121, event=BlockNumber: 0, BlockPosition: 4, RollupID: 1, NumBatch: 1, StateRoot: 0x0dffd11ba4d895d4621d7b8da5220d3c7067e730c3b219b39b63cf885679c985, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.569Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 121 processed with 3 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.572Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=151, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 3, StateRoot: 0xce69a601b9db5e1b0f23b2b4246bde99d90c61d5811389e5fb2aa8bfe8239ef2, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.573Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 151 processed with 1 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.573Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 159 processed with 2 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.574Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=181, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 7, StateRoot: 0x1f00c8912db947a6fbf9db6ea4bd7a7c0e7d85ff9092e8c09d62a3d871a405e7, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.574Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 181 processed with 1 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.574Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=211, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 11, StateRoot: 0xb4c29dfb789d5530bdab7ba56f7715413b38de8c5a19bd3e4ec5bcf8675c54a9, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.574Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 211 processed with 1 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.575Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:37	UpsertLeaf VerifyBatches event (blockNumber=241, event=BlockNumber: 0, BlockPosition: 4, RollupID: 1, NumBatch: 16, StateRoot: 0xc9f69b050762516464673a72dbe0c9759c8d3b3a3292c830c4a9c169f7562113, ExitRoot: 0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.577Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 241 processed with 3 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.578Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:34	skipping VerifyBatches event with same ExitRoot (blockNumber=271, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 20, StateRoot: 0x152915213194c93a4b35808b5b7d7c144294586a5db73dc1d7a6eb9e6f350703, ExitRoot: 0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.578Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 271 processed with 1 events	{"pid": 7, "version": "v0.8.1", "processor": "l1infotreesync"}
-[aggkit-001] 2026-09-17T11:02:25.630Z	[34mINFO[0m	db/migrations.go:96	successfully ran 5 migrations from migrations: 0001, 0002, 0003, 0004, basedb0001, 	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.631Z	[34mINFO[0m	querier/rollup_data_querier.go:170	rollup chain id (read from rollup manager): 2151908	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.631Z	[33mWARN[0m	signer/factory.go:23	No signer method specified, defaulting to local (keystore file)	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001]   waitForNewBlocksPeriod: 3s	{"pid": 6, "version": "v0.8.1", "module": "L2BridgeSyncer"}
+[aggkit-001] 2026-09-17T23:43:41.156Z	[34mINFO[0m	cmd/run.go:923	Starting txn_sender backfilling process	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:60	Starting txn_sender backfilling process	{"pid": 6, "version": "v0.8.1", "module": "tx-sender-backfill"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:75	Starting backfill for bridge table	{"pid": 6, "version": "v0.8.1", "module": "tx-sender-backfill"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	bridgesync/bridgesync.go:308	starting bridge synchronizer	{"pid": 6, "version": "v0.8.1", "module": "L2BridgeSyncer"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:84	No records need backfilling in bridge table	{"pid": 6, "version": "v0.8.1", "module": "tx-sender-backfill"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	bridgesync/backfill_tx_sender.go:67	Backfilling completed	{"pid": 6, "version": "v0.8.1", "module": "tx-sender-backfill"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	cmd/run.go:951	txn_sender backfilling completed in 766.376µs	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.157Z	[34mINFO[0m	compatibility/compatibility_db_contents.go:78	compatibilityCheck: no data stored, storing runtime data: [ChainID: 2151908, Addresses: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038, DBVersion: 1]	{"pid": 6, "version": "v0.8.1", "module": "compatibilityCheck"}
+[aggkit-001] 2026-09-17T23:43:41.158Z	[34mINFO[0m	sync/evmdriver.go:160	Starting sync... lastProcessedBlock 0	{"pid": 6, "version": "v0.8.1", "syncer": "L2BridgeSyncer"}
+[aggkit-001] 2026-09-17T23:43:41.158Z	[34mINFO[0m	agglayer/rate_limit_wrapper.go:38	Rate limiting enabled for method 'SendCertificate': RateLimitConfig{NumRequests: 15, Period: 1m0s}	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.209Z	[34mINFO[0m	db/migrations.go:96	successfully ran 5 migrations from migrations: 0001, 0002, 0003, 0004, basedb0001, 	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.210Z	[34mINFO[0m	querier/rollup_data_querier.go:170	rollup chain id (read from rollup manager): 2151908	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.210Z	[33mWARN[0m	signer/factory.go:23	No signer method specified, defaulting to local (keystore file)	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
 [aggkit-001] github.com/agglayer/go_signer/signer.NewSigner
 [aggkit-001] 	/go/pkg/mod/github.com/agglayer/go_signer@v0.0.7/signer/factory.go:23
 [aggkit-001] github.com/agglayer/aggkit/aggsender/flows.initializeSigner
@@ -94,7 +80,7 @@
 [aggkit-001] 	/app/cmd/main.go:80
 [aggkit-001] runtime.main
 [aggkit-001] 	/usr/local/go/src/runtime/proc.go:285
-[aggkit-001] 2026-09-17T11:02:25.651Z	[33mWARN[0m	flows/builder_flow_factory.go:235	error getting multisig committee: failed to query the signatures threshold for block -2 (rollupAddr 0x414e9E227e4b589aF92200508aF5399576530E4e): execution reverted	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[33mWARN[0m	flows/builder_flow_factory.go:235	error getting multisig committee: failed to query the signatures threshold for block -2 (rollupAddr 0x414e9E227e4b589aF92200508aF5399576530E4e): execution reverted	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
 [aggkit-001] github.com/agglayer/aggkit/aggsender/flows.initializeSigner
 [aggkit-001] 	/app/aggsender/flows/builder_flow_factory.go:235
 [aggkit-001] github.com/agglayer/aggkit/aggsender/flows.CreateCommonFlowComponents
@@ -121,7 +107,7 @@
 [aggkit-001] 	/app/cmd/main.go:80
 [aggkit-001] runtime.main
 [aggkit-001] 	/usr/local/go/src/runtime/proc.go:285
-[aggkit-001] 2026-09-17T11:02:25.651Z	[34mINFO[0m	aggsender/aggsender.go:151	Aggsender Config: StoragePath: /data/aggsender.sqlite
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	aggsender/aggsender.go:151	Aggsender Config: StoragePath: /data/aggsender.sqlite
 [aggkit-001] CertificatesDir: /data/certificates/
 [aggkit-001] AgglayerClient: GRPC: GRPC Client Config: URL=agglayer:4443, MinConnectTimeout=5s, RequestTimeout=5m0s, UseTLS=false, Retry=InitialBackoff=1s, MaxBackoff=10s, BackoffMultiplier=2.000000, MaxAttempts=20, Cached: false, ConfigurationCache: TTL: 5m0s, Capacity: 100, APIRateLimits: [APIRateLimitConfig{Method: SendCertificate, RateLimit: RateLimitConfig{NumRequests: 15, Period: 1m0s}}]
 [aggkit-001] AggsenderPrivateKey: 
@@ -136,27 +122,44 @@
 [aggkit-001] RequireNoFEPBlockGap: true
 [aggkit-001] RetriesToBuildAndSendCertificate: RetryPolicyConfig{Mode: delays, Config: RetryDelaysConfig{Delays: [1m0s 1m0s 2m0s 5m0s 5m0s 8m0s], MaxRetries: 6}}
 [aggkit-001] StorageRetainCertificatesPolicy: retain all certificates, keep history: true
-[aggkit-001] .	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.651Z	[34mINFO[0m	query/aggchain_fep_rollup_query.go:75	aggchainProverFlow - AggchainFEP contract address is zero, using no-op querier	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.651Z	[34mINFO[0m	cmd/run.go:851	Starting RPC server at 0.0.0.0:5576	{"pid": 7, "version": "v0.8.1", "module": "RPC"}
-[aggkit-001] 2026-09-17T11:02:25.651Z	[34mINFO[0m	aggsender/aggsender.go:261	AggSender started	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.651Z	[34mINFO[0m	cmd/run.go:235	starting L1 MultiDownloader...	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.652Z	[34mINFO[0m	metrics/metrics.go:112	Registered prometheus aggsender metrics	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.652Z	[34mINFO[0m	compatibility/compatibility_db_contents.go:78	compatibilityCheck: no data stored, storing runtime data: [NetworkID: 1]	{"pid": 7, "version": "v0.8.1", "module": "compatibilityCheck"}
-[aggkit-001] 2026-09-17T11:02:25.652Z	[34mINFO[0m	statuschecker/initial_state.go:82	recovery: checking last settled certificate from AggLayer for network 1	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.652Z	[34mINFO[0m	log/log.go:236	http server started: 0.0.0.0:5576	{"pid": 7, "version": "v0.8.1", "module": "RPC"}
-[aggkit-001] 2026-09-17T11:02:25.652Z	[34mINFO[0m	cmd/run.go:873	prometheus server listening on port 9091	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:88	recovery: checking last pending certificate from AggLayer for network 1	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:115	recovery: settled certificate from AggLayer: nil	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:116	recovery: pending certificate from AggLayer: nil / status: ???	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:118	recovery: certificate from Local           : nil / status: ???	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:115	recovery: settled certificate from AggLayer: nil	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:116	recovery: pending certificate from AggLayer: nil / status: ???	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:118	recovery: certificate from Local           : nil / status: ???	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/initial_state.go:183	recovery: last certificate from AggLayer: nil	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/cert_status_checker.go:247	recovery: action: Action: 0, Message: no certificates in local storage and agglayer: initial state, Cert: nil	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/cert_status_checker.go:250	recovery: no action needed	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/cert_status_checker.go:240	recovery: initial status actions executed successfully	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	statuschecker/cert_status_checker.go:92	Initial status checked successfully	{"pid": 7, "version": "v0.8.1", "module": "aggsender"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	aggsender/certificate_send_trigger.go:139	Starting blockNotifier: BlockNotifierPolling: finality=LatestBlock lastBlockSeen=none	{"pid": 7, "version": "v0.8.1"}
-[aggkit-001] 2026-09-17T11:02:25.653Z	[34mINFO[0m	aggsender/certificate_send_trigger.go:141	Starting epochNotifier: EpochNotifierPerBlock: config: {startEpochBlock=45, sizeEpoch=15, threshold=50%}	{"pid": 7, "version": "v0.8.1"}
+[aggkit-001] .	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	query/aggchain_fep_rollup_query.go:75	aggchainProverFlow - AggchainFEP contract address is zero, using no-op querier	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	cmd/run.go:851	Starting RPC server at 0.0.0.0:5576	{"pid": 6, "version": "v0.8.1", "module": "RPC"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	aggsender/aggsender.go:261	AggSender started	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	cmd/run.go:235	starting L1 MultiDownloader...	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	metrics/metrics.go:112	Registered prometheus aggsender metrics	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.232Z	[34mINFO[0m	compatibility/compatibility_db_contents.go:78	compatibilityCheck: no data stored, storing runtime data: [NetworkID: 1]	{"pid": 6, "version": "v0.8.1", "module": "compatibilityCheck"}
+[aggkit-001] 2026-09-17T23:43:41.233Z	[34mINFO[0m	log/log.go:236	http server started: 0.0.0.0:5576	{"pid": 6, "version": "v0.8.1", "module": "RPC"}
+[aggkit-001] 2026-09-17T23:43:41.233Z	[34mINFO[0m	statuschecker/initial_state.go:82	recovery: checking last settled certificate from AggLayer for network 1	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.233Z	[34mINFO[0m	cmd/run.go:873	prometheus server listening on port 9091	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.233Z	[34mINFO[0m	statuschecker/initial_state.go:88	recovery: checking last pending certificate from AggLayer for network 1	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:115	recovery: settled certificate from AggLayer: nil	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:116	recovery: pending certificate from AggLayer: nil / status: ???	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:118	recovery: certificate from Local           : nil / status: ???	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:115	recovery: settled certificate from AggLayer: nil	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:116	recovery: pending certificate from AggLayer: nil / status: ???	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:118	recovery: certificate from Local           : nil / status: ???	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/initial_state.go:183	recovery: last certificate from AggLayer: nil	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/cert_status_checker.go:247	recovery: action: Action: 0, Message: no certificates in local storage and agglayer: initial state, Cert: nil	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/cert_status_checker.go:250	recovery: no action needed	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/cert_status_checker.go:240	recovery: initial status actions executed successfully	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	statuschecker/cert_status_checker.go:92	Initial status checked successfully	{"pid": 6, "version": "v0.8.1", "module": "aggsender"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	aggsender/certificate_send_trigger.go:139	Starting blockNotifier: BlockNotifierPolling: finality=LatestBlock lastBlockSeen=none	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.234Z	[34mINFO[0m	aggsender/certificate_send_trigger.go:141	Starting epochNotifier: EpochNotifierPerBlock: config: {startEpochBlock=46, sizeEpoch=15, threshold=50%}	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.241Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 71 processed with 2 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.242Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=121, event=BlockNumber: 0, BlockPosition: 4, RollupID: 1, NumBatch: 1, StateRoot: 0x1f2d2d5b156dad34a766dda73f314fd289e44787f51477d6f4e81fcb3d9f098b, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.242Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 121 processed with 3 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.242Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=136, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 2, StateRoot: 0x7e1c34305a0b250bd7b7282a41d6fb23c9f7d44b887bb9e1d72e5c2a3ac65385, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.243Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 136 processed with 1 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.245Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=166, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 6, StateRoot: 0x28e25102218a5c988a0c1ff1640441e31fd70bcb2c8b1ca84daccfa5df261efb, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.245Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 166 processed with 1 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.246Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 173 processed with 2 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.246Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=197, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 10, StateRoot: 0xe4dabcbcfe8c3c5dd5803cc6221cbee218bb356e2e753aa07fe0682f7e1d949a, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.246Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 197 processed with 1 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.246Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:26	skipping VerifyBatches event with empty ExitRoot (blockNumber=242, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 14, StateRoot: 0x04a82bd2fd4e41667a45820e508bf96a9b5318d1db5ba4e2b2fb9bd87f2dac65, ExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.247Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 242 processed with 1 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.250Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:37	UpsertLeaf VerifyBatches event (blockNumber=272, event=BlockNumber: 0, BlockPosition: 4, RollupID: 1, NumBatch: 19, StateRoot: 0x2fd865041ed0beb79dcece1417737076cc04f855a56877bce9d5343265e4e7eb, ExitRoot: 0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.251Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 272 processed with 3 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.252Z	[34mINFO[0m	l1infotreesync/processor_verifybatches.go:34	skipping VerifyBatches event with same ExitRoot (blockNumber=302, event=BlockNumber: 0, BlockPosition: 2, RollupID: 1, NumBatch: 23, StateRoot: 0x3fd1c52d9187d04edaeb46d9d4fb89f18135aa40037a4216b1c5f8f641b5ac68, ExitRoot: 0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb, Aggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d, RollupExitRoot: 0x0000000000000000000000000000000000000000000000000000000000000000)	{"pid": 6, "version": "v0.8.1"}
+[aggkit-001] 2026-09-17T23:43:41.252Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 302 processed with 1 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}
+[aggkit-001] 2026-09-17T23:43:41.254Z	[34mINFO[0m	l1infotreesync/processor.go:469	block 457 processed with 2 events	{"pid": 6, "version": "v0.8.1", "processor": "l1infotreesync"}

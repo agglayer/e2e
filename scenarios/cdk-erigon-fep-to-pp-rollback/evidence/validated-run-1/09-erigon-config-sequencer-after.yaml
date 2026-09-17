@@ -468,7 +468,7 @@ zkevm.l1-matic-contract-address: "0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E"
 # The L1 block number from which to start syncing historical data.
 # Usually set to the block where the agglayer contracts were deployed.
 # Default: 0
-zkevm.l1-first-block: 45
+zkevm.l1-first-block: 46
 
 # If non-zero, requires a specific L1 block to be finalized before the sequencer continues to sync.
 # Enhances security but may introduce delays in processing.

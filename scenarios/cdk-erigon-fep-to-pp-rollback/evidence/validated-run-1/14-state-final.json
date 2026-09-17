@@ -1,26 +1,26 @@
 {
   "label": "final",
-  "at": "2026-09-17T11:06:25Z",
+  "at": "2026-09-17T23:48:43Z",
   "l1": {
-    "block": "586",
-    "finalized": "568"
+    "block": "676",
+    "finalized": "656"
   },
   "rollup_manager": {
     "rollupContract": "0x414e9E227e4b589aF92200508aF5399576530E4e",
     "chainID": 2151908,
     "forkID": 0,
     "lastLocalExitRoot": "0xbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050",
-    "lastBatchSequenced": 20,
-    "lastVerifiedBatch": 20,
-    "lastVerifiedBatchBeforeUpgrade": 20,
+    "lastBatchSequenced": 23,
+    "lastVerifiedBatch": 23,
+    "lastVerifiedBatchBeforeUpgrade": 23,
     "rollupTypeID": 2,
     "rollupVerifierType": 2
   },
   "l2": {
-    "block": "328",
-    "batch": "67",
-    "virtualBatch": "20",
-    "verifiedBatch": "20",
+    "block": "387",
+    "batch": "79",
+    "virtualBatch": "23",
+    "verifiedBatch": "23",
     "forkId": "12",
     "client": "cdk-erigon/v2.61.24/linux-amd64/go1.21.5"
   }

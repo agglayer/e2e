@@ -1,4 +1,4 @@
-[90m10:52AM[0m [32mINF[0m [1mBridge transaction sent[0m [36mtxHash=[0m0x03a918b2b3d4281fca907b8e088e104c9077c5e06f59cbadcb2d3404410e9943
-[90m10:52AM[0m [32mINF[0m [1mTransaction successful[0m [36mtxHash=[0m0x03a918b2b3d4281fca907b8e088e104c9077c5e06f59cbadcb2d3404410e9943
-[90m10:52AM[0m [32mINF[0m [1mBridge deposit count parsed from logs[0m [36mdepositCount=[0m1
+[90m11:31PM[0m [32mINF[0m [1mBridge transaction sent[0m [36mtxHash=[0m0x03a918b2b3d4281fca907b8e088e104c9077c5e06f59cbadcb2d3404410e9943
+[90m11:31PM[0m [32mINF[0m [1mTransaction successful[0m [36mtxHash=[0m0x03a918b2b3d4281fca907b8e088e104c9077c5e06f59cbadcb2d3404410e9943
+[90m11:31PM[0m [32mINF[0m [1mBridge deposit count parsed from logs[0m [36mdepositCount=[0m1
 L1 depositCount=1 (1 ETH to L2)

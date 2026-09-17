@@ -1,26 +1,26 @@
 {
   "label": "gap-open",
-  "at": "2026-09-17T10:58:38Z",
+  "at": "2026-09-17T23:38:25Z",
   "l1": {
-    "block": "352",
-    "finalized": "336"
+    "block": "367",
+    "finalized": "344"
   },
   "rollup_manager": {
     "rollupContract": "0x414e9E227e4b589aF92200508aF5399576530E4e",
     "chainID": 2151908,
     "forkID": 12,
     "lastLocalExitRoot": "0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb",
-    "lastBatchSequenced": 33,
-    "lastVerifiedBatch": 20,
+    "lastBatchSequenced": 35,
+    "lastVerifiedBatch": 23,
     "lastVerifiedBatchBeforeUpgrade": 0,
     "rollupTypeID": 1,
     "rollupVerifierType": 0
   },
   "l2": {
-    "block": "175",
-    "batch": "36",
-    "virtualBatch": "28",
-    "verifiedBatch": "20",
+    "block": "184",
+    "batch": "38",
+    "virtualBatch": "30",
+    "verifiedBatch": "23",
     "forkId": "12",
     "client": "cdk-erigon/v2.61.20/linux-amd64/go1.21.5"
   }

@@ -8,8 +8,8 @@ PathRWData = "/data"                                          # Persistent direc
 L1URL = "http://el-1-reth-lighthouse:8545"                                      # L1_URL
 L2URL = "http://cdk-erigon-rpc-001:8545"                                      # L2_URL (needs debug_* methods)
 rollupCreationBlockNumber = 61     # Rollup SC deployment block
-rollupManagerCreationBlockNumber = 45 # Rollup Manager SC deployment block
-genesisBlockNumber = 45             # Rollup Manager SC deployment block
+rollupManagerCreationBlockNumber = 46 # Rollup Manager SC deployment block
+genesisBlockNumber = 46             # Rollup Manager SC deployment block
 
 [L1Config]
 BridgeAddr = "0xC8cbEBf950B9Df44d987c8619f092beA980fF038"                              # L1 bridge contract address
@@ -36,7 +36,7 @@ CheckSettledInterval = "5s"
 RetryCertAfterInError = true
 SaveCertificatesToFilesPath = "/tmp"
 RequireNoFEPBlockGap = true
-MaxL2BlockNumber = 96
+MaxL2BlockNumber = 111
 MaxCertSize = 0
 DryRun = false
   [AggSender.AgglayerClient.GRPC]

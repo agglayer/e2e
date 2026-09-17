@@ -1,1 +1,1 @@
-[cdk-node-001] 2026-09-17T10:57:23.849Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] 2026-09-17T23:37:12.062Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}

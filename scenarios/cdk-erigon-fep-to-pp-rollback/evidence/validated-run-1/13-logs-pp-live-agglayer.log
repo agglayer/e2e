@@ -1,400 +1,400 @@
-[agglayer]   [2m2026-09-17T11:06:09.307144Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_start_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/lib.rs:324
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.026042Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mBackup request for epoch 39 enqueued[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:184
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.026365Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mPreparing database for initialization and migration[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:53
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.026531Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mFailed to extract database schema, assuming empty, [1;34merror[0m[34m: IO error: No such file or directory: While opening a file for sequentially reading: /etc/agglayer/storage/epochs/40/CURRENT: No such file or directory[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:66
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.026564Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mOpening fresh database[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:127
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.027919Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mBackup of epoch 39 started[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:362
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.028446Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mOpened the epoch 39 backup engine, [1;32melapsed_ms[0m[32m: 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:213
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.040510Z[0m [32m INFO[0m [1;32magglayer_storage::storage::migration[0m[32m: [32mRunning migration step 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:311
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 0
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.040990Z[0m [32m INFO[0m [1;32magglayer_storage::storage::migration[0m[32m: [32mRunning migration step 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:311
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.041007Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mBackup of epoch 39 completed, [1;32melapsed_ms[0m[32m: 13[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:386
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.041025Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mCreating column family "per_epoch_certificates_proto_cf", [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:172
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.045169Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mPopulating new column families with data[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:177
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.045193Z[0m [32m INFO[0m [1;32magglayer_storage::stores::migration_helpers[0m[32m: [32mcompleted proto migration, [1;32mcf[0m[32m: "per_epoch_certificates_cf", [1;32mlabel[0m[32m: "epoch", [1;32mmigrated[0m[32m: 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/migration_helpers.rs:97
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.046045Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mReopening database with declared column options[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:270
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:42.046383Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.307170Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_end_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
+[agglayer]   [2m2026-09-17T23:47:42.046417Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_metadata_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.307198Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "migration_record_v0_cf" with default options: not part of the known schema[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:316
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.307225Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_proto_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:47:42.046433Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_proofs_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317714Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:47:42.046451Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_start_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317738Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_metadata_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:47:42.046467Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_end_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317749Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_proofs_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:47:42.046529Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "migration_record_v0_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317770Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_start_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
+[agglayer]   [2m2026-09-17T23:47:42.046547Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_proto_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 40
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317789Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_end_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
+[agglayer]   [2m2026-09-17T23:47:44.025299Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 647, [1;34mblock_hash[0m[34m: 0xa0791abd2abf8d2b01d53e1c04687fe0d362144c97c2b822ae6f11452a060c22, [1;34mtimestamp[0m[34m: 1789688864, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:46.030611Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 648, [1;34mblock_hash[0m[34m: 0x1ed79168ed16b491c8c22ade54f5266a27e3a4df1d6e0aecfdd059b5e8335e5f, [1;34mtimestamp[0m[34m: 1789688866, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:48.025327Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 649, [1;34mblock_hash[0m[34m: 0x87f7ae1cfa3ee430df17c25e43e3f72f48fb4b791bda20d476aa4c99e22a20fb, [1;34mtimestamp[0m[34m: 1789688868, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:50.023628Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 650, [1;34mblock_hash[0m[34m: 0xd3c82f5646ebb00d85551ec0b5eb66a8e094a64b2abd8db489277e5fab431661, [1;34mtimestamp[0m[34m: 1789688870, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:52.024339Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 651, [1;34mblock_hash[0m[34m: 0xd39985541c117a77e912c6368a64b147a8a567c2a51662c184e3f7de053cb67b, [1;34mtimestamp[0m[34m: 1789688872, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:54.027237Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 652, [1;34mblock_hash[0m[34m: 0xb0212ef5dd71478b3dbcca1d6f12ac12fb771556575e32e34237906cf82cf1c4, [1;34mtimestamp[0m[34m: 1789688874, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:56.023861Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 653, [1;34mblock_hash[0m[34m: 0x3f7dc175d04b50465725779d4736b08562f97ccd1f1b9aea70518ccbe18791d8, [1;34mtimestamp[0m[34m: 1789688876, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:47:58.025566Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 654, [1;34mblock_hash[0m[34m: 0x22160cce4802fe23a4fcad54e703b603a4d3699815e3ff596d335ea4ffa76f4d, [1;34mtimestamp[0m[34m: 1789688878, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:00.025862Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 655, [1;34mblock_hash[0m[34m: 0x9b59dc2b7ae6ff5d6e6d37e8d070063e0feab14b79727cfb7febbf42f7dabb79, [1;34mtimestamp[0m[34m: 1789688880, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:02.029568Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 656, [1;34mblock_hash[0m[34m: 0x34767fce82d9876981afcd8525de23ca508e1eeca22f609a2c0669df5c48577f, [1;34mtimestamp[0m[34m: 1789688882, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:04.025101Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 657, [1;34mblock_hash[0m[34m: 0x3a996299959d0a7e4945a0efe683fef844271249840d2db0caf1619abcb20f4e, [1;34mtimestamp[0m[34m: 1789688884, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:06.025880Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 658, [1;34mblock_hash[0m[34m: 0x948acc94133fa5cefadddc07385a5c2409b8d664ec6fe3730bb6f37a0fbb57b9, [1;34mtimestamp[0m[34m: 1789688886, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:08.024563Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 659, [1;34mblock_hash[0m[34m: 0x551ce973ca78fb864cd03afa1cca0f073c2dd849bc06f855b41cf489622cfa5a, [1;34mtimestamp[0m[34m: 1789688888, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:10.024465Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 660, [1;34mblock_hash[0m[34m: 0x77700c099f8c0833fdcad8ad40268c0b6f269d0a7e5d3c6b8550a0de7c9c0ed8, [1;34mtimestamp[0m[34m: 1789688890, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.026411Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 661, [1;34mblock_hash[0m[34m: 0xfb681937bc8a8a9e7ca375c022c19f6d1b603c02347edad42a13516e1be37a16, [1;34mtimestamp[0m[34m: 1789688892, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.026568Z[0m [32m INFO[0m [1;32magglayer_clock::block[0m[32m: [32mEpoch ended, broadcasting event, [1;32mfinished_epoch_number[0m[32m: 40, [1;32mblock_height[0m[32m: 615, [1;32mepoch_duration[0m[32m: 15[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:368
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.026619Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator[0m[34m: [34mEpoch change event received: 40[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/lib.rs:442
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.026640Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator[0m[34m: [34mStart the settlement of the epoch 40[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/lib.rs:324
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.027153Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mBackup request for epoch 40 enqueued[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:184
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.027519Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mBackup of epoch 40 started[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:362
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.027621Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mPreparing database for initialization and migration[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:53
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.028157Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mFailed to extract database schema, assuming empty, [1;34merror[0m[34m: IO error: No such file or directory: While opening a file for sequentially reading: /etc/agglayer/storage/epochs/41/CURRENT: No such file or directory[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:66
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.028194Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mOpening fresh database[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:127
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.028505Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mOpened the epoch 40 backup engine, [1;32melapsed_ms[0m[32m: 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:213
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.040664Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mBackup of epoch 40 completed, [1;32melapsed_ms[0m[32m: 13[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:386
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.045847Z[0m [32m INFO[0m [1;32magglayer_storage::storage::migration[0m[32m: [32mRunning migration step 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:311
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 0
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.046411Z[0m [32m INFO[0m [1;32magglayer_storage::storage::migration[0m[32m: [32mRunning migration step 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:311
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.046443Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mCreating column family "per_epoch_certificates_proto_cf", [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:172
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.051255Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mPopulating new column families with data[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:177
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.051290Z[0m [32m INFO[0m [1;32magglayer_storage::stores::migration_helpers[0m[32m: [32mcompleted proto migration, [1;32mcf[0m[32m: "per_epoch_certificates_cf", [1;32mlabel[0m[32m: "epoch", [1;32mmigrated[0m[32m: 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/migration_helpers.rs:97
+[agglayer]     [2;3min[0m agglayer_storage::storage::migration::[1mperform_step_impl[0m [2;3mwith[0m [1mstep[0m: 1
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.052216Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage::migration[0m[34m: [34mReopening database with declared column options[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/migration/mod.rs:270
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:12.052375Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317815Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "migration_record_v0_cf" with default options: not part of the known schema[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:316
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.317831Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_proto_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:48:12.052397Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_metadata_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326638Z[0m [34mDEBUG[0m [1;34magglayer_rpc[0m[34m: [34mReceived request to get the latest available certificate for rollup 1[0m
-[agglayer]     [2;3mat[0m crates/agglayer-rpc/src/lib.rs:166
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326774Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:48:12.052414Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_proofs_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326818Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_metadata_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:48:12.052430Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_start_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326843Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_proofs_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
+[agglayer]   [2m2026-09-17T23:48:12.052446Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_end_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326874Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_start_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
+[agglayer]   [2m2026-09-17T23:48:12.052462Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "migration_record_v0_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326909Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_end_checkpoint_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Fixed { size: 32 } }[0m
+[agglayer]   [2m2026-09-17T23:48:12.052477Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_proto_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 41
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326931Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "migration_record_v0_cf" with default options: not part of the known schema[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:316
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]   [2m2026-09-17T23:48:14.025486Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 662, [1;34mblock_hash[0m[34m: 0x3a83c5da86684eb16920e5f732f65381546fc66ddcbf4b94f03c9d6d0aa57816, [1;34mtimestamp[0m[34m: 1789688894, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.326941Z[0m [34mDEBUG[0m [1;34magglayer_storage::storage[0m[34m: [34mOpening column family "per_epoch_certificates_proto_cf" with its declared options, [1;34moptions[0m[34m: ColumnOptions { compression: Lz4, prefix_extractor: Default }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/storage/mod.rs:309
-[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1mtry_open_readonly[0m [2;3mwith[0m [1mstore[0m: "epoch", [1mepoch_number[0m: 34
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]   [2m2026-09-17T23:48:16.027533Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 663, [1;34mblock_hash[0m[34m: 0x9f46412da697a19c4030bdcf6520f63ee346bff6ce277be6f1f429cec52eb2cc, [1;34mtimestamp[0m[34m: 1789688896, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.334708Z[0m [34mDEBUG[0m [1;34magglayer_rpc[0m[34m: [34mFound certificate 0x363b15b248e440b6bc1d1c8c7ce9aaebd24273d88e8fa59d12fdaf3632442250 in epoch store[0m
-[agglayer]     [2;3mat[0m crates/agglayer-rpc/src/lib.rs:231
-[agglayer]     [2;3min[0m agglayer_rpc::[1mget_network_info[0m [2;3mwith[0m [1mnetwork_id[0m: NetworkId(1)
-[agglayer]     [2;3min[0m agglayer_grpc_api::node_state_service::[1mget_network_info[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'", [1mrequest_id[0m: "d0af723d-da60-47e8-9aef-8a6f0f7fe291"
+[agglayer]   [2m2026-09-17T23:48:18.026775Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 664, [1;34mblock_hash[0m[34m: 0x188e537c821e9d84a0fb2118a4283888aa9b4ebc4e535e3974c41bbd8163c2cf, [1;34mtimestamp[0m[34m: 1789688898, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.341885Z[0m [32m INFO[0m [1;32magglayer_rpc[0m[32m: [32mReceived certificate 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3 for rollup 1 at height 1, [1;32mhash[0m[32m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3[0m
-[agglayer]     [2;3mat[0m crates/agglayer-rpc/src/lib.rs:978
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
+[agglayer]   [2m2026-09-17T23:48:20.026167Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 665, [1;34mblock_hash[0m[34m: 0x29702f1f84ac22c304428a053e4b9b0057479e4c551e274e3651999e0cdf0802, [1;34mtimestamp[0m[34m: 1789688900, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.341952Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 25, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(25), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","input":"0xf9c4c2ae0000000000000000000000000000000000000000000000000000000000000001"},"latest"],"id":25,"jsonrpc":"2.0"}) }[0m
+[agglayer]   [2m2026-09-17T23:48:22.026821Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 666, [1;34mblock_hash[0m[34m: 0xcc695215cef27a28da789e8602b9436f3c95e668b74265c59abcdda2afdab676, [1;34mtimestamp[0m[34m: 1789688902, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:24.025792Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 667, [1;34mblock_hash[0m[34m: 0x7ba3b036fa4febd0879b19830d4eb747dce1d4ab99cf2a81c84ee164749f5577, [1;34mtimestamp[0m[34m: 1789688904, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:26.025965Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 668, [1;34mblock_hash[0m[34m: 0x31f5565f0c22a8f1192529f888ed4b697ec9c45a1257c11f9351ab5895ee7d57, [1;34mtimestamp[0m[34m: 1789688906, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.024978Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 669, [1;34mblock_hash[0m[34m: 0x9cb3c5011f48ac2f5bc720fd7356d17ea7b67369eb04f97a3cc3a460980245f6, [1;34mtimestamp[0m[34m: 1789688908, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.857846Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 41, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getTransactionBySenderAndNonce", id: Number(41), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getTransactionBySenderAndNonce","params":["0xcae5b68ff783594bde1b93cde627c741722c4d4d","0x8"],"id":41,"jsonrpc":"2.0"}) }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_rpc::[1mverify_cert_signature[0m [2;3mwith[0m [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.342592Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 25, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(25), payload: Success(RawValue("0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e000000000000000000000000000000000000000000000000000000000020d5e400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb0000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002")) }[0m
+[agglayer]   [2m2026-09-17T23:48:28.859394Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 41, [1;34melapsed_ms[0m[34m: 1, [1;34mresponse[0m[34m: Response { id: Number(41), payload: Success(RawValue({"type":"0x2","chainId":"0x425d4","nonce":"0x8","gas":"0x41e39","maxFeePerGas":"0xf","maxPriorityFeePerGas":"0x1","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","value":"0x0","accessList":[],"input":"0x6c76687700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000005bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050840516dc0f1c56a24a7ab0951454b151395d1c2153c2ad235908d4d779c200b200000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","r":"0x1258bb9e3852640c9e3f63ee4e0ee599c854b1634a170a3f6a3da95b7e008f9e","s":"0x5dfa56f6cb77dc68200628e9dcb10c5d1339bb4e52d96c906e18639250d153da","yParity":"0x0","v":"0x0","hash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","transactionIndex":"0x0","from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","gasPrice":"0x8","blockTimestamp":"0x6aac7c12"})) }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_rpc::[1mverify_cert_signature[0m [2;3mwith[0m [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.342625Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 26, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(26), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x414e9e227e4b589af92200508af5399576530e4e","input":"0x3e1e0121"},"latest"],"id":26,"jsonrpc":"2.0"}) }[0m
+[agglayer]   [2m2026-09-17T23:48:28.859481Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 42, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getTransactionReceipt", id: Number(42), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getTransactionReceipt","params":["0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c"],"id":42,"jsonrpc":"2.0"}) }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_rpc::[1mverify_cert_signature[0m [2;3mwith[0m [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.343258Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 26, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(26), payload: Success(RawValue("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed")) }[0m
+[agglayer]   [2m2026-09-17T23:48:28.860214Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 42, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(42), payload: Success(RawValue({"type":"0x2","status":"0x1","cumulativeGasUsed":"0x32008","logs":[{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xda61aa7823fcd807e37b95aabcbe17f03a6f3efd514176444dae191d27fd66b3","0x6e60097a89da4b0d8efccb77e96931a97059b7485b8017e759e59ff643f6cf7c","0x9c662657ba4410a3b7c4d2af45f89efac4cef771c35e5ba16aba2baa1be3d8e6"],"data":"0x","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x0","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xaf6c6cd7790e0180a4d22eb8ed846e55846f54ed10e5946db19972b5a0813a59","0x0000000000000000000000000000000000000000000000000000000000000006"],"data":"0x0b1597021eb61e9bc6570ce8b9f7e9c6e077aa98adea53b541e16496958efbd6b8c0fff92b6101726a2e1219333df8a02aff9edab16fd06f39a56f5a044f6aa1000000000000000000000000000000000000000000000000000000006aac7c12","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x1","removed":false},{"address":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","topics":["0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3","0x0000000000000000000000000000000000000000000000000000000000000001","0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"],"data":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x2","removed":false},{"address":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","topics":["0xdf47e7dbf79874ec576f516c40bc1483f7c8ddf4b45bfd4baff4650f1229a711","0x0000000000000000000000000000000000000000000000000000000000000001","0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"],"data":"0x0f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a676201840516dc0f1c56a24a7ab0951454b151395d1c2153c2ad235908d4d779c200b2f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16ebbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050a17e4bb0ee0cf6b147d2fc9cc80a315d87eb2523b0a97a7f8b0c1178821ca177","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x3","removed":false},{"address":"0x414e9e227e4b589af92200508af5399576530e4e","topics":["0xc118263690a4306c74bd1bc80b55962addc2d9e61619ac0b2c2883badbbd01d8"],"data":"0x","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x4","removed":false}],"logsBloom":"0x00000000000800000000000008000040000200002000000002400000008000000008000000000000000000000020000000000010000400000000000000041010000000000000000000000000000400000000000400040000000000040200000000000000000000000000000000008000000000000000000000000000000000000000000401000000000000000900010000000000001800000000000000000000000004000000000000000008000000040000080000000000000000080000000000000000000000000000000014000000000000000000000000000000000840000000000000000000000000000000000004000000000100000000000000000000","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","gasUsed":"0x32008","effectiveGasPrice":"0x8","from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","contractAddress":null})) }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_rpc::[1mverify_cert_signature[0m [2;3mwith[0m [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.343289Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 27, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(27), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x414e9e227e4b589af92200508af5399576530e4e","input":"0xe75235b8"},"latest"],"id":27,"jsonrpc":"2.0"}) }[0m
+[agglayer]   [2m2026-09-17T23:48:28.860308Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 43, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getBlockByNumber", id: Number(43), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getBlockByNumber","params":["safe",false],"id":43,"jsonrpc":"2.0"}) }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_rpc::[1mverify_cert_signature[0m [2;3mwith[0m [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
+[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_task::[1mcheck_settlement_once[0m [2;3mwith[0m [1mtask_id[0m: SettlementJobId(Ulid(2163601058455047899783014390106724176)), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1msettlement_policy[0m: SafeBlock
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.343866Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 27, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(27), payload: Success(RawValue("0x0000000000000000000000000000000000000000000000000000000000000001")) }[0m
+[agglayer]   [2m2026-09-17T23:48:28.860881Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 43, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(43), payload: Success(RawValue({"hash":"0x34767fce82d9876981afcd8525de23ca508e1eeca22f609a2c0669df5c48577f","parentHash":"0x9b59dc2b7ae6ff5d6e6d37e8d070063e0feab14b79727cfb7febbf42f7dabb79","sha3Uncles":"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347","miner":"0x8943545177806ed17b9f23f0a21ee5948ecaa776","stateRoot":"0x23531c9e98ff41ceceec7b13c958950673b6be3939e36c1e4b7d5d5fab4020dc","transactionsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","receiptsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","difficulty":"0x0","number":"0x290","gasLimit":"0x2255100","gasUsed":"0x0","timestamp":"0x6aac7c32","extraData":"0x726574682f76322e352e322f6c696e7578","mixHash":"0x3ab04c23877498b138e1e85d3cbd046b38bf290000212d20630e76ad500e9cb4","nonce":"0x0000000000000000","baseFeePerGas":"0x7","withdrawalsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","blobGasUsed":"0x0","excessBlobGas":"0x0","parentBeaconBlockRoot":"0xf8bc9ba2770df85a41d5aa7624b6c4508f20f8adeb2621de096b2914fcf3ece7","requestsHash":"0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0x277","uncles":[],"transactions":[],"withdrawals":[]})) }[0m
 [agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_rpc::[1mverify_cert_signature[0m [2;3mwith[0m [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
+[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_task::[1mcheck_settlement_once[0m [2;3mwith[0m [1mtask_id[0m: SettlementJobId(Ulid(2163601058455047899783014390106724176)), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1msettlement_policy[0m: SafeBlock
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.346151Z[0m [34mDEBUG[0m [1;34magglayer_storage::backup[0m[34m: [34mState backup request enqueued[0m
+[agglayer]   [2m2026-09-17T23:48:28.860923Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 44, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getTransactionReceipt", id: Number(44), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getTransactionReceipt","params":["0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c"],"id":44,"jsonrpc":"2.0"}) }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
+[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_task::[1mcheck_settlement_once[0m [2;3mwith[0m [1mtask_id[0m: SettlementJobId(Ulid(2163601058455047899783014390106724176)), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1msettlement_policy[0m: SafeBlock
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.861491Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 44, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(44), payload: Success(RawValue({"type":"0x2","status":"0x1","cumulativeGasUsed":"0x32008","logs":[{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xda61aa7823fcd807e37b95aabcbe17f03a6f3efd514176444dae191d27fd66b3","0x6e60097a89da4b0d8efccb77e96931a97059b7485b8017e759e59ff643f6cf7c","0x9c662657ba4410a3b7c4d2af45f89efac4cef771c35e5ba16aba2baa1be3d8e6"],"data":"0x","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x0","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xaf6c6cd7790e0180a4d22eb8ed846e55846f54ed10e5946db19972b5a0813a59","0x0000000000000000000000000000000000000000000000000000000000000006"],"data":"0x0b1597021eb61e9bc6570ce8b9f7e9c6e077aa98adea53b541e16496958efbd6b8c0fff92b6101726a2e1219333df8a02aff9edab16fd06f39a56f5a044f6aa1000000000000000000000000000000000000000000000000000000006aac7c12","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x1","removed":false},{"address":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","topics":["0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3","0x0000000000000000000000000000000000000000000000000000000000000001","0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"],"data":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x2","removed":false},{"address":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","topics":["0xdf47e7dbf79874ec576f516c40bc1483f7c8ddf4b45bfd4baff4650f1229a711","0x0000000000000000000000000000000000000000000000000000000000000001","0x000000000000000000000000cae5b68ff783594bde1b93cde627c741722c4d4d"],"data":"0x0f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a676201840516dc0f1c56a24a7ab0951454b151395d1c2153c2ad235908d4d779c200b2f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16ebbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050a17e4bb0ee0cf6b147d2fc9cc80a315d87eb2523b0a97a7f8b0c1178821ca177","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x3","removed":false},{"address":"0x414e9e227e4b589af92200508af5399576530e4e","topics":["0xc118263690a4306c74bd1bc80b55962addc2d9e61619ac0b2c2883badbbd01d8"],"data":"0x","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","blockTimestamp":"0x6aac7c12","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","logIndex":"0x4","removed":false}],"logsBloom":"0x00000000000800000000000008000040000200002000000002400000008000000008000000000000000000000020000000000010000400000000000000041010000000000000000000000000000400000000000400040000000000040200000000000000000000000000000000008000000000000000000000000000000000000000000401000000000000000900010000000000001800000000000000000000000004000000000000000008000000040000080000000000000000080000000000000000000000000000000014000000000000000000000000000000000840000000000000000000000000000000000004000000000100000000000000000000","transactionHash":"0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c","transactionIndex":"0x0","blockHash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","blockNumber":"0x280","gasUsed":"0x32008","effectiveGasPrice":"0x8","from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","contractAddress":null})) }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
+[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_task::[1mcheck_settlement_once[0m [2;3mwith[0m [1mtask_id[0m: SettlementJobId(Ulid(2163601058455047899783014390106724176)), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1msettlement_policy[0m: SafeBlock
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.861542Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 45, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getBlockByNumber", id: Number(45), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getBlockByNumber","params":["0x280",false],"id":45,"jsonrpc":"2.0"}) }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
+[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_task::[1mcheck_settlement_once[0m [2;3mwith[0m [1mtask_id[0m: SettlementJobId(Ulid(2163601058455047899783014390106724176)), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1msettlement_policy[0m: SafeBlock
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.862128Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 45, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(45), payload: Success(RawValue({"hash":"0x514f630136883bbe7f241536ff315656af999de511448bcb7187d5103b2a423f","parentHash":"0xb8c0fff92b6101726a2e1219333df8a02aff9edab16fd06f39a56f5a044f6aa1","sha3Uncles":"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347","miner":"0x8943545177806ed17b9f23f0a21ee5948ecaa776","stateRoot":"0xaebfc8089a7f8c3178eee9cbfc06d899e2eee389b764f3a5782f5c2f736b92b9","transactionsRoot":"0x660d00aa77b2bd036a78c40d22915a40e92be449606b700d2219ee74a58f300f","receiptsRoot":"0x9e595ef5f6d327e21f78571c4f0046f97c7b625394ac15e6bcd4d26db986a2cb","logsBloom":"0x00000000000800000000000008000040000200002000000002400000008000000008000000000000000000000020000000000010000400000000000000041010000000000000000000000000000400000000000400040000000000040200000000000000000000000000000000008000000000000000000000000000000000000000000401000000000000000900010000000000001800000000000000000000000004000000000000000008000000040000080000000000000000080000000000000000000000000000000014000000000000000000000000000000000840000000000000000000000000000000000004000000000100000000000000000000","difficulty":"0x0","number":"0x280","gasLimit":"0x2255100","gasUsed":"0x32008","timestamp":"0x6aac7c12","extraData":"0x726574682f76322e352e322f6c696e7578","mixHash":"0x558bdb765390a2f186910fbedf0b18418815bfea519608b0b69f31c9018f8b24","nonce":"0x0000000000000000","baseFeePerGas":"0x7","withdrawalsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","blobGasUsed":"0x0","excessBlobGas":"0x0","parentBeaconBlockRoot":"0x7dcd97b0c59298504925d39135c1017b0f74a0b2910a14b5b0f05ed2003ef3b2","requestsHash":"0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0x40f","uncles":[],"transactions":["0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c"],"withdrawals":[]})) }[0m
+[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
+[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_task::[1mcheck_settlement_once[0m [2;3mwith[0m [1mtask_id[0m: SettlementJobId(Ulid(2163601058455047899783014390106724176)), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1msettlement_policy[0m: SafeBlock
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.863055Z[0m [32m INFO[0m [1;32magglayer_certificate_orchestrator::certificate_task[0m[32m: [32mSettlement successful, [1;32mtx_hash[0m[32m: 0x42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/certificate_task.rs:493
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057
+[agglayer] 
+[agglayer]   [2m2026-09-17T23:48:28.863377Z[0m [34mDEBUG[0m [1;34magglayer_storage::backup[0m[34m: [34mState backup request enqueued[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:145
-[agglayer]     [2;3min[0m agglayer_rpc::[1msend_certificate[0m [2;3mwith[0m [1mrollup_id[0m: 1, [1mhash[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_grpc_api::certificate_submission_service::[1msubmit_certificate[0m [2;3mwith[0m [1mclient[0m: "x-client-type='aggkit',x-client-version='v0.8.1'"
+[agglayer]     [2;3min[0m agglayer_storage::stores::state::[1mupdate_settlement_tx_hash[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057), [1mtx_hash[0m: SettlementTxHash(42095172e3101e218806fbd2e8f37857e99fd5abcde0a088c1ebc05b71d4b59c), [1mforce[0m: Yes, [1mset_status[0m: No
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.346300Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup started[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:311
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.346572Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator[0m[34m: [34mNetwork task already spawned for network 1[0m
-[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/lib.rs:257
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.346593Z[0m [32m INFO[0m [1;32magglayer_certificate_orchestrator::network_task[0m[32m: [32mReceived a certificate event for 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3 at height 1, [1;32mhash[0m[32m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"[0m
-[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/network_task.rs:231
+[agglayer]   [2m2026-09-17T23:48:28.863431Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator::network_task[0m[34m: [34mCertification process completed[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/network_task.rs:357
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
 [agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
 [agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.347563Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator::certificate_task[0m[34m: [34mProcessing certificate, [1;34minitial_status[0m[34m: Pending[0m
-[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/certificate_task.rs:156
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
+[agglayer]   [2m2026-09-17T23:48:28.863493Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator::network_task[0m[34m: [34mUpdated the state following certificate settlement, [1;34mold_state[0m[34m: "exit_root: 0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb, ler_leaf_count: 1, balance_root: 0x0479073580579ed74a2c2c3456a60e05b5e6e2ba5333613e0ded4441303a1d17, nullifier_root: 0x4a43a89a39f34db616c6a9bc0d12be6b85bd06dd2c255961bb2b7f737ce3b72b", [1;34mnew_state[0m[34m: "exit_root: 0xbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050, ler_leaf_count: 2, balance_root: 0x0479073580579ed74a2c2c3456a60e05b5e6e2ba5333613e0ded4441303a1d17, nullifier_root: 0x93826cba1531c87a481b6c7d3bdd01498fe92f582e8af4efd0e19208fe8a76c8"[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/network_task.rs:365
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.347603Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator::certificate_task[0m[34m: [34mStarting certification[0m
-[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/certificate_task.rs:298
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.347616Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mCertifying the certificate of network 1 at height 1[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:204
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.347656Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 28, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(28), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","input":"0x74d9c2440000000000000000000000000000000000000000000000000000000000000001"},"latest"],"id":28,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.348345Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 28, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(28), payload: Success(RawValue("0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e000000000000000000000000000000000000000000000000000000000020d5e400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a6762010000000000000000000000000000000000000000000000000000000000000000")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.348367Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier::l1_context[0m[34m: [34mPrev PP root from L1, [1;34mprev_pessimistic_root[0m[34m: 0x0f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a676201[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/l1_context.rs:42
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.348390Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 29, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(29), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","input":"0xf9c4c2ae0000000000000000000000000000000000000000000000000000000000000001"},"latest"],"id":29,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.349153Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 29, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(29), payload: Success(RawValue("0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e000000000000000000000000000000000000000000000000000000000020d5e400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb0000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.349178Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 30, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(30), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x414e9e227e4b589af92200508af5399576530e4e","input":"0x3e1e0121"},"latest"],"id":30,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.349836Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 30, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(30), payload: Success(RawValue("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.349860Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 31, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(31), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x414e9e227e4b589af92200508af5399576530e4e","input":"0xe75235b8"},"latest"],"id":31,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.350548Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 31, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(31), payload: Success(RawValue("0x0000000000000000000000000000000000000000000000000000000000000001")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.350595Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mContext fetched from the L1: L1WitnessCtx { l1_info_root: 98aca3b6b9796374a25433b45109a917d21fc91488e9380048ecea1117bdf716, prev_pessimistic_root: Fetched(0f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a676201), aggchain_data_ctx: MultisigOnly(Ctx { signers: [Address(0x5b06837a43bdc3dd9f114558daf4b26ed49842ed)], threshold: 1, prehash: 0x11a81f6a76fb1c213533f1d693fbfae2f62a4898c3f2da2c43e24c9c8c8da589 }) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:394
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.351307Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mUnrolled aggchain data values: MultisigOnly(MultiSignature { signatures: [Some(Signature(Signature { y_parity: false, r: 67255549138104404782145393091055892604901024245180098261476101558192520882979, s: 26483724270474762676688461128967579019637509463657840927086154497426024236888 }))], expected_signers: [Address(0x5b06837a43bdc3dd9f114558daf4b26ed49842ed)], threshold: 1 })[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:404
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.351332Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mUnrolled aggchain hash values: ConsensusType1 { aggchain_vkey: None, aggchain_params: None, multisig_hash: eabb70d42e4c51db5bff76c8b3d8b222094267e2b1129d9aca430f66b6d65d4d }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:408
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.351343Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mAggchain hash computed by the agglayer node and PP: f32281850d59f762527d35e2637a1ebcc3591a6bc5f3f35ed731156a5448bdb7[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:409
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.352577Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 32, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(32), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","input":"0xf9c4c2ae0000000000000000000000000000000000000000000000000000000000000001"},"latest"],"id":32,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.353464Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 32, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(32), payload: Success(RawValue("0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e000000000000000000000000000000000000000000000000000000000020d5e400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb0000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.353496Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 33, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(33), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x414e9e227e4b589af92200508af5399576530e4e","input":"0x6a55f66c00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"},"latest"],"id":33,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.354303Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 33, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(33), payload: Success(RawValue("0xf32281850d59f762527d35e2637a1ebcc3591a6bc5f3f35ed731156a5448bdb7")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.354339Z[0m [32m INFO[0m [1;32magglayer_aggregator_notifier::certifier[0m[32m: [32mSuccessfully generated the witness for the PP for certificate, [1;32mprev_pp_root[0m[32m: 0x0f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a676201, [1;32mnew_pp_root[0m[32m: 0x6bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa5785[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:226
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.369960Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup completed, [1;32melapsed_ms[0m[32m: 23[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:338
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.431907Z[0m [32m INFO[0m [1;32magglayer_aggregator_notifier::certifier[0m[32m: [32mSuccessfully executed the PP program locally, [1;32mpublic_inputs[0m[32m: PessimisticProofOutput { prev_local_exit_root: LocalExitRoot(f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb), prev_pessimistic_root: 0f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a676201, l1_info_root: 98aca3b6b9796374a25433b45109a917d21fc91488e9380048ecea1117bdf716, origin_network: NetworkId(1), aggchain_hash: f32281850d59f762527d35e2637a1ebcc3591a6bc5f3f35ed731156a5448bdb7, new_local_exit_root: LocalExitRoot(bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050), new_pessimistic_root: 6bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa5785 }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:303
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.431937Z[0m [32m INFO[0m [1;32magglayer_aggregator_notifier::certifier[0m[32m: [32mSending the Proof generation request to the agglayer-prover service...[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:312
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.508651Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mProof successfully generated![0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:347
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.508672Z[0m [34mDEBUG[0m [1;34magglayer_aggregator_notifier::certifier[0m[34m: [34mVerifying the generated p-proof...[0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:351
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.508796Z[0m [32m INFO[0m [1;32magglayer_aggregator_notifier::certifier[0m[32m: [32mSuccessfully generated and verified the p-proof![0m
-[agglayer]     [2;3mat[0m crates/agglayer-aggregator-notifier/src/certifier/mod.rs:362
-[agglayer]     [2;3min[0m agglayer_aggregator_notifier::certifier::[1mcertify[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mcertificate_id[0m: "0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3"
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.509523Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator::certificate_task[0m[34m: [34mProof certification completed[0m
-[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/certificate_task.rs:303
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.509969Z[0m [34mDEBUG[0m [1;34magglayer_storage::backup[0m[34m: [34mState backup request enqueued[0m
-[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:145
-[agglayer]     [2;3min[0m agglayer_storage::stores::state::[1mupdate_certificate_header_status[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(de556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3), [1mstatus[0m: Proven
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.510067Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup started[0m
+[agglayer]   [2m2026-09-17T23:48:28.863566Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup started[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:311
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.510065Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 34, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_call", id: Number(34), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_call","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","input":"0x74d9c2440000000000000000000000000000000000000000000000000000000000000001"},"latest"],"id":34,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
+[agglayer]   [2m2026-09-17T23:48:28.863635Z[0m [34mDEBUG[0m [1;34magglayer_storage::stores::per_epoch[0m[34m: [34mTry adding certificate for network 1 at height 1 in epoch 41[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/per_epoch/mod.rs:323
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1madd_certificate[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057), [1mmode[0m: Default, [1mepoch_number[0m: 41
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.511140Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 34, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(34), payload: Success(RawValue("0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e000000000000000000000000000000000000000000000000000000000020d5e400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020f83d50dbdf20a33e7a4d56d46ad859eb80626423e61535a569c6dcb0a6762010000000000000000000000000000000000000000000000000000000000000000")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
+[agglayer]   [2m2026-09-17T23:48:28.863647Z[0m [34mDEBUG[0m [1;34magglayer_storage::stores::per_epoch[0m[34m: [34mCertificate candidate for network 1 at height 1 accepted[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/per_epoch/mod.rs:389
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1madd_certificate[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057), [1mmode[0m: Default, [1mepoch_number[0m: 41
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.511213Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 35, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_estimateGas", id: Number(35), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_estimateGas","params":[{"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","value":"0x0","input":"0x6c76687700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae0506bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa578500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"},"pending"],"id":35,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_service::[1mrequest_new_settlement[0m [2;3mwith[0m [1mcertificate_id[0m: Some(CertificateId(de556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3)), [1mjob[0m: SettlementJob { contract_address: Address(0x6c6c009cc348976db4a908c92b24433d4f6eda43), calldata: 0x6c76687700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae0506bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa578500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, eth_value: 0, gas_limit: 0 }
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
+[agglayer]   [2m2026-09-17T23:48:28.865085Z[0m [34mDEBUG[0m [1;34magglayer_storage::stores::per_epoch[0m[34m: [34mCertificate and proof removed from pending store[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/per_epoch/mod.rs:454
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1madd_certificate[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057), [1mmode[0m: Default, [1mepoch_number[0m: 41
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.512293Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 35, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(35), payload: Success(RawValue("0x321e1")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer]     [2;3min[0m agglayer_settlement_service::settlement_service::[1mrequest_new_settlement[0m [2;3mwith[0m [1mcertificate_id[0m: Some(CertificateId(de556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3)), [1mjob[0m: SettlementJob { contract_address: Address(0x6c6c009cc348976db4a908c92b24433d4f6eda43), calldata: 0x6c76687700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae0506bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa578500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, eth_value: 0, gas_limit: 0 }
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
+[agglayer]   [2m2026-09-17T23:48:28.865518Z[0m [34mDEBUG[0m [1;34magglayer_storage::stores::per_epoch[0m[34m: [34mCertificate assigned to epoch[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/per_epoch/mod.rs:462
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1madd_certificate[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057), [1mmode[0m: Default, [1mepoch_number[0m: 41
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.512813Z[0m [32m INFO[0m [1;32magglayer_certificate_orchestrator::certificate_task[0m[32m: [32mSettlement job submitted, [1;32mjob_id[0m[32m: 01M2QGQ7Q85Q3NFTPCEASBPZSB[0m
-[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/certificate_task.rs:356
-[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::certificate_task::[1mCertificateTask::process[0m [2;3mwith[0m [1mnetwork_id[0m: 1, [1mheight[0m: 1, [1mcertificate_id[0m: 0xde556118396ab387ccb2f85d8a5ad8d23eaa09578ed2d98f6c5f0d763462f8b3
+[agglayer]   [2m2026-09-17T23:48:28.865532Z[0m [34mDEBUG[0m [1;34magglayer_storage::stores::per_epoch[0m[34m: [34mUpdating end checkpoint for network 1 to height 1[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/stores/per_epoch/mod.rs:467
+[agglayer]     [2;3min[0m agglayer_storage::stores::per_epoch::[1madd_certificate[0m [2;3mwith[0m [1mcertificate_id[0m: CertificateId(67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057), [1mmode[0m: Default, [1mepoch_number[0m: 41
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.512843Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 36, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getTransactionCount", id: Number(36), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getTransactionCount","params":["0xcae5b68ff783594bde1b93cde627c741722c4d4d","pending"],"id":36,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
+[agglayer]   [2m2026-09-17T23:48:28.865814Z[0m [32m INFO[0m [1;32magglayer_certificate_orchestrator::network_task[0m[32m: [32mCertificate added to epoch 41 with index 0[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/network_task.rs:382
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.512951Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 37, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_chainId", id: Number(37), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_chainId","id":37,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
+[agglayer]   [2m2026-09-17T23:48:28.867149Z[0m [34mDEBUG[0m [1;34magglayer_storage::backup[0m[34m: [34mState backup request enqueued[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:145
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mcertificate_id[0m: "0x67bd471b226150d4ace37c0cd4388f76f4269bf168eab9a75409fd1ac479e057"
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.513292Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 38, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_feeHistory", id: Number(38), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_feeHistory","params":["0xa","latest",[20.0]],"id":38,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
+[agglayer]   [2m2026-09-17T23:48:28.868225Z[0m [34mDEBUG[0m [1;34magglayer_certificate_orchestrator::network_task[0m[34m: [34mNo certificate found for network 1 at height 2[0m
+[agglayer]     [2;3mat[0m crates/agglayer-certificate-orchestrator/src/network_task.rs:291
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mprocess_next_pending_certificate[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(2)
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mmake_progress[0m [2;3mwith[0m [1mnext_expected_height[0m: Height(1), [1mfirst_run[0m: false
+[agglayer]     [2;3min[0m agglayer_certificate_orchestrator::network_task::[1mNetworkTask::run[0m [2;3mwith[0m [1mnetwork_id[0m: 1
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.514060Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 36, [1;34melapsed_ms[0m[34m: 1, [1;34mresponse[0m[34m: Response { id: Number(36), payload: Success(RawValue("0x7")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.514228Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 37, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(37), payload: Success(RawValue("0x425d4")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.514805Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 38, [1;34melapsed_ms[0m[34m: 1, [1;34mresponse[0m[34m: Response { id: Number(38), payload: Success(RawValue({"baseFeePerGas":["0x7","0x7","0x7","0x7","0x7","0x7","0x7","0x7","0x7","0x7","0x7"],"gasUsedRatio":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"baseFeePerBlobGas":["0x1","0x1","0x1","0x1","0x1","0x1","0x1","0x1","0x1","0x1","0x1"],"blobGasUsedRatio":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"oldestBlock":"0x239","reward":[["0x0"],["0x0"],["0x0"],["0x0"],["0x0"],["0x0"],["0x0"],["0x0"],["0x0"],["0x0"]]})) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.515303Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 39, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_sendRawTransaction", id: Number(39), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_sendRawTransaction","params":["0x02f9018c830425d407010f83041271946c6c009cc348976db4a908c92b24433d4f6eda4380b901246c76687700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae0506bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa578500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c001a0e801f303eb3ea018ae6295cdf701d33c1c3d38a45fbc28911001366de3ccb8aea03bb0b1b87acae8f4156091e1782cc470cd3d5cc6374aa1c98ec794e2d328835c"],"id":39,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.515991Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 39, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(39), payload: Success(RawValue("0xc43470b313cae9af793e378a5ddafbeb3ed7e216d63dd5f4da24ec10c6b7f4a2")) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.516021Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 request, [1;34mseq_no[0m[34m: 40, [1;34mrequest[0m[34m: SerializedRequest { meta: RequestMeta { method: "eth_getTransactionBySenderAndNonce", id: Number(40), is_subscription: false, extensions: {} }, request: RawValue({"method":"eth_getTransactionBySenderAndNonce","params":["0xcae5b68ff783594bde1b93cde627c741722c4d4d","0x7"],"id":40,"jsonrpc":"2.0"}) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:49
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.516649Z[0m [34mDEBUG[0m [1;34magglayer_node::l1_tracing[0m[34m: [34mL1 response, [1;34mseq_no[0m[34m: 40, [1;34melapsed_ms[0m[34m: 0, [1;34mresponse[0m[34m: Response { id: Number(40), payload: Success(RawValue({"type":"0x2","chainId":"0x425d4","nonce":"0x7","gas":"0x41271","maxFeePerGas":"0xf","maxPriorityFeePerGas":"0x1","to":"0x6c6c009cc348976db4a908c92b24433d4f6eda43","value":"0x0","accessList":[],"input":"0x6c76687700000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004bbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae0506bcff5bd3dd238be1970a156b14800e22ac2723f0e3c95b84f03a2b8b7fa578500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040000000e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","r":"0xe801f303eb3ea018ae6295cdf701d33c1c3d38a45fbc28911001366de3ccb8ae","s":"0x3bb0b1b87acae8f4156091e1782cc470cd3d5cc6374aa1c98ec794e2d328835c","yParity":"0x1","v":"0x1","hash":"0xc43470b313cae9af793e378a5ddafbeb3ed7e216d63dd5f4da24ec10c6b7f4a2","blockHash":null,"blockNumber":null,"transactionIndex":null,"from":"0xcae5b68ff783594bde1b93cde627c741722c4d4d","gasPrice":"0xf"})) }[0m
-[agglayer]     [2;3mat[0m crates/agglayer-node/src/l1_tracing.rs:61
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.516707Z[0m [34mDEBUG[0m [1;34magglayer_settlement_service::utils[0m[34m: [34mTransient error while executing retryable callback, [1;34merror[0m[34m: NotIncludedYet, [1;34mretry_attempt[0m[34m: 1, [1;34msleep_duration[0m[34m: 69.114s[0m
-[agglayer]     [2;3mat[0m crates/agglayer-settlement-service/src/utils.rs:89
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:09.536322Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup completed, [1;32melapsed_ms[0m[32m: 26[0m
+[agglayer]   [2m2026-09-17T23:48:28.895759Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup completed, [1;32melapsed_ms[0m[32m: 32[0m
 [agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:338
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:11.023130Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 579, [1;34mblock_hash[0m[34m: 0x2569b82944f5724a39e8ac58b5a45e49b6f40ed71566947ecf9e968807ba2cfc, [1;34mtimestamp[0m[34m: 1789643171, [1;34mblocks_to_process[0m[34m: 1[0m
-[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
-[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 45, [1mepoch_duration[0m: 15
+[agglayer]   [2m2026-09-17T23:48:28.895885Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup started[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:311
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:13.024686Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 580, [1;34mblock_hash[0m[34m: 0x7b22bb41996021fa5354dbf57cb482ec6f0e5123024f0d77c8a0b449b30b3f07, [1;34mtimestamp[0m[34m: 1789643173, [1;34mblocks_to_process[0m[34m: 1[0m
-[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
-[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 45, [1mepoch_duration[0m: 15
+[agglayer]   [2m2026-09-17T23:48:28.913379Z[0m [32m INFO[0m [1;32magglayer_storage::backup[0m[32m: [32mState backup completed, [1;32melapsed_ms[0m[32m: 17[0m
+[agglayer]     [2;3mat[0m crates/agglayer-storage/src/backup/mod.rs:338
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:15.023912Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 581, [1;34mblock_hash[0m[34m: 0x0962e374249c3e5c853fb6026decc3ae44f884e7f7d066375ff799b1c4602f09, [1;34mtimestamp[0m[34m: 1789643175, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]   [2m2026-09-17T23:48:30.027932Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 670, [1;34mblock_hash[0m[34m: 0x27b22815153b2583fbd73d654d996576b5f46debb2f6ce13ce8cd216822a3f5a, [1;34mtimestamp[0m[34m: 1789688910, [1;34mblocks_to_process[0m[34m: 1[0m
 [agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
-[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 45, [1mepoch_duration[0m: 15
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:17.023850Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 582, [1;34mblock_hash[0m[34m: 0x5123a03d6b10e7f922e8d39597013ea44b1372aae5bae89704402370fde65513, [1;34mtimestamp[0m[34m: 1789643177, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]   [2m2026-09-17T23:48:32.025048Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 671, [1;34mblock_hash[0m[34m: 0xbce748f17b4c23093f4eac709cd87827965bdf19b8effeb57e425782986f481d, [1;34mtimestamp[0m[34m: 1789688912, [1;34mblocks_to_process[0m[34m: 1[0m
 [agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
-[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 45, [1mepoch_duration[0m: 15
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 
-[agglayer]   [2m2026-09-17T11:06:19.022982Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 583, [1;34mblock_hash[0m[34m: 0xeab1014528c5cc8fc46875ff791ead0422912424d2cce1d28e1b926dda459d34, [1;34mtimestamp[0m[34m: 1789643179, [1;34mblocks_to_process[0m[34m: 1[0m
+[agglayer]   [2m2026-09-17T23:48:34.027406Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 672, [1;34mblock_hash[0m[34m: 0xf74264ffc28548f96f142c2edd78f0af0bd42d0f0e02aae7c8168dfe9f8bf021, [1;34mtimestamp[0m[34m: 1789688914, [1;34mblocks_to_process[0m[34m: 1[0m
 [agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
-[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 45, [1mepoch_duration[0m: 15
-[agglayer] 
-[agglayer]   [2m2026-09-17T11:06:21.029207Z[0m [34mDEBUG[0m [1;34magglayer_clock::block[0m[34m: [34mReceived new L1 block, [1;34mblock_number[0m[34m: 584, [1;34mblock_hash[0m[34m: 0x5058fe853866cd94655013b03f0ac9ac81aa305a3986fabeb7041a1495835274, [1;34mtimestamp[0m[34m: 1789643181, [1;34mblocks_to_process[0m[34m: 1[0m
-[agglayer]     [2;3mat[0m crates/agglayer-clock/src/block.rs:273
-[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 45, [1mepoch_duration[0m: 15
+[agglayer]     [2;3min[0m agglayer_clock::block::[1mrun[0m [2;3mwith[0m [1mgenesis_block[0m: 46, [1mepoch_duration[0m: 15
 [agglayer] 

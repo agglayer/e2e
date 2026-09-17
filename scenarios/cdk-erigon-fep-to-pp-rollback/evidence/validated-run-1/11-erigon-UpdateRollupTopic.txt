@@ -1,3 +1,3 @@
-[cdk-erigon-sequencer-001] [EROR] [09-17|11:03:24.178] Error while executing stage              err="[2/13 L1SequencerSyncer] received UpdateRollupTopic for unknown rollup type: 2"
-[cdk-erigon-sequencer-001] [EROR] [09-17|11:03:24.179] Staged Sync                              err="[2/13 L1SequencerSyncer] received UpdateRollupTopic for unknown rollup type: 2"
-'unknown rollup type' log lines: 2 right after the event, 2 one minute later; 'L1 Sequencer sync finished' lines: 8 -> 12 (clean passes must continue); zkevm_getForkId=12
+[cdk-erigon-sequencer-001] [EROR] [09-17|23:44:22.629] Error while executing stage              err="[2/13 L1SequencerSyncer] received UpdateRollupTopic for unknown rollup type: 2"
+[cdk-erigon-sequencer-001] [EROR] [09-17|23:44:22.629] Staged Sync                              err="[2/13 L1SequencerSyncer] received UpdateRollupTopic for unknown rollup type: 2"
+'unknown rollup type' log lines: 2 right after the event, 2 one minute later; 'L1 Sequencer sync finished' lines: 7 -> 11 (clean passes must continue); zkevm_getForkId=12

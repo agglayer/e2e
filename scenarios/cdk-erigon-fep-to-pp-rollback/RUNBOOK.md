@@ -150,7 +150,7 @@ step 4 anyway. In the devnet both run in one container and were stopped together
 <!-- OBS:STOP -->
 ```text
 07-stop-cdk-node.txt        INFO Stopping service 'cdk-node-001'
-07-state-sequencing-stopped lastBatchSequenced=33 lastVerifiedBatch=20 (stable), L1 finalized past the last sequence
+07-state-sequencing-stopped lastBatchSequenced=35 lastVerifiedBatch=23 (stable), L1 finalized past the last sequence
 ```
 <!-- /OBS:STOP -->
 
@@ -199,14 +199,14 @@ Observed on the devnet (rollup ID 1):
 
 <!-- OBS:ROLLBACK -->
 ```text
-08-sequenced-batch-target   getRollupSequencedBatches(1, 20) = (0xe670fb90…a8e4b4, 1789642507, 16)   <- accInputHash != 0: a sequence end
-08-rollbackBatches-receipt  rollbackBatches(0x414e9E22…530E4e, 20)  tx 0xb66baa89…1ac130  block 410  gas 78668
+08-sequenced-batch-target   getRollupSequencedBatches(1, 23) = (0xfd5c5746…422085, 1789688112, 19)   <- accInputHash != 0: a sequence end
+08-rollbackBatches-receipt  rollbackBatches(0x414e9E22…530E4e, 23)  tx 0x0744a76e…127946  block 426  gas 78668
                             events: 0x80a6d395… RollbackBatches(uint32,uint64,bytes32) from the rollup manager
                                     0x1125aaf6… RollbackBatches(uint64,bytes32)        from the rollup contract
-08-state-rolled-back        lastBatchSequenced=20 lastVerifiedBatch=20 (was 33/20); lastLocalExitRoot unchanged 0xf04f3ef7…bd16eb
-                            L2 block 155 (the in-window withdrawal) hash unchanged 0x7f0e8569…477b62; L2 head 212 -> 213
-08-state-rolled-back-erigon-synced  60 s later, once L1 finalized block 410: cdk-erigon zkevm_virtualBatchNumber 33 -> 20 on both nodes,
-                            zkevm_batchNumber kept growing (44 -> 48), eth_blockNumber 213 -> 233
+08-state-rolled-back        lastBatchSequenced=23 lastVerifiedBatch=23 (was 35/23); lastLocalExitRoot unchanged 0xf04f3ef7…bd16eb
+                            L2 block 164 (the in-window withdrawal) hash unchanged 0xf2a92f9f…1ad374; L2 head 222 -> 223
+08-state-rolled-back-erigon-synced  51 s later, once L1 finalized block 426: cdk-erigon zkevm_virtualBatchNumber 35 -> 23 on both nodes,
+                            zkevm_batchNumber kept growing (46 -> 49), eth_blockNumber 223 -> 240
 ```
 <!-- /OBS:ROLLBACK -->
 
@@ -234,6 +234,49 @@ deposits made after the rollback and again after the migration are claimed on L2
 `L1InfoTree` stage keeps injecting global exit roots throughout.
 
 <!-- OBS:ERIGON_HEALTH -->
+`zkevm_getBatchByNumber(34)`, the batch holding block 164, before the rollback and once the rollback block is final: `sendSequencesTxHash` 0xe815d05a…e63da0 -> null, `verifyBatchTxHash` null -> null, `closed` True -> True, `accInputHash` unchanged, `zkevm_isBlockVirtualized(164)` true -> false, `zkevm_isBlockConsolidated` false -> false.
+
+Probe results (`NN-erigon-health-<stage>.json`, both nodes, every stage). Reference block: 164 (the in-window withdrawal, batch 34); before it exists the pre-break withdrawal block is used.
+
+| stage | node | eth_blockNumber | zkevm batch/virtual/verified | fork | ref block hash | ref block virtualized | debug_traceTransaction | bridge logs @ref | client |
+|---|---|---|---|---|---|---|---|---|---|
+| baseline | sequencer | 127 | 27/19/14 | 12 | 0x7668cf…7fff | true | ok | 1 | v2.61.20 |
+| baseline | rpc | 126 | 26/19/14 | 12 | 0x7668cf…7fff | true | ok | 1 | v2.61.20 |
+| gap-open | sequencer | 185 | 38/30/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.20 |
+| gap-open | rpc | 184 | 38/30/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.20 |
+| before-rollback | sequencer | 223 | 46/35/23 | 12 | 0xf2a92f…d374 | true | ok | 1 | v2.61.20 |
+| before-rollback | rpc | 222 | 46/35/23 | 12 | 0xf2a92f…d374 | true | ok | 1 | v2.61.20 |
+| after-rollback | sequencer | 224 | 46/35/23 | 12 | 0xf2a92f…d374 | true | ok | 1 | v2.61.20 |
+| after-rollback | rpc | 223 | 46/35/23 | 12 | 0xf2a92f…d374 | true | ok | 1 | v2.61.20 |
+| erigon-synced | sequencer | 241 | 49/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.20 |
+| erigon-synced | rpc | 240 | 49/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.20 |
+| erigon-upgraded | sequencer | 284 | 58/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| erigon-upgraded | rpc | 284 | 58/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| migrated | sequencer | 325 | 66/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| migrated | rpc | 325 | 66/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| pp-live | sequencer | 384 | 78/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| pp-live | rpc | 384 | 78/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| final | sequencer | 387 | 79/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+| final | rpc | 387 | 79/23/23 | 12 | 0xf2a92f…d374 | false | ok | 1 | v2.61.24 |
+
+Functional checks:
+
+```text
+08-l2-transfer-rpc-after-rollback.txt    cast send via rpc-after-rollback: status=0x1 block=242 tx=0xd0c990d98fd819299906022706e9f47bebd32b99de284f4b4ab9f917024f2960
+08-l2-transfer-sequencer-after-rollback.txt cast send via sequencer-after-rollback: status=0x1 block=244 tx=0x8f216db12ee3fdaa9055b57e7862792141e555629acdacf6366036e282f38b10
+09-l2-transfer-rpc-pp-mode.txt           cast send via rpc-pp-mode: status=0x1 block=285 tx=0x29c61938a777a64d4361be05f7bc911e74b3210be96fb88603ef31f24938a95d
+14-l2-transfer-rpc-final.txt             cast send via rpc-final: status=0x1 block=387 tx=0x09641e118872a992f760b7675227f2e876bf3e8c796c40e0c79500a9776904c9
+08-deposit-after-rollback.txt            11:41PM INF Bridge transaction sent txHash=0x312b32eb76b28ed3d31526bd45885190eb2c4810d213cbf92e37ea85d630e4d4
+08-deposit-after-rollback.txt            11:41PM INF Transaction successful txHash=0x312b32eb76b28ed3d31526bd45885190eb2c4810d213cbf92e37ea85d630e4d4
+08-deposit-after-rollback.txt            11:41PM INF Bridge deposit count parsed from logs depositCount=2
+08-deposit-after-rollback.txt            L1 depositCount=2 (0.001 ETH to L2)
+13-deposit-after-migration.txt           11:47PM INF Bridge transaction sent txHash=0x10770c9a7aa74bb56ad1a24bcceb8f4fcca6ff1884ee8bbdc558d4bada0631f9
+13-deposit-after-migration.txt           11:47PM INF Transaction successful txHash=0x10770c9a7aa74bb56ad1a24bcceb8f4fcca6ff1884ee8bbdc558d4bada0631f9
+13-deposit-after-migration.txt           11:47PM INF Bridge deposit count parsed from logs depositCount=3
+13-deposit-after-migration.txt           L1 depositCount=3 (0.001 ETH to L2)
+```
+
+L1 to L2 deposits made after the rollback and after the migration were claimed on L2 (`*-claim-l2-after-rollback.txt`, `*-claim-l2-after-migration.txt`), which requires the sequencer to keep injecting global exit roots.
 <!-- /OBS:ERIGON_HEALTH -->
 
 ## 4. Upgrade cdk-erigon and switch it to PP mode (chain operator)
@@ -295,7 +338,7 @@ new sequencer image against an empty datadir). Then the legacy components are st
 ```text
 09-erigon-version           web3_clientVersion = cdk-erigon/v2.61.24 on both nodes (was v2.61.20)
 09-stop-legacy-components   Stopping cdk-data-availability-001, zkevm-stateless-executor-001, zkevm-prover-001, zkevm-pool-manager-001
-09-state-erigon-upgraded    L2 head 246, batch 51: block 155 hash unchanged, blocks produced with executors, prover, DAC and pool manager stopped
+09-state-erigon-upgraded    L2 head 284, batch 58: block 164 hash unchanged, blocks produced with executors, prover, DAC and pool manager stopped
 ```
 <!-- /OBS:ERIGON -->
 
@@ -387,14 +430,14 @@ before the `AddNewRollupType` block is the expected fix, untested here).
 
 <!-- OBS:MIGRATE -->
 ```text
-11-initMigration-receipt    initMigration(1, 2, 0x06e76665)  tx 0x15016603…d7050c  block 468  gas 295060
+11-initMigration-receipt    initMigration(1, 2, 0x06e76665)  tx 0xe0db2a1e…a59893  block 527  gas 295060
 11-post-migration-state     isRollupMigrating=true  threshold=1  signers=[0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed] (trusted sequencer)
                             aggchainManager=0xE34aaF64b29273B7D567FCFc40544c014EEe9970 (previous admin)  AGGCHAIN_TYPE=0x0000 (ECDSA multisig)
-11-state-migrated           rollupTypeID 1 -> 2, rollupVerifierType 0 -> 2 (ALGateway), counters 20/20, LER unchanged
+11-state-migrated           rollupTypeID 1 -> 2, rollupVerifierType 0 -> 2 (ALGateway), counters 23/23, LER unchanged
 11-erigon-UpdateRollupTopic [2/13 L1SequencerSyncer] err="[2/13 L1SequencerSyncer] received UpdateRollupTopic for unknown rollup type: 2"   (logged once)
-                            'unknown rollup type' lines: 2 right after the event, 2 one minute later; 'L1 Sequencer sync finished' lines: 8 -> 12 (clean passes continue); zkevm_getForkId=12
+                            'unknown rollup type' lines: 2 right after the event, 2 one minute later; 'L1 Sequencer sync finished' lines: 7 -> 11 (clean passes continue); zkevm_getForkId=12
 11-erigon-rpc-UpdateRollupTopic  empty: the RPC node does not run this stage
-                            blocks kept coming (249 -> 300 by the time the bootstrap certificate settled)
+                            blocks kept coming (288 -> 337 by the time the bootstrap certificate settled)
 ```
 <!-- /OBS:MIGRATE -->
 
@@ -438,14 +481,14 @@ including those from the rolled-back batches. When the L1 `lastLocalExitRoot` eq
 
 <!-- OBS:CERTS -->
 ```text
-12-max-l2-block             zkevm_verifiedBatchNumber=20 -> last block 0x827942ec…5cf6d8 -> MaxL2BlockNumber=96
-                            L1 lastLocalExitRoot = L2 bridge getRoot()@96 = 0xf04f3ef7…bd16eb   (precondition holds)
-12-aggkit-config-max96-dryfalse.toml   DryRun = false, MaxL2BlockNumber = 96
-12-state-bootstrap-settled  152 s after initMigration (11:05:01 UTC): isRollupMigrating=false; L1 LER still 0xf04f3ef7…bd16eb (bootstrap reproduces it)
+12-max-l2-block             zkevm_verifiedBatchNumber=23 -> last block 0x5192da9d…3c2a5b -> MaxL2BlockNumber=111
+                            L1 lastLocalExitRoot = L2 bridge getRoot()@111 = 0xf04f3ef7…bd16eb   (precondition holds)
+12-aggkit-config-max111-dryfalse.toml   DryRun = false, MaxL2BlockNumber = 111
+12-state-bootstrap-settled  148 s after initMigration (23:46:12 UTC): isRollupMigrating=false; L1 LER still 0xf04f3ef7…bd16eb (bootstrap reproduces it)
 13-agglayer-settled-final   interop_getLatestSettledCertificateHeader(1): height 0, status Settled, new_local_exit_root 0xf04f3ef7…bd16eb at that moment (lags L1, see above)
 13-aggkit-config-max0-dryfalse.toml     MaxL2BlockNumber = 0
 13-ler-catch-up             settled: L1 lastLocalExitRoot = L2 bridge getRoot() = 0xbbe91da5…3ae050 (includes the in-window exit)
-13-logs-pp-live-aggkit-001.log recovery: last settled certificate already in local storage with same height and ID (persisted /data)
+99-logs-final-aggkit-001.log recovery: last settled certificate already in local storage with same height and ID (persisted /data)
 ```
 <!-- /OBS:CERTS -->
 
@@ -458,12 +501,12 @@ L1 once the certificate that carries their exit is settled. The claim itself is 
 
 <!-- OBS:CLAIMS -->
 ```text
-04-bridge-in-gap            depositCount=1 l2Block=155 l2Batch=32 (sequenced on L1, never verified, rolled back)
+04-bridge-in-gap            depositCount=1 l2Block=164 l2Batch=34 (sequenced on L1, never verified, rolled back)
 14-claim-in-gap             polycli ulxly claim asset --deposit-count 1 --deposit-network 1 --bridge-service-url <zkevm-bridge-service>
                             "The deposit is ready to be claimed"
-                            -> Claim transaction sent 0xf65da7f9…57bf28 -> Transaction successful
+                            -> Claim transaction sent 0xb123a871…fee814 -> Transaction successful
 14-claimed-check            AgglayerBridge.isClaimed(1, 1) = true
-14-state-final              L1 20/20, rollupTypeID 2, LER 0xbbe91da5…3ae050; L2 block 328, batch 67, fork 12, cdk-erigon v2.61.24
+14-state-final              L1 23/23, rollupTypeID 2, LER 0xbbe91da5…3ae050; L2 block 387, batch 79, fork 12, cdk-erigon v2.61.24
 ```
 <!-- /OBS:CLAIMS -->
 
@@ -557,13 +600,15 @@ Known differences and why they do not change the procedure:
   binary exceeds kurtosis-cdk's fixed 180 s `agglayer vkey` task. On amd64 Linux nothing is needed.
 - Runs of the scenario on GitHub Actions, all passed with the same invariants (sequenced > verified before the
   rollback, equal after; same exit roots because the devnet deposits are deterministic; `AllSequencedMustBeVerified`
-  selector `0xcc862d4a`; one-shot erigon error; claim true):
+  selector `0xcc862d4a`; one-shot erigon error on the sequencer only; claim true):
   [35201843011](https://github.com/agglayer/e2e/actions/runs/35201843011) (37/24),
   [35204567044](https://github.com/agglayer/e2e/actions/runs/35204567044) (38/24),
-  [35207232742](https://github.com/agglayer/e2e/actions/runs/35207232742) (33/20, first run with the
-  clean-pass and RPC-node checks of step 6),
-  [35209534700](https://github.com/agglayer/e2e/actions/runs/35209534700) (37/21) and
-  [35211930721](https://github.com/agglayer/e2e/actions/runs/35211930721) (33/20, the committed evidence).
+  [35207232742](https://github.com/agglayer/e2e/actions/runs/35207232742) (33/20),
+  [35209534700](https://github.com/agglayer/e2e/actions/runs/35209534700) (37/21),
+  [35211930721](https://github.com/agglayer/e2e/actions/runs/35211930721) (33/20),
+  [35214396395](https://github.com/agglayer/e2e/actions/runs/35214396395) (40/23) and
+  [35286572861](https://github.com/agglayer/e2e/actions/runs/35286572861) (35/23, first run with the
+  cdk-erigon health probes and functional checks of section 3b, the committed evidence).
 - Failed development runs that back "observed" statements in this document:
   [35190176306](https://github.com/agglayer/e2e/actions/runs/35190176306) (empty datadir after
   `kurtosis service update`, erigon restarted at block 3),
@@ -578,8 +623,8 @@ Known differences and why they do not change the procedure:
 ## Appendix B. Evidence index
 
 Directory `evidence/validated-run-1/`, produced by `run.sh` in GitHub Actions run
-[35211930721](https://github.com/agglayer/e2e/actions/runs/35211930721) (ubuntu-latest, amd64) on
-2026-09-17, enclave created 10:43:56 UTC, scenario passed 11:06:25 UTC. File names are prefixed with the
+[35286572861](https://github.com/agglayer/e2e/actions/runs/35286572861) (ubuntu-latest, amd64) on
+2026-09-17, enclave created 23:23:34 UTC, scenario passed 23:48:43 UTC. File names are prefixed with the
 step number. `state-*.json` files are snapshots of the rollup manager and L2 counters.
 
 | Step | Files |

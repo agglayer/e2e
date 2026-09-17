@@ -170,7 +170,24 @@ def note_lines(prefix):
     return out
 hdr = "| stage | node | eth_blockNumber | zkevm batch/virtual/verified | fork | ref block hash | ref block virtualized | debug_traceTransaction | bridge logs @ref | client |\n|---|---|---|---|---|---|---|---|---|---|"
 ref_desc = f"Reference block: {dep1[1]} (the in-window withdrawal, batch {dep1[2]}); before it exists the pre-break withdrawal block is used."
-blocks["ERIGON_HEALTH"] = (
+def batch_meta_line():
+    def load(lab):
+        f = next((f for f in os.listdir(E) if re.match(rf"^\d+-erigon-health-{lab}\.json$", f)), None)
+        if not f: return None
+        j = json.load(open(os.path.join(E, f)))
+        return next((n for n in j["nodes"] if n["node"] == "rpc"), None)
+    b, a = load("before-rollback"), load("erigon-synced")
+    if not (b and a and b.get("zkevm_getBatchByNumber_ref_batch") and a.get("zkevm_getBatchByNumber_ref_batch")): return ""
+    bb, ab = b["zkevm_getBatchByNumber_ref_batch"], a["zkevm_getBatchByNumber_ref_batch"]
+    fmt = lambda v: (sh(v) if isinstance(v, str) and v.startswith("0x") and len(v) > 20 else json.dumps(v))
+    return (f"`zkevm_getBatchByNumber({int(b['ref_block_batch'])})`, the batch holding block {b['ref_block']}, before the rollback and once the rollback block is final: "
+            f"`sendSequencesTxHash` {fmt(bb.get('sendSequencesTxHash'))} -> {fmt(ab.get('sendSequencesTxHash'))}, "
+            f"`verifyBatchTxHash` {fmt(bb.get('verifyBatchTxHash'))} -> {fmt(ab.get('verifyBatchTxHash'))}, `closed` {bb.get('closed')} -> {ab.get('closed')}, "
+            f"`accInputHash` {'unchanged' if bb.get('accInputHash') == ab.get('accInputHash') else 'CHANGED'}, "
+            f"`zkevm_isBlockVirtualized({b['ref_block']})` {b['zkevm_isBlockVirtualized_ref_block']} -> {a['zkevm_isBlockVirtualized_ref_block']}, "
+            f"`zkevm_isBlockConsolidated` {b['zkevm_isBlockConsolidated_ref_block']} -> {a['zkevm_isBlockConsolidated_ref_block']}.")
+
+blocks["ERIGON_HEALTH"] = (batch_meta_line() + "\n\n" + 
     "Probe results (`NN-erigon-health-<stage>.json`, both nodes, every stage). " + ref_desc + "\n\n" + hdr + "\n" + "\n".join(health_rows()) + "\n\n"
     + "Functional checks:\n\n```text\n" + "\n".join(note_lines("l2-transfer-") + note_lines("deposit-after-") ) + "\n```\n"
     + "\nL1 to L2 deposits made after the rollback and after the migration were claimed on L2 (`*-claim-l2-after-rollback.txt`, `*-claim-l2-after-migration.txt`), which requires the sequencer to keep injecting global exit roots.\n")

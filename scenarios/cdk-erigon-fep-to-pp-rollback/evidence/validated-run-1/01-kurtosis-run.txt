@@ -1,25 +1,25 @@
 $ timeout 3600 kurtosis run --enclave fep-to-pp-rollback --args-file assets/kurtosis-params.yml github.com/0xPolygon/kurtosis-cdk@51a3d3b0d5f76eb34ba5307281d927f9f2de2b4b
-[36mINFO[0m[2026-09-17T10:43:46Z] Creating a new enclave for Starlark to run inside... 
-[36mINFO[0m[2026-09-17T10:43:56Z] Enclave 'fep-to-pp-rollback' created successfully 
-[36mINFO[0m[2026-09-17T10:43:56Z] Kurtosis CLI is running in a non interactive terminal. Everything will work but progress information and the progress bar will not be displayed. 
+[36mINFO[0m[2026-09-17T23:23:26Z] Creating a new enclave for Starlark to run inside... 
+[36mINFO[0m[2026-09-17T23:23:34Z] Enclave 'fep-to-pp-rollback' created successfully 
+[36mINFO[0m[2026-09-17T23:23:34Z] Kurtosis CLI is running in a non interactive terminal. Everything will work but progress information and the progress bar will not be displayed. 
 
 Container images used in this run:
-> postgres:17.6 - remotely downloaded
 > protolambda/eth2-val-tools:latest - remotely downloaded
-> sigp/lighthouse:v8.2.2 - remotely downloaded
-> ghcr.io/0xpolygon/cdk:0.5.4-rc1 - remotely downloaded
-> ghcr.io/0xpolygon/zkevm-pool-manager:0.1.3 - remotely downloaded
 > ghcr.io/agglayer/agglayer:0.6.0-rc.5 - remotely downloaded
-> ghcr.io/0xpolygon/cdk-data-availability:0.0.13 - remotely downloaded
-> badouralix/curl-jq - locally cached
-> hermeznetwork/cdk-erigon:v2.61.20 - remotely downloaded
 > hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12 - remotely downloaded
-> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v12.2.3 - remotely downloaded
-> ghcr.io/agglayer/aggkit-prover:2.1.0 - remotely downloaded
-> ghcr.io/0xpolygon/zkevm-bridge-service:v0.6.4-RC2 - remotely downloaded
-> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/toolbox:0.0.12 - remotely downloaded
-> ghcr.io/paradigmxyz/reth:v2.5.2 - remotely downloaded
+> sigp/lighthouse:v8.2.2 - remotely downloaded
 > ethpandaops/ethereum-genesis-generator:6.2.1 - remotely downloaded
+> ghcr.io/0xpolygon/cdk-data-availability:0.0.13 - remotely downloaded
+> ghcr.io/0xpolygon/zkevm-bridge-service:v0.6.4-RC2 - remotely downloaded
+> hermeznetwork/cdk-erigon:v2.61.20 - remotely downloaded
+> ghcr.io/0xpolygon/cdk:0.5.4-rc1 - remotely downloaded
+> badouralix/curl-jq - locally cached
+> ghcr.io/agglayer/aggkit-prover:2.1.0 - remotely downloaded
+> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/toolbox:0.0.12 - remotely downloaded
+> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v12.2.3 - remotely downloaded
+> postgres:17.6 - remotely downloaded
+> ghcr.io/0xpolygon/zkevm-pool-manager:0.1.3 - remotely downloaded
+> ghcr.io/paradigmxyz/reth:v2.5.2 - remotely downloaded
 
 Deriving the private key from the mnemonic
 Command returned with exit code '0' and the following output: 0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31
@@ -46,10 +46,10 @@ Fetching cluster type 'docker'
 Fetched cluster type 'docker'
 
 Uploading file '/static_files/jwt/jwtsecret' to files artifact 'jwt_file'
-Files with artifact name 'jwt_file' uploaded with artifact UUID 'd81ccdadda4d475a802496c34a254bb1'
+Files with artifact name 'jwt_file' uploaded with artifact UUID '3a95aefc35fc43e7991e982a333bd906'
 
 Uploading file '/static_files/keymanager/keymanager.txt' to files artifact 'keymanager_file'
-Files with artifact name 'keymanager_file' uploaded with artifact UUID 'ad8446f9bcd142279c64e3f37d173136'
+Files with artifact name 'keymanager_file' uploaded with artifact UUID '0492935db42041d68596f08657a3e378'
 
 Printing a message
 Read the prometheus, grafana templates
@@ -61,7 +61,7 @@ Printing a message
 Generating cl validator key stores
 
 Adding service with name 'validator-key-generation-cl-validator-keystore' and image 'protolambda/eth2-val-tools:latest'
-Service 'validator-key-generation-cl-validator-keystore' added with service UUID 'e83852d6a6504fabad9202ac387a4ceb'
+Service 'validator-key-generation-cl-validator-keystore' added with service UUID '305b7390918445a4ad8d0653d93252cf'
 
 Generating keystores
 Command returned with exit code '0' with no output
@@ -70,7 +70,7 @@ Verifying whether two values meet a certain condition '=='
 Verification succeeded. Value is '0'.
 
 Storing files from service 'validator-key-generation-cl-validator-keystore' at path '/node-0-keystores/' to files artifact with name '1-lighthouse-reth-0-127'
-Files with artifact name '1-lighthouse-reth-0-127' uploaded with artifact UUID 'cb4e66ae0dd5491c9495a86ab787b297'
+Files with artifact name '1-lighthouse-reth-0-127' uploaded with artifact UUID 'bdba85292101404f80296acc85f54cb2'
 
 Storing prysm password in a file
 Command returned with exit code '0' with no output
@@ -79,7 +79,7 @@ Verifying whether two values meet a certain condition '=='
 Verification succeeded. Value is '0'.
 
 Storing files from service 'validator-key-generation-cl-validator-keystore' at path '/tmp/prysm-password.txt' to files artifact with name 'prysm-password'
-Files with artifact name 'prysm-password' uploaded with artifact UUID '32876174961749f39fcfa5516ffe68a0'
+Files with artifact name 'prysm-password' uploaded with artifact UUID 'a0a7d443120d4905b1272e6b05258a21'
 
 Printing a message
 {
@@ -100,13 +100,13 @@ Printing a message
 }
 
 Getting final genesis timestamp
-Command returned with exit code '0' and the following output: 1789642013
+Command returned with exit code '0' and the following output: 1789687570
 
 Printing a message
 Generating EL CL data
 
 Rendering a template to a files artifact with name 'genesis-el-cl-env-file'
-Templates artifact name 'genesis-el-cl-env-file' rendered with artifact UUID '2f3938b7c2f849648d913575e217cfc5'
+Templates artifact name 'genesis-el-cl-env-file' rendered with artifact UUID '09eae63f400540b7b6ebdef6ec1b54e9'
 
 Creating genesis
 Command returned with exit code '0' and the following output:
@@ -168,12 +168,12 @@ Adding additional contracts...
 Applying allocations to genesis files...
 + '[' -f /data/metadata/genesis.ssz ']'
 ++ mktemp -d -t ci-XXXXXXXXXX
-+ tmp_dir=/tmp/ci-p9vUe7DjuC
++ tmp_dir=/tmp/ci-DBhnt0Un5s
 + mkdir -p /data/metadata
 + mkdir -p /data/parsed
-++ date -u -d @1789642013 '+%Y-%b-%d %I:%M:%S %p %Z'
-+ HUMAN_READABLE_TIMESTAMP='2026-Sep-17 10:46:53 AM UTC'
-+ COMMENT='# 2026-Sep-17 10:46:53 AM UTC'
+++ date -u -d @1789687570 '+%Y-%b-%d %I:%M:%S %p %Z'
++ HUMAN_READABLE_TIMESTAMP='2026-Sep-17 11:26:10 PM UTC'
++ COMMENT='# 2026-Sep-17 11:26:10 PM UTC'
 ++ build_blob_schedule
 ++ local include_schedule=false
 ++ local schedule=
@@ -250,7 +250,7 @@ BPO 1 has the same activation epoch as the followup BPO 2, skipping for CL confi
             in_schedule && /^[[:space:]]/ { next }
             { in_schedule=0; print }
         ' /config/cl/config.yaml
-+ sed 's/#HUMAN_TIME_PLACEHOLDER/# 2026-Sep-17 10:46:53 AM UTC/'
++ sed 's/#HUMAN_TIME_PLACEHOLDER/# 2026-Sep-17 11:26:10 PM UTC/'
 + cl_heze_fork_epoch=18446744073709551615
 + '[' false = true ']'
 + HEZE_FORK_EPOCH=18446744073709551615
@@ -261,7 +261,7 @@ BPO 1 has the same activation epoch as the followup BPO 2, skipping for CL confi
 + envsubst
 + '[' -n '[]' ']'
 + '[' '[]' '!=' '[]' ']'
-+ cp /tmp/ci-p9vUe7DjuC/mnemonics.yaml /data/metadata/mnemonics.yaml
++ cp /tmp/ci-DBhnt0Un5s/mnemonics.yaml /data/metadata/mnemonics.yaml
 + grep DEPOSIT_CONTRACT_ADDRESS /data/metadata/config.yaml
 + cut -d ' ' -f2
 + echo 0
@@ -271,28 +271,28 @@ BPO 1 has the same activation epoch as the followup BPO 2, skipping for CL confi
 + [[ '' != '' ]]
 + '[' -z '' ']'
 + '[' false = true ']'
-+ /usr/local/bin/eth-genesis-state-generator beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-p9vUe7DjuC/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
-time="2026-09-17T10:46:25Z" level=info msg="eth-beacon-genesis version: git-9bbbf55"
-time="2026-09-17T10:46:25Z" level=info msg="loaded execution genesis. chainid: 271828"
-time="2026-09-17T10:46:25Z" level=info msg="loaded consensus config. genesis fork version: 0x10000038"
-time="2026-09-17T10:46:25Z" level=info msg="processing mnemonic 0, for 128 validators"
-time="2026-09-17T10:46:25Z" level=info msg="...validator 100/128"
-time="2026-09-17T10:46:25Z" level=info msg="loaded 128 validators. total balance: 4096 ETH"
-time="2026-09-17T10:46:25Z" level=info msg="wrote validator mapping to: /data/metadata/validator_names.yaml"
-time="2026-09-17T10:46:25Z" level=info msg="genesis version: capella"
-time="2026-09-17T10:46:25Z" level=info msg="genesis time: 1789642013"
-time="2026-09-17T10:46:25Z" level=info msg="genesis validators root: 0xd1ec305b97bf6336571c2348e4a8bf173684b0cdb7e55f7e6554d51f8478b5a3"
-time="2026-09-17T10:46:25Z" level=info msg="successfully built genesis state."
-time="2026-09-17T10:46:25Z" level=info msg="serialized genesis state to SSZ file: /data/metadata/genesis.ssz"
++ /usr/local/bin/eth-genesis-state-generator beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-DBhnt0Un5s/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
+time="2026-09-17T23:25:42Z" level=info msg="eth-beacon-genesis version: git-9bbbf55"
+time="2026-09-17T23:25:42Z" level=info msg="loaded execution genesis. chainid: 271828"
+time="2026-09-17T23:25:42Z" level=info msg="loaded consensus config. genesis fork version: 0x10000038"
+time="2026-09-17T23:25:42Z" level=info msg="processing mnemonic 0, for 128 validators"
+time="2026-09-17T23:25:42Z" level=info msg="...validator 100/128"
+time="2026-09-17T23:25:42Z" level=info msg="loaded 128 validators. total balance: 4096 ETH"
+time="2026-09-17T23:25:42Z" level=info msg="wrote validator mapping to: /data/metadata/validator_names.yaml"
+time="2026-09-17T23:25:42Z" level=info msg="genesis version: capella"
+time="2026-09-17T23:25:42Z" level=info msg="genesis time: 1789687570"
+time="2026-09-17T23:25:42Z" level=info msg="genesis validators root: 0xd1ec305b97bf6336571c2348e4a8bf173684b0cdb7e55f7e6554d51f8478b5a3"
+time="2026-09-17T23:25:42Z" level=info msg="successfully built genesis state."
+time="2026-09-17T23:25:42Z" level=info msg="serialized genesis state to SSZ file: /data/metadata/genesis.ssz"
 serialized genesis state to JSON file: /data/parsed/parsedConsensusGenesis.json
-Genesis args: beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-p9vUe7DjuC/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
-+ echo 'Genesis args: beaconchain' --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-p9vUe7DjuC/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
++ echo 'Genesis args: beaconchain' --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-DBhnt0Un5s/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
+Genesis args: beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-DBhnt0Un5s/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
 ++ jq -r .latest_execution_payload_header.block_number /data/parsed/parsedConsensusGenesis.json
 Genesis block number: 0
 + echo 'Genesis block number: 0'
 ++ jq -r .latest_execution_payload_header.block_hash /data/parsed/parsedConsensusGenesis.json
-+ echo 'Genesis block hash: 0x6d321ea3b63ef98c84ed2f8d1fb713cdb55ce74048761056c25c5095359b51e1'
-Genesis block hash: 0x6d321ea3b63ef98c84ed2f8d1fb713cdb55ce74048761056c25c5095359b51e1
+Genesis block hash: 0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599
++ echo 'Genesis block hash: 0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599'
 + jq -r .eth1_data.block_hash /data/parsed/parsedConsensusGenesis.json
 + tr -d '\n'
 + jq -r .genesis_validators_root /data/parsed/parsedConsensusGenesis.json
@@ -304,7 +304,7 @@ Genesis block hash: 0x6d321ea3b63ef98c84ed2f8d1fb713cdb55ce74048761056c25c509535
 + mkdir -p /data/jwt
 ++ openssl rand -hex 32
 ++ tr -d '\n'
-+ echo -n 0xb06ee1ec4f53078b4dfac4a4420b1fb95a81251a31e9801ab15e0a1b86bc0921
++ echo -n 0xad2ded1da1b56212866cf8c91d4294a8035d7c02597796fb991d3d19fc47ff63
 + '[' -f /data/metadata/genesis.json ']'
 ++ cat /data/metadata/genesis.json
 ++ jq -r '.config.terminalTotalDifficulty | tostring'
@@ -318,16 +318,16 @@ Reading genesis validators root
 Command returned with exit code '0' and the following output: 0xd1ec305b97bf6336571c2348e4a8bf173684b0cdb7e55f7e6554d51f8478b5a3
 
 Reading osaka time from genesis
-Command returned with exit code '0' and the following output: 1789642061
+Command returned with exit code '0' and the following output: 1789687618
 
 Adding service with name 'el-1-reth-lighthouse' and image 'ghcr.io/paradigmxyz/reth:v2.5.2'
-Service 'el-1-reth-lighthouse' added with service UUID 'fa2607ee74484c049b6563ed39c27d69'
+Service 'el-1-reth-lighthouse' added with service UUID '85f6bd77cfe84d27a05c35b14ef2c8c2'
 
 Waiting for at most '30m0s' for service 'el-1-reth-lighthouse' to reach a certain state
-Wait took 1 tries (15.265048ms in total). Assertion passed with following:
-Request had response code '200' and body "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"id\":\"a2cb7bddd63016fba5f9277eb7e8a8f7683cd22c839daacc8ef0b5b45b81212d\",\"name\":\"reth/v2.5.2-5a6940e/x86_64-unknown-linux-gnu\",\"enode\":\"enode://d18bbfc18998a54ca82b079163cb08948fa21469307a078a7ef588b399c380566e54181974b1ce6f6ce589ccf301e18ef322682361ba82448179b45137218a9e@172.16.0.11:30303\",\"enr\":\"enr:-Iu4QEMylLoC5URLDkQZUVwURgaGuPZCy5BT9kTY02OX1GhrLmeIXykoQGKbpfsGWFEEVkqU2TQoS_Fd7zlu-1ljPxsBgmlkgnY0gmlwhKwQAAuJc2VjcDI1NmsxoQLRi7_BiZilTKgrB5FjywiUj6IUaTB6B4p-9YizmcOAVoN0Y3CCdl-DdWRwgnZf\",\"ip\":\"172.16.0.11\",\"ports\":{\"discovery\":30303,\"listener\":30303},\"listenAddr\":\"172.16.0.11:30303\",\"protocols\":{\"eth\":{\"network\":271828,\"difficulty\":null,\"genesis\":\"0x6d321ea3b63ef98c84ed2f8d1fb713cdb55ce74048761056c25c5095359b51e1\",\"config\":{\"chainId\":271828,\"homesteadBlock\":0,\"daoForkSupport\":false,\"eip150Block\":0,\"eip155Block\":0,\"eip158Block\":0,\"byzantiumBlock\":0,\"constantinopleBlock\":0,\"petersburgBlock\":0,\"istanbulBlock\":0,\"berlinBlock\":0,\"londonBlock\":0,\"mergeNetsplitBlock\":0,\"shanghaiTime\":0,\"cancunTime\":1789642029,\"pragueTime\":1789642045,\"osakaTime\":1789642061,\"bpo1Time\":1789642061,\"bpo2Time\":1789642061,\"terminalTotalDifficulty\":0,\"terminalTotalDifficultyPassed\":true,\"depositContractAddress\":\"0x00000000219ab540356cbb839cbe05303d7705fa\",\"blobSchedule\":{\"bpo1\":{\"baseFeeUpdateFraction\":8346193,\"max\":15,\"target\":10},\"bpo2\":{\"baseFeeUpdateFraction\":11684671,\"max\":21,\"target\":14},\"cancun\":{\"baseFeeUpdateFraction\":3338477,\"max\":6,\"target\":3},\"prague\":{\"baseFeeUpdateFraction\":5007716,\"max\":9,\"target\":6}}},\"head\":\"0x6d321ea3b63ef98c84ed2f8d1fb713cdb55ce74048761056c25c5095359b51e1\"}}}}", with extracted fields:
-'extract.enr': "enr:-Iu4QEMylLoC5URLDkQZUVwURgaGuPZCy5BT9kTY02OX1GhrLmeIXykoQGKbpfsGWFEEVkqU2TQoS_Fd7zlu-1ljPxsBgmlkgnY0gmlwhKwQAAuJc2VjcDI1NmsxoQLRi7_BiZilTKgrB5FjywiUj6IUaTB6B4p-9YizmcOAVoN0Y3CCdl-DdWRwgnZf"
-'extract.enode': "enode://d18bbfc18998a54ca82b079163cb08948fa21469307a078a7ef588b399c380566e54181974b1ce6f6ce589ccf301e18ef322682361ba82448179b45137218a9e@172.16.0.11:30303"
+Wait took 1 tries (11.324272ms in total). Assertion passed with following:
+Request had response code '200' and body "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"id\":\"4d3f329f8f1a0a11402e48a7051dcf7f92b8e7c3d3ea2700a320ba741adca7c3\",\"name\":\"reth/v2.5.2-5a6940e/x86_64-unknown-linux-gnu\",\"enode\":\"enode://cee52c45796f27a096c963c78d66874f92f6f44128bb48ae1e970bb80fa7d5980fb7c886996708067659947d0671b8ee52e9d646e42a155f1804840c143d0642@172.16.0.11:30303\",\"enr\":\"enr:-Iu4QGh2pyBErwb6jEEEOL84nPSFaMQelvb1ORjP3gpHQZU1HVVILcKTorLzIdhh6hRXWEFNOSMe_Le44lHdhXoevpoBgmlkgnY0gmlwhKwQAAuJc2VjcDI1NmsxoQLO5SxFeW8noJbJY8eNZodPkvb0QSi7SK4elwu4D6fVmIN0Y3CCdl-DdWRwgnZf\",\"ip\":\"172.16.0.11\",\"ports\":{\"discovery\":30303,\"listener\":30303},\"listenAddr\":\"172.16.0.11:30303\",\"protocols\":{\"eth\":{\"network\":271828,\"difficulty\":null,\"genesis\":\"0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599\",\"config\":{\"chainId\":271828,\"homesteadBlock\":0,\"daoForkSupport\":false,\"eip150Block\":0,\"eip155Block\":0,\"eip158Block\":0,\"byzantiumBlock\":0,\"constantinopleBlock\":0,\"petersburgBlock\":0,\"istanbulBlock\":0,\"berlinBlock\":0,\"londonBlock\":0,\"mergeNetsplitBlock\":0,\"shanghaiTime\":0,\"cancunTime\":1789687586,\"pragueTime\":1789687602,\"osakaTime\":1789687618,\"bpo1Time\":1789687618,\"bpo2Time\":1789687618,\"terminalTotalDifficulty\":0,\"terminalTotalDifficultyPassed\":true,\"depositContractAddress\":\"0x00000000219ab540356cbb839cbe05303d7705fa\",\"blobSchedule\":{\"bpo1\":{\"baseFeeUpdateFraction\":8346193,\"max\":15,\"target\":10},\"bpo2\":{\"baseFeeUpdateFraction\":11684671,\"max\":21,\"target\":14},\"cancun\":{\"baseFeeUpdateFraction\":3338477,\"max\":6,\"target\":3},\"prague\":{\"baseFeeUpdateFraction\":5007716,\"max\":9,\"target\":6}}},\"head\":\"0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599\"}}}}", with extracted fields:
+'extract.enr': "enr:-Iu4QGh2pyBErwb6jEEEOL84nPSFaMQelvb1ORjP3gpHQZU1HVVILcKTorLzIdhh6hRXWEFNOSMe_Le44lHdhXoevpoBgmlkgnY0gmlwhKwQAAuJc2VjcDI1NmsxoQLO5SxFeW8noJbJY8eNZodPkvb0QSi7SK4elwu4D6fVmIN0Y3CCdl-DdWRwgnZf"
+'extract.enode': "enode://cee52c45796f27a096c963c78d66874f92f6f44128bb48ae1e970bb80fa7d5980fb7c886996708067659947d0671b8ee52e9d646e42a155f1804840c143d0642@172.16.0.11:30303"
 
 Printing a message
 Successfully added 1 EL participants
@@ -336,13 +336,13 @@ Printing a message
 Launching CL network
 
 Adding service with name 'cl-1-lighthouse-reth' and image 'sigp/lighthouse:v8.2.2'
-Service 'cl-1-lighthouse-reth' added with service UUID 'a10885c9014144dbae6f30cf0ada8cd0'
+Service 'cl-1-lighthouse-reth' added with service UUID 'aa04d01936a249508532e7dc8a3fb33a'
 
 Running 'GET' request on service 'cl-1-lighthouse-reth'
-Request had response code '200' and body "{\"data\":{\"peer_id\":\"16Uiu2HAkvNps2Df1wCEaVdtsJD65gCG2v4HxEnUjLrabEyL67R6w\",\"enr\":\"enr:-Oy4QIHC2OEVjYDiyrHCSGEgxN0cwLu6g2gdP-TmOpE9Rge1TKmO8chnqCVVqK6-yF1-cobIzUU7RSXShHDP7Hm813cDh2F0dG5ldHOIADAAAAAAAACDY2djgYCGY2xpZW500YpMaWdodGhvdXNlhTguMi4yhGV0aDKQM-xnSFAAADgBAAAAAAAAAIJpZIJ2NIJpcISsEAAMg25mZITYTi7ghHF1aWOCIymJc2VjcDI1NmsxoQIOIP0jLn_wly0dyO4NEP4C419vuzQ4Ky4Omyrwn_k0WIhzeW5jbmV0cwCDdGNwgiMog3VkcIIjKA\",\"p2p_addresses\":[\"/ip4/172.16.0.12/tcp/9000/p2p/16Uiu2HAkvNps2Df1wCEaVdtsJD65gCG2v4HxEnUjLrabEyL67R6w\"],\"discovery_addresses\":[\"/ip4/172.16.0.12/udp/9000/p2p/16Uiu2HAkvNps2Df1wCEaVdtsJD65gCG2v4HxEnUjLrabEyL67R6w\"],\"metadata\":{\"seq_number\":\"2\",\"attnets\":\"0x0030000000000000\",\"syncnets\":\"0x00\",\"custody_group_count\":\"128\"}}}", with extracted fields:
-'extract.enr': "enr:-Oy4QIHC2OEVjYDiyrHCSGEgxN0cwLu6g2gdP-TmOpE9Rge1TKmO8chnqCVVqK6-yF1-cobIzUU7RSXShHDP7Hm813cDh2F0dG5ldHOIADAAAAAAAACDY2djgYCGY2xpZW500YpMaWdodGhvdXNlhTguMi4yhGV0aDKQM-xnSFAAADgBAAAAAAAAAIJpZIJ2NIJpcISsEAAMg25mZITYTi7ghHF1aWOCIymJc2VjcDI1NmsxoQIOIP0jLn_wly0dyO4NEP4C419vuzQ4Ky4Omyrwn_k0WIhzeW5jbmV0cwCDdGNwgiMog3VkcIIjKA"
-'extract.multiaddr': "/ip4/172.16.0.12/tcp/9000/p2p/16Uiu2HAkvNps2Df1wCEaVdtsJD65gCG2v4HxEnUjLrabEyL67R6w"
-'extract.peer_id': "16Uiu2HAkvNps2Df1wCEaVdtsJD65gCG2v4HxEnUjLrabEyL67R6w"
+Request had response code '200' and body "{\"data\":{\"peer_id\":\"16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5\",\"enr\":\"enr:-Oy4QJ4l5ipEl0hdbKs2gHLplMKwEbllMU2GQCTN4uLJDKSAa3H2sKcrl_JjFPAo3x1DXEOK7dTsQUhsIYO5OQciZvMDh2F0dG5ldHOIAGAAAAAAAACDY2djgYCGY2xpZW500YpMaWdodGhvdXNlhTguMi4yhGV0aDKQM-xnSFAAADgBAAAAAAAAAIJpZIJ2NIJpcISsEAAMg25mZITYTi7ghHF1aWOCIymJc2VjcDI1NmsxoQOydUzC8qtu-ole75oS_s7QpSJlw1HzZkYoXw5Gh7RagohzeW5jbmV0cwCDdGNwgiMog3VkcIIjKA\",\"p2p_addresses\":[\"/ip4/172.16.0.12/tcp/9000/p2p/16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5\"],\"discovery_addresses\":[\"/ip4/172.16.0.12/udp/9000/p2p/16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5\"],\"metadata\":{\"seq_number\":\"2\",\"attnets\":\"0x0060000000000000\",\"syncnets\":\"0x00\",\"custody_group_count\":\"128\"}}}", with extracted fields:
+'extract.enr': "enr:-Oy4QJ4l5ipEl0hdbKs2gHLplMKwEbllMU2GQCTN4uLJDKSAa3H2sKcrl_JjFPAo3x1DXEOK7dTsQUhsIYO5OQciZvMDh2F0dG5ldHOIAGAAAAAAAACDY2djgYCGY2xpZW500YpMaWdodGhvdXNlhTguMi4yhGV0aDKQM-xnSFAAADgBAAAAAAAAAIJpZIJ2NIJpcISsEAAMg25mZITYTi7ghHF1aWOCIymJc2VjcDI1NmsxoQOydUzC8qtu-ole75oS_s7QpSJlw1HzZkYoXw5Gh7RagohzeW5jbmV0cwCDdGNwgiMog3VkcIIjKA"
+'extract.multiaddr': "/ip4/172.16.0.12/tcp/9000/p2p/16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5"
+'extract.peer_id': "16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5"
 
 Printing a message
 Successfully added 1 CL participants
@@ -355,13 +355,13 @@ Using separate validator client for participant #1
 
 Adding '1' services with names 'vc-1-reth-lighthouse'
 Successfully added the following '1' services:
-  Service 'vc-1-reth-lighthouse' added with UUID 'd1b6f301abea4975b27d24918b885c17'
+  Service 'vc-1-reth-lighthouse' added with UUID '2ceb986f4a914444901dad2cb5397e23'
 
 Printing a message
 NODE JSON RPC URI: 'el-1-reth-lighthouse:8545'
 
 Rendering a template to a files artifact with name 'validator-ranges-input'
-Templates artifact name 'validator-ranges-input' rendered with artifact UUID 'be18e31199774c55a4c4424e38007937'
+Templates artifact name 'validator-ranges-input' rendered with artifact UUID '9668d0099e4a48f49d9f98a1369ff6f1'
 
 Generating validator ranges from the genesis validator names mapping (if available)
 Command returned with exit code '0' with no output
@@ -399,40 +399,40 @@ Getting aggchain vkey selector
 Command returned with exit code '0' and the following output: 0x000b0001
 
 Rendering a template to a files artifact with name 'create_new_rollup.json'
-Templates artifact name 'create_new_rollup.json' rendered with artifact UUID '29ea7bfa3e704cbfaa947261f90d4da5'
+Templates artifact name 'create_new_rollup.json' rendered with artifact UUID '32572350db54481eabff1842113e222e'
 
 Rendering a template to a files artifact with name 'op-custom-genesis-addresses.json'
-Templates artifact name 'op-custom-genesis-addresses.json' rendered with artifact UUID '6803170fc5e2455d8b8570ed93b8aa93'
+Templates artifact name 'op-custom-genesis-addresses.json' rendered with artifact UUID '4bc342cb0c31406cb5daab7234689fb4'
 
 Rendering a template to a files artifact with name 'deploy_parameters.json'
-Templates artifact name 'deploy_parameters.json' rendered with artifact UUID '9594cae70aa447db8c63d887b67f40e6'
+Templates artifact name 'deploy_parameters.json' rendered with artifact UUID 'df2344afd6144be389cacb71df68e279'
 
 Rendering a template to a files artifact with name 'cdk-erigon-custom-genesis-addresses.json'
-Templates artifact name 'cdk-erigon-custom-genesis-addresses.json' rendered with artifact UUID 'b8434aec70844bfc8a3f859dfc2dcc85'
+Templates artifact name 'cdk-erigon-custom-genesis-addresses.json' rendered with artifact UUID 'e0bfff3de9874519b4c5191619e05322'
 
 Rendering a template to a files artifact with name 'create_rollup_parameters.json'
-Templates artifact name 'create_rollup_parameters.json' rendered with artifact UUID 'ad6224c739274c11ae9b56618a5dfb09'
+Templates artifact name 'create_rollup_parameters.json' rendered with artifact UUID '320c2f46807241e79ec7bd5b549433e5'
 
 Rendering a template to a files artifact with name 'add_rollup_type.json'
-Templates artifact name 'add_rollup_type.json' rendered with artifact UUID 'b25b8303b7704fd0991df054f05c8d40'
+Templates artifact name 'add_rollup_type.json' rendered with artifact UUID '16a2477d831a48d886d3e5acf8e0cb5e'
 
 Rendering a template to a files artifact with name 'create-genesis-sovereign-params.json'
-Templates artifact name 'create-genesis-sovereign-params.json' rendered with artifact UUID 'cf6198fd81a9407aac9af2c521265e19'
+Templates artifact name 'create-genesis-sovereign-params.json' rendered with artifact UUID 'ec198f4fb26d4ced945e100a4e5994df'
 
 Rendering a template to a files artifact with name 'input_args.json'
-Templates artifact name 'input_args.json' rendered with artifact UUID 'df41e6ce1ccb404a9b78951f2bf2b9dc'
+Templates artifact name 'input_args.json' rendered with artifact UUID '2cd4226869a749a2a0e0dc4597f0662f'
 
 Rendering a template to a files artifact with name 'contracts.sh'
-Templates artifact name 'contracts.sh' rendered with artifact UUID 'cd73086838974eebb93713b517f63141'
+Templates artifact name 'contracts.sh' rendered with artifact UUID '05b1ac282fac46948a409e285df667c0'
 
 Uploading create_op_allocs.py artifact
-Files with artifact name 'create_op_allocs.py' uploaded with artifact UUID '53be064cda94429d94413b4610a1e6b0'
+Files with artifact name 'create_op_allocs.py' uploaded with artifact UUID '27ed542e128f4444b8de3d58dd75f541'
 
 Uploading json2http.py artifact
-Files with artifact name 'json2http.py' uploaded with artifact UUID '019cca2e3a284537ba80d0a29db907e3'
+Files with artifact name 'json2http.py' uploaded with artifact UUID '432122da921247f78bcec44205a39e14'
 
 Adding service with name 'contracts-001' and image 'europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v12.2.3'
-Service 'contracts-001' added with service UUID '993961cea8d844ffb6589f67fb7c42c3'
+Service 'contracts-001' added with service UUID '174c940c8ef84c669e427f1002895ec6'
 
 JSON 2 Http Server
 Command returned with exit code '0' with no output
@@ -443,7 +443,7 @@ Command returned with exit code '0' with no output
 Creating keystores for zkevm-node/cdk-validium components
 Command returned with exit code '0' and the following output:
 --------------------
-[32m[2026-09-17 10:47:22][0m Executing function create_keystores
+[32m[2026-09-17 23:26:42][0m Executing function create_keystores
 `sequencer.keystore` keystore was saved successfully. Address: 0x5b06837a43bdc3dd9f114558daf4b26ed49842ed
 `aggregator.keystore` keystore was saved successfully. Address: 0xcae5b68ff783594bde1b93cde627c741722c4d4d
 `dac.keystore` keystore was saved successfully. Address: 0x5951f5b2604c9b42e478d5e2b2437f44073ef9a6
@@ -456,90 +456,90 @@ Command returned with exit code '0' and the following output:
 Deploying Agglayer smart contracts on L1
 Command returned with exit code '0' and the following output:
 --------------------
-[32m[2026-09-17 10:47:22][0m Executing function deploy_agglayer_core_contracts
-[32m[2026-09-17 10:47:22][0m Waiting for the L1 RPC to be available
-[32m[2026-09-17 10:47:26][0m L1 RPC is now available
-[32m[2026-09-17 10:47:26][0m Funding important accounts on L1
-[32m[2026-09-17 10:47:26][0m Funding admin account
+[32m[2026-09-17 23:26:42][0m Executing function deploy_agglayer_core_contracts
+[32m[2026-09-17 23:26:42][0m Waiting for the L1 RPC to be available
+[32m[2026-09-17 23:26:44][0m L1 RPC is now available
+[32m[2026-09-17 23:26:44][0m Funding important accounts on L1
+[32m[2026-09-17 23:26:44][0m Funding admin account
 
-blockHash            0x11e1e4d4ca848525e8d3a8b058bbe6a3afa92e51114c166ff1c2dfd7c68b76da
+blockHash            0x14402fcac76b6b924f04f44162141ed2ecaddab0cefa269309212a35869d6633
 blockNumber          18
 contractAddress      
 cumulativeGasUsed    21000
-effectiveGasPrice    90404299
+effectiveGasPrice    90404308
 from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 gasUsed              21000
 logs                 []
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0xdc57b60fca7a8522b69f35253df17355d6dd66c97eb9aac2d44c7f70c4cf17f6
+transactionHash      0x775141ee7b485ce16297e33f448d23b36e2c7c2f3f55b3dc453ed6792e9eedfa
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0xE34aaF64b29273B7D567FCFc40544c014EEe9970
-[32m[2026-09-17 10:47:30][0m Funding sequencer account
+[32m[2026-09-17 23:26:46][0m Funding sequencer account
 
-blockHash            0xd9e18881e63d059ac6d8123ac74b99a86f9577c243eb776aa7e19984e1cb69f7
+blockHash            0x1376d40556f71d9528249158f13bb541631851c2f87aa3e99a8c3f9b4f41622b
 blockNumber          19
 contractAddress      
 cumulativeGasUsed    21000
-effectiveGasPrice    79111813
+effectiveGasPrice    79111821
 from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 gasUsed              21000
 logs                 []
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0x3d0598ad53ace6705be4fecd3132b04bd52fd12cebe3742162f9d4abcdb274f0
+transactionHash      0x9955b64bd94b328c7025f13cce311a6eb9d07d0d9084547c6d3a3a1b15dcb812
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
-[32m[2026-09-17 10:47:31][0m Funding aggregator account
+[32m[2026-09-17 23:26:49][0m Funding aggregator account
 
-blockHash            0x0440c8003fad0406366e2d656c63b37447333580bb21638027caefaf315105d6
-blockNumber          20
+blockHash            0xe8ff61fad00e4b9c4bee1a81f5e7a41e5956d9371ccc595a35159ad1619f4cf7
+blockNumber          21
 contractAddress      
 cumulativeGasUsed    21000
-effectiveGasPrice    69229889
+effectiveGasPrice    60576160
 from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 gasUsed              21000
 logs                 []
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0x1be14ecced7794b1a5fa5f8ece63749ba658718b205795c9c68ee37d1945b663
+transactionHash      0x80579016100c690c180b00e3ce47909b468c1fe21401877b42291fd2b2158e35
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d
-[32m[2026-09-17 10:47:33][0m Funding sovereignadmin account
+[32m[2026-09-17 23:26:53][0m Funding sovereignadmin account
 
-blockHash            0x2bb63b97a87a041cc3531aad188bdd68bff52f1e7712910098b71a2e20aabeab
-blockNumber          21
+blockHash            0xf759b4eb097c0d9d81f1b45593cbdd0228125ece7faf88a59e255d4089406f3d
+blockNumber          23
 contractAddress      
 cumulativeGasUsed    21000
-effectiveGasPrice    60582331
+effectiveGasPrice    46383358
 from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 gasUsed              21000
 logs                 []
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0x7db42f972a6c5b27f464cd589d1219623cc6d7e23442b11330d270c4f10b31b8
+transactionHash      0xc752a47f53de689ab1e2f71d623d3f583e923f91cea4c612bfc3ae3ccddb6784
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16
-[32m[2026-09-17 10:47:35][0m Setting up local agglayer-contracts repo for deployment
+[32m[2026-09-17 23:26:56][0m Setting up local agglayer-contracts repo for deployment
 /opt/agglayer-contracts /opt
-[32m[2026-09-17 10:47:35][0m It looks like this is the first rollup so we'll deploy the LxLy and Rollup Manager
-[32m[2026-09-17 10:47:35][0m Step 1: Preparing testnet
+[32m[2026-09-17 23:26:56][0m It looks like this is the first rollup so we'll deploy the LxLy and Rollup Manager
+[32m[2026-09-17 23:26:56][0m Step 1: Preparing testnet
 #######################
 
 pol deployed to: 0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
@@ -548,11 +548,11 @@ npm notice New major version of npm available! 10.9.0 -> 12.0.2
 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
 npm notice To update run: npm install -g npm@12.0.2
 npm notice
-[32m[2026-09-17 10:47:43][0m Step 2: Deploying PolygonZKEVMDeployer
+[32m[2026-09-17 23:27:04][0m Step 2: Deploying PolygonZKEVMDeployer
 #######################
 
 polygonZkEVMDeployer deployed on:  0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99
-[32m[2026-09-17 10:47:49][0m Step 3: Deploying contracts
+[32m[2026-09-17 23:27:10][0m Step 3: Deploying contracts
 #######################
 
 Proxy admin deployed to: 0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c
@@ -641,7 +641,7 @@ polygonRollupManagerContract deployed to: 0x6c6c009cC348976dB4A908c92B24433d4F6e
 PolygonZkEVMGlobalExitRootAddress: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674
 polTokenAddress: 0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
 polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
-[32m[2026-09-17 10:48:23][0m Got a deploy_output.json file
+[32m[2026-09-17 23:27:42][0m Got a deploy_output.json file
 {
   "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
   "polygonZkEVMBridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
@@ -656,8 +656,8 @@ polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
   "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
   "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
-  "deploymentRollupManagerBlockNumber": 45,
-  "upgradeToULxLyBlockNumber": 45,
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
   "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
   "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
@@ -667,9 +667,9 @@ polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
   "AgglayerGER": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
   "AgglayerGateway": "0xf22E2B040B639180557745F47aB97dFA95B1e22a"
 }
-[32m[2026-09-17 10:48:23][0m Combining contract deploy files
+[32m[2026-09-17 23:27:42][0m Combining contract deploy files
 /opt
-[32m[2026-09-17 10:48:23][0m Creating combined.json
+[32m[2026-09-17 23:27:42][0m Creating combined.json
 /opt/output /opt
 {
   "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
@@ -685,8 +685,8 @@ polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
   "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
   "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
-  "deploymentRollupManagerBlockNumber": 45,
-  "upgradeToULxLyBlockNumber": 45,
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
   "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
   "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
@@ -696,83 +696,83 @@ polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
   "AgglayerGER": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
   "AgglayerGateway": "0xf22E2B040B639180557745F47aB97dFA95B1e22a"
 }
-[32m[2026-09-17 10:48:23][0m Granting the aggregator role to the agglayer so that it can also verify batches
+[32m[2026-09-17 23:27:42][0m Granting the aggregator role to the agglayer so that it can also verify batches
 
-blockHash            0x7046a1925266eef52e7649f23a6f8ea2fd733cec7cb765c6966eb6671f89a2ac
-blockNumber          46
+blockHash            0x736866881d7d8459186eb7d6bfd825db1d1e18fe6ef01c8161b82bd67057e38f
+blockNumber          47
 contractAddress      
 cumulativeGasUsed    36522
-effectiveGasPrice    2408089
+effectiveGasPrice    2107331
 from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
 gasUsed              36522
 logs                 []
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0x469907c7feada5d085d7d75ade38bda7fcee4b974a85ef88b522fca0cd0c55ad
+transactionHash      0x8e5558a19ab0f2a35a9bd8e6061a474d2fa26010d15250c8cd374ffbab252da9
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0x6c6c009cC348976dB4A908c92B24433d4F6edA43
-[32m[2026-09-17 10:48:25][0m Minting POL token on L1 for the sequencer
+[32m[2026-09-17 23:27:44][0m Minting POL token on L1 for the sequencer
 
-blockHash            0xfd1e89d0e00e07246ec1e42c499c84c1d087700cf382e12d61998df19aa886f5
-blockNumber          47
+blockHash            0x76f570f3ac2bd2260334776a3ca72865235a107cd458ef35d42347d62303db7f
+blockNumber          48
 contractAddress      
 cumulativeGasUsed    34079
-effectiveGasPrice    2408088
+effectiveGasPrice    2107330
 from                 0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
 gasUsed              34079
-logs                 [{"address":"0xede9cf798e0fe25d35469493f43e88fea4a5da0e","topics":["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef","0x0000000000000000000000000000000000000000000000000000000000000000","0x0000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed"],"data":"0x0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000","blockHash":"0xfd1e89d0e00e07246ec1e42c499c84c1d087700cf382e12d61998df19aa886f5","blockNumber":"0x2f","blockTimestamp":"0x6aabc57b","transactionHash":"0xe35c421215aee8b5d9bbfbc55f7d6cd3f8313e0a36fb84b84319bb90e936ebb4","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logs                 [{"address":"0xede9cf798e0fe25d35469493f43e88fea4a5da0e","topics":["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef","0x0000000000000000000000000000000000000000000000000000000000000000","0x0000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed"],"data":"0x0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000","blockHash":"0x76f570f3ac2bd2260334776a3ca72865235a107cd458ef35d42347d62303db7f","blockNumber":"0x30","blockTimestamp":"0x6aac7772","transactionHash":"0x512df8feed8f237dab80694e8d1d5d82fc91d09dc6e37c7fc0fd8309b2de068a","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000800000000000000008000000000000000000000000000000000000000000000000000000000000000000000000008000000002000000000000000000000000000000000000000020000000000000000000800000000000000000000000010000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000020000000000000000000000000000001000000000000000000100000000000000000
 root                 
 status               1 (success)
-transactionHash      0xe35c421215aee8b5d9bbfbc55f7d6cd3f8313e0a36fb84b84319bb90e936ebb4
+transactionHash      0x512df8feed8f237dab80694e8d1d5d82fc91d09dc6e37c7fc0fd8309b2de068a
 transactionIndex     0
 type                 0
 blobGasPrice         
 blobGasUsed          
 to                   0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
-[32m[2026-09-17 10:48:27][0m Deploying deterministic deployment proxy
+[32m[2026-09-17 23:27:46][0m Deploying deterministic deployment proxy
 
-blockHash            0x6e9b362192098b190e5f73dbaead5fc815b262b2129e52a9458d52f3bcc1cd70
-blockNumber          48
+blockHash            0xd27945663ee2abc593b0a4dd5521f55b093195834980f40ecfcdbb094f4e041e
+blockNumber          49
 contractAddress      
 cumulativeGasUsed    21000
-effectiveGasPrice    1994656
+effectiveGasPrice    1745534
 from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 gasUsed              21000
 logs                 []
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0xe8d2a14ffea326cb365bca00ff10ea8fd24b99603b9bd5b6c2a6d0308dd1a5e6
+transactionHash      0x2ee2a12d129b04eca544fa31c00fdad1cb2ede2981579df25bea805a761132c6
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0x3fAB184622Dc19b6109349B94811493BF2a45362
-{"status":"0x0","cumulativeGasUsed":"0x186a0","logs":[],"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","type":"0x0","transactionHash":"0xeddf9e61fb9d8f5111840daef55e5fde0041f5702856532cdbb5a02998033d26","transactionIndex":"0x0","blockHash":"0xee9c13885f4f74f541638c2c48991de2797891f1fdeb8264912deb6c7830aafd","blockNumber":"0x32","gasUsed":"0x186a0","effectiveGasPrice":"0x174876e800","from":"0x3fab184622dc19b6109349b94811493bf2a45362","to":null,"contractAddress":"0x4e59b44847b379578588920ca78fbf26c0b4956c"}
+{"status":"0x0","cumulativeGasUsed":"0x186a0","logs":[],"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","type":"0x0","transactionHash":"0xeddf9e61fb9d8f5111840daef55e5fde0041f5702856532cdbb5a02998033d26","transactionIndex":"0x0","blockHash":"0x74a5ece74d61d37ecb5d544872e643511cc8c96f724233acc2cf35e3a0f0894e","blockNumber":"0x32","gasUsed":"0x186a0","effectiveGasPrice":"0x174876e800","from":"0x3fab184622dc19b6109349b94811493bf2a45362","to":null,"contractAddress":"0x4e59b44847b379578588920ca78fbf26c0b4956c"}
 
 --------------------
 
 Creating rollup on L1
 Command returned with exit code '0' and the following output:
 --------------------
-[32m[2026-09-17 10:48:34][0m Executing function create_agglayer_rollup
-[32m[2026-09-17 10:48:34][0m Waiting for the L1 RPC to be available
-[32m[2026-09-17 10:48:38][0m L1 RPC is now available
+[32m[2026-09-17 23:27:51][0m Executing function create_agglayer_rollup
+[32m[2026-09-17 23:27:51][0m Waiting for the L1 RPC to be available
+[32m[2026-09-17 23:27:55][0m L1 RPC is now available
+[32m[2026-09-17 23:27:55][0m Step 4: Creating genesis
 /opt/agglayer-contracts /opt
-[32m[2026-09-17 10:48:38][0m Step 4: Creating genesis
 Warning: Potentially unsafe deployment of contracts/LegacyAgglayerGERL2.sol:LegacyAgglayerGERL2
 
     You are using the `unsafeAllow.constructor` flag.
 
 /opt
-[32m[2026-09-17 10:48:43][0m Setting up local agglayer-contracts repo for deployment
+[32m[2026-09-17 23:28:00][0m Setting up local agglayer-contracts repo for deployment
 /opt/agglayer-contracts /opt
-[32m[2026-09-17 10:48:43][0m Step 5: Creating Rollup/Validium/ECDSAMultisig
+[32m[2026-09-17 23:28:00][0m Step 5: Creating Rollup/Validium/ECDSAMultisig
 #######################
 
 Verifier name: VerifierRollupHelperMock
@@ -788,10 +788,10 @@ Warning: Potentially unsafe deployment of contracts/consensus/validium/PolygonDa
     You are using the `unsafeAllow.constructor` flag.
 
 /opt
-[32m[2026-09-17 10:49:05][0m Modifying combined.json
+[32m[2026-09-17 23:28:22][0m Modifying combined.json
 /opt/output /opt
 File create_rollup_output.json exists. Combining files...
-[32m[2026-09-17 10:49:05][0m Final combined.json is ready:
+[32m[2026-09-17 23:28:22][0m Final combined.json is ready:
 {
   "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
   "polygonZkEVMBridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
@@ -806,8 +806,8 @@ File create_rollup_output.json exists. Combining files...
   "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
   "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
-  "deploymentRollupManagerBlockNumber": 45,
-  "upgradeToULxLyBlockNumber": 45,
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
   "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
   "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
@@ -822,7 +822,7 @@ File create_rollup_output.json exists. Combining files...
   "firstBatchData": {
     "batchL2Data": "0xf9010380808401c9c38094c8cbebf950b9df44d987c8619f092bea980ff03880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005ca1ab1e0000000000000000000000000000000000000000000000000000000005ca1ab1e1bff",
     "globalExitRoot": "0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5",
-    "timestamp": 1789642135,
+    "timestamp": 1789687692,
     "sequencer": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
   },
   "genesis": "0x8987cdb4cffa08d975bb03782e4a521c1a709fa85598bb471871c6186f3b2062",
@@ -837,98 +837,98 @@ File create_rollup_output.json exists. Combining files...
   "LegacyAgglayerGERL2": "0xa40d5f56745a118d0906a34e69aec8c0db1cb8fa",
   "bridgeGenBlockNumber": 61
 }
-[32m[2026-09-17 10:49:05][0m Approving the rollup address to transfer POL tokens on behalf of the sequencer
+[32m[2026-09-17 23:28:22][0m Approving the rollup address to transfer POL tokens on behalf of the sequencer
 
-blockHash            0xff88cb790165aacf260f6395bd59442a5ad03c8c0a2777e52540e0ca6e698247
+blockHash            0x8018f731ba91c36e53037e7aaa08da0916ae3bf076f5f39269510bf07ebed09a
 blockNumber          67
 contractAddress      
 cumulativeGasUsed    46255
-effectiveGasPrice    173266
+effectiveGasPrice    173288
 from                 0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
 gasUsed              46255
-logs                 [{"address":"0xede9cf798e0fe25d35469493f43e88fea4a5da0e","topics":["0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925","0x0000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed","0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e"],"data":"0x0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000","blockHash":"0xff88cb790165aacf260f6395bd59442a5ad03c8c0a2777e52540e0ca6e698247","blockNumber":"0x43","blockTimestamp":"0x6aabc5a3","transactionHash":"0x25524f607495862bc7092feded623427031feee9b84bd1ccf5a0ac87323495d7","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logs                 [{"address":"0xede9cf798e0fe25d35469493f43e88fea4a5da0e","topics":["0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925","0x0000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed","0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e"],"data":"0x0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000","blockHash":"0x8018f731ba91c36e53037e7aaa08da0916ae3bf076f5f39269510bf07ebed09a","blockNumber":"0x43","blockTimestamp":"0x6aac7798","transactionHash":"0x6391f1fdd4eea7926af1b508822591fe3a814eb8206dbc0dbf6ad39b5432b5cb","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
 logsBloom            0x00000000000000000000000000000000000000000000000000000000000800000000080000008000000004000000000000000000000000000000000000200000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000200000000000000001000000000000000000100000000000000000
 root                 
 status               1 (success)
-transactionHash      0x25524f607495862bc7092feded623427031feee9b84bd1ccf5a0ac87323495d7
+transactionHash      0x6391f1fdd4eea7926af1b508822591fe3a814eb8206dbc0dbf6ad39b5432b5cb
 transactionIndex     0
 type                 0
 blobGasPrice         
 blobGasUsed          
 to                   0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
-[32m[2026-09-17 10:49:07][0m Setting the data availability committee
+[32m[2026-09-17 23:28:24][0m Setting the data availability committee
 
-blockHash            0xc6d65aab3bf8ad6e816397bfb1c1973ad871b888607a24bb58a1230b4bd68d3d
+blockHash            0x0de16925c5d6318f5185e669e7e9b5b05c9825ade741a9f39f77c3033660ae7c
 blockNumber          68
 contractAddress      
 cumulativeGasUsed    191509
-effectiveGasPrice    154342
+effectiveGasPrice    154361
 from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
 gasUsed              191509
-logs                 [{"address":"0xb49fa7dd4d70f773015a9c848a8719fa86d81275","topics":["0x831403fd381b3e6ac875d912ec2eee0e0203d0d29f7b3e0c96fc8f582d6db657"],"data":"0xe4e05261d6d69a2de8d0b41196695761a8e911eb19355d391a8ce19d9a9f7cbe","blockHash":"0xc6d65aab3bf8ad6e816397bfb1c1973ad871b888607a24bb58a1230b4bd68d3d","blockNumber":"0x44","blockTimestamp":"0x6aabc5a5","transactionHash":"0x4e5886718062612adc822e1c44c5f9e46054c997f19075a673fa1da0f97960e1","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logs                 [{"address":"0xb49fa7dd4d70f773015a9c848a8719fa86d81275","topics":["0x831403fd381b3e6ac875d912ec2eee0e0203d0d29f7b3e0c96fc8f582d6db657"],"data":"0xe4e05261d6d69a2de8d0b41196695761a8e911eb19355d391a8ce19d9a9f7cbe","blockHash":"0x0de16925c5d6318f5185e669e7e9b5b05c9825ade741a9f39f77c3033660ae7c","blockNumber":"0x44","blockTimestamp":"0x6aac779a","transactionHash":"0xce44cde52617eb4db80a603e60d47ba9cc24a7c30be23586e4bf0a053f480d05","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
 logsBloom            0x00000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
 root                 
 status               1 (success)
-transactionHash      0x4e5886718062612adc822e1c44c5f9e46054c997f19075a673fa1da0f97960e1
+transactionHash      0xce44cde52617eb4db80a603e60d47ba9cc24a7c30be23586e4bf0a053f480d05
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0xB49fA7dD4d70F773015a9c848A8719FA86D81275
-[32m[2026-09-17 10:49:09][0m Setting the data availability protocol
+[32m[2026-09-17 23:28:26][0m Setting the data availability protocol
 
-blockHash            0x530dd595c389fd9edff61f9d6b075c9de14a45eab78e2fbd281047fc5a7bb578
+blockHash            0xc5e2b4870cf86e8f3b32aaa58494c4f9d8c3a44f40e012281e59da12c27c8d04
 blockNumber          69
 contractAddress      
 cumulativeGasUsed    32181
-effectiveGasPrice    137865
+effectiveGasPrice    137882
 from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
 gasUsed              32181
-logs                 [{"address":"0x414e9e227e4b589af92200508af5399576530e4e","topics":["0xd331bd4c4cd1afecb94a225184bded161ff3213624ba4fb58c4f30c5a861144a"],"data":"0x000000000000000000000000b49fa7dd4d70f773015a9c848a8719fa86d81275","blockHash":"0x530dd595c389fd9edff61f9d6b075c9de14a45eab78e2fbd281047fc5a7bb578","blockNumber":"0x45","blockTimestamp":"0x6aabc5a7","transactionHash":"0xc33f65d9fc355a310246d1cf7c84d6e8eb3d33cbc473d7294fa4dcac5d94d504","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logs                 [{"address":"0x414e9e227e4b589af92200508af5399576530e4e","topics":["0xd331bd4c4cd1afecb94a225184bded161ff3213624ba4fb58c4f30c5a861144a"],"data":"0x000000000000000000000000b49fa7dd4d70f773015a9c848a8719fa86d81275","blockHash":"0xc5e2b4870cf86e8f3b32aaa58494c4f9d8c3a44f40e012281e59da12c27c8d04","blockNumber":"0x45","blockTimestamp":"0x6aac779c","transactionHash":"0xde35529211fd020df2a8e32f4fafc216276b782790b0e69f8bb5f0db2bb5bb07","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
 logsBloom            0x00008000000800000000010000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0xc33f65d9fc355a310246d1cf7c84d6e8eb3d33cbc473d7294fa4dcac5d94d504
+transactionHash      0xde35529211fd020df2a8e32f4fafc216276b782790b0e69f8bb5f0db2bb5bb07
 transactionIndex     0
 type                 2
 blobGasPrice         
 blobGasUsed          
 to                   0x414e9E227e4b589aF92200508aF5399576530E4e
-[32m[2026-09-17 10:49:12][0m Transformation complete. Output written to dynamic-kurtosis-allocs.json
+[32m[2026-09-17 23:28:29][0m Transformation complete. Output written to dynamic-kurtosis-allocs.json
 
 --------------------
 
 Storing files from service 'contracts-001' at path '/opt/output/dynamic-kurtosis-conf.json' to files artifact with name 'cdk-erigon-chain-config'
-Files with artifact name 'cdk-erigon-chain-config' uploaded with artifact UUID '791e88380d57483bbf79dff30b657371'
+Files with artifact name 'cdk-erigon-chain-config' uploaded with artifact UUID 'd48fe68c05e243a19292dcd0098888f4'
 
 Storing files from service 'contracts-001' at path '/opt/output/dynamic-kurtosis-allocs.json' to files artifact with name 'cdk-erigon-chain-allocs'
-Files with artifact name 'cdk-erigon-chain-allocs' uploaded with artifact UUID '1503936b285e429aa6284ad2fa00c167'
+Files with artifact name 'cdk-erigon-chain-allocs' uploaded with artifact UUID 'bac4d19e10ef421faf11deb20f13a400'
 
 Storing files from service 'contracts-001' at path '/opt/output/first-batch-config.json' to files artifact with name 'cdk-erigon-chain-first-batch'
-Files with artifact name 'cdk-erigon-chain-first-batch' uploaded with artifact UUID 'f59601868d9642e084e05cd494122f99'
+Files with artifact name 'cdk-erigon-chain-first-batch' uploaded with artifact UUID '8008e186a8704b3d8b25478826dd99c1'
 
 Updating the GER so the L1 Info Tree Index is greater than 0
 Command returned with exit code '0' and the following output:
 --------------------
-[32m[2026-09-17 10:49:13][0m Executing function update_ger
+[32m[2026-09-17 23:28:30][0m Executing function update_ger
 Generating the call data for the bridge tx...
 0xcd5865790000000000000000000000000000000000000000000000000000000000000007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000
 Performing an eth call to make sure the bridge tx will work...
 0x
 Publishing the bridge tx...
 
-blockHash            0x53a9f7033f74d7d041d016c55ffe7bcd4fef2b3ba4caaba7e3a45c19db12bb28
+blockHash            0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc
 blockNumber          71
 contractAddress      
 cumulativeGasUsed    235663
-effectiveGasPrice    110635
+effectiveGasPrice    110648
 from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
 gasUsed              235663
-logs                 [{"address":"0xc8cbebf950b9df44d987c8619f092bea980ff038","topics":["0x501781209a1f8899323b96b4ef08b168df93e0a90c673d1e4cce39366cb62f9b"],"data":"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","blockHash":"0x53a9f7033f74d7d041d016c55ffe7bcd4fef2b3ba4caaba7e3a45c19db12bb28","blockNumber":"0x47","blockTimestamp":"0x6aabc5ab","transactionHash":"0xbdb9d2807f4a5a5118a64b9aa1cb2ff8eb332b6f018495656a9a93cc9da7fa13","transactionIndex":"0x0","logIndex":"0x0","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xda61aa7823fcd807e37b95aabcbe17f03a6f3efd514176444dae191d27fd66b3","0x87b3e82db67d821f34d17c794ca490bbaf5a2b9cf2c602474a13c1bb0d617c5c","0x0000000000000000000000000000000000000000000000000000000000000000"],"data":"0x","blockHash":"0x53a9f7033f74d7d041d016c55ffe7bcd4fef2b3ba4caaba7e3a45c19db12bb28","blockNumber":"0x47","blockTimestamp":"0x6aabc5ab","transactionHash":"0xbdb9d2807f4a5a5118a64b9aa1cb2ff8eb332b6f018495656a9a93cc9da7fa13","transactionIndex":"0x0","logIndex":"0x1","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xaf6c6cd7790e0180a4d22eb8ed846e55846f54ed10e5946db19972b5a0813a59","0x0000000000000000000000000000000000000000000000000000000000000001"],"data":"0xcf7b70164b466943a43dd74a7cabc96c8e39fe9616e6428acda586e5da7f57229ba998d6eb7d3d3eda549472fa649d54d1dab2f6f7b0bd01ce8e474e1c583ed7000000000000000000000000000000000000000000000000000000006aabc5ab","blockHash":"0x53a9f7033f74d7d041d016c55ffe7bcd4fef2b3ba4caaba7e3a45c19db12bb28","blockNumber":"0x47","blockTimestamp":"0x6aabc5ab","transactionHash":"0xbdb9d2807f4a5a5118a64b9aa1cb2ff8eb332b6f018495656a9a93cc9da7fa13","transactionIndex":"0x0","logIndex":"0x2","removed":false}]
+logs                 [{"address":"0xc8cbebf950b9df44d987c8619f092bea980ff038","topics":["0x501781209a1f8899323b96b4ef08b168df93e0a90c673d1e4cce39366cb62f9b"],"data":"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","blockHash":"0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc","blockNumber":"0x47","blockTimestamp":"0x6aac77a0","transactionHash":"0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca","transactionIndex":"0x0","logIndex":"0x0","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xda61aa7823fcd807e37b95aabcbe17f03a6f3efd514176444dae191d27fd66b3","0x87b3e82db67d821f34d17c794ca490bbaf5a2b9cf2c602474a13c1bb0d617c5c","0x0000000000000000000000000000000000000000000000000000000000000000"],"data":"0x","blockHash":"0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc","blockNumber":"0x47","blockTimestamp":"0x6aac77a0","transactionHash":"0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca","transactionIndex":"0x0","logIndex":"0x1","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xaf6c6cd7790e0180a4d22eb8ed846e55846f54ed10e5946db19972b5a0813a59","0x0000000000000000000000000000000000000000000000000000000000000001"],"data":"0xa94b8386a0dc8edcfbfa6122ecf8852918068f7212ef8b9b7ea422c9ee40c5ae600d6a123a545484dacff35e3d6a7d52519776d63f4e8347e1a7079e8cdec5be000000000000000000000000000000000000000000000000000000006aac77a0","blockHash":"0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc","blockNumber":"0x47","blockTimestamp":"0x6aac77a0","transactionHash":"0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca","transactionIndex":"0x0","logIndex":"0x2","removed":false}]
 logsBloom            0x000000000000000000000000080000000000008020000000020000000000000000080000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000400000000000000000000000000000200000000000000000008000000000000000000000000000008000000000000010000000000000001000100000000000008000010000000000000000000000000000000000000000000000c0000000000000000000000000100000000000000000000000000000000000002000000000002000400000000000060000000000000000000000000000000000400000000000000000000000000000000
 root                 
 status               1 (success)
-transactionHash      0xbdb9d2807f4a5a5118a64b9aa1cb2ff8eb332b6f018495656a9a93cc9da7fa13
+transactionHash      0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca
 transactionIndex     0
 type                 2
 blobGasPrice         
@@ -957,8 +957,8 @@ Command returned with exit code '0' and the following output:
   "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
   "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
-  "deploymentRollupManagerBlockNumber": 45,
-  "upgradeToULxLyBlockNumber": 45,
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
   "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
   "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
   "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
@@ -973,7 +973,7 @@ Command returned with exit code '0' and the following output:
   "firstBatchData": {
     "batchL2Data": "0xf9010380808401c9c38094c8cbebf950b9df44d987c8619f092bea980ff03880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005ca1ab1e0000000000000000000000000000000000000000000000000000000005ca1ab1e1bff",
     "globalExitRoot": "0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5",
-    "timestamp": 1789642135,
+    "timestamp": 1789687692,
     "sequencer": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
   },
   "genesis": "0x8987cdb4cffa08d975bb03782e4a521c1a709fa85598bb471871c6186f3b2062",
@@ -998,16 +998,16 @@ Printing a message
 Deploying databases
 
 Rendering a template to a files artifact with name 'init.sql-001'
-Templates artifact name 'init.sql-001' rendered with artifact UUID '13e384994b51475b97479e5c15a35d85'
+Templates artifact name 'init.sql-001' rendered with artifact UUID '496e28f6e5da419eacfe0140ef1f96cd'
 
 Adding service with name 'postgres-001' and image 'postgres:17.6'
-Service 'postgres-001' added with service UUID '34b14817eccb4099a34a379df25e9476'
+Service 'postgres-001' added with service UUID 'f87308bc21064bbc90da4d8de072f4f2'
 
 Printing a message
 Getting genesis file
 
 Storing files from service 'contracts-001' at path '/opt/output/genesis.json' to files artifact with name 'genesis'
-Files with artifact name 'genesis' uploaded with artifact UUID 'cb8cb577b1cb4cc6babd2ea2c38abf33'
+Files with artifact name 'genesis' uploaded with artifact UUID '0151077d7fa348ec83568edc190f2d2d'
 
 Printing a message
 Skipping the deployment of MITM
@@ -1016,31 +1016,31 @@ Printing a message
 Deploying the agglayer
 
 Rendering a template to a files artifact with name 'agglayer-config'
-Templates artifact name 'agglayer-config' rendered with artifact UUID '2235ef81ab3a4541ab5ef25e11b25b65'
+Templates artifact name 'agglayer-config' rendered with artifact UUID '41058a2ed8924e2297a314897f7b6810'
 
 Storing files from service 'contracts-001' at path '/opt/keystores/aggregator.keystore' to files artifact with name 'aggregator-keystore'
-Files with artifact name 'aggregator-keystore' uploaded with artifact UUID '4fa0415dd4c04cc5aef105e2a25eda96'
+Files with artifact name 'aggregator-keystore' uploaded with artifact UUID '0b24d5b3d8fd4bae929d6ac38c476887'
 
 Adding service with name 'agglayer' and image 'ghcr.io/agglayer/agglayer:0.6.0-rc.5'
-Service 'agglayer' added with service UUID '8aed9b6eeca04caeb1da84af095eb201'
+Service 'agglayer' added with service UUID 'af558d4380144732b9dae4ec9d19d68b'
 
 Printing a message
 Deploying cdk-erigon chain
 
 Rendering a template to a files artifact with name 'zkevm-stateless-executor-config-001'
-Templates artifact name 'zkevm-stateless-executor-config-001' rendered with artifact UUID '6c342860997b4e5d8e0688ae003545ca'
+Templates artifact name 'zkevm-stateless-executor-config-001' rendered with artifact UUID '0b797b84723e46558d665bbf0861381f'
 
 Determining CPU system architecture
 Command returned with exit code '0' and the following output: x86_64
 
 Adding service with name 'zkevm-stateless-executor-001' and image 'hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12'
-Service 'zkevm-stateless-executor-001' added with service UUID '760e450e272d4a6eb01f6809ce0f46f9'
+Service 'zkevm-stateless-executor-001' added with service UUID '812e6f4f2a314aa0929743e07bfb2da4'
 
 Rendering a template to a files artifact with name 'cdk-erigon-sequencer-config-001'
-Templates artifact name 'cdk-erigon-sequencer-config-001' rendered with artifact UUID '1999d97e58274f89a10687e65eb95c7a'
+Templates artifact name 'cdk-erigon-sequencer-config-001' rendered with artifact UUID '206835a6a70442f592a1824785b2c380'
 
 Rendering a template to a files artifact with name 'cdk-erigon-sequencer-chain-spec-001'
-Templates artifact name 'cdk-erigon-sequencer-chain-spec-001' rendered with artifact UUID 'abcd2c2c86ea4de3ab5e5ad3ce414ce6'
+Templates artifact name 'cdk-erigon-sequencer-chain-spec-001' rendered with artifact UUID '124332f3ed8344a4842ab12fcd6588f8'
 
 Fetching files artifact 'cdk-erigon-chain-config'
 Fetched files artifact 'cdk-erigon-chain-config'
@@ -1052,22 +1052,22 @@ Fetching files artifact 'cdk-erigon-chain-first-batch'
 Fetched files artifact 'cdk-erigon-chain-first-batch'
 
 Uploading file '../../../static_files/scripts/proc-runner.sh' to files artifact 'cdk-erigon-sequencer-proc-runner-001'
-Files with artifact name 'cdk-erigon-sequencer-proc-runner-001' uploaded with artifact UUID 'fbdfeb12faa44192a108697dab5316d3'
+Files with artifact name 'cdk-erigon-sequencer-proc-runner-001' uploaded with artifact UUID '36eda4dd2e2c4a25b9009225f959a2d5'
 
 Adding service with name 'cdk-erigon-sequencer-001' and image 'hermeznetwork/cdk-erigon:v2.61.20'
-Service 'cdk-erigon-sequencer-001' added with service UUID '24bf0b973640428daaebfe9a12949d59'
+Service 'cdk-erigon-sequencer-001' added with service UUID 'a60aedbc52b74352a154c62a1b813823'
 
 Rendering a template to a files artifact with name 'zkevm-pool-manager-config-001'
-Templates artifact name 'zkevm-pool-manager-config-001' rendered with artifact UUID '08c9bd13e5304c64833ce06e9a7fafca'
+Templates artifact name 'zkevm-pool-manager-config-001' rendered with artifact UUID '7e165e8b16574c5a891eba7bb210bc29'
 
 Adding service with name 'zkevm-pool-manager-001' and image 'ghcr.io/0xpolygon/zkevm-pool-manager:0.1.3'
-Service 'zkevm-pool-manager-001' added with service UUID '4d958a09eb9940d6984ca03e027a40e6'
+Service 'zkevm-pool-manager-001' added with service UUID '276b0aa0e8a44d598b79e365a35956ab'
 
 Rendering a template to a files artifact with name 'cdk-erigon-rpc-config-001'
-Templates artifact name 'cdk-erigon-rpc-config-001' rendered with artifact UUID '6e951cee7b484b8294167012a5dc735e'
+Templates artifact name 'cdk-erigon-rpc-config-001' rendered with artifact UUID '059feb6d86334284b9b1b25bd216b2d7'
 
 Rendering a template to a files artifact with name 'cdk-erigon-rpc-chain-spec-001'
-Templates artifact name 'cdk-erigon-rpc-chain-spec-001' rendered with artifact UUID '9a2c1f904ccc4b6b957194b161243d97'
+Templates artifact name 'cdk-erigon-rpc-chain-spec-001' rendered with artifact UUID '7af472addd844580ba88f3cab0b6fbd3'
 
 Fetching files artifact 'cdk-erigon-chain-config'
 Fetched files artifact 'cdk-erigon-chain-config'
@@ -1079,43 +1079,43 @@ Fetching files artifact 'cdk-erigon-chain-first-batch'
 Fetched files artifact 'cdk-erigon-chain-first-batch'
 
 Uploading file '../../../static_files/scripts/proc-runner.sh' to files artifact 'cdk-erigon-rpc-proc-runner-001'
-Files with artifact name 'cdk-erigon-rpc-proc-runner-001' uploaded with artifact UUID '954723b2ecbf40b4a63d798392957c1c'
+Files with artifact name 'cdk-erigon-rpc-proc-runner-001' uploaded with artifact UUID 'fc21db55ce664a42bc206da317161a1f'
 
 Adding service with name 'cdk-erigon-rpc-001' and image 'hermeznetwork/cdk-erigon:v2.61.20'
-Service 'cdk-erigon-rpc-001' added with service UUID 'f51080e037f341759b2d0a4c491e3369'
+Service 'cdk-erigon-rpc-001' added with service UUID '6d135c5aaaf646e68968bb90c4f25321'
 
 Rendering a template to a files artifact with name 'cdk-data-availability-config-001'
-Templates artifact name 'cdk-data-availability-config-001' rendered with artifact UUID '555af9a752d449bcb110f420cf36852b'
+Templates artifact name 'cdk-data-availability-config-001' rendered with artifact UUID 'd3567bd3832145db884e478b212ce7cd'
 
 Storing files from service 'contracts-001' at path '/opt/keystores/dac.keystore' to files artifact with name 'cdk-data-availability-keystore-001'
-Files with artifact name 'cdk-data-availability-keystore-001' uploaded with artifact UUID '6f56ab32e70c4d559323261b295d761a'
+Files with artifact name 'cdk-data-availability-keystore-001' uploaded with artifact UUID '3a529c809c4a4e609439a8959793a76f'
 
 Adding service with name 'cdk-data-availability-001' and image 'ghcr.io/0xpolygon/cdk-data-availability:0.0.13'
-Service 'cdk-data-availability-001' added with service UUID '4b0d5bbe252e45e7bd86822540e33a90'
+Service 'cdk-data-availability-001' added with service UUID 'd68bdb1b2f1b4fd28837fc9553cb6f10'
 
 Storing files from service 'contracts-001' at path '/opt/keystores/sequencer.keystore' to files artifact with name 'sequencer-keystore'
-Files with artifact name 'sequencer-keystore' uploaded with artifact UUID '3231111c886f4482862dddb482ac390a'
+Files with artifact name 'sequencer-keystore' uploaded with artifact UUID '0e9fcfba3e5c420ea454585e95adb848'
 
 Fetching files artifact 'aggregator-keystore'
 Fetched files artifact 'aggregator-keystore'
 
 Storing files from service 'contracts-001' at path '/opt/keystores/claimsponsor.keystore' to files artifact with name 'claimsponsor-keystore-cdk'
-Files with artifact name 'claimsponsor-keystore-cdk' uploaded with artifact UUID '35e13c5ae42d4dfcafe8824257d1eba0'
+Files with artifact name 'claimsponsor-keystore-cdk' uploaded with artifact UUID 'b5021e2ec9c14fd591eff18e6868210d'
 
 Rendering a template to a files artifact with name 'cdk-node-config-001'
-Templates artifact name 'cdk-node-config-001' rendered with artifact UUID 'e65fb4db4e454800831fa275ef0508cb'
+Templates artifact name 'cdk-node-config-001' rendered with artifact UUID '085170c7d921414b837b3a1149ab491c'
 
 Adding service with name 'cdk-node-001' and image 'ghcr.io/0xpolygon/cdk:0.5.4-rc1'
-Service 'cdk-node-001' added with service UUID 'bcc8a4c270eb41f7b61a38610fbae31c'
+Service 'cdk-node-001' added with service UUID '99aacadbd424417ebd741c2ca8ded2dc'
 
 Rendering a template to a files artifact with name 'zkevm-prover-config-001'
-Templates artifact name 'zkevm-prover-config-001' rendered with artifact UUID '038b3b5503a945dcad47da2df337b978'
+Templates artifact name 'zkevm-prover-config-001' rendered with artifact UUID 'a32889a1a90b4a909ed8ddd3a3c31aa9'
 
 Determining CPU system architecture
 Command returned with exit code '0' and the following output: x86_64
 
 Adding service with name 'zkevm-prover-001' and image 'hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12'
-Service 'zkevm-prover-001' added with service UUID 'cba4df91b22849f682280096a47fc894'
+Service 'zkevm-prover-001' added with service UUID 'a0e7f058f68746f89614a74f08aacff9'
 
 Fetching service 'cdk-erigon-rpc-001'
 Fetched service 'cdk-erigon-rpc-001'
@@ -1123,23 +1123,23 @@ Fetched service 'cdk-erigon-rpc-001'
 Funding accounts on L2
 Command returned with exit code '0' and the following output:
 --------------------
-[32m[2026-09-17 10:50:23][0m Executing function l2_legacy_fund_accounts
-[32m[2026-09-17 10:50:23][0m Waiting for the L2 RPC to be available
-[32m[2026-09-17 10:50:30][0m L2 RPC is now available
-[32m[2026-09-17 10:50:30][0m Funding claim sponsor account on l2
-[32m[2026-09-17 10:50:30][0m Funding 0x635243A11B41072264Df6c9186e3f473402F94e9
+[32m[2026-09-17 23:29:41][0m Executing function l2_legacy_fund_accounts
+[32m[2026-09-17 23:29:41][0m Waiting for the L2 RPC to be available
+[32m[2026-09-17 23:29:46][0m L2 RPC is now available
+[32m[2026-09-17 23:29:46][0m Funding claim sponsor account on l2
+[32m[2026-09-17 23:29:46][0m Funding 0x635243A11B41072264Df6c9186e3f473402F94e9
 0x9f106707dcfe60f7d7977c0416001b0cc9d9c42903789e8e7d3a377578d03521
 
 --------------------
 
 Rendering a template to a files artifact with name 'bridge-config-artifact'
-Templates artifact name 'bridge-config-artifact' rendered with artifact UUID '72832929d77444879b1795c37e0d7ffa'
+Templates artifact name 'bridge-config-artifact' rendered with artifact UUID '0be0a596a64c476aa730191e989498d2'
 
 Storing files from service 'contracts-001' at path '/opt/keystores/claimsponsor.keystore' to files artifact with name 'claimsponsor-keystore'
-Files with artifact name 'claimsponsor-keystore' uploaded with artifact UUID '3d8bfa9d154045aca95b8b4233c2fa2d'
+Files with artifact name 'claimsponsor-keystore' uploaded with artifact UUID '470d84691f9744e697a70de64ed4f269'
 
 Adding service with name 'zkevm-bridge-service-001' and image 'ghcr.io/0xpolygon/zkevm-bridge-service:v0.6.4-RC2'
-Service 'zkevm-bridge-service-001' added with service UUID '5a60bc63f47c41f59c6cb7c50dd0d097'
+Service 'zkevm-bridge-service-001' added with service UUID '648424d2c66b4f319118fce6e8f934c6'
 
 Printing a message
 Deploying contracts on L2
@@ -1150,34 +1150,34 @@ Fetched service 'cdk-erigon-rpc-001'
 Deploying contracts on L2
 Command returned with exit code '0' and the following output:
 --------------------
-[32m[2026-09-17 10:50:31][0m Executing function l2_contract_setup
-[32m[2026-09-17 10:50:31][0m Funding accounts on l2
-[32m[2026-09-17 10:50:31][0m Funding 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+[32m[2026-09-17 23:29:48][0m Executing function l2_contract_setup
+[32m[2026-09-17 23:29:48][0m Funding accounts on l2
+[32m[2026-09-17 23:29:48][0m Funding 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 Error: server returned an error response: error code -32000: RPC error response: INTERNAL_ERROR: could not replace existing tx
-[32m[2026-09-17 10:50:31][0m Funding 0xE25583099BA105D9ec0A67f5Ae86D90e50036425
+[32m[2026-09-17 23:29:48][0m Funding 0xE25583099BA105D9ec0A67f5Ae86D90e50036425
 0x73b5cf873b0f846f174df8a5a1632933f772a73d8b0dd3f99f4bd93ff4ec2d61
-[32m[2026-09-17 10:50:31][0m Funding 0x614561D2d143621E126e87831AEF287678B442b8
+[32m[2026-09-17 23:29:48][0m Funding 0x614561D2d143621E126e87831AEF287678B442b8
 0xe3945b4cb0b9aad7e9ebc1e22201c1c87f9d6412a3500c3de9c6ce10232c0bfc
-[32m[2026-09-17 10:50:31][0m Funding 0xf93Ee4Cf8c6c40b329b0c0626F28333c132CF241
+[32m[2026-09-17 23:29:48][0m Funding 0xf93Ee4Cf8c6c40b329b0c0626F28333c132CF241
 0xaaff2d83f4a7a91fc49ae2aa1117b0671576bcc67b7b1de3cd6360341635ccbe
-[32m[2026-09-17 10:50:31][0m Funding 0x802dCbE1B1A97554B4F50DB5119E37E8e7336417
+[32m[2026-09-17 23:29:48][0m Funding 0x802dCbE1B1A97554B4F50DB5119E37E8e7336417
 0xeb8abf2ceb6512d9822244089d48e3846391201e1809cbdcd46c6472db36f6e5
-[32m[2026-09-17 10:50:31][0m Funding 0xAe95d8DA9244C37CaC0a3e16BA966a8e852Bb6D6
+[32m[2026-09-17 23:29:48][0m Funding 0xAe95d8DA9244C37CaC0a3e16BA966a8e852Bb6D6
 0x93ef4a2df59bbcc0c9d95441aad97cb1d29073ba4e50c0a122dd06f1be2fad73
-[32m[2026-09-17 10:50:31][0m Funding 0x2c57d1CFC6d5f8E4182a56b4cf75421472eBAEa4
+[32m[2026-09-17 23:29:48][0m Funding 0x2c57d1CFC6d5f8E4182a56b4cf75421472eBAEa4
 0x8166056a4b7c2c740ef540e12930cf0f0ff4341d236ff1545deeb600aa0a00be
-[32m[2026-09-17 10:50:31][0m Funding 0x741bFE4802cE1C4b5b00F9Df2F5f179A1C89171A
+[32m[2026-09-17 23:29:48][0m Funding 0x741bFE4802cE1C4b5b00F9Df2F5f179A1C89171A
 0x0f202806534f102f4710fe007e0c54b89b99d634a3861e19f3e0f4ea6bfd9c84
-[32m[2026-09-17 10:50:31][0m Funding 0xc3913d4D8bAb4914328651C2EAE817C8b78E1f4c
+[32m[2026-09-17 23:29:48][0m Funding 0xc3913d4D8bAb4914328651C2EAE817C8b78E1f4c
 0xaedf218e36f2e92590466298e64b2832073a0eaf7b469452666cdb116847f8f6
-[32m[2026-09-17 10:50:31][0m Funding 0x65D08a056c17Ae13370565B04cF77D2AfA1cB9FA
+[32m[2026-09-17 23:29:48][0m Funding 0x65D08a056c17Ae13370565B04cF77D2AfA1cB9FA
 0xcddb9f5c734b7cb85e7ba17cd40c82083160ff6be912b2824dd7b3f32cc17dd1
-[32m[2026-09-17 10:50:31][0m Deploying deterministic deployment proxy on l2
+[32m[2026-09-17 23:29:48][0m Deploying deterministic deployment proxy on l2
 
-blockHash            0x2e0d04cdf99d829ec0e5cdd29d3a9392b29fc8909dde6b70cac1226967aa8dd2
+blockHash            0xec567993d853fad8ea9febe6b8a4ac6c7f99f06ca40ed63c08fcac7428b5fba9
 blockNumber          15
 contractAddress      
-cumulativeGasUsed    231000
+cumulativeGasUsed    210000
 effectiveGasPrice    1000000000
 from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
 gasUsed              21000
@@ -1186,12 +1186,12 @@ logsBloom            0x000000000000000000000000000000000000000000000000000000000
 root                 
 status               1 (success)
 transactionHash      0x30f3f78d8ac994667c1af87ecea1678179ec46a657339b05b5bdb5c126cfbd29
-transactionIndex     10
+transactionIndex     9
 type                 0
 blobGasPrice         
 blobGasUsed          
 to                   0x3fAB184622Dc19b6109349B94811493BF2a45362
-{"status":"0x1","cumulativeGasUsed":"0x10a23","logs":[],"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","type":"0x0","transactionHash":"0xeddf9e61fb9d8f5111840daef55e5fde0041f5702856532cdbb5a02998033d26","transactionIndex":"0x0","blockHash":"0x35351d2cbd232cec4e00d6edf1245c841594ddb619974ddc8a99d42fbc5581af","blockNumber":"0x11","gasUsed":"0x10a23","effectiveGasPrice":"0x174876e800","from":"0x3fab184622dc19b6109349b94811493bf2a45362","to":null,"contractAddress":"0x4e59b44847b379578588920ca78fbf26c0b4956c"}
+{"status":"0x1","cumulativeGasUsed":"0x10a23","logs":[],"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","type":"0x0","transactionHash":"0xeddf9e61fb9d8f5111840daef55e5fde0041f5702856532cdbb5a02998033d26","transactionIndex":"0x0","blockHash":"0xa0635d5deb852a15aaf9d1c6071bd8b2827b932113e5b782c4a72bfd8b8314e0","blockNumber":"0x11","gasUsed":"0x10a23","effectiveGasPrice":"0x174876e800","from":"0x3fab184622dc19b6109349b94811493bf2a45362","to":null,"contractAddress":"0x4e59b44847b379578588920ca78fbf26c0b4956c"}
 Cloning into '/opt/lxly-bridge-and-call'...
 Submodule 'lib/forge-std' (https://github.com/foundry-rs/forge-std) registered for path 'lib/forge-std'
 Submodule 'lib/openzeppelin-contracts' (https://github.com/OpenZeppelin/openzeppelin-contracts) registered for path 'lib/openzeppelin-contracts'
@@ -1220,11 +1220,11 @@ Submodule 'lib/ds-test' (https://github.com/dapphub/ds-test) registered for path
 Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test'...
 Submodule path 'lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test': checked out 'cd98eff28324bfac652e63a239a60632a761790b'
 Submodule path 'lib/zkevm-contracts': checked out '311be35a565745df92669f51b8a509e65e3ba4ed'
-[32m[2026-09-17 10:50:55][0m Deploying lxly bridge and call on l1
+[32m[2026-09-17 23:30:18][0m Deploying lxly bridge and call on l1
 Compiling 55 files with Solc 0.8.20
 installing solc version "0.8.20"
 Successfully installed solc 0.8.20
-Solc 0.8.20 finished in 3.17s
+Solc 0.8.20 finished in 3.48s
 Compiler run successful with warnings:
 Warning (9302): Return value of low-level calls not used.
    --> lib/zkevm-contracts/contracts/v2/PolygonZkEVMBridgeV2.sol:957:13:
@@ -1256,11 +1256,11 @@ Script ran successfully.
 
 Chain 271828
 
-Estimated gas price: 0.000000102 gwei
+Estimated gas price: 0.00000007 gwei
 
 Estimated total gas used for script: 3700485
 
-Estimated amount required: 0.00000000037744947 ETH
+Estimated amount required: 0.00000000025903395 ETH
 
 ==========================
 
@@ -1273,7 +1273,7 @@ Transactions saved to: /opt/lxly-bridge-and-call/broadcast/DeployInitBridgeAndCa
 
 Sensitive values saved to: /opt/lxly-bridge-and-call/cache/DeployInitBridgeAndCall.s.sol/271828/run-latest.json
 
-[32m[2026-09-17 10:51:02][0m Deploying lxly bridge and call on l2
+[32m[2026-09-17 23:30:25][0m Deploying lxly bridge and call on l2
 No files changed, compilation skipped
 Script ran successfully.
 
@@ -1310,103 +1310,103 @@ Sensitive values saved to: /opt/lxly-bridge-and-call/cache/DeployInitBridgeAndCa
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-[36mINFO[0m[2026-09-17T10:51:05Z] =========================================================== 
-[36mINFO[0m[2026-09-17T10:51:05Z] ||          Created enclave: fep-to-pp-rollback          || 
-[36mINFO[0m[2026-09-17T10:51:05Z] =========================================================== 
+[36mINFO[0m[2026-09-17T23:30:30Z] =========================================================== 
+[36mINFO[0m[2026-09-17T23:30:30Z] ||          Created enclave: fep-to-pp-rollback          || 
+[36mINFO[0m[2026-09-17T23:30:30Z] =========================================================== 
 Name:            fep-to-pp-rollback
-UUID:            126ccc919e83
+UUID:            273a777f4cb3
 Status:          RUNNING
-Creation Time:   Thu, 17 Sep 2026 10:43:46 UTC
+Creation Time:   Thu, 17 Sep 2026 23:23:26 UTC
 Flags:           
 
 ========================================= Files Artifacts =========================================
 UUID           Name
-cb4e66ae0dd5   1-lighthouse-reth-0-127
-b25b8303b770   add_rollup_type.json
-2235ef81ab3a   agglayer-config
-4fa0415dd4c0   aggregator-keystore
-72832929d774   bridge-config-artifact
-555af9a752d4   cdk-data-availability-config-001
-6f56ab32e70c   cdk-data-availability-keystore-001
-1503936b285e   cdk-erigon-chain-allocs
-791e88380d57   cdk-erigon-chain-config
-f59601868d96   cdk-erigon-chain-first-batch
-b8434aec7084   cdk-erigon-custom-genesis-addresses.json
-9a2c1f904ccc   cdk-erigon-rpc-chain-spec-001
-6e951cee7b48   cdk-erigon-rpc-config-001
-954723b2ecbf   cdk-erigon-rpc-proc-runner-001
-abcd2c2c86ea   cdk-erigon-sequencer-chain-spec-001
-1999d97e5827   cdk-erigon-sequencer-config-001
-fbdfeb12faa4   cdk-erigon-sequencer-proc-runner-001
-e65fb4db4e45   cdk-node-config-001
-3d8bfa9d1540   claimsponsor-keystore
-35e13c5ae42d   claimsponsor-keystore-cdk
-cd7308683897   contracts.sh
-cf6198fd81a9   create-genesis-sovereign-params.json
-29ea7bfa3e70   create_new_rollup.json
-53be064cda94   create_op_allocs.py
-ad6224c73927   create_rollup_parameters.json
-9594cae70aa4   deploy_parameters.json
-67252ee06432   el_cl_genesis_data
-b058a6eadb35   final-genesis-timestamp
-cb8cb577b1cb   genesis
-2f3938b7c2f8   genesis-el-cl-env-file
-7cd5ac0f1132   genesis_validators_root
-13e384994b51   init.sql-001
-df41e6ce1ccb   input_args.json
-019cca2e3a28   json2http.py
-d81ccdadda4d   jwt_file
-ad8446f9bcd1   keymanager_file
-6803170fc5e2   op-custom-genesis-addresses.json
-328761749617   prysm-password
-3231111c886f   sequencer-keystore
-6cfd08a553fc   validator-ranges
-be18e3119977   validator-ranges-input
-08c9bd13e530   zkevm-pool-manager-config-001
-038b3b5503a9   zkevm-prover-config-001
-6c342860997b   zkevm-stateless-executor-config-001
+bdba85292101   1-lighthouse-reth-0-127
+16a2477d831a   add_rollup_type.json
+41058a2ed892   agglayer-config
+0b24d5b3d8fd   aggregator-keystore
+0be0a596a64c   bridge-config-artifact
+d3567bd38321   cdk-data-availability-config-001
+3a529c809c4a   cdk-data-availability-keystore-001
+bac4d19e10ef   cdk-erigon-chain-allocs
+d48fe68c05e2   cdk-erigon-chain-config
+8008e186a870   cdk-erigon-chain-first-batch
+e0bfff3de987   cdk-erigon-custom-genesis-addresses.json
+7af472addd84   cdk-erigon-rpc-chain-spec-001
+059feb6d8633   cdk-erigon-rpc-config-001
+fc21db55ce66   cdk-erigon-rpc-proc-runner-001
+124332f3ed83   cdk-erigon-sequencer-chain-spec-001
+206835a6a704   cdk-erigon-sequencer-config-001
+36eda4dd2e2c   cdk-erigon-sequencer-proc-runner-001
+085170c7d921   cdk-node-config-001
+470d84691f97   claimsponsor-keystore
+b5021e2ec9c1   claimsponsor-keystore-cdk
+05b1ac282fac   contracts.sh
+ec198f4fb26d   create-genesis-sovereign-params.json
+32572350db54   create_new_rollup.json
+27ed542e128f   create_op_allocs.py
+320c2f468072   create_rollup_parameters.json
+df2344afd614   deploy_parameters.json
+d4ba5aaa172a   el_cl_genesis_data
+02a1f36c0c20   final-genesis-timestamp
+0151077d7fa3   genesis
+09eae63f4005   genesis-el-cl-env-file
+a982ac027678   genesis_validators_root
+496e28f6e5da   init.sql-001
+2cd4226869a7   input_args.json
+432122da9212   json2http.py
+3a95aefc35fc   jwt_file
+0492935db420   keymanager_file
+4bc342cb0c31   op-custom-genesis-addresses.json
+a0a7d443120d   prysm-password
+0e9fcfba3e5c   sequencer-keystore
+f60f7d27c612   validator-ranges
+9668d0099e4a   validator-ranges-input
+7e165e8b1657   zkevm-pool-manager-config-001
+a32889a1a90b   zkevm-prover-config-001
+0b797b84723e   zkevm-stateless-executor-config-001
 
 ========================================== User Services ==========================================
 UUID           Name                                             Ports                                                     Status
-8aed9b6eeca0   agglayer                                         aglr-admin: 4446/tcp -> http://127.0.0.1:32782            RUNNING
+af558d438014   agglayer                                         aglr-admin: 4446/tcp -> http://127.0.0.1:32782            RUNNING
                                                                 aglr-grpc: 4443/tcp -> grpc://127.0.0.1:32780             
                                                                 aglr-readrpc: 4444/tcp -> http://127.0.0.1:32781          
                                                                 prometheus: 9092/tcp -> http://127.0.0.1:32783            
-4b0d5bbe252e   cdk-data-availability-001                        dac: 8484/tcp -> 127.0.0.1:32796                          RUNNING
-f51080e037f3   cdk-erigon-rpc-001                               pprof: 6060/tcp -> 127.0.0.1:32792                        RUNNING
+d68bdb1b2f1b   cdk-data-availability-001                        dac: 8484/tcp -> 127.0.0.1:32796                          RUNNING
+6d135c5aaaf6   cdk-erigon-rpc-001                               pprof: 6060/tcp -> 127.0.0.1:32792                        RUNNING
                                                                 prometheus: 9091/tcp -> 127.0.0.1:32795                   
                                                                 rpc: 8545/tcp -> http://127.0.0.1:32793                   
                                                                 ws-rpc: 8546/tcp -> ws://127.0.0.1:32794                  
-24bf0b973640   cdk-erigon-sequencer-001                         data-streamer: 6900/tcp -> datastream://127.0.0.1:32787   RUNNING
+a60aedbc52b7   cdk-erigon-sequencer-001                         data-streamer: 6900/tcp -> datastream://127.0.0.1:32787   RUNNING
                                                                 pprof: 6060/tcp -> 127.0.0.1:32786                        
                                                                 prometheus: 9091/tcp -> 127.0.0.1:32790                   
                                                                 rpc: 8545/tcp -> http://127.0.0.1:32788                   
                                                                 ws-rpc: 8546/tcp -> ws://127.0.0.1:32789                  
-bcc8a4c270eb   cdk-node-001                                     aggregator: 50081/tcp -> grpc://127.0.0.1:32799           RUNNING
+99aacadbd424   cdk-node-001                                     aggregator: 50081/tcp -> grpc://127.0.0.1:32799           RUNNING
                                                                 rest: 5577/tcp -> http://127.0.0.1:32798                  
                                                                 rpc: 5576/tcp -> http://127.0.0.1:32797                   
-a10885c90141   cl-1-lighthouse-reth                             http: 4000/tcp -> http://127.0.0.1:32774                  RUNNING
+aa04d01936a2   cl-1-lighthouse-reth                             http: 4000/tcp -> http://127.0.0.1:32774                  RUNNING
                                                                 metrics: 5054/tcp -> http://127.0.0.1:32775               
                                                                 quic-discovery: 9001/udp                                  
                                                                 tcp-discovery: 9000/tcp -> 127.0.0.1:32776                
                                                                 udp-discovery: 9000/udp                                   
-993961cea8d8   contracts-001                                    http: 8080/tcp -> http://127.0.0.1:32778                  RUNNING
-fa2607ee7448   el-1-reth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:32771                   RUNNING
+174c940c8ef8   contracts-001                                    http: 8080/tcp -> http://127.0.0.1:32778                  RUNNING
+85f6bd77cfe8   el-1-reth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:32771                   RUNNING
                                                                 metrics: 9001/tcp -> http://127.0.0.1:32772               
                                                                 rpc: 8545/tcp -> 127.0.0.1:32769                          
                                                                 tcp-discovery: 30303/tcp -> 127.0.0.1:32773               
                                                                 udp-discovery: 30303/udp                                  
                                                                 ws: 8546/tcp -> 127.0.0.1:32770                           
-34b14817eccb   postgres-001                                     postgres: 5432/tcp -> postgresql://127.0.0.1:32779        RUNNING
-e83852d6a650   validator-key-generation-cl-validator-keystore   <none>                                                    RUNNING
-d1b6f301abea   vc-1-reth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:32777               RUNNING
-5a60bc63f47c   zkevm-bridge-service-001                         grpc: 9090/tcp -> grpc://127.0.0.1:32804                  RUNNING
+f87308bc2106   postgres-001                                     postgres: 5432/tcp -> postgresql://127.0.0.1:32779        RUNNING
+305b73909184   validator-key-generation-cl-validator-keystore   <none>                                                    RUNNING
+2ceb986f4a91   vc-1-reth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:32777               RUNNING
+648424d2c66b   zkevm-bridge-service-001                         grpc: 9090/tcp -> grpc://127.0.0.1:32804                  RUNNING
                                                                 prometheus: 8090/tcp -> http://127.0.0.1:32803            
                                                                 rpc: 8080/tcp -> http://127.0.0.1:32802                   
-4d958a09eb99   zkevm-pool-manager-001                           http: 8545/tcp -> http://127.0.0.1:32791                  RUNNING
-cba4df91b228   zkevm-prover-001                                 executor: 50071/tcp -> grpc://127.0.0.1:32801             RUNNING
+276b0aa0e8a4   zkevm-pool-manager-001                           http: 8545/tcp -> http://127.0.0.1:32791                  RUNNING
+a0e7f058f687   zkevm-prover-001                                 executor: 50071/tcp -> grpc://127.0.0.1:32801             RUNNING
                                                                 hash-db: 50061/tcp -> grpc://127.0.0.1:32800              
-760e450e272d   zkevm-stateless-executor-001                     executor: 50071/tcp -> grpc://127.0.0.1:32785             RUNNING
+812e6f4f2a31   zkevm-stateless-executor-001                     executor: 50071/tcp -> grpc://127.0.0.1:32785             RUNNING
                                                                 hash-db: 50061/tcp -> grpc://127.0.0.1:32784              
 
 

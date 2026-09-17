@@ -1,5 +1,5 @@
---- /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-sequencer-before.yaml	2026-09-17 11:01:34.301901132 +0000
-+++ /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-sequencer-after.yaml	2026-09-17 11:01:34.307182360 +0000
+--- /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-sequencer-before.yaml	2026-09-17 23:42:51.440907775 +0000
++++ /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-sequencer-after.yaml	2026-09-17 23:42:51.446934424 +0000
 @@ -159,7 +159,7 @@
  # This can impact performance and transaction processing capabilities.
  # Default: false

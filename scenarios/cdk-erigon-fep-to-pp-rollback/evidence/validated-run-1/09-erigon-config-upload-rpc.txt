@@ -1,5 +1,5 @@
 $ kurtosis files upload fep-to-pp-rollback /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/work/erigon-rpc --name cdk-erigon-rpc-config-pp
-[36mINFO[0m[2026-09-17T11:01:55Z] Files package 'cdk-erigon-rpc-config-pp' uploaded with UUID: bfa9c6d4bce545bdb2c5385527f65a39 
+[36mINFO[0m[2026-09-17T23:43:08Z] Files package 'cdk-erigon-rpc-config-pp' uploaded with UUID: 0a977065b251437e884003e65cba7b82 
 
 [exit=0]
 
