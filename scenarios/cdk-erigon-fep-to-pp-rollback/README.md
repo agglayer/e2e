@@ -27,13 +27,13 @@ with the outputs captured from a validated run.
 | 5 | Polygon | Add the `AggchainECDSAMultisig` rollup type (mainnet already has it as type 14); check the gateway PP route | type is `ALGateway`, route matches the running agglayer vkey |
 | 6 | Polygon | `initMigration` | reverts with `AllSequencedMustBeVerified()` |
 | 7 | operator | Stop sequencing (`cdk-node-001`) | `lastBatchSequenced` stable and finalized |
-| 8 | operator | `rollbackBatches(rollup, lastVerifiedBatch)` | counters equal; `RollbackBatches` event; L2 block hashes unchanged; L2 keeps producing blocks; erigon `zkevm_virtualBatchNumber` follows |
-| 9 | operator | cdk-erigon image to v2.61.24, PP config (`mock-witness-generation`, no executors, no pool manager), stop DAC/executor/prover/pool-manager | sequencer produces blocks without executors, history intact |
+| 8 | operator | `rollbackBatches(rollup, lastVerifiedBatch)` | counters equal; `RollbackBatches` event; L2 block hashes unchanged; L2 keeps producing blocks; erigon `zkevm_virtualBatchNumber` follows on both nodes; cdk-erigon health probe before, right after and once synced (eth, debug, zkevm namespaces); user txs via rpc node and sequencer mined; L1 to L2 deposit claimed on L2 |
+| 9 | operator | cdk-erigon image to v2.61.24, PP config (`mock-witness-generation`, no executors, no pool manager), stop DAC/executor/prover/pool-manager | sequencer produces blocks without executors, history intact; health probe; user tx via the rpc node still mined (forwarded to the sequencer) |
 | 10 | operator | aggkit 0.8.1 aggsender in `DryRun` | service up |
 | 11 | Polygon | `initMigration(1, ECDSA type, migrateFromLegacyConsensus())` | `isRollupMigrating`, threshold 1, sequencer is sole signer; erigon logs one `UpdateRollupTopic` line (unknown-type error, not repeating, clean sync passes continue), fork stays 12, blocks continue |
 | 12 | operator | `MaxL2BlockNumber` = last block of last verified batch, `DryRun=false` | bootstrap certificate settles, `isRollupMigrating` false |
-| 13 | operator | `MaxL2BlockNumber = 0` | settled LER on L1 equals L2 bridge root |
-| 14 | user | Claim the in-window withdrawal on L1 | `isClaimed` true |
+| 13 | operator | `MaxL2BlockNumber = 0` | settled LER on L1 equals L2 bridge root; L1 to L2 deposit claimed on L2 in PP mode; health probe |
+| 14 | user | Claim the in-window withdrawal on L1 | `isClaimed` true; final user tx and health probe |
 
 Every command and its output is written under `evidence/run-<timestamp>/`, together with state
 snapshots (`state-*.json`) and trimmed service logs.

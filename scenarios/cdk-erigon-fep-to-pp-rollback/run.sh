@@ -223,7 +223,81 @@ bridge_l2_to_l1() {
     local batch; batch=$(cast rpc --rpc-url "$L2_RPC" zkevm_batchNumberByBlockNumber "$(cast to-hex "$blk")" | tr -d '"' | cast to-dec)
     local dc_after; dc_after=$(cast call --rpc-url "$L2_RPC" "$L2_BRIDGE" 'depositCount()(uint256)')
     [[ "$dc_after" == "$((dc + 1))" ]] || { log_error "depositCount did not advance ($dc -> $dc_after)"; return 1; }
-    echo "$dc $blk $batch"
+    echo "$dc $blk $batch $txh"
+}
+
+# ---------------------------------------------------------------------------------------- cdk-erigon health
+# erigon_health <label>: probe both cdk-erigon nodes the way users and aggkit do and record the answers as
+# JSON evidence: eth_*, debug_traceTransaction (aggkit depends on it), eth_getLogs over the rolled-back
+# range, the zkevm_* namespace and the metadata of the batch that holds the reference block. Asserts
+# what must hold at every stage (both nodes answer, fork 12, reference block hash intact, debug trace
+# works); everything else is recorded for the runbook.
+erigon_health() {
+    local label=$1 out; out="$(ev_file "erigon-health-$label").json"
+    local ref_blk=${DEP1_BLOCK:-${DEP0_BLOCK:-1}} ref_hash=${DEP1_BLOCK_HASH:-} ref_tx=${DEP1_TX:-${DEP0_TX:-}}
+    local results="[]" node url
+    for node in sequencer rpc; do
+        if [[ "$node" == sequencer ]]; then url=$L2_SEQ_RPC; else url=$L2_RPC; fi
+        local ref_blk_hex; ref_blk_hex=$(cast to-hex "$ref_blk")
+        local ref_batch_hex; ref_batch_hex=$(cast rpc --rpc-url "$url" zkevm_batchNumberByBlockNumber "$ref_blk_hex" 2>/dev/null | tr -d '"')
+        local batch_json; batch_json=$(cast rpc --rpc-url "$url" zkevm_getBatchByNumber "$ref_batch_hex" 2>/dev/null | jq -c 'del(.blocks, .transactions, .batchL2Data)' 2>/dev/null); [[ -n "$batch_json" ]] || batch_json=null
+        local trace="n/a"
+        if [[ -n "$ref_tx" ]]; then
+            if cast rpc --rpc-url "$url" --raw debug_traceTransaction "[\"$ref_tx\", {\"tracer\":\"callTracer\"}]" >/dev/null 2>&1; then trace=ok; else trace=error; fi
+        fi
+        local logs_n; logs_n=$(cast logs --rpc-url "$url" --from-block "$ref_blk" --to-block "$ref_blk" --address "$L2_BRIDGE" --json 2>/dev/null | jq 'length' 2>/dev/null); [[ -n "$logs_n" ]] || logs_n=error
+        local r; r=$(jq -nc --arg node "$node" --arg url "$url" --argjson ref_blk "$ref_blk" \
+            --arg client "$(cast rpc --rpc-url "$url" web3_clientVersion 2>/dev/null | tr -d '"')" \
+            --arg chain "$(cast chain-id --rpc-url "$url" 2>/dev/null)" \
+            --arg head "$(cast block-number --rpc-url "$url" 2>/dev/null)" \
+            --arg ref_hash "$(cast block --rpc-url "$url" "$ref_blk" --field hash 2>/dev/null)" \
+            --arg batch "$(cast rpc --rpc-url "$url" zkevm_batchNumber 2>/dev/null | tr -d '"' | cast to-dec 2>/dev/null)" \
+            --arg virtual "$(cast rpc --rpc-url "$url" zkevm_virtualBatchNumber 2>/dev/null | tr -d '"' | cast to-dec 2>/dev/null)" \
+            --arg verified "$(cast rpc --rpc-url "$url" zkevm_verifiedBatchNumber 2>/dev/null | tr -d '"' | cast to-dec 2>/dev/null)" \
+            --arg fork "$(cast rpc --rpc-url "$url" zkevm_getForkId 2>/dev/null | tr -d '"' | cast to-dec 2>/dev/null)" \
+            --arg ref_batch "$(cast to-dec "$ref_batch_hex" 2>/dev/null)" \
+            --arg virtualized "$(cast rpc --rpc-url "$url" zkevm_isBlockVirtualized "$ref_blk_hex" 2>/dev/null)" \
+            --arg consolidated "$(cast rpc --rpc-url "$url" zkevm_isBlockConsolidated "$ref_blk_hex" 2>/dev/null)" \
+            --arg deposit_count "$(cast call --rpc-url "$url" "$L2_BRIDGE" 'depositCount()(uint256)' 2>/dev/null)" \
+            --arg balance "$(cast balance --rpc-url "$url" "$ADMIN_ADDR" 2>/dev/null)" \
+            --arg logs "$logs_n" --arg trace "$trace" --argjson batch_info "$batch_json" \
+            '{node:$node, url:$url, web3_clientVersion:$client, eth_chainId:$chain, eth_blockNumber:$head,
+              ref_block:$ref_blk, ref_block_hash:$ref_hash, ref_block_batch:$ref_batch,
+              zkevm_batchNumber:$batch, zkevm_virtualBatchNumber:$virtual, zkevm_verifiedBatchNumber:$verified, zkevm_getForkId:$fork,
+              zkevm_isBlockVirtualized_ref_block:$virtualized, zkevm_isBlockConsolidated_ref_block:$consolidated,
+              eth_getLogs_bridge_events_at_ref_block:$logs, debug_traceTransaction_ref_tx:$trace,
+              eth_call_bridge_depositCount:$deposit_count, eth_getBalance_admin:$balance,
+              zkevm_getBatchByNumber_ref_batch:$batch_info}')
+        results=$(jq -c --argjson r "$r" '. + [$r]' <<<"$results")
+    done
+    jq -n --arg label "$label" --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson nodes "$results" '{label:$label, at:$at, nodes:$nodes}' > "$out"
+    local bad; bad=$(jq -r --arg h "$ref_hash" '.nodes[] | select(.eth_blockNumber=="" or .zkevm_getForkId!="12" or ($h!="" and .ref_block_hash!=$h) or .debug_traceTransaction_ref_tx=="error") | .node' "$out" | tr '\n' ' ')
+    [[ -z "${bad// /}" ]] || { log_error "cdk-erigon health check '$label' failed on: $bad (see $out)"; exit 1; }
+    log_info "cdk-erigon health '$label': both nodes answer, fork 12, block $ref_blk hash intact, debug trace ok"
+}
+
+# l2_transfer_via <label> <url>: a plain user transaction submitted to that node must be mined. Through the
+# rpc node this exercises the forwarding path (pool manager before the PP config, sequencer after).
+l2_transfer_via() {
+    local label=$1 url=$2 to=0x000000000000000000000000000000000000dEaD rc
+    rc=$(cast send --rpc-url "$url" --private-key "$ADMIN_PK" --legacy --value 1 --json "$to" 2>&1) \
+        || { echo "$rc" | redact >&2; log_error "L2 transfer via $label ($url) was not accepted"; exit 1; }
+    local st blk; st=$(jq -r .status <<<"$rc"); blk=$(jq -r .blockNumber <<<"$rc" | xargs cast to-dec)
+    [[ "$st" =~ ^(0x1|1)$ ]] || { log_error "L2 transfer via $label failed: $rc"; exit 1; }
+    note "l2-transfer-$label" "cast send via $label: status=$st block=$blk tx=$(jq -r .transactionHash <<<"$rc")"
+    log_info "L2 transfer via $label mined in block $blk"
+}
+
+# deposit_and_claim_on_l2 <label>: L1 -> L2 deposit claimed on L2, which needs the sequencer to keep
+# injecting global exit roots from L1 (the L1InfoTree stage), independently of the L1 rollup state.
+deposit_and_claim_on_l2() {
+    local label=$1 dep
+    dep=$(bridge_l1_to_l2 "$label" 1000000000000000)
+    note "deposit-$label" "L1 depositCount=$dep (0.001 ETH to L2)"
+    rec "claim-l2-$label" claim_on_l2 "$dep" "$label" || true
+    [[ "$(cast call --rpc-url "$L2_RPC" "$L2_BRIDGE" 'isClaimed(uint32,uint32)(bool)' "$dep" 0)" == "true" ]] \
+        || { log_error "L1 -> L2 deposit $dep ($label) not claimed on L2"; exit 1; }
+    log_info "L1 -> L2 deposit $dep claimed on L2 ($label)"
 }
 
 # bridge_l1_to_l2 <label> <wei>: deposit native token L1 -> L2 (admin -> admin). Prints "<depositCount>".
@@ -408,12 +482,13 @@ step_03_baseline() {
 
     # A withdrawal that WILL be verified by the legacy path, so the chain has a non-zero settled LER
     # (Silicon: 2451 deposits, lastLocalExitRoot != 0) and we can prove the pre-migration claim path.
-    read -r DEP0 DEP0_BLOCK DEP0_BATCH <<< "$(bridge_l2_to_l1 pre-break)"
-    note bridge-pre-break "depositCount=$DEP0 l2Block=$DEP0_BLOCK l2Batch=$DEP0_BATCH"
-    save_var DEP0 DEP0_BLOCK DEP0_BATCH
+    read -r DEP0 DEP0_BLOCK DEP0_BATCH DEP0_TX <<< "$(bridge_l2_to_l1 pre-break)"
+    note bridge-pre-break "depositCount=$DEP0 l2Block=$DEP0_BLOCK l2Batch=$DEP0_BATCH tx=$DEP0_TX"
+    save_var DEP0 DEP0_BLOCK DEP0_BATCH DEP0_TX
     wait_until "$T_VERIFY" 20 "batch $DEP0_BATCH verified through the legacy aggregator" p_verified_ge "$DEP0_BATCH"
     rec claim-pre-break-l1 claim_on_l1 "$DEP0" pre-break
     snapshot baseline-verified >/dev/null
+    erigon_health baseline
     service_logs_to_evidence baseline cdk-node-001 agglayer
 }
 
@@ -430,14 +505,15 @@ step_04_break_settlement() {
     klogs cdk-node-001 -n 2000 --match 'interop_sendTx method is disabled' | head -5 | tee "$(ev_file cdk-node-10009).txt"
 
     # Meanwhile a user withdraws. This exit lands in a batch that gets SEQUENCED but never VERIFIED.
-    read -r DEP1 DEP1_BLOCK DEP1_BATCH <<< "$(bridge_l2_to_l1 in-gap)"
-    note bridge-in-gap "depositCount=$DEP1 l2Block=$DEP1_BLOCK l2Batch=$DEP1_BATCH"
+    read -r DEP1 DEP1_BLOCK DEP1_BATCH DEP1_TX <<< "$(bridge_l2_to_l1 in-gap)"
+    note bridge-in-gap "depositCount=$DEP1 l2Block=$DEP1_BLOCK l2Batch=$DEP1_BATCH tx=$DEP1_TX"
     DEP1_BLOCK_HASH=$(cast block --rpc-url "$L2_RPC" "$DEP1_BLOCK" --field hash)
     note bridge-in-gap "l2BlockHash=$DEP1_BLOCK_HASH (must be unchanged after the L1 rollback)"
-    save_var DEP1 DEP1_BLOCK DEP1_BATCH DEP1_BLOCK_HASH
+    save_var DEP1 DEP1_BLOCK DEP1_BATCH DEP1_BLOCK_HASH DEP1_TX
 
     wait_until "$T_VERIFY" 20 "withdrawal batch $DEP1_BATCH sequenced on L1 and gap >= $MIN_UNVERIFIED_GAP" p_gap_open "$DEP1_BATCH" "$MIN_UNVERIFIED_GAP"
     snapshot gap-open >/dev/null
+    erigon_health gap-open
     log_info "gap: lastBatchSequenced=$(last_sequenced) lastVerifiedBatch=$(last_verified)"
 }
 
@@ -506,6 +582,7 @@ step_08_rollback() {
     rec sequenced-batch-target l1_call "$ROLLUP_MANAGER" 'getRollupSequencedBatches(uint32,uint64)((bytes32,uint64,uint64))' "$ROLLUP_ID" "$target"
     local before_hash; before_hash=$(cast block --rpc-url "$L2_RPC" "$DEP1_BLOCK" --field hash)
     local l2_before; l2_before=$(l2_bn)
+    erigon_health before-rollback
 
     log_info "rollbackBatches($ROLLUP_ADDR, $target) as rollup admin (sequenced=$seq)"
     local receipt; receipt=$(send_as_admin "$ROLLUP_MANAGER" 'rollbackBatches(address,uint64)' "$ROLLUP_ADDR" "$target")
@@ -527,12 +604,22 @@ step_08_rollback() {
     [[ "$before_hash" == "$after_hash" && "$after_hash" == "$DEP1_BLOCK_HASH" ]] || { log_error "L2 block $DEP1_BLOCK hash changed across rollback"; exit 1; }
     wait_until 120 5 "L2 still producing blocks after the L1 rollback" p_block_gt "$L2_RPC" "$l2_before"
     note rollbackBatches-receipt "L2 block $DEP1_BLOCK hash unchanged: $after_hash; L2 head $l2_before -> $(l2_bn)"
+    erigon_health after-rollback
 
     # cdk-erigon's L1 syncer reacts to the (finalized) event by trimming its local L1 sequence records only.
     wait_until "$T_L1_FINALITY" 10 "L1 finality past rollback block $ROLLBACK_BLOCK" p_l1_finalized_ge "$ROLLBACK_BLOCK"
     wait_until 600 10 "cdk-erigon rpc node zkevm_virtualBatchNumber back to $target" p_virtual_batch_eq "$target"
     wait_until 600 10 "cdk-erigon sequencer zkevm_virtualBatchNumber back to $target" p_virtual_batch_eq_on "$L2_SEQ_RPC" "$target"
     snapshot rolled-back-erigon-synced >/dev/null
+    erigon_health erigon-synced
+
+    # cdk-erigon must keep doing everything else it does for users: accept transactions on both nodes
+    # (the rpc node forwards to the pool manager at this point), inject L1 global exit roots so L1 -> L2
+    # deposits can be claimed, and keep the rpc node in step with the sequencer through the datastream.
+    l2_transfer_via rpc-after-rollback "$L2_RPC"
+    l2_transfer_via sequencer-after-rollback "$L2_SEQ_RPC"
+    deposit_and_claim_on_l2 after-rollback
+    wait_until 120 5 "rpc node in step with the sequencer after the rollback" p_rpc_synced
     service_logs_to_evidence rollback cdk-erigon-sequencer-001 cdk-erigon-rpc-001
 }
 
@@ -607,6 +694,9 @@ step_09_upgrade_erigon() {
     wait_until "$T_VERIFY" 10 "rpc node re-synced: has block $DEP1_BLOCK with its original hash" p_block_hash_eq "$L2_RPC" "$DEP1_BLOCK" "$DEP1_BLOCK_HASH"
     wait_until "$T_VERIFY" 10 "rpc node re-synced to the sequencer head" p_rpc_synced
     snapshot erigon-upgraded >/dev/null
+    erigon_health erigon-upgraded
+    # pool manager is gone: the rpc node must now forward user transactions to the sequencer itself
+    l2_transfer_via rpc-pp-mode "$L2_RPC"
     rec erigon-version bash -c "cast rpc --rpc-url $L2_RPC web3_clientVersion; cast rpc --rpc-url $L2_SEQ_RPC web3_clientVersion"
 }
 
@@ -670,6 +760,7 @@ step_11_init_migration() {
     (( clean2 > clean1 )) || { log_error "sequencer L1 sync stage did not complete a clean pass after the migration event"; exit 1; }
     h=$(l2_bn)
     wait_until 120 5 "L2 still producing blocks one minute after migration" p_block_gt "$L2_RPC" "$h"
+    erigon_health migrated
 }
 
 aggkit_reconfigure() { # aggkit_reconfigure <version> <max_l2_block> <dry_run>: new config, same persistent /data
@@ -708,6 +799,9 @@ step_13_normal_certificates() {
     note ler-catch-up "settled: L1 lastLocalExitRoot=$(rd_field 4) L2 getRoot()=$(cast call --rpc-url "$L2_RPC" "$L2_BRIDGE" 'getRoot()(bytes32)')"
     rec agglayer-settled-final jsonrpc "$AGGLAYER_READRPC" interop_getLatestSettledCertificateHeader "[$L2_NETWORK_ID]"
     snapshot pp-live >/dev/null
+    # L1 -> L2 still works after the migration: the sequencer keeps injecting global exit roots in PP mode
+    deposit_and_claim_on_l2 after-migration
+    erigon_health pp-live
     service_logs_to_evidence pp-live aggkit-001 agglayer cdk-erigon-sequencer-001
 }
 
@@ -718,6 +812,9 @@ step_14_claim_in_gap_withdrawal() {
     [[ "$(l1_call "$L1_BRIDGE" 'isClaimed(uint32,uint32)(bool)' "$DEP1" "$L2_NETWORK_ID")" == "true" ]] || { log_error "deposit $DEP1 not marked claimed on L1"; exit 1; }
     # Final invariants
     [[ "$(cast block --rpc-url "$L2_RPC" "$DEP1_BLOCK" --field hash)" == "$DEP1_BLOCK_HASH" ]] || { log_error "L2 history changed"; exit 1; }
+    l2_transfer_via rpc-final "$L2_RPC"
+    wait_until 120 5 "rpc node in step with the sequencer at the end" p_rpc_synced
+    erigon_health final
     snapshot final >/dev/null
     rec summary bash -c "cat $EVIDENCE_DIR/*state-final.json"
 }

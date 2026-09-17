@@ -17,6 +17,7 @@ while any sequenced batch is unverified.
 1. [Read the chain's state](#1-read-the-chains-state-anyone-read-only)
 2. [Stop sequencing now](#2-stop-sequencing-now-chain-operator)
 3. [Roll the unverified batches back on L1](#3-roll-the-unverified-batches-back-on-l1-chain-operator)
+   - [3b. What the rollback does to cdk-erigon](#3b-what-the-rollback-does-to-cdk-erigon-observed)
 4. [Upgrade cdk-erigon and switch it to PP mode](#4-upgrade-cdk-erigon-and-switch-it-to-pp-mode-chain-operator)
 5. [Start aggkit in sync-only mode](#5-start-aggkit-in-sync-only-mode-chain-operator)
 6. [Migrate the rollup to AggchainECDSAMultisig](#6-migrate-the-rollup-to-aggchainecdsamultisig-polygon)
@@ -212,6 +213,28 @@ Observed on the devnet (rollup ID 1):
 Between sending and finality nothing else is required; cdk-erigon adjusts its local sequence records on
 its own once the block is final.
 
+
+## 3b. What the rollback does to cdk-erigon (observed)
+
+The question the aggkit team raised: does the L1 `rollbackBatches` call disturb cdk-erigon? On the
+devnet the two nodes (sequencer and RPC) were probed before the call, right after it, after L1 finality
+and at every later stage, and asked to do real work in between.
+
+What changes: once the block with the `RollbackBatches` event is final, cdk-erigon's `L1Syncer` stage
+deletes its local records of the rolled-back L1 sequences. `zkevm_virtualBatchNumber` drops to the
+target on both nodes and `zkevm_isBlockVirtualized` for a block in the rolled-back range flips from
+`true` to `false`. Nothing else moves: `zkevm_batchNumber` (local batches) keeps growing, block hashes
+in the rolled-back range are identical, `eth_getLogs` over that range still returns the bridge events,
+`debug_traceTransaction` (which aggkit relies on) keeps working, and the RPC node keeps following the
+sequencer through the datastream.
+
+What keeps working, tested by doing it: user transactions submitted to the RPC node (forwarded to the
+pool manager before the PP config, to the sequencer after it) and to the sequencer are mined; L1 to L2
+deposits made after the rollback and again after the migration are claimed on L2, so the sequencer's
+`L1InfoTree` stage keeps injecting global exit roots throughout.
+
+<!-- OBS:ERIGON_HEALTH -->
+<!-- /OBS:ERIGON_HEALTH -->
 
 ## 4. Upgrade cdk-erigon and switch it to PP mode (chain operator)
 

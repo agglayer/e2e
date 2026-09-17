@@ -145,6 +145,36 @@ blocks["CLAIMS"] = f"""```text
 ```
 """
 
+# cdk-erigon health table: one row per (stage, node)
+def health_rows():
+    rows = []
+    order = ["baseline", "gap-open", "before-rollback", "after-rollback", "erigon-synced", "erigon-upgraded", "migrated", "pp-live", "final"]
+    files = {re.sub(r"^\d+-erigon-health-(.*)\.json$", r"\1", f): f for f in os.listdir(E) if re.match(r"^\d+-erigon-health-.*\.json$", f)}
+    for lab in order:
+        if lab not in files: continue
+        j = json.load(open(os.path.join(E, files[lab])))
+        for n in j["nodes"]:
+            bi = n.get("zkevm_getBatchByNumber_ref_batch") or {}
+            rows.append("| {lab} | {node} | {head} | {batch}/{virt}/{ver} | {fork} | {hash} | {virtd} | {trace} | {logs} | {client} |".format(
+                lab=lab, node=n["node"], head=n["eth_blockNumber"], batch=n["zkevm_batchNumber"], virt=n["zkevm_virtualBatchNumber"],
+                ver=n["zkevm_verifiedBatchNumber"], fork=n["zkevm_getForkId"], hash=sh(n["ref_block_hash"], 8, 4) if n["ref_block_hash"] else "-",
+                virtd=n["zkevm_isBlockVirtualized_ref_block"], trace=n["debug_traceTransaction_ref_tx"], logs=n["eth_getLogs_bridge_events_at_ref_block"],
+                client=n["web3_clientVersion"].split("/")[1] if "/" in n["web3_clientVersion"] else n["web3_clientVersion"]))
+    return rows
+def note_lines(prefix):
+    out = []
+    for f in sorted(os.listdir(E)):
+        if re.match(rf"^\d+-{prefix}.*\.txt$", f):
+            for l in open(os.path.join(E, f), errors="replace").read().splitlines():
+                if l.strip() and not l.startswith("$") and "[exit=" not in l: out.append(f"{f:<40} {strip(l)[:130]}")
+    return out
+hdr = "| stage | node | eth_blockNumber | zkevm batch/virtual/verified | fork | ref block hash | ref block virtualized | debug_traceTransaction | bridge logs @ref | client |\n|---|---|---|---|---|---|---|---|---|---|"
+ref_desc = f"Reference block: {dep1[1]} (the in-window withdrawal, batch {dep1[2]}); before it exists the pre-break withdrawal block is used."
+blocks["ERIGON_HEALTH"] = (
+    "Probe results (`NN-erigon-health-<stage>.json`, both nodes, every stage). " + ref_desc + "\n\n" + hdr + "\n" + "\n".join(health_rows()) + "\n\n"
+    + "Functional checks:\n\n```text\n" + "\n".join(note_lines("l2-transfer-") + note_lines("deposit-after-") ) + "\n```\n"
+    + "\nL1 to L2 deposits made after the rollback and after the migration were claimed on L2 (`*-claim-l2-after-rollback.txt`, `*-claim-l2-after-migration.txt`), which requires the sequencer to keep injecting global exit roots.\n")
+
 if APPLY:
     s = open(RB).read()
     for k, v in blocks.items():
