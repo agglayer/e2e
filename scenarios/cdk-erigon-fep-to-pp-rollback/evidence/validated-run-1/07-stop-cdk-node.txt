@@ -1,0 +1,5 @@
+$ kurtosis service stop fep-to-pp-rollback cdk-node-001
+[36mINFO[0m[2026-09-17T10:59:18Z] Stopping service 'cdk-node-001'              
+
+[exit=0]
+

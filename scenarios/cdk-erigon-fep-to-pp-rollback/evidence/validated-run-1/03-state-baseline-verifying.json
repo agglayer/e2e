@@ -1,0 +1,27 @@
+{
+  "label": "baseline-verifying",
+  "at": "2026-09-17T10:52:08Z",
+  "l1": {
+    "block": "157",
+    "finalized": "136"
+  },
+  "rollup_manager": {
+    "rollupContract": "0x414e9E227e4b589aF92200508aF5399576530E4e",
+    "chainID": 2151908,
+    "forkID": 12,
+    "lastLocalExitRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "lastBatchSequenced": 7,
+    "lastVerifiedBatch": 3,
+    "lastVerifiedBatchBeforeUpgrade": 0,
+    "rollupTypeID": 1,
+    "rollupVerifierType": 0
+  },
+  "l2": {
+    "block": "45",
+    "batch": "10",
+    "virtualBatch": "3",
+    "verifiedBatch": "1",
+    "forkId": "12",
+    "client": "cdk-erigon/v2.61.20/linux-amd64/go1.21.5"
+  }
+}

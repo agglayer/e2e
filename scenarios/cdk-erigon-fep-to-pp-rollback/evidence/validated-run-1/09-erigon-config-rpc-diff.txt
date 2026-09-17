@@ -1,0 +1,26 @@
+--- /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-rpc-before.yaml	2026-09-17 11:01:55.090679754 +0000
++++ /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-rpc-after.yaml	2026-09-17 11:01:55.095951928 +0000
+@@ -159,7 +159,7 @@
+ # This can impact performance and transaction processing capabilities.
+ # Default: false
+ # 
+-zkevm.disable-virtual-counters: false
++zkevm.disable-virtual-counters: true
+ # 
+ 
+ 
+@@ -179,7 +179,7 @@
+ # URL of the pool manager, applicable only for non-sequencer nodes.
+ # If specified, all eth_sendRawTransaction calls will be redirected to this service for processing.
+ # Default: ""
+-zkevm.pool-manager-url: http://zkevm-pool-manager-001:8545
++# zkevm.pool-manager-url: http://zkevm-pool-manager-001:8545
+ # 
+ 
+ # 
+@@ -982,3 +982,5 @@
+ # - lightclient.x
+ # - sentinel.x
+ 
++
++zkevm.mock-witness-generation: true

@@ -1,0 +1,400 @@
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.451] [3/16 Batches] Ended downloading L2Blocks routine ID: 515696 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.456] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.456] [3/16 Batches] Saving stage progress     lastBlockHeight=318
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.456] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.017803808s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.457] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.457] [6/16 Execution] Blocks execution        from=317 to=318
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.458] [6/16 Execution] Completed on            block=318
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.458] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=317 calculatingRootHeight=318
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.459] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [8/16 IntermediateHashes] Trie root      hash=0xbfbacd39ef0704a3b7d2c380212d1a39cb01e7d8aa653e1fad651120026fb6f3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.460] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.461] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.461] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] RPC Daemon notified of new headers       from=317 to=318 amount=1 hash=0x29c6c1880ed66f26d047a9774975691382726b3aaa44689dd16a766316dbc709 header sending=27.702µs log sending=240ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] Timings (slower than 50ms)               Batches=3.019s alloc=27.6MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:55.462] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.468] [3/16 Batches] Highest block in datastream datastreamBlock=319 stageProgressBlockNo=318
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.468] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.468] [3/16 Batches] Started downloading L2Blocks routine ID: 907420 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.468] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.475] [3/16 Batches] Ended downloading L2Blocks routine ID: 907420 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.478] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.478] [3/16 Batches] Saving stage progress     lastBlockHeight=319
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.478] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.015993291s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.479] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.480] [6/16 Execution] Short circuit           batch=66 block=319
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.480] [6/16 Execution] Blocks execution        from=318 to=319
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.481] [6/16 Execution] Completed on            block=319
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.481] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=318 calculatingRootHeight=319
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.481] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.482] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.482] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.482] [8/16 IntermediateHashes] Trie root      hash=0xe05d18caeed6c7b97edb761ea7103b4c467b6e072d59c4810bfa9dc98915c237
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.482] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.483] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] RPC Daemon notified of new headers       from=318 to=319 amount=1 hash=0x6705b319ac5169e88df2effff25fc776baad620da03915b7ac55bc1524b331e4 header sending=39.824µs log sending=151ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] Timings (slower than 50ms)               Batches=3.017s alloc=32.2MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:05:58.485] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.492] [3/16 Batches] Highest block in datastream datastreamBlock=320 stageProgressBlockNo=319
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.492] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.492] [3/16 Batches] Started downloading L2Blocks routine ID: 101816 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.492] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.499] [3/16 Batches] Ended downloading L2Blocks routine ID: 101816 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.502] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.503] [3/16 Batches] Saving stage progress     lastBlockHeight=320
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.503] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.017143186s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.504] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.504] [6/16 Execution] Blocks execution        from=319 to=320
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.505] [6/16 Execution] Completed on            block=320
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.505] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=319 calculatingRootHeight=320
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.506] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.506] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.506] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.506] [8/16 IntermediateHashes] Trie root      hash=0xc9e140d5541d0384fed6fa1c3ed7481214ef0bd21fc72dab260c6d576abe5c34
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.507] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.508] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] RPC Daemon notified of new headers       from=319 to=320 amount=1 hash=0x130df39bd4c538395a7769f1395de10c2a101a438f9850decb5554b973157575 header sending=50.304µs log sending=271ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] Timings (slower than 50ms)               Batches=3.018s alloc=36.6MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:01.509] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.515] [3/16 Batches] Highest block in datastream datastreamBlock=321 stageProgressBlockNo=320
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.515] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.516] [3/16 Batches] Started downloading L2Blocks routine ID: 816612 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.516] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.522] [3/16 Batches] Ended downloading L2Blocks routine ID: 816612 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.527] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.527] [3/16 Batches] Saving stage progress     lastBlockHeight=321
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.527] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.017715521s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.528] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.529] [6/16 Execution] Blocks execution        from=320 to=321
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.529] [6/16 Execution] Completed on            block=321
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.529] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=320 calculatingRootHeight=321
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.530] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.531] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.531] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.531] [8/16 IntermediateHashes] Trie root      hash=0xce7ba5d9e45dd98920429ebc1b869c45a5cdaff5cc5d822c8bf7bb5315eedd9e
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.531] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.533] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.534] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.534] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.534] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.534] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.534] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.534] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.535] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.535] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.535] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.536] RPC Daemon notified of new headers       from=320 to=321 amount=1 hash=0xe4b7d315691075e591a62afc583a6b026e3a311f38f148020ff6a248c4272e01 header sending=37.259µs log sending=231ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] Timings (slower than 50ms)               Batches=3.019s alloc=19.8MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:04.537] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.491] [3/16 Batches] Highest block in datastream datastreamBlock=322 stageProgressBlockNo=321
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.491] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.491] [3/16 Batches] Started downloading L2Blocks routine ID: 130565 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.491] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.498] [3/16 Batches] Ended downloading L2Blocks routine ID: 130565 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.502] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.502] [3/16 Batches] Saving stage progress     lastBlockHeight=322
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.502] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=2.965425229s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.504] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.504] [6/16 Execution] Blocks execution        from=321 to=322
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.505] [6/16 Execution] Completed on            block=322
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.505] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=321 calculatingRootHeight=322
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.505] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.506] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.506] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.506] [8/16 IntermediateHashes] Trie root      hash=0xe82f1ba52b2fc142ea7daffb32a2e15f303003609296251448112497535168b8
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.506] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.507] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.508] RPC Daemon notified of new headers       from=321 to=322 amount=1 hash=0x57aff0f0faaa803abd6ceeac7af0082d455ce34e9e2cf09cf9bcf2b406ee1228 header sending=29.956µs log sending=260ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] Timings (slower than 50ms)               Batches=2.966s alloc=24.3MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:07.509] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [WARN] [09-17|11:06:07.632] [rpc] served                             conn=172.16.0.1:39930 method=anvil_nodeInfo reqid=1 t=9.087µs err="the method anvil_nodeInfo does not exist/is not available"
+[cdk-erigon-rpc-001] [WARN] [09-17|11:06:07.632] [rpc] served                             conn=172.16.0.1:39930 method=anvil_nodeInfo reqid=3 t=6.272µs err="the method anvil_nodeInfo does not exist/is not available"
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.514] [3/16 Batches] Highest block in datastream datastreamBlock=323 stageProgressBlockNo=322
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.514] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.515] [3/16 Batches] Started downloading L2Blocks routine ID: 164259 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.515] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.521] [3/16 Batches] Ended downloading L2Blocks routine ID: 164259 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.525] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.525] [3/16 Batches] Saving stage progress     lastBlockHeight=323
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.525] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.016271926s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.527] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.527] [6/16 Execution] Blocks execution        from=322 to=323
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.528] [6/16 Execution] Completed on            block=323
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.528] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=322 calculatingRootHeight=323
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.528] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.529] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.529] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.529] [8/16 IntermediateHashes] Trie root      hash=0xe7c03bcef971a4583c6503040303431c2425d93022962f189b48f1d307cdb179
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.529] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.530] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.533] RPC Daemon notified of new headers       from=322 to=323 amount=1 hash=0xdfd9f006af0f831d2ed57bc03720e2f0f903be52f7d5d8c300aff91463506e76 header sending=29.765µs log sending=221ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.533] Timings (slower than 50ms)               Batches=3.017s alloc=28.9MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.533] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.533] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.533] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.533] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.534] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.534] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:10.534] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.541] [3/16 Batches] Highest block in datastream datastreamBlock=324 stageProgressBlockNo=323
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.541] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.541] [3/16 Batches] Started downloading L2Blocks routine ID: 89179 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.541] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.547] [3/16 Batches] Ended downloading L2Blocks routine ID: 89179 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.552] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.552] [3/16 Batches] Saving stage progress     lastBlockHeight=324
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.552] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.018593937s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.554] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.554] [6/16 Execution] Short circuit           batch=67 block=324
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.554] [6/16 Execution] Blocks execution        from=323 to=324
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.555] [6/16 Execution] Completed on            block=324
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.555] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=323 calculatingRootHeight=324
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.555] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.556] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.556] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.556] [8/16 IntermediateHashes] Trie root      hash=0xa053534871751499743087481addc9d65287201768a16a4ecad2a2b4415d4d8e
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.556] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.557] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] RPC Daemon notified of new headers       from=323 to=324 amount=1 hash=0xa44ed476aca1a142ecd63e40fec14895b3567e07fea5ae0f5a7fbdaae34705ed header sending=30.858µs log sending=230ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] Timings (slower than 50ms)               Batches=3.02s alloc=33.5MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:13.559] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.563] [3/16 Batches] Highest block in datastream datastreamBlock=325 stageProgressBlockNo=324
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.563] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.563] [3/16 Batches] Started downloading L2Blocks routine ID: 245366 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.563] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.570] [3/16 Batches] Ended downloading L2Blocks routine ID: 245366 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.573] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.574] [3/16 Batches] Saving stage progress     lastBlockHeight=325
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.574] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.014451255s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.575] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.575] [6/16 Execution] Blocks execution        from=324 to=325
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.576] [6/16 Execution] Completed on            block=325
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.576] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=324 calculatingRootHeight=325
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.576] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.577] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.577] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.577] [8/16 IntermediateHashes] Trie root      hash=0xcef55e316fd1f54281b52d74d05c3f75dac5b0dcf10d8a0053cff72f04c26ec8
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.577] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.578] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] RPC Daemon notified of new headers       from=324 to=325 amount=1 hash=0x88b1edbb56ec7d01101d01b387e208aab0484e45c222234c67d1a6d5e54315c5 header sending=29.535µs log sending=2.585µs
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] Timings (slower than 50ms)               Batches=3.015s alloc=37.8MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:16.580] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.588] [3/16 Batches] Highest block in datastream datastreamBlock=326 stageProgressBlockNo=325
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.588] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.588] [3/16 Batches] Started downloading L2Blocks routine ID: 103703 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.588] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.595] [3/16 Batches] Ended downloading L2Blocks routine ID: 103703 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.598] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.598] [3/16 Batches] Saving stage progress     lastBlockHeight=326
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.598] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.018095241s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.599] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.600] [6/16 Execution] Blocks execution        from=325 to=326
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.601] [6/16 Execution] Completed on            block=326
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.601] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=325 calculatingRootHeight=326
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.601] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.602] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.602] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.602] [8/16 IntermediateHashes] Trie root      hash=0x24f448e4919bbbd96b57eab6bdf5feeea9f24e544a51bd4ab699d275e550f4ab
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.602] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.603] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.604] RPC Daemon notified of new headers       from=325 to=326 amount=1 hash=0x3168febe3d49d09faad52ea294b0cf050e502687fb0a129655c5a02345776e08 header sending=40.325µs log sending=371ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] Timings (slower than 50ms)               Batches=3.019s alloc=23.3MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:19.605] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.565] [3/16 Batches] Highest block in datastream datastreamBlock=327 stageProgressBlockNo=326
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.565] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.565] [3/16 Batches] Started downloading L2Blocks routine ID: 726791 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.565] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.571] [3/16 Batches] Ended downloading L2Blocks routine ID: 726791 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.576] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.576] [3/16 Batches] Saving stage progress     lastBlockHeight=327
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.576] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=2.970646292s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.577] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.577] [6/16 Execution] Blocks execution        from=326 to=327
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.578] [6/16 Execution] Completed on            block=327
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.578] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=326 calculatingRootHeight=327
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.579] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [8/16 IntermediateHashes] Trie root      hash=0x2d7ca477baa42c92aa5751174e95c75c38956f77a2608bb0af764df40badad85
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.580] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.581] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.581] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.581] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.581] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.581] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] RPC Daemon notified of new headers       from=326 to=327 amount=1 hash=0xb0f04c149c565cf02319ae7333a46a5741ed4d8713b7dfceb7fdb8973dffc640 header sending=30.156µs log sending=250ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] Timings (slower than 50ms)               Batches=2.972s alloc=28.0MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:22.582] [3/16 Batches] Starting batches stage 
+[cdk-erigon-rpc-001] [WARN] [09-17|11:06:22.683] [rpc] served                             conn=172.16.0.1:40644 method=anvil_nodeInfo reqid=1 t=8.746µs err="the method anvil_nodeInfo does not exist/is not available"
+[cdk-erigon-rpc-001] [WARN] [09-17|11:06:22.684] [rpc] served                             conn=172.16.0.1:40644 method=anvil_nodeInfo reqid=3 t=23.955µs err="the method anvil_nodeInfo does not exist/is not available"
+[cdk-erigon-rpc-001] [WARN] [09-17|11:06:22.737] [rpc] served                             conn=172.16.0.1:40662 method=anvil_nodeInfo reqid=1 t=12.494µs err="the method anvil_nodeInfo does not exist/is not available"
+[cdk-erigon-rpc-001] [WARN] [09-17|11:06:22.738] [rpc] served                             conn=172.16.0.1:40662 method=anvil_nodeInfo reqid=3 t=6.502µs err="the method anvil_nodeInfo does not exist/is not available"
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.595] [3/16 Batches] Highest block in datastream datastreamBlock=328 stageProgressBlockNo=327
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.595] [3/16 Batches] Reading blocks from the datastream. 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.595] [3/16 Batches] Started downloading L2Blocks routine ID: 762088 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.595] [Datastream client] Getting header       client=&{conn:{fd:0xc001456100}}
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.601] [3/16 Batches] Ended downloading L2Blocks routine ID: 762088 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.606] [3/16 Batches] Total blocks written: 1 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.606] [3/16 Batches] Saving stage progress     lastBlockHeight=328
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.606] [3/16 Batches] Finished writing blocks   blocksWritten=1 elapsed=3.023535954s
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.607] [3/16 Batches] Finished Batches stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.608] [6/16 Execution] Blocks execution        from=327 to=328
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.608] [6/16 Execution] Completed on            block=328
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.608] [8/16 IntermediateHashes] Increment trie hashes started previousRootHeight=327 calculatingRootHeight=328
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.609] [8/16 IntermediateHashes] SMT incremental progress (pre-process): 4/4 (100%) 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [8/16 IntermediateHashes] Regeneration trie hashes finished. Commiting batch 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [8/16 IntermediateHashes] Increment ended 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [8/16 IntermediateHashes] Trie root      hash=0xef512365bc740f5ae48d0e84fb8dcf71545f1e4a8cf9040bc0e23008e45d9cfa
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [8/16 IntermediateHashes] State root matches 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [9/16 CallTraces] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [9/16 CallTraces] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [10/16 AccountHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [10/16 AccountHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [11/16 StorageHistoryIndex] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.610] [11/16 StorageHistoryIndex] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.611] [14/16 DataStream] Starting... 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.611] [14/16 DataStream] no streamer provided, skipping stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.611] [16/16 Finish] Started 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.611] [16/16 Finish] Finished 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] RPC Daemon notified of new headers       from=327 to=328 amount=1 hash=0x0dcab23164a85f30315b86cb9b3c0c80a3f590bd7c9f75cbb6be3b4353461c0d header sending=27.672µs log sending=230ns
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] Timings (slower than 50ms)               Batches=3.024s alloc=32.7MB sys=55.5MB
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] [1/16 L1Syncer] Starting L1 sync stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] [1/16 L1Syncer] No new L1 blocks to sync 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] [1/16 L1Syncer] Finished L1 sync stage  
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] [2/16 L1InfoTree] Starting L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] [2/16 L1InfoTree] Info tree updates      count=0 latestIndex=3
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.612] [2/16 L1InfoTree] Finished L1 Info Tree stage 
+[cdk-erigon-rpc-001] [INFO] [09-17|11:06:25.613] [3/16 Batches] Starting batches stage 

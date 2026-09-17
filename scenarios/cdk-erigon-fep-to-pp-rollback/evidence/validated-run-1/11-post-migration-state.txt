@@ -1,0 +1,15 @@
+$ bash -c 
+      echo isRollupMigrating=$(cast call --rpc-url http://127.0.0.1:32769 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 'isRollupMigrating(uint32)(bool)' 1)
+      echo threshold=$(cast call --rpc-url http://127.0.0.1:32769 0x414e9E227e4b589aF92200508aF5399576530E4e 'threshold()(uint256)')
+      echo signers=$(cast call --rpc-url http://127.0.0.1:32769 0x414e9E227e4b589aF92200508aF5399576530E4e 'getAggchainSigners()(address[])')
+      echo aggchainManager=$(cast call --rpc-url http://127.0.0.1:32769 0x414e9E227e4b589aF92200508aF5399576530E4e 'aggchainManager()(address)')
+      echo AGGCHAIN_TYPE=$(cast call --rpc-url http://127.0.0.1:32769 0x414e9E227e4b589aF92200508aF5399576530E4e 'AGGCHAIN_TYPE()(bytes2)')
+    
+isRollupMigrating=true
+threshold=1
+signers=[0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed]
+aggchainManager=0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+AGGCHAIN_TYPE=0x0000
+
+[exit=0]
+

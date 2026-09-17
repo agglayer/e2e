@@ -1,0 +1,8 @@
+files mapping: /etc/cdk-erigon:cdk-erigon-rpc-config-pp|cdk-erigon-rpc-chain-spec-001|cdk-erigon-chain-config|cdk-erigon-chain-allocs|cdk-erigon-chain-first-batch,/home/erigon/dynamic-configs/:cdk-erigon-rpc-chain-spec-001|cdk-erigon-chain-config|cdk-erigon-chain-allocs|cdk-erigon-chain-first-batch,/usr/local/share/proc-runner:cdk-erigon-rpc-proc-runner-001
+$ kurtosis service update fep-to-pp-rollback cdk-erigon-rpc-001 --image hermeznetwork/cdk-erigon:v2.61.24 --files /etc/cdk-erigon:cdk-erigon-rpc-config-pp|cdk-erigon-rpc-chain-spec-001|cdk-erigon-chain-config|cdk-erigon-chain-allocs|cdk-erigon-chain-first-batch,/home/erigon/dynamic-configs/:cdk-erigon-rpc-chain-spec-001|cdk-erigon-chain-config|cdk-erigon-chain-allocs|cdk-erigon-chain-first-batch,/usr/local/share/proc-runner:cdk-erigon-rpc-proc-runner-001
+[36mINFO[0m[2026-09-17T11:01:55Z] Running update service starlark for service 'cdk-erigon-rpc-001' in enclave 'fep-to-pp-rollback'... 
+Service 'cdk-erigon-rpc-001' added with service UUID 'f51080e037f341759b2d0a4c491e3369'
+
+
+[exit=0]
+

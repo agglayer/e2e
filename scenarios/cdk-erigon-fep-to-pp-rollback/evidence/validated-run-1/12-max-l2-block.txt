@@ -1,0 +1,2 @@
+zkevm_verifiedBatchNumber=20 lastBlockHash=0x827942ec41b1fc1a1f7b9d32017b8f448df50f1ea8f671f27909c317a75cf6d8 MaxL2BlockNumber=96 (withdrawal block 155 must be > this)
+L1 lastLocalExitRoot=0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb  L2 bridge getRoot()@96=0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb

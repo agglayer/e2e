@@ -1,0 +1,7 @@
+$ kurtosis service update fep-to-pp-rollback agglayer --image ghcr.io/agglayer/agglayer:0.6.0
+[36mINFO[0m[2026-09-17T10:55:16Z] Running update service starlark for service 'agglayer' in enclave 'fep-to-pp-rollback'... 
+Service 'agglayer' added with service UUID '8aed9b6eeca04caeb1da84af095eb201'
+
+
+[exit=0]
+

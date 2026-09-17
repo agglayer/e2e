@@ -1,0 +1,4 @@
+[90m10:53AM[0m [32mINF[0m [1mBridge transaction sent[0m [36mtxHash=[0m0x7c30ca499602493ee5a55da12adf16c4fc070c4fb5cf0f86a86cd9378d54c093
+[90m10:53AM[0m [32mINF[0m [1mTransaction successful[0m [36mtxHash=[0m0x7c30ca499602493ee5a55da12adf16c4fc070c4fb5cf0f86a86cd9378d54c093
+[90m10:53AM[0m [32mINF[0m [1mBridge deposit count parsed from logs[0m [36mdepositCount=[0m0
+depositCount=0 l2Block=67 l2Batch=15

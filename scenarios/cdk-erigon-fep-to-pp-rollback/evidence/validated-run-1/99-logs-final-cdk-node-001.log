@@ -1,0 +1,400 @@
+[cdk-node-001] 2026-09-17T10:57:46.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:57:46.755Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x1f46056e1e5160df92ec16f3f64b9f8a2a980bbdb42893d1e0d766cbd236437d	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:46.756Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 33 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:46.757Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xe93469b31de42ac7c34fc736e738abb37c66d039e6401a959261356c69b848a1	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:46.758Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 33 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:57:46.758Z	[34mINFO[0m	sequencesender/ethtx.go:274	update transaction 0xad41df921f8c2726e1576b9731cf1a02a471e9f3860f3d779435152ee27a9eeb to state safe	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:46.759Z	[34mINFO[0m	sequencesender/ethtx.go:201	1 tx results synchronized (0 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:46.759Z	[34mINFO[0m	sequencesender/sequencesender.go:314	getting sequences to send	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:57:46.759Z	[34mINFO[0m	sequencesender/sequencesender.go:515	not enough time has passed since last batch was virtualized and the sequence could be bigger	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:57:47.045Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 278, ToBlock: 304, MaximumBlock: 304 Progress: Percent: 90.3	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:57:47.045Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 279, ToBlock: 304 overlappedFirstBlock:false finalizedBlock:304	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:57:47.046Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 278, BlockHash: 0x11f99f266bc24f6791362fac890ba52d916e8a635c502f2fe85a034ec610c0a1, ParentHash: 0xf28c1eea94aa3ffbd3f162b10d5a231444e68c61b9ef16b7156ecec1dd1ae4aa, ReceivedAt: 2026-09-17 10:56:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:57:49.100Z	[34mINFO[0m	sync/evmdriver.go:99	handleNewBlock, blockNum: 312, blockHash: 0xa2e27c8460f078c2ace6ff77139f8d505fc848c48aa25b104dde0a98ce7fd5d0	{"pid": 9, "version": "v0.5.4-rc1", "syncer": "l1infotreesync"}
+[cdk-node-001] 2026-09-17T10:57:49.803Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:591	finalized	{"pid": 9, "monitoredTxId": "0xad41df921f8c2726e1576b9731cf1a02a471e9f3860f3d779435152ee27a9eeb", "createdAt": "2026-09-17T10:57:05.000Z", "from": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "to": "0x414e9E227e4b589aF92200508aF5399576530E4e"}
+[cdk-node-001] 2026-09-17T10:57:53.848Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: 59633fde-07c6-4a8d-923e-61267c8de250	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "0227b891-3363-423e-bcae-23554cf9f9e9", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:57:53.848Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:53.851Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:53.852Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "0227b891-3363-423e-bcae-23554cf9f9e9", "batches": "21-24", "finalProofId": "59633fde-07c6-4a8d-923e-61267c8de250"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:57:53.852Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "59633fde-07c6-4a8d-923e-61267c8de250", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:57:53.852Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:53.853Z	[34mINFO[0m	aggregator/aggregator.go:1113	Sequencing event for batch 25 has not been synced yet, so it is not possible to verify it yet. Waiting ...	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:57:53.855Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:53.857Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:57:56.755Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 33 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:56.756Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x35ea0dac1ad6a7f4bef5fffd4cf2daec14c17c3324f74137a52ff4ca0a322b7f	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:57:56.757Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 33 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:57:57.048Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 278, ToBlock: 312, MaximumBlock: 312 Progress: Percent: 87.6	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:57:57.048Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 279, ToBlock: 312 overlappedFirstBlock:false finalizedBlock:312	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:57:57.054Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:239	Position: 0. New block. BlockNumber: 308. BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:57:57.054Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:01.754Z	[34mINFO[0m	sequencesender/sequencesender.go:288	updating virtual batch	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:01.755Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 28	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:01.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:01.757Z	[34mINFO[0m	sequencesender/ethtx.go:274	update transaction 0xad41df921f8c2726e1576b9731cf1a02a471e9f3860f3d779435152ee27a9eeb to state finalized	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:01.757Z	[34mINFO[0m	sequencesender/ethtx.go:201	1 tx results synchronized (0 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:01.757Z	[34mINFO[0m	sequencesender/sequencesender.go:314	getting sequences to send	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:01.757Z	[34mINFO[0m	sequencesender/sequencesender.go:515	not enough time has passed since last batch was virtualized and the sequence could be bigger	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:05.118Z	[34mINFO[0m	sync/evmdriver.go:99	handleNewBlock, blockNum: 320, blockHash: 0xd1553037fbabe2cdd045388b98cdfd1c238652a8e4cef976dd13c1e666f7b688	{"pid": 9, "version": "v0.5.4-rc1", "syncer": "l1infotreesync"}
+[cdk-node-001] 2026-09-17T10:58:06.755Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 33 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:06.756Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x35ea0dac1ad6a7f4bef5fffd4cf2daec14c17c3324f74137a52ff4ca0a322b7f	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:06.757Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 34 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:06.760Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xdb6de54884ac05fb3156c8ba24f3d143482c6544dfb6f705aa794d2c5fead8b4	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:06.761Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 34 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:07.056Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 320, MaximumBlock: 320 Progress: Percent: 96.0	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:07.056Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 320 overlappedFirstBlock:false finalizedBlock:320	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:07.056Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:16.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 34 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:16.754Z	[34mINFO[0m	sequencesender/sequencesender.go:288	updating virtual batch	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.755Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x87bf2324805c5df83e4dd502f8b192d1dbb03ccf9ebb86d6e4cc2f11875eccda	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:16.755Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 28	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.756Z	[34mINFO[0m	sequencesender/ethtx.go:201	0 tx results synchronized (0 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:16.756Z	[34mINFO[0m	sequencesender/sequencesender.go:314	getting sequences to send	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.756Z	[34mINFO[0m	sequencesender/sequencesender.go:511	sequence should be sent, too much time without sending anything to L1	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.757Z	[33mWARN[0m	txbuilder/banana_base.go:133	No InitL1InfoRootMap found, skipping check	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] github.com/0xPolygon/cdk/sequencesender/txbuilder.(*TxBuilderBananaBase).CheckL1InfoTreeLeafCounterVsInitL1InfoMap
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/sequencesender/txbuilder/banana_base.go:133
+[cdk-node-001] github.com/0xPolygon/cdk/sequencesender/txbuilder.(*TxBuilderBananaBase).NewSequence
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/sequencesender/txbuilder/banana_base.go:161
+[cdk-node-001] github.com/0xPolygon/cdk/sequencesender.(*SequenceSender).getSequencesToSend
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/sequencesender/sequencesender.go:512
+[cdk-node-001] github.com/0xPolygon/cdk/sequencesender.(*SequenceSender).tryToSendSequence
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/sequencesender/sequencesender.go:315
+[cdk-node-001] github.com/0xPolygon/cdk/sequencesender.(*SequenceSender).sequenceSending
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/sequencesender/sequencesender.go:249
+[cdk-node-001] 2026-09-17T10:58:16.758Z	[34mINFO[0m	sequencesender/sequencesender.go:328	sending sequences to L1. From batch 29 to batch 33	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.758Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 35 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:16.759Z	[34mINFO[0m	sequencesender/sequencesender.go:415	waiting 5 seconds for L1 block block timestamp, margin less than 30 seconds (batch number: 33, last l2 block ts: 1789642670)	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:16.759Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x2feec835dd985c7c611e492bc2912e431e7019f9a959e9f520dd18eecd200044	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:16.759Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 35 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:17.058Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 320, MaximumBlock: 320 Progress: Percent: 96.0	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:17.058Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 320 overlappedFirstBlock:false finalizedBlock:320	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:17.058Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:21.045Z	[34mINFO[0m	sync/evmdriver.go:99	handleNewBlock, blockNum: 328, blockHash: 0x38310717ff28cc0192fd5e9bd6c9af8c2274bf3feaed6903401b739a8e0de9ca	{"pid": 9, "version": "v0.5.4-rc1", "syncer": "l1infotreesync"}
+[cdk-node-001] 2026-09-17T10:58:21.760Z	[34mINFO[0m	sequencesender/sequencesender.go:435	time margin for L1 block block timestamp now exceeds 30 seconds, proceeding (batch number: 33, last l2 block ts: 1789642670)	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:21.760Z	[34mINFO[0m	sequencesender/sequencesender.go:410	time difference for current time exceeds 30 seconds, proceeding (batch number: 33, last l2 block ts: 1789642670)	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:21.760Z	[34mINFO[0m	sequencesender/sequencesender.go:358	sending sequences to L1. From batch 29 to batch 33	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:21.762Z	[34mINFO[0m	datacommittee/datacommittee.go:292	sending request to sign the sequence to 0x5951F5b2604c9B42E478d5e2B2437F44073eF9A6 at http://cdk-data-availability-001:8484	{"pid": 9, "version": "v0.5.4-rc1", "module": "da-committee"}
+[cdk-node-001] 2026-09-17T10:58:21.766Z	[34mINFO[0m	datacommittee/datacommittee.go:265	received signature from 0x5951F5b2604c9B42E478d5e2B2437F44073eF9A6	{"pid": 9, "version": "v0.5.4-rc1", "module": "da-committee"}
+[cdk-node-001] 2026-09-17T10:58:21.766Z	[34mINFO[0m	txbuilder/banana_validium.go:137	building banana sequence tx. AccInputHash: 0xf4659905c027caae2a777756ccc889a008b8c417727dbbb36839a74907708971	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:21.767Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 28	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:21.769Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:339	created	{"pid": 9, "types.MonitoredTx": "0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7", "createdAt": "0001-01-01T00:00:00.000Z"}
+[cdk-node-001] 2026-09-17T10:58:21.769Z	[34mINFO[0m	sequencesender/ethtx.go:274	update transaction 0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7 to state created	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:21.769Z	[34mINFO[0m	sequencesender/sequencesender.go:281	batches purged count: 4, fromBatch: 25, toBatch: 28	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:21.863Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:606	processing	{"pid": 9, "monitoredTxId": "0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7", "createdAt": "2026-09-17T10:58:21.000Z", "from": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "to": "0x414e9E227e4b589aF92200508aF5399576530E4e"}
+[cdk-node-001] 2026-09-17T10:58:21.865Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:658	signed tx sent to the network: 0x0456cb3013f94b9a7dfde374d2e929953769ef8647fdb6ac66bbee7b0f140211	{"pid": 9, "monitoredTxId": "0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7", "createdAt": "2026-09-17T10:58:21.000Z", "from": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "to": "0x414e9E227e4b589aF92200508aF5399576530E4e"}
+[cdk-node-001] 2026-09-17T10:58:21.865Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:674	waiting signedTx to be mined...	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:23.856Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: 6b08a5b8-0065-4eac-bad0-1037a18ba8a6	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "59633fde-07c6-4a8d-923e-61267c8de250", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.857Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.860Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.860Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "59633fde-07c6-4a8d-923e-61267c8de250", "batches": "21-24", "finalProofId": "6b08a5b8-0065-4eac-bad0-1037a18ba8a6"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:58:23.861Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "6b08a5b8-0065-4eac-bad0-1037a18ba8a6", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.861Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.862Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 25 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.865Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.866Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:58:23.866Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9fbef1449f362d6d713ac525ad48035e7f45dd16c26ede69396a6e582cfd776e	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.867Z	[34mINFO[0m	aggregator/aggregator.go:1224	All information to generate proof for batch 25 is ready. Witness will be requested.	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.867Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:717	mined	{"pid": 9, "monitoredTxId": "0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7", "createdAt": "2026-09-17T10:58:21.000Z", "from": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "to": "0x414e9E227e4b589aF92200508aF5399576530E4e"}
+[cdk-node-001] 2026-09-17T10:58:23.867Z	[34mINFO[0m	aggregator/aggregator.go:1267	Requesting witness for batch 25	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.867Z	[34mINFO[0m	rpc/batch.go:136	Requesting witness for batch 25 of type trimmed	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.887Z	[34mINFO[0m	aggregator/aggregator.go:1269	Witness received for batch 25	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.887Z	[34mINFO[0m	aggregator/aggregator.go:1289	Sending zki + batch to the prover, batchNumber [25]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 25}
+[cdk-node-001] 2026-09-17T10:58:23.887Z	[34mINFO[0m	aggregator/aggregator.go:1297	Sending a batch to the prover. OldAccInputHash [0xdce1e7696bc910abf6a5f6d72d150fee386e8dcf103595739ab7405f763ede97], L1InfoRoot [0x98aca3b6b9796374a25433b45109a917d21fc91488e9380048ecea1117bdf716]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 25}
+[cdk-node-001] 2026-09-17T10:58:23.888Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:23.888Z	[34mINFO[0m	aggregator/aggregator.go:1318	Batch proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 25, "proofId": "33793c48-d7a5-49c6-8e3a-dfb970015cb8"}
+[cdk-node-001] 2026-09-17T10:58:23.888Z	[34mINFO[0m	aggregator/aggregator.go:1386	State root sanity check for batch 25 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 25, "proofId": "33793c48-d7a5-49c6-8e3a-dfb970015cb8"}
+[cdk-node-001] 2026-09-17T10:58:23.888Z	[34mINFO[0m	aggregator/aggregator.go:1399	Acc input hash sanity check for batch 25 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 25, "proofId": "33793c48-d7a5-49c6-8e3a-dfb970015cb8"}
+[cdk-node-001] 2026-09-17T10:58:23.890Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: a5204a85-9d09-43c0-b749-d043cad76387	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "6b08a5b8-0065-4eac-bad0-1037a18ba8a6", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.891Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.894Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.894Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "6b08a5b8-0065-4eac-bad0-1037a18ba8a6", "batches": "21-24", "finalProofId": "a5204a85-9d09-43c0-b749-d043cad76387"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:58:23.895Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "a5204a85-9d09-43c0-b749-d043cad76387", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.895Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.896Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 26 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.898Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.900Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xef629f508fc0cbc50acf3973749e7b9ac3b72f0d7ff8d95b452ada520c0e248a	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.900Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:58:23.900Z	[34mINFO[0m	aggregator/aggregator.go:1224	All information to generate proof for batch 26 is ready. Witness will be requested.	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.901Z	[34mINFO[0m	aggregator/aggregator.go:1267	Requesting witness for batch 26	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.901Z	[34mINFO[0m	rpc/batch.go:136	Requesting witness for batch 26 of type trimmed	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.923Z	[34mINFO[0m	aggregator/aggregator.go:1269	Witness received for batch 26	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.924Z	[34mINFO[0m	aggregator/aggregator.go:1289	Sending zki + batch to the prover, batchNumber [26]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 26}
+[cdk-node-001] 2026-09-17T10:58:23.924Z	[34mINFO[0m	aggregator/aggregator.go:1486	Calling tree.ComputeMerkleProof	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] 2026-09-17T10:58:23.924Z	[34mINFO[0m	aggregator/aggregator.go:1297	Sending a batch to the prover. OldAccInputHash [0xb5a30e9531f62cbed9f597345b1ee83f221a948bfac45f8cc28bed5c4085eba8], L1InfoRoot [0x98aca3b6b9796374a25433b45109a917d21fc91488e9380048ecea1117bdf716]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 26}
+[cdk-node-001] 2026-09-17T10:58:23.925Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:23.925Z	[34mINFO[0m	aggregator/aggregator.go:1318	Batch proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 26, "proofId": "bfbcf9de-f63a-42cc-ac0c-2267009778f6"}
+[cdk-node-001] 2026-09-17T10:58:23.925Z	[34mINFO[0m	aggregator/aggregator.go:1386	State root sanity check for batch 26 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 26, "proofId": "bfbcf9de-f63a-42cc-ac0c-2267009778f6"}
+[cdk-node-001] 2026-09-17T10:58:23.925Z	[34mINFO[0m	aggregator/aggregator.go:1399	Acc input hash sanity check for batch 26 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 26, "proofId": "bfbcf9de-f63a-42cc-ac0c-2267009778f6"}
+[cdk-node-001] 2026-09-17T10:58:23.927Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: a7456c25-c9ed-4f0d-9b77-ccfe8de4a067	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "a5204a85-9d09-43c0-b749-d043cad76387", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.928Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.931Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.931Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "a5204a85-9d09-43c0-b749-d043cad76387", "batches": "21-24", "finalProofId": "a7456c25-c9ed-4f0d-9b77-ccfe8de4a067"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:58:23.931Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "a7456c25-c9ed-4f0d-9b77-ccfe8de4a067", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.931Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.932Z	[34mINFO[0m	aggregator/aggregator.go:926	Aggregating proofs: 25-25 and 26-26	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.932Z	[34mINFO[0m	aggregator/aggregator.go:960	Proof ID for aggregated proof: c54b7f88-e755-4faf-946b-1d49cddeffed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batches": "25-26"}
+[cdk-node-001] 2026-09-17T10:58:23.933Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:23.933Z	[34mINFO[0m	aggregator/aggregator.go:970	Aggregated proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batches": "25-26", "proofId": "c54b7f88-e755-4faf-946b-1d49cddeffed"}
+[cdk-node-001] 2026-09-17T10:58:23.935Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 27 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.936Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.938Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:58:23.939Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x7759833393830217b8e5cf32f2393cce041e9468940a3f17e75264fdbca5069e	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.940Z	[34mINFO[0m	aggregator/aggregator.go:1224	All information to generate proof for batch 27 is ready. Witness will be requested.	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.940Z	[34mINFO[0m	aggregator/aggregator.go:1267	Requesting witness for batch 27	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.940Z	[34mINFO[0m	rpc/batch.go:136	Requesting witness for batch 27 of type trimmed	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.958Z	[34mINFO[0m	aggregator/aggregator.go:1269	Witness received for batch 27	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.959Z	[34mINFO[0m	aggregator/aggregator.go:1289	Sending zki + batch to the prover, batchNumber [27]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 27}
+[cdk-node-001] 2026-09-17T10:58:23.959Z	[34mINFO[0m	aggregator/aggregator.go:1297	Sending a batch to the prover. OldAccInputHash [0x67e450bbed5bfad88fc88d1cadf38b824a004aac1f84d17f340297045e6b29a8], L1InfoRoot [0x98aca3b6b9796374a25433b45109a917d21fc91488e9380048ecea1117bdf716]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 27}
+[cdk-node-001] 2026-09-17T10:58:23.960Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:23.960Z	[34mINFO[0m	aggregator/aggregator.go:1318	Batch proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 27, "proofId": "dfffb0ea-fc1a-480e-9b8c-a7363e012144"}
+[cdk-node-001] 2026-09-17T10:58:23.960Z	[34mINFO[0m	aggregator/aggregator.go:1386	State root sanity check for batch 27 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 27, "proofId": "dfffb0ea-fc1a-480e-9b8c-a7363e012144"}
+[cdk-node-001] 2026-09-17T10:58:23.960Z	[34mINFO[0m	aggregator/aggregator.go:1399	Acc input hash sanity check for batch 27 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 27, "proofId": "dfffb0ea-fc1a-480e-9b8c-a7363e012144"}
+[cdk-node-001] 2026-09-17T10:58:23.962Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: 43b492c4-b968-40f1-b7f4-6bc550ff0cf7	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "a7456c25-c9ed-4f0d-9b77-ccfe8de4a067", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.962Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.965Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.966Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "a7456c25-c9ed-4f0d-9b77-ccfe8de4a067", "batches": "21-24", "finalProofId": "43b492c4-b968-40f1-b7f4-6bc550ff0cf7"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:58:23.966Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "43b492c4-b968-40f1-b7f4-6bc550ff0cf7", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.966Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.966Z	[34mINFO[0m	aggregator/aggregator.go:926	Aggregating proofs: 25-26 and 27-27	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.967Z	[34mINFO[0m	aggregator/aggregator.go:960	Proof ID for aggregated proof: f6d886ae-9b8c-4510-a5cf-9d7f84a5ca82	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batches": "25-27"}
+[cdk-node-001] 2026-09-17T10:58:23.967Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:23.967Z	[34mINFO[0m	aggregator/aggregator.go:970	Aggregated proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batches": "25-27", "proofId": "f6d886ae-9b8c-4510-a5cf-9d7f84a5ca82"}
+[cdk-node-001] 2026-09-17T10:58:23.969Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 28 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.970Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.972Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:58:23.973Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x18d7af910316db6db7cbc499e48f0242e0c2ebf62a2fb4ca9d280a0e3bfcef25	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.974Z	[34mINFO[0m	aggregator/aggregator.go:1224	All information to generate proof for batch 28 is ready. Witness will be requested.	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.974Z	[34mINFO[0m	aggregator/aggregator.go:1267	Requesting witness for batch 28	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.974Z	[34mINFO[0m	rpc/batch.go:136	Requesting witness for batch 28 of type trimmed	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:23.996Z	[34mINFO[0m	aggregator/aggregator.go:1269	Witness received for batch 28	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:23.996Z	[34mINFO[0m	aggregator/aggregator.go:1289	Sending zki + batch to the prover, batchNumber [28]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 28}
+[cdk-node-001] 2026-09-17T10:58:23.996Z	[34mINFO[0m	aggregator/aggregator.go:1297	Sending a batch to the prover. OldAccInputHash [0x77bac8843ac20aa1f38484ea553a41e9d3df72f6b675d554bd0ca30926d541c9], L1InfoRoot [0x98aca3b6b9796374a25433b45109a917d21fc91488e9380048ecea1117bdf716]	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 28}
+[cdk-node-001] 2026-09-17T10:58:23.997Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:23.997Z	[34mINFO[0m	aggregator/aggregator.go:1318	Batch proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 28, "proofId": "b7f53af4-7149-4428-953a-369e1ff3d78e"}
+[cdk-node-001] 2026-09-17T10:58:23.997Z	[34mINFO[0m	aggregator/aggregator.go:1386	State root sanity check for batch 28 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 28, "proofId": "b7f53af4-7149-4428-953a-369e1ff3d78e"}
+[cdk-node-001] 2026-09-17T10:58:23.997Z	[34mINFO[0m	aggregator/aggregator.go:1399	Acc input hash sanity check for batch 28 passed	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batch": 28, "proofId": "b7f53af4-7149-4428-953a-369e1ff3d78e"}
+[cdk-node-001] 2026-09-17T10:58:23.999Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: edbda7cc-e787-47de-b880-f22406bd12cb	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "43b492c4-b968-40f1-b7f4-6bc550ff0cf7", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:23.999Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:24.003Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:24.004Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "43b492c4-b968-40f1-b7f4-6bc550ff0cf7", "batches": "21-24", "finalProofId": "edbda7cc-e787-47de-b880-f22406bd12cb"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:58:24.004Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "edbda7cc-e787-47de-b880-f22406bd12cb", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:24.004Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:24.004Z	[34mINFO[0m	aggregator/aggregator.go:926	Aggregating proofs: 25-27 and 28-28	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:24.005Z	[34mINFO[0m	aggregator/aggregator.go:960	Proof ID for aggregated proof: a6433e68-fedc-4772-9b3e-31f33ec9665a	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batches": "25-28"}
+[cdk-node-001] 2026-09-17T10:58:24.005Z	[34mINFO[0m	prover/prover.go:313	Recursive proof does not contain state root. Possibly mock prover is in use.	{"pid": 9, "version": "v0.5.4-rc1", "module": "prover"}
+[cdk-node-001] 2026-09-17T10:58:24.005Z	[34mINFO[0m	aggregator/aggregator.go:970	Aggregated proof generated	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "batches": "25-28", "proofId": "a6433e68-fedc-4772-9b3e-31f33ec9665a"}
+[cdk-node-001] 2026-09-17T10:58:24.007Z	[34mINFO[0m	aggregator/aggregator.go:1113	Sequencing event for batch 29 has not been synced yet, so it is not possible to verify it yet. Waiting ...	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:24.008Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:24.009Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:58:26.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 35 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:26.755Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xc70a294e668879fe3190f6759f0872628800b1a45ae8747d5bd3849240531e0e	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:26.756Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 35 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:27.060Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 328, MaximumBlock: 328 Progress: Percent: 93.3	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:27.060Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 328 overlappedFirstBlock:false finalizedBlock:328	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:27.061Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:31.754Z	[34mINFO[0m	sequencesender/sequencesender.go:288	updating virtual batch	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:31.755Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 33	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:31.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:31.758Z	[34mINFO[0m	sequencesender/ethtx.go:274	update transaction 0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7 to state mined	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:31.758Z	[34mINFO[0m	sequencesender/ethtx.go:201	1 tx results synchronized (1 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:31.758Z	[34mINFO[0m	sequencesender/sequencesender.go:309	max number of pending txs (1) reached. Waiting for some to be completed	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:36.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 35 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:36.755Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xc70a294e668879fe3190f6759f0872628800b1a45ae8747d5bd3849240531e0e	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:36.756Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 36 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:36.757Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x5fd58d5b7f2e14e6ec76dc748201ed68a13629c10b82c9ed5c6befec8eac333a	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:36.757Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 36 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:37.063Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 336, MaximumBlock: 336 Progress: Percent: 90.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:37.063Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 336 overlappedFirstBlock:false finalizedBlock:336	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:37.064Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:37.065Z	[34mINFO[0m	sync/evmdriver.go:99	handleNewBlock, blockNum: 336, blockHash: 0x48c638a5e33d6198a881d25a8715aad99b0cb1b141dd78e128458ef07e2628f5	{"pid": 9, "version": "v0.5.4-rc1", "syncer": "l1infotreesync"}
+[cdk-node-001] 2026-09-17T10:58:46.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 36 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:46.754Z	[34mINFO[0m	sequencesender/sequencesender.go:288	updating virtual batch	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:46.755Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 33	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:46.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:46.756Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xd88bd8aea7cb0d8108ea013de88e2f8a24be539af498fb6c311c800fcf395b6f	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:46.756Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 37 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:46.757Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x585375da276b0d57b5fee26c0d9f6fb158ed6a8d30e61d9b7fa133ebb03f838c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:46.758Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 37 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:46.759Z	[34mINFO[0m	sequencesender/ethtx.go:201	1 tx results synchronized (1 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:46.759Z	[34mINFO[0m	sequencesender/sequencesender.go:309	max number of pending txs (1) reached. Waiting for some to be completed	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:47.066Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 336, MaximumBlock: 336 Progress: Percent: 90.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:47.066Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 336 overlappedFirstBlock:false finalizedBlock:336	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:47.067Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:52.936Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:548	safe	{"pid": 9, "monitoredTxId": "0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7", "createdAt": "2026-09-17T10:58:21.000Z", "from": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "to": "0x414e9E227e4b589aF92200508aF5399576530E4e"}
+[cdk-node-001] 2026-09-17T10:58:53.086Z	[34mINFO[0m	sync/evmdriver.go:99	handleNewBlock, blockNum: 344, blockHash: 0x919ae1d060e95ce959d940e120da1affcd942f3dc0df62345bcac007fe75fb4e	{"pid": 9, "version": "v0.5.4-rc1", "syncer": "l1infotreesync"}
+[cdk-node-001] 2026-09-17T10:58:54.010Z	[34mINFO[0m	aggregator/aggregator.go:625	Final proof ID for batches [21-24]: 9007d63e-5a0f-475b-96e8-d9fb92668a94	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "edbda7cc-e787-47de-b880-f22406bd12cb", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:54.010Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:54.014Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:54.014Z	[33mWARN[0m	aggregator/aggregator.go:643	NewLocalExitRoot and NewStateRoot look like a mock values, using values from executor instead: LER: f04f3e..bd16eb, SR: 590557..b09329	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972", "recursiveProofId": "edbda7cc-e787-47de-b880-f22406bd12cb", "batches": "21-24", "finalProofId": "9007d63e-5a0f-475b-96e8-d9fb92668a94"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).buildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:643
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).tryBuildFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:720
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).Channel
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:432
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator/prover._AggregatorService_Channel_Handler
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/prover/aggregator_grpc.pb.go:109
+[cdk-node-001] google.golang.org/grpc.(*Server).processStreamingRPC
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1673
+[cdk-node-001] google.golang.org/grpc.(*Server).handleStream
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1794
+[cdk-node-001] google.golang.org/grpc.(*Server).serveStreams.func2.1
+[cdk-node-001] 	/go/pkg/mod/google.golang.org/grpc@v1.64.0/server.go:1029
+[cdk-node-001] 2026-09-17T10:58:54.014Z	[34mINFO[0m	aggregator/aggregator.go:474	Verifying final proof with ethereum smart contract	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "proofId": "9007d63e-5a0f-475b-96e8-d9fb92668a94", "batches": "21-24"}
+[cdk-node-001] 2026-09-17T10:58:54.015Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 24 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:54.016Z	[34mINFO[0m	aggregator/aggregator.go:1113	Sequencing event for batch 29 has not been synced yet, so it is not possible to verify it yet. Waiting ...	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator", "prover": "test-prover", "proverId": "59216791-817c-4b06-bca3-e98334f72696", "proverAddr": "172.16.0.31:32972"}
+[cdk-node-001] 2026-09-17T10:58:54.018Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x9d9534c5b3d69195ca6d5d3b6b77aec5716140a1f1a40daed997d52c013f6d1c	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:54.020Z	[31mERROR[0m	aggregator/aggregator.go:540	failed to send tx to the agglayer: -10009 The interop_sendTx method is disabled	{"pid": 9, "version": "v0.5.4-rc1", "module": "aggregator"}
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).settleWithAggLayer
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:540
+[cdk-node-001] github.com/0xPolygon/cdk/aggregator.(*Aggregator).sendFinalProof
+[cdk-node-001] 	/go/src/github.com/0xPolygon/cdk/aggregator/aggregator.go:494
+[cdk-node-001] 2026-09-17T10:58:56.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 37 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:56.756Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xe5fc589e3754d0eabf0b9c1d575bbdcfb716b01cccc38e3367a61f28b6f19b78	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:58:56.756Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 37 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:58:57.068Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 344, MaximumBlock: 344 Progress: Percent: 88.3	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:57.068Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 344 overlappedFirstBlock:false finalizedBlock:344	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:58:57.069Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:01.754Z	[34mINFO[0m	sequencesender/sequencesender.go:288	updating virtual batch	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:01.755Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 33	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:01.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:01.758Z	[34mINFO[0m	sequencesender/ethtx.go:274	update transaction 0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7 to state safe	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:01.758Z	[34mINFO[0m	sequencesender/ethtx.go:201	1 tx results synchronized (0 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:01.758Z	[34mINFO[0m	sequencesender/sequencesender.go:314	getting sequences to send	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:01.758Z	[34mINFO[0m	sequencesender/sequencesender.go:515	not enough time has passed since last batch was virtualized and the sequence could be bigger	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:06.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 37 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:06.756Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xe5fc589e3754d0eabf0b9c1d575bbdcfb716b01cccc38e3367a61f28b6f19b78	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:06.756Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 38 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:06.757Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xfa46969e6ea0d50a978c2b16cfba0e68e35a1a4b39d08aa7c06bf829defcab17	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:06.758Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 38 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:07.071Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 344, MaximumBlock: 344 Progress: Percent: 88.3	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:07.071Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 344 overlappedFirstBlock:false finalizedBlock:344	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:07.072Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 308, BlockHash: 0x84cda72b709e0f1bc4740501009ee6e54d876311039a0583bd5438da2bc98321, ParentHash: 0x531d121b58b6316f2348c61f7b34450ff543cd732e8a5823a8778d7e163401a5, ReceivedAt: 2026-09-17 10:57:09 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:08.974Z	[34mINFO[0m	ethtxmanager/ethtxmanager.go:591	finalized	{"pid": 9, "monitoredTxId": "0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7", "createdAt": "2026-09-17T10:58:21.000Z", "from": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "to": "0x414e9E227e4b589aF92200508aF5399576530E4e"}
+[cdk-node-001] 2026-09-17T10:59:09.104Z	[34mINFO[0m	sync/evmdriver.go:99	handleNewBlock, blockNum: 352, blockHash: 0x6386bb7963627b152afaf3305b4ab7178a67c1770d5ab7d9142b4af7b487591c	{"pid": 9, "version": "v0.5.4-rc1", "syncer": "l1infotreesync"}
+[cdk-node-001] 2026-09-17T10:59:16.754Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 38 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:16.754Z	[34mINFO[0m	sequencesender/sequencesender.go:288	updating virtual batch	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:16.755Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0xd1ceccc10480c9b5bb94469439f04dc1d5a6ac8c2f11fd691d8c703521d34987	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:16.755Z	[34mINFO[0m	sequencesender/sequencesender.go:529	latest virtual batch is 33	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:16.755Z	[34mINFO[0m	sequencesender/sequencesender.go:301	updating tx results	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:16.756Z	[34mINFO[0m	rpc/batch.go:47	Getting batch 39 from RPC	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:16.758Z	[34mINFO[0m	rpc/batch.go:94	Getting l2 block timestamp from RPC. Block hash: 0x6d28ccbc52f1c3fdcb46abac7e7887e284d8ac508b86182e1fbe8f81fc11900e	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:16.758Z	[34mINFO[0m	sequencesender/sequencesender.go:187	batch 39 is not closed yet	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:16.759Z	[34mINFO[0m	sequencesender/ethtx.go:274	update transaction 0x2b6bee7e970e40258c6557f9fadd6c5da5ad0743437de4b960983b0515b657a7 to state finalized	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:16.759Z	[34mINFO[0m	sequencesender/ethtx.go:201	1 tx results synchronized (0 in pending state)	{"pid": 9, "version": "v0.5.4-rc1"}
+[cdk-node-001] 2026-09-17T10:59:16.759Z	[34mINFO[0m	sequencesender/sequencesender.go:314	getting sequences to send	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:16.759Z	[34mINFO[0m	sequencesender/sequencesender.go:515	not enough time has passed since last batch was virtualized and the sequence could be bigger	{"pid": 9, "version": "v0.5.4-rc1", "module": "sequence-sender"}
+[cdk-node-001] 2026-09-17T10:59:17.074Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:150	Syncing FromBlock: 308, ToBlock: 352, MaximumBlock: 352 Progress: Percent: 86.0	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:17.074Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:211	Getting rollup info range: FromBlock: 309, ToBlock: 352 overlappedFirstBlock:false finalizedBlock:352	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:17.096Z	[34mINFO[0m	l1_sync/l1_syncer_sequential.go:239	Position: 0. New block. BlockNumber: 345. BlockHash: 0x055a79aa4f7a5a5ca59e3e862b8ec4e82c8ea1072b13c11489c05e5c98c9e528	{"pid": 9}
+[cdk-node-001] 2026-09-17T10:59:17.097Z	[34mINFO[0m	internal/synchronizer_impl.go:288	NetworkID 0 Synced!   lastBlockSynced:BlockNumber: 345, BlockHash: 0x055a79aa4f7a5a5ca59e3e862b8ec4e82c8ea1072b13c11489c05e5c98c9e528, ParentHash: 0x919ae1d060e95ce959d940e120da1affcd942f3dc0df62345bcac007fe75fb4e, ReceivedAt: 2026-09-17 10:58:23 +0000 UTC, Checked: true, SyncVersion: v1.0.7	{"pid": 9}

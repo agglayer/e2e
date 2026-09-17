@@ -1,0 +1,4 @@
+$ jsonrpc http://127.0.0.1:32806 interop_getLatestSettledCertificateHeader [1]
+{"jsonrpc":"2.0","id":1,"result":{"network_id":1,"height":0,"epoch_number":34,"certificate_index":0,"certificate_id":"0x363b15b248e440b6bc1d1c8c7ce9aaebd24273d88e8fa59d12fdaf3632442250","prev_local_exit_root":"0x27ae5ba08d7291c96c8cbddcc148bf48a6d68c7974b94356f53754ef6171d757","new_local_exit_root":"0xf04f3ef78f3b8b5160683ff5508b9057de07b8fe691702bc3a0b97f978bd16eb","metadata":"0x0000000000000000000000000000000000000000000000000000000000000000","status":"Settled","settlement_tx_hash":"0xffc44ca1adc8bb6b13de726c41ed37eadd4af2da78bd46e8b1f862b180402cd5"}}
+[exit=0]
+

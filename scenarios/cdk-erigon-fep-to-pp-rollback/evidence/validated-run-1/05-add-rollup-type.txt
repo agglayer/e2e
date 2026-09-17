@@ -1,0 +1,31 @@
+$ kexec contracts-001 cd /opt/agglayer-contracts && npx hardhat run tools/addRollupType/addRollupType.ts --network localhost
+The command was successfully executed and returned '0'.
+2026-09-17 10:58:41 [[32minfo[39m]: Using deployer: 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+2026-09-17 10:58:42 [[32minfo[39m]: AgglayerGateway address: 0xf22E2B040B639180557745F47aB97dFA95B1e22a
+2026-09-17 10:58:45 [[32minfo[39m]: #######################
+
+2026-09-17 10:58:45 [[32minfo[39m]: new aggchain name: AggchainECDSAMultisig
+2026-09-17 10:58:45 [[32minfo[39m]: new AggchainECDSAMultisig impl: 0x9c85cd40541D67670aaC4D8249a55668896A6BD3
+2026-09-17 10:58:45 [[32minfo[39m]: Trying to verify implementation contract 0x9c85cd40541D67670aaC4D8249a55668896A6BD3 with arguments ["0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674","0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E","0xC8cbEBf950B9Df44d987c8619f092beA980fF038","0x6c6c009cC348976dB4A908c92B24433d4F6edA43","0xf22E2B040B639180557745F47aB97dFA95B1e22a"]
+2026-09-17 10:58:45 [[32minfo[39m]: Waiting 20 seconds before verifying on Etherscan
+2026-09-17 10:59:05 [[32minfo[39m]: Verifying...
+2026-09-17 10:59:05 [[31merror[39m]: ❌ Error verifying the new implementation contract:  Trying to verify a contract in a network with chain id 271828, but the plugin doesn't recognize it as a supported chain.
+
+You can manually add support for it by following these instructions: https://hardhat.org/verify-custom-networks
+
+To see the list of supported networks, run this command:
+
+  npx hardhat verify --list-networks
+2026-09-17 10:59:05 [[32minfo[39m]: you can verify the new impl address with:
+2026-09-17 10:59:05 [[32minfo[39m]: npx hardhat verify --constructor-args upgrade/arguments.js 0x9c85cd40541D67670aaC4D8249a55668896A6BD3 --network localhost
+
+2026-09-17 10:59:05 [[32minfo[39m]: Copy the following constructor arguments on: upgrade/arguments.js 
+
+2026-09-17 10:59:07 [[32minfo[39m]: #######################
+
+2026-09-17 10:59:07 [[32minfo[39m]: New Rollup Type deployed
+2026-09-17 10:59:07 [[32minfo[39m]: Output JSON file written to: /opt/agglayer-contracts/tools/addRollupType/add_rollup_type_output_ecdsamultisig.json
+
+
+[exit=0]
+

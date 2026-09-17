@@ -1,0 +1,119 @@
+$ kurtosis run --enclave fep-to-pp-rollback assets/aggkit.star {"name":"aggkit-001","image":"ghcr.io/agglayer/aggkit:0.8.1","config_artifact":"aggkit-config-v2","replace":true}
+[36mINFO[0m[2026-09-17T11:04:42Z] Kurtosis CLI is running in a non interactive terminal. Everything will work but progress information and the progress bar will not be displayed. 
+
+Container images used in this run:
+> ghcr.io/agglayer/aggkit:0.8.1 - locally cached
+
+Removing service 'aggkit-001'
+Service 'aggkit-001' with service UUID '54867d92111248fc86649f06a8c1050b' removed
+
+Adding service with name 'aggkit-001' and image 'ghcr.io/agglayer/aggkit:0.8.1'
+Service 'aggkit-001' added with service UUID '4a46dba9dc16414ba4d6ecbe46c9a654'
+
+Starlark code successfully run. No output was returned.
+
+⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
+Name:            fep-to-pp-rollback
+UUID:            126ccc919e83
+Status:          RUNNING
+Creation Time:   Thu, 17 Sep 2026 10:43:46 UTC
+Flags:           
+
+========================================= Files Artifacts =========================================
+UUID           Name
+cb4e66ae0dd5   1-lighthouse-reth-0-127
+b25b8303b770   add_rollup_type.json
+c010c23252e6   aggkit-config-v1
+f8945d3da856   aggkit-config-v2
+2235ef81ab3a   agglayer-config
+4fa0415dd4c0   aggregator-keystore
+72832929d774   bridge-config-artifact
+555af9a752d4   cdk-data-availability-config-001
+6f56ab32e70c   cdk-data-availability-keystore-001
+1503936b285e   cdk-erigon-chain-allocs
+791e88380d57   cdk-erigon-chain-config
+f59601868d96   cdk-erigon-chain-first-batch
+b8434aec7084   cdk-erigon-custom-genesis-addresses.json
+9a2c1f904ccc   cdk-erigon-rpc-chain-spec-001
+6e951cee7b48   cdk-erigon-rpc-config-001
+bfa9c6d4bce5   cdk-erigon-rpc-config-pp
+954723b2ecbf   cdk-erigon-rpc-proc-runner-001
+abcd2c2c86ea   cdk-erigon-sequencer-chain-spec-001
+1999d97e5827   cdk-erigon-sequencer-config-001
+946fbe01fb93   cdk-erigon-sequencer-config-pp
+fbdfeb12faa4   cdk-erigon-sequencer-proc-runner-001
+e65fb4db4e45   cdk-node-config-001
+3d8bfa9d1540   claimsponsor-keystore
+35e13c5ae42d   claimsponsor-keystore-cdk
+cd7308683897   contracts.sh
+cf6198fd81a9   create-genesis-sovereign-params.json
+29ea7bfa3e70   create_new_rollup.json
+53be064cda94   create_op_allocs.py
+ad6224c73927   create_rollup_parameters.json
+9594cae70aa4   deploy_parameters.json
+67252ee06432   el_cl_genesis_data
+b058a6eadb35   final-genesis-timestamp
+cb8cb577b1cb   genesis
+2f3938b7c2f8   genesis-el-cl-env-file
+7cd5ac0f1132   genesis_validators_root
+13e384994b51   init.sql-001
+df41e6ce1ccb   input_args.json
+019cca2e3a28   json2http.py
+d81ccdadda4d   jwt_file
+ad8446f9bcd1   keymanager_file
+6803170fc5e2   op-custom-genesis-addresses.json
+328761749617   prysm-password
+3231111c886f   sequencer-keystore
+6cfd08a553fc   validator-ranges
+be18e3119977   validator-ranges-input
+08c9bd13e530   zkevm-pool-manager-config-001
+038b3b5503a9   zkevm-prover-config-001
+6c342860997b   zkevm-stateless-executor-config-001
+
+========================================== User Services ==========================================
+UUID           Name                                             Ports                                                     Status
+4a46dba9dc16   aggkit-001                                       rpc: 5576/tcp -> http://127.0.0.1:32819                   RUNNING
+8aed9b6eeca0   agglayer                                         aglr-admin: 4446/tcp -> http://127.0.0.1:32807            RUNNING
+                                                                aglr-grpc: 4443/tcp -> grpc://127.0.0.1:32805             
+                                                                aglr-readrpc: 4444/tcp -> http://127.0.0.1:32806          
+                                                                prometheus: 9092/tcp -> http://127.0.0.1:32808            
+4b0d5bbe252e   cdk-data-availability-001                        dac: 8484/tcp                                             STOPPED
+f51080e037f3   cdk-erigon-rpc-001                               pprof: 6060/tcp -> 127.0.0.1:32814                        RUNNING
+                                                                prometheus: 9091/tcp -> 127.0.0.1:32817                   
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32815                   
+                                                                ws-rpc: 8546/tcp -> ws://127.0.0.1:32816                  
+0f9a20951f08   cdk-erigon-sequencer-001                         data-streamer: 6900/tcp -> datastream://127.0.0.1:32810   RUNNING
+                                                                pprof: 6060/tcp -> 127.0.0.1:32809                        
+                                                                prometheus: 9091/tcp -> 127.0.0.1:32813                   
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32811                   
+                                                                ws-rpc: 8546/tcp -> ws://127.0.0.1:32812                  
+bcc8a4c270eb   cdk-node-001                                     aggregator: 50081/tcp                                     STOPPED
+                                                                rest: 5577/tcp                                            
+                                                                rpc: 5576/tcp                                             
+a10885c90141   cl-1-lighthouse-reth                             http: 4000/tcp -> http://127.0.0.1:32774                  RUNNING
+                                                                metrics: 5054/tcp -> http://127.0.0.1:32775               
+                                                                quic-discovery: 9001/udp                                  
+                                                                tcp-discovery: 9000/tcp -> 127.0.0.1:32776                
+                                                                udp-discovery: 9000/udp                                   
+993961cea8d8   contracts-001                                    http: 8080/tcp -> http://127.0.0.1:32778                  RUNNING
+fa2607ee7448   el-1-reth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:32771                   RUNNING
+                                                                metrics: 9001/tcp -> http://127.0.0.1:32772               
+                                                                rpc: 8545/tcp -> 127.0.0.1:32769                          
+                                                                tcp-discovery: 30303/tcp -> 127.0.0.1:32773               
+                                                                udp-discovery: 30303/udp                                  
+                                                                ws: 8546/tcp -> 127.0.0.1:32770                           
+34b14817eccb   postgres-001                                     postgres: 5432/tcp -> postgresql://127.0.0.1:32779        RUNNING
+e83852d6a650   validator-key-generation-cl-validator-keystore   <none>                                                    RUNNING
+d1b6f301abea   vc-1-reth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:32777               RUNNING
+5a60bc63f47c   zkevm-bridge-service-001                         grpc: 9090/tcp -> grpc://127.0.0.1:32804                  RUNNING
+                                                                prometheus: 8090/tcp -> http://127.0.0.1:32803            
+                                                                rpc: 8080/tcp -> http://127.0.0.1:32802                   
+4d958a09eb99   zkevm-pool-manager-001                           http: 8545/tcp                                            STOPPED
+cba4df91b228   zkevm-prover-001                                 executor: 50071/tcp                                       STOPPED
+                                                                hash-db: 50061/tcp                                        
+760e450e272d   zkevm-stateless-executor-001                     executor: 50071/tcp                                       STOPPED
+                                                                hash-db: 50061/tcp                                        
+
+
+[exit=0]
+

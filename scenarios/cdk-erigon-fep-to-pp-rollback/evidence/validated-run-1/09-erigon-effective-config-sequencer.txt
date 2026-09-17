@@ -1,0 +1,10 @@
+$ kexec cdk-erigon-sequencer-001 grep -nE 'executor-urls|executor-strict|disable-virtual-counters|mock-witness-generation' /etc/cdk-erigon/config.yaml
+The command was successfully executed and returned '0'.
+162:zkevm.disable-virtual-counters: true
+340:zkevm.executor-strict: false
+346:# zkevm.executor-urls: zkevm-stateless-executor-001:50071
+978:zkevm.mock-witness-generation: true
+
+
+[exit=0]
+

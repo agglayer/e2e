@@ -1,0 +1,17 @@
+{
+    "rollupTypeID": "2",
+    "programVKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "gitInfo": {
+        "commit": "f27cc65f4b2ed5dcd4342c6d8f903738ac439418",
+        "repo": "https://github.com/agglayer/agglayer-contracts",
+        "tag": "v12.2.0"
+    },
+    "genesis": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "verifierAddress": "0x0000000000000000000000000000000000000000",
+    "consensusContract": "AggchainECDSAMultisig",
+    "consensusContractAddress": "0x9c85cd40541D67670aaC4D8249a55668896A6BD3",
+    "deployedContracts": {
+        "AggchainECDSAMultisig": "0x9c85cd40541D67670aaC4D8249a55668896A6BD3"
+    },
+    "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2"
+}
