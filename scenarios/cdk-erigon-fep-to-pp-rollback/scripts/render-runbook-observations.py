@@ -170,6 +170,14 @@ def note_lines(prefix):
     return out
 hdr = "| stage | node | eth_blockNumber | zkevm batch/virtual/verified | fork | ref block hash | ref block virtualized | debug_traceTransaction | bridge logs @ref | client |\n|---|---|---|---|---|---|---|---|---|---|"
 ref_desc = f"Reference block: {dep1[1]} (the in-window withdrawal, batch {dep1[2]}); before it exists the pre-break withdrawal block is used."
+def gap_open_note():
+    f = next((f for f in os.listdir(E) if re.match(r"^\d+-erigon-health-gap-open\.json$", f)), None)
+    if not f: return ""
+    n = next((n for n in json.load(open(os.path.join(E, f)))["nodes"] if n["node"] == "sequencer"), None)
+    if not n or not str(n.get("ref_block_batch", "")).isdigit() or int(n["ref_block_batch"]) <= int(n["zkevm_virtualBatchNumber"]): return ""
+    return (f" At `gap-open` block {n['ref_block']} (batch {int(n['ref_block_batch'])}) had just been produced and was not yet sequenced "
+            f"(virtual batch {n['zkevm_virtualBatchNumber']}), so it reads `false` there; it reads `true` once sequenced and `false` again once the rollback is final.")
+ref_desc += gap_open_note()
 def batch_meta_line():
     def load(lab):
         f = next((f for f in os.listdir(E) if re.match(rf"^\d+-erigon-health-{lab}\.json$", f)), None)
