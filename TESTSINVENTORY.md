@@ -29,12 +29,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | admin_setLatestPendingCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L133) | |
 | admin_setLatestProvenCertificate with non-existent certificate | [Link](./tests/agglayer/admin-tests.bats#L258) | |
 | admin_setLatestProvenCertificate with valid certificate ID | [Link](./tests/agglayer/admin-tests.bats#L274) | |
-| agglayer certificate headers are well-formed (0.6 schema + value shapes) | [Link](./tests/agglayer/bridges.bats#L263) | |
+| agglayer certificate headers are well-formed (0.6 schema + value shapes) | [Link](./tests/agglayer/bridges.bats#L262) | |
 | agglayer removes the per-epoch certificate rate limit (send-tx unlimited) | [Link](./tests/agglayer/rate-limiting.bats#L41) | |
 | agglayer runs with two distinct settlement signers (cert vs tx) | [Link](./tests/agglayer/dual-signer.bats#L58) | |
-| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L118) | |
+| bridge L2 originated ERC20 from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L117) | |
 | bridge native ETH from L1 to L2 | [Link](./tests/agglayer/bridges.bats#L42) | |
-| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L83) | |
+| bridge native ETH from L2 to L1 | [Link](./tests/agglayer/bridges.bats#L82) | |
 | certificate settlement advances across multiple epochs without throttling | [Link](./tests/agglayer/rate-limiting.bats#L67) | |
 | certificate settlement advances while optimistic mode is enabled | [Link](./tests/agglayer/optimistic-mode.bats#L75) | |
 | compare admin and regular API responses for same certificate | [Link](./tests/agglayer/admin-tests.bats#L214) | |
@@ -42,12 +42,12 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | eth_getTransactionBySenderAndNonce returns a transaction on Reth L1 | [Link](./tests/agglayer/rpc-tests.bats#L11) | |
 | eth_getTransactionBySenderAndNonce returns null for unused nonce | [Link](./tests/agglayer/rpc-tests.bats#L73) | |
 | optimistic mode can be enabled and disabled by the sovereign admin | [Link](./tests/agglayer/optimistic-mode.bats#L62) | |
-| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L203) | |
-| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L168) | |
-| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L184) | |
-| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L244) | |
-| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L295) | |
-| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L225) | |
+| query interop_getCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L202) | |
+| query interop_getEpochConfiguration on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L167) | |
+| query interop_getLatestKnownCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L183) | |
+| query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L243) | |
+| query interop_getLatestSettledCertificateHeader on agglayer RPC returns expected fields | [Link](./tests/agglayer/bridges.bats#L294) | |
+| query interop_getTxStatus on agglayer RPC for latest settled certificate returns done | [Link](./tests/agglayer/bridges.bats#L224) | |
 | settlement resumes after an agglayer node restart (0.6 settlement job-id persistence) | [Link](./tests/agglayer/restart-resume.bats#L36) | |
 | settlement transactions come from one dedicated wallet, independent of the co-signer | [Link](./tests/agglayer/dual-signer.bats#L72) | |
 
@@ -292,7 +292,7 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Verify batches | [Link](./tests/zkevm/batch-verification.bats#L10) | |
 | Verify certificate settlement | [Link](./tests/aggkit/e2e-pp.bats#L10) | |
 | bridge transaction is indexed and autoclaimed on L2 | [Link](./tests/bridge-hub-api.bats#L14) | |
-| bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L95) | |
+| bridge transaction is indexed on L1 | [Link](./tests/bridge-hub-api.bats#L94) | |
 | foo | [Link](./tests/foo.bats#L10) | |
 | prover stress test | [Link](./tests/pessimistic/prover-stress.bats#L10) | |
 | query finalized, safe, latest, and pending blocks return expected order | [Link](./tests/evm-rpc/simple-validations.bats#L95) | |
