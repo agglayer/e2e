@@ -54,8 +54,7 @@ _fund_claim_tx_manager() {
             --destination-network "$l2_network_id" \
             --private-key "$l1_private_key" \
             --rpc-url "$l1_rpc_url" \
-            --value "$bridge_amount" \
-            --gas-limit 500000
+            --value "$bridge_amount"
 
     set +e
     polycli ulxly claim asset \

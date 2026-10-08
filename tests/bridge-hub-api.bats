@@ -22,7 +22,6 @@ setup() {
         --private-key "$l1_private_key" \
         --rpc-url "$l1_rpc_url" \
         --value "$bridge_amount" \
-        --gas-limit 500000 \
         --pretty-logs=false 2>&1)
     echo "$output"
 
