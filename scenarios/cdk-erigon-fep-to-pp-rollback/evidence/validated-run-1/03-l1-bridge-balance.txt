@@ -1,0 +1,5 @@
+$ cast balance --rpc-url http://127.0.0.1:32769 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
+1000000000000000000
+
+[exit=0]
+

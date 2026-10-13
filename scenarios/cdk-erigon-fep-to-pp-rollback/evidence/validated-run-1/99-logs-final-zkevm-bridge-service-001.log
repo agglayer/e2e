@@ -1,0 +1,400 @@
+[zkevm-bridge-service-001] 2026-09-17T23:42:53.645Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 271	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:53.646Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 271	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:53.647Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:57.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:58.366Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:58.650Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 273	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:58.653Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 273	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:42:58.654Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:02.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:03.375Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:03.657Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 274	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:03.659Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 274	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:03.661Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:07.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:08.380Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:08.663Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 276	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:08.665Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:12.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:13.383Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:13.668Z	[31mERROR[0m	synchronizer/synchronizer.go:285	error HeaderByNumber getting latest block from ethereum: Post "http://cdk-erigon-rpc-001:8545": dial tcp 172.16.0.27:8545: connect: connection refused
+[zkevm-bridge-service-001] /src/log/log.go:142 github.com/0xPolygon/zkevm-bridge-service/log.appendStackTraceMaybeArgs()
+[zkevm-bridge-service-001] /src/log/log.go:217 github.com/0xPolygon/zkevm-bridge-service/log.Error()
+[zkevm-bridge-service-001] /src/synchronizer/synchronizer.go:285 github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).syncBlocks()
+[zkevm-bridge-service-001] /src/synchronizer/synchronizer.go:167 github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).Sync()
+[zkevm-bridge-service-001] /src/cmd/run.go:274 main.runSynchronizer()
+[zkevm-bridge-service-001] 	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).syncBlocks
+[zkevm-bridge-service-001] 	/src/synchronizer/synchronizer.go:285
+[zkevm-bridge-service-001] github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).Sync
+[zkevm-bridge-service-001] 	/src/synchronizer/synchronizer.go:167
+[zkevm-bridge-service-001] main.runSynchronizer
+[zkevm-bridge-service-001] 	/src/cmd/run.go:274
+[zkevm-bridge-service-001] 2026-09-17T23:43:13.668Z	[33mWARN[0m	synchronizer/synchronizer.go:170	networkID: 1, error syncing blocks: Post "http://cdk-erigon-rpc-001:8545": dial tcp 172.16.0.27:8545: connect: connection refused	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).Sync
+[zkevm-bridge-service-001] 	/src/synchronizer/synchronizer.go:170
+[zkevm-bridge-service-001] main.runSynchronizer
+[zkevm-bridge-service-001] 	/src/cmd/run.go:274
+[zkevm-bridge-service-001] 2026-09-17T23:43:13.668Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:13.669Z	[33mWARN[0m	synchronizer/synchronizer.go:242	networkID: 1, failed to get latest ger from trusted state. Error: Post "http://cdk-erigon-rpc-001:8545": dial tcp 172.16.0.27:8545: connect: connection refused	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).syncTrustedState
+[zkevm-bridge-service-001] 	/src/synchronizer/synchronizer.go:242
+[zkevm-bridge-service-001] github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).Sync
+[zkevm-bridge-service-001] 	/src/synchronizer/synchronizer.go:220
+[zkevm-bridge-service-001] main.runSynchronizer
+[zkevm-bridge-service-001] 	/src/cmd/run.go:274
+[zkevm-bridge-service-001] 2026-09-17T23:43:13.669Z	[31mERROR[0m	synchronizer/synchronizer.go:223	networkID: 1, error getting current trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] github.com/0xPolygon/zkevm-bridge-service/synchronizer.(*ClientSynchronizer).Sync
+[zkevm-bridge-service-001] 	/src/synchronizer/synchronizer.go:223
+[zkevm-bridge-service-001] main.runSynchronizer
+[zkevm-bridge-service-001] 	/src/cmd/run.go:274
+[zkevm-bridge-service-001] 2026-09-17T23:43:17.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:18.390Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:18.673Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 271	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:18.675Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 271	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:18.677Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:22.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:23.394Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:23.680Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 279	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:23.682Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 279	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:23.684Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:27.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:28.397Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:28.687Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 281	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:28.689Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 281	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:28.691Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:32.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:33.401Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:33.693Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 283	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:33.696Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 283	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:33.697Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:37.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:38.405Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:38.701Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 284	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:38.703Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 284	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:38.705Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:42.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:43.408Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:43.707Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 286	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:43.709Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 286	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:43.710Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:47.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:48.412Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:48.713Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 288	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:48.715Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 288	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:48.716Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:52.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:53.416Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:53.719Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 289	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:53.721Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 289	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:53.722Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:57.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:58.419Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:58.724Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 291	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:58.726Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 291	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:43:58.727Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:02.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:03.423Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:03.729Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 293	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:03.731Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 293	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:03.732Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:07.778Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:08.426Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:08.735Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 294	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:08.736Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 294	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:08.737Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:12.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:13.429Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:13.740Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 296	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:13.742Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 296	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:13.743Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:17.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:18.433Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:18.745Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 298	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:18.747Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 298	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:18.748Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:22.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:23.437Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:23.751Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 299	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:23.752Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 299	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:23.753Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:27.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:28.440Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:28.756Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 301	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:28.757Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 301	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:28.758Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:32.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:33.444Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:33.761Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 302	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:33.763Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 302	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:33.764Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:37.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:38.447Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:38.767Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 304	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:38.769Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 304	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:38.770Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:42.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:43.451Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:43.773Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 306	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:43.774Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 306	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:43.775Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:47.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:48.455Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:48.778Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 307	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:48.780Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 307	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:48.781Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:52.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:53.459Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:53.783Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 309	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:53.785Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 309	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:53.786Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:57.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:58.464Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:58.789Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 311	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:58.790Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 311	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:44:58.791Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:02.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:03.468Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:03.794Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 312	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:03.796Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 312	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:03.797Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:07.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:08.473Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:08.799Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 314	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:08.800Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 314	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:08.801Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:12.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:13.478Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:13.803Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 316	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:13.805Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 316	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:13.806Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:17.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:18.482Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:18.808Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 317	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:18.810Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 317	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:18.811Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:22.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:23.487Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:23.814Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 319	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:23.815Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 319	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:23.817Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:27.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:28.493Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:28.819Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 321	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:28.821Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 321	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:28.822Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:32.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:33.497Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:33.824Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 322	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:33.826Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 322	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:33.827Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:37.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:38.501Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:38.830Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 324	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:38.832Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 324	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:38.833Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:42.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:43.506Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:43.835Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 326	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:43.837Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 326	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:43.838Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:47.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:48.511Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:48.840Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 327	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:48.842Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 327	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:48.843Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:52.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:53.516Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:53.845Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 329	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:53.847Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 329	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:53.848Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:57.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:58.520Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:58.853Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 331	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:58.855Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 331	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:45:58.856Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:02.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:03.525Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 457	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:03.528Z	[34mINFO[0m	synchronizer/synchronizer.go:522	NetworkID: 0. Syncing block: 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:03.858Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 332	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:03.859Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 332	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:03.861Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:07.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:08.531Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:08.863Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 334	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:08.864Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 334	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:08.865Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:12.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:13.534Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:13.867Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 336	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:13.869Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 336	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:13.870Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:17.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:18.537Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:18.872Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 337	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:18.874Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 337	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:18.875Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:22.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:23.540Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:23.877Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 339	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:23.879Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 339	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:23.880Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:27.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:28.543Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:28.883Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 341	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:28.884Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 341	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:28.886Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:32.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:33.546Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:33.888Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 342	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:33.890Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 342	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:33.891Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:37.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:38.549Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:38.894Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 344	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:38.895Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 344	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:38.896Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:42.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:43.553Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:43.898Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 346	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:43.900Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 346	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:43.901Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:47.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:48.557Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:48.904Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 347	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:48.906Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 347	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:48.907Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:52.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:53.561Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:53.909Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 349	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:53.911Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 349	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:53.912Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:57.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:58.564Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:58.915Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 351	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:58.917Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 351	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:46:58.918Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:02.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:03.568Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:03.921Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 352	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:03.923Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 352	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:03.924Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:07.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:08.571Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:08.926Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 354	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:08.927Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 354	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:08.928Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:12.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:13.574Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:13.931Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 355	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:13.932Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 355	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:13.933Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:17.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:18.577Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:18.935Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 357	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:18.937Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 357	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:18.938Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:22.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:23.580Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:23.941Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 359	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:23.942Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 359	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:23.943Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:27.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:28.583Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:28.945Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 360	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:28.947Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 360	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:28.949Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:32.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.587Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 595	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.589Z	[34mINFO[0m	synchronizer/synchronizer.go:522	NetworkID: 0. Syncing block: 640	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.592Z	[34mINFO[0m	claimtxman/claimtxman.go:401	RollupID: 1, deposits from this network with destination L1 (networkID = 0) are set to readyForClaim. RollupsExitRoot 0x9c662657ba4410a3b7c4d2af45f89efac4cef771c35e5ba16aba2baa1be3d8e6 is updated	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.592Z	[34mINFO[0m	claimtxman/claimtxman.go:190	RollupID: 1, Rollup exitroot 0x9c662657ba4410a3b7c4d2af45f89efac4cef771c35e5ba16aba2baa1be3d8e6 is updated. Initializing claim process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.951Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 362	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.952Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 362	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:33.953Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:37.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:38.592Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 640	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:38.595Z	[34mINFO[0m	synchronizer/synchronizer.go:522	NetworkID: 0. Syncing block: 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:38.956Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 364	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:38.958Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 364	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:38.960Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:42.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:43.598Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:43.962Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 365	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:43.964Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 365	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:43.965Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:47.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:48.603Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:48.967Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 367	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:48.969Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 367	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:48.970Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:52.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:53.606Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:53.972Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 369	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:53.974Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 369	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:53.975Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:57.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:58.610Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:58.978Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 370	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:58.980Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 370	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:47:58.982Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:02.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:03.613Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:03.984Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 372	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:03.986Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 372	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:03.987Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:07.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:08.616Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:08.989Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 374	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:08.991Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 374	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:08.992Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:12.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:13.620Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:13.995Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 375	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:13.996Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 375	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:13.997Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:13.999Z	[34mINFO[0m	claimtxman/claimtxman.go:409	RollupID: 1, updating the status of L1 deposits for mainnetExitRoot: 0x6e60097a89da4b0d8efccb77e96931a97059b7485b8017e759e59ff643f6cf7c	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:13.999Z	[34mINFO[0m	claimtxman/claimtxman.go:416	RollupID: 1, updating the status of L2 deposits from this network. The destination network is another L2. rollupsExitRoot: 0x9c662657ba4410a3b7c4d2af45f89efac4cef771c35e5ba16aba2baa1be3d8e6	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:14.000Z	[34mINFO[0m	claimtxman/claimtxman.go:219	RollupID: 1, Mainnet exitroot 0x6e60097a89da4b0d8efccb77e96931a97059b7485b8017e759e59ff643f6cf7c is updated	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:17.775Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:18.624Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:19.000Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 377	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:19.002Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 377	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:19.003Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:22.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:23.628Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:24.006Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 379	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:24.008Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 379	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:24.010Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:27.776Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:28.631Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.013Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 380	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.014Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 380	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.016Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.017Z	[34mINFO[0m	claimtxman/claimtxman.go:409	RollupID: 1, updating the status of L1 deposits for mainnetExitRoot: 0x742e11ab0cb60fb22849062ec7ad407f0111620aa8ee1ff3b039b5b9fc3c61e8	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.017Z	[34mINFO[0m	claimtxman/claimtxman.go:416	RollupID: 1, updating the status of L2 deposits from this network. The destination network is another L2. rollupsExitRoot: 0x9c662657ba4410a3b7c4d2af45f89efac4cef771c35e5ba16aba2baa1be3d8e6	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.018Z	[34mINFO[0m	claimtxman/claimtxman.go:219	RollupID: 1, Mainnet exitroot 0x742e11ab0cb60fb22849062ec7ad407f0111620aa8ee1ff3b039b5b9fc3c61e8 is updated	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:29.019Z	[34mINFO[0m	claimtxman/claimtxman.go:256	RollupID: 1, create the claim tx for the deposit count 3. Deposit Id: 6	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:32.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 1 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:32.777Z	[34mINFO[0m	claimtxman/monitortxs.go:78	processing tx with nonce 2	{"pid": 7, "version": "v0.6.4-RC2", "monitoredTx": 6, "rollupID": 1}
+[zkevm-bridge-service-001] 2026-09-17T23:48:32.780Z	[34mINFO[0m	claimtxman/monitortxs.go:171	Using gasPrice: 10000000000. The gasPrice suggested by the network is 1000000000	{"pid": 7, "version": "v0.6.4-RC2", "monitoredTx": 6, "rollupID": 1}
+[zkevm-bridge-service-001] 2026-09-17T23:48:32.784Z	[34mINFO[0m	claimtxman/monitortxs.go:258	signed tx 0xdaebd3df8d96cfd91d0e87e8e26e3788a00d96a92a0a6601e95f6cf92477ff1f added to the monitored tx history	{"pid": 7, "version": "v0.6.4-RC2", "monitoredTx": 6, "rollupID": 1}
+[zkevm-bridge-service-001] 2026-09-17T23:48:33.634Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:34.018Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 382	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:34.021Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 382	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:34.023Z	[34mINFO[0m	synchronizer/synchronizer.go:522	NetworkID: 1. Syncing block: 384	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:34.025Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:37.774Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 1 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:37.774Z	[34mINFO[0m	claimtxman/monitortxs.go:78	processing tx with nonce 2	{"pid": 7, "version": "v0.6.4-RC2", "monitoredTx": 6, "rollupID": 1}
+[zkevm-bridge-service-001] 2026-09-17T23:48:37.774Z	[34mINFO[0m	claimtxman/monitortxs.go:279	Checking if tx 0xdaebd3df8d96cfd91d0e87e8e26e3788a00d96a92a0a6601e95f6cf92477ff1f is mined	{"pid": 7, "version": "v0.6.4-RC2", "monitoredTx": 6, "rollupID": 1}
+[zkevm-bridge-service-001] 2026-09-17T23:48:37.775Z	[34mINFO[0m	claimtxman/monitortxs.go:318	tx 0xdaebd3df8d96cfd91d0e87e8e26e3788a00d96a92a0a6601e95f6cf92477ff1f was mined successfully	{"pid": 7, "version": "v0.6.4-RC2", "monitoredTx": 6, "rollupID": 1}
+[zkevm-bridge-service-001] 2026-09-17T23:48:38.639Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 642	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:38.641Z	[34mINFO[0m	synchronizer/synchronizer.go:522	NetworkID: 0. Syncing block: 674	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:39.028Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 384	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:39.030Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 384	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:39.031Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:42.777Z	[34mINFO[0m	claimtxman/monitortxs.go:73	rollupID: 1, found 0 monitored tx to process	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:43.643Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 0, [checkReorg function] Checking Block 674	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:44.035Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 385	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:44.038Z	[34mINFO[0m	synchronizer/synchronizer.go:729	NetworkID: 1, [checkReorg function] Checking Block 385	{"pid": 7, "version": "v0.6.4-RC2"}
+[zkevm-bridge-service-001] 2026-09-17T23:48:44.042Z	[34mINFO[0m	synchronizer/synchronizer.go:218	networkID: 1, Virtual state is synced, getting trusted state	{"pid": 7, "version": "v0.6.4-RC2"}

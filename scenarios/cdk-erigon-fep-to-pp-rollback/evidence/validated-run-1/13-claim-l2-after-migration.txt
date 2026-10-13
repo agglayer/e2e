@@ -1,0 +1,33 @@
+[90m11:47PM[0m [32mINF[0m [1mNo destination address specified. Using private key's address[0m [36mdestAddress=[0m0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+[90m11:47PM[0m [33mWRN[0m [1munable to retrieve bridge deposit[0m [36mcode=[0m2
+[90m11:47PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:47PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:47PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:47PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:47PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:48PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:48PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:48PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [32mINF[0m [1mthe claim transaction has already been claimed[0m [36mclaimTxHash=[0m0xdaebd3df8d96cfd91d0e87e8e26e3788a00d96a92a0a6601e95f6cf92477ff1f
+[90m11:48PM[0m [31mFTL[0m [1mReceived critical error[0m [36merror=[0m[31m[1m"the claim transaction has already been claimed"[0m[0m
+[90m11:47PM[0m [32mINF[0m [1mNo destination address specified. Using private key's address[0m [36mdestAddress=[0m0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+[90m11:47PM[0m [33mWRN[0m [1munable to retrieve bridge deposit[0m [36mcode=[0m2
+[90m11:47PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:47PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:47PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:47PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:47PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:48PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:48PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [31mERR[0m [1mThe claim transaction is not yet ready to be claimed. Try again in a few blocks.[0m
+[90m11:48PM[0m [32mINF[0m [1mRetrying[0m
+[90m11:48PM[0m [32mINF[0m [1mthe claim transaction has already been claimed[0m [36mclaimTxHash=[0m0xdaebd3df8d96cfd91d0e87e8e26e3788a00d96a92a0a6601e95f6cf92477ff1f
+[90m11:48PM[0m [31mFTL[0m [1mReceived critical error[0m [36merror=[0m[31m[1m"the claim transaction has already been claimed"[0m[0m
+
+[exit=1]
+

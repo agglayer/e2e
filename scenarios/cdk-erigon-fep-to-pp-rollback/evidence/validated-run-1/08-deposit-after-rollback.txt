@@ -1,0 +1,4 @@
+[90m11:41PM[0m [32mINF[0m [1mBridge transaction sent[0m [36mtxHash=[0m0x312b32eb76b28ed3d31526bd45885190eb2c4810d213cbf92e37ea85d630e4d4
+[90m11:41PM[0m [32mINF[0m [1mTransaction successful[0m [36mtxHash=[0m0x312b32eb76b28ed3d31526bd45885190eb2c4810d213cbf92e37ea85d630e4d4
+[90m11:41PM[0m [32mINF[0m [1mBridge deposit count parsed from logs[0m [36mdepositCount=[0m2
+L1 depositCount=2 (0.001 ETH to L2)

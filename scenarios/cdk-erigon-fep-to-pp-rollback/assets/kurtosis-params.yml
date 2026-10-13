@@ -1,0 +1,25 @@
+# Silicon-like cdk-erigon validium on fork 12, settling through the legacy cdk-node aggregator.
+#
+# Versions are chosen to match Silicon mainnet (rollup ID 10, chain 2355) on 2026-09-17:
+#   - cdk-erigon v2.61.20   : Silicon's live sequencer version (web3_clientVersion on rpc.silicon.network)
+#   - cdk-node   0.5.4-rc1  : Silicon's aggregator version (from their support request)
+#   - fork 12 / validium    : Silicon's rollup type 7 (forkID 12, PolygonValidiumEtrog, DAC)
+#   - agglayer-contracts v12.2.3 : same ROLLUP_MANAGER_VERSION ("v1.0.0") as mainnet
+#   - agglayer 0.6.0-rc.5   : last build that still accepts interop_sendTx. Silicon's L1 was on 0.5.x;
+#                             kurtosis-cdk main only renders a 0.6-line agglayer config, so rc.5 stands in
+#                             for "the agglayer before the breaking upgrade". The scenario upgrades it to
+#                             the 0.6.0 GA image, which is what mainnet runs since 2026-09-15.
+deployment_stages:
+  deploy_l2_contracts: true
+
+args:
+  sequencer_type: cdk-erigon
+  consensus_contract_type: cdk-validium
+  zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12
+  agglayer_image: ghcr.io/agglayer/agglayer:0.6.0-rc.5
+  cdk_erigon_image: hermeznetwork/cdk-erigon:v2.61.20
+  cdk_node_image: ghcr.io/0xpolygon/cdk:0.5.4-rc1
+  # kurtosis-cdk deploys a bridge spammer, a test runner, agglogger and a dashboard by default.
+  # Silicon has none of those; the spammer in particular would keep changing the L2 exit root and
+  # race the scenario's own bridge transactions, so no additional services are deployed.
+  additional_services: []

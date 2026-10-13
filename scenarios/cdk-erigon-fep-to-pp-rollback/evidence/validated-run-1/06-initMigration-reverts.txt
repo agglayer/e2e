@@ -1,0 +1,7 @@
+$ cast call --from 0xE34aaF64b29273B7D567FCFc40544c014EEe9970 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 'initMigration(uint32,uint32,bytes)' 1 2 0x06e76665
+Error: execution reverted: AllSequencedMustBeVerified
+
+Context:
+- server returned an error response: error code 3: execution reverted: ̆-J, data: "0xcc862d4a"
+[exit=1]
+AllSequencedMustBeVerified() selector = 0xcc862d4a

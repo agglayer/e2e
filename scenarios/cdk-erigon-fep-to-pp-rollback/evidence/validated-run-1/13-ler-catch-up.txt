@@ -1,0 +1,2 @@
+current L2 LER 0xbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050 must become the settled LER on L1 (compared live on every poll)
+settled: L1 lastLocalExitRoot=0xbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050 L2 getRoot()=0xbbe91da545b164999c4da20375d788af1cb7ecf22372af228ad0f026c43ae050

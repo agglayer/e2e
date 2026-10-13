@@ -1,0 +1,18 @@
+$ bash -c kurtosis version; docker version --format "docker {{.Server.Version}} {{.Server.Os}}/{{.Server.Arch}}"; cast --version; jq --version; polycli version
+CLI Version:   1.19.0
+
+To see the engine version (provided it is running): kurtosis engine status
+docker 28.0.4 linux/amd64
+cast Version: 1.8.3
+Commit SHA: cae51ad458f6abb64852b7709eb784352429825d
+Build Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)
+Build Profile: dist
+jq-1.7
+Polygon CLI Version v0.1.120
+
+[exit=0]
+
+host: Linux 6.17.0-1022-azure x86_64
+kurtosis-cdk ref: 51a3d3b0d5f76eb34ba5307281d927f9f2de2b4b
+params: # Silicon-like cdk-erigon validium on fork 12, settling through the legacy cdk-node aggregator. # # Versions are chosen to match Silicon mainnet (rollup ID 10, chain 2355) on 2026-09-17: # - cdk-erigon v2.61.20 : Silicon's live sequencer version (web3_clientVersion on rpc.silicon.network) # - cdk-node 0.5.4-rc1 : Silicon's aggregator version (from their support request) # - fork 12 / validium : Silicon's rollup type 7 (forkID 12, PolygonValidiumEtrog, DAC) # - agglayer-contracts v12.2.3 : same ROLLUP_MANAGER_VERSION ("v1.0.0") as mainnet # - agglayer 0.6.0-rc.5 : last build that still accepts interop_sendTx. Silicon's L1 was on 0.5.x; # kurtosis-cdk main only renders a 0.6-line agglayer config, so rc.5 stands in # for "the agglayer before the breaking upgrade". The scenario upgrades it to # the 0.6.0 GA image, which is what mainnet runs since 2026-09-15. deployment_stages: deploy_l2_contracts: true args: sequencer_type: cdk-erigon consensus_contract_type: cdk-validium zkevm_prover_image: hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12 agglayer_image: ghcr.io/agglayer/agglayer:0.6.0-rc.5 cdk_erigon_image: hermeznetwork/cdk-erigon:v2.61.20 cdk_node_image: ghcr.io/0xpolygon/cdk:0.5.4-rc1 # kurtosis-cdk deploys a bridge spammer, a test runner, agglogger and a dashboard by default. # Silicon has none of those; the spammer in particular would keep changing the L2 exit root and # race the scenario's own bridge transactions, so no additional services are deployed. additional_services: [] 
+agglayer after: ghcr.io/agglayer/agglayer:0.6.0 | cdk-erigon after: hermeznetwork/cdk-erigon:v2.61.24 | aggkit: ghcr.io/agglayer/aggkit:0.8.1

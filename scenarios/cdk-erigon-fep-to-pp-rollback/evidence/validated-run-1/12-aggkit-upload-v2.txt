@@ -1,0 +1,5 @@
+$ kurtosis files upload fep-to-pp-rollback /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/work/aggkit-v2 --name aggkit-config-v2
+[36mINFO[0m[2026-09-17T23:45:37Z] Files package 'aggkit-config-v2' uploaded with UUID: a74a4d08e0864ed39340f7e52c56dc7d 
+
+[exit=0]
+

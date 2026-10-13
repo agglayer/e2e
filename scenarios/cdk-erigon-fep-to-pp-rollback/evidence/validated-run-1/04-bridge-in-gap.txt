@@ -1,0 +1,5 @@
+[90m11:37PM[0m [32mINF[0m [1mBridge transaction sent[0m [36mtxHash=[0m0x5b764ac582403d2a0e28759f3a4ab44972afea3636d25f47147f67c2fd0fe15c
+[90m11:37PM[0m [32mINF[0m [1mTransaction successful[0m [36mtxHash=[0m0x5b764ac582403d2a0e28759f3a4ab44972afea3636d25f47147f67c2fd0fe15c
+[90m11:37PM[0m [32mINF[0m [1mBridge deposit count parsed from logs[0m [36mdepositCount=[0m1
+depositCount=1 l2Block=164 l2Batch=34 tx=0x5b764ac582403d2a0e28759f3a4ab44972afea3636d25f47147f67c2fd0fe15c
+l2BlockHash=0xf2a92f9f5b7b845372bf616243b9eba5f0654ba50ea63239f6107fb7401ad374 (must be unchanged after the L1 rollback)
