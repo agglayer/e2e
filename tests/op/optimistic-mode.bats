@@ -99,9 +99,11 @@ check_fep_consensus_version() {
     ensure_non_null_cert >&3
     manage_bridge_spammer "stop"
     print_settlement_info >&3
-    wait_for_null_cert >&3
 
+    # Stop aggkit before waiting: while it runs, it sends a new certificate right after the previous
+    # one settles, so the pending certificate is null for only ~2s per cycle and polling can miss it.
     kurtosis service stop "$kurtosis_enclave_name" aggkit-001 >&3
+    wait_for_null_cert >&3
 
     toggle_optimistic_mode "false"
 
