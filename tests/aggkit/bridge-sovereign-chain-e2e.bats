@@ -117,10 +117,11 @@ setup() {
   run cast decode-event "$set_sov_token_addr_log_data" --sig "$set_sovereign_token_address_event_sig" --json
   assert_success
   local set_sovereign_token_addrs_evt=$output
-  origin_network=$(jq -r '.[0]' <<<"$set_sovereign_token_addrs_evt")
-  origin_token_addr=$(jq -r '.[1]' <<<"$set_sovereign_token_addrs_evt")
-  sov_token_addr=$(jq -r '.[2]' <<<"$set_sovereign_token_addrs_evt")
-  is_not_mintable=$(jq -r '.[3]' <<<"$set_sovereign_token_addrs_evt")
+  # (.data? // .) keeps compatibility with both cast < 1.8 (bare array) and >= 1.8 (versioned envelope)
+  origin_network=$(jq -r '(.data? // .)[0]' <<<"$set_sovereign_token_addrs_evt")
+  origin_token_addr=$(jq -r '(.data? // .)[1]' <<<"$set_sovereign_token_addrs_evt")
+  sov_token_addr=$(jq -r '(.data? // .)[2]' <<<"$set_sovereign_token_addrs_evt")
+  is_not_mintable=$(jq -r '(.data? // .)[3]' <<<"$set_sovereign_token_addrs_evt")
   assert_equal "0" "$origin_network"
   assert_equal "${l1_erc20_addr,,}" "${origin_token_addr,,}"
   assert_equal "${l2_token_addr_sovereign,,}" "${sov_token_addr,,}"
@@ -165,10 +166,10 @@ setup() {
     --json
   assert_success
   local migrate_legacy_token_event_data=$output
-  sender=$(jq -r '.[0]' <<<"$migrate_legacy_token_event_data")
-  legacy_token_addr=$(jq -r '.[1]' <<<"$migrate_legacy_token_event_data")
-  updated_token_addr=$(jq -r '.[2]' <<<"$migrate_legacy_token_event_data")
-  amount=$(jq -r '.[3]' <<<"$migrate_legacy_token_event_data")
+  sender=$(jq -r '(.data? // .)[0]' <<<"$migrate_legacy_token_event_data")
+  legacy_token_addr=$(jq -r '(.data? // .)[1]' <<<"$migrate_legacy_token_event_data")
+  updated_token_addr=$(jq -r '(.data? // .)[2]' <<<"$migrate_legacy_token_event_data")
+  amount=$(jq -r '(.data? // .)[3]' <<<"$migrate_legacy_token_event_data")
   assert_equal "$sender_addr" "$sender"
   assert_equal "${l2_token_addr_legacy,,}" "${legacy_token_addr,,}"
   assert_equal "${l2_token_addr_sovereign,,}" "${updated_token_addr,,}"
@@ -198,7 +199,7 @@ setup() {
   run cast decode-event "$remove_legacy_token_event_data" --sig "$remove_legacy_sovereign_token_addr_event_sig" --json
   assert_success
   local remove_legacy_token_data=$output
-  removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '.[0]' <<<"$remove_legacy_token_data")
+  removeLegacySovereignTokenAddress_event_sovereignTokenAddress=$(jq -r '(.data? // .)[0]' <<<"$remove_legacy_token_data")
   assert_equal "${l2_token_addr_legacy,,}" "${removeLegacySovereignTokenAddress_event_sovereignTokenAddress,,}"
   log "✅ RemoveLegacySovereignTokenAddress event successful"
 
