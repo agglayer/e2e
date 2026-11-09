@@ -389,7 +389,7 @@ setup() {
     assert_success
 
     log "⏳ Waiting for certificate settlement (global_index: $global_index_last_claim_event)"
-    wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index_last_claim_event"
+    wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index_last_claim_event"
     log "✅ Certificate settlement completed for global index: $global_index_last_claim_event"
 }
 
@@ -708,7 +708,7 @@ setup() {
     assert_success
 
     log "⏳ Waiting for certificate settlement (global_index: $global_index_last_claim_event)"
-    wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index_last_claim_event"
+    wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index_last_claim_event"
     log "✅ Certificate settlement completed for global index: $global_index_last_claim_event"
 }
 
@@ -817,7 +817,7 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
@@ -926,7 +926,7 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
 
@@ -1023,6 +1023,6 @@ setup() {
   local global_index=$output
 
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
