@@ -92,6 +92,7 @@ _load_helper_scripts() {
 # - L2_SEQUENCER_RPC_URL: L2 sequencer endpoint
 # - AGGKIT_BRIDGE_URL: AggKit REST API endpoint for bridge operations
 # - AGGKIT_RPC_URL: AggKit RPC interface
+# - AGGKIT_REST_URL: AggKit REST API endpoint for the aggsender status (optional)
 # - ZKEVM_BRIDGE_URL: zkEVM bridge service endpoint
 #
 # Fallback nodes are tried in order. If a required URL cannot be resolved, the function will fail.
@@ -125,6 +126,14 @@ _resolve_required_urls() {
         "aggkit-001" "rpc" "cdk-node-001" "rpc" \
         "Failed to resolve aggkit rpc url from all fallback nodes" true)
     export aggkit_rpc_url
+
+    # AGGKIT_REST_URL
+    # Optional: current aggkit versions serve the aggsender status over REST.
+    # Older ones do not expose the port, so this is not fatal.
+    aggkit_rest_url=$(_resolve_url_or_use_env AGGKIT_REST_URL \
+        "aggkit-001" "rest" "cdk-node-001" "rest" \
+        "Failed to resolve aggkit rest url from all fallback nodes" false)
+    export aggkit_rest_url
 
     # ZKEVM_BRIDGE_URL
     zkevm_bridge_url=$(_resolve_url_or_use_env ZKEVM_BRIDGE_URL \
@@ -556,27 +565,55 @@ _agglayer_cdk_common_multi_setup() {
     export receiver1_addr
 }
 
+# Prints the aggsender mode served by the aggkit REST API, or nothing when the
+# endpoint is not available (older aggkit versions serve only the JSON-RPC API).
+_get_aggsender_mode_from_rest() {
+    [[ -n "${aggkit_rest_url:-}" ]] || return 0
+    curl -fsS "$aggkit_rest_url/aggsender/v1/status" 2>/dev/null \
+        | jq -r '.mode // empty' 2>/dev/null || true
+}
+
 _resolve_aggsender_mode(){
-    local mode
-    mode=${aggsender_mode:-}
-    if [ ! -z "$mode"  ]; then
+    local mode="${aggsender_mode:-}"
+    local rest_mode=""
+
+    # Current aggkit versions serve the status on the REST API.
+    rest_mode=$(_get_aggsender_mode_from_rest)
+    if [[ -n "$rest_mode" ]]; then
+        echo "Resolved aggsender status from aggkit REST API: $aggkit_rest_url" >&3
+    fi
+
+    if [[ -n "$mode" ]]; then
         echo "Using aggsender_mode from environment: $aggsender_mode" >&3
+    elif [[ -n "$rest_mode" ]]; then
+        mode=$rest_mode
     else
         echo "Resolving aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&3
-        mode=$(curl -X POST $aggkit_rpc_url --header "Content-Type: application/json"  -d '{"method":"aggsender_status", "params":[], "id":1}' | jq .result.mode)
-        if [ "$mode" == "null" ] || [ -z "$mode" ]; then
+        mode=$(curl -sS -X POST "$aggkit_rpc_url" --header "Content-Type: application/json" \
+            -d '{"method":"aggsender_status", "params":[], "id":1}' | jq -r '.result.mode // empty')
+        if [[ -z "$mode" ]]; then
             echo "Failed to resolve aggsender_mode from aggkit_rpc_url: $aggkit_rpc_url" >&2
             exit 1
         fi
-    aggsender_mode=$(echo $mode | tr -d '"')
-    export aggsender_mode
     fi
+
+    # The imported-bridge tool reads the aggsender status through this URL: the
+    # REST API when it answered, the JSON-RPC URL otherwise.
+    if [[ -n "$rest_mode" ]]; then
+        aggkit_api_url=$aggkit_rest_url
+    else
+        aggkit_api_url=$aggkit_rpc_url
+    fi
+    export aggkit_api_url
+
+    aggsender_mode=$(echo "$mode" | tr -d '"')
+    export aggsender_mode
     if [ $aggsender_mode == "AggchainProof" ]; then
         export aggsender_mode_is_fep=1
     else
         export aggsender_mode_is_fep=0
     fi
-    echo "=== Resolved aggsender_mode: $aggsender_mode (aggsender_mode_is_fep=$aggsender_mode_is_fep)" >&3
+    echo "=== Resolved aggsender_mode: $aggsender_mode (aggsender_mode_is_fep=$aggsender_mode_is_fep) from $aggkit_api_url" >&3
 }
 log_setup_test(){
     log_prefix_test "🛠️🛠️🛠️🛠️ setup:"

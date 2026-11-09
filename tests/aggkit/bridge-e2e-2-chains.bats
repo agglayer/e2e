@@ -61,8 +61,8 @@ setup() {
     run process_bridge_claim "bridge-e2e-2-chains: $LINENO"  "$rollup_1_network_id" "$bridge_tx_hash" "$l1_rpc_network_id" "$l1_bridge_addr" "$aggkit_bridge_1_url" "$aggkit_bridge_1_url" "$l1_rpc_url"
     assert_success
 
-    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1 (Rollup 1 rpc: $aggkit_rpc_url)"
-    wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index_pp2_to_pp1"
+    echo "=== Waiting for settled certificate with imported bridge for global_index: $global_index_pp2_to_pp1 (Rollup 1 api: $aggkit_api_url)"
+    wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index_pp2_to_pp1"
 }
 
 @test "Transfer message L2 to L2" {

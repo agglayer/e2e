@@ -303,6 +303,6 @@ setup() {
 
   # Wait for certificate settlement
   log "⏳ Waiting for certificate settlement containing global index: $global_index"
-  wait_to_settle_certificate_containing_global_index "$aggkit_rpc_url" "$global_index"
+  wait_to_settle_certificate_containing_global_index "$aggkit_api_url" "$global_index"
   log "✅ Certificate settlement completed for global index: $global_index"
 }
