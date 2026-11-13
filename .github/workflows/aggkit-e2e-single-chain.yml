@@ -240,6 +240,12 @@ jobs:
             fi
           fi
 
+          # AggOracle committee v2 (aggkit in `committee` mode): on top of the tests above, run the ones
+          # that stop and start the GER validators. They start the validators again when they finish.
+          if [[ "${{ inputs.test-name }}" == "test-single-l2-network-op-aggoracle-committee-v2" ]]; then
+            run_test ./tests/aggkit/bridge-e2e-aggoracle-committee-v2.bats
+          fi
+
           # ------------------------------
           # Final pass/fail result for scheduled runs
           # ------------------------------
