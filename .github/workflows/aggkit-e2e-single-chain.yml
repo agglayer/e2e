@@ -70,6 +70,18 @@ on:
         type: string
         default: ""
 
+      gcp-workload-identity-provider:
+        description: "Optional workload identity provider kurtosis-pre-run uses to authenticate to Google Cloud when pulling images from GCR. Empty uses the default of kurtosis-pre-run."
+        required: false
+        type: string
+        default: ""
+
+      gcp-service-account:
+        description: "Optional service account kurtosis-pre-run impersonates through the workload identity provider. Empty uses the default of kurtosis-pre-run."
+        required: false
+        type: string
+        default: ""
+
     secrets:
       DOCKER_USERNAME:
         description: "Docker Hub username used by kurtosis-pre-run to authenticate and pull images"
@@ -115,6 +127,8 @@ jobs:
         with:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_token: ${{ secrets.DOCKER_TOKEN }}
+          gcp_workload_identity_provider: ${{ inputs.gcp-workload-identity-provider }}
+          gcp_service_account: ${{ inputs.gcp-service-account }}
 
       - name: Download binary
         if: inputs.aggsender-find-imported-bridge-artifact != ''
