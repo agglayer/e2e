@@ -254,6 +254,10 @@ Table of tests currently implemented or being implemented in the E2E repository.
 | Test Name | Reference | Notes |
 |-----------|-----------|-------|
 | Add single validator to committee | [Link](./tests/aggkit/aggsender-committee-updates.bats#L108) | |
+| AggOracle committee v2: bridge L1 to L2 is claimable with all the validators up | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee-v2.bats#L119) | |
+| AggOracle committee v2: the GER is not injected below the threshold and it is when the validators are back | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee-v2.bats#L147) | |
+| AggOracle committee v2: the GER is still injected with one validator down | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee-v2.bats#L130) | |
+| AggOracle committee v2: the L2 GER updater is a committee v2 with all its validators serving | [Link](./tests/aggkit/bridge-e2e-aggoracle-committee-v2.bats#L109) | |
 | Bridge A -> Bridge B -> Claim A -> Claim B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L274) | |
 | Bridge A -> Bridge B -> Claim B -> Claim A | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L354) | |
 | Bridge asset A -> Claim asset A -> Bridge asset B -> Claim asset B | [Link](./tests/aggkit/bridge-e2e-nightly.bats#L194) | |

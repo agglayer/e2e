@@ -211,6 +211,15 @@ setup() {
 }
 
 @test "Test inject invalid GER on L2 (bridges are valid)" {
+  # The test inserts a GER with the key of the aggoracle, which only works if that address is the GER updater.
+  # With an AggOracle committee the updater is the committee contract, that only inserts GERs signed by its validators.
+  local ger_updater aggoracle_addr
+  ger_updater=$(cast call --rpc-url "$L2_RPC_URL" "$l2_ger_addr" 'globalExitRootUpdater() (address)')
+  aggoracle_addr=$(cast wallet address --private-key "$aggoracle_private_key")
+  if [[ "${ger_updater,,}" != "${aggoracle_addr,,}" ]]; then
+    skip "the GER updater ($ger_updater) is not the aggoracle address ($aggoracle_addr): a GER can not be inserted directly"
+  fi
+
   log "🚀 Sending bridge from L1 to L2"
   destination_addr="$receiver"
   destination_net="$l2_rpc_network_id"
