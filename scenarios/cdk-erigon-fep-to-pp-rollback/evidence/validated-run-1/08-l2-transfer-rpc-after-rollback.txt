@@ -1,0 +1,1 @@
+cast send via rpc-after-rollback: status=0x1 block=242 tx=0xd0c990d98fd819299906022706e9f47bebd32b99de284f4b4ab9f917024f2960

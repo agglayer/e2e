@@ -1,0 +1,4 @@
+$ jsonrpc http://127.0.0.1:32806 interop_getLatestSettledCertificateHeader [1]
+{"jsonrpc":"2.0","id":1,"result":null}
+[exit=0]
+

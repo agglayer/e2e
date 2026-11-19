@@ -1,0 +1,19 @@
+$ bash -c 
+      echo rollup.admin=$(cast call --rpc-url http://127.0.0.1:32769 0x414e9E227e4b589aF92200508aF5399576530E4e 'admin()(address)')
+      echo trustedSequencer=$(cast call --rpc-url http://127.0.0.1:32769 0x414e9E227e4b589aF92200508aF5399576530E4e 'trustedSequencer()(address)')
+      echo admin_has_UPDATE_ROLLUP_ROLE=$(cast call --rpc-url http://127.0.0.1:32769 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 'hasRole(bytes32,address)(bool)' $(cast keccak UPDATE_ROLLUP_ROLE) 0xE34aaF64b29273B7D567FCFc40544c014EEe9970)
+      echo ROLLUP_MANAGER_VERSION=$(cast call --rpc-url http://127.0.0.1:32769 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 'ROLLUP_MANAGER_VERSION()(string)')
+      echo rollupTypeCount=$(cast call --rpc-url http://127.0.0.1:32769 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 'rollupTypeCount()(uint32)')
+      echo web3_clientVersion=$(cast rpc --rpc-url http://127.0.0.1:32793 web3_clientVersion)
+      echo zkevm_getForkId=$(cast rpc --rpc-url http://127.0.0.1:32793 zkevm_getForkId)
+    
+rollup.admin=0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+trustedSequencer=0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
+admin_has_UPDATE_ROLLUP_ROLE=true
+ROLLUP_MANAGER_VERSION="v1.0.0"
+rollupTypeCount=1
+web3_clientVersion="cdk-erigon/v2.61.20/linux-amd64/go1.21.5"
+zkevm_getForkId="0xc"
+
+[exit=0]
+

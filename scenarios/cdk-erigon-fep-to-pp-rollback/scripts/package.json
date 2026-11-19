@@ -1,0 +1,6 @@
+{
+  "name": "fep-to-pp-rollback-screenshots",
+  "private": true,
+  "type": "module",
+  "dependencies": { "playwright": "1.47.2" }
+}

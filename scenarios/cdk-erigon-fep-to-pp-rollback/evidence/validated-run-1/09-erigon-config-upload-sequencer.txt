@@ -1,0 +1,5 @@
+$ kurtosis files upload fep-to-pp-rollback /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/work/erigon-sequencer --name cdk-erigon-sequencer-config-pp
+[36mINFO[0m[2026-09-17T23:42:51Z] Files package 'cdk-erigon-sequencer-config-pp' uploaded with UUID: 71e6295f91344e60bf452511ab968b52 
+
+[exit=0]
+

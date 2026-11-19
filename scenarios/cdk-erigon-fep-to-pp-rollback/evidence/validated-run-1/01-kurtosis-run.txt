@@ -1,0 +1,1414 @@
+$ timeout 3600 kurtosis run --enclave fep-to-pp-rollback --args-file assets/kurtosis-params.yml github.com/0xPolygon/kurtosis-cdk@51a3d3b0d5f76eb34ba5307281d927f9f2de2b4b
+[36mINFO[0m[2026-09-17T23:23:26Z] Creating a new enclave for Starlark to run inside... 
+[36mINFO[0m[2026-09-17T23:23:34Z] Enclave 'fep-to-pp-rollback' created successfully 
+[36mINFO[0m[2026-09-17T23:23:34Z] Kurtosis CLI is running in a non interactive terminal. Everything will work but progress information and the progress bar will not be displayed. 
+
+Container images used in this run:
+> protolambda/eth2-val-tools:latest - remotely downloaded
+> ghcr.io/agglayer/agglayer:0.6.0-rc.5 - remotely downloaded
+> hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12 - remotely downloaded
+> sigp/lighthouse:v8.2.2 - remotely downloaded
+> ethpandaops/ethereum-genesis-generator:6.2.1 - remotely downloaded
+> ghcr.io/0xpolygon/cdk-data-availability:0.0.13 - remotely downloaded
+> ghcr.io/0xpolygon/zkevm-bridge-service:v0.6.4-RC2 - remotely downloaded
+> hermeznetwork/cdk-erigon:v2.61.20 - remotely downloaded
+> ghcr.io/0xpolygon/cdk:0.5.4-rc1 - remotely downloaded
+> badouralix/curl-jq - locally cached
+> ghcr.io/agglayer/aggkit-prover:2.1.0 - remotely downloaded
+> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/toolbox:0.0.12 - remotely downloaded
+> europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v12.2.3 - remotely downloaded
+> postgres:17.6 - remotely downloaded
+> ghcr.io/0xpolygon/zkevm-pool-manager:0.1.3 - remotely downloaded
+> ghcr.io/paradigmxyz/reth:v2.5.2 - remotely downloaded
+
+Deriving the private key from the mnemonic
+Command returned with exit code '0' and the following output: 0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31
+
+Printing a message
+Deploying the following components: {"deploy_aggkit_node": False, "deploy_agglayer": True, "deploy_agglayer_contracts_on_l1": True, "deploy_cdk_bridge_infra": True, "deploy_cdk_central_environment": True, "deploy_databases": True, "deploy_l1": True, "deploy_l2_contracts": True, "deploy_op_succinct": False}
+
+Printing a message
+Deploying CDK stack with the following configuration: {"additional_services": [], "agg_oracle_committee_quorum": 0, "agg_oracle_committee_total_members": 1, "agg_sender_multisig_threshold": 1, "agg_sender_validator_total_number": 0, "aggkit_components": "aggsender,aggoracle", "aggkit_image": "ghcr.io/agglayer/aggkit:0.10.0", "aggkit_node_rest_api_port": 5577, "aggkit_pprof_port": 6060, "aggkit_prover_grpc_url_prefix": "aggkit-prover", "aggkit_prover_image": "ghcr.io/agglayer/aggkit-prover:2.1.0", "aggkit_prover_primary_prover": "mock-prover", "agglayer_admin_port": 4446, "agglayer_contracts_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v12.2.3", "agglayer_dev_ui_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-dev-ui:844bfbc", "agglayer_grpc_port": 4443, "agglayer_grpc_url": "http://agglayer:4443", "agglayer_image": "ghcr.io/agglayer/agglayer:0.6.0-rc.5", "agglayer_metrics_port": 9092, "agglayer_prover_metrics_port": 9093, "agglayer_prover_port": 4445, "agglayer_prover_primary_prover": "mock-prover", "agglayer_readrpc_port": 4444, "agglayer_readrpc_url": "http://agglayer:4444", "agglayer_use_second_signer": False, "agglogger_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglogger:bf1f8c1", "aggsender_validator_grpc_port": 5578, "anvil_image": "ghcr.io/foundry-rs/foundry:v1.8.1", "anvil_port": 8545, "anvil_state_file": None, "blockscout_frontend_port": 3000, "blockscout_params": {"blockscout_public_port": 3000}, "bridge_hub_api_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/bridge-hub-api:2a71905", "bridge_hub_autoclaim_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/bridge-hub-autoclaim:2a71905", "bridge_hub_consumer_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/bridge-hub-consumer:2a71905", "cdk_data_availability_image": "ghcr.io/0xpolygon/cdk-data-availability:0.0.13", "cdk_erigon_image": "hermeznetwork/cdk-erigon:v2.61.20", "cdk_erigon_sovereign_image": "ghcr.io/0xpolygon/cdk-erigon:v2.65.0-RC3", "cdk_node_image": "ghcr.io/0xpolygon/cdk:0.5.4-rc1", "cdk_node_rpc_port": 5576, "chain_name": "kurtosis", "consensus_contract_type": "cdk-validium", "db_image": "postgres:17.6", "deploy_agglayer": True, "deployment_suffix": "-001", "enable_aggkit_claim_sponsor": False, "enable_normalcy": False, "environment": "development", "erigon_datadir_archive": None, "erigon_strict_mode": True, "gas_token_address": "0x0000000000000000000000000000000000000000", "gas_token_enabled": False, "gas_token_network": 0, "geth_image": "ethereum/client-go:v1.17.5", "l1_additional_services": [], "l1_anvil_block_time": 1, "l1_anvil_slots_in_epoch": 1, "l1_beacon_url": "http://cl-1-lighthouse-reth:4000", "l1_chain_id": 271828, "l1_cl_type": "lighthouse", "l1_custom_genesis": False, "l1_deploy_lxly_bridge_and_call": True, "l1_el_type": "reth", "l1_engine": "ethereum-package", "l1_explorer_url": "https://sepolia.etherscan.io/", "l1_funding_amount": "1000000ether", "l1_preallocated_mnemonic": "<redacted>", "l1_preallocated_private_key": "<redacted>", "l1_rpc_url": "http://el-1-reth-lighthouse:8545", "l1_seconds_per_slot": 2, "l1_ws_url": "ws://el-1-reth-lighthouse:8546", "l2_accounts_to_fund": 10, "l2_admin_address": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970", "l2_admin_private_key": "<redacted>", "l2_aggoracle_address": "0x0b68058E5b2592b1f472AdFe106305295A332A7C", "l2_aggoracle_private_key": "<redacted>", "l2_aggregator_address": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d", "l2_aggregator_private_key": "<redacted>", "l2_chain_id": 2151908, "l2_claimsponsor_address": "0x635243A11B41072264Df6c9186e3f473402F94e9", "l2_claimsponsor_private_key": "<redacted>", "l2_dac_address": "0x5951F5b2604c9B42E478d5e2B2437F44073eF9A6", "l2_dac_private_key": "<redacted>", "l2_deploy_deterministic_deployment_proxy": True, "l2_deploy_lxly_bridge_and_call": True, "l2_funding_amount": "100ether", "l2_keystore_password": "<redacted>", "l2_network_id": 1, "l2_rpc_name": "cdk-erigon-rpc", "l2_sequencer_address": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "l2_sequencer_private_key": "<redacted>", "l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16", "l2_sovereignadmin_private_key": "<redacted>", "lighthouse_image": "sigp/lighthouse:v8.2.2", "log_format": "pretty", "log_level": "info", "mitm_image": "mitmproxy/mitmproxy:12.2.3", "mitm_port": 8234, "mitm_proxied_components": {"agglayer": False, "aggkit": False, "bridge": False, "dac": False, "erigon-sequencer": False, "erigon-rpc": False, "cdk-node": False}, "mitm_rpc_url": {}, "mongodb_image": "mongo:7.0.29", "op_batcher_image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher:v1.17.0", "op_cl_rpc_url": "http://op-cl-1-op-node-op-reth-001:8547", "op_contract_deployer_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/op-deployer:v0.7.1-cdk", "op_el_rpc_url": "http://op-el-1-op-reth-op-node-001:8545", "op_node_image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.19.7", "op_proposer_image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer:v1.16.5", "op_proposer_port": 8560, "op_reth_image": "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:v2.4.4", "op_succinct_mock": False, "op_succinct_proposer_image": "ghcr.io/agglayer/op-succinct/op-succinct-agglayer:v3.10.0-agglayer", "polygon_zkevm_explorer": "https://explorer.private/", "prometheus_port": 9091, "reth_image": "ghcr.io/paradigmxyz/reth:v2.5.2", "sequencer_name": "cdk-erigon-sequencer", "sequencer_type": "cdk-erigon", "sovereign_chain_name": "op-sovereign", "sovereign_weth_address": "0x0000000000000000000000000000000000000000", "sovereign_weth_address_not_mintable": False, "sp1_cluster_endpoint": "https://rpc.production.succinct.xyz", "sp1_prover_key": "bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31", "status_checker_image": "ghcr.io/0xpolygon/status-checker:v0.2.9", "test_runner_claim_wait_duration": "20m", "test_runner_image": "ghcr.io/agglayer/e2e:dda31ee", "trigger_cert_mode": "ASAP", "use_agg_oracle_committee": False, "use_agg_sender_validator": False, "use_dynamic_ports": True, "use_previously_deployed_contracts": False, "zkevm_bridge_grpc_port": 9090, "zkevm_bridge_metrics_port": 8090, "zkevm_bridge_proxy_image": "haproxy:3.2-bookworm", "zkevm_bridge_rpc_port": 8080, "zkevm_bridge_service_image": "ghcr.io/0xpolygon/zkevm-bridge-service:v0.6.4-RC2", "zkevm_bridge_ui_image": "europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/zkevm-bridge-ui:3f1a3a0", "zkevm_bridge_ui_port": 80, "zkevm_fork_id": 12, "zkevm_fork_name": "banana", "zkevm_l2_admin_address": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970", "zkevm_l2_admin_private_key": "<redacted>", "zkevm_l2_aggoracle_address": "0x0b68058E5b2592b1f472AdFe106305295A332A7C", "zkevm_l2_aggoracle_private_key": "<redacted>", "zkevm_l2_aggregator_address": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d", "zkevm_l2_aggregator_private_key": "<redacted>", "zkevm_l2_claimsponsor_address": "0x635243A11B41072264Df6c9186e3f473402F94e9", "zkevm_l2_claimsponsor_private_key": "<redacted>", "zkevm_l2_dac_address": "0x5951F5b2604c9B42E478d5e2B2437F44073eF9A6", "zkevm_l2_dac_private_key": "<redacted>", "zkevm_l2_sequencer_address": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed", "zkevm_l2_sequencer_private_key": "<redacted>", "zkevm_l2_sovereignadmin_address": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16", "zkevm_l2_sovereignadmin_private_key": "<redacted>", "zkevm_path_rw_data": "/tmp", "zkevm_pool_manager_image": "ghcr.io/0xpolygon/zkevm-pool-manager:0.1.3", "zkevm_prover_image": "hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12", "zkevm_use_real_verifier": False}
+
+Printing a message
+Deploying a local L1
+
+Printing a message
+Custom genesis is disabled, using the default ethereum package.
+
+Printing a message
+Sanity check passed
+
+Printing a message
+Docker cache is disabled
+
+Fetching cluster type 'docker'
+Fetched cluster type 'docker'
+
+Uploading file '/static_files/jwt/jwtsecret' to files artifact 'jwt_file'
+Files with artifact name 'jwt_file' uploaded with artifact UUID '3a95aefc35fc43e7991e982a333bd906'
+
+Uploading file '/static_files/keymanager/keymanager.txt' to files artifact 'keymanager_file'
+Files with artifact name 'keymanager_file' uploaded with artifact UUID '0492935db42041d68596f08657a3e378'
+
+Printing a message
+Read the prometheus, grafana templates
+
+Printing a message
+Launching participant network with 1 participants and the following network params struct(additional_mnemonics = [], additional_preloaded_contracts = "", aggregate_due_bps_gloas = 5000, altair_fork_epoch = 0, attestation_due_bps_gloas = 2500, base_fee_update_fraction_electra = 5007716, bellatrix_fork_epoch = 0, bpo_1_base_fee_update_fraction = 8346193, bpo_1_epoch = 3, bpo_1_max_blobs = 15, bpo_1_target_blobs = 10, bpo_2_base_fee_update_fraction = 11684671, bpo_2_epoch = 3, bpo_2_max_blobs = 21, bpo_2_target_blobs = 14, bpo_3_base_fee_update_fraction = 0, bpo_3_epoch = 18446744073709551615, bpo_3_max_blobs = 33, bpo_3_target_blobs = 22, bpo_4_base_fee_update_fraction = 0, bpo_4_epoch = 18446744073709551615, bpo_4_max_blobs = 48, bpo_4_target_blobs = 32, bpo_5_base_fee_update_fraction = 0, bpo_5_epoch = 18446744073709551615, bpo_5_max_blobs = 72, bpo_5_target_blobs = 48, builder_balance = 100, builder_count = 0, builder_keys_mnemonic = "<redacted>", capella_fork_epoch = 0, churn_limit_quotient = 32, confirmation_byzantine_threshold = 25, contribution_due_bps_gloas = 5000, custody_requirement = 4, deneb_fork_epoch = 1, deploy_eip8282_contracts = True, deposit_contract_address = "0x00000000219ab540356cBB839Cbe05303d7705Fa", devnet_repo = "ethpandaops", ejection_balance = 16000000000, electra_fork_epoch = 2, eth1_follow_distance = 16, force_snapshot_sync = False, frames_enabled = False, fulu_fork_epoch = 3, gas_limit = 0, gas_limit_schedule = [], genesis_delay = 20, genesis_gaslimit = 60000000, genesis_time = 0, gloas_fork_epoch = 18446744073709551615, heze_fork_epoch = 18446744073709551615, inclusion_list_submission_due_bps = 6667, max_blobs_per_block_electra = 9, max_payload_size = 10485760, max_per_epoch_activation_churn_limit = 4, max_request_blocks_deneb = 128, min_builder_withdrawability_delay = 2, min_epochs_for_data_column_sidecars_requests = 4096, min_validator_withdrawability_delay = 256, network = "kurtosis", network_id = "271828", network_sync_base_url = "https://snapshots.ethpandaops.io/", num_validator_keys_per_node = 128, payload_attestation_due_bps = 7500, payload_due_bps = 5000, perfect_peerdas_enabled = False, prefunded_accounts = {}, preregistered_validator_count = 0, preregistered_validator_keys_mnemonic = "<redacted>", preset = "minimal", proposer_inclusion_list_cutoff_bps = 9167, samples_per_slot = 8, seconds_per_slot = 2, shadowfork_block_height = "latest", shard_committee_period = 64, shuffle_genesis_validators = False, slot_duration_ms = 2000, sync_message_due_bps_gloas = 2500, target_blobs_per_block_electra = 6, validator_balance = 32, view_freeze_cutoff_bps = 7500, withdrawal_address = "0x8943545177806ED17B9F23F0a21ee5948eCaa776", withdrawal_type = "0x00")
+
+Printing a message
+Generating cl validator key stores
+
+Adding service with name 'validator-key-generation-cl-validator-keystore' and image 'protolambda/eth2-val-tools:latest'
+Service 'validator-key-generation-cl-validator-keystore' added with service UUID '305b7390918445a4ad8d0653d93252cf'
+
+Generating keystores
+Command returned with exit code '0' with no output
+
+Verifying whether two values meet a certain condition '=='
+Verification succeeded. Value is '0'.
+
+Storing files from service 'validator-key-generation-cl-validator-keystore' at path '/node-0-keystores/' to files artifact with name '1-lighthouse-reth-0-127'
+Files with artifact name '1-lighthouse-reth-0-127' uploaded with artifact UUID 'bdba85292101404f80296acc85f54cb2'
+
+Storing prysm password in a file
+Command returned with exit code '0' with no output
+
+Verifying whether two values meet a certain condition '=='
+Verification succeeded. Value is '0'.
+
+Storing files from service 'validator-key-generation-cl-validator-keystore' at path '/tmp/prysm-password.txt' to files artifact with name 'prysm-password'
+Files with artifact name 'prysm-password' uploaded with artifact UUID 'a0a7d443120d4905b1272e6b05258a21'
+
+Printing a message
+{
+	"per_node_keystores": [
+		{
+			"files_artifact_uuid": "1-lighthouse-reth-0-127",
+			"nimbus_keys_relative_dirpath": "/nimbus-keys",
+			"prysm_relative_dirpath": "/prysm",
+			"raw_keys_relative_dirpath": "/keys",
+			"raw_root_dirpath": "",
+			"raw_secrets_relative_dirpath": "/secrets",
+			"teku_keys_relative_dirpath": "/teku-keys",
+			"teku_secrets_relative_dirpath": "/teku-secrets"
+		}
+	],
+	"prysm_password_artifact_uuid": "prysm-password",
+	"prysm_password_relative_filepath": "prysm-password.txt"
+}
+
+Getting final genesis timestamp
+Command returned with exit code '0' and the following output: 1789687570
+
+Printing a message
+Generating EL CL data
+
+Rendering a template to a files artifact with name 'genesis-el-cl-env-file'
+Templates artifact name 'genesis-el-cl-env-file' rendered with artifact UUID '09eae63f400540b7b6ebdef6ec1b54e9'
+
+Creating genesis
+Command returned with exit code '0' and the following output:
+--------------------
++ '[' -f /data/metadata/genesis.json ']'
++ mkdir -p /data/metadata
++ source /apps/el-gen/generate_genesis.sh
++ generate_genesis /data/metadata
++ set +x
+Adding bellatrix genesis properties
+Adding capella genesis properties
+Adding deneb genesis properties
+Adding electra genesis properties
+Adding fulu genesis properties
+Adding blob schedule (BPOs and fork-based entries)
+Adding BPO 1 at epoch 3 (target: 10, max: 15, fraction: 8346193)
+Adding BPO 2 at epoch 3 (target: 14, max: 21, fraction: 11684671)
+Adding precompile allocations...
+Adding system contracts
+  deposit contract:	0x00000000219ab540356cBB839Cbe05303d7705Fa
+  adding allocation for 0x00000000219ab540356cBB839Cbe05303d7705Fa
+  EIP-4788 contract:	0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02
+  adding allocation for 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02
+  EIP-2935 contract:	0x0000F90827F1C53a10cb7A02335B175320002935
+  adding allocation for 0x0000F90827F1C53a10cb7A02335B175320002935
+  EIP-7002 contract:	0x00000961Ef480Eb55e80D19ad83579A64c007002
+  adding allocation for 0x00000961Ef480Eb55e80D19ad83579A64c007002
+  EIP-7251 contract:	0x0000BBdDc7CE488642fb579F8B00f3a590007251
+  adding allocation for 0x0000BBdDc7CE488642fb579F8B00f3a590007251
+Adding well-known contracts
+  deterministic_deployment_proxy:	0x4e59b44847b379578588920cA78FbF26c0B4956C
+  adding allocation for 0x4e59b44847b379578588920cA78FbF26c0B4956C
+Generating 21 premine accounts...
+Adding premine wallets from mnemonic...
+  adding allocation for 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+  adding allocation for 0xE25583099BA105D9ec0A67f5Ae86D90e50036425
+  adding allocation for 0x614561D2d143621E126e87831AEF287678B442b8
+  adding allocation for 0xf93Ee4Cf8c6c40b329b0c0626F28333c132CF241
+  adding allocation for 0x802dCbE1B1A97554B4F50DB5119E37E8e7336417
+  adding allocation for 0xAe95d8DA9244C37CaC0a3e16BA966a8e852Bb6D6
+  adding allocation for 0x2c57d1CFC6d5f8E4182a56b4cf75421472eBAEa4
+  adding allocation for 0x741bFE4802cE1C4b5b00F9Df2F5f179A1C89171A
+  adding allocation for 0xc3913d4D8bAb4914328651C2EAE817C8b78E1f4c
+  adding allocation for 0x65D08a056c17Ae13370565B04cF77D2AfA1cB9FA
+  adding allocation for 0x3e95dFbBaF6B348396E6674C7871546dCC568e56
+  adding allocation for 0x5918b2e647464d4743601a865753e64C8059Dc4F
+  adding allocation for 0x589A698b7b7dA0Bec545177D3963A2741105C7C9
+  adding allocation for 0x4d1CB4eB7969f8806E2CaAc0cbbB71f88C8ec413
+  adding allocation for 0xF5504cE2BcC52614F121aff9b93b2001d92715CA
+  adding allocation for 0xF61E98E7D47aB884C244E39E031978E33162ff4b
+  adding allocation for 0xf1424826861ffbbD25405F5145B5E50d0F1bFc90
+  adding allocation for 0xfDCe42116f541fc8f7b0776e2B30832bD5621C85
+  adding allocation for 0xD9211042f35968820A3407ac3d80C725f8F75c14
+  adding allocation for 0xD8F3183DEF51A987222D845be228e0Bbb932C222
+  adding allocation for 0xafF0CA253b97e54440965855cec0A8a2E2399896
+Adding static premine wallets...
+Additional contracts file: /opt/additional-contracts.json
+Adding additional contracts...
+Applying allocations to genesis files...
++ '[' -f /data/metadata/genesis.ssz ']'
+++ mktemp -d -t ci-XXXXXXXXXX
++ tmp_dir=/tmp/ci-DBhnt0Un5s
++ mkdir -p /data/metadata
++ mkdir -p /data/parsed
+++ date -u -d @1789687570 '+%Y-%b-%d %I:%M:%S %p %Z'
++ HUMAN_READABLE_TIMESTAMP='2026-Sep-17 11:26:10 PM UTC'
++ COMMENT='# 2026-Sep-17 11:26:10 PM UTC'
+++ build_blob_schedule
+++ local include_schedule=false
+++ local schedule=
+++ local default_epoch=18446744073709551615
+++ for i in {1..5}
+++ local var_epoch=BPO_1_EPOCH
+++ local var_blobs=BPO_1_MAX_BLOBS
+++ local var_next_epoch=BPO_2_EPOCH
+++ '[' -n 3 ']'
+++ '[' 3 '!=' 18446744073709551615 ']'
+++ '[' 3 == 3 ']'
+++ echo 'BPO 1 has the same activation epoch as the followup BPO 2, skipping for CL config...'
+BPO 1 has the same activation epoch as the followup BPO 2, skipping for CL config...
+++ continue
+++ for i in {1..5}
+++ local var_epoch=BPO_2_EPOCH
+++ local var_blobs=BPO_2_MAX_BLOBS
+++ local var_next_epoch=BPO_3_EPOCH
+++ '[' -n 3 ']'
+++ '[' 3 '!=' 18446744073709551615 ']'
+++ '[' 18446744073709551615 == 3 ']'
+++ '[' false = false ']'
+++ schedule=BLOB_SCHEDULE:
+++ include_schedule=true
+++ schedule='BLOB_SCHEDULE:
+  - EPOCH: 3
+    MAX_BLOBS_PER_BLOCK: 21'
+++ for i in {1..5}
+++ local var_epoch=BPO_3_EPOCH
+++ local var_blobs=BPO_3_MAX_BLOBS
+++ local var_next_epoch=BPO_4_EPOCH
+++ '[' -n 18446744073709551615 ']'
+++ '[' 18446744073709551615 '!=' 18446744073709551615 ']'
+++ for i in {1..5}
+++ local var_epoch=BPO_4_EPOCH
+++ local var_blobs=BPO_4_MAX_BLOBS
+++ local var_next_epoch=BPO_5_EPOCH
+++ '[' -n 18446744073709551615 ']'
+++ '[' 18446744073709551615 '!=' 18446744073709551615 ']'
+++ for i in {1..5}
+++ local var_epoch=BPO_5_EPOCH
+++ local var_blobs=BPO_5_MAX_BLOBS
+++ local var_next_epoch=BPO_6_EPOCH
+++ '[' -n 18446744073709551615 ']'
+++ '[' 18446744073709551615 '!=' 18446744073709551615 ']'
+++ '[' true = true ']'
+++ echo 'BLOB_SCHEDULE:
+  - EPOCH: 3
+    MAX_BLOBS_PER_BLOCK: 21'
++ export 'BLOB_SCHEDULE_YAML=BLOB_SCHEDULE:
+  - EPOCH: 3
+    MAX_BLOBS_PER_BLOCK: 21'
++ BLOB_SCHEDULE_YAML='BLOB_SCHEDULE:
+  - EPOCH: 3
+    MAX_BLOBS_PER_BLOCK: 21'
+++ build_gas_limit_schedule
+++ local 'schedule_json=[]'
+++ echo '[]'
+++ jq -e 'type == "array" and all(.[]; (.epoch | type == "number") and (.gas_limit | type == "number"))'
++++ echo '[]'
++++ jq length
+++ '[' 0 -eq 0 ']'
+++ echo 'GAS_LIMIT_SCHEDULE: []'
+++ return
++ GAS_LIMIT_SCHEDULE_YAML='GAS_LIMIT_SCHEDULE: []'
++ export GAS_LIMIT_SCHEDULE_YAML
++ awk '
+            BEGIN {
+                blob_section = ENVIRON["BLOB_SCHEDULE_YAML"]
+                gas_section = ENVIRON["GAS_LIMIT_SCHEDULE_YAML"]
+            }
+            /^BLOB_SCHEDULE:/ { print blob_section; in_schedule=1; next }
+            /^GAS_LIMIT_SCHEDULE:/ { print gas_section; in_schedule=1; next }
+            in_schedule && /^[[:space:]]/ { next }
+            { in_schedule=0; print }
+        ' /config/cl/config.yaml
++ sed 's/#HUMAN_TIME_PLACEHOLDER/# 2026-Sep-17 11:26:10 PM UTC/'
++ cl_heze_fork_epoch=18446744073709551615
++ '[' false = true ']'
++ HEZE_FORK_EPOCH=18446744073709551615
++ envsubst
++ '[' 0x00 == 0x00 ']'
++ export WITHDRAWAL_ADDRESS=null
++ WITHDRAWAL_ADDRESS=null
++ envsubst
++ '[' -n '[]' ']'
++ '[' '[]' '!=' '[]' ']'
++ cp /tmp/ci-DBhnt0Un5s/mnemonics.yaml /data/metadata/mnemonics.yaml
++ grep DEPOSIT_CONTRACT_ADDRESS /data/metadata/config.yaml
++ cut -d ' ' -f2
++ echo 0
++ echo enr:-Iq4QJk4WqRkjsX5c2CXtOra6HnxN-BMXnWhmhEQO9Bn9iABTJGdjUOurM7Btj1ouKaFkvTRoju5vz2GPmVON2dffQKGAX53x8JigmlkgnY0gmlwhLKAlv6Jc2VjcDI1NmsxoQK6S-Cii_KmfFdUJL2TANL3ksaKUnNXvTCv1tLwXs0QgIN1ZHCCIyk
++ genesis_args+=(beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics $tmp_dir/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml)
++ [[ '' != '' ]]
++ [[ '' != '' ]]
++ '[' -z '' ']'
++ '[' false = true ']'
++ /usr/local/bin/eth-genesis-state-generator beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-DBhnt0Un5s/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
+time="2026-09-17T23:25:42Z" level=info msg="eth-beacon-genesis version: git-9bbbf55"
+time="2026-09-17T23:25:42Z" level=info msg="loaded execution genesis. chainid: 271828"
+time="2026-09-17T23:25:42Z" level=info msg="loaded consensus config. genesis fork version: 0x10000038"
+time="2026-09-17T23:25:42Z" level=info msg="processing mnemonic 0, for 128 validators"
+time="2026-09-17T23:25:42Z" level=info msg="...validator 100/128"
+time="2026-09-17T23:25:42Z" level=info msg="loaded 128 validators. total balance: 4096 ETH"
+time="2026-09-17T23:25:42Z" level=info msg="wrote validator mapping to: /data/metadata/validator_names.yaml"
+time="2026-09-17T23:25:42Z" level=info msg="genesis version: capella"
+time="2026-09-17T23:25:42Z" level=info msg="genesis time: 1789687570"
+time="2026-09-17T23:25:42Z" level=info msg="genesis validators root: 0xd1ec305b97bf6336571c2348e4a8bf173684b0cdb7e55f7e6554d51f8478b5a3"
+time="2026-09-17T23:25:42Z" level=info msg="successfully built genesis state."
+time="2026-09-17T23:25:42Z" level=info msg="serialized genesis state to SSZ file: /data/metadata/genesis.ssz"
+serialized genesis state to JSON file: /data/parsed/parsedConsensusGenesis.json
++ echo 'Genesis args: beaconchain' --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-DBhnt0Un5s/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
+Genesis args: beaconchain --config /data/metadata/config.yaml --eth1-config /data/metadata/genesis.json --mnemonics /tmp/ci-DBhnt0Un5s/mnemonics.yaml --state-output /data/metadata/genesis.ssz --json-output /data/parsed/parsedConsensusGenesis.json --validators-mapping-output /data/metadata/validator_names.yaml
+++ jq -r .latest_execution_payload_header.block_number /data/parsed/parsedConsensusGenesis.json
+Genesis block number: 0
++ echo 'Genesis block number: 0'
+++ jq -r .latest_execution_payload_header.block_hash /data/parsed/parsedConsensusGenesis.json
+Genesis block hash: 0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599
++ echo 'Genesis block hash: 0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599'
++ jq -r .eth1_data.block_hash /data/parsed/parsedConsensusGenesis.json
++ tr -d '\n'
++ jq -r .genesis_validators_root /data/parsed/parsedConsensusGenesis.json
++ tr -d '\n'
++ gen_shared_files
++ set -x
++ mkdir -p /data/metadata
++ '[' -f /data/jwt/jwtsecret ']'
++ mkdir -p /data/jwt
+++ openssl rand -hex 32
+++ tr -d '\n'
++ echo -n 0xad2ded1da1b56212866cf8c91d4294a8035d7c02597796fb991d3d19fc47ff63
++ '[' -f /data/metadata/genesis.json ']'
+++ cat /data/metadata/genesis.json
+++ jq -r '.config.terminalTotalDifficulty | tostring'
++ terminalTotalDifficulty=0
++ sed -i 's/TERMINAL_TOTAL_DIFFICULTY:.*/TERMINAL_TOTAL_DIFFICULTY: 0/' /data/metadata/config.yaml
++ '[' false = true ']'
+
+--------------------
+
+Reading genesis validators root
+Command returned with exit code '0' and the following output: 0xd1ec305b97bf6336571c2348e4a8bf173684b0cdb7e55f7e6554d51f8478b5a3
+
+Reading osaka time from genesis
+Command returned with exit code '0' and the following output: 1789687618
+
+Adding service with name 'el-1-reth-lighthouse' and image 'ghcr.io/paradigmxyz/reth:v2.5.2'
+Service 'el-1-reth-lighthouse' added with service UUID '85f6bd77cfe84d27a05c35b14ef2c8c2'
+
+Waiting for at most '30m0s' for service 'el-1-reth-lighthouse' to reach a certain state
+Wait took 1 tries (11.324272ms in total). Assertion passed with following:
+Request had response code '200' and body "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"id\":\"4d3f329f8f1a0a11402e48a7051dcf7f92b8e7c3d3ea2700a320ba741adca7c3\",\"name\":\"reth/v2.5.2-5a6940e/x86_64-unknown-linux-gnu\",\"enode\":\"enode://cee52c45796f27a096c963c78d66874f92f6f44128bb48ae1e970bb80fa7d5980fb7c886996708067659947d0671b8ee52e9d646e42a155f1804840c143d0642@172.16.0.11:30303\",\"enr\":\"enr:-Iu4QGh2pyBErwb6jEEEOL84nPSFaMQelvb1ORjP3gpHQZU1HVVILcKTorLzIdhh6hRXWEFNOSMe_Le44lHdhXoevpoBgmlkgnY0gmlwhKwQAAuJc2VjcDI1NmsxoQLO5SxFeW8noJbJY8eNZodPkvb0QSi7SK4elwu4D6fVmIN0Y3CCdl-DdWRwgnZf\",\"ip\":\"172.16.0.11\",\"ports\":{\"discovery\":30303,\"listener\":30303},\"listenAddr\":\"172.16.0.11:30303\",\"protocols\":{\"eth\":{\"network\":271828,\"difficulty\":null,\"genesis\":\"0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599\",\"config\":{\"chainId\":271828,\"homesteadBlock\":0,\"daoForkSupport\":false,\"eip150Block\":0,\"eip155Block\":0,\"eip158Block\":0,\"byzantiumBlock\":0,\"constantinopleBlock\":0,\"petersburgBlock\":0,\"istanbulBlock\":0,\"berlinBlock\":0,\"londonBlock\":0,\"mergeNetsplitBlock\":0,\"shanghaiTime\":0,\"cancunTime\":1789687586,\"pragueTime\":1789687602,\"osakaTime\":1789687618,\"bpo1Time\":1789687618,\"bpo2Time\":1789687618,\"terminalTotalDifficulty\":0,\"terminalTotalDifficultyPassed\":true,\"depositContractAddress\":\"0x00000000219ab540356cbb839cbe05303d7705fa\",\"blobSchedule\":{\"bpo1\":{\"baseFeeUpdateFraction\":8346193,\"max\":15,\"target\":10},\"bpo2\":{\"baseFeeUpdateFraction\":11684671,\"max\":21,\"target\":14},\"cancun\":{\"baseFeeUpdateFraction\":3338477,\"max\":6,\"target\":3},\"prague\":{\"baseFeeUpdateFraction\":5007716,\"max\":9,\"target\":6}}},\"head\":\"0x6021d90ac9f965a5f91f093fa6f14bc52ec20fa621a4a8b540303a70b1dd6599\"}}}}", with extracted fields:
+'extract.enr': "enr:-Iu4QGh2pyBErwb6jEEEOL84nPSFaMQelvb1ORjP3gpHQZU1HVVILcKTorLzIdhh6hRXWEFNOSMe_Le44lHdhXoevpoBgmlkgnY0gmlwhKwQAAuJc2VjcDI1NmsxoQLO5SxFeW8noJbJY8eNZodPkvb0QSi7SK4elwu4D6fVmIN0Y3CCdl-DdWRwgnZf"
+'extract.enode': "enode://cee52c45796f27a096c963c78d66874f92f6f44128bb48ae1e970bb80fa7d5980fb7c886996708067659947d0671b8ee52e9d646e42a155f1804840c143d0642@172.16.0.11:30303"
+
+Printing a message
+Successfully added 1 EL participants
+
+Printing a message
+Launching CL network
+
+Adding service with name 'cl-1-lighthouse-reth' and image 'sigp/lighthouse:v8.2.2'
+Service 'cl-1-lighthouse-reth' added with service UUID 'aa04d01936a249508532e7dc8a3fb33a'
+
+Running 'GET' request on service 'cl-1-lighthouse-reth'
+Request had response code '200' and body "{\"data\":{\"peer_id\":\"16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5\",\"enr\":\"enr:-Oy4QJ4l5ipEl0hdbKs2gHLplMKwEbllMU2GQCTN4uLJDKSAa3H2sKcrl_JjFPAo3x1DXEOK7dTsQUhsIYO5OQciZvMDh2F0dG5ldHOIAGAAAAAAAACDY2djgYCGY2xpZW500YpMaWdodGhvdXNlhTguMi4yhGV0aDKQM-xnSFAAADgBAAAAAAAAAIJpZIJ2NIJpcISsEAAMg25mZITYTi7ghHF1aWOCIymJc2VjcDI1NmsxoQOydUzC8qtu-ole75oS_s7QpSJlw1HzZkYoXw5Gh7RagohzeW5jbmV0cwCDdGNwgiMog3VkcIIjKA\",\"p2p_addresses\":[\"/ip4/172.16.0.12/tcp/9000/p2p/16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5\"],\"discovery_addresses\":[\"/ip4/172.16.0.12/udp/9000/p2p/16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5\"],\"metadata\":{\"seq_number\":\"2\",\"attnets\":\"0x0060000000000000\",\"syncnets\":\"0x00\",\"custody_group_count\":\"128\"}}}", with extracted fields:
+'extract.enr': "enr:-Oy4QJ4l5ipEl0hdbKs2gHLplMKwEbllMU2GQCTN4uLJDKSAa3H2sKcrl_JjFPAo3x1DXEOK7dTsQUhsIYO5OQciZvMDh2F0dG5ldHOIAGAAAAAAAACDY2djgYCGY2xpZW500YpMaWdodGhvdXNlhTguMi4yhGV0aDKQM-xnSFAAADgBAAAAAAAAAIJpZIJ2NIJpcISsEAAMg25mZITYTi7ghHF1aWOCIymJc2VjcDI1NmsxoQOydUzC8qtu-ole75oS_s7QpSJlw1HzZkYoXw5Gh7RagohzeW5jbmV0cwCDdGNwgiMog3VkcIIjKA"
+'extract.multiaddr': "/ip4/172.16.0.12/tcp/9000/p2p/16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5"
+'extract.peer_id': "16Uiu2HAmQfcfKEvhbQuWtqEGSnUnLdMQzTWWtVMPiLkfq21Xmsx5"
+
+Printing a message
+Successfully added 1 CL participants
+
+Printing a message
+Start adding validators for participant #1
+
+Printing a message
+Using separate validator client for participant #1
+
+Adding '1' services with names 'vc-1-reth-lighthouse'
+Successfully added the following '1' services:
+  Service 'vc-1-reth-lighthouse' added with UUID '2ceb986f4a914444901dad2cb5397e23'
+
+Printing a message
+NODE JSON RPC URI: 'el-1-reth-lighthouse:8545'
+
+Rendering a template to a files artifact with name 'validator-ranges-input'
+Templates artifact name 'validator-ranges-input' rendered with artifact UUID '9668d0099e4a48f49d9f98a1369ff6f1'
+
+Generating validator ranges from the genesis validator names mapping (if available)
+Command returned with exit code '0' with no output
+
+Wait for L1 to start up - it can take up to 2 minutes
+Command returned with exit code '0' and the following output:
+--------------------
+L1 Chain is starting up... Current slot: 0
+L1 Chain is starting up... Current slot: 0
+L1 Chain is starting up... Current slot: 0
+L1 Chain is starting up... Current slot: 1
+✅ L1 Chain has started!
+
+--------------------
+
+Printing a message
+Deploying agglayer contracts on L1
+
+Getting agglayer vkey hash
+Command returned with exit code '0' and the following output: 0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e
+
+Printing a message
+Agglayer vkey hash: 0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e
+
+Getting agglayer vkey selector
+Command returned with exit code '0' and the following output: 0x0000000e
+
+Printing a message
+Agglayer vkey selector: 0x0000000e
+
+Getting aggchain vkey hash
+Command returned with exit code '0' and the following output: 0x679bc13716cdb49416a9ca9e297b10d76390df2c343690d4172676c207517915
+
+Getting aggchain vkey selector
+Command returned with exit code '0' and the following output: 0x000b0001
+
+Rendering a template to a files artifact with name 'create_new_rollup.json'
+Templates artifact name 'create_new_rollup.json' rendered with artifact UUID '32572350db54481eabff1842113e222e'
+
+Rendering a template to a files artifact with name 'op-custom-genesis-addresses.json'
+Templates artifact name 'op-custom-genesis-addresses.json' rendered with artifact UUID '4bc342cb0c31406cb5daab7234689fb4'
+
+Rendering a template to a files artifact with name 'deploy_parameters.json'
+Templates artifact name 'deploy_parameters.json' rendered with artifact UUID 'df2344afd6144be389cacb71df68e279'
+
+Rendering a template to a files artifact with name 'cdk-erigon-custom-genesis-addresses.json'
+Templates artifact name 'cdk-erigon-custom-genesis-addresses.json' rendered with artifact UUID 'e0bfff3de9874519b4c5191619e05322'
+
+Rendering a template to a files artifact with name 'create_rollup_parameters.json'
+Templates artifact name 'create_rollup_parameters.json' rendered with artifact UUID '320c2f46807241e79ec7bd5b549433e5'
+
+Rendering a template to a files artifact with name 'add_rollup_type.json'
+Templates artifact name 'add_rollup_type.json' rendered with artifact UUID '16a2477d831a48d886d3e5acf8e0cb5e'
+
+Rendering a template to a files artifact with name 'create-genesis-sovereign-params.json'
+Templates artifact name 'create-genesis-sovereign-params.json' rendered with artifact UUID 'ec198f4fb26d4ced945e100a4e5994df'
+
+Rendering a template to a files artifact with name 'input_args.json'
+Templates artifact name 'input_args.json' rendered with artifact UUID '2cd4226869a749a2a0e0dc4597f0662f'
+
+Rendering a template to a files artifact with name 'contracts.sh'
+Templates artifact name 'contracts.sh' rendered with artifact UUID '05b1ac282fac46948a409e285df667c0'
+
+Uploading create_op_allocs.py artifact
+Files with artifact name 'create_op_allocs.py' uploaded with artifact UUID '27ed542e128f4444b8de3d58dd75f541'
+
+Uploading json2http.py artifact
+Files with artifact name 'json2http.py' uploaded with artifact UUID '432122da921247f78bcec44205a39e14'
+
+Adding service with name 'contracts-001' and image 'europe-west2-docker.pkg.dev/prj-polygonlabs-devtools-dev/public/agglayer-contracts:v12.2.3'
+Service 'contracts-001' added with service UUID '174c940c8ef84c669e427f1002895ec6'
+
+JSON 2 Http Server
+Command returned with exit code '0' with no output
+
+Setting permissions for /opt/scripts/contracts.sh
+Command returned with exit code '0' with no output
+
+Creating keystores for zkevm-node/cdk-validium components
+Command returned with exit code '0' and the following output:
+--------------------
+[32m[2026-09-17 23:26:42][0m Executing function create_keystores
+`sequencer.keystore` keystore was saved successfully. Address: 0x5b06837a43bdc3dd9f114558daf4b26ed49842ed
+`aggregator.keystore` keystore was saved successfully. Address: 0xcae5b68ff783594bde1b93cde627c741722c4d4d
+`dac.keystore` keystore was saved successfully. Address: 0x5951f5b2604c9b42e478d5e2b2437f44073ef9a6
+`aggoracle.keystore` keystore was saved successfully. Address: 0x0b68058e5b2592b1f472adfe106305295a332a7c
+`sovereignadmin.keystore` keystore was saved successfully. Address: 0xc653ecd4ac5153a3700fb13442bcf00a691cca16
+`claimsponsor.keystore` keystore was saved successfully. Address: 0x635243a11b41072264df6c9186e3f473402f94e9
+
+--------------------
+
+Deploying Agglayer smart contracts on L1
+Command returned with exit code '0' and the following output:
+--------------------
+[32m[2026-09-17 23:26:42][0m Executing function deploy_agglayer_core_contracts
+[32m[2026-09-17 23:26:42][0m Waiting for the L1 RPC to be available
+[32m[2026-09-17 23:26:44][0m L1 RPC is now available
+[32m[2026-09-17 23:26:44][0m Funding important accounts on L1
+[32m[2026-09-17 23:26:44][0m Funding admin account
+
+blockHash            0x14402fcac76b6b924f04f44162141ed2ecaddab0cefa269309212a35869d6633
+blockNumber          18
+contractAddress      
+cumulativeGasUsed    21000
+effectiveGasPrice    90404308
+from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+gasUsed              21000
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x775141ee7b485ce16297e33f448d23b36e2c7c2f3f55b3dc453ed6792e9eedfa
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+[32m[2026-09-17 23:26:46][0m Funding sequencer account
+
+blockHash            0x1376d40556f71d9528249158f13bb541631851c2f87aa3e99a8c3f9b4f41622b
+blockNumber          19
+contractAddress      
+cumulativeGasUsed    21000
+effectiveGasPrice    79111821
+from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+gasUsed              21000
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x9955b64bd94b328c7025f13cce311a6eb9d07d0d9084547c6d3a3a1b15dcb812
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
+[32m[2026-09-17 23:26:49][0m Funding aggregator account
+
+blockHash            0xe8ff61fad00e4b9c4bee1a81f5e7a41e5956d9371ccc595a35159ad1619f4cf7
+blockNumber          21
+contractAddress      
+cumulativeGasUsed    21000
+effectiveGasPrice    60576160
+from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+gasUsed              21000
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x80579016100c690c180b00e3ce47909b468c1fe21401877b42291fd2b2158e35
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d
+[32m[2026-09-17 23:26:53][0m Funding sovereignadmin account
+
+blockHash            0xf759b4eb097c0d9d81f1b45593cbdd0228125ece7faf88a59e255d4089406f3d
+blockNumber          23
+contractAddress      
+cumulativeGasUsed    21000
+effectiveGasPrice    46383358
+from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+gasUsed              21000
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0xc752a47f53de689ab1e2f71d623d3f583e923f91cea4c612bfc3ae3ccddb6784
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16
+[32m[2026-09-17 23:26:56][0m Setting up local agglayer-contracts repo for deployment
+/opt/agglayer-contracts /opt
+[32m[2026-09-17 23:26:56][0m It looks like this is the first rollup so we'll deploy the LxLy and Rollup Manager
+[32m[2026-09-17 23:26:56][0m Step 1: Preparing testnet
+#######################
+
+pol deployed to: 0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
+npm notice
+npm notice New major version of npm available! 10.9.0 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice
+[32m[2026-09-17 23:27:04][0m Step 2: Deploying PolygonZKEVMDeployer
+#######################
+
+polygonZkEVMDeployer deployed on:  0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99
+[32m[2026-09-17 23:27:10][0m Step 3: Deploying contracts
+#######################
+
+Proxy admin deployed to: 0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c
+#######################
+
+bridge impl deployed to: 0xcb12D626fBB88E7443bEf58Ad263Bf63185EAF1e
+
+#######################
+##### Deployment TimelockContract  #####
+#######################
+minDelayTimelock: 60
+timelockAdminAddress: 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+Rollup Manager: 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+#######################
+
+Polygon timelockContract deployed to: 0x07783C37CAAFe0f05C4105250C032062A83F7AC2
+
+#######################
+#####  Checks TimelockContract  #####
+#######################
+polygonZkEVM (Rollup Manager): 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+#######################
+
+PolygonZkEVMBridge deployed to: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
+
+#######################
+#####    Checks PolygonZkEVMBridge   #####
+#######################
+PolygonZkEVMGlobalExitRootAddress: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674
+networkID: 0n
+Rollup Manager: 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+Warning: Potentially unsafe deployment of contracts/AgglayerGER.sol:AgglayerGER
+
+    You are using the `unsafeAllow.constructor` flag.
+
+#######################
+
+polygonZkEVMGlobalExitRoot deployed to: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674
+#######################
+
+Verifier name: VerifierRollupHelperMock
+Verifier deployed to: 0x322e0cfC33f916379702396E6e41A6d2D97d0D96
+#######################
+
+Warning: Potentially unsafe deployment of contracts/AgglayerGateway.sol:AgglayerGateway
+
+    You are using the `unsafeAllow.constructor` flag.
+
+#######################
+
+aggLayerGatewayContract deployed to: 0xf22E2B040B639180557745F47aB97dFA95B1e22a
+#######################
+
+New Pessimistic VKey Route AgglayerGateway
+pessimisticVKeySelector: 0x0000000e
+verifier: 0x322e0cfC33f916379702396E6e41A6d2D97d0D96
+pessimisticVKey: 0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e
+#######################
+
+
+#######################
+##### Deployment Rollup Manager #####
+#######################
+deployer: 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+PolygonZkEVMGlobalExitRootAddress: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674
+polTokenAddress: 0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
+polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
+aggLayerGatewayContract: 0xf22E2B040B639180557745F47aB97dFA95B1e22a
+trustedAggregator: 0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d
+pendingStateTimeout: 604799
+trustedAggregatorTimeout: 604799
+admin: 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+timelockContract: 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+emergencyCouncilAddress: 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+Warning: Potentially unsafe deployment of contracts/newDeployments/AgglayerManagerNotUpgraded.sol:AgglayerManagerNotUpgraded
+
+    You are using the `unsafeAllow.constructor` flag.
+
+#######################
+
+polygonRollupManagerContract deployed to: 0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+
+#######################
+#####    Checks  Rollup Manager  #####
+#######################
+PolygonZkEVMGlobalExitRootAddress: 0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674
+polTokenAddress: 0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
+polygonZkEVMBridgeContract: 0xC8cbEBf950B9Df44d987c8619f092beA980fF038
+[32m[2026-09-17 23:27:42][0m Got a deploy_output.json file
+{
+  "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "polygonZkEVMBridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "polygonZkEVMGlobalExitRootAddress": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "aggLayerGatewayAddress": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+  "pessimisticVKeyRouteALGateway": {
+    "pessimisticVKeySelector": "0x0000000e",
+    "verifier": "0x322e0cfC33f916379702396E6e41A6d2D97d0D96",
+    "pessimisticVKey": "0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e"
+  },
+  "polTokenAddress": "0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E",
+  "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
+  "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
+  "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
+  "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
+  "salt": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "AgglayerManager": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "AgglayerBridge": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "AgglayerGER": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "AgglayerGateway": "0xf22E2B040B639180557745F47aB97dFA95B1e22a"
+}
+[32m[2026-09-17 23:27:42][0m Combining contract deploy files
+/opt
+[32m[2026-09-17 23:27:42][0m Creating combined.json
+/opt/output /opt
+{
+  "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "polygonZkEVMBridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "polygonZkEVMGlobalExitRootAddress": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "aggLayerGatewayAddress": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+  "pessimisticVKeyRouteALGateway": {
+    "pessimisticVKeySelector": "0x0000000e",
+    "verifier": "0x322e0cfC33f916379702396E6e41A6d2D97d0D96",
+    "pessimisticVKey": "0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e"
+  },
+  "polTokenAddress": "0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E",
+  "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
+  "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
+  "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
+  "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
+  "salt": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "AgglayerManager": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "AgglayerBridge": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "AgglayerGER": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "AgglayerGateway": "0xf22E2B040B639180557745F47aB97dFA95B1e22a"
+}
+[32m[2026-09-17 23:27:42][0m Granting the aggregator role to the agglayer so that it can also verify batches
+
+blockHash            0x736866881d7d8459186eb7d6bfd825db1d1e18fe6ef01c8161b82bd67057e38f
+blockNumber          47
+contractAddress      
+cumulativeGasUsed    36522
+effectiveGasPrice    2107331
+from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+gasUsed              36522
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x8e5558a19ab0f2a35a9bd8e6061a474d2fa26010d15250c8cd374ffbab252da9
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0x6c6c009cC348976dB4A908c92B24433d4F6edA43
+[32m[2026-09-17 23:27:44][0m Minting POL token on L1 for the sequencer
+
+blockHash            0x76f570f3ac2bd2260334776a3ca72865235a107cd458ef35d42347d62303db7f
+blockNumber          48
+contractAddress      
+cumulativeGasUsed    34079
+effectiveGasPrice    2107330
+from                 0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
+gasUsed              34079
+logs                 [{"address":"0xede9cf798e0fe25d35469493f43e88fea4a5da0e","topics":["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef","0x0000000000000000000000000000000000000000000000000000000000000000","0x0000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed"],"data":"0x0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000","blockHash":"0x76f570f3ac2bd2260334776a3ca72865235a107cd458ef35d42347d62303db7f","blockNumber":"0x30","blockTimestamp":"0x6aac7772","transactionHash":"0x512df8feed8f237dab80694e8d1d5d82fc91d09dc6e37c7fc0fd8309b2de068a","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000800000000000000008000000000000000000000000000000000000000000000000000000000000000000000000008000000002000000000000000000000000000000000000000020000000000000000000800000000000000000000000010000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000020000000000000000000000000000001000000000000000000100000000000000000
+root                 
+status               1 (success)
+transactionHash      0x512df8feed8f237dab80694e8d1d5d82fc91d09dc6e37c7fc0fd8309b2de068a
+transactionIndex     0
+type                 0
+blobGasPrice         
+blobGasUsed          
+to                   0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
+[32m[2026-09-17 23:27:46][0m Deploying deterministic deployment proxy
+
+blockHash            0xd27945663ee2abc593b0a4dd5521f55b093195834980f40ecfcdbb094f4e041e
+blockNumber          49
+contractAddress      
+cumulativeGasUsed    21000
+effectiveGasPrice    1745534
+from                 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+gasUsed              21000
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x2ee2a12d129b04eca544fa31c00fdad1cb2ede2981579df25bea805a761132c6
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0x3fAB184622Dc19b6109349B94811493BF2a45362
+{"status":"0x0","cumulativeGasUsed":"0x186a0","logs":[],"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","type":"0x0","transactionHash":"0xeddf9e61fb9d8f5111840daef55e5fde0041f5702856532cdbb5a02998033d26","transactionIndex":"0x0","blockHash":"0x74a5ece74d61d37ecb5d544872e643511cc8c96f724233acc2cf35e3a0f0894e","blockNumber":"0x32","gasUsed":"0x186a0","effectiveGasPrice":"0x174876e800","from":"0x3fab184622dc19b6109349b94811493bf2a45362","to":null,"contractAddress":"0x4e59b44847b379578588920ca78fbf26c0b4956c"}
+
+--------------------
+
+Creating rollup on L1
+Command returned with exit code '0' and the following output:
+--------------------
+[32m[2026-09-17 23:27:51][0m Executing function create_agglayer_rollup
+[32m[2026-09-17 23:27:51][0m Waiting for the L1 RPC to be available
+[32m[2026-09-17 23:27:55][0m L1 RPC is now available
+[32m[2026-09-17 23:27:55][0m Step 4: Creating genesis
+/opt/agglayer-contracts /opt
+Warning: Potentially unsafe deployment of contracts/LegacyAgglayerGERL2.sol:LegacyAgglayerGERL2
+
+    You are using the `unsafeAllow.constructor` flag.
+
+/opt
+[32m[2026-09-17 23:28:00][0m Setting up local agglayer-contracts repo for deployment
+/opt/agglayer-contracts /opt
+[32m[2026-09-17 23:28:00][0m Step 5: Creating Rollup/Validium/ECDSAMultisig
+#######################
+
+Verifier name: VerifierRollupHelperMock
+Verifier deployed to: 0x5A6896A98c4B7C7E8f16d177C719a1d856b9154c
+#######################
+
+Added new Rollup Type deployed
+#######################
+
+Created new PolygonValidiumEtrog Rollup: 0x414e9E227e4b589aF92200508aF5399576530E4e
+Warning: Potentially unsafe deployment of contracts/consensus/validium/PolygonDataCommittee.sol:PolygonDataCommittee
+
+    You are using the `unsafeAllow.constructor` flag.
+
+/opt
+[32m[2026-09-17 23:28:22][0m Modifying combined.json
+/opt/output /opt
+File create_rollup_output.json exists. Combining files...
+[32m[2026-09-17 23:28:22][0m Final combined.json is ready:
+{
+  "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "polygonZkEVMBridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "polygonZkEVMGlobalExitRootAddress": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "aggLayerGatewayAddress": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+  "pessimisticVKeyRouteALGateway": {
+    "pessimisticVKeySelector": "0x0000000e",
+    "verifier": "0x322e0cfC33f916379702396E6e41A6d2D97d0D96",
+    "pessimisticVKey": "0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e"
+  },
+  "polTokenAddress": "0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E",
+  "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
+  "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
+  "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
+  "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
+  "salt": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "AgglayerManager": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "AgglayerBridge": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "AgglayerGER": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "AgglayerGateway": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+  "gasTokenAddress": "0x0000000000000000000000000000000000000000",
+  "programVKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "polygonDataCommitteeAddress": "0xB49fA7dD4d70F773015a9c848A8719FA86D81275",
+  "firstBatchData": {
+    "batchL2Data": "0xf9010380808401c9c38094c8cbebf950b9df44d987c8619f092bea980ff03880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005ca1ab1e0000000000000000000000000000000000000000000000000000000005ca1ab1e1bff",
+    "globalExitRoot": "0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5",
+    "timestamp": 1789687692,
+    "sequencer": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
+  },
+  "genesis": "0x8987cdb4cffa08d975bb03782e4a521c1a709fa85598bb471871c6186f3b2062",
+  "createRollupBlockNumber": 61,
+  "rollupAddress": "0x414e9E227e4b589aF92200508aF5399576530E4e",
+  "verifierAddress": "0x5A6896A98c4B7C7E8f16d177C719a1d856b9154c",
+  "consensusContract": "PolygonValidiumEtrog",
+  "consensusContractAddress": "0xFB054898a55bB49513D1BA8e0FB949Ea3D9B4153",
+  "rollupTypeId": "1",
+  "rollupID": "1",
+  "polygonZkEVML2BridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "LegacyAgglayerGERL2": "0xa40d5f56745a118d0906a34e69aec8c0db1cb8fa",
+  "bridgeGenBlockNumber": 61
+}
+[32m[2026-09-17 23:28:22][0m Approving the rollup address to transfer POL tokens on behalf of the sequencer
+
+blockHash            0x8018f731ba91c36e53037e7aaa08da0916ae3bf076f5f39269510bf07ebed09a
+blockNumber          67
+contractAddress      
+cumulativeGasUsed    46255
+effectiveGasPrice    173288
+from                 0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed
+gasUsed              46255
+logs                 [{"address":"0xede9cf798e0fe25d35469493f43e88fea4a5da0e","topics":["0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925","0x0000000000000000000000005b06837a43bdc3dd9f114558daf4b26ed49842ed","0x000000000000000000000000414e9e227e4b589af92200508af5399576530e4e"],"data":"0x0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000","blockHash":"0x8018f731ba91c36e53037e7aaa08da0916ae3bf076f5f39269510bf07ebed09a","blockNumber":"0x43","blockTimestamp":"0x6aac7798","transactionHash":"0x6391f1fdd4eea7926af1b508822591fe3a814eb8206dbc0dbf6ad39b5432b5cb","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000800000000080000008000000004000000000000000000000000000000000000200000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000200000000000000001000000000000000000100000000000000000
+root                 
+status               1 (success)
+transactionHash      0x6391f1fdd4eea7926af1b508822591fe3a814eb8206dbc0dbf6ad39b5432b5cb
+transactionIndex     0
+type                 0
+blobGasPrice         
+blobGasUsed          
+to                   0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E
+[32m[2026-09-17 23:28:24][0m Setting the data availability committee
+
+blockHash            0x0de16925c5d6318f5185e669e7e9b5b05c9825ade741a9f39f77c3033660ae7c
+blockNumber          68
+contractAddress      
+cumulativeGasUsed    191509
+effectiveGasPrice    154361
+from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+gasUsed              191509
+logs                 [{"address":"0xb49fa7dd4d70f773015a9c848a8719fa86d81275","topics":["0x831403fd381b3e6ac875d912ec2eee0e0203d0d29f7b3e0c96fc8f582d6db657"],"data":"0xe4e05261d6d69a2de8d0b41196695761a8e911eb19355d391a8ce19d9a9f7cbe","blockHash":"0x0de16925c5d6318f5185e669e7e9b5b05c9825ade741a9f39f77c3033660ae7c","blockNumber":"0x44","blockTimestamp":"0x6aac779a","transactionHash":"0xce44cde52617eb4db80a603e60d47ba9cc24a7c30be23586e4bf0a053f480d05","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logsBloom            0x00000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
+root                 
+status               1 (success)
+transactionHash      0xce44cde52617eb4db80a603e60d47ba9cc24a7c30be23586e4bf0a053f480d05
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0xB49fA7dD4d70F773015a9c848A8719FA86D81275
+[32m[2026-09-17 23:28:26][0m Setting the data availability protocol
+
+blockHash            0xc5e2b4870cf86e8f3b32aaa58494c4f9d8c3a44f40e012281e59da12c27c8d04
+blockNumber          69
+contractAddress      
+cumulativeGasUsed    32181
+effectiveGasPrice    137882
+from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+gasUsed              32181
+logs                 [{"address":"0x414e9e227e4b589af92200508af5399576530e4e","topics":["0xd331bd4c4cd1afecb94a225184bded161ff3213624ba4fb58c4f30c5a861144a"],"data":"0x000000000000000000000000b49fa7dd4d70f773015a9c848a8719fa86d81275","blockHash":"0xc5e2b4870cf86e8f3b32aaa58494c4f9d8c3a44f40e012281e59da12c27c8d04","blockNumber":"0x45","blockTimestamp":"0x6aac779c","transactionHash":"0xde35529211fd020df2a8e32f4fafc216276b782790b0e69f8bb5f0db2bb5bb07","transactionIndex":"0x0","logIndex":"0x0","removed":false}]
+logsBloom            0x00008000000800000000010000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0xde35529211fd020df2a8e32f4fafc216276b782790b0e69f8bb5f0db2bb5bb07
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0x414e9E227e4b589aF92200508aF5399576530E4e
+[32m[2026-09-17 23:28:29][0m Transformation complete. Output written to dynamic-kurtosis-allocs.json
+
+--------------------
+
+Storing files from service 'contracts-001' at path '/opt/output/dynamic-kurtosis-conf.json' to files artifact with name 'cdk-erigon-chain-config'
+Files with artifact name 'cdk-erigon-chain-config' uploaded with artifact UUID 'd48fe68c05e243a19292dcd0098888f4'
+
+Storing files from service 'contracts-001' at path '/opt/output/dynamic-kurtosis-allocs.json' to files artifact with name 'cdk-erigon-chain-allocs'
+Files with artifact name 'cdk-erigon-chain-allocs' uploaded with artifact UUID 'bac4d19e10ef421faf11deb20f13a400'
+
+Storing files from service 'contracts-001' at path '/opt/output/first-batch-config.json' to files artifact with name 'cdk-erigon-chain-first-batch'
+Files with artifact name 'cdk-erigon-chain-first-batch' uploaded with artifact UUID '8008e186a8704b3d8b25478826dd99c1'
+
+Updating the GER so the L1 Info Tree Index is greater than 0
+Command returned with exit code '0' and the following output:
+--------------------
+[32m[2026-09-17 23:28:30][0m Executing function update_ger
+Generating the call data for the bridge tx...
+0xcd5865790000000000000000000000000000000000000000000000000000000000000007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000
+Performing an eth call to make sure the bridge tx will work...
+0x
+Publishing the bridge tx...
+
+blockHash            0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc
+blockNumber          71
+contractAddress      
+cumulativeGasUsed    235663
+effectiveGasPrice    110648
+from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+gasUsed              235663
+logs                 [{"address":"0xc8cbebf950b9df44d987c8619f092bea980ff038","topics":["0x501781209a1f8899323b96b4ef08b168df93e0a90c673d1e4cce39366cb62f9b"],"data":"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","blockHash":"0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc","blockNumber":"0x47","blockTimestamp":"0x6aac77a0","transactionHash":"0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca","transactionIndex":"0x0","logIndex":"0x0","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xda61aa7823fcd807e37b95aabcbe17f03a6f3efd514176444dae191d27fd66b3","0x87b3e82db67d821f34d17c794ca490bbaf5a2b9cf2c602474a13c1bb0d617c5c","0x0000000000000000000000000000000000000000000000000000000000000000"],"data":"0x","blockHash":"0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc","blockNumber":"0x47","blockTimestamp":"0x6aac77a0","transactionHash":"0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca","transactionIndex":"0x0","logIndex":"0x1","removed":false},{"address":"0x1f7ad7caa53e35b4f0d138dc5cbf91ac108a2674","topics":["0xaf6c6cd7790e0180a4d22eb8ed846e55846f54ed10e5946db19972b5a0813a59","0x0000000000000000000000000000000000000000000000000000000000000001"],"data":"0xa94b8386a0dc8edcfbfa6122ecf8852918068f7212ef8b9b7ea422c9ee40c5ae600d6a123a545484dacff35e3d6a7d52519776d63f4e8347e1a7079e8cdec5be000000000000000000000000000000000000000000000000000000006aac77a0","blockHash":"0xd57e19ea3ecad5170900a0ce6778ed77b86105e115d65beeb2570fcbbda4e0cc","blockNumber":"0x47","blockTimestamp":"0x6aac77a0","transactionHash":"0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca","transactionIndex":"0x0","logIndex":"0x2","removed":false}]
+logsBloom            0x000000000000000000000000080000000000008020000000020000000000000000080000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000400000000000000000000000000000200000000000000000008000000000000000000000000000008000000000000010000000000000001000100000000000008000010000000000000000000000000000000000000000000000c0000000000000000000000000100000000000000000000000000000000000002000000000002000400000000000060000000000000000000000000000000000400000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x665263750f573b41cb075e404edbd12345a0cfbae2b84f870f296fd7422563ca
+transactionIndex     0
+type                 2
+blobGasPrice         
+blobGasUsed          
+to                   0xC8cbEBf950B9Df44d987c8619f092beA980fF038
+
+--------------------
+
+Printing a message
+Changing querying service name to helper
+
+Getting contract setup addresses from contracts-001 service
+Command returned with exit code '0' and the following output:
+--------------------
+{
+  "polygonRollupManagerAddress": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "polygonZkEVMBridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "polygonZkEVMGlobalExitRootAddress": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "aggLayerGatewayAddress": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+  "pessimisticVKeyRouteALGateway": {
+    "pessimisticVKeySelector": "0x0000000e",
+    "verifier": "0x322e0cfC33f916379702396E6e41A6d2D97d0D96",
+    "pessimisticVKey": "0x00d14f977a6ec393014f300ad78d0761dc29435d3fa1e2626fa466bd3343578e"
+  },
+  "polTokenAddress": "0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E",
+  "zkEVMDeployerContract": "0x1b50e2F3bf500Ab9Da6A7DBb6644D392D9D14b99",
+  "deployerAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "timelockContractAddress": "0x07783C37CAAFe0f05C4105250C032062A83F7AC2",
+  "deploymentRollupManagerBlockNumber": 46,
+  "upgradeToULxLyBlockNumber": 46,
+  "admin": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+  "trustedAggregator": "0xCae5b68Ff783594bDe1b93cdE627c741722c4D4d",
+  "proxyAdminAddress": "0xd60F1BCf5566fCCD62f8AA3bE00525DdA6Ab997c",
+  "salt": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "AgglayerManager": "0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+  "AgglayerBridge": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "AgglayerGER": "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674",
+  "AgglayerGateway": "0xf22E2B040B639180557745F47aB97dFA95B1e22a",
+  "gasTokenAddress": "0x0000000000000000000000000000000000000000",
+  "programVKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "polygonDataCommitteeAddress": "0xB49fA7dD4d70F773015a9c848A8719FA86D81275",
+  "firstBatchData": {
+    "batchL2Data": "0xf9010380808401c9c38094c8cbebf950b9df44d987c8619f092bea980ff03880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005ca1ab1e0000000000000000000000000000000000000000000000000000000005ca1ab1e1bff",
+    "globalExitRoot": "0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5",
+    "timestamp": 1789687692,
+    "sequencer": "0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed"
+  },
+  "genesis": "0x8987cdb4cffa08d975bb03782e4a521c1a709fa85598bb471871c6186f3b2062",
+  "createRollupBlockNumber": 61,
+  "rollupAddress": "0x414e9E227e4b589aF92200508aF5399576530E4e",
+  "verifierAddress": "0x5A6896A98c4B7C7E8f16d177C719a1d856b9154c",
+  "consensusContract": "PolygonValidiumEtrog",
+  "consensusContractAddress": "0xFB054898a55bB49513D1BA8e0FB949Ea3D9B4153",
+  "rollupTypeId": "1",
+  "rollupID": "1",
+  "polygonZkEVML2BridgeAddress": "0xC8cbEBf950B9Df44d987c8619f092beA980fF038",
+  "LegacyAgglayerGERL2": "0xa40d5f56745a118d0906a34e69aec8c0db1cb8fa",
+  "bridgeGenBlockNumber": 61
+}
+
+--------------------
+
+Printing a message
+Skipping the deployment of helper service to retrieve rollup data
+
+Printing a message
+Deploying databases
+
+Rendering a template to a files artifact with name 'init.sql-001'
+Templates artifact name 'init.sql-001' rendered with artifact UUID '496e28f6e5da419eacfe0140ef1f96cd'
+
+Adding service with name 'postgres-001' and image 'postgres:17.6'
+Service 'postgres-001' added with service UUID 'f87308bc21064bbc90da4d8de072f4f2'
+
+Printing a message
+Getting genesis file
+
+Storing files from service 'contracts-001' at path '/opt/output/genesis.json' to files artifact with name 'genesis'
+Files with artifact name 'genesis' uploaded with artifact UUID '0151077d7fa348ec83568edc190f2d2d'
+
+Printing a message
+Skipping the deployment of MITM
+
+Printing a message
+Deploying the agglayer
+
+Rendering a template to a files artifact with name 'agglayer-config'
+Templates artifact name 'agglayer-config' rendered with artifact UUID '41058a2ed8924e2297a314897f7b6810'
+
+Storing files from service 'contracts-001' at path '/opt/keystores/aggregator.keystore' to files artifact with name 'aggregator-keystore'
+Files with artifact name 'aggregator-keystore' uploaded with artifact UUID '0b24d5b3d8fd4bae929d6ac38c476887'
+
+Adding service with name 'agglayer' and image 'ghcr.io/agglayer/agglayer:0.6.0-rc.5'
+Service 'agglayer' added with service UUID 'af558d4380144732b9dae4ec9d19d68b'
+
+Printing a message
+Deploying cdk-erigon chain
+
+Rendering a template to a files artifact with name 'zkevm-stateless-executor-config-001'
+Templates artifact name 'zkevm-stateless-executor-config-001' rendered with artifact UUID '0b797b84723e46558d665bbf0861381f'
+
+Determining CPU system architecture
+Command returned with exit code '0' and the following output: x86_64
+
+Adding service with name 'zkevm-stateless-executor-001' and image 'hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12'
+Service 'zkevm-stateless-executor-001' added with service UUID '812e6f4f2a314aa0929743e07bfb2da4'
+
+Rendering a template to a files artifact with name 'cdk-erigon-sequencer-config-001'
+Templates artifact name 'cdk-erigon-sequencer-config-001' rendered with artifact UUID '206835a6a70442f592a1824785b2c380'
+
+Rendering a template to a files artifact with name 'cdk-erigon-sequencer-chain-spec-001'
+Templates artifact name 'cdk-erigon-sequencer-chain-spec-001' rendered with artifact UUID '124332f3ed8344a4842ab12fcd6588f8'
+
+Fetching files artifact 'cdk-erigon-chain-config'
+Fetched files artifact 'cdk-erigon-chain-config'
+
+Fetching files artifact 'cdk-erigon-chain-allocs'
+Fetched files artifact 'cdk-erigon-chain-allocs'
+
+Fetching files artifact 'cdk-erigon-chain-first-batch'
+Fetched files artifact 'cdk-erigon-chain-first-batch'
+
+Uploading file '../../../static_files/scripts/proc-runner.sh' to files artifact 'cdk-erigon-sequencer-proc-runner-001'
+Files with artifact name 'cdk-erigon-sequencer-proc-runner-001' uploaded with artifact UUID '36eda4dd2e2c4a25b9009225f959a2d5'
+
+Adding service with name 'cdk-erigon-sequencer-001' and image 'hermeznetwork/cdk-erigon:v2.61.20'
+Service 'cdk-erigon-sequencer-001' added with service UUID 'a60aedbc52b74352a154c62a1b813823'
+
+Rendering a template to a files artifact with name 'zkevm-pool-manager-config-001'
+Templates artifact name 'zkevm-pool-manager-config-001' rendered with artifact UUID '7e165e8b16574c5a891eba7bb210bc29'
+
+Adding service with name 'zkevm-pool-manager-001' and image 'ghcr.io/0xpolygon/zkevm-pool-manager:0.1.3'
+Service 'zkevm-pool-manager-001' added with service UUID '276b0aa0e8a44d598b79e365a35956ab'
+
+Rendering a template to a files artifact with name 'cdk-erigon-rpc-config-001'
+Templates artifact name 'cdk-erigon-rpc-config-001' rendered with artifact UUID '059feb6d86334284b9b1b25bd216b2d7'
+
+Rendering a template to a files artifact with name 'cdk-erigon-rpc-chain-spec-001'
+Templates artifact name 'cdk-erigon-rpc-chain-spec-001' rendered with artifact UUID '7af472addd844580ba88f3cab0b6fbd3'
+
+Fetching files artifact 'cdk-erigon-chain-config'
+Fetched files artifact 'cdk-erigon-chain-config'
+
+Fetching files artifact 'cdk-erigon-chain-allocs'
+Fetched files artifact 'cdk-erigon-chain-allocs'
+
+Fetching files artifact 'cdk-erigon-chain-first-batch'
+Fetched files artifact 'cdk-erigon-chain-first-batch'
+
+Uploading file '../../../static_files/scripts/proc-runner.sh' to files artifact 'cdk-erigon-rpc-proc-runner-001'
+Files with artifact name 'cdk-erigon-rpc-proc-runner-001' uploaded with artifact UUID 'fc21db55ce664a42bc206da317161a1f'
+
+Adding service with name 'cdk-erigon-rpc-001' and image 'hermeznetwork/cdk-erigon:v2.61.20'
+Service 'cdk-erigon-rpc-001' added with service UUID '6d135c5aaaf646e68968bb90c4f25321'
+
+Rendering a template to a files artifact with name 'cdk-data-availability-config-001'
+Templates artifact name 'cdk-data-availability-config-001' rendered with artifact UUID 'd3567bd3832145db884e478b212ce7cd'
+
+Storing files from service 'contracts-001' at path '/opt/keystores/dac.keystore' to files artifact with name 'cdk-data-availability-keystore-001'
+Files with artifact name 'cdk-data-availability-keystore-001' uploaded with artifact UUID '3a529c809c4a4e609439a8959793a76f'
+
+Adding service with name 'cdk-data-availability-001' and image 'ghcr.io/0xpolygon/cdk-data-availability:0.0.13'
+Service 'cdk-data-availability-001' added with service UUID 'd68bdb1b2f1b4fd28837fc9553cb6f10'
+
+Storing files from service 'contracts-001' at path '/opt/keystores/sequencer.keystore' to files artifact with name 'sequencer-keystore'
+Files with artifact name 'sequencer-keystore' uploaded with artifact UUID '0e9fcfba3e5c420ea454585e95adb848'
+
+Fetching files artifact 'aggregator-keystore'
+Fetched files artifact 'aggregator-keystore'
+
+Storing files from service 'contracts-001' at path '/opt/keystores/claimsponsor.keystore' to files artifact with name 'claimsponsor-keystore-cdk'
+Files with artifact name 'claimsponsor-keystore-cdk' uploaded with artifact UUID 'b5021e2ec9c14fd591eff18e6868210d'
+
+Rendering a template to a files artifact with name 'cdk-node-config-001'
+Templates artifact name 'cdk-node-config-001' rendered with artifact UUID '085170c7d921414b837b3a1149ab491c'
+
+Adding service with name 'cdk-node-001' and image 'ghcr.io/0xpolygon/cdk:0.5.4-rc1'
+Service 'cdk-node-001' added with service UUID '99aacadbd424417ebd741c2ca8ded2dc'
+
+Rendering a template to a files artifact with name 'zkevm-prover-config-001'
+Templates artifact name 'zkevm-prover-config-001' rendered with artifact UUID 'a32889a1a90b4a909ed8ddd3a3c31aa9'
+
+Determining CPU system architecture
+Command returned with exit code '0' and the following output: x86_64
+
+Adding service with name 'zkevm-prover-001' and image 'hermeznetwork/zkevm-prover:v8.0.0-RC16-fork.12'
+Service 'zkevm-prover-001' added with service UUID 'a0e7f058f68746f89614a74f08aacff9'
+
+Fetching service 'cdk-erigon-rpc-001'
+Fetched service 'cdk-erigon-rpc-001'
+
+Funding accounts on L2
+Command returned with exit code '0' and the following output:
+--------------------
+[32m[2026-09-17 23:29:41][0m Executing function l2_legacy_fund_accounts
+[32m[2026-09-17 23:29:41][0m Waiting for the L2 RPC to be available
+[32m[2026-09-17 23:29:46][0m L2 RPC is now available
+[32m[2026-09-17 23:29:46][0m Funding claim sponsor account on l2
+[32m[2026-09-17 23:29:46][0m Funding 0x635243A11B41072264Df6c9186e3f473402F94e9
+0x9f106707dcfe60f7d7977c0416001b0cc9d9c42903789e8e7d3a377578d03521
+
+--------------------
+
+Rendering a template to a files artifact with name 'bridge-config-artifact'
+Templates artifact name 'bridge-config-artifact' rendered with artifact UUID '0be0a596a64c476aa730191e989498d2'
+
+Storing files from service 'contracts-001' at path '/opt/keystores/claimsponsor.keystore' to files artifact with name 'claimsponsor-keystore'
+Files with artifact name 'claimsponsor-keystore' uploaded with artifact UUID '470d84691f9744e697a70de64ed4f269'
+
+Adding service with name 'zkevm-bridge-service-001' and image 'ghcr.io/0xpolygon/zkevm-bridge-service:v0.6.4-RC2'
+Service 'zkevm-bridge-service-001' added with service UUID '648424d2c66b4f319118fce6e8f934c6'
+
+Printing a message
+Deploying contracts on L2
+
+Fetching service 'cdk-erigon-rpc-001'
+Fetched service 'cdk-erigon-rpc-001'
+
+Deploying contracts on L2
+Command returned with exit code '0' and the following output:
+--------------------
+[32m[2026-09-17 23:29:48][0m Executing function l2_contract_setup
+[32m[2026-09-17 23:29:48][0m Funding accounts on l2
+[32m[2026-09-17 23:29:48][0m Funding 0x8943545177806ED17B9F23F0a21ee5948eCaa776
+Error: server returned an error response: error code -32000: RPC error response: INTERNAL_ERROR: could not replace existing tx
+[32m[2026-09-17 23:29:48][0m Funding 0xE25583099BA105D9ec0A67f5Ae86D90e50036425
+0x73b5cf873b0f846f174df8a5a1632933f772a73d8b0dd3f99f4bd93ff4ec2d61
+[32m[2026-09-17 23:29:48][0m Funding 0x614561D2d143621E126e87831AEF287678B442b8
+0xe3945b4cb0b9aad7e9ebc1e22201c1c87f9d6412a3500c3de9c6ce10232c0bfc
+[32m[2026-09-17 23:29:48][0m Funding 0xf93Ee4Cf8c6c40b329b0c0626F28333c132CF241
+0xaaff2d83f4a7a91fc49ae2aa1117b0671576bcc67b7b1de3cd6360341635ccbe
+[32m[2026-09-17 23:29:48][0m Funding 0x802dCbE1B1A97554B4F50DB5119E37E8e7336417
+0xeb8abf2ceb6512d9822244089d48e3846391201e1809cbdcd46c6472db36f6e5
+[32m[2026-09-17 23:29:48][0m Funding 0xAe95d8DA9244C37CaC0a3e16BA966a8e852Bb6D6
+0x93ef4a2df59bbcc0c9d95441aad97cb1d29073ba4e50c0a122dd06f1be2fad73
+[32m[2026-09-17 23:29:48][0m Funding 0x2c57d1CFC6d5f8E4182a56b4cf75421472eBAEa4
+0x8166056a4b7c2c740ef540e12930cf0f0ff4341d236ff1545deeb600aa0a00be
+[32m[2026-09-17 23:29:48][0m Funding 0x741bFE4802cE1C4b5b00F9Df2F5f179A1C89171A
+0x0f202806534f102f4710fe007e0c54b89b99d634a3861e19f3e0f4ea6bfd9c84
+[32m[2026-09-17 23:29:48][0m Funding 0xc3913d4D8bAb4914328651C2EAE817C8b78E1f4c
+0xaedf218e36f2e92590466298e64b2832073a0eaf7b469452666cdb116847f8f6
+[32m[2026-09-17 23:29:48][0m Funding 0x65D08a056c17Ae13370565B04cF77D2AfA1cB9FA
+0xcddb9f5c734b7cb85e7ba17cd40c82083160ff6be912b2824dd7b3f32cc17dd1
+[32m[2026-09-17 23:29:48][0m Deploying deterministic deployment proxy on l2
+
+blockHash            0xec567993d853fad8ea9febe6b8a4ac6c7f99f06ca40ed63c08fcac7428b5fba9
+blockNumber          15
+contractAddress      
+cumulativeGasUsed    210000
+effectiveGasPrice    1000000000
+from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+gasUsed              21000
+logs                 []
+logsBloom            0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+root                 
+status               1 (success)
+transactionHash      0x30f3f78d8ac994667c1af87ecea1678179ec46a657339b05b5bdb5c126cfbd29
+transactionIndex     9
+type                 0
+blobGasPrice         
+blobGasUsed          
+to                   0x3fAB184622Dc19b6109349B94811493BF2a45362
+{"status":"0x1","cumulativeGasUsed":"0x10a23","logs":[],"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","type":"0x0","transactionHash":"0xeddf9e61fb9d8f5111840daef55e5fde0041f5702856532cdbb5a02998033d26","transactionIndex":"0x0","blockHash":"0xa0635d5deb852a15aaf9d1c6071bd8b2827b932113e5b782c4a72bfd8b8314e0","blockNumber":"0x11","gasUsed":"0x10a23","effectiveGasPrice":"0x174876e800","from":"0x3fab184622dc19b6109349b94811493bf2a45362","to":null,"contractAddress":"0x4e59b44847b379578588920ca78fbf26c0b4956c"}
+Cloning into '/opt/lxly-bridge-and-call'...
+Submodule 'lib/forge-std' (https://github.com/foundry-rs/forge-std) registered for path 'lib/forge-std'
+Submodule 'lib/openzeppelin-contracts' (https://github.com/OpenZeppelin/openzeppelin-contracts) registered for path 'lib/openzeppelin-contracts'
+Submodule 'lib/openzeppelin-contracts-upgradeable' (https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable) registered for path 'lib/openzeppelin-contracts-upgradeable'
+Submodule 'lib/zkevm-contracts' (https://github.com/0xPolygonHermez/zkevm-contracts) registered for path 'lib/zkevm-contracts'
+Cloning into '/opt/lxly-bridge-and-call/lib/forge-std'...
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts'...
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts-upgradeable'...
+Cloning into '/opt/lxly-bridge-and-call/lib/zkevm-contracts'...
+Submodule path 'lib/forge-std': checked out '1714bee72e286e73f76e320d110e0eaf5c4e649d'
+Submodule path 'lib/openzeppelin-contracts': checked out 'e50c24f5839db17f46991478384bfda14acfb830'
+Submodule 'lib/erc4626-tests' (https://github.com/a16z/erc4626-tests.git) registered for path 'lib/openzeppelin-contracts/lib/erc4626-tests'
+Submodule 'lib/forge-std' (https://github.com/foundry-rs/forge-std) registered for path 'lib/openzeppelin-contracts/lib/forge-std'
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts/lib/erc4626-tests'...
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts/lib/forge-std'...
+Submodule path 'lib/openzeppelin-contracts/lib/erc4626-tests': checked out '8b1d7c2ac248c33c3506b1bff8321758943c5e11'
+Submodule path 'lib/openzeppelin-contracts/lib/forge-std': checked out 'c2236853aadb8e2d9909bbecdc490099519b70a4'
+Submodule 'lib/ds-test' (https://github.com/dapphub/ds-test) registered for path 'lib/openzeppelin-contracts/lib/forge-std/lib/ds-test'
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts/lib/forge-std/lib/ds-test'...
+Submodule path 'lib/openzeppelin-contracts/lib/forge-std/lib/ds-test': checked out '6da7dd8f7395f83e1fb6fa88a64ba9a030f85d4f'
+Submodule path 'lib/openzeppelin-contracts-upgradeable': checked out 'f6c4c9c4ec601665ca74d2c9dddf547fc425658c'
+Submodule 'lib/forge-std' (https://github.com/foundry-rs/forge-std) registered for path 'lib/openzeppelin-contracts-upgradeable/lib/forge-std'
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts-upgradeable/lib/forge-std'...
+Submodule path 'lib/openzeppelin-contracts-upgradeable/lib/forge-std': checked out 'eb980e1d4f0e8173ec27da77297ae411840c8ccb'
+Submodule 'lib/ds-test' (https://github.com/dapphub/ds-test) registered for path 'lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test'
+Cloning into '/opt/lxly-bridge-and-call/lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test'...
+Submodule path 'lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test': checked out 'cd98eff28324bfac652e63a239a60632a761790b'
+Submodule path 'lib/zkevm-contracts': checked out '311be35a565745df92669f51b8a509e65e3ba4ed'
+[32m[2026-09-17 23:30:18][0m Deploying lxly bridge and call on l1
+Compiling 55 files with Solc 0.8.20
+installing solc version "0.8.20"
+Successfully installed solc 0.8.20
+Solc 0.8.20 finished in 3.48s
+Compiler run successful with warnings:
+Warning (9302): Return value of low-level calls not used.
+   --> lib/zkevm-contracts/contracts/v2/PolygonZkEVMBridgeV2.sol:957:13:
+    |
+957 |             address(token).call(
+    |             ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (9302): Return value of low-level calls not used.
+    --> lib/zkevm-contracts/contracts/v2/PolygonZkEVMBridgeV2.sol:1009:13:
+     |
+1009 |             address(token).call(
+     |             ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (9302): Return value of low-level calls not used.
+  --> src/JumpPoint.sol:63:27:
+   |
+63 |             if (!success) fallbackAddress.call{value: balance}("");
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Script ran successfully.
+
+== Logs ==
+  Deployed BridgeExtension Implementation to:  0x7bAbf98Cb7cbD2C85F13813409f495B9cF0Dd7D0
+  Deployed BridgeExtensionProxy to:  0x64B20Eb25AEd030FD510EF93B9135278B152f6a6
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 271828
+
+Estimated gas price: 0.00000007 gwei
+
+Estimated total gas used for script: 3700485
+
+Estimated amount required: 0.00000000025903395 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /opt/lxly-bridge-and-call/broadcast/DeployInitBridgeAndCall.s.sol/271828/run-latest.json
+
+Sensitive values saved to: /opt/lxly-bridge-and-call/cache/DeployInitBridgeAndCall.s.sol/271828/run-latest.json
+
+[32m[2026-09-17 23:30:25][0m Deploying lxly bridge and call on l2
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  Deployed BridgeExtension Implementation to:  0x7bAbf98Cb7cbD2C85F13813409f495B9cF0Dd7D0
+  Deployed BridgeExtensionProxy to:  0x64B20Eb25AEd030FD510EF93B9135278B152f6a6
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 2151908
+
+Estimated gas price: 1 gwei
+
+Estimated total gas used for script: 3700485
+
+Estimated amount required: 0.003700485 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /opt/lxly-bridge-and-call/broadcast/DeployInitBridgeAndCall.s.sol/2151908/run-latest.json
+
+Sensitive values saved to: /opt/lxly-bridge-and-call/cache/DeployInitBridgeAndCall.s.sol/2151908/run-latest.json
+
+
+--------------------
+
+Starlark code successfully run. No output was returned.
+
+⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
+[36mINFO[0m[2026-09-17T23:30:30Z] =========================================================== 
+[36mINFO[0m[2026-09-17T23:30:30Z] ||          Created enclave: fep-to-pp-rollback          || 
+[36mINFO[0m[2026-09-17T23:30:30Z] =========================================================== 
+Name:            fep-to-pp-rollback
+UUID:            273a777f4cb3
+Status:          RUNNING
+Creation Time:   Thu, 17 Sep 2026 23:23:26 UTC
+Flags:           
+
+========================================= Files Artifacts =========================================
+UUID           Name
+bdba85292101   1-lighthouse-reth-0-127
+16a2477d831a   add_rollup_type.json
+41058a2ed892   agglayer-config
+0b24d5b3d8fd   aggregator-keystore
+0be0a596a64c   bridge-config-artifact
+d3567bd38321   cdk-data-availability-config-001
+3a529c809c4a   cdk-data-availability-keystore-001
+bac4d19e10ef   cdk-erigon-chain-allocs
+d48fe68c05e2   cdk-erigon-chain-config
+8008e186a870   cdk-erigon-chain-first-batch
+e0bfff3de987   cdk-erigon-custom-genesis-addresses.json
+7af472addd84   cdk-erigon-rpc-chain-spec-001
+059feb6d8633   cdk-erigon-rpc-config-001
+fc21db55ce66   cdk-erigon-rpc-proc-runner-001
+124332f3ed83   cdk-erigon-sequencer-chain-spec-001
+206835a6a704   cdk-erigon-sequencer-config-001
+36eda4dd2e2c   cdk-erigon-sequencer-proc-runner-001
+085170c7d921   cdk-node-config-001
+470d84691f97   claimsponsor-keystore
+b5021e2ec9c1   claimsponsor-keystore-cdk
+05b1ac282fac   contracts.sh
+ec198f4fb26d   create-genesis-sovereign-params.json
+32572350db54   create_new_rollup.json
+27ed542e128f   create_op_allocs.py
+320c2f468072   create_rollup_parameters.json
+df2344afd614   deploy_parameters.json
+d4ba5aaa172a   el_cl_genesis_data
+02a1f36c0c20   final-genesis-timestamp
+0151077d7fa3   genesis
+09eae63f4005   genesis-el-cl-env-file
+a982ac027678   genesis_validators_root
+496e28f6e5da   init.sql-001
+2cd4226869a7   input_args.json
+432122da9212   json2http.py
+3a95aefc35fc   jwt_file
+0492935db420   keymanager_file
+4bc342cb0c31   op-custom-genesis-addresses.json
+a0a7d443120d   prysm-password
+0e9fcfba3e5c   sequencer-keystore
+f60f7d27c612   validator-ranges
+9668d0099e4a   validator-ranges-input
+7e165e8b1657   zkevm-pool-manager-config-001
+a32889a1a90b   zkevm-prover-config-001
+0b797b84723e   zkevm-stateless-executor-config-001
+
+========================================== User Services ==========================================
+UUID           Name                                             Ports                                                     Status
+af558d438014   agglayer                                         aglr-admin: 4446/tcp -> http://127.0.0.1:32782            RUNNING
+                                                                aglr-grpc: 4443/tcp -> grpc://127.0.0.1:32780             
+                                                                aglr-readrpc: 4444/tcp -> http://127.0.0.1:32781          
+                                                                prometheus: 9092/tcp -> http://127.0.0.1:32783            
+d68bdb1b2f1b   cdk-data-availability-001                        dac: 8484/tcp -> 127.0.0.1:32796                          RUNNING
+6d135c5aaaf6   cdk-erigon-rpc-001                               pprof: 6060/tcp -> 127.0.0.1:32792                        RUNNING
+                                                                prometheus: 9091/tcp -> 127.0.0.1:32795                   
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32793                   
+                                                                ws-rpc: 8546/tcp -> ws://127.0.0.1:32794                  
+a60aedbc52b7   cdk-erigon-sequencer-001                         data-streamer: 6900/tcp -> datastream://127.0.0.1:32787   RUNNING
+                                                                pprof: 6060/tcp -> 127.0.0.1:32786                        
+                                                                prometheus: 9091/tcp -> 127.0.0.1:32790                   
+                                                                rpc: 8545/tcp -> http://127.0.0.1:32788                   
+                                                                ws-rpc: 8546/tcp -> ws://127.0.0.1:32789                  
+99aacadbd424   cdk-node-001                                     aggregator: 50081/tcp -> grpc://127.0.0.1:32799           RUNNING
+                                                                rest: 5577/tcp -> http://127.0.0.1:32798                  
+                                                                rpc: 5576/tcp -> http://127.0.0.1:32797                   
+aa04d01936a2   cl-1-lighthouse-reth                             http: 4000/tcp -> http://127.0.0.1:32774                  RUNNING
+                                                                metrics: 5054/tcp -> http://127.0.0.1:32775               
+                                                                quic-discovery: 9001/udp                                  
+                                                                tcp-discovery: 9000/tcp -> 127.0.0.1:32776                
+                                                                udp-discovery: 9000/udp                                   
+174c940c8ef8   contracts-001                                    http: 8080/tcp -> http://127.0.0.1:32778                  RUNNING
+85f6bd77cfe8   el-1-reth-lighthouse                             engine-rpc: 8551/tcp -> 127.0.0.1:32771                   RUNNING
+                                                                metrics: 9001/tcp -> http://127.0.0.1:32772               
+                                                                rpc: 8545/tcp -> 127.0.0.1:32769                          
+                                                                tcp-discovery: 30303/tcp -> 127.0.0.1:32773               
+                                                                udp-discovery: 30303/udp                                  
+                                                                ws: 8546/tcp -> 127.0.0.1:32770                           
+f87308bc2106   postgres-001                                     postgres: 5432/tcp -> postgresql://127.0.0.1:32779        RUNNING
+305b73909184   validator-key-generation-cl-validator-keystore   <none>                                                    RUNNING
+2ceb986f4a91   vc-1-reth-lighthouse                             metrics: 8080/tcp -> http://127.0.0.1:32777               RUNNING
+648424d2c66b   zkevm-bridge-service-001                         grpc: 9090/tcp -> grpc://127.0.0.1:32804                  RUNNING
+                                                                prometheus: 8090/tcp -> http://127.0.0.1:32803            
+                                                                rpc: 8080/tcp -> http://127.0.0.1:32802                   
+276b0aa0e8a4   zkevm-pool-manager-001                           http: 8545/tcp -> http://127.0.0.1:32791                  RUNNING
+a0e7f058f687   zkevm-prover-001                                 executor: 50071/tcp -> grpc://127.0.0.1:32801             RUNNING
+                                                                hash-db: 50061/tcp -> grpc://127.0.0.1:32800              
+812e6f4f2a31   zkevm-stateless-executor-001                     executor: 50071/tcp -> grpc://127.0.0.1:32785             RUNNING
+                                                                hash-db: 50061/tcp -> grpc://127.0.0.1:32784              
+
+
+[exit=0]
+

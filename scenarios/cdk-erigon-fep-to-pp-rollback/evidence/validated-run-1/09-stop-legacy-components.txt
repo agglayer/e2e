@@ -1,0 +1,8 @@
+$ kurtosis service stop fep-to-pp-rollback cdk-data-availability-001 zkevm-stateless-executor-001 zkevm-prover-001 zkevm-pool-manager-001
+[36mINFO[0m[2026-09-17T23:43:18Z] Stopping service 'cdk-data-availability-001' 
+[36mINFO[0m[2026-09-17T23:43:21Z] Stopping service 'zkevm-stateless-executor-001' 
+[36mINFO[0m[2026-09-17T23:43:23Z] Stopping service 'zkevm-prover-001'          
+[36mINFO[0m[2026-09-17T23:43:25Z] Stopping service 'zkevm-pool-manager-001'    
+
+[exit=0]
+

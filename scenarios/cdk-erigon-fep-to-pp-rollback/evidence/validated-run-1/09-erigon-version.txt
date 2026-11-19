@@ -1,0 +1,6 @@
+$ bash -c cast rpc --rpc-url http://127.0.0.1:32815 web3_clientVersion; cast rpc --rpc-url http://127.0.0.1:32811 web3_clientVersion
+"cdk-erigon/v2.61.24/linux-amd64/go1.21.5"
+"cdk-erigon/v2.61.24/linux-amd64/go1.21.5"
+
+[exit=0]
+

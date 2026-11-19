@@ -1,0 +1,7 @@
+$ bash -c kurtosis service exec fep-to-pp-rollback agglayer 'agglayer --version'
+The command was successfully executed and returned '0'.
+agglayer agglayer (v0.6.0) [git commit timestamp: 2026-09-14T18:35:04+02:00]
+
+
+[exit=0]
+

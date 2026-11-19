@@ -1,0 +1,33 @@
+--- /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-sequencer-before.yaml	2026-09-17 23:42:51.440907775 +0000
++++ /home/runner/work/e2e/e2e/scenarios/cdk-erigon-fep-to-pp-rollback/evidence/ci-run/09-erigon-config-sequencer-after.yaml	2026-09-17 23:42:51.446934424 +0000
+@@ -159,7 +159,7 @@
+ # This can impact performance and transaction processing capabilities.
+ # Default: false
+ # 
+-zkevm.disable-virtual-counters: false
++zkevm.disable-virtual-counters: true
+ # 
+ 
+ 
+@@ -337,13 +337,13 @@
+ # --------------------------------------------------------------------------------------------------
+ # When set to true, ensures that a valid executor URL is provided.
+ # Set to false to bypass the restriction (not recommended).
+-zkevm.executor-strict: true
++zkevm.executor-strict: false
+ 
+ # A comma separated list of gRPC addresses that host zkevm executors.
+ # Multiple URLs can be provided for load balancing or redundancy.
+ # Default: ""
+ # 
+-zkevm.executor-urls: zkevm-stateless-executor-001:50071
++# zkevm.executor-urls: zkevm-stateless-executor-001:50071
+ # 
+ 
+ # Define the maximum time allowed for an executor to respond to a request.
+@@ -974,3 +974,5 @@
+ # - lightclient.x
+ # - sentinel.x
+ 
++
++zkevm.mock-witness-generation: true

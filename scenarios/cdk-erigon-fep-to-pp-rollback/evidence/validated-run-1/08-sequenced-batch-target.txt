@@ -1,0 +1,5 @@
+$ l1_call 0x6c6c009cC348976dB4A908c92B24433d4F6edA43 getRollupSequencedBatches(uint32,uint64)((bytes32,uint64,uint64)) 1 23
+(0xfd5c57460b6c65e42c42f70743c46b5d5cc3db2b3b822c2d6a1837ef8b422085, 1789688112 [1.789e9], 19)
+
+[exit=0]
+
