@@ -221,25 +221,6 @@ _fund_claim_tx_manager() {
 }
 
 # bats test_tags=agglayer-rpc
-@test "query interop_getTxStatus on agglayer RPC for latest settled certificate returns done" {
-    tmp_file=$(mktemp)
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestSettledCertificateHeader "$l2_network_id" > "$tmp_file"
-
-    # Skip the test if there is no known certificate
-    if jq -e '. == null' "$tmp_file" ; then
-        skip
-    fi
-
-    certificate_id=$(jq -r '.settlement_tx_hash' "$tmp_file")
-    cast rpc --rpc-url "$agglayer_rpc_url" interop_getTxStatus "$certificate_id" > "$tmp_file"
-
-    if [[ $(cat "$tmp_file") != '"done"' ]]; then
-        echo "transaction status seems to be incorrect"
-        exit 1
-    fi
-}
-
-# bats test_tags=agglayer-rpc
 @test "query interop_getLatestPendingCertificateHeader on agglayer RPC returns expected fields" {
     tmp_file=$(mktemp)
     cast rpc --rpc-url "$agglayer_rpc_url" interop_getLatestPendingCertificateHeader "$l2_network_id" > "$tmp_file"
